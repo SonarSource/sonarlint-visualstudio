@@ -145,13 +145,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ReadSolution_SolutionFileExists_NoCredentials_ReturnsConfig()
+        public void ReadSolution_SolutionFileExists_NoCredentials_WithQPs_ReturnsConfig()
         {
             // Arrange
             var validConfig = @"{
-  ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
-  ""Organization"": null,
-  ""ProjectKey"": ""MyProject Key""
+  'ServerUri': 'http://xxx.www.zzz/yyy:9000',
+  'Organization': null,
+  'ProjectKey': 'MyProject Key',
+  'ProjectName': 'junk',
+  'Profiles': {
+    'CSharp': {
+      'ProfileKey': 'AW7HxNmwSOyv3m_jy9io',
+      'ProfileTimestamp': '2019-12-02T17:59:57+00:01'
+    },
+    'VB': {
+      'ProfileKey': 'AW7HxNTWSOyv3m_jy9H0',
+      'ProfileTimestamp': '2019-12-02T17:59:55+00:02'
+    },
+    'C++': {
+      'ProfileKey': 'AW7HxNXDSOyv3m_jy9PK',
+      'ProfileTimestamp': '2019-12-02T17:59:56+00:03'
+    },
+    'C': {
+      'ProfileKey': 'AW7HxNZhSOyv3m_jy9Vg',
+      'ProfileTimestamp': '2019-12-02T17:59:56+00:04'
+    }
+  }
 }";
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
             SetFileContents(@"c:\.sonarlint\mysolutionfile.slconfig", validConfig);
@@ -165,6 +184,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.ServerUri.Should().Be("http://xxx.www.zzz/yyy:9000");
             actual.Organization.Should().BeNull();
             actual.ProjectKey.Should().Be("MyProject Key");
+
+            actual.Profiles.Count.Should().Be(4);
+            actual.Profiles.Keys.Should().BeEquivalentTo(Core.Language.C, Core.Language.Cpp, Core.Language.VBNET, Core.Language.CSharp);
+            actual.Profiles[Core.Language.CSharp].ProfileKey.Should().Be("AW7HxNmwSOyv3m_jy9io");
+            actual.Profiles[Core.Language.VBNET].ProfileKey.Should().Be("AW7HxNTWSOyv3m_jy9H0");
+            actual.Profiles[Core.Language.Cpp].ProfileKey.Should().Be("AW7HxNXDSOyv3m_jy9PK");
+            actual.Profiles[Core.Language.C].ProfileKey.Should().Be("AW7HxNZhSOyv3m_jy9Vg");
+
+            actual.Profiles[Core.Language.CSharp].ProfileTimestamp.Should().Be(DateTime.Parse("2019-12-02T17:59:57+00:01"));
+            actual.Profiles[Core.Language.VBNET].ProfileTimestamp.Should().Be(DateTime.Parse("2019-12-02T17:59:55+00:02"));
+            actual.Profiles[Core.Language.Cpp].ProfileTimestamp.Should().Be(DateTime.Parse("2019-12-02T17:59:56+00:03"));
+            actual.Profiles[Core.Language.C].ProfileTimestamp.Should().Be(DateTime.Parse("2019-12-02T17:59:56+00:04"));
         }
 
         [TestMethod]
