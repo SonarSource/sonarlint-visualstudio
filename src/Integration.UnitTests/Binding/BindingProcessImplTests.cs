@@ -276,6 +276,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.InternalState.BindingProjects.AddRange(projects);
 
             this.host.SupportedPluginLanguages.Add(Language.Cpp);
+            this.host.SupportedPluginLanguages.Add(Language.C);
 
             // Act
             var actualLanguages = testSubject.GetBindingLanguages();
