@@ -130,6 +130,9 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                 }
             }
 
+            Debug.Assert(!bound?.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
+                "Not expecting the deserialized binding config to contain the profile for an unknown language");
+
             return bound;
         }
 
