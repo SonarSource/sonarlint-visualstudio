@@ -89,7 +89,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
             var pluginAndPatternFilteredProjects =
-                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages.Contains(ProjectToLanguageMapper.GetLanguageForProject(p)));
+                patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages
+                    .Any(l => ProjectToLanguageMapper.GetAllBindingLanguagesForProject(p).Contains(l)));
 
             this.InternalState.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
             this.InformAboutFilteredOutProjects();
@@ -230,18 +231,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
-            var languageList = this.InternalState.BindingProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
+            var languageList = this.InternalState.BindingProjects.SelectMany(ProjectToLanguageMapper.GetAllBindingLanguagesForProject)
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains)
                                        .ToList();
-
-            // HACK - if we have a C++ project, then we need to download the profile for C
-            // as well.
-            if (languageList.Contains(Language.Cpp))
-            {
-                languageList.Add(Language.C);
-            }
-
             return languageList;
         }
 

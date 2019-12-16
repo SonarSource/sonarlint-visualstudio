@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -33,8 +34,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         internal /* for testing */ static bool IsProjectLevelBindingRequired(Project project)
         {
-            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
-            return language == Core.Language.VBNET || language == Core.Language.CSharp;
+            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+            return languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
         }
     }
 }

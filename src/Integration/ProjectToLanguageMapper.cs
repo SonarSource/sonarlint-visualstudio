@@ -35,6 +35,18 @@ namespace SonarLint.VisualStudio.Integration
             { new Guid(ProjectSystemHelper.CppProjectKind), Language.Cpp }
         };
 
+        /// <summary>
+        /// Returns the supported Sonar language for the specified project or Unknown
+        /// if no languages are supported
+        /// </summary>
+        /// <returns>
+        /// Previously the code assumed a one-to-one mapping between project types and languages.
+        /// The worked when the only supported languages were C# and VB. It doesn't work now that
+        /// connected mode is supported for C++ projects (which can have both C++ and C files).
+        /// New code should call <see cref="GetAllBindingLanguagesForProject(EnvDTE.Project)"/> instead
+        /// and handle the fact that there could be multiple supported languages.
+        /// </returns>
+        [Obsolete("Use GetAllBindingLanguagesForProject instead")]
         public static Language GetLanguageForProject(EnvDTE.Project dteProject)
         {
             if (dteProject == null)
@@ -56,5 +68,22 @@ namespace SonarLint.VisualStudio.Integration
             return Language.Unknown;
         }
 
+        /// <summary>
+        /// Returns all of the supported Sonar languages for the sepcified project or Unknown
+        /// if no languages are supported
+        /// </summary>
+        public static IEnumerable<Language> GetAllBindingLanguagesForProject(EnvDTE.Project dteProject)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            var language = GetLanguageForProject(dteProject);
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            if (Language.Cpp.Equals(language))
+            {
+                return new[] { Language.Cpp, Language.C };
+            }
+
+            return new[] { language };
+        }
     }
 }

@@ -103,12 +103,19 @@ namespace SonarLint.VisualStudio.Integration
                 .ToArray();
         }
 
-        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer, BindingConfiguration binding, Project project, IFile fileWrapper)
+        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer,
+            BindingConfiguration binding, Project project, IFile fileWrapper)
+        {
+            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+
+            return languages.All(l => IsFullyBoundProject(ruleSetInfoProvider, ruleSetSerializer, binding, project, l, fileWrapper));
+        }
+
+        private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer,
+            BindingConfiguration binding, Project project, Core.Language language, IFile fileWrapper)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
-
-            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
 
             // If solution is not bound/is missing a rules configuration file, no need to go further
             var slnLevelRulesConfigFilepath = CalculateSonarQubeSolutionRuleConfigPath(ruleSetInfoProvider, binding, language);
