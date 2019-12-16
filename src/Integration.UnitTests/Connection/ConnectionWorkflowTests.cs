@@ -300,6 +300,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.csproj", ProjectSystemHelper.CSharpProjectKind, MinimumSupportedSonarQubePlugin.VbNet);
         }
 
+        [TestMethod]
+        public async Task ConnectionWorkflow_ConnectionStep_WhenCppPluginAndNoCppProject_AbortsWorkflowAndDisconnects()
+        {
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.vbproj", ProjectSystemHelper.VbProjectKind, MinimumSupportedSonarQubePlugin.CFamily);
+        }
+
+        [TestMethod]
+        public async Task ConnectionWorkflow_ConnectionStep_WhenMultiplePluginsAndUnknownProject_AbortsWorkflowAndDisconnects()
+        {
+            await ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects("foo.proj", Guid.NewGuid().ToString(),
+                MinimumSupportedSonarQubePlugin.CSharp, MinimumSupportedSonarQubePlugin.VbNet, MinimumSupportedSonarQubePlugin.CFamily);
+        }
+
         private async Task ConnectionWorkflow_ConnectionStep_WhenXPluginAndNoXProject_AbortsWorkflowAndDisconnects(string projectName, string projectKind,
             params MinimumSupportedSonarQubePlugin[] minimumSupportedSonarQubePlugins)
         {
@@ -338,7 +351,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 Strings.ConnectionResultFailure);
             projectChangedCallbackCalled.Should().BeFalse("ConnectedProjectsCallaback was called");
 
-            var languageList = string.Join(", ", minimumSupportedSonarQubePlugins.Select(x => x.Language.Name));
+            var languageList = string.Join(", ", minimumSupportedSonarQubePlugins.SelectMany(x => x.Languages.Select(l => l.Name)));
             notifications.AssertNotification(NotificationIds.BadSonarQubePluginId, string.Format(Strings.OnlySupportedPluginsHaveNoProjectInSolution, languageList));
 
             AssertCredentialsNotStored(); // Username and password are null
@@ -648,7 +661,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("csharp", "7.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered an unsupported plugin: Language: 'C#', Installed version: '7.0', Minimum version: '5.0', Maximum version: '7.0'");
+                expectedMessage: "   Discovered an unsupported plugin: Plugin: 'SonarC#', Language(s): 'C#', Installed version: '7.0', Minimum version: '5.0', Maximum version: '7.0'");
         }
 
         [TestMethod]
@@ -659,7 +672,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("csharp", "6.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered a supported plugin: Language: 'C#', Installed version: '6.0', Minimum version: '5.0', Maximum version: '7.0'");
+                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarC#', Language(s): 'C#', Installed version: '6.0', Minimum version: '5.0', Maximum version: '7.0'");
         }
 
         [TestMethod]
@@ -670,7 +683,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0.25420.00",
                 installedPlugin: new SonarQubePlugin("csharp", "7.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CSharp,
-                expectedMessage: "   Discovered a supported plugin: Language: 'C#', Installed version: '7.0', Minimum version: '5.0'");
+                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarC#', Language(s): 'C#', Installed version: '7.0', Minimum version: '5.0'");
         }
 
         [TestMethod]
@@ -681,7 +694,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("vbnet", "5.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered an unsupported plugin: Language: 'VB.NET', Installed version: '5.0', Minimum version: '3.0', Maximum version: '5.0'");
+                expectedMessage: "   Discovered an unsupported plugin: Plugin: 'SonarVB', Language(s): 'VB.NET', Installed version: '5.0', Minimum version: '3.0', Maximum version: '5.0'");
         }
 
         [TestMethod]
@@ -692,7 +705,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0",
                 installedPlugin: new SonarQubePlugin("vbnet", "4.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered a supported plugin: Language: 'VB.NET', Installed version: '4.0', Minimum version: '3.0', Maximum version: '5.0'");
+                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarVB', Language(s): 'VB.NET', Installed version: '4.0', Minimum version: '3.0', Maximum version: '5.0'");
         }
 
         [TestMethod]
@@ -703,7 +716,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 vsVersion: "14.0.25420.00",
                 installedPlugin: new SonarQubePlugin("vbnet", "5.0"),
                 minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.VbNet,
-                expectedMessage: "   Discovered a supported plugin: Language: 'VB.NET', Installed version: '5.0', Minimum version: '3.0'");
+                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarVB', Language(s): 'VB.NET', Installed version: '5.0', Minimum version: '3.0'");
         }
 
         private static void TestPluginSupport(bool expectedResult, string vsVersion, SonarQubePlugin installedPlugin,
@@ -729,8 +742,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 expectedResult: true,
                 vsVersion: "14",
                 installedPlugin: new SonarQubePlugin("cpp", "6.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
-                expectedMessage: "   Discovered a supported plugin: Language: 'C++', Installed version: '6.0', Minimum version: '6.0'");
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CFamily,
+                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarCFamily', Language(s): 'C++, C', Installed version: '6.0', Minimum version: '6.0'");
         }
 
         [TestMethod]
@@ -740,8 +753,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 expectedResult: true,
                 vsVersion: "15",
                 installedPlugin: new SonarQubePlugin("cpp", "6.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
-                expectedMessage: "   Discovered a supported plugin: Language: 'C++', Installed version: '6.0', Minimum version: '6.0'");
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CFamily,
+                expectedMessage: "   Discovered a supported plugin: Plugin: 'SonarCFamily', Language(s): 'C++, C', Installed version: '6.0', Minimum version: '6.0'");
         }
 
         [TestMethod]
@@ -751,8 +764,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 expectedResult: false,
                 vsVersion: "14",
                 installedPlugin: new SonarQubePlugin("cpp", "5.0"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
-                expectedMessage: "   Discovered an unsupported plugin: Language: 'C++', Installed version: '5.0', Minimum version: '6.0'");
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CFamily,
+                expectedMessage: "   Discovered an unsupported plugin: Plugin: 'SonarCFamily', Language(s): 'C++, C', Installed version: '5.0', Minimum version: '6.0'");
         }
 
         [TestMethod]
@@ -762,8 +775,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 expectedResult: false,
                 vsVersion: "15",
                 installedPlugin: new SonarQubePlugin("cpp", "5.9"),
-                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.Cpp,
-                expectedMessage: "   Discovered an unsupported plugin: Language: 'C++', Installed version: '5.9', Minimum version: '6.0'");
+                minimumSupportedPlugin: MinimumSupportedSonarQubePlugin.CFamily,
+                expectedMessage: "   Discovered an unsupported plugin: Plugin: 'SonarCFamily', Language(s): 'C++, C', Installed version: '5.9', Minimum version: '6.0'");
         }
 
         #endregion Tests

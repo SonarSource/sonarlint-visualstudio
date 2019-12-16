@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         {
             MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.VbNet);
             MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.CSharp);
-            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.Cpp);
+            MinimumSupportedSonarQubePlugin.All.Should().Contain(MinimumSupportedSonarQubePlugin.CFamily);
 
             MinimumSupportedSonarQubePlugin.All.Count().Should().Be(3);
         }
