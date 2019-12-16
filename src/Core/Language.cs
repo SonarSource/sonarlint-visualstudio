@@ -44,8 +44,8 @@ namespace SonarLint.VisualStudio.Core
         public readonly static Language Unknown = new Language();
         public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.ruleset");
         public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.ruleset");
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "cpp.settings");
-        public readonly static Language C = new Language("C", "C", "c.settings");
+        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "_cpp_settings.json");
+        public readonly static Language C = new Language("C", "C", "_c_settings.json");
 
         /// <summary>
         /// A stable identifier for this language.

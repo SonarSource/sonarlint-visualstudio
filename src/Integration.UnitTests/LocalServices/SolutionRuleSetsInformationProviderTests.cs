@@ -266,9 +266,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.VBNET, SonarLintMode.Connected);
             ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyvb.ruleset"); // should be lower-case
 
-            // 2. Cpp
+            // 2. C#
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.CSharp, SonarLintMode.Connected);
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeycsharp.ruleset"); // should be lower-case
+
+            // 3. Cpp
             ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.Cpp, SonarLintMode.Connected);
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeycpp.settings"); // should be lower-case
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykey_cpp_settings.json"); // should be lower-case
+
+            // 4. C
+            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.C, SonarLintMode.Connected);
+            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykey_c_settings.json"); // should be lower-case
         }
 
         [TestMethod]
