@@ -19,31 +19,34 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Connection
 {
     internal class MinimumSupportedSonarQubePlugin
     {
-        public static readonly MinimumSupportedSonarQubePlugin CSharp = new MinimumSupportedSonarQubePlugin("csharp", Language.CSharp, "5.0");
-        public static readonly MinimumSupportedSonarQubePlugin VbNet = new MinimumSupportedSonarQubePlugin("vbnet", Language.VBNET, "3.0");
+        public static readonly MinimumSupportedSonarQubePlugin CSharp = new MinimumSupportedSonarQubePlugin("csharp", "SonarC#", "5.0", Language.CSharp);
+        public static readonly MinimumSupportedSonarQubePlugin VbNet = new MinimumSupportedSonarQubePlugin("vbnet", "SonarVB", "3.0", Language.VBNET);
         
         // Note: there is no specific technical reason for the choice of cpp v6.0 as the minimum supported version.
         // Howver, that was the first version that uses CLang so it's close to the version embedded in SLVS
         // i.e. the analysis rules implementations should be similar so the issues shown in the IDE should be
         // similar to those reported on the server.
-        public static readonly MinimumSupportedSonarQubePlugin Cpp = new MinimumSupportedSonarQubePlugin("cpp", Language.Cpp, "6.0");
-        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, Cpp };
+        public static readonly MinimumSupportedSonarQubePlugin CFamily = new MinimumSupportedSonarQubePlugin("cpp", "SonarCFamily", "6.0", Language.Cpp, Language.C);
+        public static readonly IEnumerable<MinimumSupportedSonarQubePlugin> All = new[] { CSharp, VbNet, CFamily };
 
-        private MinimumSupportedSonarQubePlugin(string key, Language language, string minimumVersion)
+        private MinimumSupportedSonarQubePlugin(string key, string pluginName, string minimumVersion, params Language[] languages)
         {
             Key = key;
-            Language = language;
+            PluginName = pluginName; // Note: plugin names are not localized - they are fixed
             MinimumVersion = minimumVersion;
+            Languages = languages.ToArray();
         }
 
         public string Key { get; }
+        public string PluginName{ get; }
         public string MinimumVersion { get; }
-        public Language Language { get; }
+        public IEnumerable<Language> Languages { get; }
     }
 }
