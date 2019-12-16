@@ -69,14 +69,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         }
 
         [TestMethod]
-        public void LanguageConverter_ConvertFrom_KnownLanguageId_ReturnsKnownLanguage()
+        public void LanguageConverter_ConvertFrom_AllKnownLanguages_AreRecognized()
+        {
+            CheckConvertFromRecognizesLanguage(Language.VBNET.Id, Language.VBNET);
+            CheckConvertFromRecognizesLanguage(Language.C.Id, Language.C);
+            CheckConvertFromRecognizesLanguage(Language.Cpp.Id, Language.Cpp);
+            CheckConvertFromRecognizesLanguage(Language.CSharp.Id, Language.CSharp);
+        }
+
+        private void CheckConvertFromRecognizesLanguage(string id, Language expectedLanguage)
         {
             // Act
-            object result = this.testSubject.ConvertFrom(Language.VBNET.Id);
+            object result = this.testSubject.ConvertFrom(id);
 
             // Assert
             result.Should().BeAssignableTo<Language>();
-            result.Should().Be(Language.VBNET);
+            result.Should().Be(expectedLanguage);
         }
 
         [TestMethod]
