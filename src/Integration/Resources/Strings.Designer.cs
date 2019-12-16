@@ -720,7 +720,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Language: &apos;{0}&apos;, Installed version: &apos;{1}&apos;, Minimum version: &apos;{2}&apos;.
+        ///   Looks up a localized string similar to Plugin: &apos;{0}&apos;, Language(s): &apos;{1}&apos;, Installed version: &apos;{2}&apos;, Minimum version: &apos;{3}&apos;.
         /// </summary>
         public static string InstalledAndMinimumSonarQubePlugin {
             get {
@@ -838,7 +838,7 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The plugins supported by this SonarQube server ({0}) do not match any of the solution projects&apos; languages..
+        ///   Looks up a localized string similar to The languages supported by plugins on this SonarQube server ({0}) do not match any of the solution projects&apos; languages..
         /// </summary>
         public static string OnlySupportedPluginsHaveNoProjectInSolution {
             get {

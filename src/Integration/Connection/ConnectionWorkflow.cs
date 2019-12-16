@@ -307,12 +307,12 @@ namespace SonarLint.VisualStudio.Integration.Connection
             var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
-            var supportedSonarQubePlugins = MinimumSupportedSonarQubePlugin.All
+            var supportedPluginsLanguages = MinimumSupportedSonarQubePlugin.All
                 .Where(supportedPlugin => IsSonarQubePluginSupported(plugins, supportedPlugin, host.Logger))
-                .Select(lang => lang.Language);
-            this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedSonarQubePlugins));
+                .SelectMany(lang => lang.Languages);
+            this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedPluginsLanguages));
 
-            // If any of the project can be bound then return success
+            // If any of the projects can be bound then return success
             if (csharpOrVbNetProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
                                      .Any(this.host.SupportedPluginLanguages.Contains))
             {
@@ -354,8 +354,9 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 return false;
             }
 
+            var languageNames = string.Join(", ", minimumSupportedPlugin.Languages.Select(l => l.Name));
             var pluginInfoMessage = string.Format(CultureInfo.CurrentCulture, Strings.InstalledAndMinimumSonarQubePlugin,
-                minimumSupportedPlugin.Language.Name, installedPlugin.Version, minimumSupportedPlugin.MinimumVersion);
+                minimumSupportedPlugin.PluginName, languageNames, installedPlugin.Version, minimumSupportedPlugin.MinimumVersion);
 
             var isPluginSupported = !string.IsNullOrWhiteSpace(installedPlugin.Version) &&
                 VersionHelper.Compare(installedPlugin.Version, minimumSupportedPlugin.MinimumVersion) >= 0;
