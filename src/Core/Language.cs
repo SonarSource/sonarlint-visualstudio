@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.Core
         {
             get
             {
-                return new[] { CSharp, VBNET };
+                return new[] { CSharp, VBNET, Cpp, C };
             }
         }
 
