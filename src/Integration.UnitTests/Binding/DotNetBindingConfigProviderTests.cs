@@ -40,7 +40,7 @@ using Language = SonarLint.VisualStudio.Core.Language;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class DotNetRulesConfigurationProviderTests
+    public class DotNetBindingConfigProviderTests
     {
         private Mock<ISonarQubeService> sonarQubeServiceMock;
         private TestLogger logger;
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetRulesConfig_Success()
+        public async Task GetConfig_Success()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
@@ -82,12 +82,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(profile, "TODO", language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, "TODO", language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
             result.Should().NotBeNull();
-            var dotNetResult = result as DotNetRulesConfigurationFile;
+            var dotNetResult = result as DotNetBindingConfigFile;
             dotNetResult.Should().NotBeNull();
 
             RuleSetAssert.AreEqual(expectedRuleSet, dotNetResult.RuleSet, "Unexpected rule set");
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetRulesConfig_WhenProfileExportIsNotAvailable_Fails()
+        public async Task GetConfig_WhenProfileExportIsNotAvailable_Fails()
         {
             // Arrange
             var testSubject = this.CreateTestSubject();
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(null, language, "");
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetRulesConfig_WithNoRules_Fails()
+        public async Task GetConfig_WithNoRules_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetRulesConfig_WithNoActiveRules_Fails()
+        public async Task GetConfig_WithNoActiveRules_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -181,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetRulesConfig_LegacyMode_WithNoNugetPackage_Fails()
+        public async Task GetConfig_LegacyMode_WithNoNugetPackage_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -220,7 +220,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = this.CreateTestSubject("key", "anyProject", nuGetOpMock.Object);
 
             // Act
-            Action act = () => testSubject.GetRulesConfigurationAsync(qualityProfile, null, Language.Cpp, cts.Token).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(qualityProfile, null, Language.Cpp, cts.Token).Wait();
 
             // Assert
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
@@ -246,12 +246,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private DotNetRuleConfigurationProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost",
+        private DotNetBindingConfigProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost",
             INuGetBindingOperation nuGetBindingOperation = null)
         {
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.logger);
 
-            return new DotNetRuleConfigurationProvider(this.sonarQubeServiceMock.Object, nuGetBindingOperation, serverUrl, projectName, this.logger);
+            return new DotNetBindingConfigProvider(this.sonarQubeServiceMock.Object, nuGetBindingOperation, serverUrl, projectName, this.logger);
         }
 
         private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)

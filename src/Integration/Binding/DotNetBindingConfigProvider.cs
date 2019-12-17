@@ -35,7 +35,7 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class DotNetRuleConfigurationProvider : IRulesConfigurationProvider
+    internal class DotNetBindingConfigProvider : IBindingConfigProvider
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly INuGetBindingOperation nuGetBindingOperation;
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string serverUrl;
         private readonly string projectName;
 
-        public DotNetRuleConfigurationProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, string serverUrl, string projectName, ILogger logger)
+        public DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, string serverUrl, string projectName, ILogger logger)
         {
             this.sonarQubeService = sonarQubeService;
             this.nuGetBindingOperation = nuGetBindingOperation;
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
         }
 
-        public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
         {
             if(!IsLanguageSupported(language))
             {
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
             UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfile, this.projectName, this.serverUrl);
 
-            return new DotNetRulesConfigurationFile(ruleSet);
+            return new DotNetBindingConfigFile(ruleSet);
         }
 
         private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile, string projectName, string serverUrl)

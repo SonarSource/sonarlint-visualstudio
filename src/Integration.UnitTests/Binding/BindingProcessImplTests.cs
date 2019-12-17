@@ -88,31 +88,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
             var nuGetOp = new Mock<INuGetBindingOperation>().Object;
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            var rulesConfigurationProvider = new Mock<IRulesConfigurationProvider>().Object;
+            var bindingConfigProvider = new Mock<IBindingConfigProvider>().Object;
 
             // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, rulesConfigurationProvider);
+            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, bindingInfoProvider, rulesConfigurationProvider);
+            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, bindingInfoProvider, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
             // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, bindingInfoProvider, rulesConfigurationProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, bindingInfoProvider, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
             // 4. Null NuGet operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, bindingInfoProvider, rulesConfigurationProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, bindingInfoProvider, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
 
             // 5. Null binding info provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, rulesConfigurationProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
             
             // 6. Null rules configuration provider
             act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesConfigurationProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");
         }
 
         [TestMethod]
@@ -128,16 +128,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            var rulesetRulesConfig = new Mock<IRulesConfigurationFile>().Object;
+            var configFile = new Mock<IBindingConfigFile>().Object;
 
             var language = Language.VBNET;
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
 
-            var rulesConfigProviderMock = new Mock<IRulesConfigurationProvider>();
-            rulesConfigProviderMock.Setup(x => x.GetRulesConfigurationAsync(profile, null, language, CancellationToken.None))
-                .ReturnsAsync(rulesetRulesConfig);
+            var configProviderMock = new Mock<IBindingConfigProvider>();
+            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, null, language, CancellationToken.None))
+                .ReturnsAsync(configFile);
 
-            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, rulesConfigProviderMock.Object);
+            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, configProviderMock.Object);
 
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
 
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.Should().BeTrue();
             testSubject.InternalState.Rulesets.Should().ContainKey(language);
-            testSubject.InternalState.Rulesets[language].Should().Be(rulesetRulesConfig);
+            testSubject.InternalState.Rulesets[language].Should().Be(configFile);
             testSubject.InternalState.Rulesets.Count().Should().Be(1);
 
             testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task DownloadQualityProfile_WhenRulesConfigIsNull_Fails()
+        public async Task DownloadQualityProfile_WhenBindingConfigIsNull_Fails()
         {
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
@@ -204,8 +204,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var language = Language.VBNET;
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
 
-            var rulesConfigProviderMock = new Mock<IRulesConfigurationProvider>();
-            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, rulesConfigProviderMock.Object);
+            var configProviderMock = new Mock<IBindingConfigProvider>();
+            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, configProviderMock.Object);
 
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
 
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.outputWindowPane.AssertOutputStrings(1);
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
-                string.Format(Strings.FailedToCreateRulesConfigForLanguage, language.Name));
+                string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name));
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
         }
 
@@ -334,9 +334,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(true);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            var rulesConfigurationProvider = new Mock<IRulesConfigurationProvider>();
+            var configProvider = new Mock<IBindingConfigProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, rulesConfigurationProvider.Object);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, configProvider.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -367,9 +367,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(false);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
-            var rulesConfigurationProvider = new Mock<IRulesConfigurationProvider>();
+            var configProvider = new Mock<IBindingConfigProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, rulesConfigurationProvider.Object);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, configProvider.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -675,10 +675,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private BindingProcessImpl CreateTestSubject(string projectKey = "anykey", string projectName = "anyname",
             INuGetBindingOperation nuGetBindingOperation = null,
-            IRulesConfigurationProvider rulesConfigurationProvider = null)
+            IBindingConfigProvider configProvider = null)
         {
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.host.Logger);
-            rulesConfigurationProvider = rulesConfigurationProvider ?? new Mock<IRulesConfigurationProvider>().Object;
+            configProvider = configProvider ?? new Mock<IBindingConfigProvider>().Object;
 
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
@@ -686,7 +686,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
             var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider, rulesConfigurationProvider);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider, configProvider);
         }
 
         private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)

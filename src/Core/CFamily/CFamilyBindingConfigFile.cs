@@ -25,16 +25,16 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public class CFamilyRulesConfigurationFile : IRulesConfigurationFile
+    public class CFamilyBindingConfigFile : IBindingConfigFile
     {
         private readonly IFile fileWrapper;
 
-        public CFamilyRulesConfigurationFile(UserSettings userSettings)
+        public CFamilyBindingConfigFile(UserSettings userSettings)
             : this (userSettings, new FileWrapper())
         {
         }
 
-        public CFamilyRulesConfigurationFile(UserSettings userSettings, IFile fileWrapper)
+        public CFamilyBindingConfigFile(UserSettings userSettings, IFile fileWrapper)
         {
             this.UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             this.fileWrapper = fileWrapper;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         internal /* for testing */ UserSettings UserSettings { get; }
 
-        #region IRulesConfigurationFile implementation
+        #region IBindingConfigFile implementation
 
         public void Save(string fullFilePath)
         {
@@ -50,6 +50,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
             fileWrapper.WriteAllText(fullFilePath, dataAsText);
         }
 
-        #endregion IRulesConfigurationFile implementation
+        #endregion IBindingConfigFile implementation
     }
 }
