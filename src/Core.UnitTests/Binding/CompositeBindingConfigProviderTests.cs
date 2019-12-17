@@ -32,18 +32,18 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 {
     [TestClass]
-    public class CompositeBindingConfigurationProviderTests
+    public class CompositeBindingConfigProviderTests
     {
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
             // 1. No config providers supplied
-            Action act = () => new CompositeRulesConfigurationProvider();
+            Action act = () => new CompositeBindingConfigProvider();
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("providers");
 
             // 2. Null provider supplied
-            var providerMock = new Mock<IRulesConfigurationProvider>();
-            act = () => new CompositeRulesConfigurationProvider(providerMock.Object, null);
+            var providerMock = new Mock<IBindingConfigProvider>();
+            act = () => new CompositeBindingConfigProvider(providerMock.Object, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("providers");
         }
 
@@ -52,11 +52,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
         public void Ctor_ValidArgs()
         {
             // Arrange
-            var providerMock1 = new Mock<IRulesConfigurationProvider>();
-            var providerMock2 = new Mock<IRulesConfigurationProvider>();
+            var providerMock1 = new Mock<IBindingConfigProvider>();
+            var providerMock2 = new Mock<IBindingConfigProvider>();
 
             // Act
-            var testSubject = new CompositeRulesConfigurationProvider(
+            var testSubject = new CompositeBindingConfigProvider(
                 providerMock1.Object,
                 providerMock2.Object, providerMock2.Object); // duplicate should be ignored
 
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var p2 = new DummyProvider(Language.VBNET);
             var p3 = new DummyProvider(Language.CSharp);
 
-            var testSubject = new CompositeRulesConfigurationProvider(p1, p2, p3);
+            var testSubject = new CompositeBindingConfigProvider(p1, p2, p3);
 
             // 1. Supported languages
             testSubject.IsLanguageSupported(Language.C).Should().BeTrue();
@@ -94,10 +94,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             var qp = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
 
-            var testSubject = new CompositeRulesConfigurationProvider(otherProvider, cppProvider1, cppProvider2);
+            var testSubject = new CompositeBindingConfigProvider(otherProvider, cppProvider1, cppProvider2);
 
             // Act. Multiple matching providers -> config from the first matching provider returned
-            var actualConfig = await testSubject.GetRulesConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None);
+            var actualConfig = await testSubject.GetConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None);
             actualConfig.Should().Be(cppProvider1.ConfigToReturn);
         }
 
@@ -108,22 +108,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var otherProvider = new DummyProvider(Language.VBNET);
             var qp = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
 
-            var testSubject = new CompositeRulesConfigurationProvider(otherProvider);
+            var testSubject = new CompositeBindingConfigProvider(otherProvider);
 
             // 1. Multiple matching providers -> config from the first matching provider returned
-            Action act = () => testSubject.GetRulesConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None).Wait();
 
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
         }
 
-        private class DummyProvider : IRulesConfigurationProvider
+        private class DummyProvider : IBindingConfigProvider
         {
             public DummyProvider(params Language[] supportedLanguages)
-                : this(new Mock<IRulesConfigurationFile>().Object, supportedLanguages)
+                : this(new Mock<IBindingConfigFile>().Object, supportedLanguages)
             {
             }
 
-            public DummyProvider(IRulesConfigurationFile configToReturn = null, params Language[] supportedLanguages)
+            public DummyProvider(IBindingConfigFile configToReturn = null, params Language[] supportedLanguages)
             {
                 SupportedLanguages = new List<Language>(supportedLanguages);
                 this.ConfigToReturn = configToReturn;
@@ -131,13 +131,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             public IList<Language> SupportedLanguages { get; }
 
-            public IRulesConfigurationFile ConfigToReturn { get; set; }
+            public IBindingConfigFile ConfigToReturn { get; set; }
 
-            #region IRulesConfigurationProvider implementation
+            #region IBindingConfigProvider implementation
 
-            public Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
+            public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
             {
-                return Task.FromResult<IRulesConfigurationFile>(ConfigToReturn);
+                return Task.FromResult<IBindingConfigFile>(ConfigToReturn);
             }
 
             public bool IsLanguageSupported(Language language)
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
                 return SupportedLanguages.Any(sl => sl.Equals(language));
             }
 
-            #endregion IRulesConfigurationProvider implementation
+            #endregion IBindingConfigProvider implementation
         }
     }
 }

@@ -611,11 +611,11 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create the rules configuration for language {0}.
+        ///   Looks up a localized string similar to Failed to create the configuration for language {0}.
         /// </summary>
-        public static string FailedToCreateRulesConfigForLanguage {
+        public static string FailedToCreateBindingConfigForLanguage {
             get {
-                return ResourceManager.GetString("FailedToCreateRulesConfigForLanguage", resourceCulture);
+                return ResourceManager.GetString("FailedToCreateBindingConfigForLanguage", resourceCulture);
             }
         }
         

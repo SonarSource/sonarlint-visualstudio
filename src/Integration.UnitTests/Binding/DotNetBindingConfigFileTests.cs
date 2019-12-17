@@ -28,14 +28,14 @@ using SonarLint.VisualStudio.Integration.Binding;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class DotNetRulesConfigurationFileTests
+    public class DotNetBindingConfigFileTests
     {
         public TestContext TestContext { get; set; }
 
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new DotNetRulesConfigurationFile(null);
+            Action act = () => new DotNetBindingConfigFile(null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
         }
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Save_InvalidArgs()
         {
-            var testSubject = new DotNetRulesConfigurationFile(new RuleSet("dummy"));
+            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"));
 
             // 1. Null -> throw
             Action act = () => testSubject.Save(null);
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(testDir);
             var fullPath = Path.Combine(testDir, "savedRuleSet.txt");
 
-            var testSubject = new DotNetRulesConfigurationFile(new RuleSet("dummy"));
+            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"));
 
             // Act
             testSubject.Save(fullPath);

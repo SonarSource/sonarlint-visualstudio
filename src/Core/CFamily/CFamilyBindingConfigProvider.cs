@@ -30,25 +30,25 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public class CFamilyRulesConfigurationProvider : IRulesConfigurationProvider
+    public class CFamilyBindingConfigProvider : IBindingConfigProvider
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
 
-        public CFamilyRulesConfigurationProvider(ISonarQubeService sonarQubeService, ILogger logger)
+        public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
         {
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        #region IRulesConfigurationProvider implementation
+        #region IBindingConfigProvider implementation
 
         public bool IsLanguageSupported(Language language)
         {
             return Language.Cpp.Equals(language) || Language.C.Equals(language);
         }
 
-        public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
+        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
             Language language, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
@@ -67,12 +67,12 @@ namespace SonarLint.VisualStudio.Core.CFamily
             cancellationToken.ThrowIfCancellationRequested();
 
             var config = CreateUserSettingsFromQPRules(result);
-            var configFile = new CFamilyRulesConfigurationFile(config);
+            var configFile = new CFamilyBindingConfigFile(config);
 
             return configFile;
         }
 
-        #endregion implementation
+        #endregion IBindingConfigProvider implementation
 
         internal /* for testing */ static UserSettings CreateUserSettingsFromQPRules(IList<SonarQubeRule> rules)
         {

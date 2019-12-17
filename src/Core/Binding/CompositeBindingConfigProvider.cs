@@ -27,11 +27,11 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public class CompositeRulesConfigurationProvider : IRulesConfigurationProvider
+    public class CompositeBindingConfigProvider : IBindingConfigProvider
     {
-        private readonly HashSet<IRulesConfigurationProvider> providers;
+        private readonly HashSet<IBindingConfigProvider> providers;
 
-        public CompositeRulesConfigurationProvider(params IRulesConfigurationProvider[] providers)
+        public CompositeBindingConfigProvider(params IBindingConfigProvider[] providers)
         {
             // params args can't be null - will be an empty array
             if (providers.Length == 0)
@@ -43,14 +43,14 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(providers));
             }
 
-            this.providers = new HashSet<IRulesConfigurationProvider>(providers);
+            this.providers = new HashSet<IBindingConfigProvider>(providers);
         }
 
-        internal /* for testing */ IEnumerable<IRulesConfigurationProvider> Providers { get { return this.providers; } }
+        internal /* for testing */ IEnumerable<IBindingConfigProvider> Providers { get { return this.providers; } }
 
-        #region IRulesConfigurationProvider methods
+        #region IBindingConfigProvider methods
 
-        public async Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
         {
             var provider = Providers.FirstOrDefault(p => p.IsLanguageSupported(language));
 
@@ -58,10 +58,10 @@ namespace SonarLint.VisualStudio.Core.Binding
             {
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
-            IRulesConfigurationFile config = null;
+            IBindingConfigFile config = null;
             if (provider != null)
             {
-                config = await provider?.GetRulesConfigurationAsync(qualityProfile, organizationKey, language, cancellationToken);
+                config = await provider?.GetConfigurationAsync(qualityProfile, organizationKey, language, cancellationToken);
             }
 
             return config;
@@ -72,6 +72,6 @@ namespace SonarLint.VisualStudio.Core.Binding
             return Providers.Any(p => p.IsLanguageSupported(language));
         }
 
-        #endregion IRulesConfigurationProvider methods
+        #endregion IBindingConfigProvider methods
     }
 }
