@@ -30,12 +30,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     public class RuleSetInformation
     {
-        public RuleSetInformation(Language language, IRulesConfigurationFile rulesConfigurationFile)
+        public RuleSetInformation(Language language, IBindingConfigFile bindingConfigFile)
         {
-            RulesConfigurationFile = rulesConfigurationFile ?? throw new ArgumentNullException(nameof(rulesConfigurationFile));
+            BindingConfigFile = bindingConfigFile ?? throw new ArgumentNullException(nameof(bindingConfigFile));
         }
 
-        public IRulesConfigurationFile RulesConfigurationFile { get; }
+        public IBindingConfigFile BindingConfigFile { get; }
 
         public string NewRuleSetFilePath { get; set; }
     }

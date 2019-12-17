@@ -24,19 +24,25 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public interface IRulesConfigurationProvider
+    /// <summary>
+    /// Contract to provide the binding-related configuration for one or more languages
+    /// </summary>
+    public interface IBindingConfigProvider
     {
         bool IsLanguageSupported(Language language);
 
-        Task<IRulesConfigurationFile> GetRulesConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken);
+        /// <summary>
+        /// Returns a configuration file for the specified language
+        /// </summary>
+        Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken);
     }
 
     /// <summary>
-    /// Abstraction of the various types of configuration file used to store rule configuration information
+    /// Abstraction of the various types of configuration file used to store binding configuration information
     /// </summary>
-    /// <remarks>e.g. for C# and VB.NET the rules configuration will be in a ruleset file.
+    /// <remarks>e.g. for C# and VB.NET the configuration will be in a ruleset file.
     /// For C++ it will be in a json file in a Sonar-specific format</remarks>
-    public interface IRulesConfigurationFile
+    public interface IBindingConfigFile
     {
         /// <summary>
         /// Saves the file, replacing any existing file

@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly ISolutionBindingInformationProvider bindingInformationProvider;
-        private readonly IRulesConfigurationProvider rulesConfigurationProvider;
+        private readonly IBindingConfigProvider bindingConfigProvider;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ISolutionBindingOperation solutionBindingOperation,
             INuGetBindingOperation nugetBindingOperation,
             ISolutionBindingInformationProvider bindingInformationProvider,
-            IRulesConfigurationProvider rulesConfigurationProvider,
+            IBindingConfigProvider bindingConfigProvider,
             bool isFirstBinding = false)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
             this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
             this.bindingInformationProvider = bindingInformationProvider ?? throw new ArgumentNullException(nameof(bindingInformationProvider));
-            this.rulesConfigurationProvider = rulesConfigurationProvider ?? throw new ArgumentNullException(nameof(rulesConfigurationProvider));
+            this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -123,16 +123,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
-                // Create the rules configuration for the language
-                var rulesConfig = await this.rulesConfigurationProvider.GetRulesConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
-                if (rulesConfig == null)
+                // Create the binding configuration for the language
+                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
+                if (bindingConfig == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
-                        string.Format(Strings.FailedToCreateRulesConfigForLanguage, language.Name)));
+                        string.Format(Strings.FailedToCreateBindingConfigForLanguage, language.Name)));
                     return false;
                 }
 
-                this.InternalState.Rulesets[language] = rulesConfig;
+                this.InternalState.Rulesets[language] = bindingConfig;
 
                 currentLanguage++;
                 progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
@@ -289,10 +289,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 get;
             } = new HashSet<Project>();
 
-            public Dictionary<Language, IRulesConfigurationFile> Rulesets
+            public Dictionary<Language, IBindingConfigFile> Rulesets
             {
                 get;
-            } = new Dictionary<Language, IRulesConfigurationFile>();
+            } = new Dictionary<Language, IBindingConfigFile>();
 
             public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
             {
