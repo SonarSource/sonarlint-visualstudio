@@ -46,26 +46,26 @@ namespace SonarLint.VisualStudio.Integration
         internal /*for testing purposes*/ static readonly Guid ErrorListToolWindowGuid = new Guid(ToolWindowGuids80.ErrorList);
 
         private readonly IHost host;
-        private readonly ISolutionBindingInformationProvider bindingInformationProvider;
+        private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly IConfigurationProvider configProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
         private BoundSonarQubeProject infoBarBinding;
         private bool isDisposed;
 
-        public ErrorListInfoBarController(IHost host, ISolutionBindingInformationProvider bindingInformationProvider)
+        public ErrorListInfoBarController(IHost host, IUnboundProjectFinder unboundProjectFinder)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
-            if (bindingInformationProvider == null)
+            if (unboundProjectFinder == null)
             {
-                throw new ArgumentNullException(nameof(bindingInformationProvider));
+                throw new ArgumentNullException(nameof(unboundProjectFinder));
             }
 
             this.host = host;
-            this.bindingInformationProvider = bindingInformationProvider;
+            this.unboundProjectFinder = unboundProjectFinder;
 
             this.configProvider = host.GetService<IConfigurationProvider>();
             this.configProvider.AssertLocalServiceIsNotNull();
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // TODO: part of SVS-72, need to call IProjectSystemFilter.SetTestRegex
             // and specify the regex that you get from IHost.SonarQubeService.GetProperties
-            // before calling to ISolutionBindingInformationProvider which will internally
+            // before calling to IUnboundProjectFinder which will internally
             // use the regex information to determine which projects are filtered and which are not
             // all this needs to be on a background thread!
 
@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.OutputMessage(Strings.SonarLintCheckingForUnboundProjects);
 
-            Project[] unboundProjects = this.bindingInformationProvider.GetUnboundProjects().ToArray();
+            Project[] unboundProjects = this.unboundProjectFinder.GetUnboundProjects().ToArray();
             if (unboundProjects.Length > 0)
             {
                 this.OutputMessage(Strings.SonarLintFoundUnboundProjects, unboundProjects.Length, string.Join(", ", unboundProjects.Select(p => p.UniqueName)));
