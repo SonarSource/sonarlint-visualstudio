@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindCommandArgs bindingArgs;
         private readonly IProjectSystemHelper projectSystem;
         private readonly ISolutionBindingOperation solutionBindingOperation;
-        private readonly ISolutionBindingInformationProvider bindingInformationProvider;
+        private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly IBindingConfigProvider bindingConfigProvider;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             BindCommandArgs bindingArgs,
             ISolutionBindingOperation solutionBindingOperation,
             INuGetBindingOperation nugetBindingOperation,
-            ISolutionBindingInformationProvider bindingInformationProvider,
+            IUnboundProjectFinder unboundProjectFinder,
             IBindingConfigProvider bindingConfigProvider,
             bool isFirstBinding = false)
         {
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.bindingArgs = bindingArgs ?? throw new ArgumentNullException(nameof(bindingArgs));
             this.solutionBindingOperation = solutionBindingOperation ?? throw new ArgumentNullException(nameof(solutionBindingOperation));
             this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
-            this.bindingInformationProvider = bindingInformationProvider ?? throw new ArgumentNullException(nameof(bindingInformationProvider));
+            this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
 
             Debug.Assert(bindingArgs.ProjectKey != null);
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.solutionBindingOperation.RegisterKnownRuleSets(this.InternalState.Rulesets);
 
             var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
-                this.bindingInformationProvider, this.host.Logger);
+                this.unboundProjectFinder, this.host.Logger);
 
             this.solutionBindingOperation.Initialize(projectsToUpdate, this.InternalState.QualityProfiles);
         }
@@ -240,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing purposes */ static Project[] GetProjectsForRulesetBinding(bool isFirstBinding,
             Project[] allSupportedProjects,
-            ISolutionBindingInformationProvider bindingInformationProvider,
+            IUnboundProjectFinder unboundProjectFinder,
             ILogger logger)
         {
             // If we are already bound we don't need to update/create rulesets in projects
@@ -253,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             else
             {
-                var unboundProjects = bindingInformationProvider.GetUnboundProjects()?.ToArray() ?? new Project[] { };
+                var unboundProjects = unboundProjectFinder.GetUnboundProjects()?.ToArray() ?? new Project[] { };
                 projectsToUpdate = projectsToUpdate.Intersect(unboundProjects).ToArray();
 
                 var upToDateProjects = allSupportedProjects.Except(unboundProjects);

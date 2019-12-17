@@ -87,31 +87,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://server")));
             var slnBindOp = new Mock<ISolutionBindingOperation>().Object;
             var nuGetOp = new Mock<INuGetBindingOperation>().Object;
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var finder = new ConfigurableUnboundProjectFinder();
             var bindingConfigProvider = new Mock<IBindingConfigProvider>().Object;
 
             // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, bindingConfigProvider);
+            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, finder, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, bindingInfoProvider, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, finder, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
             // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, bindingInfoProvider, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, finder, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
             // 4. Null NuGet operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, bindingInfoProvider, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, finder, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
 
             // 5. Null binding info provider
             act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, bindingConfigProvider);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingInformationProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("unboundProjectFinder");
             
             // 6. Null rules configuration provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, bindingInfoProvider, null);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, finder, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");
         }
 
@@ -333,10 +333,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(true);
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, configProvider.Object);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -366,10 +366,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             nugetMock.Setup(x => x.InstallPackages(It.IsAny<ISet<Project>>(),
                 It.IsAny<IProgress<FixedStepsProgress>>(),
                 It.IsAny<CancellationToken>())).Returns(false);
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, bindingInfoProvider, configProvider.Object);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -570,13 +570,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            var finder = new ConfigurableUnboundProjectFinder
             {
                 UnboundProjects = allProjects
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(true, allProjects, finder, logger);
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -595,13 +595,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            var finder = new ConfigurableUnboundProjectFinder
             {
                 UnboundProjects = allProjects
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger);
 
             // Assert
             result.Should().BeEquivalentTo(allProjects);
@@ -628,13 +628,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            var finder = new ConfigurableUnboundProjectFinder
             {
                 UnboundProjects = unboundProjects
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger);
 
             // Assert
             result.Should().BeEquivalentTo(allProjects[1], allProjects[3]);
@@ -655,13 +655,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var logger = new TestLogger();
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider
+            var finder = new ConfigurableUnboundProjectFinder
             {
                 UnboundProjects = null
             };
 
             // Act
-            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, bindingInfoProvider, logger);
+            var result = BindingProcessImpl.GetProjectsForRulesetBinding(false, allProjects, finder, logger);
 
             // Assert
             result.Should().BeEmpty();
@@ -684,9 +684,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
             var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
-            var bindingInfoProvider = new ConfigurableSolutionBindingInformationProvider();
+            var finder = new ConfigurableUnboundProjectFinder();
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, bindingInfoProvider, configProvider);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider);
         }
 
         private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)
