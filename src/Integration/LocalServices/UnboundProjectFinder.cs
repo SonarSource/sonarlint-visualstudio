@@ -30,18 +30,18 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class SolutionBindingInformationProvider : ISolutionBindingInformationProvider
+    internal class UnboundProjectFinder : IUnboundProjectFinder
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IFile fileWrapper;
 
-        public SolutionBindingInformationProvider(IServiceProvider serviceProvider)
+        public UnboundProjectFinder(IServiceProvider serviceProvider)
             : this(serviceProvider, new FileWrapper())
         {
         }
 
-        internal /* for testing */ SolutionBindingInformationProvider(IServiceProvider serviceProvider, IFile fileWrapper)
+        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IFile fileWrapper)
         {
             if (serviceProvider == null)
             {
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration
             this.fileWrapper = fileWrapper;
         }
 
-        #region ISolutionBindingInformationProvider
+        #region IUnboundProjectFinder implementation
 
         public IEnumerable<Project> GetUnboundProjects()
         {
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration
 
             return this.GetUnboundProjects(bindingConfig);
         }
-        #endregion
+        #endregion IUnboundProjectFinder implementation
 
         #region Non-public API
 

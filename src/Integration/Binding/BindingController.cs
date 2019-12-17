@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 modeToBind,
                 host.Logger);
 
-            var bindingInformationProvider = new SolutionBindingInformationProvider(host);
+            var unboundProjectFinder = new UnboundProjectFinder(host);
 
             var dotNetConfigProvider = new DotNetBindingConfigProvider(host.SonarQubeService, nugetBindingOp,
                 bindingArgs.Connection.ServerUri.ToString(), bindingArgs.ProjectName,
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var cppConfigProvider = new CFamilyBindingConfigProvider(host.SonarQubeService, host.Logger);
             var ruleConfigProvider = new CompositeBindingConfigProvider(dotNetConfigProvider, cppConfigProvider);
 
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, bindingInformationProvider, ruleConfigProvider, isFirstBinding);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, isFirstBinding);
 
             return bindingProcess;
         }
