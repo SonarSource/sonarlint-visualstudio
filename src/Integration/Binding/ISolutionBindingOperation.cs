@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// * co-ordinates writing project-level changes (delegating to to <see cref="ProjectBindingOperation"/>)
     /// For legacy connected mode, the solution-level items are added to the solution file
     /// </remarks>
-    public interface ISolutionBindingOperation : ISolutionRuleStore
+    public interface ISolutionBindingOperation : ISolutionBindingConfigFileStore
     {
         void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap);
 
