@@ -118,8 +118,8 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(project != null);
 
             // If solution is not bound/is missing a rules configuration file, no need to go further
-            var slnLevelRulesConfigFilepath = CalculateSonarQubeSolutionRuleConfigPath(ruleSetInfoProvider, binding, language);
-            if (!fileWrapper.Exists(slnLevelRulesConfigFilepath))
+            var slnLevelBindingConfigFilepath = CalculateSonarQubeSolutionBindingConfigPath(ruleSetInfoProvider, binding, language);
+            if (!fileWrapper.Exists(slnLevelBindingConfigFilepath))
             {
                 return false;
             }
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration
 
             // Projects that required project-level binding should be using RuleSets for configuration,
             // so we assume that the solution-level config file is a ruleset.
-            RuleSet sonarQubeRuleSet = ruleSetSerializer.LoadRuleSet(slnLevelRulesConfigFilepath);
+            RuleSet sonarQubeRuleSet = ruleSetSerializer.LoadRuleSet(slnLevelBindingConfigFilepath);
             if (sonarQubeRuleSet == null)
             {
                 return false;
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration
             return (projectRuleSet != null && RuleSetIncludeChecker.HasInclude(projectRuleSet, sonarQubeRuleSet));
         }
 
-        private static string CalculateSonarQubeSolutionRuleConfigPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, BindingConfiguration binding, Core.Language language)
+        private static string CalculateSonarQubeSolutionBindingConfigPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, BindingConfiguration binding, Core.Language language)
             => ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
                     binding.Project.ProjectKey,
                     language,

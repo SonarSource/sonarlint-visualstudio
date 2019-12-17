@@ -34,7 +34,7 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyRulesConfigurationProviderTests
+    public class CFamilyBindingConfigProviderTests
     {
         [TestMethod]
         public void ConvertRulesToSettings()
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             };
 
             // Act
-            var settings = CFamilyRulesConfigurationProvider.CreateUserSettingsFromQPRules(qpRules);
+            var settings = CFamilyBindingConfigProvider.CreateUserSettingsFromQPRules(qpRules);
 
             // Assert
             settings.Rules.Count.Should().Be(3);
@@ -97,16 +97,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(true, It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => rules);
 
-            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(CreateQp(), null, Language.Cpp, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), null, Language.Cpp, CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<CFamilyRulesConfigurationFile>();
+            result.Should().BeOfType<CFamilyBindingConfigFile>();
 
-            var cfamilyConfigFile = (CFamilyRulesConfigurationFile)result;
+            var cfamilyConfigFile = (CFamilyBindingConfigFile)result;
             cfamilyConfigFile.UserSettings.Should().NotBeNull();
 
             var slvsRules = cfamilyConfigFile.UserSettings.Rules;
@@ -139,16 +139,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new List<SonarQubeRule>());
 
-            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(CreateQp(), null, Language.Cpp, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), null, Language.Cpp, CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<CFamilyRulesConfigurationFile>();
+            result.Should().BeOfType<CFamilyBindingConfigFile>();
 
-            var cfamilyConfigFile = (CFamilyRulesConfigurationFile)result;
+            var cfamilyConfigFile = (CFamilyBindingConfigFile)result;
             cfamilyConfigFile.UserSettings.Should().NotBeNull();
             cfamilyConfigFile.UserSettings.Rules.Should().NotBeNull();
             cfamilyConfigFile.UserSettings.Rules.Count.Should().Be(0);
@@ -166,10 +166,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), CancellationToken.None))
                 .ThrowsAsync(new InvalidOperationException("invalid op"));
 
-            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(CreateQp(), null, Language.Cpp, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), null, Language.Cpp, CancellationToken.None);
 
             // Assert
             result.Should().BeNull();
@@ -192,10 +192,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                         return new List<SonarQubeRule>();
                     }) ;
 
-            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetRulesConfigurationAsync(CreateQp(), null, Language.Cpp, cts.Token);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), null, Language.Cpp, cts.Token);
 
             // Assert
             result.Should().BeNull();
@@ -211,10 +211,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             CancellationTokenSource cts = new CancellationTokenSource();
             var serviceMock = new Mock<ISonarQubeService>();
 
-            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            Action act = () => testSubject.GetRulesConfigurationAsync(CreateQp(), null, Language.VBNET, cts.Token).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(CreateQp(), null, Language.VBNET, cts.Token).Wait();
 
             // Assert
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             // Arrange
             var testLogger = new TestLogger();
             var serviceMock = new Mock<ISonarQubeService>();
-            var testSubject = new CFamilyRulesConfigurationProvider(serviceMock.Object, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // 1. Supported languages
             testSubject.IsLanguageSupported(Language.C).Should().BeTrue();

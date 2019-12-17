@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [DataRow(SonarLintMode.LegacyConnected, /* cppConfig =*/ true, /* cConfig */ false)]
         [DataRow(SonarLintMode.LegacyConnected , /* cppConfig =*/ false, /* cConfig */ false)]
         [DataRow(SonarLintMode.LegacyConnected, /* cppConfig =*/ false, /* cConfig */ true)]
-        public void GetUnboundProjects_ValidSolution_CFamily_RequiresBothCppAndCRulesConfig(SonarLintMode mode,
+        public void GetUnboundProjects_ValidSolution_CFamily_RequiresBothCppAndCConfig(SonarLintMode mode,
             bool cppConfigExists, bool cConfigExists)
         {
             // Cpp projects should have both C++ and C solution-level rules config files

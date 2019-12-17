@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<Language, RuleSetInformation> rulesConfigInformationMap = new Dictionary<Language, RuleSetInformation>();
+        private readonly Dictionary<Language, RuleSetInformation> bindingConfigInformationMap = new Dictionary<Language, RuleSetInformation>();
         private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string projectKey;
@@ -105,13 +105,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /*for testing purposes*/ IReadOnlyDictionary<Language, RuleSetInformation> RuleSetsInformationMap
         {
-            get { return this.rulesConfigInformationMap; }
+            get { return this.bindingConfigInformationMap; }
         }
         #endregion
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownRuleSets(IDictionary<Language, IRulesConfigurationFile> ruleSets)
+        public void RegisterKnownRuleSets(IDictionary<Language, IBindingConfigFile> ruleSets)
         {
             if (ruleSets == null)
             {
@@ -123,10 +123,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var keyValue in ruleSets)
             {
-                Debug.Assert(!this.rulesConfigInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
+                Debug.Assert(!this.bindingConfigInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
                 string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.projectKey, keyValue.Key, this.bindingMode);
-                this.rulesConfigInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
+                this.bindingConfigInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
             }
         }
 
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             RuleSetInformation info;
 
-            if (!this.rulesConfigInformationMap.TryGetValue(language, out info) || info == null)
+            if (!this.bindingConfigInformationMap.TryGetValue(language, out info) || info == null)
             {
                 Debug.Fail("Expected to be called by the ProjectBinder after the known rulesets were registered");
                 return null;
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.SolutionFullPath != null, "Expected to be initialized");
 
-            foreach (var keyValue in this.rulesConfigInformationMap)
+            foreach (var keyValue in this.bindingConfigInformationMap)
             {
                 if (token.IsCancellationRequested)
                 {
@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
                     // Create or overwrite existing rule set
-                    info.RulesConfigurationFile.Save(info.NewRuleSetFilePath);
+                    info.BindingConfigFile.Save(info.NewRuleSetFilePath);
 
                     return true;
                 });
@@ -277,7 +277,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void UpdateSolutionFile()
         {
-            foreach (RuleSetInformation info in rulesConfigInformationMap.Values)
+            foreach (RuleSetInformation info in bindingConfigInformationMap.Values)
             {
                 Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
                 this.AddFileToSolutionItems(info.NewRuleSetFilePath);

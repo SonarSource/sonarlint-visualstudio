@@ -30,10 +30,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
     public interface ISolutionRuleStore
     {
         /// <summary>
-        /// Registers a mapping of <see cref="Language"/> to <see cref="IRulesConfigurationFile"/>/>.
+        /// Registers a mapping of <see cref="Language"/> to <see cref="IBindingConfigFile"/>/>.
         /// </summary>
         /// <param name="ruleSets">Required</param>
-        void RegisterKnownRuleSets(IDictionary<Language, IRulesConfigurationFile> ruleSets);
+        void RegisterKnownRuleSets(IDictionary<Language, IBindingConfigFile> ruleSets);
 
         /// <summary>
         /// Retrieves the solution-level rules configuration mapped to the <see cref="Language"/>.

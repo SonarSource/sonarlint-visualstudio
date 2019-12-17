@@ -29,12 +29,12 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyRulesConfigurationFileTests
+    public class CFamilyBindingConfigFileTests
     {
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new CFamilyRulesConfigurationFile(null);
+            Action act = () => new CFamilyBindingConfigFile(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettings");
         }
 
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         public void Ctor_ValidArgs()
         {
             var userSettings = new UserSettings();
-            var testSubject = new CFamilyRulesConfigurationFile(userSettings);
+            var testSubject = new CFamilyBindingConfigFile(userSettings);
             testSubject.UserSettings.Equals(userSettings);
         }
 
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             fileSystemMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
-            var testSubject = new CFamilyRulesConfigurationFile(settings, fileSystemMock.Object);
+            var testSubject = new CFamilyBindingConfigFile(settings, fileSystemMock.Object);
 
             // Act
             testSubject.Save("c:\\full\\path\\file.txt");
