@@ -24,7 +24,7 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableSolutionBindingInformationProvider : ISolutionBindingInformationProvider
+    internal class ConfigurableUnboundProjectFinder : IUnboundProjectFinder
     {
         public IEnumerable<Project> UnboundProjects { get; set; } = Enumerable.Empty<Project>();
 

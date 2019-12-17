@@ -29,14 +29,14 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
-// This file contains tests for SolutionBindingInformationProvider that relate to
+// This file contains tests for UnboundProjectFinder that relate to
 // the solution-level config files.
 // The project-level config tests are in another class.
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 {
     [TestClass]
-    public class SolutionBindingInformationProviderTests_SolutionConfigLevel
+    public class UnboundProjectFinderTests_SolutionConfigLevel
     {
         [TestMethod]
         [DataRow(SonarLintMode.Connected)]
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         [DataRow(SonarLintMode.Connected)]
         [DataRow(SonarLintMode.LegacyConnected)]
-        public void GetUnboundProjects_ValidSolution_SolutionRuleConfigtIsMissing(SonarLintMode mode)
+        public void GetUnboundProjects_ValidSolution_SolutionRuleConfigIsMissing(SonarLintMode mode)
         {
             // If the solution ruleset is missing then all projects will be returned as unbound
             // Arrange - no projects created
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 return project;
             }
 
-            public SolutionBindingInformationProvider CreateTestSubject()
+            public UnboundProjectFinder CreateTestSubject()
             {
                 var projectSystemHelper = new Mock<IProjectSystemHelper>();
                 projectSystemHelper.Setup(x => x.GetFilteredSolutionProjects()).Returns(projects);
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new SolutionBindingInformationProvider(sp, fileMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, fileMock.Object);
                 return testSubject;
             }
 

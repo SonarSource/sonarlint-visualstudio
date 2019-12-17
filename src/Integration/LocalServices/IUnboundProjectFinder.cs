@@ -23,18 +23,21 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    // "GetUnboundProjects"is used by the error list controller in connected mode (legacy & new)
+    // "GetUnboundProjects" is used by the error list controller in connected mode (legacy & new)
     // to find projects that have been added to a bound solution but do not have the ruleset
     // set correctly.
+    // It is also used by the BindingProcessImpl to find projects that required project-level binding.
 
-    // TODO: rename this interface e.g. IUnboundProjectProvider/Finder/Locator
-    internal interface ISolutionBindingInformationProvider
+    internal interface IUnboundProjectFinder
     {
         /// <summary>
-        /// Return all the SonarQube unbound projects in the current solution.
-        /// It's up to the caller to make sure that the solution is fully loaded before calling this method.
+        /// Return all of the projects in the current solution for which the required solution-level or project-level configuration is missing
         /// </summary>
-        /// <remarks>Internally projects are filtered using the <see cref="IProjectSystemFilter"/> service.
+        /// <remarks>
+        /// It's up to the caller to make sure that the solution is fully loaded before calling this method.
+        /// Not all projects required project-level configuration e.g. Cpp projects. However, they still require
+        /// solution-level configuration (e.g. a  file contains the rules configuration).
+        /// Internally projects are filtered using the <see cref="IProjectSystemFilter"/> service.
         /// <seealso cref="IProjectSystemHelper.GetFilteredSolutionProjects"/></remarks>
         /// <returns>Will always return an instance, never a null</returns>
         IEnumerable<Project> GetUnboundProjects();

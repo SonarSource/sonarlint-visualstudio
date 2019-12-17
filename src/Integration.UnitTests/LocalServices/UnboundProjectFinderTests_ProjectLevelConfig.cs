@@ -31,14 +31,14 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using Language = SonarLint.VisualStudio.Core.Language;
 
-// This file contains tests for SolutionBindingInformationProvider that relate to
+// This file contains tests for UnboundProjectFinder that relate to
 // the project-level config files.
 // The solution-level config tests are in another class.
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SolutionBindingInformationProviderTests_ProjectLevelConfig
+    public class UnboundProjectFinderTests_ProjectLevelConfig
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableConfigurationProvider configProvider;
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ArgCheck()
         {
             // Arrange
-            Action action = () => new SolutionBindingInformationProvider(null);
+            Action action = () => new UnboundProjectFinder(null);
 
             // Act & Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
@@ -223,8 +223,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private SolutionBindingInformationProvider CreateTestSubject() =>
-            new SolutionBindingInformationProvider(this.serviceProvider, this.fileMock.Object);
+        private UnboundProjectFinder CreateTestSubject() =>
+            new UnboundProjectFinder(this.serviceProvider, this.fileMock.Object);
        
         private IEnumerable<Project> SetValidFilteredProjects()
         {
