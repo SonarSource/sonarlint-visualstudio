@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<Language, RuleSetInformation> bindingConfigInformationMap = new Dictionary<Language, RuleSetInformation>();
+        private readonly Dictionary<Language, ConfigFileInformation> bindingConfigInformationMap = new Dictionary<Language, ConfigFileInformation>();
         private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string projectKey;
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<Language, RuleSetInformation> RuleSetsInformationMap
+        internal /*for testing purposes*/ IReadOnlyDictionary<Language, ConfigFileInformation> RuleSetsInformationMap
         {
             get { return this.bindingConfigInformationMap; }
         }
@@ -111,28 +111,28 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownRuleSets(IDictionary<Language, IBindingConfigFile> ruleSets)
+        public void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap)
         {
-            if (ruleSets == null)
+            if (languageToFileMap == null)
             {
-                throw new ArgumentNullException(nameof(ruleSets));
+                throw new ArgumentNullException(nameof(languageToFileMap));
             }
 
             var ruleSetInfo = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfo.AssertLocalServiceIsNotNull();
 
-            foreach (var keyValue in ruleSets)
+            foreach (var keyValue in languageToFileMap)
             {
                 Debug.Assert(!this.bindingConfigInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
 
                 string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.projectKey, keyValue.Key, this.bindingMode);
-                this.bindingConfigInformationMap[keyValue.Key] = new RuleSetInformation(keyValue.Key, keyValue.Value) { NewRuleSetFilePath = solutionRuleSet };
+                this.bindingConfigInformationMap[keyValue.Key] = new ConfigFileInformation(keyValue.Value) { NewFilePath = solutionRuleSet };
             }
         }
 
-        public RuleSetInformation GetRuleSetInformation(Language language)
+        public ConfigFileInformation GetConfigFileInformation(Language language)
         {
-            RuleSetInformation info;
+            ConfigFileInformation info;
 
             if (!this.bindingConfigInformationMap.TryGetValue(language, out info) || info == null)
             {
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return null;
             }
 
-            Debug.Assert(info.NewRuleSetFilePath != null, "Expected to be called after Prepare");
+            Debug.Assert(info.NewFilePath != null, "Expected to be called after Prepare");
 
             return info;
         }
@@ -190,22 +190,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                RuleSetInformation info = keyValue.Value;
-                Debug.Assert(!string.IsNullOrWhiteSpace(info.NewRuleSetFilePath), "Expected to be set during registration time");
+                ConfigFileInformation info = keyValue.Value;
+                Debug.Assert(!string.IsNullOrWhiteSpace(info.NewFilePath), "Expected to be set during registration time");
                 
-                this.sourceControlledFileSystem.QueueFileWrite(info.NewRuleSetFilePath, () =>
+                this.sourceControlledFileSystem.QueueFileWrite(info.NewFilePath, () =>
                 {
-                    string ruleSetDirectoryPath = Path.GetDirectoryName(info.NewRuleSetFilePath);
+                    string ruleSetDirectoryPath = Path.GetDirectoryName(info.NewFilePath);
 
                     this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
                     // Create or overwrite existing rule set
-                    info.BindingConfigFile.Save(info.NewRuleSetFilePath);
+                    info.BindingConfigFile.Save(info.NewFilePath);
 
                     return true;
                 });
 
-                Debug.Assert(this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.NewRuleSetFilePath), "Expected a rule set to pend pended");
+                Debug.Assert(this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.NewFilePath), "Expected a rule set to pend pended");
             }
 
             foreach (IBindingOperation binder in this.childBinder)
@@ -277,11 +277,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void UpdateSolutionFile()
         {
-            foreach (RuleSetInformation info in bindingConfigInformationMap.Values)
+            foreach (ConfigFileInformation info in bindingConfigInformationMap.Values)
             {
-                Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewRuleSetFilePath), "File not written " + info.NewRuleSetFilePath);
-                this.AddFileToSolutionItems(info.NewRuleSetFilePath);
-                this.RemoveFileFromSolutionItems(info.NewRuleSetFilePath);
+                Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewFilePath), "File not written " + info.NewFilePath);
+                this.AddFileToSolutionItems(info.NewFilePath);
+                this.RemoveFileFromSolutionItems(info.NewFilePath);
             }
         }
 

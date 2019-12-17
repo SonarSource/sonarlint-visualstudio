@@ -20,7 +20,6 @@
 
 using System;
 using SonarLint.VisualStudio.Core.Binding;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -28,15 +27,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// Data class that exposes simple data that can be accessed from any thread.
     /// The class itself is not thread safe and assumes only one thread accessing it at any given time.
     /// </summary>
-    public class RuleSetInformation
+    public class ConfigFileInformation
     {
-        public RuleSetInformation(Language language, IBindingConfigFile bindingConfigFile)
+        public ConfigFileInformation(IBindingConfigFile bindingConfigFile)
         {
             BindingConfigFile = bindingConfigFile ?? throw new ArgumentNullException(nameof(bindingConfigFile));
         }
 
         public IBindingConfigFile BindingConfigFile { get; }
 
-        public string NewRuleSetFilePath { get; set; }
+        public string NewFilePath { get; set; }
     }
 }

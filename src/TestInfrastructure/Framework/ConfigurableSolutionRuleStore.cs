@@ -27,27 +27,27 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableSolutionRuleStore : ISolutionRuleStore
+    internal class ConfigurableSolutionRuleStore : ISolutionBindingConfigFileStore
     {
-        private readonly Dictionary<Language, RuleSetInformation> availableRuleSets = new Dictionary<Language, RuleSetInformation>();
+        private readonly Dictionary<Language, ConfigFileInformation> availableFiles = new Dictionary<Language, ConfigFileInformation>();
 
         #region ISolutionRuleStore
 
-        RuleSetInformation ISolutionRuleStore.GetRuleSetInformation(Language language)
+        ConfigFileInformation ISolutionBindingConfigFileStore.GetConfigFileInformation(Language language)
         {
-            RuleSetInformation ruleSet;
-            this.availableRuleSets.TryGetValue(language, out ruleSet);
+            ConfigFileInformation ruleSet;
+            this.availableFiles.TryGetValue(language, out ruleSet);
 
             return ruleSet;
         }
 
-        void ISolutionRuleStore.RegisterKnownRuleSets(IDictionary<Language, IBindingConfigFile> ruleSets)
+        void ISolutionBindingConfigFileStore.RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap)
         {
-            ruleSets.Should().NotBeNull("Not expecting nulls");
+            languageToFileMap.Should().NotBeNull("Not expecting nulls");
 
-            foreach (var rule in ruleSets)
+            foreach (var rule in languageToFileMap)
             {
-                availableRuleSets.Add(rule.Key, new RuleSetInformation(rule.Key, rule.Value));
+                availableFiles.Add(rule.Key, new ConfigFileInformation(rule.Value));
             }
         }
 
@@ -55,15 +55,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        public void RegisterRuleSetPath(Language language, string path, IBindingConfigFile bindingConfig = null)
+        public void RegisterConfigFilePath(Language language, string path, IBindingConfigFile bindingConfig = null)
         {
-            if (!this.availableRuleSets.ContainsKey(language))
+            if (!this.availableFiles.ContainsKey(language))
             {
                 bindingConfig = bindingConfig ?? new DotNetBindingConfigFile(new RuleSet("SonarQube"));
-                this.availableRuleSets[language] = new RuleSetInformation(language, bindingConfig);
+                this.availableFiles[language] = new ConfigFileInformation(bindingConfig);
             }
 
-            this.availableRuleSets[language].NewRuleSetFilePath = path;
+            this.availableFiles[language].NewFilePath = path;
         }
 
         #endregion Test helpers
