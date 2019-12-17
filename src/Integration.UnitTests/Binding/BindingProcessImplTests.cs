@@ -146,9 +146,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeTrue();
-            testSubject.InternalState.Rulesets.Should().ContainKey(language);
-            testSubject.InternalState.Rulesets[language].Should().Be(configFile);
-            testSubject.InternalState.Rulesets.Count().Should().Be(1);
+            testSubject.InternalState.BindingConfigFiles.Should().ContainKey(language);
+            testSubject.InternalState.BindingConfigFiles[language].Should().Be(configFile);
+            testSubject.InternalState.BindingConfigFiles.Count().Should().Be(1);
 
             testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
 
@@ -178,8 +178,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeFalse();
-            testSubject.InternalState.Rulesets.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.Rulesets.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.InternalState.BindingConfigFiles.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.InternalState.BindingConfigFiles.Should().NotContainKey(language, "Not expecting any rules");
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 

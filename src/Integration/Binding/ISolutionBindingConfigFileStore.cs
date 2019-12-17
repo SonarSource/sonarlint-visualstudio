@@ -25,19 +25,19 @@ using Language = SonarLint.VisualStudio.Core.Language;
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     /// <summary>
-    /// Provides access to solution level rules
+    /// Provides access to solution-level binding configuration files
     /// </summary>
-    public interface ISolutionRuleStore
+    public interface ISolutionBindingConfigFileStore
     {
         /// <summary>
         /// Registers a mapping of <see cref="Language"/> to <see cref="IBindingConfigFile"/>/>.
         /// </summary>
-        /// <param name="ruleSets">Required</param>
-        void RegisterKnownRuleSets(IDictionary<Language, IBindingConfigFile> ruleSets);
+        /// <param name="languageToFileMap">Required</param>
+        void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap);
 
         /// <summary>
-        /// Retrieves the solution-level rules configuration mapped to the <see cref="Language"/>.
+        /// Retrieves the solution-level configuration mapped to the <see cref="Language"/>.
         /// </summary>
-        RuleSetInformation GetRuleSetInformation(Language language);
+        ConfigFileInformation GetConfigFileInformation(Language language);
     }
 }

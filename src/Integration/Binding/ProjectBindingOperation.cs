@@ -37,17 +37,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
-        private readonly ISolutionRuleStore ruleStore;
+        private readonly ISolutionBindingConfigFileStore configFileStore;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
         private readonly ILogger logger;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionRuleStore ruleStore, ILogger logger)
+        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, ILogger logger)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
-            this.ruleStore = ruleStore ?? throw new ArgumentNullException(nameof(ruleStore));
+            this.configFileStore = configFileStore ?? throw new ArgumentNullException(nameof(configFileStore));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void Prepare(CancellationToken token)
         {
-            var solutionRuleSet = this.ruleStore.GetRuleSetInformation(this.ProjectLanguage);
+            var solutionRuleSet = this.configFileStore.GetConfigFileInformation(this.ProjectLanguage);
 
             // We want to limit the number of rulesets so for this we use the previously calculated TargetRuleSetFileName
             // and group by it. This handles the special case of all the properties having the same ruleset and also the case
