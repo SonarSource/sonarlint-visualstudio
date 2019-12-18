@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.Core.CFamily
 {
     public interface IRulesConfiguration
     {
