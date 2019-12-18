@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using static Sonarlint.Issue.Types;
 
@@ -315,9 +316,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = new Mock<ProjectItem>();
+            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", DummyCFamilyRulesConfig.CreateValidRulesConfig);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", rulesConfigProviderMock.Object);
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
@@ -331,9 +333,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyCFamilyRulesConfig.CreateValidRulesConfig);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object);
 
             // Assert
             AssertMessageLogged(loggerMock,
@@ -348,9 +351,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
+            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyCFamilyRulesConfig.CreateValidRulesConfig);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object);
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
@@ -433,9 +437,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void GetKeyValueOptionsList_UsingEmbeddedRulesJson()
+        public void GetKeyValueOptionsList_UsingRealEmbeddedRulesJson()
         {
-            var options = CFamilyHelper.GetKeyValueOptionsList(CFamilyHelper.DefaultRulesCache.GetSettings("cpp"));
+            var rulesMetadataCache = new RulesMetadataCache(CFamilyShared.CFamilyFilesDirectory);
+            var options = CFamilyHelper.GetKeyValueOptionsList(rulesMetadataCache.GetSettings("cpp"));
 
             // QP option
             CheckHasOption("internal.qualityProfile=");

@@ -22,6 +22,7 @@ using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private const int Active_CPP_Rules = 245;
         private const int Inactive_CPP_Rules = 146;
 
-        private readonly RulesMetadataCache rulesMetadataCache = CFamilyHelper.DefaultRulesCache;
+        private readonly RulesMetadataCache rulesMetadataCache = new RulesMetadataCache(CFamilyShared.CFamilyFilesDirectory);
 
         [TestMethod]
         public void Read_Rules()
