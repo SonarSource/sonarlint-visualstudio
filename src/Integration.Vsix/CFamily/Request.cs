@@ -32,6 +32,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         // CLang analyzer, but it is by SVLS used when filtering the returned issues.
         public string CFamilyLanguage { get; set; }
 
-        public IRulesConfiguration RulesConfiguration { get; set; }
+        public ICFamilyRulesConfig RulesConfiguration { get; set; }
     }
 }

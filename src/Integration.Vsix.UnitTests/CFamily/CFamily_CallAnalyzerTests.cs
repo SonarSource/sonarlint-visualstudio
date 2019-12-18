@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void TestIsIssueForActiveRule()
         {
-            var rulesConfig = new DummyRulesConfiguration
+            var rulesConfig = new DummyCFamilyRulesConfig
             {
                 LanguageKey = "any",
                 RuleKeyToActiveMap = new Dictionary<string, bool>
