@@ -1,0 +1,33 @@
+{
+  "title": "Cpp Inactive 1 Title",
+  "type": "CODE_SMELL",
+  "status": "ready",
+  "remediation": {
+    "func": "Constant\/Issue",
+    "constantCost": "5min"
+  },
+  "tags": [
+    "cwe",
+    "based-on-misra",
+    "cert",
+    "suspicious"
+  ],
+  "standards": [
+    "MISRA C 2004",
+    "MISRA C 2012",
+    "CWE",
+    "CERT"
+  ],
+  "defaultSeverity": "Major",
+  "ruleSpecification": "RSPEC-1121",
+  "sqKey": "Cpp_Inactive_1",
+  "compatibleLanguages": [
+    "CPP"
+  ],
+  "scope": "All",
+  "securityStandards": {
+    "CWE": [
+      481
+    ]
+  }
+}

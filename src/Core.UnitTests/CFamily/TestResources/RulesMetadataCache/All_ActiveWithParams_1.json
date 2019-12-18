@@ -1,0 +1,23 @@
+{
+  "title": "All ActiveWithParams 1 title",
+  "type": "CODE_SMELL",
+  "status": "deprecated",
+  "remediation": {
+    "func": "Linear with offset",
+    "linearDesc": "per complexity point over the threshold",
+    "linearOffset": "10min",
+    "linearFactor": "1min"
+  },
+  "tags": [
+    
+  ],
+  "defaultSeverity": "Critical",
+  "ruleSpecification": "RSPEC-1311",
+  "sqKey": "All_ActiveWithParams_1",
+  "compatibleLanguages": [
+    "C",
+    "CPP",
+    "OBJC"
+  ],
+  "scope": "Main"
+}

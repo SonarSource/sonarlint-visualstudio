@@ -25,7 +25,6 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -40,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const string C_LANGUAGE_KEY = "c";
 
         public static readonly string CFamilyFilesDirectory = Path.Combine(
-            Path.GetDirectoryName(typeof(RulesLoader).Assembly.Location),
+            Path.GetDirectoryName(typeof(CFamilyHelper).Assembly.Location),
             "lib");
 
         private static readonly string analyzerExeFilePath = Path.Combine(
