@@ -123,13 +123,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             public string Title { get; set; }
 
             [JsonProperty("type")]
-            public Sonarlint.Issue.Types.Type Type { get; set; }
+            public IssueType Type { get; set; }
 
             [JsonProperty("defaultSeverity")]
-            public Sonarlint.Issue.Types.Severity DefaultSeverity { get; set; }
+            public IssueSeverity DefaultSeverity { get; set; }
 
             [JsonProperty("compatibleLanguages")]
             public string[] CompatibleLanguages { get; set; }
+        }
+
+        public enum IssueSeverity
+        {
+            Blocker = 0,
+            Critical = 1,
+            Major = 2,
+            Minor = 3,
+            Info = 4,
+        }
+
+        public enum IssueType
+        {
+            CodeSmell = 0,
+            Bug = 1,
+            Vulnerability = 2,
         }
 
         /// <summary>
@@ -138,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         internal class SonarTypeConverter : Newtonsoft.Json.JsonConverter
         {
             public override bool CanConvert(Type objectType) =>
-                objectType == typeof(Sonarlint.Issue.Types.Type);
+                objectType == typeof(IssueType);
 
             public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
@@ -148,15 +164,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // we can't use the default JSON StringEnumSerializer
                 if (serializedString.Equals("CODE_SMELL", StringComparison.OrdinalIgnoreCase))
                 {
-                    return Sonarlint.Issue.Types.Type.CodeSmell;
+                    return IssueType.CodeSmell;
                 }
 
-                if (Enum.TryParse<Sonarlint.Issue.Types.Type>(serializedString, true /* ignore case */, out Sonarlint.Issue.Types.Type data))
+                if (Enum.TryParse<IssueType>(serializedString, true /* ignore case */, out IssueType data))
                 {
                     return data;
                 }
 
-                throw new JsonSerializationException($"Unrecognized Sonarlint.Issue.Types.Type value: {serializedString}");
+                throw new JsonSerializationException($"Unrecognized IssueType value: {serializedString}");
             }
 
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

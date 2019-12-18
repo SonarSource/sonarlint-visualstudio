@@ -68,8 +68,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
             using (new AssertionScope())
             {
-                rulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-                rulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
+                rulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(IssueType.CodeSmell);
+                rulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(IssueSeverity.Critical);
             }
 
             Action act = () => rulesLoader.ReadRuleMetadata("Missing");
@@ -92,8 +92,8 @@ type: 'CODE_SMELL'
 }";
             var ruleMetadata = DeserializeJson(json);
 
-            ruleMetadata.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-            ruleMetadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
+            ruleMetadata.Type.Should().Be(IssueType.CodeSmell);
+            ruleMetadata.DefaultSeverity.Should().Be(IssueSeverity.Critical);
         }
 
         [TestMethod]
@@ -106,8 +106,8 @@ type: 'BUG'
 }";
             var ruleMetadata = DeserializeJson(json);
 
-            ruleMetadata.Type.Should().Be(Sonarlint.Issue.Types.Type.Bug);
-            ruleMetadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Blocker);
+            ruleMetadata.Type.Should().Be(IssueType.Bug);
+            ruleMetadata.DefaultSeverity.Should().Be(IssueSeverity.Blocker);
         }
 
         [TestMethod]
@@ -120,8 +120,8 @@ type: 'VULNERABILITY'
 }";
             var ruleMetadata = DeserializeJson(json);
 
-            ruleMetadata.Type.Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
-            ruleMetadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Info);
+            ruleMetadata.Type.Should().Be(IssueType.Vulnerability);
+            ruleMetadata.DefaultSeverity.Should().Be(IssueSeverity.Info);
         }
 
         [TestMethod]
