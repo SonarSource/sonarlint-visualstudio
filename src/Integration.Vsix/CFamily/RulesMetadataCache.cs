@@ -26,19 +26,6 @@ using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal interface IRulesConfiguration
-    {
-        string LanguageKey { get; }
-
-        IEnumerable<string> AllPartialRuleKeys { get; }
-
-        IEnumerable<string> ActivePartialRuleKeys { get; }
-
-        IDictionary<string, IDictionary<string, string>> RulesParameters { get; }
-
-        IDictionary<string, RuleMetadata> RulesMetadata { get; }
-    }
-
     internal sealed class RulesMetadataCache
     {
         private IEnumerable<string> AllLanguagesAllRuleKeys { get; }
