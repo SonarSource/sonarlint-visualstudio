@@ -1,0 +1,25 @@
+{
+  "title": "All_Active_1 title",
+  "type": "CODE_SMELL",
+  "status": "ready",
+  "remediation": {
+    "func": "Constant\/Issue",
+    "constantCost": "5min"
+  },
+  "tags": [
+    "convention",
+    "based-on-misra"
+  ],
+  "standards": [
+    "MISRA C 2004"
+  ],
+  "defaultSeverity": "Minor",
+  "ruleSpecification": "RSPEC-787",
+  "sqKey": "C99CommentUsage",
+  "compatibleLanguages": [
+    "C",
+    "CPP",
+    "OBJC"
+  ],
+  "scope": "Main"
+}

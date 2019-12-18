@@ -1,0 +1,8 @@
+[
+  {
+    "key": "maximumClassComplexityThreshold",
+    "description": "Maximum complexity allowed.",
+    "defaultValue": "80",
+    "type": "INTEGER"
+  }
+]
