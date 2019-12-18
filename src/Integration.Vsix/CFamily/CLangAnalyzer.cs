@@ -70,9 +70,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 .Forget(); // fire and forget
         }
 
-        private IRulesConfiguration GetDynamicRulesConfiguration(string language)
+        private ICFamilyRulesConfig GetDynamicRulesConfiguration(string language)
         {
-            var config = new DynamicRulesConfiguration(CFamilyHelper.DefaultRulesCache.GetSettings(language), userSettingsProvider.UserSettings);
+            var config = new DynamicCFamilyRulesConfig(CFamilyHelper.DefaultRulesCache.GetSettings(language), userSettingsProvider.UserSettings);
 
             return config;
         }
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        internal /* for testing */ static bool IsIssueForActiveRule(Message message, IRulesConfiguration rulesConfiguration)
+        internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)
         {
             // Currently (v6.3) the subprocess.exe will always run the native CLang rules, so those issues
             // could be returned even if they were not activated in the profile.

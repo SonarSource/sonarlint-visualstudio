@@ -24,10 +24,10 @@ using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
-    internal class DummyRulesConfiguration : IRulesConfiguration
+    internal class DummyCFamilyRulesConfig : ICFamilyRulesConfig
     {
-        public static IRulesConfiguration CreateValidRulesConfig(string languageKey) =>
-            new DummyRulesConfiguration
+        public static ICFamilyRulesConfig CreateValidRulesConfig(string languageKey) =>
+            new DummyCFamilyRulesConfig
             {
                 LanguageKey = languageKey,
                 RuleKeyToActiveMap = new Dictionary<string, bool>

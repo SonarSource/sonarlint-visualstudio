@@ -377,7 +377,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = new Mock<ProjectItem>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", DummyRulesConfiguration.CreateValidRulesConfig);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", DummyCFamilyRulesConfig.CreateValidRulesConfig);
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
@@ -393,7 +393,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyRulesConfiguration.CreateValidRulesConfig);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyCFamilyRulesConfig.CreateValidRulesConfig);
 
             // Assert
             AssertMessageLogged(loggerMock,
@@ -410,7 +410,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyRulesConfiguration.CreateValidRulesConfig);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", DummyCFamilyRulesConfig.CreateValidRulesConfig);
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
@@ -658,9 +658,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             }
         }
 
-        private static IRulesConfiguration GetDummyRulesConfiguration()
+        private static ICFamilyRulesConfig GetDummyRulesConfiguration()
         {
-            var config = new DummyRulesConfiguration
+            var config = new DummyCFamilyRulesConfig
             {
                 RuleKeyToActiveMap = new Dictionary<string, bool>
                 {
