@@ -25,6 +25,7 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -183,8 +184,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 FilePath = cfamilyIssue.Filename,
                 Message = cfamilyIssue.Text,
                 RuleKey = sqLanguage + ":" + cfamilyIssue.RuleKey,
-                Severity = defaultSeverity,
-                Type = defaultType,
+                Severity = Convert(defaultSeverity),
+                Type = Convert(defaultType),
                 StartLine = cfamilyIssue.Line,
                 EndLine = cfamilyIssue.EndLine,
 
@@ -192,6 +193,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 StartLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
                 EndLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
             };
+        }
+
+        internal /* for testing */ static Sonarlint.Issue.Types.Severity Convert(IssueSeverity issueSeverity)
+        {
+            switch (issueSeverity)
+            {
+                case IssueSeverity.Blocker:
+                    return Sonarlint.Issue.Types.Severity.Blocker;
+                case IssueSeverity.Critical:
+                    return Sonarlint.Issue.Types.Severity.Critical;
+                case IssueSeverity.Info:
+                    return Sonarlint.Issue.Types.Severity.Info;
+                case IssueSeverity.Major:
+                    return Sonarlint.Issue.Types.Severity.Major;
+                case IssueSeverity.Minor:
+                    return Sonarlint.Issue.Types.Severity.Minor;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(issueSeverity));
+            }
+        }
+
+        internal /* for testing */static Sonarlint.Issue.Types.Type Convert(IssueType issueType)
+        {
+            switch (issueType)
+            {
+                case IssueType.Bug:
+                    return Sonarlint.Issue.Types.Type.Bug;
+                case IssueType.CodeSmell:
+                    return Sonarlint.Issue.Types.Type.CodeSmell;
+                case IssueType.Vulnerability:
+                    return Sonarlint.Issue.Types.Type.Vulnerability;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(issueType));
+            }
         }
 
         private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger)
