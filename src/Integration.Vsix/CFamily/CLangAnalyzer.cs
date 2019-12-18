@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.CFamily;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -124,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // In addition, in v6.4+ there are internal rules that are always enabled and will always return
             // issues. Filtering for active rules will also remove those internal issues since the corresponding
             // rules will never be active in a quality profile.
-            return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyHelper.RuleKeyComparer);
+            return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyShared.RuleKeyComparer);
         }
     }
 }
