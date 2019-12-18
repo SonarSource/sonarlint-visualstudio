@@ -434,7 +434,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void GetKeyValueOptionsList_UsingEmbeddedRulesJson()
         {
-            var options = CFamilyHelper.GetKeyValueOptionsList(RulesMetadataCache.GetSettings("cpp"));
+            var options = CFamilyHelper.GetKeyValueOptionsList(CFamilyHelper.DefaultRulesCache.GetSettings("cpp"));
 
             // QP option
             CheckHasOption("internal.qualityProfile=");
