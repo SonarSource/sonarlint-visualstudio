@@ -30,13 +30,13 @@ using SonarLint.VisualStudio.Integration.CFamily;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
-    public class DynamicRulesConfigurationTests
+    public class DynamicCFamilyRulesConfigTests
     {
         [TestMethod]
         public void ActiveRulesMergedCorrectly()
         {
             // Arrange
-            var defaultConfig = new DummyRulesConfiguration
+            var defaultConfig = new DummyCFamilyRulesConfig
             {
                 LanguageKey = "c",
                 RuleKeyToActiveMap = new Dictionary<string, bool>
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             };
 
             // Act
-            var dynamicConfig = DynamicRulesConfiguration.CalculateActiveRules(defaultConfig, userSettings);
+            var dynamicConfig = DynamicCFamilyRulesConfig.CalculateActiveRules(defaultConfig, userSettings);
 
             // Assert
             dynamicConfig.Should().BeEquivalentTo("rule1", "rule3");
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void ActiveRules_EmptyUserSettings_ReturnsDefaultActive()
         {
             // Arrange
-            var defaultConfig = new DummyRulesConfiguration
+            var defaultConfig = new DummyCFamilyRulesConfig
             {
                 RuleKeyToActiveMap = new Dictionary<string, bool>
                 {
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             };
 
             // Act
-            var dynamicConfig = DynamicRulesConfiguration.CalculateActiveRules(defaultConfig, new UserSettings());
+            var dynamicConfig = DynamicCFamilyRulesConfig.CalculateActiveRules(defaultConfig, new UserSettings());
             dynamicConfig.Should().BeEquivalentTo("rule1", "rule2");
         }
 
@@ -100,11 +100,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             var userSettings = new UserSettings();
 
-            Action act = () => new DynamicRulesConfiguration(null, userSettings);
+            Action act = () => new DynamicCFamilyRulesConfig(null, userSettings);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
 
             // Null settings should be ok
-            act = () => new DynamicRulesConfiguration(new DummyRulesConfiguration(), null);
+            act = () => new DynamicCFamilyRulesConfig(new DummyCFamilyRulesConfig(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettings");
         }
 
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Ctor_NoSettings_DefaultsUsed()
         {
             // Arrange
-            var defaultConfig = new DummyRulesConfiguration
+            var defaultConfig = new DummyCFamilyRulesConfig
             {
                 LanguageKey = "123",
                 RuleKeyToActiveMap = new Dictionary<string, bool>
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             };
 
             // Act
-            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, new UserSettings());
+            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, new UserSettings());
 
             // Assert
             dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1");
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Ctor_SettingsExist_SettingsApplied()
         {
             // Arrange
-            var defaultConfig = new DummyRulesConfiguration
+            var defaultConfig = new DummyCFamilyRulesConfig
             {
                 LanguageKey = "cpp",
                 RuleKeyToActiveMap = new Dictionary<string, bool>
@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var userSettings = (UserSettings)JsonConvert.DeserializeObject(userSettingsData, typeof(UserSettings));
 
             // Act
-            var dynamicConfig = new DynamicRulesConfiguration(defaultConfig, userSettings);
+            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, userSettings);
 
             // Assert
             dynamicConfig.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule4");

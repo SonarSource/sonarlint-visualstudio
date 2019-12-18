@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static partial class CFamilyHelper
     {
-        internal delegate IRulesConfiguration GetRulesConfiguration(string languageKey);
+        internal delegate ICFamilyRulesConfig GetRulesConfiguration(string languageKey);
 
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return request;
         }
 
-        internal /* for testing */ static string[]GetKeyValueOptionsList(IRulesConfiguration rulesConfiguration)
+        internal /* for testing */ static string[]GetKeyValueOptionsList(ICFamilyRulesConfig rulesConfiguration)
         {
             var options = GetDefaultOptions(rulesConfiguration);
             options.Add("internal.qualityProfile", string.Join(",", rulesConfiguration.ActivePartialRuleKeys));
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return data;
         }
 
-        private static Dictionary<string, string> GetDefaultOptions(IRulesConfiguration rulesConfiguration)
+        private static Dictionary<string, string> GetDefaultOptions(ICFamilyRulesConfig rulesConfiguration)
         {
             Dictionary<string, string> defaults = new Dictionary<string, string>();
             foreach (string ruleKey in rulesConfiguration.AllPartialRuleKeys)
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         }
 
-        internal /* for testing */ static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, IRulesConfiguration rulesConfiguration)
+        internal /* for testing */ static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
         {
             // Lines and character positions are 1-based
             Debug.Assert(cfamilyIssue.Line > 0);
