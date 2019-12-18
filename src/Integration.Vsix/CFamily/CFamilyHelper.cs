@@ -31,8 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static partial class CFamilyHelper
     {
-        internal delegate ICFamilyRulesConfig GetRulesConfiguration(string languageKey);
-
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
@@ -46,14 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private const int DefaultAnalysisTimeoutMs = 10 * 1000;
         private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
  
-        static CFamilyHelper()
-        {
-            DefaultRulesCache = new RulesMetadataCache(CFamilyHelper.CFamilyFilesDirectory);
-        }
-
-        public static RulesMetadataCache DefaultRulesCache { get; }
-
-        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, GetRulesConfiguration rulesConfigSelector)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider)
         {
             if (IsHeaderFile(absoluteFilePath))
             {
@@ -75,10 +66,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            return CreateRequest(fileConfig, absoluteFilePath, rulesConfigSelector);
+            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider);
         }
 
-        private static Request CreateRequest(CFamilyHelper.FileConfig fileConfig, string absoluteFilePath, GetRulesConfiguration rulesConfigSelector)
+        private static Request CreateRequest(CFamilyHelper.FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider)
         {
             var request = fileConfig.ToRequest(absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
@@ -86,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.RulesConfiguration = rulesConfigSelector(request.CFamilyLanguage);
+            request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
             Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
 
