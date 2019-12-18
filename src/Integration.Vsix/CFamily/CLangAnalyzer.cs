@@ -36,9 +36,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
-        private readonly IUserSettingsProvider userSettingsProvider; 
+        private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ILogger logger;
-        
+
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, IUserSettingsProvider userSettingsProvider, ILogger logger)
         {
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private IRulesConfiguration GetDynamicRulesConfiguration(string language)
         {
-            var config = new DynamicRulesConfiguration(RulesMetadataCache.GetSettings(language), userSettingsProvider.UserSettings);
+            var config = new DynamicRulesConfiguration(CFamilyHelper.DefaultRulesCache.GetSettings(language), userSettingsProvider.UserSettings);
 
             return config;
         }
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             // Currently (v6.3) the subprocess.exe will always run the native CLang rules, so those issues
             // could be returned even if they were not activated in the profile.
-            
+
             // In addition, in v6.4+ there are internal rules that are always enabled and will always return
             // issues. Filtering for active rules will also remove those internal issues since the corresponding
             // rules will never be active in a quality profile.
