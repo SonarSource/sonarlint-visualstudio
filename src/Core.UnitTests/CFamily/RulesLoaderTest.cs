@@ -24,10 +24,10 @@ using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
+using SonarLint.VisualStudio.Core.CFamily;
+using static SonarLint.VisualStudio.Core.CFamily.RulesLoader;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
     public class RulesLoaderTest

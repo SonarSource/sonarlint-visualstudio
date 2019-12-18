@@ -21,9 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.Core.CFamily
 {
     public sealed class RulesMetadataCache
     {
