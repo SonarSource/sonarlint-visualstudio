@@ -18,15 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.Core;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 Debug.Assert(errorCode != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(DaemonStrings.DisableRule_ErrorDisablingRule, errorCode ?? DaemonStrings.DisableRule_UnknownErrorCode, ex.Message);
             }
