@@ -41,34 +41,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
     internal sealed class RulesMetadataCache
     {
-        private static IEnumerable<string> AllLanguagesAllRuleKeys { get; }
-        private static IEnumerable<string> AllLanguagesActiveRuleKeys { get; }
-        private static IDictionary<string, RuleMetadata> AllLanguagesRulesMetadata { get; }
-        private static IDictionary<string, IDictionary<string, string>> AllLanguagesRulesParameters { get; }
+        private IEnumerable<string> AllLanguagesAllRuleKeys { get; }
+        private IEnumerable<string> AllLanguagesActiveRuleKeys { get; }
+        private IDictionary<string, RuleMetadata> AllLanguagesRulesMetadata { get; }
+        private IDictionary<string, IDictionary<string, string>> AllLanguagesRulesParameters { get; }
 
-        private static IDictionary<string, IRulesConfiguration> RulesByLanguage { get; }
+        private IDictionary<string, IRulesConfiguration> RulesByLanguage { get; }
 
-        public static IRulesConfiguration GetSettings(string cFamilyLanguage)
+        public IRulesConfiguration GetSettings(string cFamilyLanguage)
         {
             RulesByLanguage.TryGetValue(cFamilyLanguage, out var rulesConfiguration);
             return rulesConfiguration;
         }
 
-        static RulesMetadataCache()
+        public RulesMetadataCache(string rulesDirectoryPath)
         {
+            var rulesLoader = new RulesLoader(rulesDirectoryPath);
+
             // Read all rules/metadata, irrespective of language. Stored in
             // statics so we don't re-read the files for each language
-            AllLanguagesAllRuleKeys = RulesLoader.ReadRulesList();
-            AllLanguagesActiveRuleKeys = RulesLoader.ReadActiveRulesList();
+            AllLanguagesAllRuleKeys = rulesLoader.ReadRulesList();
+            AllLanguagesActiveRuleKeys = rulesLoader.ReadActiveRulesList();
             AllLanguagesRulesParameters = AllLanguagesAllRuleKeys
-                .ToDictionary(key => key, key => RulesLoader.ReadRuleParams(key));
+                .ToDictionary(key => key, key => rulesLoader.ReadRuleParams(key));
             AllLanguagesRulesMetadata = AllLanguagesAllRuleKeys
-                .ToDictionary(key => key, key => RulesLoader.ReadRuleMetadata(key));
+                .ToDictionary(key => key, key => rulesLoader.ReadRuleMetadata(key));
 
             RulesByLanguage = new Dictionary<string, IRulesConfiguration>
             {
-                { SonarLanguageKeys.CPlusPlus,  new SingleLanguageRulesConfiguration(SonarLanguageKeys.CPlusPlus)},
-                { SonarLanguageKeys.C, new SingleLanguageRulesConfiguration(SonarLanguageKeys.C)}
+                { SonarLanguageKeys.CPlusPlus,  new SingleLanguageRulesConfiguration(this, SonarLanguageKeys.CPlusPlus)},
+                { SonarLanguageKeys.C, new SingleLanguageRulesConfiguration(this, SonarLanguageKeys.C)}
             };
         }
 
@@ -76,24 +78,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             private static StringComparer RuleKeyComparer = StringComparer.OrdinalIgnoreCase;
 
-            public SingleLanguageRulesConfiguration(string cFamilyLanguage)
+            public SingleLanguageRulesConfiguration(RulesMetadataCache cache, string cFamilyLanguage)
             {
                 LanguageKey = cFamilyLanguage;
 
-                var ruleKeysForLanguage = AllLanguagesRulesMetadata
+                var ruleKeysForLanguage = cache.AllLanguagesRulesMetadata
                     .Where(kvp => kvp.Value.CompatibleLanguages.Contains(cFamilyLanguage, RuleKeyComparer))
                     .Select(kvp => kvp.Key)
                     .ToArray();
 
                 AllPartialRuleKeys = ruleKeysForLanguage;
-                ActivePartialRuleKeys = AllLanguagesActiveRuleKeys
+                ActivePartialRuleKeys = cache.AllLanguagesActiveRuleKeys
                     .Intersect(ruleKeysForLanguage, RuleKeyComparer)
                     .ToArray();
 
                 RulesParameters = ruleKeysForLanguage
-                    .ToDictionary(key => key, key => AllLanguagesRulesParameters[key]);
+                    .ToDictionary(key => key, key => cache.AllLanguagesRulesParameters[key]);
                 RulesMetadata = ruleKeysForLanguage
-                    .ToDictionary(key => key, key => AllLanguagesRulesMetadata[key]);
+                    .ToDictionary(key => key, key => cache.AllLanguagesRulesMetadata[key]);
             }
 
             public string LanguageKey { get; }

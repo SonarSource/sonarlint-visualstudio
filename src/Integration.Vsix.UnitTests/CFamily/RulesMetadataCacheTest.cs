@@ -18,12 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using static SonarLint.VisualStudio.Integration.Vsix.CFamily.RulesLoader;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -37,53 +35,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private const int Active_CPP_Rules = 245;
         private const int Inactive_CPP_Rules = 146;
 
+        private readonly RulesMetadataCache rulesMetadataCache = CFamilyHelper.DefaultRulesCache;
+
         [TestMethod]
         public void Settings_LanguageKey()
         {
-            RulesMetadataCache.GetSettings("c").LanguageKey.Should().Be("c");
-            RulesMetadataCache.GetSettings("cpp").LanguageKey.Should().Be("cpp");
+            rulesMetadataCache.GetSettings("c").LanguageKey.Should().Be("c");
+            rulesMetadataCache.GetSettings("cpp").LanguageKey.Should().Be("cpp");
 
             // We don't currently support ObjC rules in VS
-            RulesMetadataCache.GetSettings("objc").Should().BeNull();
+            rulesMetadataCache.GetSettings("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Rules()
         {
-            RulesLoader.ReadRulesList().Should().HaveCount(410); // unexpanded list of keys
+            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            rulesLoader.ReadRulesList().Should().HaveCount(410); // unexpanded list of keys
 
-            RulesMetadataCache.GetSettings("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
-            RulesMetadataCache.GetSettings("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
+            rulesMetadataCache.GetSettings("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
+            rulesMetadataCache.GetSettings("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
-            RulesMetadataCache.GetSettings("objc").Should().BeNull();
+            rulesMetadataCache.GetSettings("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Active_Rules()
         {
-            RulesLoader.ReadActiveRulesList().Should().HaveCount(255); // unexpanded list of active rules
+            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            rulesLoader.ReadActiveRulesList().Should().HaveCount(255); // unexpanded list of active rules
 
-            RulesMetadataCache.GetSettings("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
-            RulesMetadataCache.GetSettings("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
+            rulesMetadataCache.GetSettings("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
+            rulesMetadataCache.GetSettings("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
-            RulesMetadataCache.GetSettings("objc").Should().BeNull();
-        }        
+            rulesMetadataCache.GetSettings("objc").Should().BeNull();
+        }
 
         [TestMethod]
         public void Read_Rules_Params()
         {
-            RulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("ClassComplexity", out var parameters);
+            rulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("ClassComplexity", out var parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
-
         }
 
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            RulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
+            rulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
