@@ -26,8 +26,10 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
-    public class RulesMetadataCacheTest
+    public class CPluginRulesMetadataTest
     {
+        // Sanity checks that the rules metata for the CFamily plugin is present and can be loaded
+
         // Rule data for C-Family plugin v6.3 (build 11371)
         private const int Active_C_Rules = 154;
         private const int Inactive_C_Rules = 104;
@@ -36,16 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private const int Inactive_CPP_Rules = 146;
 
         private readonly RulesMetadataCache rulesMetadataCache = CFamilyHelper.DefaultRulesCache;
-
-        [TestMethod]
-        public void Settings_LanguageKey()
-        {
-            rulesMetadataCache.GetSettings("c").LanguageKey.Should().Be("c");
-            rulesMetadataCache.GetSettings("cpp").LanguageKey.Should().Be("cpp");
-
-            // We don't currently support ObjC rules in VS
-            rulesMetadataCache.GetSettings("objc").Should().BeNull();
-        }
 
         [TestMethod]
         public void Read_Rules()

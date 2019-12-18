@@ -23,7 +23,7 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal interface IRulesConfiguration
+    public interface IRulesConfiguration
     {
         string LanguageKey { get; }
 

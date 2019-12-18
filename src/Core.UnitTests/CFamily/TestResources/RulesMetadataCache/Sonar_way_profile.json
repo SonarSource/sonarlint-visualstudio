@@ -1,0 +1,10 @@
+{
+  "name": "Sonar way",
+  "ruleKeys": [
+    "All_Active_1",
+    "All_ActiveWithParams_1",
+    "C_Active_1",
+    "Cpp_Active_1",
+    "Cpp_Active_2"
+  ]
+}

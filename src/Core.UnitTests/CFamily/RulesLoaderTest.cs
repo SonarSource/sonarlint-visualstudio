@@ -35,21 +35,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules()
         {
-            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            var rulesLoader = CreateTestSubject();
             rulesLoader.ReadRulesList().Should().HaveCount(410);
         }
 
         [TestMethod]
         public void Read_Active_Rules()
         {
-            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            var rulesLoader = CreateTestSubject();
             rulesLoader.ReadActiveRulesList().Should().HaveCount(255);
         }
 
         [TestMethod]
         public void Read_Rules_Params()
         {
-            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            var rulesLoader = CreateTestSubject();
             rulesLoader.ReadRuleParams("ClassComplexity").Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
 
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            var rulesLoader = CreateTestSubject();
             using (new AssertionScope())
             {
                 rulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(IssueType.CodeSmell);
@@ -74,12 +74,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             Action act = () => rulesLoader.ReadRuleMetadata("Missing");
             act.Should().ThrowExactly<FileNotFoundException>();
-
-            // Sanity check, ensure we can read all rules
-            foreach (string ruleKey in rulesLoader.ReadRulesList())
-            {
-                rulesLoader.ReadRuleMetadata(ruleKey).Should().NotBeNull();
-            }
         }
 
         [TestMethod]
@@ -143,6 +137,16 @@ type: 'xxx bad type'
             return data;
         }
 
-    }
+        private static RulesLoader CreateTestSubject()
+        {
+            var resourcesPath = Path.Combine(
+                Path.GetDirectoryName(typeof(RulesLoaderTest).Assembly.Location),
+                "CFamily", "TestResources", "RulesLoader");
+            Directory.Exists(resourcesPath).Should().BeTrue($"Test setup error: expected test resources directory does not exist: {resourcesPath}");
 
+            var rulesLoader = new RulesLoader(resourcesPath);
+            return rulesLoader;
+        }
+
+    }
 }

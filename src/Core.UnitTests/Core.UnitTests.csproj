@@ -30,4 +30,83 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CFamily\TestResources\RulesLoader\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="CFamily\TestResources\RulesLoader\AssignmentInSubExpression.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesLoader\ClassComplexity.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesLoader\ClassComplexity_params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesLoader\RulesList.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesLoader\Sonar_way_profile.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\All_ActiveWithParams_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\All_ActiveWithParams_1_params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\All_Active_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\All_Inactive_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Cpp_Active_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Cpp_Active_2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Cpp_Inactive_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\C_Active_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\C_Inactive_1.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\C_Inactive_2.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule1_C_Active.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule1_C_Inactive.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule2_Cpp_Active.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule2_Cpp_Inactive.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule3_All_Inactive.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule4_All_WithParams.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Rule4_All_WithParams_params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\RulesList.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\TestResources\RulesMetadataCache\Sonar_way_profile.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
