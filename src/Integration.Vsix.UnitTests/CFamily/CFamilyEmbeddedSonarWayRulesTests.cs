@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
-    public class CPluginRulesMetadataTest
+    public class CFamilyEmbeddedSonarWayRulesTests
     {
         // Sanity checks that the rules metata for the CFamily plugin is present and can be loaded
 
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private const int Active_CPP_Rules = 245;
         private const int Inactive_CPP_Rules = 146;
 
-        private readonly RulesMetadataCache rulesMetadataCache = new RulesMetadataCache(CFamilyShared.CFamilyFilesDirectory);
+        private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
 
         [TestMethod]
         public void Read_Rules()
@@ -47,11 +47,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
             rulesLoader.ReadRulesList().Should().HaveCount(410); // unexpanded list of keys
 
-            rulesMetadataCache.GetSettings("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
-            rulesMetadataCache.GetSettings("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
+            rulesMetadataCache.GetRulesConfiguration("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
+            rulesMetadataCache.GetRulesConfiguration("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
-            rulesMetadataCache.GetSettings("objc").Should().BeNull();
+            rulesMetadataCache.GetRulesConfiguration("objc").Should().BeNull();
         }
 
         [TestMethod]
@@ -60,17 +60,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
             rulesLoader.ReadActiveRulesList().Should().HaveCount(255); // unexpanded list of active rules
 
-            rulesMetadataCache.GetSettings("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
-            rulesMetadataCache.GetSettings("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
+            rulesMetadataCache.GetRulesConfiguration("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
+            rulesMetadataCache.GetRulesConfiguration("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
-            rulesMetadataCache.GetSettings("objc").Should().BeNull();
+            rulesMetadataCache.GetRulesConfiguration("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Rules_Params()
         {
-            rulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("ClassComplexity", out var parameters);
+            rulesMetadataCache.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("ClassComplexity", out var parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
         }
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            rulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
+            rulesMetadataCache.GetRulesConfiguration("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(IssueType.CodeSmell);

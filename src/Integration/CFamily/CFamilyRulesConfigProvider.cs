@@ -33,16 +33,21 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         private readonly ILogger logger;
         private readonly IConfigurationProvider configurationProvider;
 
-        private readonly RulesMetadataCache rulesMetadataCache;
+        private readonly ICFamilyRulesConfigProvider sonarWayProvider;
 
         [ImportingConstructor]
         public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger)
+            :this(host, userSettingsProvider, logger, new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory))
+        {
+        }
+
+        public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider)
         {
             this.userSettingsProvider = userSettingsProvider;
             this.logger = logger;
 
             configurationProvider = host.GetService<IConfigurationProvider>();
-            rulesMetadataCache = new RulesMetadataCache(CFamilyShared.CFamilyFilesDirectory);
+            this.sonarWayProvider = sonarWayProvider;
         }
 
         #region IRulesConfigurationProvider implementation
@@ -51,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         {
             // TODO: check whether in connected mode, and if so use the appropriate settings
 
-            var config = new DynamicCFamilyRulesConfig(rulesMetadataCache.GetSettings(languageKey), userSettingsProvider.UserSettings);
+            var config = new DynamicCFamilyRulesConfig(sonarWayProvider.GetRulesConfiguration(languageKey), userSettingsProvider.UserSettings);
             return config;
         }
 
