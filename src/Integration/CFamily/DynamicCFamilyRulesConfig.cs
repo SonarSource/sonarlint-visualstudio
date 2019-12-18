@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 namespace SonarLint.VisualStudio.Integration.CFamily
 {
     // Wrapper that handles applying user-level settings on top of the default config
-    public sealed class DynamicCFamilyRulesConfig : ICFamilyRulesConfig
+    internal sealed class DynamicCFamilyRulesConfig : ICFamilyRulesConfig
     {
         private readonly ICFamilyRulesConfig defaultRulesConfig;
 

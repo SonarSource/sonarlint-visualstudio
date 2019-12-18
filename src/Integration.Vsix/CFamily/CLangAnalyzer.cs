@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.CFamily;
 using Task = System.Threading.Tasks.Task;
@@ -39,15 +38,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
-        private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, IUserSettingsProvider userSettingsProvider, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, ILogger logger)
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
-            this.userSettingsProvider = userSettingsProvider;
+            this.cFamilyRulesConfigProvider = cFamilyRulesConfigProvider;
             this.logger = logger;
         }
 
@@ -60,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, r => GetDynamicRulesConfiguration(r));
+            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider);
             if (request == null)
             {
                 return;
@@ -68,13 +67,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             TriggerAnalysisAsync(request, consumer)
                 .Forget(); // fire and forget
-        }
-
-        private ICFamilyRulesConfig GetDynamicRulesConfiguration(string language)
-        {
-            var config = new DynamicCFamilyRulesConfig(CFamilyHelper.DefaultRulesCache.GetSettings(language), userSettingsProvider.UserSettings);
-
-            return config;
         }
 
         private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer)
