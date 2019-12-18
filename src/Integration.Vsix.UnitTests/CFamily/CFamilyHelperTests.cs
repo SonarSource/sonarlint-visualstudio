@@ -439,8 +439,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void GetKeyValueOptionsList_UsingRealEmbeddedRulesJson()
         {
-            var rulesMetadataCache = new RulesMetadataCache(CFamilyShared.CFamilyFilesDirectory);
-            var options = CFamilyHelper.GetKeyValueOptionsList(rulesMetadataCache.GetSettings("cpp"));
+            var sonarWayProvider = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
+            var options = CFamilyHelper.GetKeyValueOptionsList(sonarWayProvider.GetRulesConfiguration("cpp"));
 
             // QP option
             CheckHasOption("internal.qualityProfile=");

@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
-    public class RulesMetadataCacheTest
+    public class CFamilySonarWayRulesConfigProviderTests
     {
         // Rule data for files in CFamily\TestResources\RulesMetadataCache
         private const int Active_C_Rules = 3;
@@ -36,42 +36,42 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         private const int Active_CPP_Rules = 4;
         private const int Inactive_CPP_Rules = 2;
 
-        private RulesMetadataCache rulesMetadataCache = CreateTestSubject();
+        private CFamilySonarWayRulesConfigProvider sonarWayProvider = CreateTestSubject();
 
         [TestMethod]
         public void Settings_LanguageKey()
         {
-            rulesMetadataCache.GetSettings("c").LanguageKey.Should().Be("c");
-            rulesMetadataCache.GetSettings("cpp").LanguageKey.Should().Be("cpp");
+            sonarWayProvider.GetRulesConfiguration("c").LanguageKey.Should().Be("c");
+            sonarWayProvider.GetRulesConfiguration("cpp").LanguageKey.Should().Be("cpp");
 
             // We don't currently support ObjC rules in VS
-            rulesMetadataCache.GetSettings("objc").Should().BeNull();
+            sonarWayProvider.GetRulesConfiguration("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Rules()
         {
-            rulesMetadataCache.GetSettings("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
-            rulesMetadataCache.GetSettings("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
+            sonarWayProvider.GetRulesConfiguration("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
+            sonarWayProvider.GetRulesConfiguration("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
-            rulesMetadataCache.GetSettings("objc").Should().BeNull();
+            sonarWayProvider.GetRulesConfiguration("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Active_Rules()
         {
-            rulesMetadataCache.GetSettings("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
-            rulesMetadataCache.GetSettings("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
+            sonarWayProvider.GetRulesConfiguration("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
+            sonarWayProvider.GetRulesConfiguration("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
-            rulesMetadataCache.GetSettings("objc").Should().BeNull();
+            sonarWayProvider.GetRulesConfiguration("objc").Should().BeNull();
         }
 
         [TestMethod]
         public void Read_Rules_Params()
         {
-            rulesMetadataCache.GetSettings("cpp").RulesParameters.TryGetValue("All_ActiveWithParams_1", out var parameters);
+            sonarWayProvider.GetRulesConfiguration("cpp").RulesParameters.TryGetValue("All_ActiveWithParams_1", out var parameters);
             parameters.Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
         }
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules_Metadata()
         {
-            rulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("All_ActiveWithParams_1", out var metadata);
+            sonarWayProvider.GetRulesConfiguration("cpp").RulesMetadata.TryGetValue("All_ActiveWithParams_1", out var metadata);
             using (new AssertionScope())
             {
                 metadata.Type.Should().Be(IssueType.CodeSmell);
@@ -87,14 +87,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             }
         }
 
-        private static RulesMetadataCache CreateTestSubject()
+        private static CFamilySonarWayRulesConfigProvider CreateTestSubject()
         {
             var resourcesPath = Path.Combine(
-                Path.GetDirectoryName(typeof(RulesMetadataCache).Assembly.Location),
+                Path.GetDirectoryName(typeof(CFamilySonarWayRulesConfigProvider).Assembly.Location),
                 "CFamily", "TestResources", "RulesMetadataCache");
             Directory.Exists(resourcesPath).Should().BeTrue($"Test setup error: expected test resources directory does not exist: {resourcesPath}");
 
-            var testSubject = new RulesMetadataCache(resourcesPath);
+            var testSubject = new CFamilySonarWayRulesConfigProvider(resourcesPath);
             return testSubject;
         }
 
