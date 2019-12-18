@@ -21,8 +21,8 @@
 using System;
 using System.Windows.Forms;
 using System.Windows.Input;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix

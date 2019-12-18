@@ -28,34 +28,6 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IUserSettingsProvider
-    {
-        /// <summary>
-        /// Notification that one or more settings have changed
-        /// </summary>
-        event EventHandler SettingsChanged;
-
-        /// <summary>
-        /// The settings for the current user
-        /// </summary>
-        UserSettings UserSettings { get; }
-
-        /// <summary>
-        /// Full path to the file containing the user settings
-        /// </summary>
-        string SettingsFilePath { get; }
-
-        /// <summary>
-        /// Updates the user settings to disabled the specified rule
-        /// </summary>
-        void DisableRule(string ruleId);
-        
-        /// <summary>
-        /// Ensure the settings file exists, creating a new file if necessary
-        /// </summary>
-        void EnsureFileExists();
-    }
-
     [Export(typeof(IUserSettingsProvider))]
     internal sealed class UserSettingsProvider : IUserSettingsProvider, IDisposable
     {
