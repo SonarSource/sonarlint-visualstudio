@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.CFamily;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -178,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             // We don't currently support disabling rules for all languages
             var language = errorCode?.Split(':')?[0];
-            return supportedLanguages.Contains(language, CFamily.CFamilyHelper.RuleKeyComparer);
+            return supportedLanguages.Contains(language, CFamilyShared.RuleKeyComparer);
         }
     }
 }

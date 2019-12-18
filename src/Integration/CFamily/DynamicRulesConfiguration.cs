@@ -25,10 +25,10 @@ using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.Integration.CFamily
 {
     // Wrapper that handles applying user-level settings on top of the default config
-    internal sealed class DynamicRulesConfiguration : IRulesConfiguration
+    public sealed class DynamicRulesConfiguration : IRulesConfiguration
     {
         private readonly IRulesConfiguration defaultRulesConfig;
 
@@ -73,8 +73,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var activeRules = defaultRulesConfig.ActivePartialRuleKeys
                 .Concat(activatedByUser)
-                .Except(deactivatedByUser, CFamilyHelper.RuleKeyComparer)
-                .Distinct(CFamilyHelper.RuleKeyComparer).ToArray();
+                .Except(deactivatedByUser, CFamilyShared.RuleKeyComparer)
+                .Distinct(CFamilyShared.RuleKeyComparer).ToArray();
 
             return activeRules;
         }
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var languagePrefix = language + ":";
 
             var partialKeyToConfigMap = userSettings.Rules
-                .Where(kvp => kvp.Key.StartsWith(languagePrefix, CFamilyHelper.RuleKeyComparison))
+                .Where(kvp => kvp.Key.StartsWith(languagePrefix, CFamilyShared.RuleKeyComparison))
                 .ToDictionary(kvp => kvp.Key.Substring(languagePrefix.Length), kvp => kvp.Value);
 
             return partialKeyToConfigMap;

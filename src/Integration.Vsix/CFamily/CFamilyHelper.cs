@@ -31,9 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static partial class CFamilyHelper
     {
-        public static readonly StringComparer RuleKeyComparer = StringComparer.Ordinal;
-        public static readonly StringComparison RuleKeyComparison = StringComparison.Ordinal;
-
         internal delegate IRulesConfiguration GetRulesConfiguration(string languageKey);
 
         public const string CPP_LANGUAGE_KEY = "cpp";
