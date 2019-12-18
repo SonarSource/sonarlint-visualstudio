@@ -23,7 +23,7 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public interface IRulesConfiguration
+    public interface ICFamilyRulesConfig
     {
         string LanguageKey { get; }
 

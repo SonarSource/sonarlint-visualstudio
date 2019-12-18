@@ -28,11 +28,11 @@ using SonarLint.VisualStudio.Core.CFamily;
 namespace SonarLint.VisualStudio.Integration.CFamily
 {
     // Wrapper that handles applying user-level settings on top of the default config
-    public sealed class DynamicRulesConfiguration : IRulesConfiguration
+    public sealed class DynamicCFamilyRulesConfig : ICFamilyRulesConfig
     {
-        private readonly IRulesConfiguration defaultRulesConfig;
+        private readonly ICFamilyRulesConfig defaultRulesConfig;
 
-        public DynamicRulesConfiguration(IRulesConfiguration defaultRulesConfig, UserSettings userSettings)
+        public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
             if (userSettings == null)
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
         #endregion IRulesConfiguration interface methods
 
-        internal /* for testing */ static IEnumerable<string> CalculateActiveRules(IRulesConfiguration defaultRulesConfig, UserSettings userSettings)
+        internal /* for testing */ static IEnumerable<string> CalculateActiveRules(ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
         {
             if (userSettings?.Rules?.Count == 0)
             {

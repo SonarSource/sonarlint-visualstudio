@@ -31,9 +31,9 @@ namespace SonarLint.VisualStudio.Core.CFamily
         private IDictionary<string, RuleMetadata> AllLanguagesRulesMetadata { get; }
         private IDictionary<string, IDictionary<string, string>> AllLanguagesRulesParameters { get; }
 
-        private IDictionary<string, IRulesConfiguration> RulesByLanguage { get; }
+        private IDictionary<string, ICFamilyRulesConfig> RulesByLanguage { get; }
 
-        public IRulesConfiguration GetSettings(string cFamilyLanguage)
+        public ICFamilyRulesConfig GetSettings(string cFamilyLanguage)
         {
             RulesByLanguage.TryGetValue(cFamilyLanguage, out var rulesConfiguration);
             return rulesConfiguration;
@@ -52,14 +52,14 @@ namespace SonarLint.VisualStudio.Core.CFamily
             AllLanguagesRulesMetadata = AllLanguagesAllRuleKeys
                 .ToDictionary(key => key, key => rulesLoader.ReadRuleMetadata(key));
 
-            RulesByLanguage = new Dictionary<string, IRulesConfiguration>
+            RulesByLanguage = new Dictionary<string, ICFamilyRulesConfig>
             {
                 { SonarLanguageKeys.CPlusPlus,  new SingleLanguageRulesConfiguration(this, SonarLanguageKeys.CPlusPlus)},
                 { SonarLanguageKeys.C, new SingleLanguageRulesConfiguration(this, SonarLanguageKeys.C)}
             };
         }
 
-        private class SingleLanguageRulesConfiguration : IRulesConfiguration
+        private class SingleLanguageRulesConfiguration : ICFamilyRulesConfig
         {
             private static StringComparer RuleKeyComparer = StringComparer.OrdinalIgnoreCase;
 
