@@ -25,6 +25,7 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {

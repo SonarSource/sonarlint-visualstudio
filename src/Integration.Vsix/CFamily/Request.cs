@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.CFamily;
+
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     // Most of the Request class is ported from Java - see PortedFromJava\Request.cs

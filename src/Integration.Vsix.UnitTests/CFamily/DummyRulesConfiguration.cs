@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
