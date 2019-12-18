@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public IDictionary<string, IDictionary<string, string>> RulesParameters => defaultRulesConfig.RulesParameters;
 
-        public IDictionary<string, RulesLoader.RuleMetadata> RulesMetadata => defaultRulesConfig.RulesMetadata;
+        public IDictionary<string, RuleMetadata> RulesMetadata => defaultRulesConfig.RulesMetadata;
 
         #endregion IRulesConfiguration interface methods
 

@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     { "rule1", true }
                 },
                 RulesParameters = new Dictionary<string, IDictionary<string, string>>(),
-                RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>()
+                RulesMetadata = new Dictionary<string, RuleMetadata>()
             };
 
             // Act
@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     { "rule1", true }, { "rule2", true }, { "rule3", false }, { "rule4", false }
                 },
                 RulesParameters = new Dictionary<string, IDictionary<string, string>>(),
-                RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>()
+                RulesMetadata = new Dictionary<string, RuleMetadata>()
             };
 
             var userSettingsData = @"{
