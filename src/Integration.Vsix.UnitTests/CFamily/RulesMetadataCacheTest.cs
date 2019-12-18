@@ -87,8 +87,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             rulesMetadataCache.GetSettings("cpp").RulesMetadata.TryGetValue("ClassComplexity", out var metadata);
             using (new AssertionScope())
             {
-                metadata.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-                metadata.DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
+                metadata.Type.Should().Be(RulesLoader.IssueType.CodeSmell);
+                metadata.DefaultSeverity.Should().Be(RulesLoader.IssueSeverity.Critical);
             }
         }
     }

@@ -31,7 +31,7 @@ using static Sonarlint.Issue.Types;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyHelperTest
+    public class CFamilyHelperTests
     {
         private const string FileName = @"C:\absolute\path\to\file.cpp";
         [TestMethod]
@@ -609,6 +609,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void ConvertFromIssueSeverity()
+        {
+            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Blocker).Should().Be(Severity.Blocker);
+            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Critical).Should().Be(Severity.Critical);
+            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Info).Should().Be(Severity.Info);
+            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Major).Should().Be(Severity.Major);
+            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Minor).Should().Be(Severity.Minor);
+
+            Action act = () => CFamilyHelper.Convert((RulesLoader.IssueSeverity)(-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
+        }
+
+        [TestMethod]
+        public void ConvertFromIssueType()
+        {
+            CFamilyHelper.Convert(RulesLoader.IssueType.Bug).Should().Be(Sonarlint.Issue.Types.Type.Bug);
+            CFamilyHelper.Convert(RulesLoader.IssueType.CodeSmell).Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+            CFamilyHelper.Convert(RulesLoader.IssueType.Vulnerability).Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+
+            Action act = () => CFamilyHelper.Convert((RulesLoader.IssueType)(-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
+        }
+
+        [TestMethod]
         public void SubProcessTimeout()
         {
             SetTimeoutAndCheckCalculatedTimeout("", 10000); // not set -> default
@@ -653,9 +677,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
                 RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>
                 {
-                    { "rule1", new RulesLoader.RuleMetadata { Title = "rule1 title", DefaultSeverity = Sonarlint.Issue.Types.Severity.Blocker, Type = Sonarlint.Issue.Types.Type.Bug } },
-                    { "rule2", new RulesLoader.RuleMetadata { Title = "rule2 title", DefaultSeverity = Sonarlint.Issue.Types.Severity.Info, Type = Sonarlint.Issue.Types.Type.CodeSmell } },
-                    { "rule3", new RulesLoader.RuleMetadata { Title = "rule3 title", DefaultSeverity = Sonarlint.Issue.Types.Severity.Critical, Type = Sonarlint.Issue.Types.Type.Vulnerability } },
+                    { "rule1", new RulesLoader.RuleMetadata { Title = "rule1 title", DefaultSeverity = RulesLoader.IssueSeverity.Blocker, Type = RulesLoader.IssueType.Bug } },
+                    { "rule2", new RulesLoader.RuleMetadata { Title = "rule2 title", DefaultSeverity = RulesLoader.IssueSeverity.Info, Type = RulesLoader.IssueType.CodeSmell } },
+                    { "rule3", new RulesLoader.RuleMetadata { Title = "rule3 title", DefaultSeverity = RulesLoader.IssueSeverity.Critical, Type = RulesLoader.IssueType.Vulnerability } },
                 }
             };
             return config;
