@@ -47,7 +47,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private const int DefaultAnalysisTimeoutMs = 10 * 1000;
         private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
+ 
+        static CFamilyHelper()
+        {
+            DefaultRulesCache = new RulesMetadataCache(CFamilyHelper.CFamilyFilesDirectory);
+        }
 
+        public static RulesMetadataCache DefaultRulesCache { get; }
 
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, GetRulesConfiguration rulesConfigSelector)
         {

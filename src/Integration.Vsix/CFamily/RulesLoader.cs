@@ -29,7 +29,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal class RulesLoader
     {
-        public static IEnumerable<string> ReadRulesList()
+        private readonly string rulesDirectoryPath;
+
+        public RulesLoader(string rulesDirectoryPath)
+        {
+            this.rulesDirectoryPath = rulesDirectoryPath ?? throw new ArgumentNullException(nameof(rulesDirectoryPath));
+        }
+
+        public IEnumerable<string> ReadRulesList()
         {
             var rulesList = LoadCFamilyJsonFile<List<string>>("RulesList.json");
             Debug.Assert(rulesList != null, "The CFamily RulesList.json should exist and not be empty");
@@ -37,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return rulesList;
         }
 
-        public static IEnumerable<string> ReadActiveRulesList()
+        public IEnumerable<string> ReadActiveRulesList()
         {
             var rulesProfile = LoadCFamilyJsonFile<RulesProfile>("Sonar_way_profile.json");
             Debug.Assert(rulesProfile != null, "The CFamily Sonar_way_profile.json should exist and not be empty");
@@ -45,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return rulesProfile.RuleKeys;
         }
 
-        public static IDictionary<string, string> ReadRuleParams(String ruleKey)
+        public IDictionary<string, string> ReadRuleParams(String ruleKey)
         {
             var ruleParams = LoadCFamilyJsonFile<RuleParameter[]>(ruleKey + "_params.json");
 
@@ -62,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return result;
         }
 
-        public static RuleMetadata ReadRuleMetadata(String ruleKey)
+        public RuleMetadata ReadRuleMetadata(String ruleKey)
         {
             var ruleMetadata = LoadCFamilyJsonFile<RuleMetadata>(ruleKey + ".json");
 
@@ -74,9 +81,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return ruleMetadata;
         }
 
-        private static T LoadCFamilyJsonFile<T>(string fileName) where T : class
+        private T LoadCFamilyJsonFile<T>(string fileName) where T : class
         {
-            string path = Path.Combine(CFamilyHelper.CFamilyFilesDirectory, fileName);
+            string path = Path.Combine(this.rulesDirectoryPath, fileName);
             if (!File.Exists(path))
             {
                 return default(T);

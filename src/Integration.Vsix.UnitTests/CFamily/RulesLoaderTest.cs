@@ -35,46 +35,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Read_Rules()
         {
-            RulesLoader.ReadRulesList().Should().HaveCount(410);
+            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            rulesLoader.ReadRulesList().Should().HaveCount(410);
         }
 
         [TestMethod]
         public void Read_Active_Rules()
         {
-            RulesLoader.ReadActiveRulesList().Should().HaveCount(255);
+            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            rulesLoader.ReadActiveRulesList().Should().HaveCount(255);
         }
 
         [TestMethod]
         public void Read_Rules_Params()
         {
-            RulesLoader.ReadRuleParams("ClassComplexity").Should()
+            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
+            rulesLoader.ReadRuleParams("ClassComplexity").Should()
                 .Contain(new System.Collections.Generic.KeyValuePair<string, string>("maximumClassComplexityThreshold", "80"));
 
-            RulesLoader.ReadRuleParams("Missing").Should().BeEmpty();
+            rulesLoader.ReadRuleParams("Missing").Should().BeEmpty();
 
             // Sanity check, ensure we can read all rules params
-            foreach (string ruleKey in RulesLoader.ReadRulesList())
+            foreach (string ruleKey in rulesLoader.ReadRulesList())
             {
-                RulesLoader.ReadRuleParams(ruleKey).Should().NotBeNull();
+                rulesLoader.ReadRuleParams(ruleKey).Should().NotBeNull();
             }
         }
 
         [TestMethod]
         public void Read_Rules_Metadata()
         {
+            var rulesLoader = new RulesLoader(CFamilyHelper.CFamilyFilesDirectory);
             using (new AssertionScope())
             {
-                RulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-                RulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
+                rulesLoader.ReadRuleMetadata("ClassComplexity").Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+                rulesLoader.ReadRuleMetadata("ClassComplexity").DefaultSeverity.Should().Be(Sonarlint.Issue.Types.Severity.Critical);
             }
 
-            Action act = () => RulesLoader.ReadRuleMetadata("Missing");
+            Action act = () => rulesLoader.ReadRuleMetadata("Missing");
             act.Should().ThrowExactly<FileNotFoundException>();
 
             // Sanity check, ensure we can read all rules
-            foreach (string ruleKey in RulesLoader.ReadRulesList())
+            foreach (string ruleKey in rulesLoader.ReadRulesList())
             {
-                RulesLoader.ReadRuleMetadata(ruleKey).Should().NotBeNull();
+                rulesLoader.ReadRuleMetadata(ruleKey).Should().NotBeNull();
             }
         }
 
