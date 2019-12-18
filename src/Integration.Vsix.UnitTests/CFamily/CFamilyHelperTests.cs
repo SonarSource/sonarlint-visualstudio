@@ -611,24 +611,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void ConvertFromIssueSeverity()
         {
-            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Blocker).Should().Be(Severity.Blocker);
-            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Critical).Should().Be(Severity.Critical);
-            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Info).Should().Be(Severity.Info);
-            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Major).Should().Be(Severity.Major);
-            CFamilyHelper.Convert(RulesLoader.IssueSeverity.Minor).Should().Be(Severity.Minor);
+            CFamilyHelper.Convert(IssueSeverity.Blocker).Should().Be(Severity.Blocker);
+            CFamilyHelper.Convert(IssueSeverity.Critical).Should().Be(Severity.Critical);
+            CFamilyHelper.Convert(IssueSeverity.Info).Should().Be(Severity.Info);
+            CFamilyHelper.Convert(IssueSeverity.Major).Should().Be(Severity.Major);
+            CFamilyHelper.Convert(IssueSeverity.Minor).Should().Be(Severity.Minor);
 
-            Action act = () => CFamilyHelper.Convert((RulesLoader.IssueSeverity)(-1));
+            Action act = () => CFamilyHelper.Convert((IssueSeverity)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
         [TestMethod]
         public void ConvertFromIssueType()
         {
-            CFamilyHelper.Convert(RulesLoader.IssueType.Bug).Should().Be(Sonarlint.Issue.Types.Type.Bug);
-            CFamilyHelper.Convert(RulesLoader.IssueType.CodeSmell).Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-            CFamilyHelper.Convert(RulesLoader.IssueType.Vulnerability).Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+            CFamilyHelper.Convert(IssueType.Bug).Should().Be(Sonarlint.Issue.Types.Type.Bug);
+            CFamilyHelper.Convert(IssueType.CodeSmell).Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+            CFamilyHelper.Convert(IssueType.Vulnerability).Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
 
-            Action act = () => CFamilyHelper.Convert((RulesLoader.IssueType)(-1));
+            Action act = () => CFamilyHelper.Convert((IssueType)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
 
@@ -675,11 +675,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     { "rule3", new Dictionary<string, string> { { "rule3 Param1", "rule3 Value1" }, { "rule3 Param2", "rule3 Value2" } } }
                 },
 
-                RulesMetadata = new Dictionary<string, RulesLoader.RuleMetadata>
+                RulesMetadata = new Dictionary<string, RuleMetadata>
                 {
-                    { "rule1", new RulesLoader.RuleMetadata { Title = "rule1 title", DefaultSeverity = RulesLoader.IssueSeverity.Blocker, Type = RulesLoader.IssueType.Bug } },
-                    { "rule2", new RulesLoader.RuleMetadata { Title = "rule2 title", DefaultSeverity = RulesLoader.IssueSeverity.Info, Type = RulesLoader.IssueType.CodeSmell } },
-                    { "rule3", new RulesLoader.RuleMetadata { Title = "rule3 title", DefaultSeverity = RulesLoader.IssueSeverity.Critical, Type = RulesLoader.IssueType.Vulnerability } },
+                    { "rule1", new RuleMetadata { Title = "rule1 title", DefaultSeverity = IssueSeverity.Blocker, Type = IssueType.Bug } },
+                    { "rule2", new RuleMetadata { Title = "rule2 title", DefaultSeverity = IssueSeverity.Info, Type = IssueType.CodeSmell } },
+                    { "rule3", new RuleMetadata { Title = "rule3 title", DefaultSeverity = IssueSeverity.Critical, Type = IssueType.Vulnerability } },
                 }
             };
             return config;

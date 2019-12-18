@@ -51,8 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public IDictionary<string, IDictionary<string, string>> RulesParameters { get; set; }
                 = new Dictionary<string, IDictionary<string, string>>();
 
-        public IDictionary<string, RulesLoader.RuleMetadata> RulesMetadata { get; set; }
-                = new Dictionary<string, RulesLoader.RuleMetadata>();
+        public IDictionary<string, RuleMetadata> RulesMetadata { get; set; }
+                = new Dictionary<string, RuleMetadata>();
 
         #endregion
     }

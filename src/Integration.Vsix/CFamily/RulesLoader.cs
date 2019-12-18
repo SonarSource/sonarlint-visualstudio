@@ -117,37 +117,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             public string Type { get; set; }
         }
 
-        public class RuleMetadata
-        {
-            [JsonProperty("title")]
-            public string Title { get; set; }
-
-            [JsonProperty("type")]
-            public IssueType Type { get; set; }
-
-            [JsonProperty("defaultSeverity")]
-            public IssueSeverity DefaultSeverity { get; set; }
-
-            [JsonProperty("compatibleLanguages")]
-            public string[] CompatibleLanguages { get; set; }
-        }
-
-        public enum IssueSeverity
-        {
-            Blocker = 0,
-            Critical = 1,
-            Major = 2,
-            Minor = 3,
-            Info = 4,
-        }
-
-        public enum IssueType
-        {
-            CodeSmell = 0,
-            Bug = 1,
-            Vulnerability = 2,
-        }
-
         /// <summary>
         /// Custom converter to the protobuf issue Type enum
         /// </summary>
