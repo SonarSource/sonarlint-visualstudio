@@ -24,7 +24,11 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public sealed class RulesMetadataCache
+    /// <summary>
+    /// Loads all of the json files shipped with VSIX that contain the metadata for SonarWay
+    /// and presents it via the <see cref="ICFamilyRulesConfigProvider"/> interface
+    /// </summary>
+    public sealed class CFamilySonarWayRulesConfigProvider : ICFamilyRulesConfigProvider
     {
         private IEnumerable<string> AllLanguagesAllRuleKeys { get; }
         private IEnumerable<string> AllLanguagesActiveRuleKeys { get; }
@@ -33,13 +37,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         private IDictionary<string, ICFamilyRulesConfig> RulesByLanguage { get; }
 
-        public ICFamilyRulesConfig GetSettings(string cFamilyLanguage)
-        {
-            RulesByLanguage.TryGetValue(cFamilyLanguage, out var rulesConfiguration);
-            return rulesConfiguration;
-        }
-
-        public RulesMetadataCache(string rulesDirectoryPath)
+        public CFamilySonarWayRulesConfigProvider(string rulesDirectoryPath)
         {
             var rulesLoader = new RulesLoader(rulesDirectoryPath);
 
@@ -59,11 +57,21 @@ namespace SonarLint.VisualStudio.Core.CFamily
             };
         }
 
+        #region ICFamilyRulesConfigProvider implementation
+
+        public ICFamilyRulesConfig GetRulesConfiguration(string languageKey)
+        {
+            RulesByLanguage.TryGetValue(languageKey, out var rulesConfiguration);
+            return rulesConfiguration;
+        }
+
+        #endregion ICFamilyRulesConfigProvider implementation
+
         private class SingleLanguageRulesConfiguration : ICFamilyRulesConfig
         {
             private static StringComparer RuleKeyComparer = StringComparer.OrdinalIgnoreCase;
 
-            public SingleLanguageRulesConfiguration(RulesMetadataCache cache, string cFamilyLanguage)
+            public SingleLanguageRulesConfiguration(CFamilySonarWayRulesConfigProvider cache, string cFamilyLanguage)
             {
                 LanguageKey = cFamilyLanguage;
 
