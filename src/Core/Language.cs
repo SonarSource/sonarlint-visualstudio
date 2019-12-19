@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -42,15 +43,29 @@ namespace SonarLint.VisualStudio.Core
     public sealed class Language : IEquatable<Language>
     {
         public readonly static Language Unknown = new Language();
-        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.ruleset");
-        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.ruleset");
-        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "_cpp_settings.json");
-        public readonly static Language C = new Language("C", "C", "_c_settings.json");
+        public readonly static Language CSharp = new Language("CSharp", CoreStrings.CSharpLanguageName, "csharp.ruleset", SonarQubeLanguage.CSharp);
+        public readonly static Language VBNET = new Language("VB", CoreStrings.VBNetLanguageName, "vb.ruleset", SonarQubeLanguage.VbNet);
+        public readonly static Language Cpp = new Language("C++", CoreStrings.CppLanguageName, "_cpp_settings.json", SonarQubeLanguage.Cpp);
+        public readonly static Language C = new Language("C", "C", "_c_settings.json", SonarQubeLanguage.C);
+
+        /// <summary>
+        /// Returns the language for the specified language key, or null if it does not match a known language
+        /// </summary>
+        public static Language GetLanguageFromLanguageKey(string languageKey) =>
+            KnownLanguages.FirstOrDefault(l => languageKey.Equals(l.ServerLanguage.Key, System.StringComparison.OrdinalIgnoreCase));
 
         /// <summary>
         /// A stable identifier for this language.
         /// </summary>
         public string Id { get; }
+
+        /// <summary>
+        /// Object containing the server-side description of the language as used by SonarQube/Cloud
+        /// </summary>
+        /// <remarks>The server-side language key is the stable id used server-side to identify a language. Ideally this would have been used as the
+        /// Id here originally. However, it wasn't and we can't easily change the Id values now since they are serialized in the
+        /// solution-level binding file.</remarks>
+        public SonarQubeLanguage ServerLanguage { get; }
 
         /// <summary>
         /// The language display name.
@@ -100,7 +115,7 @@ namespace SonarLint.VisualStudio.Core
             this.FileSuffixAndExtension = string.Empty;
         }
 
-        public Language(string id, string name, string fileSuffix)
+        public Language(string id, string name, string fileSuffix, SonarQubeLanguage serverLanguage)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -120,6 +135,7 @@ namespace SonarLint.VisualStudio.Core
             this.Id = id;
             this.Name = name;
             this.FileSuffixAndExtension = fileSuffix;
+            this.ServerLanguage = serverLanguage ?? throw new ArgumentNullException(nameof(serverLanguage));
         }
 
         #region IEquatable<Language> and Equals

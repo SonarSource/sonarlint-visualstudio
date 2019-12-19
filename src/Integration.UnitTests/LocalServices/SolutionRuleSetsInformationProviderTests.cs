@@ -253,7 +253,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 2. Check our file name calculation function produces lower-case
             this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", new Language("l_id", "l_name", "FILESUFFIX.ANDEXT"), SonarLintMode.Connected);
+            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", new Language("l_id", "l_name", "FILESUFFIX.ANDEXT",
+                new SonarQube.Client.Models.SonarQubeLanguage("l_server_key", "l_server_name")), SonarLintMode.Connected);
             ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyfilesuffix.andext"); // should be lower-case
         }
 

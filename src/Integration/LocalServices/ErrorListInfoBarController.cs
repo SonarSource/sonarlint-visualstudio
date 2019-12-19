@@ -712,7 +712,8 @@ namespace SonarLint.VisualStudio.Integration
                 var newProfiles = new Dictionary<Language, SonarQubeQualityProfile>();
                 foreach (Language language in projectLanguages)
                 {
-                    var serverLanguage = language.ToServerLanguage();
+                    var serverLanguage = language.ServerLanguage;
+                    Debug.Assert(serverLanguage != null, $"Not expecting the server language to be null. Language id: {language.Id}");
                     newProfiles[language] = await this.host.SonarQubeService.GetQualityProfileAsync(binding.ProjectKey,
                         binding.Organization?.Key, serverLanguage, token);
                 }

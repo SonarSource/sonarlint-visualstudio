@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var language in languageList)
             {
-                var serverLanguage = language.ToServerLanguage();
+                var serverLanguage = language.ServerLanguage;
 
                 // Download the quality profile for each language
                 var qualityProfileInfo = await Core.WebServiceHelper.SafeServiceCallAsync(() =>
