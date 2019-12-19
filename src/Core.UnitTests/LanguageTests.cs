@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
 {
@@ -34,17 +35,21 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var key = "k";
             var name = "MyName";
             var fileSuffix = "suffix";
+            var serverLanguage = new SonarQubeLanguage("serverKey", "serverName");
 
             // Act + Assert
             // Nulls
-            Action act = () => new Language(name, null, fileSuffix);
+            Action act = () => new Language(name, null, fileSuffix, serverLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("name");
 
-            act = () => new Language(null, key, fileSuffix);
+            act = () => new Language(null, key, fileSuffix, serverLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-            act = () => new Language(name, key, null);
+            act = () => new Language(name, key, null, serverLanguage);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSuffix");
+
+            act = () => new Language(name, key, fileSuffix, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverLanguage");
         }
 
         [TestMethod]
@@ -67,21 +72,33 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [TestMethod]
         public void Language_ISupported_UnsupportedLanguage_IsFalse()
         {
-            var other = new Language("foo", "Foo language", "file_suffix");
+            var other = new Language("foo", "Foo language", "file_suffix", new SonarQubeLanguage("server key", "server name"));
             other.IsSupported.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Language_ServerLanguageObjectsAndKeys()
+        {
+            // Act + Assert
+            Language.CSharp.ServerLanguage.Key.Should().Be(SonarLanguageKeys.CSharp);
+            Language.VBNET.ServerLanguage.Key.Should().Be(SonarLanguageKeys.VBNet);
+            Language.Cpp.ServerLanguage.Key.Should().Be(SonarLanguageKeys.CPlusPlus);
+            Language.C.ServerLanguage.Key.Should().Be(SonarLanguageKeys.C);
+
+            Language.Unknown.ServerLanguage.Should().BeNull();
         }
 
         [TestMethod]
         public void Language_Equality()
         {
             // Arrange
-            var lang1a = new Language("Language 1", "lang1", "file_suffix");
-            var lang1b = new Language("Language 1", "lang1", "file_suffix");
-            var lang2 = new Language("Language 2", "lang2", "file_suffix");
+            var lang1a = new Language("Language 1", "lang1", "file_suffix", new SonarQubeLanguage("a", "b"));
+            var lang1b = new Language("Language 1", "lang1 XXX", "file_suffix XXX", new SonarQubeLanguage("c", "d"));
+            var lang2 = new Language("Language 2", "lang2", "file_suffix", new SonarQubeLanguage("e", "f"));
 
             // Act + Assert
-            lang1b.Should().Be(lang1a, "Languages with the same keys and GUIDs should be equal");
-            lang2.Should().NotBe(lang1a, "Languages with different keys and GUIDs should NOT be equal");
+            lang1b.Should().Be(lang1a, "Languages with the same ids should be equal");
+            lang2.Should().NotBe(lang1a, "Languages with different ids should NOT be equal");
         }
     }
 }

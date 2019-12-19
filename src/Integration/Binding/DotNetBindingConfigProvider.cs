@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,7 +28,6 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -65,7 +65,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            var serverLanguage = language.ToServerLanguage();
+            var serverLanguage = language.ServerLanguage;
+            Debug.Assert(serverLanguage != null,
+                $"Server language should not be null for supported language: {language.Id}");
 
             // Generate the rules configuration file for the language
             var roslynProfileExporter = await WebServiceHelper.SafeServiceCallAsync(() =>

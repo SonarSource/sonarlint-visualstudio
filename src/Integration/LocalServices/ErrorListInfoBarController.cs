@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -712,7 +711,8 @@ namespace SonarLint.VisualStudio.Integration
                 var newProfiles = new Dictionary<Language, SonarQubeQualityProfile>();
                 foreach (Language language in projectLanguages)
                 {
-                    var serverLanguage = language.ToServerLanguage();
+                    var serverLanguage = language.ServerLanguage;
+                    Debug.Assert(serverLanguage != null, $"Not expecting the server language to be null. Language id: {language.Id}");
                     newProfiles[language] = await this.host.SonarQubeService.GetQualityProfileAsync(binding.ProjectKey,
                         binding.Organization?.Key, serverLanguage, token);
                 }
