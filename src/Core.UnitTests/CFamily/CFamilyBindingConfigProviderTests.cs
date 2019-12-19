@@ -232,7 +232,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             testSubject.IsLanguageSupported(Language.C).Should().BeTrue();
             testSubject.IsLanguageSupported(Language.Cpp).Should().BeTrue();
 
-            testSubject.IsLanguageSupported(new Language("cpp", "FooXXX", "foo"));
+            testSubject.IsLanguageSupported(new Language("cpp", "FooXXX", "foo", new SonarQubeLanguage("serverId", "serverName")));
 
             // 2. Not supported
             testSubject.IsLanguageSupported(Language.CSharp).Should().BeFalse();
