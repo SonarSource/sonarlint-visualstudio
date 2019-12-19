@@ -237,11 +237,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.IsLanguageSupported(Language.CSharp).Should().BeTrue();
             testSubject.IsLanguageSupported(Language.VBNET).Should().BeTrue();
 
-            testSubject.IsLanguageSupported(new Language("CSharp", "FooXXX", "file_suffix"));
-
             // 2. Not supported
             testSubject.IsLanguageSupported(Language.C).Should().BeFalse();
             testSubject.IsLanguageSupported(Language.Cpp).Should().BeFalse();
+
+            testSubject.IsLanguageSupported(Language.Unknown).Should().BeFalse();
         }
 
         #region Helpers
@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var profile = new SonarQubeQualityProfile("", profileName, "", false, DateTime.Now);
             this.sonarQubeServiceMock
-                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ToServerLanguage(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.GetQualityProfileAsync(It.IsAny<string>(), It.IsAny<string>(), language.ServerLanguage, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(profile);
             this.sonarQubeServiceMock
                 .Setup(x => x.GetRoslynExportProfileAsync(profileName, It.IsAny<string>(), It.IsAny<SonarQubeLanguage>(), It.IsAny<CancellationToken>()))

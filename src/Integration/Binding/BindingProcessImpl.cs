@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -108,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var language in languageList)
             {
-                var serverLanguage = language.ToServerLanguage();
+                var serverLanguage = language.ServerLanguage;
 
                 // Download the quality profile for each language
                 var qualityProfileInfo = await Core.WebServiceHelper.SafeServiceCallAsync(() =>

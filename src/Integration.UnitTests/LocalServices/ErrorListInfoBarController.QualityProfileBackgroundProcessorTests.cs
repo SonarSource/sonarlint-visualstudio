@@ -416,8 +416,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (Language language in expectedLanguageProfiles)
             {
                 sqService
-                    .Setup(x => x.GetQualityProfileAsync(binding.ProjectKey, null, language.ToServerLanguage(), It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new SonarQubeQualityProfile(qualityProfileKey, "", language.ToServerLanguage().Key, false, timestamp));
+                    .Setup(x => x.GetQualityProfileAsync(binding.ProjectKey, null, language.ServerLanguage, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(new SonarQubeQualityProfile(qualityProfileKey, "", language.ServerLanguage.Key, false, timestamp));
             }
         }
 
