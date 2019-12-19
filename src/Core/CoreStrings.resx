@@ -125,6 +125,23 @@
     <value>C#</value>
     <comment>C# language name</comment>
   </data>
+  <data name="Settings_ErrorLoadingSettingsFile" xml:space="preserve">
+    <value>Error loading settings from "{0}".
+  Error message: {1}</value>
+  </data>
+  <data name="Settings_ErrorSavingSettingsFile" xml:space="preserve">
+    <value>Error saving settings to "{0}".
+  Error: {1}</value>
+  </data>
+  <data name="Settings_LoadedSettingsFile" xml:space="preserve">
+    <value>Loaded settings from "{0}".</value>
+  </data>
+  <data name="Settings_NoSettingsFile" xml:space="preserve">
+    <value>Settings file does not exist at "{0}".</value>
+  </data>
+  <data name="Settings_SavedSettingsFile" xml:space="preserve">
+    <value>Saved settings to "{0}".</value>
+  </data>
   <data name="SonarQubeRequestFailed" xml:space="preserve">
     <value>SonarQube request failed: {0} {1}</value>
     <comment>Information message when the request failed.

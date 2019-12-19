@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 
@@ -40,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly IFile fileWrapper;
         private readonly ILogger logger;
+        private readonly UserSettingsSerializer serializer;
 
         [ImportingConstructor]
         public UserSettingsProvider(ILogger logger)
@@ -55,14 +55,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
             this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
 
+            this.serializer = new UserSettingsSerializer(fileWrapper, logger);
+
             SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
-            UserSettings = SafeLoadUserSettings(SettingsFilePath, fileWrapper, logger);
+            UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
             settingsFileMonitor.FileChanged += OnFileChanged;
         }
 
         private void OnFileChanged(object sender, EventArgs e)
         {
-            UserSettings = SafeLoadUserSettings(SettingsFilePath, fileWrapper, logger);
+            UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
             SettingsChanged?.Invoke(this, EventArgs.Empty);
         }
 
@@ -85,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 UserSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
             }
 
-            SafeSaveUserSettings(SettingsFilePath, UserSettings, fileWrapper, logger);
+            serializer.SafeSave(SettingsFilePath, UserSettings);
         }
 
         public string SettingsFilePath { get; }
@@ -94,48 +96,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (!fileWrapper.Exists(SettingsFilePath))
             {
-                SafeSaveUserSettings(SettingsFilePath, UserSettings, fileWrapper, logger);
+                serializer.SafeSave(SettingsFilePath, UserSettings);
             }
         }
 
         #endregion
 
-        internal /* for testing */ static UserSettings SafeLoadUserSettings(string filePath, IFile fileWrapper, ILogger logger)
+        private UserSettings SafeLoadUserSettings(string filePath, ILogger logger)
         {
-            UserSettings userSettings = null;
-            if (!fileWrapper.Exists(filePath))
+            var settings = serializer.SafeLoad(filePath);
+            if (settings == null)
             {
-                logger.WriteLine(DaemonStrings.Settings_NoUserSettings, filePath);
+                logger.WriteLine(DaemonStrings.Settings_UsingDefaultSettings);
+                settings = new UserSettings();
             }
-            else
-            {
-                try
-                {
-                    logger.WriteLine(DaemonStrings.Settings_LoadedUserSettings, filePath);
-                    var data = fileWrapper.ReadAllText(filePath);
-                    userSettings = JsonConvert.DeserializeObject<UserSettings>(data);
-                }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-                {
-                    logger.WriteLine(DaemonStrings.Settings_ErrorLoadingSettings, filePath, ex.Message);
-                }
-            }
-            return userSettings ?? new UserSettings();
+            return settings;
         }
 
-        internal /* for testing */ static void SafeSaveUserSettings(string filePath, UserSettings data, IFile fileWrapper, ILogger logger)
-        {
-            try
-            {
-                string dataAsText = JsonConvert.SerializeObject(data, Formatting.Indented);
-                fileWrapper.WriteAllText(filePath, dataAsText);
-                logger.WriteLine(DaemonStrings.Settings_SavedUserSettings, filePath);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(DaemonStrings.Settings_ErrorSavingSettings, filePath, ex.Message);
-            }
-        }
         public void Dispose()
         {
             settingsFileMonitor.FileChanged -= OnFileChanged;
