@@ -148,21 +148,7 @@
     <value>SonarLint: re-analysing open documents. Completed {0} of {1}</value>
     <comment>Status bar message</comment>
   </data>
-  <data name="Settings_ErrorLoadingSettings" xml:space="preserve">
-    <value>Error loading user settings from "{0}". Default rules configuration will be used.
-  Error message: {1}</value>
-  </data>
-  <data name="Settings_ErrorSavingSettings" xml:space="preserve">
-    <value>Error saving user settings to "{0}".
-  Error: {1}</value>
-  </data>
-  <data name="Settings_LoadedUserSettings" xml:space="preserve">
-    <value>Loaded user settings from "{0}".</value>
-  </data>
-  <data name="Settings_NoUserSettings" xml:space="preserve">
-    <value>User settings file does not exist at "{0}". Using default rules configuration.</value>
-  </data>
-  <data name="Settings_SavedUserSettings" xml:space="preserve">
-    <value>Saved user settings to "{0}".</value>
+  <data name="Settings_UsingDefaultSettings" xml:space="preserve">
+    <value>Default settings will be used</value>
   </data>
 </root>
