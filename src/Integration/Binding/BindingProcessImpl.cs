@@ -27,7 +27,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
