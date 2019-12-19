@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using FluentAssertions;
@@ -58,12 +57,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Arrange
             var fileMock = new Mock<IFile>();
             fileMock.Setup(x => x.Exists("nonExistentFile")).Returns(false);
+            var testLogger = new TestLogger();
 
             // Act
-            var testSubject = new UserSettingsProvider(new TestLogger(), fileMock.Object, CreateMockFileMonitor("nonexistentFile").Object);
+            var testSubject = new UserSettingsProvider(testLogger, fileMock.Object, CreateMockFileMonitor("nonexistentFile").Object);
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
+            testLogger.AssertOutputStringExists(DaemonStrings.Settings_UsingDefaultSettings);
         }
 
         [TestMethod]
@@ -82,24 +83,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
             logger.AssertPartialOutputStringExists("custom error message");
-        }
-
-        [TestMethod]
-        public void Ctor_ErrorLoadingSettings_CriticalErrorsAreNotSquashed()
-        {
-            // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
-            fileMock.Setup(x => x.ReadAllText("settings.file")).Throws(new System.StackOverflowException("critical custom error message"));
-
-            var logger = new TestLogger();
-
-            // Act
-            Action act = () => new UserSettingsProvider(logger, fileMock.Object, CreateMockFileMonitor("settings.file").Object);
-
-            // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
-            logger.AssertPartialOutputStringDoesNotExist("critical custom error message");
         }
 
         [TestMethod]
@@ -141,40 +124,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             testSubject.UserSettings.Should().NotBeNull();
             testSubject.UserSettings.Rules.Should().NotBeNull();
             testSubject.UserSettings.Rules.Count.Should().Be(1);
-        }
-
-        [TestMethod]
-        public void ErrorSavingSettings_ErrorSquashed()
-        {
-            // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.InvalidOperationException("custom error message"));
-
-            var logger = new TestLogger(logToConsole: true);
-
-            // Act - should not throw
-            UserSettingsProvider.SafeSaveUserSettings("settings.file", new UserSettings(), fileMock.Object, logger);
-
-            // Assert
-            logger.AssertPartialOutputStringExists("settings.file", "custom error message");
-
-        }
-
-        [TestMethod]
-        public void ErrorSavingSettings_CriticalErrorNotSquashed()
-        {
-            // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.StackOverflowException("critical custom error message"));
-
-            var logger = new TestLogger(logToConsole: true);
-
-            // Act
-            Action act = () => UserSettingsProvider.SafeSaveUserSettings("settings.file", new UserSettings(), fileMock.Object, logger);
-
-            // Assert
-            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("critical custom error message");
-            logger.AssertPartialOutputStringDoesNotExist("critical custom error message");
         }
 
         [TestMethod]
@@ -229,128 +178,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         }
 
         [TestMethod]
-        public void RealFile_RoundTripLoadAndSave()
-        {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-
-            var dir = CreateTestSpecificDirectory();
-
-            var filePath1 = Path.Combine(dir, "settings.json");
-            var filePath2 = Path.Combine(dir, "settings.json.txt");
-
-            var validSettingsData = @"{
-    'UnknownData' : 'will be dropped on save',
-
-    'sonarlint.rules': {
-        'typescript:S2685': {
-            'level': 'on'
-        },
-        'xxx:yyy': {
-            'level': 'off',
-            'Parameters': {
-              'key1': 'value1',
-              'key2': 'value2'
-            }
-        }
-    },
-
-    'More UnknownData' : 'will also be dropped on save',
-}";
-            File.WriteAllText(filePath1, validSettingsData);
-
-            // 1. Load from disc
-            var loadedSettings = UserSettingsProvider.SafeLoadUserSettings(filePath1, new FileWrapper(), testLogger);
-            loadedSettings.Should().NotBeNull();
-            loadedSettings.Rules.Should().NotBeNull();
-            loadedSettings.Rules.Count.Should().Be(2);
-
-            // Check loaded data
-            loadedSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
-            loadedSettings.Rules["xxx:yyy"].Level.Should().Be(RuleLevel.Off);
-
-            loadedSettings.Rules["typescript:S2685"].Parameters.Should().BeNull();
-            loadedSettings.Rules["xxx:yyy"].Parameters.Should().NotBeNull();
-            loadedSettings.Rules["xxx:yyy"].Parameters["key1"].Should().Be("value1");
-            loadedSettings.Rules["xxx:yyy"].Parameters["key2"].Should().Be("value2");
-
-            // 2. Save and reload
-            UserSettingsProvider.SafeSaveUserSettings(filePath2, loadedSettings, new FileWrapper(), testLogger);
-            var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(filePath2, new FileWrapper(), testLogger);
-
-            TestContext.AddResultFile(filePath2);
-
-            reloadedSettings.Should().NotBeNull();
-            reloadedSettings.Rules.Should().NotBeNull();
-            reloadedSettings.Rules.Count.Should().Be(2);
-
-            // Check loaded data
-            reloadedSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
-            reloadedSettings.Rules["xxx:yyy"].Level.Should().Be(RuleLevel.Off);
-
-            loadedSettings.Rules["typescript:S2685"].Parameters.Should().BeNull();
-            loadedSettings.Rules["xxx:yyy"].Parameters.Should().NotBeNull();
-            loadedSettings.Rules["xxx:yyy"].Parameters["key1"].Should().Be("value1");
-            loadedSettings.Rules["xxx:yyy"].Parameters["key2"].Should().Be("value2");
-        }
-
-        [TestMethod]
-        public void RealFile_RoundTripSaveAndLoad()
-        {
-            // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-
-            var dir = CreateTestSpecificDirectory();
-            var filePath = Path.Combine(dir, "settings.txt");
-
-            var settings = new UserSettings
-            {
-                Rules = new Dictionary<string, RuleConfig>
-                {
-                    { "repo1:key1", new RuleConfig { Level = RuleLevel.Off } },
-                    { "repo1:key2", new RuleConfig { Level = RuleLevel.On } },
-                    { "repox:keyy",
-                        new RuleConfig
-                        {
-                            Level = RuleLevel.On,
-                            Parameters = new Dictionary<string, string>
-                            {
-                                { "key1", "value1" },
-                                { "key2", "value2" }
-                            }
-                        }
-                    }
-                }
-            };
-
-            // Act: save and reload
-            UserSettingsProvider.SafeSaveUserSettings(filePath, settings, new FileWrapper(), testLogger);
-
-            var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(filePath, new FileWrapper(), testLogger);
-
-            TestContext.AddResultFile(filePath);
-
-            reloadedSettings.Should().NotBeNull();
-            reloadedSettings.Rules.Should().NotBeNull();
-            reloadedSettings.Rules.Count.Should().Be(3);
-
-            // Check loaded data
-            reloadedSettings.Rules["repo1:key1"].Level.Should().Be(RuleLevel.Off);
-            reloadedSettings.Rules["repo1:key2"].Level.Should().Be(RuleLevel.On);
-            reloadedSettings.Rules["repox:keyy"].Level.Should().Be(RuleLevel.On);
-
-            reloadedSettings.Rules["repo1:key1"].Parameters.Should().BeNull();
-            reloadedSettings.Rules["repo1:key2"].Parameters.Should().BeNull();
-            
-            var rulexParams = reloadedSettings.Rules["repox:keyy"].Parameters;
-            rulexParams.Should().NotBeNull();
-
-            rulexParams.Keys.Should().BeEquivalentTo("key1", "key2");
-            rulexParams["key1"].Should().Be("value1");
-            rulexParams["key2"].Should().Be("value2");
-        }
-
-        [TestMethod]
         public void RealFile_DisableRule_FileDoesNotExist_FileCreated()
         {
             var dir = CreateTestSpecificDirectory();
@@ -369,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Check the data on disc
             File.Exists(settingsFile).Should().BeTrue();
 
-            var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(settingsFile, new FileWrapper(), new TestLogger());
+            var reloadedSettings = LoadSettings(settingsFile);
             reloadedSettings.Rules.Count.Should().Be(1);
             reloadedSettings.Rules["cpp:S123"].Level.Should().Be(RuleLevel.Off);
         }
@@ -390,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 }
             };
 
-            SaveUserSettings(settingsFile, initialSettings);
+            SaveSettings(settingsFile, initialSettings);
             
             var testLogger = new TestLogger(logToConsole: true);
             var testSubject = new UserSettingsProvider(testLogger, new FileWrapper(), new SingleFileMonitor(settingsFile, testLogger));
@@ -404,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Check the data on disc
             File.Exists(settingsFile).Should().BeTrue();
 
-            var reloadedSettings = UserSettingsProvider.SafeLoadUserSettings(settingsFile, new FileWrapper(), new TestLogger());
+            var reloadedSettings = LoadSettings(settingsFile);
             reloadedSettings.Rules.Count.Should().Be(3);
             reloadedSettings.Rules["javascript:S111"].Level.Should().Be(RuleLevel.On);
             reloadedSettings.Rules["cpp:S111"].Level.Should().Be(RuleLevel.Off);
@@ -473,9 +300,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             return dir;
         }
 
-        private static void SaveUserSettings(string filePath, UserSettings userSettings)
+        private static void SaveSettings(string filePath, UserSettings userSettings)
         {
-            UserSettingsProvider.SafeSaveUserSettings(filePath, userSettings, new FileWrapper(), new TestLogger());
+            var serializer = new UserSettingsSerializer(new FileWrapper(), new TestLogger());
+            serializer.SafeSave(filePath, userSettings);
+        }
+
+        private UserSettings LoadSettings(string filePath)
+        {
+            var serializer = new UserSettingsSerializer(new FileWrapper(), new TestLogger());
+            return serializer.SafeLoad(filePath);
         }
 
         private static Mock<ISingleFileMonitor> CreateMockFileMonitor(string filePathToMonitor)

@@ -144,49 +144,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error loading user settings from &quot;{0}&quot;. Default rules configuration will be used.
-        ///  Error message: {1}.
+        ///   Looks up a localized string similar to Default settings will be used.
         /// </summary>
-        internal static string Settings_ErrorLoadingSettings {
+        internal static string Settings_UsingDefaultSettings {
             get {
-                return ResourceManager.GetString("Settings_ErrorLoadingSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Error saving user settings to &quot;{0}&quot;.
-        ///  Error: {1}.
-        /// </summary>
-        internal static string Settings_ErrorSavingSettings {
-            get {
-                return ResourceManager.GetString("Settings_ErrorSavingSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Loaded user settings from &quot;{0}&quot;..
-        /// </summary>
-        internal static string Settings_LoadedUserSettings {
-            get {
-                return ResourceManager.GetString("Settings_LoadedUserSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to User settings file does not exist at &quot;{0}&quot;. Using default rules configuration..
-        /// </summary>
-        internal static string Settings_NoUserSettings {
-            get {
-                return ResourceManager.GetString("Settings_NoUserSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Saved user settings to &quot;{0}&quot;..
-        /// </summary>
-        internal static string Settings_SavedUserSettings {
-            get {
-                return ResourceManager.GetString("Settings_SavedUserSettings", resourceCulture);
+                return ResourceManager.GetString("Settings_UsingDefaultSettings", resourceCulture);
             }
         }
     }

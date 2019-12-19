@@ -79,6 +79,53 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error loading settings from &quot;{0}&quot;.
+        ///  Error message: {1}.
+        /// </summary>
+        public static string Settings_ErrorLoadingSettingsFile {
+            get {
+                return ResourceManager.GetString("Settings_ErrorLoadingSettingsFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error saving settings to &quot;{0}&quot;.
+        ///  Error: {1}.
+        /// </summary>
+        public static string Settings_ErrorSavingSettingsFile {
+            get {
+                return ResourceManager.GetString("Settings_ErrorSavingSettingsFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Loaded settings from &quot;{0}&quot;..
+        /// </summary>
+        public static string Settings_LoadedSettingsFile {
+            get {
+                return ResourceManager.GetString("Settings_LoadedSettingsFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings file does not exist at &quot;{0}&quot;..
+        /// </summary>
+        public static string Settings_NoSettingsFile {
+            get {
+                return ResourceManager.GetString("Settings_NoSettingsFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved settings to &quot;{0}&quot;..
+        /// </summary>
+        public static string Settings_SavedSettingsFile {
+            get {
+                return ResourceManager.GetString("Settings_SavedSettingsFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarQube request failed: {0} {1}.
         /// </summary>
         public static string SonarQubeRequestFailed {
