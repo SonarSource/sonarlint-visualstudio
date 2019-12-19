@@ -19,8 +19,10 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.CFamily
@@ -31,35 +33,79 @@ namespace SonarLint.VisualStudio.Integration.CFamily
     {
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ILogger logger;
-        private readonly IConfigurationProvider configurationProvider;
 
+        // Settable in constructor for testing
         private readonly ICFamilyRulesConfigProvider sonarWayProvider;
+
+        // Local services
+        private readonly IConfigurationProvider configurationProvider;
+        private readonly ISolutionRuleSetsInformationProvider solutionInfoProvider;
+
+        private readonly UserSettingsSerializer serializer;
 
         [ImportingConstructor]
         public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger)
-            :this(host, userSettingsProvider, logger, new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory))
+            : this(host, userSettingsProvider, logger,
+                 new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
+                 new FileWrapper())
         {
         }
 
-        public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider)
+        public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFile fileWrapper)
         {
             this.userSettingsProvider = userSettingsProvider;
             this.logger = logger;
 
             configurationProvider = host.GetService<IConfigurationProvider>();
+            configurationProvider.AssertLocalServiceIsNotNull();
+            solutionInfoProvider = host.GetService<ISolutionRuleSetsInformationProvider>();
+            solutionInfoProvider.AssertLocalServiceIsNotNull();
+
             this.sonarWayProvider = sonarWayProvider;
+            this.serializer = new UserSettingsSerializer(fileWrapper, logger);
         }
 
         #region IRulesConfigurationProvider implementation
 
         public ICFamilyRulesConfig GetRulesConfiguration(string languageKey)
         {
-            // TODO: check whether in connected mode, and if so use the appropriate settings
+            UserSettings settings = null;
 
-            var config = new DynamicCFamilyRulesConfig(sonarWayProvider.GetRulesConfiguration(languageKey), userSettingsProvider.UserSettings);
-            return config;
+            // If in connected mode, look for the C++/C family settings in the .sonarlint/sonarqube folder.
+            var binding = this.configurationProvider.GetConfiguration();
+            if (binding != null && binding.Mode != SonarLintMode.Standalone)
+            {
+                settings = FindConnectedModeSettings(languageKey, binding);
+                if (settings == null)
+                {
+                    logger.WriteLine(Resources.Strings.CFamily_UnableToLoadConnectedModeSettings);
+                }
+            }
+
+            // If we are not in connected mode or couldn't find the connected mode settings then fall back on the standalone settings.
+            settings = settings ?? userSettingsProvider.UserSettings;
+            var sonarWayConfig = sonarWayProvider.GetRulesConfiguration(languageKey);
+            return CreateConfiguration(sonarWayConfig, settings);
         }
 
         #endregion IRulesConfigurationProvider implementation
+
+        private UserSettings FindConnectedModeSettings(string languageKey, BindingConfiguration binding)
+        {
+            var language = Language.GetLanguageFromLanguageKey(languageKey);
+            Debug.Assert(language != null, $"Unknown language key: {languageKey}");
+
+            if (language != null)
+            {
+                var filePath = solutionInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
+                var settings = serializer.SafeLoad(filePath);
+                return settings;
+            }
+            return null;
+        }
+
+        protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(ICFamilyRulesConfig sonarWayConfig, UserSettings settings)
+            => new DynamicCFamilyRulesConfig(sonarWayConfig, settings);
+
     }
 }
