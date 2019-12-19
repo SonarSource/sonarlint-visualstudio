@@ -750,4 +750,8 @@ This is the general format to use when writing errors to output window or when t
     <value>Project-level binding is not required for project '{0}'</value>
     <comment>Output window message about projects that don't require binding</comment>
   </data>
+  <data name="CFamily_UnableToLoadConnectedModeSettings" xml:space="preserve">
+    <value>Unable to load/locate connected mode settings. Falling back on standalone mode settings.</value>
+    <comment>Output message if in connected mode but couldn't find or load the connected mode settings file</comment>
+  </data>
 </root>
