@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         private readonly IConfigurationProvider configurationProvider;
         private readonly ISolutionRuleSetsInformationProvider solutionInfoProvider;
 
-        private UserSettingsSerializer serializer;
+        private readonly UserSettingsSerializer serializer;
 
         [ImportingConstructor]
         public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger)
