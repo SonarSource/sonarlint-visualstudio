@@ -80,6 +80,10 @@ namespace SonarLint.VisualStudio.Integration.CFamily
                 {
                     logger.WriteLine(Resources.Strings.CFamily_UnableToLoadConnectedModeSettings);
                 }
+                else
+                {
+                    logger.WriteLine(Resources.Strings.CFamily_UsingConnectedModeSettings);
+                }
             }
 
             // If we are not in connected mode or couldn't find the connected mode settings then fall back on the standalone settings.

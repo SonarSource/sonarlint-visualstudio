@@ -31,10 +31,14 @@
                    VerticalAlignment="Center"
                    Margin="5"
                    TextWrapping="Wrap" ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++ rules can be activated/deactivated."/></TextBlock>
-        <TextBlock Grid.Column="1" Grid.Row="1"
+        <StackPanel Grid.Column="1" Grid.Row="1">
+            <TextBlock
                    VerticalAlignment="Center"
                    Margin="5,0,0,5" TextWrapping="Wrap" Text="The file will be created if it does not exist." />
-
+            <TextBlock
+                   VerticalAlignment="Center"
+                   Margin="5,8,0,5" TextWrapping="Wrap" Text="Note: per-user settings are ignored for solutions using connected mode." />
+        </StackPanel>
         <Button Grid.Column="0" Grid.Row="2" Content="Activate more..." Click="OnActivateMoreClicked"
                 x:Name="ActivateButton"
                 Margin="5,25,5,5" Padding="5,2.5" />
