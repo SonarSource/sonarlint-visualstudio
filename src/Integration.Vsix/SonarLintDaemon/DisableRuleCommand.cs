@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly OleMenuCommand menuItem;
         private readonly IErrorList errorList;
         private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly ILogger logger;
 
         /// <summary>
@@ -60,9 +61,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var eList = vsErrorList as IErrorList;
 
             var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
+            var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync((typeof(IMenuCommandService)));
-            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, logger);
+            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, tracker, logger);
         }
 
         /// <summary>
@@ -72,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
         internal /* for testing */ DisableRuleCommand(IMenuCommandService menuCommandService, IErrorList errorList,
-            IUserSettingsProvider userSettingsProvider, ILogger logger)
+            IUserSettingsProvider userSettingsProvider, IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger)
         {
             if (menuCommandService == null)
             {
@@ -80,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             this.errorList = errorList ?? throw new ArgumentNullException(nameof(errorList));
             this.userSettingsProvider = userSettingsProvider ?? throw new ArgumentNullException(nameof(userSettingsProvider));
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -91,9 +94,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                bool status = TryGetErrorCodeSync(errorList, out _);
-                menuItem.Enabled = status;
-                menuItem.Visible = status;
+                // Show the menu item for Sonar errors...
+                bool isVisible = TryGetErrorCodeSync(errorList, out _);
+                // ... but only enable it in standalone mode
+                bool isEnabled = isVisible && (activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Standalone);
+
+                menuItem.Visible = isVisible;
+                menuItem.Enabled = isEnabled;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
