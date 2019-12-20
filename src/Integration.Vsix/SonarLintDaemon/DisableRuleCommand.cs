@@ -61,10 +61,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var eList = vsErrorList as IErrorList;
 
             var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
-            var activeSolutionBoundTracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+            var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync((typeof(IMenuCommandService)));
-            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, activeSolutionBoundTracker, logger);
+            Instance = new DisableRuleCommand(commandService, eList, settingsProvider, tracker, logger);
         }
 
         /// <summary>
