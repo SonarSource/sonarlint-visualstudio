@@ -138,6 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
 
             builder.AssertStandaloneSettingsNotAccessed();
+            builder.Logger.AssertOutputStringExists(Resources.Strings.CFamily_UsingConnectedModeSettings);
         }
 
         [TestMethod]

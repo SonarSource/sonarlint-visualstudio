@@ -754,4 +754,8 @@ This is the general format to use when writing errors to output window or when t
     <value>Unable to load/locate connected mode settings. Falling back on standalone mode settings.</value>
     <comment>Output message if in connected mode but couldn't find or load the connected mode settings file</comment>
   </data>
+  <data name="CFamily_UsingConnectedModeSettings" xml:space="preserve">
+    <value>Using connected mode settings. User-specified settings in settings.json will be ignored.</value>
+    <comment>Output message if in connected mode but couldn't find or load the connected mode settings file</comment>
+  </data>
 </root>
