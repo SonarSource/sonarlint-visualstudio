@@ -752,6 +752,10 @@ This is the general format to use when writing errors to output window or when t
   </data>
   <data name="CFamily_UnableToLoadConnectedModeSettings" xml:space="preserve">
     <value>Unable to load/locate connected mode settings. Falling back on standalone mode settings.</value>
-    <comment>Output message if in connected mode but couldn't find or load the connected mode settings file</comment>
+    <comment>Output window message if in connected mode but couldn't find or load the connected mode settings file</comment>
+  </data>
+  <data name="CFamily_UsingConnectedModeSettings" xml:space="preserve">
+    <value>Using connected mode settings. User-specified settings in settings.json will be ignored.</value>
+    <comment>Output window message</comment>
   </data>
 </root>
