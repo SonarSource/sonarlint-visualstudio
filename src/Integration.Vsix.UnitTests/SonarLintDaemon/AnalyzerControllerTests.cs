@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var controller = new AnalyzerController(new TestLogger(), analyzers);
 
             // Act
-            controller.RequestAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null);
+            controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
         }
@@ -83,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var controller = new AnalyzerController(new TestLogger(), analyzers);
 
             // Act
-            controller.RequestAnalysis("c:\\file.cpp", "charset1", 
+            controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
                 new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null);
 
             analyzers[0].RequestAnalysisCalled.Should().BeFalse();
@@ -110,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 return supportedLanguages?.Intersect(languages).Count() > 0;
             }
 
-            public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+            public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
             {
                 detectedLanguages.Should().NotBeNull();
                 detectedLanguages.Any().Should().BeTrue();
