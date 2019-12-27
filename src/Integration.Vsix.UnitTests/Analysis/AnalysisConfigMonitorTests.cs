@@ -43,12 +43,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (shouldAnalysisBeRequested)
             {
                 builder.AssertAnalysisIsRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisResources.ConfigMonitor_UserSettingsChanged);
+                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
             }
             else
             {
                 builder.AssertAnalysisIsNotRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisResources.ConfigMonitor_IgnoringUserSettingsChanged);
+                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_IgnoringUserSettingsChanged);
             }
         }
 
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (shouldAnalysisBeRequested)
             {
                 builder.AssertAnalysisIsRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisResources.ConfigMonitor_BindingUpdated);
+                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingUpdated);
             }
             else
             {
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             if (shouldAnalysisBeRequested)
             {
                 builder.AssertAnalysisIsRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisResources.ConfigMonitor_SolutionBound);
+                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SolutionBound);
             }
             else
             {

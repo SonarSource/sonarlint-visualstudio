@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Analysis.AnalysisResources.Requester_Error, ex);
+                logger.WriteLine(Analysis.AnalysisStrings.Requester_Error, ex);
             }
         }
 

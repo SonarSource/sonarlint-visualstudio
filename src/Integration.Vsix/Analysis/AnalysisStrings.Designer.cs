@@ -22,14 +22,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class AnalysisResources {
+    internal class AnalysisStrings {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal AnalysisResources() {
+        internal AnalysisStrings() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.Integration.Vsix.Analysis.AnalysisResources", typeof(AnalysisResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.Integration.Vsix.Analysis.AnalysisStrings", typeof(AnalysisStrings).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -97,11 +97,103 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disabled rule &quot;{0}&quot;.
+        /// </summary>
+        internal static string DisableRule_DisabledRule {
+            get {
+                return ResourceManager.GetString("DisableRule_DisabledRule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in DisableCommandRule.QueryStatus:
+        ///  Error: {0}.
+        /// </summary>
+        internal static string DisableRule_ErrorCheckingCommandStatus {
+            get {
+                return ResourceManager.GetString("DisableRule_ErrorCheckingCommandStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error disabling rule &quot;{0}&quot;:
+        ///  Error: {1}.
+        /// </summary>
+        internal static string DisableRule_ErrorDisablingRule {
+            get {
+                return ResourceManager.GetString("DisableRule_ErrorDisablingRule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {unknown}.
+        /// </summary>
+        internal static string DisableRule_UnknownErrorCode {
+            get {
+                return ResourceManager.GetString("DisableRule_UnknownErrorCode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error handling file change notification: {0}.
+        /// </summary>
+        internal static string FileMonitor_ErrorHandlingFileChange {
+            get {
+                return ResourceManager.GetString("FileMonitor_ErrorHandlingFileChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to File changed: {0}. Change type: {1}.
+        /// </summary>
+        internal static string FileMonitor_FileChanged {
+            get {
+                return ResourceManager.GetString("FileMonitor_FileChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Created directory: {0}.
+        /// </summary>
+        internal static string FileMonitory_CreatedDirectory {
+            get {
+                return ResourceManager.GetString("FileMonitory_CreatedDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error re-analysing open documents: {0}.
+        /// </summary>
+        internal static string ReanalysisStatusBar_Error {
+            get {
+                return ResourceManager.GetString("ReanalysisStatusBar_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: re-analysing open documents. Completed {0} of {1}.
+        /// </summary>
+        internal static string ReanalysisStatusBar_InProgress {
+            get {
+                return ResourceManager.GetString("ReanalysisStatusBar_InProgress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error re-analysing open documents: {0}.
         /// </summary>
         internal static string Requester_Error {
             get {
                 return ResourceManager.GetString("Requester_Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default settings will be used.
+        /// </summary>
+        internal static string Settings_UsingDefaultSettings {
+            get {
+                return ResourceManager.GetString("Settings_UsingDefaultSettings", resourceCulture);
             }
         }
     }
