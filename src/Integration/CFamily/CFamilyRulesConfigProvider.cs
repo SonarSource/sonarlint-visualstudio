@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CFamilyRuleConfigProvider : ICFamilyRulesConfigProvider
     {
+        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ILogger logger;
 
@@ -38,26 +39,25 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         private readonly ICFamilyRulesConfigProvider sonarWayProvider;
 
         // Local services
-        private readonly IConfigurationProvider configurationProvider;
         private readonly ISolutionRuleSetsInformationProvider solutionInfoProvider;
 
         private readonly UserSettingsSerializer serializer;
 
         [ImportingConstructor]
-        public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger)
-            : this(host, userSettingsProvider, logger,
+        public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
+            : this(host, activeSolutionBoundTracker, userSettingsProvider, logger,
                  new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
                  new FileWrapper())
         {
         }
 
-        public CFamilyRuleConfigProvider(IHost host, IUserSettingsProvider userSettingsProvider, ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFile fileWrapper)
+        public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
+            ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFile fileWrapper)
         {
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.userSettingsProvider = userSettingsProvider;
             this.logger = logger;
 
-            configurationProvider = host.GetService<IConfigurationProvider>();
-            configurationProvider.AssertLocalServiceIsNotNull();
             solutionInfoProvider = host.GetService<ISolutionRuleSetsInformationProvider>();
             solutionInfoProvider.AssertLocalServiceIsNotNull();
 
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             UserSettings settings = null;
 
             // If in connected mode, look for the C++/C family settings in the .sonarlint/sonarqube folder.
-            var binding = this.configurationProvider.GetConfiguration();
+            var binding = this.activeSolutionBoundTracker.CurrentConfiguration;
             if (binding != null && binding.Mode != SonarLintMode.Standalone)
             {
                 settings = FindConnectedModeSettings(languageKey, binding);
@@ -110,6 +110,5 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
         protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(ICFamilyRulesConfig sonarWayConfig, UserSettings settings)
             => new DynamicCFamilyRulesConfig(sonarWayConfig, settings);
-
     }
 }

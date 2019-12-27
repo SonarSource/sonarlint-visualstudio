@@ -38,39 +38,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Get_StandaloneMode()
         {
             // Arrange
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
-
-            builder.ConnectedModeSettings = new UserSettings
+            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone)
             {
-                Rules = new Dictionary<string, RuleConfig>
+                ConnectedModeSettings = new UserSettings
                 {
-                    {  "cpp:rule1", new RuleConfig { Level = RuleLevel.Off } },
-                    {  "cpp:rule2", new RuleConfig { Level = RuleLevel.On } },
-                    {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
-                    {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                }
-            };
+                    Rules = new Dictionary<string, RuleConfig>
+                    {
+                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.Off } },
+                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.On } },
+                        {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
+                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                    }
+                },
 
-            builder.StandaloneModeSettings = new UserSettings
-            {
-                Rules = new Dictionary<string, RuleConfig>
+                StandaloneModeSettings = new UserSettings
                 {
-                    {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                    {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                    {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                    {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                }
-            };
+                    Rules = new Dictionary<string, RuleConfig>
+                    {
+                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
+                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
+                        {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
+                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                    }
+                },
 
-            builder.SonarWayConfig = new DummyCFamilyRulesConfig
-            {
-                LanguageKey = "cpp",
-                RuleKeyToActiveMap = new Dictionary<string, bool>
+                SonarWayConfig = new DummyCFamilyRulesConfig
                 {
-                    { "rule1", false },
-                    { "rule2", false },
-                    { "rule3", true },
-                    { "rule4", false }
+                    LanguageKey = "cpp",
+                    RuleKeyToActiveMap = new Dictionary<string, bool>
+                    {
+                        { "rule1", false },
+                        { "rule2", false },
+                        { "rule3", true },
+                        { "rule4", false }
+                    }
                 }
             };
 
@@ -78,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Act
             var result = testSubject.GetRulesConfiguration("cpp");
-         
+
             // Assert
             result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
@@ -92,39 +93,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Get_ConnectedMode(SonarLintMode mode)
         {
             // Arrange
-            var builder = new TestEnvironmentBuilder(mode);
-
-            builder.ConnectedModeSettings = new UserSettings
+            var builder = new TestEnvironmentBuilder(mode)
             {
-                Rules = new Dictionary<string, RuleConfig>
+                ConnectedModeSettings = new UserSettings
                 {
-                    {  "cpp:rule1", new RuleConfig { Level = RuleLevel.Off } },
-                    {  "cpp:rule2", new RuleConfig { Level = RuleLevel.On } },
-                    {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
-                    {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                }
-            };
+                    Rules = new Dictionary<string, RuleConfig>
+                    {
+                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.Off } },
+                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.On } },
+                        {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
+                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                    }
+                },
 
-            builder.StandaloneModeSettings = new UserSettings
-            {
-                Rules = new Dictionary<string, RuleConfig>
+                StandaloneModeSettings = new UserSettings
                 {
-                    {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                    {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                    {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                    {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                }
-            };
+                    Rules = new Dictionary<string, RuleConfig>
+                    {
+                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
+                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
+                        {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
+                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                    }
+                },
 
-            builder.SonarWayConfig = new DummyCFamilyRulesConfig
-            {
-                LanguageKey = "cpp",
-                RuleKeyToActiveMap = new Dictionary<string, bool>
+                SonarWayConfig = new DummyCFamilyRulesConfig
                 {
-                    { "rule1", false },
-                    { "rule2", false },
-                    { "rule3", true },
-                    { "rule4", false }
+                    LanguageKey = "cpp",
+                    RuleKeyToActiveMap = new Dictionary<string, bool>
+                    {
+                        { "rule1", false },
+                        { "rule2", false },
+                        { "rule3", true },
+                        { "rule4", false }
+                    }
                 }
             };
 
@@ -147,30 +149,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Get_ConnectedMode_MissingSettings_StandaloneModeSettingsUsed(SonarLintMode mode)
         {
             // Arrange
-            var builder = new TestEnvironmentBuilder(mode);
-
-            builder.ConnectedSettingsFileExists = false;
-
-            builder.StandaloneModeSettings = new UserSettings
+            var builder = new TestEnvironmentBuilder(mode)
             {
-                Rules = new Dictionary<string, RuleConfig>
-                {
-                    {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                    {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                    {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                    {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
-                }
-            };
+                ConnectedSettingsFileExists = false,
 
-            builder.SonarWayConfig = new DummyCFamilyRulesConfig
-            {
-                LanguageKey = "cpp",
-                RuleKeyToActiveMap = new Dictionary<string, bool>
+                StandaloneModeSettings = new UserSettings
                 {
-                    { "rule1", false },
-                    { "rule2", false },
-                    { "rule3", true },
-                    { "rule4", false }
+                    Rules = new Dictionary<string, RuleConfig>
+                    {
+                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
+                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
+                        {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
+                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                    }
+                },
+
+                SonarWayConfig = new DummyCFamilyRulesConfig
+                {
+                    LanguageKey = "cpp",
+                    RuleKeyToActiveMap = new Dictionary<string, bool>
+                    {
+                        { "rule1", false },
+                        { "rule2", false },
+                        { "rule3", true },
+                        { "rule4", false }
+                    }
                 }
             };
 
@@ -194,10 +197,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             private readonly Mock<IFile> fileWrapperMock;
 
             private readonly Mock<IHost> host;
-            private readonly ConfigurableConfigurationProvider configProvider;
+            private readonly ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
             private readonly Mock<ISolutionRuleSetsInformationProvider> rulesetInfoProviderMock;
 
-            private SonarLintMode bindingMode;
+            private readonly SonarLintMode bindingMode;
 
             public UserSettings StandaloneModeSettings { get; set; }
             public UserSettings ConnectedModeSettings { get; set; }
@@ -214,12 +217,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 Logger = new TestLogger();
 
                 sonarWayProviderMock = new Mock<ICFamilyRulesConfigProvider>();
-                configProvider = new ConfigurableConfigurationProvider();
+                activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
                 rulesetInfoProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
 
                 // Register the local services
                 host = new Mock<IHost>();
-                host.Setup(x => x.GetService(typeof(IConfigurationProvider))).Returns(configProvider);
                 host.Setup(x => x.GetService(typeof(ISolutionRuleSetsInformationProvider))).Returns(rulesetInfoProviderMock.Object);
 
                 bindingMode = mode;
@@ -228,17 +230,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             public CFamilyRuleConfigProvider CreateTestSubject()
             {
                 // Data: set up the binding configuration
-                configProvider.ModeToReturn = bindingMode;
-                configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
+                var projectToReturn = new Persistence.BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
                     "sqProjectKey", "sqProjectName");
+                activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode);
 
                 // Data: user-configured settings
                 standaloneSettingsProviderMock.Setup(x => x.UserSettings).Returns(StandaloneModeSettings);
 
                 // Data: connected mode settings
-                const string connectedSettingsFilesPath = "zzz\\foo.bar"; 
+                const string connectedSettingsFilesPath = "zzz\\foo.bar";
                 var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings, Formatting.Indented);
-                
+
                 rulesetInfoProviderMock.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath("sqProjectKey", It.IsAny<Language>(), bindingMode))
                     .Returns(connectedSettingsFilesPath);
 
@@ -250,7 +252,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                     .Returns(SonarWayConfig);
 
-                var testSubject = new CFamilyRuleConfigProvider(host.Object, standaloneSettingsProviderMock.Object, Logger,
+                var testSubject = new CFamilyRuleConfigProvider(host.Object, activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
                     sonarWayProviderMock.Object, fileWrapperMock.Object);
 
                 return testSubject;
