@@ -23,7 +23,7 @@ using EnvDTE;
 
 // TODO: decide whether both of these interfaces are required
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     public interface IAnalyzer
     {

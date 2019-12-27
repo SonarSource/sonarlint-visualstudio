@@ -23,9 +23,8 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     /// <summary>
     /// Monitors a single file for all types of change (creation, modification, deletion, rename)

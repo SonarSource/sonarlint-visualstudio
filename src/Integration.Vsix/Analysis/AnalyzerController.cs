@@ -24,7 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     [Export(typeof(IAnalyzerController))]
     [PartCreationPolicy(CreationPolicy.Shared)]

@@ -121,13 +121,13 @@
     <value>Binding has been updated. Open documents will be re-analysed.</value>
   </data>
   <data name="ConfigMonitor_IgnoringUserSettingsChanged" xml:space="preserve">
-    <value>User settings changed but not in standalone mode. Open documents will not be re-analysed.</value>
+    <value>User settings have changed but the solution is in connected mode. Open documents will not be re-analysed.</value>
   </data>
   <data name="ConfigMonitor_SolutionBound" xml:space="preserve">
     <value>Solution has been bound. Open documents will be re-analysed.</value>
   </data>
   <data name="ConfigMonitor_UserSettingsChanged" xml:space="preserve">
-    <value>User settings changed. Open documents will be re-analysed.</value>
+    <value>User settings have changed. Open documents will be re-analysed.</value>
   </data>
   <data name="DisableRule_DisabledRule" xml:space="preserve">
     <value>Disabled rule "{0}"</value>

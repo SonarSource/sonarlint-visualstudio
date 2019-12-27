@@ -28,7 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 // Note: copied from the S4MSB
 // https://github.com/SonarSource/sonar-scanner-msbuild/blob/5c23a7da9171e90a1970a31507dce3da3e8ee094/Tests/TestUtilities/DummyExeHelper.cs#L34
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
     /// <summary>
     /// Creates dummy executables that log the input parameters and return a specified
