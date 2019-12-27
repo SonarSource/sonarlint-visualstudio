@@ -424,7 +424,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return isSupported;
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, EnvDTE.ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, EnvDTE.ProjectItem projectItem)
         {
             if (!settings.IsActivateMoreEnabled)
             {

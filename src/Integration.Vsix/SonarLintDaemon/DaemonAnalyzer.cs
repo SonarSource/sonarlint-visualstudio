@@ -26,7 +26,6 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -51,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return daemon.IsAnalysisSupported(languages);
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             if (!IsAnalysisSupported(detectedLanguages))
             {
@@ -76,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // decisions about whether to run or not. That should all be handled by 
             // this class.
             telemetryManager.LanguageAnalyzed("js");
-            daemon.RequestAnalysis(path, charset, detectedLanguages, consumer, projectItem);
+            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem);
         }
 
         /// <summary>

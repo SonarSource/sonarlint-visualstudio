@@ -38,8 +38,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
     /// Factory for the <see cref="ITagger{T}"/>. There will be one instance of this class/VS session.
-    ///
+    /// <para>
     /// It is also the <see cref="ITableDataSource"/> that reports Sonar errors to the Error List
+    /// </para>
     /// </summary>
     /// <remarks>
     /// See the README.md in this folder for more information
@@ -176,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
-                analyzerController.RequestAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
+                analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
