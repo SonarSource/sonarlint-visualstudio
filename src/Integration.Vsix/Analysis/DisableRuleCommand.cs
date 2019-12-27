@@ -28,10 +28,9 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     /// <summary>
     /// Command handler

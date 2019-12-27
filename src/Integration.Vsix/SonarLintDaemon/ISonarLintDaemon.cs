@@ -19,6 +19,7 @@
  */
 
 using Sonarlint;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using System;
 using System.Collections.Generic;
 

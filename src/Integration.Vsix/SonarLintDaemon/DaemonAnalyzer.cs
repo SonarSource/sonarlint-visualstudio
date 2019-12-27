@@ -26,6 +26,7 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
