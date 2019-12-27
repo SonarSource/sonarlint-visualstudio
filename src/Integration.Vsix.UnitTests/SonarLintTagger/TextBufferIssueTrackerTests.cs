@@ -72,8 +72,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckAnalysisWasNotRequested();
 
             // 2. Add a tagger -> analysis requested
-            var tagger = new IssueTagger(testSubject);
-            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            using (var tagger = new IssueTagger(testSubject))
+            {
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            }
         }
 
         [TestMethod]
@@ -131,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalyzerController.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
@@ -148,16 +150,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
 
-            var tagger = new IssueTagger(testSubject);
-            mockAnalyzerController.Invocations.Clear();
+            using (var tagger = new IssueTagger(testSubject))
+            {
+                mockAnalyzerController.Invocations.Clear();
 
-            // Act
-            RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
-            CheckAnalysisWasNotRequested();
+                // Act
+                RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
+                CheckAnalysisWasNotRequested();
 
-            // Sanity check (that the test setup is correct and that events are actually being handled)
-            RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.RequestAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+                // Sanity check (that the test setup is correct and that events are actually being handled)
+                RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            }
         }
 
         private static void RaiseRenameEvent(Mock<ITextDocument> mockDocument, string newFileName)
@@ -180,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void CheckAnalysisWasNotRequested()
         {
-            mockAnalyzerController.Verify(x => x.RequestAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
                 It.IsAny<IIssueConsumer>(), It.IsAny<ProjectItem>()), Times.Never);
         }
 
@@ -282,13 +286,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(new Mock<ITableManager>().Object);
 
             var textDocFactoryServiceMock = new Mock<ITextDocumentFactoryService>();
-            var settingsMock = new Mock<ISonarLintSettings>();
 
             var contentTypeRegistryServiceMock = new Mock<IContentTypeRegistryService>();
             contentTypeRegistryServiceMock.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
             var fileExtensionRegistryServiceMock = new Mock<IFileExtensionRegistryService>();
             var languageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryServiceMock.Object, fileExtensionRegistryServiceMock.Object);
-
 
             // DTE object setup
             var mockProject = new Mock<Project>();
@@ -305,7 +307,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockDTE = new Mock<DTE>();
             mockDTE.Setup(d => d.Solution).Returns(solution);
-            var dte = mockDTE.Object;
 
             var mockVsStatusBar = new Mock<Microsoft.VisualStudio.Shell.Interop.IVsStatusbar>();
 
@@ -314,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProvider.RegisterService(typeof(Microsoft.VisualStudio.Shell.Interop.IVsStatusbar), mockVsStatusBar.Object);
 
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-           
+
             var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
                 serviceProvider, languageRecognizer, mockUserSettingsProvider.Object, new TestLogger());
             return provider;

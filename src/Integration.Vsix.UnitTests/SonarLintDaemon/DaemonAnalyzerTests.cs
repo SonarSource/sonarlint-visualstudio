@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = true;
 
             // Act
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             // Assert - analysis not called
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0);
@@ -99,14 +99,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = true;
 
             // 1. Start
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             // Assert - only RequestAnalysis called
             dummyInstaller.InstallCallCount.Should().Be(0);
             dummyDaemon.StartCallCount.Should().Be(0);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(1);
             CheckTelemetryManagerCallCount("js", 1);
-            
+
             CheckEventHandlersUnsubscribed();
             CheckTelemetryManagerTotalCallCount(1);
         }
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             };
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyDaemon.StartCallCount.Should().Be(1);
             dummyDaemon.RequestAnalysisCallCount.Should().Be(0); // should be waiting for the daemon to be ready
@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript}, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript}, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -256,7 +256,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             };
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -283,7 +283,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             dummyDaemon.IsRunning = false;
 
             // 1. Make the request
-            analyzer.RequestAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
+            analyzer.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.Javascript }, null, null);
 
             dummyInstaller.InstallCallCount.Should().Be(1);
             dummyDaemon.StartCallCount.Should().Be(0);  // should be waiting for the daemon to be installed
