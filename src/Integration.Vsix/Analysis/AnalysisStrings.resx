@@ -117,6 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ConfigMonitor_BindingUpdated" xml:space="preserve">
+    <value>Binding has been updated. Open documents will be re-analysed.</value>
+  </data>
+  <data name="ConfigMonitor_IgnoringUserSettingsChanged" xml:space="preserve">
+    <value>User settings changed but not in standalone mode. Open documents will not be re-analysed.</value>
+  </data>
+  <data name="ConfigMonitor_SolutionBound" xml:space="preserve">
+    <value>Solution has been bound. Open documents will be re-analysed.</value>
+  </data>
+  <data name="ConfigMonitor_UserSettingsChanged" xml:space="preserve">
+    <value>User settings changed. Open documents will be re-analysed.</value>
+  </data>
   <data name="DisableRule_DisabledRule" xml:space="preserve">
     <value>Disabled rule "{0}"</value>
   </data>
@@ -147,6 +159,9 @@
   <data name="ReanalysisStatusBar_InProgress" xml:space="preserve">
     <value>SonarLint: re-analysing open documents. Completed {0} of {1}</value>
     <comment>Status bar message</comment>
+  </data>
+  <data name="Requester_Error" xml:space="preserve">
+    <value>Error re-analysing open documents: {0}</value>
   </data>
   <data name="Settings_UsingDefaultSettings" xml:space="preserve">
     <value>Default settings will be used</value>

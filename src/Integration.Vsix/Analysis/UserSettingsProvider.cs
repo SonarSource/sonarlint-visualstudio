@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -107,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var settings = serializer.SafeLoad(filePath);
             if (settings == null)
             {
-                logger.WriteLine(DaemonStrings.Settings_UsingDefaultSettings);
+                logger.WriteLine(AnalysisStrings.Settings_UsingDefaultSettings);
                 settings = new UserSettings();
             }
             return settings;

@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(DaemonStrings.ReanalysisStatusBar_Error, ex.Message);
+                logger.WriteLine(AnalysisStrings.ReanalysisStatusBar_Error, ex.Message);
             }
         }
         
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (!disposedValue)
             {
-                var message = string.Format(DaemonStrings.ReanalysisStatusBar_InProgress, completed, total);
+                var message = string.Format(AnalysisStrings.ReanalysisStatusBar_InProgress, completed, total);
                 statusBar?.Progress(ref pwdCookie, 1, message, (uint)completed, (uint)total);
             }
         }
