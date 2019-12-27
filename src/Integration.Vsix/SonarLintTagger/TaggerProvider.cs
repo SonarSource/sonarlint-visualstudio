@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
 
             ISonarLanguageRecognizer languageRecognizer,
-            IUserSettingsProvider userSettingsProvider,
+            IAnalysisRequester analysisRequester,
             ILogger logger)
         {
             this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
@@ -90,14 +90,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.logger = logger;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
-            userSettingsProvider.SettingsChanged += OnSettingsFileChanged;
+            analysisRequester.AnalysisRequested += OnAnalysisRequested;
         }
 
         private readonly object reanalysisLockObject = new object();
         private CancellableJobRunner reanalysisJob;
         private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
 
-        private void OnSettingsFileChanged(object sender, EventArgs e)
+        private void OnAnalysisRequested(object sender, EventArgs e)
         {
             // Handle notification from the single file monitor that the settings file has changed.
 

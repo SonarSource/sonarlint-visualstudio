@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
@@ -27,18 +28,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(IAnalyzerController))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class AnalyzerController : IAnalyzerController
+    internal sealed class AnalyzerController : IAnalyzerController, IDisposable
     {
         private readonly ILogger logger;
         private readonly IEnumerable<IAnalyzer> analyzers;
 
+        // The analyzer controller does not use the config monitor. However, something needs to MEF-import
+        // the config monitor so that it is created, and the lifetimes of the analyzer controller and
+        // config monitor should be the same so it is convenient to create it here.
+        private readonly Analysis.IAnalysisConfigMonitor analysisConfigMonitor;
+
         [ImportingConstructor]
         public AnalyzerController(ILogger logger,
-            [ImportMany]IEnumerable<IAnalyzer> analyzers)
+            [ImportMany]IEnumerable<IAnalyzer> analyzers,
+            Analysis.IAnalysisConfigMonitor analysisConfigMonitor)
         {
             this.logger = logger;
             this.analyzers = analyzers;
+            this.analysisConfigMonitor = analysisConfigMonitor;
         }
+
+        #region IAnalyzerController implementation
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
@@ -63,5 +73,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine($"No analyzer supported analysis of {path}");
             }
         }
+
+        #endregion IAnalyzerController implementation
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        private void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    (analysisConfigMonitor as IDisposable)?.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+        }
+        #endregion
     }
 }

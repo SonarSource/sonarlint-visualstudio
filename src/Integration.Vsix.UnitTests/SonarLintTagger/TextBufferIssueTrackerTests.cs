@@ -314,10 +314,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
             serviceProvider.RegisterService(typeof(Microsoft.VisualStudio.Shell.Interop.IVsStatusbar), mockVsStatusBar.Object);
 
-            var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
+            var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
             var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockUserSettingsProvider.Object, new TestLogger());
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger());
             return provider;
         }
 
