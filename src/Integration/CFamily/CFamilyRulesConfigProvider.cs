@@ -25,6 +25,9 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
+// Note: currently this class needs to be in the the Integration assembly because it
+//   references IHost and other internal interfaces.
+
 namespace SonarLint.VisualStudio.Integration.CFamily
 {
     [Export(typeof(ICFamilyRulesConfigProvider))]
