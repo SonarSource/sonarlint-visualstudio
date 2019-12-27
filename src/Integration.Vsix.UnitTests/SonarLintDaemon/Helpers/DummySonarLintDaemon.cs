@@ -26,7 +26,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    public class DummySonarLintDaemon : ISonarLintDaemon
+    public sealed class DummySonarLintDaemon : ISonarLintDaemon
     {
         #region Test helper methods
 
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return SupportedLanguages?.Intersect(languages).Any() ?? false;
         }
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
         {
             RequestAnalysisCallCount++;
             RequestAnalysisOperation?.Invoke();
