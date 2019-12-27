@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User settings changed but not in standalone mode. Open documents will not be re-analysed..
+        ///   Looks up a localized string similar to User settings have changed but the solution is in connected mode. Open documents will not be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_IgnoringUserSettingsChanged {
             get {
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User settings changed. Open documents will be re-analysed..
+        ///   Looks up a localized string similar to User settings have changed. Open documents will be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_UserSettingsChanged {
             get {
