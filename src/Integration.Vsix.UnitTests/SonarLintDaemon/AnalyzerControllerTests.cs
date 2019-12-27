@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
@@ -41,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 new DummyAnalyzer(),
             };
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers);
+            var controller = new AnalyzerController(new TestLogger(), analyzers, null);
 
             // Act and Assert
             controller.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
@@ -59,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 new DummyAnalyzer(),
             };
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers);
+            var controller = new AnalyzerController(new TestLogger(), analyzers, null);
 
             // Act
             controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null);
@@ -79,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 new DummyAnalyzer(AnalysisLanguage.CFamily),
             };
 
-            var controller = new AnalyzerController(new TestLogger(), analyzers);
+            var controller = new AnalyzerController(new TestLogger(), analyzers, null);
 
             // Act
             controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
@@ -91,6 +93,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Both analyzers that support analysis should be given the chance to handle the request.
             analyzers[1].RequestAnalysisCalled.Should().BeTrue();
             analyzers[3].RequestAnalysisCalled.Should().BeTrue();
+        }
+
+        [TestMethod]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Critical Code Smell", "S3966:Objects should not be disposed more than once",
+            Justification = "Deliberately disposing multiple times to test correct handling by the test subject")]
+        public void CleanUp_MonitorDisposed()
+        {
+            // Arrange
+            var analyzers = new DummyAnalyzer[]
+            {
+                new DummyAnalyzer()
+            };
+
+            var monitorMock = new Mock<SonarLint.VisualStudio.Integration.Vsix.Analysis.IAnalysisConfigMonitor>();
+            var disposableMock = monitorMock.As<IDisposable>();
+
+            var controller = new AnalyzerController(new TestLogger(), analyzers, monitorMock.Object);
+
+            // Act - Dispose multiple times
+            controller.Dispose();
+            controller.Dispose();
+            controller.Dispose();
+
+            // Assert
+            disposableMock.Verify(x => x.Dispose(), Times.Once);
         }
 
         private class DummyAnalyzer : IAnalyzer

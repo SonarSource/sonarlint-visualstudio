@@ -149,6 +149,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Analysis\AnalysisResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>AnalysisResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="CFamily\CFamilyStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CFamilyStrings.Designer.cs</LastGenOutput>
@@ -206,6 +210,11 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Update="Analysis\AnalysisResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>AnalysisResources.resx</DependentUpon>
+    </Compile>
     <Compile Update="CFamily\CFamilyStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
