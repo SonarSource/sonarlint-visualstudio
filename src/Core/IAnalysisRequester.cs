@@ -19,25 +19,20 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
-
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Core
 {
-    public class ConfigurableActiveSolutionBoundTracker : IActiveSolutionBoundTracker
+    public interface IAnalysisRequester
     {
-        public BindingConfiguration CurrentConfiguration { get; set; }
+        /// <summary>
+        /// Notification that analysis has been requested
+        /// </summary>
+        event EventHandler AnalysisRequested;
 
-        public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
-        public event EventHandler SolutionBindingUpdated;
-
-        public void SimulateSolutionBindingChanged(ActiveSolutionBindingEventArgs binding)
-        {
-            SolutionBindingChanged?.Invoke(this, binding);
-        }
-
-        public void SimulateSolutionBindingUpdated()
-        {
-            SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
-        }
+        /// <summary>
+        /// Called to request that analysis is performed
+        /// </summary>
+        /// <remarks>There are no guarantees about whether the analysis is performed before the method
+        /// returns or not.</remarks>
+        void RequestAnalysis();
     }
 }
