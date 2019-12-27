@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -104,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(DaemonStrings.DisableRule_ErrorCheckingCommandStatus, ex.Message);
+                logger.WriteLine(AnalysisStrings.DisableRule_ErrorCheckingCommandStatus, ex.Message);
             }
         }
 
@@ -132,14 +133,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (TryGetErrorCodeSync(errorList, out errorCode))
                 {
                     userSettingsProvider.DisableRule(errorCode);
-                    logger.WriteLine(DaemonStrings.DisableRule_DisabledRule, errorCode);
+                    logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, errorCode);
                 }
 
                 Debug.Assert(errorCode != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
             }
             catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(DaemonStrings.DisableRule_ErrorDisablingRule, errorCode ?? DaemonStrings.DisableRule_UnknownErrorCode, ex.Message);
+                logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, errorCode ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
             }
         }
 

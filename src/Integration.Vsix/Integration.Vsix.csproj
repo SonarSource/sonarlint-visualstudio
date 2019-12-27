@@ -149,9 +149,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Analysis\AnalysisResources.resx">
+    <EmbeddedResource Update="Analysis\AnalysisStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>AnalysisResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>AnalysisStrings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="CFamily\CFamilyStrings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -164,11 +164,6 @@
     <EmbeddedResource Update="Resources\Strings.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="SonarLintDaemon\DaemonStrings.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>DaemonStrings.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>SonarLint.VisualStudio.Integration.Vsix</CustomToolNamespace>
     </EmbeddedResource>
     <Content Include="..\..\LICENSE">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -210,10 +205,10 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Compile Update="Analysis\AnalysisResources.Designer.cs">
+    <Compile Update="Analysis\AnalysisStrings.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>AnalysisResources.resx</DependentUpon>
+      <DependentUpon>AnalysisStrings.resx</DependentUpon>
     </Compile>
     <Compile Update="CFamily\CFamilyStrings.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -224,11 +219,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
-    </Compile>
-    <Compile Update="SonarLintDaemon\DaemonStrings.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DaemonStrings.resx</DependentUpon>
     </Compile>
     <Compile Update="Telemetry\GeneratedCode\SqmCommandFacade.cs">
       <DesignTime>True</DesignTime>

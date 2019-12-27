@@ -31,6 +31,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 {
@@ -214,7 +215,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Act - should not throw
             command.Invoke();
 
-            testLogger.AssertPartialOutputStringExists("exception xxx", DaemonStrings.DisableRule_UnknownErrorCode);
+            testLogger.AssertPartialOutputStringExists("exception xxx", AnalysisStrings.DisableRule_UnknownErrorCode);
         }
 
         [TestMethod]

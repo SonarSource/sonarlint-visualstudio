@@ -63,12 +63,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // NB assumes exception handling is done by the AnalysisRequester
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Standalone)
             {
-                logger.WriteLine(AnalysisResources.ConfigMonitor_UserSettingsChanged);
+                logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
                 analysisRequester.RequestAnalysis();
             }
             else
             {
-                logger.WriteLine(AnalysisResources.ConfigMonitor_IgnoringUserSettingsChanged);
+                logger.WriteLine(AnalysisStrings.ConfigMonitor_IgnoringUserSettingsChanged);
             }
         }
 
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // NB assumes exception handling is done by the AnalysisRequester
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
             {
-                logger.WriteLine(AnalysisResources.ConfigMonitor_BindingUpdated);
+                logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingUpdated);
                 analysisRequester.RequestAnalysis();
             }
         }
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // NB assumes exception handling is done by the AnalysisRequester
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
             {
-                logger.WriteLine(AnalysisResources.ConfigMonitor_SolutionBound);
+                logger.WriteLine(AnalysisStrings.ConfigMonitor_SolutionBound);
                 analysisRequester.RequestAnalysis();
             }
         }

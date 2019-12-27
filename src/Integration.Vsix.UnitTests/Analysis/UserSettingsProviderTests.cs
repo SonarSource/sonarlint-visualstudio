@@ -27,6 +27,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 {
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
 
             // Assert
             CheckSettingsAreEmpty(testSubject.UserSettings);
-            testLogger.AssertOutputStringExists(DaemonStrings.Settings_UsingDefaultSettings);
+            testLogger.AssertOutputStringExists(AnalysisStrings.Settings_UsingDefaultSettings);
         }
 
         [TestMethod]

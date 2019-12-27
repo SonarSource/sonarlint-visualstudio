@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -115,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (!directoryWrapper.Exists(dirPath))
             {
                 directoryWrapper.Create(dirPath);
-                logger.WriteLine(DaemonStrings.FileMonitory_CreatedDirectory, dirPath);
+                logger.WriteLine(AnalysisStrings.FileMonitory_CreatedDirectory, dirPath);
             }
         }
 
@@ -143,13 +144,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 }
 
                 lastWriteTime = currentTime;
-                logger.WriteLine(DaemonStrings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
+                logger.WriteLine(AnalysisStrings.FileMonitor_FileChanged, MonitoredFilePath, args.ChangeType);
 
                 fileChangedHandlers(this, EventArgs.Empty);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(DaemonStrings.FileMonitor_ErrorHandlingFileChange, ex.Message);
+                logger.WriteLine(AnalysisStrings.FileMonitor_ErrorHandlingFileChange, ex.Message);
             }
             finally
             {
