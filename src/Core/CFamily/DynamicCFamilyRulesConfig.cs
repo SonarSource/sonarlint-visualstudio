@@ -22,13 +22,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.CFamily
+namespace SonarLint.VisualStudio.Core.CFamily
 {
     // Wrapper that handles applying user-level settings on top of the default config
-    internal sealed class DynamicCFamilyRulesConfig : ICFamilyRulesConfig
+    public sealed class DynamicCFamilyRulesConfig : ICFamilyRulesConfig
     {
         private readonly ICFamilyRulesConfig defaultRulesConfig;
 

@@ -23,11 +23,10 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.CFamily;
+using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
     public class DynamicCFamilyRulesConfigTests
