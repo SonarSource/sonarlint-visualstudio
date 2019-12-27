@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
-    internal class DummyCFamilyRulesConfig : ICFamilyRulesConfig
+    public class DummyCFamilyRulesConfig : ICFamilyRulesConfig
     {
         public static ICFamilyRulesConfig CreateValidRulesConfig(string languageKey) =>
             new DummyCFamilyRulesConfig
