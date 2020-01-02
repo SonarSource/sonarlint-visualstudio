@@ -54,7 +54,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             {
                 Rules = new Dictionary<string, RuleConfig>
                 {
-                    { "key", new RuleConfig { Level = RuleLevel.On,
+                    { "key", new RuleConfig
+                        {
+                            Level = RuleLevel.On,
+                            Severity = IssueSeverity.Minor,
                             Parameters = new Dictionary<string, string>
                             {
                                 { "p1", "p2" }
@@ -81,10 +84,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             actualText.Should().Be(@"{
   ""sonarlint.rules"": {
     ""key"": {
-      ""Level"": ""On"",
-      ""Parameters"": {
+      ""level"": ""On"",
+      ""parameters"": {
         ""p1"": ""p2""
-      }
+      },
+      ""severity"": ""Minor""
     }
   }
 }");
