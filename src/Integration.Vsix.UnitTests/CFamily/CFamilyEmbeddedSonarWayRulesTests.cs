@@ -21,6 +21,7 @@
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
