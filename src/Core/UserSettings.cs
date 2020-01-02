@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Core
             "Parameters": {
               "key1": "value1",
               "key2": "value2"
+            },
         },
     }
 ...
@@ -71,5 +72,14 @@ namespace SonarLint.VisualStudio.Core
     {
         On,
         Off
+    }
+
+    public enum IssueSeverity
+    {
+        Blocker = 0,
+        Critical = 1,
+        Major = 2,
+        Minor = 3,
+        Info = 4,
     }
 }

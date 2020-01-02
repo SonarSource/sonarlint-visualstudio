@@ -51,15 +51,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public string[] CompatibleLanguages { get; set; }
     }
 
-    public enum IssueSeverity
-    {
-        Blocker = 0,
-        Critical = 1,
-        Major = 2,
-        Minor = 3,
-        Info = 4,
-    }
-
     public enum IssueType
     {
         CodeSmell = 0,

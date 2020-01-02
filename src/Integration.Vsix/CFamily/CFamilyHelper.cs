@@ -24,7 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using EnvDTE;
-using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -183,6 +183,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             };
         }
 
+        /// <summary>
+        /// Converts from the Core issue severity enum to the equivalent daemon protofbuf generated enum
+        /// </summary>
         internal /* for testing */ static Sonarlint.Issue.Types.Severity Convert(IssueSeverity issueSeverity)
         {
             switch (issueSeverity)
@@ -203,6 +206,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
+        /// <summary>
+        /// Converts from the Core issue type enum to the equivalent daemon protofbuf generated enum
+        /// </summary>
         internal /* for testing */static Sonarlint.Issue.Types.Type Convert(IssueType issueType)
         {
             switch (issueType)
@@ -290,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     // the next line will throw if the file is not part of a solution
                     projectItem.ConfigurationManager.ActiveConfiguration != null;
             }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
             }
