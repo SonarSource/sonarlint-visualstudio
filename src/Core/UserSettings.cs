@@ -27,7 +27,8 @@ namespace SonarLint.VisualStudio.Core
 {
 
     /*
-     // Example config file - same format as the VS Code settings.json file, with the addition of "Parameters"
+     // Example config file - same format as the VS Code settings.json file, with the addition of "parameters"
+     // and "severity", both of which are optional.
 {
 ...
     "sonarlint.rules": {
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.Core
               "key1": "value1",
               "key2": "value2"
             },
+            "severity": "Critical"
         },
     }
 ...
@@ -56,16 +58,26 @@ namespace SonarLint.VisualStudio.Core
     // Json-serializable data class
     public class UserSettings
     {
-        [JsonProperty("sonarlint.rules")]
+        [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
     }
 
     public class RuleConfig
     {
+        [JsonProperty("level")]
         [JsonConverter(typeof(StringEnumConverter))]
         public RuleLevel Level { get; set; }
 
+        // Note: property will be null if "parameters" is missing from the file.
+        // This is what we want: most rules won't have parameters and we want to avoid
+        // creating hundreds of unnecessary empty dictionaries.
+        // The only downside is that the dictionary that is created won't 
+        [JsonProperty("parameters", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, string> Parameters { get; set; }
+
+        [JsonProperty("severity", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public IssueSeverity? Severity { get; set; }
     }
 
     public enum RuleLevel
