@@ -25,16 +25,12 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeRule
     {
-        public SonarQubeRule(string key, string repositoryKey, bool isActive)
-            : this(key, repositoryKey, isActive, new Dictionary<string, string>())
-        {
-        }
-
-        public SonarQubeRule(string key, string repositoryKey, bool isActive, IDictionary<string, string> parameters)
+        public SonarQubeRule(string key, string repositoryKey, bool isActive, SonarQubeIssueSeverity severity, IDictionary<string, string> parameters)
         {
             Key = key;
             RepositoryKey = repositoryKey;
             IsActive = isActive;
+            Severity = severity;
 
             Parameters = new ReadOnlyDictionary<string, string>(parameters);
         }
@@ -44,6 +40,8 @@ namespace SonarQube.Client.Models
         public string RepositoryKey { get; }
 
         public bool IsActive { get; }
+
+        public SonarQubeIssueSeverity Severity { get; }
 
         /// <summary>
         /// When the rule is active, contains the parameters that are set in the corresponding quality profile.
