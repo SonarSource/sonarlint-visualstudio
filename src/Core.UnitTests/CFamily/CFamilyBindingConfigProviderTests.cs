@@ -37,14 +37,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
     public class CFamilyBindingConfigProviderTests
     {
         [TestMethod]
+        [DataRow(SonarQubeIssueSeverity.Blocker, IssueSeverity.Blocker)]
+        [DataRow(SonarQubeIssueSeverity.Critical, IssueSeverity.Critical)]
+        [DataRow(SonarQubeIssueSeverity.Info, IssueSeverity.Info)]
+        [DataRow(SonarQubeIssueSeverity.Major, IssueSeverity.Major)]
+        [DataRow(SonarQubeIssueSeverity.Minor, IssueSeverity.Minor)]
+        [DataRow(SonarQubeIssueSeverity.Unknown, null)]
+        public void SeverityEnumConversion_NotUnknown(SonarQubeIssueSeverity sqSeverity, IssueSeverity? expected)
+        {
+            CFamilyBindingConfigProvider.Convert(sqSeverity).Should().Be(expected);
+        }
+ 
+        [TestMethod]
         public void ConvertRulesToSettings()
         {
             // Arrange
             var qpRules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key1", "repo1", false),
-                new SonarQubeRule("key2", "repo1", true),
-                new SonarQubeRule("key3", "repo1", false,
+                new SonarQubeRule("key1", "repo1", false, SonarQubeIssueSeverity.Blocker, new Dictionary<string, string>()),
+                new SonarQubeRule("key2", "repo1", true, SonarQubeIssueSeverity.Critical, new Dictionary<string, string>()),
+                new SonarQubeRule("key3", "repo1", false, SonarQubeIssueSeverity.Unknown,
                   new Dictionary<string, string>
                   {
                       { "paramKey1", "paramValue1" },
@@ -65,6 +77,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             settings.Rules["repo1:key2"].Level.Should().Be(RuleLevel.On);
             settings.Rules["repo1:key3"].Level.Should().Be(RuleLevel.Off);
 
+            settings.Rules["repo1:key1"].Severity.Should().Be(IssueSeverity.Blocker);
+            settings.Rules["repo1:key2"].Severity.Should().Be(IssueSeverity.Critical);
+            settings.Rules["repo1:key3"].Severity.Should().BeNull();
+
+
             settings.Rules["repo1:key1"].Parameters.Should().BeEmpty();
             settings.Rules["repo1:key2"].Parameters.Should().BeEmpty();
     
@@ -83,8 +100,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var testLogger = new TestLogger();
             var rules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key1", "repo1", true),
-                new SonarQubeRule("key2", "repo2", false,
+                new SonarQubeRule("key1", "repo1", true, SonarQubeIssueSeverity.Major, new Dictionary<string, string>()),
+                new SonarQubeRule("key2", "repo2", false,SonarQubeIssueSeverity.Info,
                     new Dictionary<string, string>
                     {
                         {  "p1", "v1" },
@@ -114,6 +131,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             slvsRules.Keys.Should().BeEquivalentTo("repo1:key1", "repo2:key2");
             slvsRules["repo1:key1"].Level.Should().Be(RuleLevel.On);
             slvsRules["repo2:key2"].Level.Should().Be(RuleLevel.Off);
+
+            slvsRules["repo1:key1"].Severity.Should().Be(IssueSeverity.Major);
+            slvsRules["repo2:key2"].Severity.Should().Be(IssueSeverity.Info);
 
             slvsRules["repo1:key1"].Parameters.Should().BeEmpty();
 
