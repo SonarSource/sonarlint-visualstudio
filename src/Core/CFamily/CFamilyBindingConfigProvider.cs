@@ -92,10 +92,30 @@ namespace SonarLint.VisualStudio.Core.CFamily
             var config = new RuleConfig()
             {
                 Level = sonarQubeRule.IsActive ? RuleLevel.On : RuleLevel.Off,
-                Parameters = sonarQubeRule?.Parameters.ToDictionary(p => p.Key, p => p.Value)
+                Parameters = sonarQubeRule?.Parameters.ToDictionary(p => p.Key, p => p.Value),
+                Severity = Convert(sonarQubeRule.Severity)
             };
 
             return config;
+        }
+
+        internal /* for testing */ static IssueSeverity? Convert(SonarQubeIssueSeverity sonarQubeIssueSeverity)
+        {
+            switch(sonarQubeIssueSeverity)
+            {
+                case SonarQubeIssueSeverity.Blocker:
+                    return IssueSeverity.Blocker;
+                case SonarQubeIssueSeverity.Critical:
+                    return IssueSeverity.Critical;
+                case SonarQubeIssueSeverity.Info:
+                    return IssueSeverity.Info;
+                case SonarQubeIssueSeverity.Major:
+                    return IssueSeverity.Major;
+                case SonarQubeIssueSeverity.Minor:
+                    return IssueSeverity.Minor;
+                default:
+                    return null;
+            }
         }
     }
 }
