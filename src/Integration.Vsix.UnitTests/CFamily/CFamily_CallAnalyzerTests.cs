@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Act
             var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger());
 
-            // Assert;
+            // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
             File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
 
@@ -59,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Act
             var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger());
 
-            // Assert;
+            // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
             File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
 
@@ -83,15 +82,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void TestIsIssueForActiveRule()
         {
-            var rulesConfig = new DummyCFamilyRulesConfig
-            {
-                LanguageKey = "any",
-                RuleKeyToActiveMap = new Dictionary<string, bool>
-                {
-                    { "rule1", true },
-                    { "rule2", false }
-                }
-            };
+            var rulesConfig = new DummyCFamilyRulesConfig("any")
+                .AddRule("rule1", isActive: true)
+                .AddRule("rule2", isActive: false);
 
             // 1. Match - active
             var message = new Message("rule1", "filename", 0, 0, 0, 0, "msg", false, null);
@@ -112,7 +105,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private class DummyProcessRunner : IProcessRunner
         {
-
             private readonly byte[] responseToReturn;
             private readonly bool successCodeToReturn;
 
@@ -215,7 +207,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 byte[] execLines = new byte[] { 1, 2, 3, 4 };
                 Protocol.WriteInt(writer, execLines.Length);
                 writer.Write(execLines);
-
 
                 // 1 symbol
                 Protocol.WriteInt(writer, 1);
