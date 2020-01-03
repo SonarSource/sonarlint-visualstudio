@@ -62,17 +62,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     }
                 },
 
-                SonarWayConfig = new DummyCFamilyRulesConfig
-                {
-                    LanguageKey = "cpp",
-                    RuleKeyToActiveMap = new Dictionary<string, bool>
-                    {
-                        { "rule1", false },
-                        { "rule2", false },
-                        { "rule3", true },
-                        { "rule4", false }
-                    }
-                }
+                SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
+                    .AddRule("rule1", IssueSeverity.Blocker, isActive: false)
+                    .AddRule("rule2", IssueSeverity.Critical, isActive: false)
+                    .AddRule("rule3", IssueSeverity.Major, isActive: true)
+                    .AddRule("rule4", IssueSeverity.Minor, isActive: false)
             };
 
             var testSubject = builder.CreateTestSubject();
@@ -99,10 +93,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
-                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.Off } },
-                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.On } },
-                        {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
-                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                        { "cpp:rule1", new RuleConfig { Level = RuleLevel.Off, Severity = null } },
+                        { "cpp:rule2", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Blocker } },
+                        { "cpp:rule3", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Critical } },
+                        { "XXX:rule4", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Info } }
                     }
                 },
 
@@ -110,24 +104,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
-                        {  "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
-                        {  "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
-                        {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
-                        {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
+                        { "cpp:rule1", new RuleConfig { Level = RuleLevel.On } },
+                        { "cpp:rule2", new RuleConfig { Level = RuleLevel.Off } },
+                        { "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
+                        { "XXX:rule4", new RuleConfig { Level = RuleLevel.On } }
                     }
                 },
 
-                SonarWayConfig = new DummyCFamilyRulesConfig
-                {
-                    LanguageKey = "cpp",
-                    RuleKeyToActiveMap = new Dictionary<string, bool>
-                    {
-                        { "rule1", false },
-                        { "rule2", false },
-                        { "rule3", true },
-                        { "rule4", false }
-                    }
-                }
+                SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
+                    .AddRule("rule1", IssueSeverity.Info, isActive: false)
+                    .AddRule("rule2", IssueSeverity.Major, isActive: false)
+                    .AddRule("rule3", IssueSeverity.Minor, isActive: true)
+                    .AddRule("rule4", IssueSeverity.Blocker, isActive: false)
             };
 
             var testSubject = builder.CreateTestSubject();
@@ -138,6 +126,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Assert
             result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule2", "rule3");
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
+
+            result.RulesMetadata["rule1"].DefaultSeverity.Should().Be(IssueSeverity.Info);     // not set in ConnectedModeSettings so should use default
+            result.RulesMetadata["rule2"].DefaultSeverity.Should().Be(IssueSeverity.Blocker);  // ConnectedModeSetting should override the default
+            result.RulesMetadata["rule3"].DefaultSeverity.Should().Be(IssueSeverity.Critical); // ConnectedModeSetting should override the default
+            result.RulesMetadata["rule4"].DefaultSeverity.Should().Be(IssueSeverity.Blocker); // ConnectedModeSetting should override the default
 
             builder.AssertStandaloneSettingsNotAccessed();
             builder.Logger.AssertOutputStringExists(Resources.Strings.CFamily_UsingConnectedModeSettings);
@@ -164,17 +157,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     }
                 },
 
-                SonarWayConfig = new DummyCFamilyRulesConfig
-                {
-                    LanguageKey = "cpp",
-                    RuleKeyToActiveMap = new Dictionary<string, bool>
-                    {
-                        { "rule1", false },
-                        { "rule2", false },
-                        { "rule3", true },
-                        { "rule4", false }
-                    }
-                }
+                SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
+                    .AddRule("rule1", IssueSeverity.Info, isActive: false)
+                    .AddRule("rule2", IssueSeverity.Major, isActive: false)
+                    .AddRule("rule3", IssueSeverity.Minor, isActive: true)
+                    .AddRule("rule4", IssueSeverity.Blocker, isActive: false)
             };
 
             var testSubject = builder.CreateTestSubject();

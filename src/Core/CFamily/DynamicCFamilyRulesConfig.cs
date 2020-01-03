@@ -33,12 +33,21 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
-            if (userSettings == null)
-            {
-                throw new ArgumentNullException(nameof(userSettings));
-            }
 
-            this.ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, userSettings);
+            if ((userSettings?.Rules?.Count ?? 0) == 0)
+            {
+                ActivePartialRuleKeys = defaultRulesConfig.ActivePartialRuleKeys;
+                RulesMetadata = defaultRulesConfig.RulesMetadata;
+                RulesParameters = defaultRulesConfig.RulesParameters;
+            }
+            else
+            {
+                ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, userSettings);
+
+                RulesMetadata = new Dictionary<string, RuleMetadata>();
+                RulesParameters = new Dictionary<string, IDictionary<string, string>>();
+                CalculateEffectiveSettings(defaultRulesConfig, userSettings);
+            }
         }
 
         #region IRulesConfiguration interface methods
@@ -49,18 +58,15 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         public IEnumerable<string> ActivePartialRuleKeys { get; }
 
-        public IDictionary<string, IDictionary<string, string>> RulesParameters => defaultRulesConfig.RulesParameters;
+        public IDictionary<string, IDictionary<string, string>> RulesParameters { get; }
 
-        public IDictionary<string, RuleMetadata> RulesMetadata => defaultRulesConfig.RulesMetadata;
+        public IDictionary<string, RuleMetadata> RulesMetadata { get; }
 
         #endregion IRulesConfiguration interface methods
 
-        internal /* for testing */ static IEnumerable<string> CalculateActiveRules(ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
+        private static IEnumerable<string> CalculateActiveRules(ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
         {
-            if (userSettings?.Rules?.Count == 0)
-            {
-                return defaultRulesConfig.ActivePartialRuleKeys;
-            }
+            Debug.Assert(userSettings?.Rules != null && userSettings.Rules.Count != 0);
 
             // We're only interested settings for rules that are for the same language as the supplied rules configuration.
             // The rule keys in the user settings include the repo prefix, but the rule keys in the rules config do not.
@@ -69,24 +75,83 @@ namespace SonarLint.VisualStudio.Core.CFamily
             var deactivatedByUser = partialKeyToConfigMap.Where(kvp => kvp.Value.Level == RuleLevel.Off).Select(kvp => kvp.Key);
             var activatedByUser = partialKeyToConfigMap.Where(kvp => kvp.Value.Level == RuleLevel.On).Select(kvp => kvp.Key);
 
-            var activeRules = defaultRulesConfig.ActivePartialRuleKeys
+            return defaultRulesConfig.ActivePartialRuleKeys
                 .Concat(activatedByUser)
                 .Except(deactivatedByUser, CFamilyShared.RuleKeyComparer)
                 .Distinct(CFamilyShared.RuleKeyComparer).ToArray();
-
-            return activeRules;
         }
-        
+
         private static IDictionary<string, RuleConfig> GetFilteredRulesKeyedByPartialKey(UserSettings userSettings, string language)
         {
             Debug.Assert(!string.IsNullOrEmpty(language), "language should not be null/empty");
             var languagePrefix = language + ":";
 
-            var partialKeyToConfigMap = userSettings.Rules
+            return userSettings.Rules
                 .Where(kvp => kvp.Key.StartsWith(languagePrefix, CFamilyShared.RuleKeyComparison))
                 .ToDictionary(kvp => kvp.Key.Substring(languagePrefix.Length), kvp => kvp.Value);
-
-            return partialKeyToConfigMap;
         }
+
+        private void CalculateEffectiveSettings(ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
+        {
+            Debug.Assert(userSettings?.Rules != null && userSettings.Rules.Count != 0);
+
+            foreach (var partialRuleKey in defaultRulesConfig.AllPartialRuleKeys)
+            {
+                // Not all rules have params, but all should have metadata
+                Debug.Assert(defaultRulesConfig.RulesMetadata[partialRuleKey] != null);
+
+                var defaultMetadata = defaultRulesConfig.RulesMetadata[partialRuleKey];
+                defaultRulesConfig.RulesParameters.TryGetValue(partialRuleKey, out var defaultParams);
+
+                var fullRuleKey = GetFullRuleKey(defaultRulesConfig.LanguageKey, partialRuleKey);
+                userSettings.Rules.TryGetValue(fullRuleKey, out var userRuleConfig);
+
+                RulesMetadata[partialRuleKey] = GetEffectiveMetadata(defaultMetadata, userRuleConfig);
+
+                var effectiveParams = GetEffectiveParameters(defaultParams, userRuleConfig?.Parameters);
+                if (effectiveParams != null)
+                {
+                    RulesParameters[partialRuleKey] = effectiveParams;
+                }
+            }
+        }
+
+        private static RuleMetadata GetEffectiveMetadata(RuleMetadata defaultMetadata, RuleConfig userConfig)
+        {
+            if (userConfig == null || !userConfig.Severity.HasValue)
+            {
+                return defaultMetadata;
+            }
+
+            return new RuleMetadata
+            {
+                DefaultSeverity = userConfig.Severity.Value,
+                Title = defaultMetadata.Title,
+                CompatibleLanguages = defaultMetadata.CompatibleLanguages,
+                Type = defaultMetadata.Type
+            };
+        }
+
+        internal /* for testing */ static IDictionary<string, string> GetEffectiveParameters(IDictionary<string, string> defaultParameters, IDictionary<string, string> userParameters)
+        {
+            if (defaultParameters == null)
+            {
+                return userParameters;
+            }
+            if (userParameters == null)
+            {
+                return defaultParameters;
+            }
+
+            var effectiveParams = new Dictionary<string, string>(defaultParameters, StringComparer.OrdinalIgnoreCase);
+            foreach (var userParam in userParameters)
+            {
+                effectiveParams[userParam.Key] = userParam.Value;
+            }
+            return effectiveParams;
+        }
+
+        private static string GetFullRuleKey(string language, string partialRuleKey)
+            => $"{language}:{partialRuleKey}";
     }
 }
