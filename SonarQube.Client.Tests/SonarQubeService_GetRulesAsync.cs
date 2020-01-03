@@ -131,13 +131,14 @@ namespace SonarQube.Client.Tests.Api
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(3);
-            result.Select(r => r.Key).Should().Contain(new[] { "S2225", "S4524", "S2342" });
+            result.Select(r => r.Key).Should().ContainInOrder(new[] { "S2225", "S4524", "S2342" });
             result.Select(r => r.RepositoryKey).Should().Contain(new[] { "csharpsquid", "csharpsquid", "csharpsquid" });
             result.Select(r => r.IsActive).Should().Contain(new[] { true, true, true });
+            result.Select(r => r.Severity).Should().ContainInOrder(new[] { SonarQubeIssueSeverity.Major, SonarQubeIssueSeverity.Critical, SonarQubeIssueSeverity.Minor });
 
             result.Select(r => r.Parameters.Count).Should().Contain(new[] { 0, 2, 0 });
-            result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().Contain(new[] { "format", "flagsAttributeFormat" });
-            result.SelectMany(r => r.Parameters.Select(p => p.Value)).Should().Contain(new[] { "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$", "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$" });
+            result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().ContainInOrder(new[] { "format", "flagsAttributeFormat" });
+            result.SelectMany(r => r.Parameters.Select(p => p.Value)).Should().ContainInOrder(new[] { "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$", "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$" });
         }
 
         [TestMethod]
@@ -193,12 +194,13 @@ namespace SonarQube.Client.Tests.Api
             messageHandler.VerifyAll();
 
             result.Should().HaveCount(3);
-            result.Select(r => r.Key).Should().Contain(new[] { "S2225", "S4524", "S2342" });
-            result.Select(r => r.RepositoryKey).Should().Contain(new[] { "csharpsquid", "csharpsquid", "csharpsquid" });
-            result.Select(r => r.IsActive).Should().Contain(new[] { false, false, false });
+            result.Select(r => r.Key).Should().ContainInOrder(new[] { "S2225", "S4524", "S2342" });
+            result.Select(r => r.RepositoryKey).Should().ContainInOrder(new[] { "csharpsquid", "csharpsquid", "csharpsquid" });
+            result.Select(r => r.IsActive).Should().ContainInOrder(new[] { false, false, false });
+            result.Select(r => r.Severity).Should().ContainInOrder(new[] { SonarQubeIssueSeverity.Unknown, SonarQubeIssueSeverity.Unknown, SonarQubeIssueSeverity.Unknown });
 
             // The response contains parameter "definitions", the Parameters property contains parameter values
-            result.Select(r => r.Parameters.Count).Should().Contain(new[] { 0, 0, 0 });
+            result.Select(r => r.Parameters.Count).Should().ContainInOrder(new[] { 0, 0, 0 });
         }
 
         [TestMethod]
