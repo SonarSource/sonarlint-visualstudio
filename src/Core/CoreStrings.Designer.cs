@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Using cached rules settings.
+        ///   Looks up a localized string similar to Using cached rule settings.
         /// </summary>
         public static string EffectiveRules_CacheHit {
             get {
