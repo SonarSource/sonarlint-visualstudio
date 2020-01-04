@@ -79,6 +79,33 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Using cached rule settings.
+        /// </summary>
+        public static string EffectiveRules_CacheHit {
+            get {
+                return ResourceManager.GetString("EffectiveRules_CacheHit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calculating effective rule settings....
+        /// </summary>
+        public static string EffectiveRules_CacheMiss {
+            get {
+                return ResourceManager.GetString("EffectiveRules_CacheMiss", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No user-specified rule settings - using defaults.
+        /// </summary>
+        public static string EffectiveRules_NoUserSettings {
+            get {
+                return ResourceManager.GetString("EffectiveRules_NoUserSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error loading settings from &quot;{0}&quot;.
         ///  Error message: {1}.
         /// </summary>

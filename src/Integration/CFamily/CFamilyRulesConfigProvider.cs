@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly EffectiveRulesConfigCalculator effectiveConfigCalculator;
         private readonly ILogger logger;
 
         // Settable in constructor for testing
@@ -66,6 +67,8 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
             this.sonarWayProvider = sonarWayProvider;
             this.serializer = new UserSettingsSerializer(fileWrapper, logger);
+
+            this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(logger);
         }
 
         #region IRulesConfigurationProvider implementation
@@ -92,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             // If we are not in connected mode or couldn't find the connected mode settings then fall back on the standalone settings.
             settings = settings ?? userSettingsProvider.UserSettings;
             var sonarWayConfig = sonarWayProvider.GetRulesConfiguration(languageKey);
-            return CreateConfiguration(sonarWayConfig, settings);
+            return CreateConfiguration(languageKey, sonarWayConfig, settings);
         }
 
         #endregion IRulesConfigurationProvider implementation
@@ -111,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             return null;
         }
 
-        protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(ICFamilyRulesConfig sonarWayConfig, UserSettings settings)
-            => new DynamicCFamilyRulesConfig(sonarWayConfig, settings);
+        protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(string languageKey, ICFamilyRulesConfig sonarWayConfig, UserSettings settings)
+            => effectiveConfigCalculator.GetEffectiveRulesConfig(languageKey, sonarWayConfig, settings);
     }
 }

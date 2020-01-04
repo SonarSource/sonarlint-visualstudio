@@ -125,6 +125,15 @@
     <value>C#</value>
     <comment>C# language name</comment>
   </data>
+  <data name="EffectiveRules_CacheHit" xml:space="preserve">
+    <value>Using cached rule settings</value>
+  </data>
+  <data name="EffectiveRules_CacheMiss" xml:space="preserve">
+    <value>Calculating effective rule settings...</value>
+  </data>
+  <data name="EffectiveRules_NoUserSettings" xml:space="preserve">
+    <value>No user-specified rule settings - using defaults</value>
+  </data>
   <data name="Settings_ErrorLoadingSettingsFile" xml:space="preserve">
     <value>Error loading settings from "{0}".
   Error message: {1}</value>
