@@ -75,12 +75,15 @@ namespace SonarQube.Client.Api.V5_50
             {
                 var activeQP = activeQualityProfiles.First();
                 severity = SonarQubeIssueSeverityConverter.Convert(activeQP.Severity);
-                parameters = activeQP.Parameters.ToDictionary(p => p.Key, p => p.Value);
+                
+                // Optimisation: avoid creating objects if there are no parameters
+                parameters = activeQP.Parameters.Length > 0 ?
+                    activeQP.Parameters.ToDictionary(p => p.Key, p => p.Value) : null;
             }
             else
             {
                 severity = SonarQubeIssueSeverity.Unknown;
-                parameters = new Dictionary<string, string>();
+                parameters = null;
             }
 
             return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters);

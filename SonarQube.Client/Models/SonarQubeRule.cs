@@ -25,6 +25,11 @@ namespace SonarQube.Client.Models
 {
     public class SonarQubeRule
     {
+        /// <summary>
+        /// Singleton to prevent creating unnecessary objects
+        /// </summary>
+        private static readonly IReadOnlyDictionary<string, string> Empty = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
+
         public SonarQubeRule(string key, string repositoryKey, bool isActive, SonarQubeIssueSeverity severity, IDictionary<string, string> parameters)
         {
             Key = key;
@@ -32,7 +37,14 @@ namespace SonarQube.Client.Models
             IsActive = isActive;
             Severity = severity;
 
-            Parameters = new ReadOnlyDictionary<string, string>(parameters);
+            if (parameters == null || parameters.Count == 0)
+            {
+                Parameters = Empty;
+            }
+            else
+            {
+                Parameters = new ReadOnlyDictionary<string, string>(parameters);
+            }
         }
 
         public string Key { get; }
