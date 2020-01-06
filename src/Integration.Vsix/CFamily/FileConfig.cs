@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     OmitDefaultLibName = GetEvaluatedPropertyValue(fileTool, "OmitDefaultLibName"),
                     RuntimeTypeInfo = GetEvaluatedPropertyValue(fileTool, "RuntimeTypeInfo"),
                     BasicRuntimeChecks = GetEvaluatedPropertyValue(fileTool, "BasicRuntimeChecks"),
-                    LanguageStandard = GetEvaluatedPropertyValue(fileTool, "LanguageStandard"),
+                    LanguageStandard = GetPotentiallyUnsupportedPropertyValue(fileTool, "LanguageStandard", null),
 
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
                 };
@@ -100,6 +100,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     );
                 }
                 return (string)getEvaluatedPropertyValue.Invoke(fileTool, new object[] { propertyName });
+            }
+
+            /// <summary>
+            /// Returns the value of a property that might not be supported by the current version of the compiler.
+            /// If the property is not supported the default value is returned.
+            /// </summary>
+            /// <remarks>e.g. LanguageStandard is not supported by VS2015 so attempting to fetch the property will throw.
+            /// We don't want the analysis to fail in that case so we'll catch the exception and return the default.</remarks>
+            private static string GetPotentiallyUnsupportedPropertyValue(object fileTool, string propertyName, string defaultValue)
+            {
+                string result = null;
+                try
+                {
+                    result = GetEvaluatedPropertyValue(fileTool, propertyName);
+                }
+                catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+                {
+                    // Property was not found
+                    result = defaultValue;
+                }
+                return result;
             }
 
             public string AbsoluteFilePath { get; set; }
