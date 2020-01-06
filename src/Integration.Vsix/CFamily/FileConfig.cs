@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using EnvDTE;
+using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -108,15 +109,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             /// </summary>
             /// <remarks>e.g. LanguageStandard is not supported by VS2015 so attempting to fetch the property will throw.
             /// We don't want the analysis to fail in that case so we'll catch the exception and return the default.</remarks>
-            private static string GetPotentiallyUnsupportedPropertyValue(object fileTool, string propertyName, string defaultValue)
+            internal /* for testing */ static string GetPotentiallyUnsupportedPropertyValue(object fileTool, string propertyName, string defaultValue)
             {
                 string result = null;
                 try
                 {
                     result = GetEvaluatedPropertyValue(fileTool, propertyName);
                 }
-                catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+                catch (System.Reflection.TargetInvocationException ex)
                 {
+                    if (ErrorHandler.IsCriticalException(ex.InnerException))
+                    {
+                        throw;
+                    }
+
                     // Property was not found
                     result = defaultValue;
                 }
