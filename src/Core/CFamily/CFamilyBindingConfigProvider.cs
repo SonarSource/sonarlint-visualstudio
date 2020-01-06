@@ -92,9 +92,9 @@ namespace SonarLint.VisualStudio.Core.CFamily
             // Most rules don't have parameters, so to avoid creating objects unnecessarily
             // we'll leave the parameters as null unless there really are values.
             Dictionary<string, string> parameters = null;
-            if ((sonarQubeRule?.Parameters.Count ?? 0) != 0)
+            if ((sonarQubeRule.Parameters?.Count ?? 0) != 0)
             {
-                parameters = sonarQubeRule?.Parameters.ToDictionary(p => p.Key, p => p.Value);
+                parameters = sonarQubeRule.Parameters.ToDictionary(p => p.Key, p => p.Value);
             }
 
             var config = new RuleConfig()
