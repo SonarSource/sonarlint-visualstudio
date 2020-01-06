@@ -27,7 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Tests.Api
+namespace SonarQube.Client.Tests
 {
     [TestClass]
     public class SonarQubeService_GetRulesAsync : SonarQubeService_TestBase
@@ -139,6 +139,13 @@ namespace SonarQube.Client.Tests.Api
             result.Select(r => r.Parameters.Count).Should().Contain(new[] { 0, 2, 0 });
             result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().ContainInOrder(new[] { "format", "flagsAttributeFormat" });
             result.SelectMany(r => r.Parameters.Select(p => p.Value)).Should().ContainInOrder(new[] { "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?$", "^([A-Z]{1,3}[a-z0-9]+)*([A-Z]{2})?s$" });
+
+            // All rules with empty parameters should return the same (read-only) object
+            // 0 = S2225, no params; 1 = S4524, no params; 2 = S2342, has params
+            result[0].Parameters.Should().NotBeNull();
+            result[0].Parameters.Count().Should().Be(0);
+            result[2].Parameters.Count().Should().Be(2);
+            result[0].Parameters.Should().BeSameAs(result[1].Parameters);
         }
 
         [TestMethod]
@@ -201,6 +208,10 @@ namespace SonarQube.Client.Tests.Api
 
             // The response contains parameter "definitions", the Parameters property contains parameter values
             result.Select(r => r.Parameters.Count).Should().ContainInOrder(new[] { 0, 0, 0 });
+
+            // All empty parameter objects should be the same instance
+            result[0].Parameters.Should().BeSameAs(result[1].Parameters);
+            result[0].Parameters.Should().BeSameAs(result[2].Parameters);
         }
 
         [TestMethod]
