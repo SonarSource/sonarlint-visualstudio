@@ -89,10 +89,18 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         private static RuleConfig ToRuleConfig(SonarQubeRule sonarQubeRule)
         {
+            // Most rules don't have parameters, so to avoid creating objects unnecessarily
+            // we'll leave the parameters as null unless there really are values.
+            Dictionary<string, string> parameters = null;
+            if ((sonarQubeRule.Parameters?.Count ?? 0) != 0)
+            {
+                parameters = sonarQubeRule.Parameters.ToDictionary(p => p.Key, p => p.Value);
+            }
+
             var config = new RuleConfig()
             {
                 Level = sonarQubeRule.IsActive ? RuleLevel.On : RuleLevel.Off,
-                Parameters = sonarQubeRule?.Parameters.ToDictionary(p => p.Key, p => p.Value),
+                Parameters = parameters,
                 Severity = Convert(sonarQubeRule.Severity)
             };
 

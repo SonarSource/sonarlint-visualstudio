@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             settings.Rules["repo1:key3"].Severity.Should().BeNull();
 
 
-            settings.Rules["repo1:key1"].Parameters.Should().BeEmpty();
-            settings.Rules["repo1:key2"].Parameters.Should().BeEmpty();
+            settings.Rules["repo1:key1"].Parameters.Should().BeNull();
+            settings.Rules["repo1:key2"].Parameters.Should().BeNull();
     
             var rule3Params = settings.Rules["repo1:key3"].Parameters;
             rule3Params.Should().NotBeNull();
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             slvsRules["repo1:key1"].Severity.Should().Be(IssueSeverity.Major);
             slvsRules["repo2:key2"].Severity.Should().Be(IssueSeverity.Info);
 
-            slvsRules["repo1:key1"].Parameters.Should().BeEmpty();
+            slvsRules["repo1:key1"].Parameters.Should().BeNull();
 
             var rule2Params = slvsRules["repo2:key2"].Parameters;
             rule2Params.Should().NotBeNull();

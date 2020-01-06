@@ -71,7 +71,8 @@ namespace SonarLint.VisualStudio.Core
         // Note: property will be null if "parameters" is missing from the file.
         // This is what we want: most rules won't have parameters and we want to avoid
         // creating hundreds of unnecessary empty dictionaries.
-        // The only downside is that the dictionary that is created won't 
+        // The only downside is that the dictionary that is created will use the default
+        // comparer, which is case-sensitive.
         [JsonProperty("parameters", NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, string> Parameters { get; set; }
 
