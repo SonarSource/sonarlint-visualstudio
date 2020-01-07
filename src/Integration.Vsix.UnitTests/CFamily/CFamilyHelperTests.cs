@@ -142,6 +142,66 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void GetEvalutedPropertyValue_NoException_ReturnsValue()
+        {
+            // Arrange
+            var dummyEngine = new Microsoft.VisualStudio.VCProjectEngine.DummyProjectEngine();
+
+            string suppliedPropertyName = null;
+            dummyEngine.TestOp = pn =>
+            {
+                suppliedPropertyName = pn;
+                return "propertyValue";
+            };
+
+            // Act
+            var result = CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1", "default xxx");
+
+            // Assert
+            result.Should().Be("propertyValue");
+            suppliedPropertyName.Should().Be("propertyName1");
+        }
+
+        [TestMethod]
+        public void GetEvalutedPropertyValue_Exception_ReturnsDefault()
+        {
+            // Arrange
+            var dummyEngine = new Microsoft.VisualStudio.VCProjectEngine.DummyProjectEngine();
+
+            bool delegateCalled = false;
+            dummyEngine.TestOp = pn =>
+            {
+                delegateCalled = true;
+                throw new InvalidOperationException("foo");
+            };
+
+            // Act - exception should be handled
+            var result = CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1", "default xxx");
+
+            // Assert
+            result.Should().Be("default xxx");
+            delegateCalled.Should().BeTrue(); // Sanity check that the test delegate was invoked
+        }
+
+        [TestMethod]
+        public void GetEvalutedPropertyValue_CriticalException_IsNotSuppressed()
+        {
+            // Arrange
+            var dummyEngine = new Microsoft.VisualStudio.VCProjectEngine.DummyProjectEngine();
+
+            dummyEngine.TestOp = _ =>
+            {
+                throw new StackOverflowException("foo");
+            };
+
+            // Act and Assert
+            Action act = () => CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1", "default xxx");
+            
+            act.Should().ThrowExactly<System.Reflection.TargetInvocationException>()
+                .WithInnerException<StackOverflowException>().And.Message.Should().Be("foo");
+        }
+
+        [TestMethod]
         public void PlatformName()
         {
             CFamilyHelper.FileConfig.ConvertPlatformName("Win32").Should().Be("x86");
@@ -643,4 +703,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 s => s.Contains(message))), Times.Once);
         }
     }
+}
+
+// Ugly hack - the runtime code uses reflection to find the GetEvaluatedPropertyValue
+// method. We don't reference the VCProjectEngine assembly, so we're redefining a
+// namespace/interface/method with the required names here.
+namespace Microsoft.VisualStudio.VCProjectEngine
+{
+    internal interface IVCRulePropertyStorage
+    {
+        string GetEvaluatedPropertyValue(string propertyName);
+    }
+
+    public class DummyProjectEngine : IVCRulePropertyStorage
+    {
+        public Func<string, string> TestOp { get; set; }
+
+        string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
+        {
+            return TestOp(propertyName);
+        }
+    }
+
 }
