@@ -1,6 +1,6 @@
 ﻿/*
  * SonarLint for Visual Studio
- * Copyright (C) 2016-2018 SonarSource SA
+ * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -31,5 +31,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCulture("")]
 [assembly: AssemblyCompany("SonarSource")]
-[assembly: AssemblyCopyright("Copyright © SonarSource SA 2016-2019")]
+[assembly: AssemblyCopyright("Copyright © SonarSource SA 2016-2020")]
 [assembly: AssemblyTrademark("")]
