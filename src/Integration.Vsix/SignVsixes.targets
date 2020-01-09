@@ -57,7 +57,8 @@
   <Target Name="SignVsixes">
     <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
     <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
-    <Exec Command="$(VsixSignToolPath) sign /f $(pfxCertificatePath) /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://timestamp.digicert.com /v %(VSIXesToSign.Identity)" />
+    <!-- For info on timestamping see https://knowledge.digicert.com/generalinformation/INFO190.html -->
+    <Exec Command="$(VsixSignToolPath) sign /f $(pfxCertificatePath) /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v %(VSIXesToSign.Identity)" />
   </Target>
 
 </Project>
