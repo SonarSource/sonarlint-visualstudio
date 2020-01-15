@@ -48,7 +48,7 @@ namespace DownloadCFamilyPlugin
     public class DownloadAndExtract: Task
     {
         // The txz archive containing the subprocess.exe
-        private const string WindowsTxzFilePattern = "clang-*-win.txz";
+        private const string WindowsTxzFilePattern = "clang*-win.txz";
 
         // Sub-folder into which the tar file should be unzipped
         private const string TarUnzipSubFolder = "tar_xz";
