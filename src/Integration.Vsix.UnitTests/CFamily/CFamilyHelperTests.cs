@@ -511,7 +511,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CheckHasOption("S1142.max=3");
             CheckHasOption("S1578.format=^[A-Za-z_-][A-Za-z0-9_-]+\\.(c|m|cpp|cc|cxx)$");
 
-            options.Count().Should().Be(38);
+            options.Count().Should().BeGreaterOrEqualTo(39); // basic sanity check: v6.6 has 39 - not expecting options to be removed
 
             string CheckHasOption(string optionName)
             {
