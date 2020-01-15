@@ -364,7 +364,7 @@
   <!-- ********************************************************** -->
   <PropertyGroup>
     <!-- Download url for the CFamily plugin. Update this url to embed a new version of the plugin. -->
-    <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar</PluginUrl>
+    <PluginUrl>https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.6.0.13759.jar</PluginUrl>
 
     <CFamilyFolderName>lib</CFamilyFolderName>
 
