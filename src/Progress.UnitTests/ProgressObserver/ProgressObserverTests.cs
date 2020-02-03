@@ -25,6 +25,7 @@ using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarLint.VisualStudio.Progress.MVVM;
 using SonarLint.VisualStudio.Progress.Observation;

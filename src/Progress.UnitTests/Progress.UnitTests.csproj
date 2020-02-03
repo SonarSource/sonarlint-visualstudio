@@ -27,6 +27,7 @@
     <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
     <ProjectReference Include="..\Progress\Progress.csproj" />
     <ProjectReference Include="..\Progress.TestFramework\Progress.TestFramework.csproj" />
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
 </Project>
