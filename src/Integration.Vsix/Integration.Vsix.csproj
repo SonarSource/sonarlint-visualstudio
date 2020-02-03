@@ -317,7 +317,7 @@
   <!-- ********************************************************** -->
   <Target Name="GenerateProtobufClasses" BeforeTargets="PrepareForBuild" Outputs="$(ProjectDir)Protobuf\SonarlintDaemon.cs" Inputs="$(ProjectDir)Protobuf\sonarlint-daemon.proto">
     <Message Importance="high" Text="Generating protobuf classes..." />
-    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command="build.bat $(NuGetPackageRoot)Grpc.Tools\1.4.1\tools\windows_x64" />
+    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command='build.bat "$(NuGetPackageRoot)Grpc.Tools\1.4.1\tools\windows_x64"' />
 
     <!-- Make sure that any files we have just generated are included in the compilation -->
     <ItemGroup>
