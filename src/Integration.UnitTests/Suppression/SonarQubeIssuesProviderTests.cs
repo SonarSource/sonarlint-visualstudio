@@ -285,28 +285,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var sonarQubeIssue4 = new SonarQubeIssue("FOO/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S4", true);
             var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId", "S5", true);
 
-            SetupSolutionBinding(true, 
+            SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4, sonarQubeIssue5 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
 
-            var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
-            WaitForInitialFetchTaskToStart();
+            SonarQubeIssuesProvider issuesProvider;
 
-            VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
-
-            // Act
-            IEnumerable<SonarQubeIssue> matches;
-            // We're deliberately faking SonarQube returning paths with \ instead of / which
-            // the code should handle, but with an assertion since it means the format returned
-            // by SonarQube has changed.
             using (new AssertIgnoreScope())
             {
-                matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
-            }
+                issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
+                WaitForInitialFetchTaskToStart();
 
-            // Assert
-            matches.Should().HaveCount(4);
-            matches.Should().OnlyContain(x => x.RuleId != "S5");
+                VerifyServiceGetIssues(Times.Exactly(1)); // issues should be fetched on creation
+
+                // Act
+                IEnumerable<SonarQubeIssue> matches;
+                // We're deliberately faking SonarQube returning paths with \ instead of / which
+                // the code should handle, but with an assertion since it means the format returned
+                // by SonarQube has changed.
+
+                // Assert
+                matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
+                matches.Should().HaveCount(4);
+                matches.Should().OnlyContain(x => x.RuleId != "S5");
+            }
         }
 
         [TestMethod]
