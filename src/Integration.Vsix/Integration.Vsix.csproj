@@ -301,6 +301,7 @@
     <BinariesFolder>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\binaries\))</BinariesFolder>
   </PropertyGroup>
   <ItemGroup>
+    <AssembliesToSign Include="$(BinariesFolder)SonarLint*.dll" />
     <VSIXesToSign Include="$(BinariesFolder)$(TargetVsixContainerName)" />
   </ItemGroup>
   

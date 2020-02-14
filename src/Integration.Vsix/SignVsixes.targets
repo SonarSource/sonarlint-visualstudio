@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="SignVsixesIfPfxSupplied" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="SignFilesIfPfxSupplied" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Targets to handle signing one or more VSIXes using a pfx certificate.
     
@@ -9,6 +9,7 @@
        * $(pfxPassword)         : password to the certificate file
        * $(pfxSha1)             : the sha1 for the certificate file
        * @(VSIXesToSign)        : the list of VSIXes to sign
+       * @(AssembliesToSign)    : the list of assemblies to sign
        * $(PackagesFolder)      : the folder containing the packages. Defaults to $(NuGetPackageRoot) if not set.
   -->
 
@@ -16,20 +17,23 @@
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
     
-  <Target Name="SignVsixesIfPfxSupplied">
+  <Target Name="SignFilesIfPfxSupplied">
     <Message Importance="high" Text="Vsixes to sign: @(VSIXesToSign)" />
-    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="ValidateVsixSigningInputs;LocateVsixSignToolAndBinaries;SignVsixes" />
-    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing VSIXes - pfx certificate path has not been set." />
+    <Message Importance="high" Text="Assemblies to sign: @(AssembliesToSign)" />
+    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="ValidateSigningInputs;LocateVsixSignToolAndBinaries;SignVsixes;SignAssemblies" />
+    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing files - pfx certificate path has not been set." />
   </Target>
 
-  <Target Name="ValidateVsixSigningInputs">
+  <Target Name="ValidateSigningInputs">
     <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
     <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
     <Error Condition=" $(pfxSha1) == '' " Text="pfxSha1 has not been set" />
     <Error Condition=" !Exists($(pfxCertificatePath)) " Text="The specified pfx file does not exist: $(pfxCertificatePath)" />
     
-    <Error Condition=" @(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
-    <Message Importance="high" Text="VSIXes to sign: @(VSIXesToSign)" />
+    <Error Condition=" @(VSIXesToSign) == '' AND @(AssembliesToSign) == '' " Text="No VSIXes or assemblies to sign have been specified." />
+
+    <Error Condition=" @(AssembliesToSign) != '' AND ($(SIGNTOOL_PATH) == '' OR !EXISTS($(SIGNTOOL_PATH))) "
+           Text="Cannot sign assemblies: the path to signtool.exe has not been specified, or the exe does not exist. Value: $(SIGNTOOL_PATH)" />
   </Target>
 
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
@@ -61,4 +65,8 @@
     <Exec Command="$(VsixSignToolPath) sign /f $(pfxCertificatePath) /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v %(VSIXesToSign.Identity)" />
   </Target>
 
+  <Target Name="SignAssemblies" >
+    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp @(AssembliesToSign)" />
+  </Target>
+  
 </Project>
