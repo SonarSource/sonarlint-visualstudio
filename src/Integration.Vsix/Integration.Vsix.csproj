@@ -294,7 +294,7 @@
   <!-- ********************************************************** -->
   <!-- Copy and sign the VSIX -->
   <!-- ********************************************************** -->
-  <Import Project="$(MSBuildThisFileDirectory)SignVsixes.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)Signing.targets" />
 
   <!-- Set properties required by the signing targets -->
   <PropertyGroup>
@@ -309,7 +309,7 @@
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
 
-    <CallTarget Targets="SignVsixesIfPfxSupplied" />
+    <CallTarget Targets="SignFilesIfPfxSupplied" />
   </Target>
   <!-- ********************************************************** -->
 
