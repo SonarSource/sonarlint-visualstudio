@@ -15,7 +15,7 @@
     <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
     <Icon>Resources\sonarlint_wave_128px.png</Icon>
     <PreviewImage>Resources\sonarlint_200.png</PreviewImage>
-    <Tags>SonarLint, SonarQube, Analysis, Roslyn, CodeAnalysis, Analyzer, Code analysis, Sonar, Debt, Technical, Tech, Quality</Tags>
+    <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality</Tags>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0.25420.00,15.0)" />
