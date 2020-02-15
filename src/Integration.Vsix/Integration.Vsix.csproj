@@ -303,6 +303,7 @@
   <Target Name="LocateSonarLintAssemblies">
     <ItemGroup>
       <AssembliesToSign Include="$(OutDir)SonarLint*.dll" />
+      <AssembliesToSign Include="$(OutDir)SonarQube*.dll" />
     </ItemGroup>
   </Target>
 
