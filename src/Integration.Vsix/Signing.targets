@@ -65,7 +65,7 @@
     <Error Condition=" $(SIGNTOOL_PATH) == '' " Text="The location of the signtool.exe has not been set ('SIGNTOOL_PATH')" />
     <Error Condition=" !Exists($(SIGNTOOL_PATH)) " Text="signtool.exe does not exist at the specified location: $(SIGNTOOL_PATH)" />
 
-    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp &quot;%(AssembliesToSign.FullPath)&quot;" />
+    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /debug /fd SHA256 /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp &quot;%(AssembliesToSign.FullPath)&quot;" />
   </Target>
 
   <Target Name="ValidateCommonSigningInputs">
