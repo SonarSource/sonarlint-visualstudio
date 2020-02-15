@@ -292,16 +292,29 @@
   <!-- ***************************************** -->
 
   <!-- ********************************************************** -->
-  <!-- Copy and sign the VSIX -->
+  <!-- Sign the assemblies -->
   <!-- ********************************************************** -->
   <Import Project="$(MSBuildThisFileDirectory)Signing.targets" />
+
+  <!-- We need to sign the SonarLint assemblies before they are packed in the vsix -->
+  <Target Name="SignSonarLintAssemblies" AfterTargets="CopyFilesToOutputDirectory" BeforeTargets="CreateVsixContainer"
+          DependsOnTargets="LocateSonarLintAssemblies;SignAssembliesIfPfxSupplied" />
+
+  <Target Name="LocateSonarLintAssemblies">
+    <ItemGroup>
+      <AssembliesToSign Include="$(OutDir)SonarLint*.dll" />
+    </ItemGroup>
+  </Target>
+
+  <!-- ********************************************************** -->
+  <!-- Copy and sign the VSIX -->
+  <!-- ********************************************************** -->
 
   <!-- Set properties required by the signing targets -->
   <PropertyGroup>
     <BinariesFolder>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\..\binaries\))</BinariesFolder>
   </PropertyGroup>
   <ItemGroup>
-    <AssembliesToSign Include="$(BinariesFolder)SonarLint*.dll" />
     <VSIXesToSign Include="$(BinariesFolder)$(TargetVsixContainerName)" />
   </ItemGroup>
   
@@ -309,7 +322,7 @@
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
 
-    <CallTarget Targets="SignFilesIfPfxSupplied" />
+    <CallTarget Targets="SignVsixesIfPfxSupplied" />
   </Target>
   <!-- ********************************************************** -->
 
@@ -318,7 +331,7 @@
   <!-- ********************************************************** -->
   <Target Name="GenerateProtobufClasses" BeforeTargets="PrepareForBuild" Outputs="$(ProjectDir)Protobuf\SonarlintDaemon.cs" Inputs="$(ProjectDir)Protobuf\sonarlint-daemon.proto">
     <Message Importance="high" Text="Generating protobuf classes..." />
-    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command='build.bat "$(NuGetPackageRoot)Grpc.Tools\1.4.1\tools\windows_x64"' />
+    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command="build.bat &quot;$(NuGetPackageRoot)Grpc.Tools\1.4.1\tools\windows_x64&quot;" />
 
     <!-- Make sure that any files we have just generated are included in the compilation -->
     <ItemGroup>
@@ -409,4 +422,3 @@
   </Target>
 
 </Project>
-

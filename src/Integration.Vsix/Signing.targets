@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="SignFilesIfPfxSupplied" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <!-- Targets to handle signing one or more VSIXes using a pfx certificate.
     
@@ -16,24 +16,10 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
-    
-  <Target Name="SignFilesIfPfxSupplied">
-    <Message Importance="high" Text="Vsixes to sign: @(VSIXesToSign)" />
-    <Message Importance="high" Text="Assemblies to sign: @(AssembliesToSign)" />
-    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="ValidateSigningInputs;LocateVsixSignToolAndBinaries;SignVsixes;SignAssemblies" />
-    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing files - pfx certificate path has not been set." />
-  </Target>
 
-  <Target Name="ValidateSigningInputs">
-    <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
-    <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
-    <Error Condition=" $(pfxSha1) == '' " Text="pfxSha1 has not been set" />
-    <Error Condition=" !Exists($(pfxCertificatePath)) " Text="The specified pfx file does not exist: $(pfxCertificatePath)" />
-    
-    <Error Condition=" @(VSIXesToSign) == '' AND @(AssembliesToSign) == '' " Text="No VSIXes or assemblies to sign have been specified." />
-
-    <Error Condition=" @(AssembliesToSign) != '' AND ($(SIGNTOOL_PATH) == '' OR !EXISTS($(SIGNTOOL_PATH))) "
-           Text="Cannot sign assemblies: the path to signtool.exe has not been specified, or the exe does not exist. Value: $(SIGNTOOL_PATH)" />
+  <Target Name="SignVsixesIfPfxSupplied">
+    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing VSIXes - pfx certificate path has not been set." />
+    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />
   </Target>
 
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
@@ -59,14 +45,34 @@
   </Target>
 
   <Target Name="SignVsixes">
-    <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
-    <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
+    <Message Importance="high" Text="Vsix to sign: %(VSIXesToSign.FullPath)" />
+    <CallTarget Targets="ValidateCommonSigningInputs" />
+    <Error Condition="@(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
+    
     <!-- For info on timestamping see https://knowledge.digicert.com/generalinformation/INFO190.html -->
-    <Exec Command="$(VsixSignToolPath) sign /f $(pfxCertificatePath) /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v %(VSIXesToSign.Identity)" />
+    <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v &quot;%(VSIXesToSign.Identity)&quot;" />
   </Target>
 
-  <Target Name="SignAssemblies" >
-    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f $(PFX_PATH) /p $(PFX_PASSWORD) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp @(AssembliesToSign)" />
+  <Target Name="SignAssembliesIfPfxSupplied">
+    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing assemblies - pfx certificate path has not been set." />
+    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="SignAssemblies" />
   </Target>
-  
+
+  <Target Name="SignAssemblies">
+    <Message Importance="high" Text="Assembly to sign: %(AssembliesToSign.FullPath)" />
+    <CallTarget Targets="ValidateCommonSigningInputs" />
+    <Error Condition=" @(AssembliesToSign) == '' " Text="The list of assemblies to sign is empty." />
+    <Error Condition=" $(SIGNTOOL_PATH) == '' " Text="The location of the signtool.exe has not been set ('SIGNTOOL_PATH')" />
+    <Error Condition=" !Exists($(SIGNTOOL_PATH)) " Text="signtool.exe does not exist at the specified location: $(SIGNTOOL_PATH)" />
+
+    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp &quot;%(AssembliesToSign.FullPath)&quot;" />
+  </Target>
+
+  <Target Name="ValidateCommonSigningInputs">
+    <Error Condition=" $(pfxCertificatePath) == '' " Text="pfxCertificatePath has not been set" />
+    <Error Condition=" $(pfxPassword) == '' " Text="pfxPassword has not been set" />
+    <Error Condition=" $(pfxSha1) == '' " Text="pfxSha1 has not been set" />
+    <Error Condition=" !Exists($(pfxCertificatePath)) " Text="The specified pfx file does not exist: $(pfxCertificatePath)" />
+  </Target>
+
 </Project>
