@@ -6,6 +6,7 @@
     <ProjectGuid>{140A6FE4-C8F7-4AF7-B4C8-EEEAE4E0B1A4}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Progress</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Progress</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
         
   </PropertyGroup>
 

@@ -59,6 +59,7 @@
     <ProjectGuid>{FF2AD819-28F4-493A-8E9B-1D3F16BD4689}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.Vsix</RootNamespace>
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
     <TargetVsixContainerName>SonarLint.VSIX-$(VsixVersion)-$(VersionSpecificSuffix).vsix</TargetVsixContainerName>
     
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -290,22 +291,6 @@
     <None Include="$(ManifestFolder)source.extension.vsixmanifest" />
   </ItemGroup>
   <!-- ***************************************** -->
-
-  <!-- ********************************************************** -->
-  <!-- Sign the assemblies -->
-  <!-- ********************************************************** -->
-  <Import Project="$(MSBuildThisFileDirectory)Signing.targets" />
-
-  <!-- We need to sign the SonarLint assemblies before they are packed in the vsix -->
-  <Target Name="SignSonarLintAssemblies" AfterTargets="CopyFilesToOutputDirectory" BeforeTargets="CreateVsixContainer"
-          DependsOnTargets="LocateSonarLintAssemblies;SignAssembliesIfPfxSupplied" />
-
-  <Target Name="LocateSonarLintAssemblies">
-    <ItemGroup>
-      <AssembliesToSign Include="$(OutDir)SonarLint*.dll" />
-      <AssembliesToSign Include="$(OutDir)SonarQube*.dll" />
-    </ItemGroup>
-  </Target>
 
   <!-- ********************************************************** -->
   <!-- Copy and sign the VSIX -->

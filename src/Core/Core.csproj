@@ -7,7 +7,7 @@
     <ProjectGuid>{4F379759-6798-4C98-9CDD-31853F8E46DF}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Core</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Core</AssemblyName>
-        
+    <RequiresSigning>true</RequiresSigning>
   </PropertyGroup>
 
   <ItemGroup>

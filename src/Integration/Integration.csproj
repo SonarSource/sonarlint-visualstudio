@@ -11,7 +11,7 @@
     <ProjectGuid>{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
-
+    <RequiresSigning>true</RequiresSigning>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

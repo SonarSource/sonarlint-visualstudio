@@ -6,7 +6,8 @@
     <ProjectGuid>{B00C57EB-F4EC-43CE-A849-90DA04775B84}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Progress</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.ProgressVS</AssemblyName>
-        
+    <RequiresSigning>true</RequiresSigning>
+    
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

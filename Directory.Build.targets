@@ -1,0 +1,33 @@
+<Project>
+  
+  <!-- Hook in the targets that will do the signing. -->
+  <!-- Objective - sign the assemblies before they are packaged into the VSIX.
+
+       Unfortunately, we can't just sign all of our binaries that are in the bin 
+       directory of the Integration.VSIX project because of how the VSIX SDK targets
+       work.
+
+       Firstly, the VSIX targets pick up the output assembly from the individual project "bin"
+       folders (e.g. Core\bin\release\net46\SonarLint.VisualStudio.Core.dll). This is the
+       case even though SonarLint.VisualStudio.Core.dll is present in the VSIX.Integration "bin"
+       folder.
+       
+       Secondly, in some case the VSIX targets can pick the assembly from the "obj" directory
+       rather than from the "bin" folder.
+       
+       So, to be on the safe side, we are signing the output assembly in each project in the
+       "obj" folder before it is copied to the "bin" folder.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)build\Signing.targets" />
+
+  <Target Name="SignProjectOutputAssembly" Condition=" '$(RequiresSigning)' == 'true'"  BeforeTargets="CopyFilesToOutputDirectory" 
+          DependsOnTargets="LocateIntermediateAssembly;SignAssembliesIfPfxSupplied">	
+  </Target>
+
+  <Target Name="LocateIntermediateAssembly">
+    <ItemGroup>
+      <AssembliesToSign Include="$(IntermediateOutputPath)$(TargetFileName)" />
+    </ItemGroup>
+  </Target>
+  
+</Project>
