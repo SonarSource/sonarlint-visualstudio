@@ -16,7 +16,7 @@
     <ProjectGuid>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.TeamExplorer</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.TeamExplorer</AssemblyName>
-    
+    <RequiresSigning>true</RequiresSigning>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">
