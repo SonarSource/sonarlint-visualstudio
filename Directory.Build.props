@@ -14,4 +14,10 @@
     </AdditionalFiles>
   </ItemGroup>
 
+  <PropertyGroup Condition=" $(SignArtifacts) == 'true' ">
+    <!-- Turn on strong-naming. -->
+    <SignAssembly>true</SignAssembly>
+    <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
+  </PropertyGroup>
+
 </Project>

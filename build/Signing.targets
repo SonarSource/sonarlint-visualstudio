@@ -16,13 +16,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
-
-  <PropertyGroup Condition=" $(SignArtifacts) == 'true' ">
-    <!-- Turn on strong-naming -->
-    <SignAssembly>true</SignAssembly>
-    
-    <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
-  </PropertyGroup>
   
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
   <Target Name="LocateVsixSignToolAndBinaries" >
