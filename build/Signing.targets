@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Targets to handle signing one or more VSIXes using a pfx certificate.
+  <!-- Targets to handle signing VSIXes and assemblies using a pfx certificate.
     
        Usage:
        The following properties should be set by the caller:
@@ -17,15 +17,10 @@
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
 
-  <PropertyGroup Condition=" $(SignAssembly) == 'true' ">
+  <PropertyGroup Condition=" $(SignArtifacts) == 'true' ">
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
   </PropertyGroup>
   
-  <Target Name="SignVsixesIfPfxSupplied">
-    <Message Condition=" $(SignAssembly) != 'true' " Importance="high" Text="Skipping signing VSIXes - SignAssembly = '$(SignAssembly)'" />
-    <CallTarget Condition=" $(SignAssembly) == 'true' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />
-  </Target>
-
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
   <Target Name="LocateVsixSignToolAndBinaries" >
     <PropertyGroup>
@@ -55,11 +50,6 @@
     
     <!-- For info on timestamping see https://knowledge.digicert.com/generalinformation/INFO190.html -->
     <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v &quot;%(VSIXesToSign.Identity)&quot;" />
-  </Target>
-
-  <Target Name="SignAssembliesIfPfxSupplied">
-    <Message Condition=" $(SignAssembly) != 'true' " Importance="high" Text="Skipping signing assemblies - SignAssembly = '$(SignAssembly)'" />
-    <CallTarget Condition=" $(SignAssembly) == 'true' " Targets="SignAssemblies" />
   </Target>
 
   <Target Name="SignAssemblies">
