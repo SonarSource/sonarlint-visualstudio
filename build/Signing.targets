@@ -17,9 +17,13 @@
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
 
+  <PropertyGroup Condition=" $(SignAssembly) == 'true' ">
+    <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
+  </PropertyGroup>
+  
   <Target Name="SignVsixesIfPfxSupplied">
-    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing VSIXes - pfx certificate path has not been set." />
-    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />
+    <Message Condition=" $(SignAssembly) != 'true' " Importance="high" Text="Skipping signing VSIXes - SignAssembly = '$(SignAssembly)'" />
+    <CallTarget Condition=" $(SignAssembly) == 'true' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />
   </Target>
 
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
@@ -32,13 +36,13 @@
     <Message Importance="high" Text="  Searching under '$(PackagesFolder)'" />
 
     <!-- There could be multiple versions of the NuGet package on the machine. We'll select all
-	       of the matching exes, and then just pick one. -->
+         of the matching exes, and then just pick one. -->
     <ItemGroup>
-	    <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool/**/vsixsigntool.exe" />
-	  </ItemGroup>
+      <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool/**/vsixsigntool.exe" />
+    </ItemGroup>
     <PropertyGroup>
       <VsixSignToolPath>%(VsixSignToolsList.Identity)</VsixSignToolPath>	
-	  </PropertyGroup>
+    </PropertyGroup>
 
     <Error Condition=" $(VsixSignToolPath) == '' " Text="Unable to locate vsixsigntool.exe. Check that the Microsoft.VSSDK.Vsixsigntool NuGet package is installed." />
     <Message Importance="high" Text="VSIX signing tool located at $(VsixSignToolPath)" />
@@ -54,8 +58,8 @@
   </Target>
 
   <Target Name="SignAssembliesIfPfxSupplied">
-    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing assemblies - pfx certificate path has not been set." />
-    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="SignAssemblies" />
+    <Message Condition=" $(SignAssembly) != 'true' " Importance="high" Text="Skipping signing assemblies - SignAssembly = '$(SignAssembly)'" />
+    <CallTarget Condition=" $(SignAssembly) == 'true' " Targets="SignAssemblies" />
   </Target>
 
   <Target Name="SignAssemblies">
