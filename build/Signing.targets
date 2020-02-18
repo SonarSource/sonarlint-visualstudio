@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!-- Targets to handle signing one or more VSIXes using a pfx certificate.
+  <!-- Targets to handle signing VSIXes and assemblies using a pfx certificate.
     
        Usage:
        The following properties should be set by the caller:
@@ -16,12 +16,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
   </ItemGroup>
-
-  <Target Name="SignVsixesIfPfxSupplied">
-    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing VSIXes - pfx certificate path has not been set." />
-    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="LocateVsixSignToolAndBinaries;SignVsixes" />
-  </Target>
-
+  
   <!-- The vsixsigntool is shipped in a NuGet package. We need to locate the exe file. -->
   <Target Name="LocateVsixSignToolAndBinaries" >
     <PropertyGroup>
@@ -32,13 +27,13 @@
     <Message Importance="high" Text="  Searching under '$(PackagesFolder)'" />
 
     <!-- There could be multiple versions of the NuGet package on the machine. We'll select all
-	       of the matching exes, and then just pick one. -->
+         of the matching exes, and then just pick one. -->
     <ItemGroup>
-	    <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool/**/vsixsigntool.exe" />
-	  </ItemGroup>
+      <VsixSignToolsList Include="$(PackagesFolder)/Microsoft.VSSDK.Vsixsigntool/**/vsixsigntool.exe" />
+    </ItemGroup>
     <PropertyGroup>
       <VsixSignToolPath>%(VsixSignToolsList.Identity)</VsixSignToolPath>	
-	  </PropertyGroup>
+    </PropertyGroup>
 
     <Error Condition=" $(VsixSignToolPath) == '' " Text="Unable to locate vsixsigntool.exe. Check that the Microsoft.VSSDK.Vsixsigntool NuGet package is installed." />
     <Message Importance="high" Text="VSIX signing tool located at $(VsixSignToolPath)" />
@@ -51,11 +46,6 @@
     
     <!-- For info on timestamping see https://knowledge.digicert.com/generalinformation/INFO190.html -->
     <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v &quot;%(VSIXesToSign.Identity)&quot;" />
-  </Target>
-
-  <Target Name="SignAssembliesIfPfxSupplied">
-    <Message Condition=" $(pfxCertificatePath) == '' " Importance="high" Text="Skipping signing assemblies - pfx certificate path has not been set." />
-    <CallTarget Condition=" $(pfxCertificatePath) != '' " Targets="SignAssemblies" />
   </Target>
 
   <Target Name="SignAssemblies">

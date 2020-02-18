@@ -20,8 +20,9 @@
   -->
   <Import Project="$(MSBuildThisFileDirectory)build\Signing.targets" />
 
-  <Target Name="SignProjectOutputAssembly" Condition=" '$(RequiresSigning)' == 'true'"  BeforeTargets="CopyFilesToOutputDirectory" 
-          DependsOnTargets="LocateIntermediateAssembly;SignAssembliesIfPfxSupplied">	
+  <Target Name="SignProjectOutputAssembly" Condition=" '$(RequiresSigning)' == 'true'"  BeforeTargets="CopyFilesToOutputDirectory" >
+    <Message Condition=" $(SignArtifacts) != 'true' " Importance="high" Text="Skipping signing assemblies - SignArtifacts = '$(SignArtifacts)'" />
+    <CallTarget Condition=" $(SignArtifacts) == 'true' " Targets="LocateIntermediateAssembly;SignAssemblies" />
   </Target>
 
   <Target Name="LocateIntermediateAssembly">
