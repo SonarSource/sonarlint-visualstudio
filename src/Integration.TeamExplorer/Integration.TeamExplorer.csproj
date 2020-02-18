@@ -6,7 +6,7 @@
     <!-- Conditional compilation constant for VS2019-specific code.
          We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
          the IDE isn't picking up the setting if we do that. -->
-    <DefineConstants Condition="($(VisualStudioVersion)=='16.0' AND $(BuildingInsideVisualStudio)=='true') OR $(VSTargetVersion)=='2019'">$(DefineContants);VS2019</DefineConstants>
+    <DefineConstants Condition="($(VisualStudioVersion)=='16.0' AND $(BuildingInsideVisualStudio)=='true') OR $(VSTargetVersion)=='2019'">$(DefineConstants);VS2019</DefineConstants>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
