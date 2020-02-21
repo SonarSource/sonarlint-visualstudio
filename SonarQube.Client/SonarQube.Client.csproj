@@ -19,6 +19,12 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <!-- If we are building as part of SLVS use the shared AssemblyInfo file -->
+  <ItemGroup Condition=" Exists('$(SolutionDir)\src\AssemblyInfo.Shared.cs') " >
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Include="$(SolutionDir)\src\AssemblyInfo.Shared.cs" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.6.1" />
     <!-- When changing this reference update ProtocCompiler property too! -->
