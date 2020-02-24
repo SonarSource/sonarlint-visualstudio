@@ -15,7 +15,8 @@ SonarLint is free, open source, and available in the Visual Studio Gallery.
 * Support C#, VB.Net, Javascript and C/C++.
 * Support for standalone analysis.
 * Support for connected mode for C# and VB.Net projects.
-* [Connected mode] Suppression of issues marked as False Positive or Won't Fix on SonarQube
+
+[Connected mode](https://github.com/SonarSource/sonarlint-visualstudio/wiki/Connected-Mode) provides suppression of issues marked as `False Positive` or `Won't Fix` on SonarQube and SonarCloud. Follow the link for more information.
 
 ## Useful links
 * [Project homepage](https://redirect.sonarsource.com/doc/sonar-visualstudio.html)
