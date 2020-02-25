@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var runner = new CancellableJobRunner(jobDescription, operations, progress, logger);
 
-            runner.Execute()
+            runner.ExecuteAsync()
                 .Forget(); // kick off the re-analysis process and return
 
             return runner;
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             cancellationSource = new CancellationTokenSource();
         }
 
-        private async System.Threading.Tasks.Task Execute()
+        private async System.Threading.Tasks.Task ExecuteAsync()
         {
             State = RunnerState.Running;
 
