@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger();
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
             using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Changed, "", ""));
             };
 
-            var testLogger = new TestLogger();
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
             using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true);
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
             // Act
             using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var testLogger = new TestLogger(logToConsole: true);
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
             // Act
             using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
@@ -126,12 +126,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void OnlyRaisesEventsIfHasListeners()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
 
             EventHandler dummyHandler = (sender, args) => { };
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 singleFileMonitor.MonitoredFilePath.Should().Be(filePathToMonitor);
 
@@ -155,10 +156,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void RealFile_FileCreationIsTracked()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -174,11 +176,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void RealFile_FileChangeIsTracked()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -194,11 +197,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void RealFile_FileDeletionIsTracked()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -214,11 +218,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void RealFile_RenameFromTrackedFileName_IsTracked()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             File.WriteAllText(filePathToMonitor, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -236,12 +241,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void RealFile_RenameToTrackedFileName_IsTracked()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             var otherFilePath = Path.ChangeExtension(filePathToMonitor, "other");
             File.WriteAllText(otherFilePath, "contents");
 
-            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                 testWrapper.EventCount.Should().Be(0);
@@ -258,11 +264,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void Real_File_ChangesToOtherFiles_AreIgnored()
         {
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
             var otherFileInDir = Path.Combine(testDir, "otherSettingsFile.txt");
 
-            using (var firstMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+            using (var firstMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
             {
                 var waitableFileMonitor = new WaitableFileMonitor(firstMonitor);
                 waitableFileMonitor.EventCount.Should().Be(0);
@@ -293,6 +300,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // We don't want duplicates.
 
             // Arrange
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
             var testDir = CreateTestSpecificDirectory();
             var filePathToMonitor = Path.Combine(testDir, "settingsFile.txt");
 
@@ -318,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             void testBody()
             {
-                using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, new TestLogger()))
+                using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
                 {
                     var testWrapper = new WaitableFileMonitor(singleFileMonitor);
                     testWrapper.EventCount.Should().Be(0);

@@ -30,19 +30,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class CancellableJobRunnerTests
     {
-        public TestContext TestContext { get; set; }
-
         [TestMethod]
         public void NoOperations_NoErrors()
         {
             // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
-            var progressRecorder = new ProgressNotificationRecorder();
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            testLogger.WriteLine("[Test] Executing test");
+            var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
             // Act
             var testSubject = CancellableJobRunner.Start("my job", new Action[] { }, progressRecorder, testLogger);
-            WaitForRunnerToFinish(testSubject);
+            WaitForRunnerToFinish(testSubject, testLogger);
 
             // Assert
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
@@ -56,14 +54,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void NoOperations_NoProgressHandler_NoErrors()
         {
             // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            testLogger.WriteLine("[Test] Executing test");
 
             // Act
             var testSubject = CancellableJobRunner.Start("my job", new Action[] { },
                 null /* should be ok to pass null here */,
                 testLogger);
-            WaitForRunnerToFinish(testSubject);
+            WaitForRunnerToFinish(testSubject, testLogger);
 
             // Assert
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
@@ -73,10 +71,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void AllOperationsExecuted()
         {
             // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            testLogger.WriteLine("[Test] Executing test");
 
-            var progressRecorder = new ProgressNotificationRecorder();
+            var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
             bool op1Executed = false, op2Executed = false;
             int operationThreadId = -1;
@@ -85,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             Action op1 = () =>
             {
-                TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
+                testLogger.WriteLine("[Test] Executing op1");
                 testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Running);
 
                 op1Executed = true;
@@ -96,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             // Act
             testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
-            WaitForRunnerToFinish(testSubject);
+            WaitForRunnerToFinish(testSubject, testLogger);
             
             // Assert
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Finished);
@@ -117,16 +115,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void CancelAfterFirstOperation()
         {
             // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
-            var progressRecorder = new ProgressNotificationRecorder();
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            testLogger.WriteLine("[Test] Executing test");
+            var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
             bool op1Executed = false, op2Executed = false;
             CancellableJobRunner testSubject = null;
 
             Action op1 = () =>
             {
-                TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
+                testLogger.WriteLine("[Test] Executing op1");
                 op1Executed = true;
 
                 testSubject.Cancel();
@@ -134,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             Action op2 = () =>
             {
-                TestContext.WriteLine($"Executing op2 on thread {Thread.CurrentThread.ManagedThreadId}");
+                testLogger.WriteLine("[Test] Executing op2");
                 op2Executed = true;
             };
 
@@ -142,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
 
 
-            WaitForRunnerToFinish(testSubject);
+            WaitForRunnerToFinish(testSubject, testLogger);
 
             // Other checks
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Cancelled);
@@ -158,28 +156,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void ExceptionInOperationPreventsSubsequentOperations()
         {
             // Arrange
-            var testLogger = new TestLogger(logToConsole: true);
-            TestContext.WriteLine($"Test executing on thread {Thread.CurrentThread.ManagedThreadId}");
-            var progressRecorder = new ProgressNotificationRecorder();
+            var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
+            testLogger.WriteLine("[Test] Executing test");
+            var progressRecorder = new ProgressNotificationRecorder(testLogger);
 
             bool op1Executed = false, op2Executed = false;
 
             Action op1 = () =>
             {
-                TestContext.WriteLine($"Executing op1 on thread {Thread.CurrentThread.ManagedThreadId}");
+                testLogger.WriteLine("[Test] Executing op1");
                 op1Executed = true;
                 throw new InvalidOperationException("XXX YYY");
             };
 
             Action op2 = () =>
             {
-                TestContext.WriteLine($"Executing op2 on thread {Thread.CurrentThread.ManagedThreadId}");
+                testLogger.WriteLine("[Test] Executing op2");
                 op2Executed = true;
             };
 
             // Act
             var testSubject = CancellableJobRunner.Start("my job", new[] { op1, op2 }, progressRecorder, testLogger);
-            WaitForRunnerToFinish(testSubject);
+            WaitForRunnerToFinish(testSubject, testLogger);
 
             // Other checks
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Faulted);
@@ -193,17 +191,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             CheckExpectedNotification(progressRecorder.Notifications[1], CancellableJobRunner.RunnerState.Faulted, 0, 2);
         }
 
-        private static void WaitForRunnerToFinish(CancellableJobRunner runner)
+        private static void WaitForRunnerToFinish(CancellableJobRunner runner, ILogger logger)
         {
             int timeout = System.Diagnostics.Debugger.IsAttached ? 20000 : 3000;
+            bool signalled = false;
 
             try
             {
-                runner.TestingWaitHandle?.WaitOne(timeout);
+                signalled = runner.TestingWaitHandle?.WaitOne(timeout) ?? false;
+                if (signalled)
+                {
+                    logger.WriteLine("[Test] In WaitForRunnerToFinish. Event was signalled.");
+                }
+                else
+                {
+                    logger.WriteLine("[Test] In WaitForRunnerToFinish: Event was not signalled.");
+                }
             }
             catch (ObjectDisposedException)
             {
                 // If the runner has finished then the token source will have been disposed
+                logger.WriteLine("[Test] In WaitForRunnerToFinish: Caught ObjectDisposedException.");
             }
         }
 
@@ -217,10 +225,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         private class ProgressNotificationRecorder : IProgress<CancellableJobRunner.JobRunnerProgress>
         {
+            private readonly ILogger logger;
+            public ProgressNotificationRecorder(ILogger logger)
+            {
+                this.logger = logger;
+            }
+
             public IList<CancellableJobRunner.JobRunnerProgress> Notifications { get; } = new List<CancellableJobRunner.JobRunnerProgress>();
 
             public void Report(CancellableJobRunner.JobRunnerProgress value)
             {
+                logger.WriteLine($"[Test] In progress reporter. State: {value.CurrentState}");
                 Notifications.Add(value);
             }
         }
