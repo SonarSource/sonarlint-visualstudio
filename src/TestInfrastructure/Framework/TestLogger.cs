@@ -32,17 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly bool logToConsole;
         private readonly bool logThreadId;
 
-        public TestLogger()
-            : this(false, false)
-        {
-        }
-
-        public TestLogger(bool logToConsole)
-            : this(logToConsole, false)
-        {
-        }
-
-        public TestLogger(bool logToConsole, bool logThreadId)
+        public TestLogger(bool logToConsole = false, bool logThreadId = false)
         {
             // When executing tests in VS, the console output will automatically be captured by
             // the test runner. The Properties window for the test result will have an "Output"
