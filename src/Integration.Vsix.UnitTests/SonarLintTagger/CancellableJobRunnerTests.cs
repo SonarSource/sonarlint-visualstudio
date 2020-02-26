@@ -141,6 +141,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
 
             WaitForRunnerToFinish(testSubject, testLogger);
+            // Pause for any final progress steps to be reported before checking the progressRecorder below
+            Thread.Sleep(200);
 
             // Other checks
             testSubject.State.Should().Be(CancellableJobRunner.RunnerState.Cancelled);
