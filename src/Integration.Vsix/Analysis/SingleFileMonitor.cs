@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             fileWatcher.Changed += OnFileChanged;
             fileWatcher.Created += OnFileChanged;
             fileWatcher.Deleted += OnFileChanged;
-            fileWatcher.Renamed += (s, args) => OnFileChanged(s, args);
+            fileWatcher.Renamed += OnFileRenamed;
 
             this.logger = logger;
         }
@@ -119,10 +119,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
+        private void OnFileRenamed(object sender, System.IO.FileSystemEventArgs args)
+            => OnFileChanged(sender, args);
+
         private void OnFileChanged(object sender, System.IO.FileSystemEventArgs args)
         {
             Debug.Assert(fileChangedHandlers != null, "Not expecting file system events to be monitored if there are no listeners");
-            if (fileChangedHandlers == null)
+            if (fileChangedHandlers == null || disposedValue)
             {
                 return;
             }
@@ -153,7 +156,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             finally
             {
-                fileWatcher.EnableRaisingEvents = true;
+                // Re-check we haven't been disposed on another thread
+                if (!disposedValue)
+                {
+                    fileWatcher.EnableRaisingEvents = true;
+                }
             }
         }
 
@@ -164,13 +171,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             if (!disposedValue)
             {
+                disposedValue = true;
+
                 if (disposing)
                 {
+                    fileWatcher.Changed -= OnFileChanged;
+                    fileWatcher.Created -= OnFileChanged;
+                    fileWatcher.Deleted -= OnFileChanged;
+                    fileWatcher.Renamed -= OnFileRenamed;
                     fileWatcher.Dispose();
                     fileChangedHandlers = null;
                 }
-
-                disposedValue = true;
             }
         }
 
