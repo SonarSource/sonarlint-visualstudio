@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -36,8 +37,9 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
-        public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger)
+        public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
             if (serviceProvider == null)
             {
@@ -51,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.serviceProvider = serviceProvider;
             this.logger = logger;
+            this.fileSystem = fileSystem;
         }
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)
@@ -160,10 +163,7 @@ namespace SonarLint.VisualStudio.Integration
             // Note: currently we don't search in rule set directories since we expect the project rule set
             // to be relative to the project. We can add this in the future if it will be needed.
 
-            IFileSystem fileSystem = this.serviceProvider.GetService<IFileSystem>();
-            fileSystem.AssertLocalServiceIsNotNull();
-
-            fullFilePath = options.FirstOrDefault(fileSystem.FileExist);
+            fullFilePath = options.FirstOrDefault(fileSystem.File.Exists);
 
             return !string.IsNullOrWhiteSpace(fullFilePath);
         }

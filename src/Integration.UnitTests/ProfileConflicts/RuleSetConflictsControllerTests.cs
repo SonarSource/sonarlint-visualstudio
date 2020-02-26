@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition.Primitives;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -205,12 +206,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fixMeCommand.Execute(null);
 
             // Assert
-            this.sccFS.files.Should().ContainKey(fixedRuleSet.FilePath);
+            (this.sccFS.FileSystem as MockFileSystem).GetFile(fixedRuleSet.FilePath).Should().NotBe(null);
             this.rsSerializer.AssertRuleSetsAreSame(fixedRuleSet.FilePath, fixedRuleSet);
             this.outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
                 words: new[] { fixedRuleSet.FilePath, "deletedRuleId1", "reset.ruleset" },
-                splitter:new[] {'\n', '\r', '\t', '\'', ':' });
+                splitter: new[] { '\n', '\r', '\t', '\'', ':' });
             notifications.AssertNoNotification(NotificationIds.RuleSetConflictsId);
         }
 
@@ -226,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sccFS = new ConfigurableSourceControlledFileSystem();
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFS);
 
-            this.rsSerializer = new ConfigurableRuleSetSerializer(sccFS);
+            this.rsSerializer = new ConfigurableRuleSetSerializer(sccFS.FileSystem as MockFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.rsSerializer);
         }
 

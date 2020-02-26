@@ -21,9 +21,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using Microsoft.Alm.Authentication;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Helpers;
 
@@ -40,36 +40,19 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     /// </remarks>
     internal abstract class FileBindingSerializer : ISolutionBindingSerializer
     {
-        private readonly IFile fileWrapper;
+        protected readonly IFileSystem fileSystem;
         private readonly ICredentialStoreService store;
 
         protected readonly ISourceControlledFileSystem sccFileSystem;
         protected readonly ILogger logger;
 
         protected FileBindingSerializer(ISourceControlledFileSystem sccFileSystem, ICredentialStoreService store,
-            ILogger logger, IFile fileWrapper)
+            ILogger logger, IFileSystem fileSystem)
         {
-            if (sccFileSystem == null)
-            {
-                throw new ArgumentNullException(nameof(sccFileSystem));
-            }
-            if (store == null)
-            {
-                throw new ArgumentNullException(nameof(store));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (fileWrapper == null)
-            {
-                throw new ArgumentNullException(nameof(fileWrapper));
-            }
-
-            this.sccFileSystem = sccFileSystem;
-            this.store = store;
-            this.logger = logger;
-            this.fileWrapper = fileWrapper;
+            this.sccFileSystem = sccFileSystem ?? throw new ArgumentNullException(nameof(sccFileSystem));
+            this.store = store ?? throw new ArgumentNullException(nameof(store));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         protected abstract string GetFullConfigurationFilePath();
@@ -83,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public BoundSonarQubeProject ReadSolutionBinding()
         {
             string configFile = this.GetFullConfigurationFilePath();
-            if (!fileWrapper.Exists(configFile))
+            if (!fileSystem.File.Exists(configFile))
             {
                 return null;
             }
@@ -164,17 +147,17 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(configFile));
             string directory = Path.GetDirectoryName(configFile);
-            if (!Directory.Exists(directory))
+            if (!fileSystem.Directory.Exists(directory))
             {
-                Directory.CreateDirectory(directory);
+                fileSystem.Directory.CreateDirectory(directory);
             }
 
-            fileWrapper.WriteAllText(configFile, JsonHelper.Serialize(binding));
+            fileSystem.File.WriteAllText(configFile, JsonHelper.Serialize(binding));
         }
 
         private void ReadConfig(string configFile, out string text)
         {
-            text = fileWrapper.ReadAllText(configFile);
+            text = fileSystem.File.ReadAllText(configFile);
         }
 
         private BoundSonarQubeProject SafeDeserializeConfigFile(string configFilePath)

@@ -19,8 +19,8 @@
  */
 
 using System;
+using System.IO.Abstractions;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core
@@ -31,19 +31,19 @@ namespace SonarLint.VisualStudio.Core
     /// </summary>
     public class UserSettingsSerializer
     {
-        private readonly IFile fileWrapper;
+        private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
-        public UserSettingsSerializer(IFile fileWrapper, ILogger logger)
+        public UserSettingsSerializer(IFileSystem fileSystem, ILogger logger)
         {
-            this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public UserSettings SafeLoad(string filePath)
         {
             UserSettings userSettings = null;
-            if (!fileWrapper.Exists(filePath))
+            if (!fileSystem.File.Exists(filePath))
             {
                 logger?.WriteLine(CoreStrings.Settings_NoSettingsFile, filePath);
             }
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Core
                 try
                 {
                     logger?.WriteLine(CoreStrings.Settings_LoadedSettingsFile, filePath);
-                    var data = fileWrapper.ReadAllText(filePath);
+                    var data = fileSystem.File.ReadAllText(filePath);
                     userSettings = JsonConvert.DeserializeObject<UserSettings>(data);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Core
             try
             {
                 string dataAsText = JsonConvert.SerializeObject(data, Formatting.Indented);
-                fileWrapper.WriteAllText(filePath, dataAsText);
+                fileSystem.File.WriteAllText(filePath, dataAsText);
                 logger?.WriteLine(CoreStrings.Settings_SavedSettingsFile, filePath);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

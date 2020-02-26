@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
@@ -44,21 +45,13 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
-        public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
+        public ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.serviceProvider = serviceProvider;
-            this.logger = logger;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
@@ -133,9 +126,6 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             var ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
 
-            var fileSystem = this.serviceProvider.GetService<IFileSystem>();
-            fileSystem.AssertLocalServiceIsNotNull();
-
             var projectRuleSetAggregation = new Dictionary<string, RuleSetInformation>(StringComparer.OrdinalIgnoreCase);
 
             foreach (Project project in projectSystem.GetFilteredSolutionProjects())
@@ -147,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     ProjectToLanguageMapper.GetLanguageForProject(project),
                     SonarLintMode.LegacyConnected);
 
-                if (!fileSystem.FileExist(baselineRuleSet))
+                if (!fileSystem.File.Exists(baselineRuleSet))
                 {
                     this.WriteWarning(Strings.ExpectedRuleSetNotFound, baselineRuleSet, project.FullName);
                     continue;

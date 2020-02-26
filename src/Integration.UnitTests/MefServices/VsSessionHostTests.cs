@@ -21,7 +21,6 @@
 using System;
 using System.Windows.Threading;
 using FluentAssertions;
-using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -381,8 +380,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             {
                 testSubject.GetService(serviceType).Should().NotBeNull();
             }
-
-            testSubject.GetService<ISourceControlledFileSystem>().Should().Be(testSubject.GetService<IFileSystem>());
 
             // VS-services
             // Sanity

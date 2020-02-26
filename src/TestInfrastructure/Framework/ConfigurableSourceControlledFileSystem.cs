@@ -20,20 +20,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableSourceControlledFileSystem : ConfigurableFileSystem, ISourceControlledFileSystem
+    internal class ConfigurableSourceControlledFileSystem : ISourceControlledFileSystem
     {
+        public IFileSystem FileSystem { get; } = new MockFileSystem();
+
         private readonly Dictionary<string, Func<bool>> fileWriteOperations = new Dictionary<string, Func<bool>>(StringComparer.OrdinalIgnoreCase);
 
         #region ISourceControlledFileSystem
 
         bool ISourceControlledFileSystem.FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.fileWriteOperations.ContainsKey(filePath) || ((IFileSystem)this).FileExist(filePath);
+            return this.fileWriteOperations.ContainsKey(filePath) || FileSystem.File.Exists(filePath);
         }
+
 
         void ISourceControlledFileSystem.QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {

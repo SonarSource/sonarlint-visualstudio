@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -35,7 +36,6 @@ using Moq;
 using NuGet;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
             var sccFileSystem = new ConfigurableSourceControlledFileSystem();
-            var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem);
+            var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem.FileSystem as MockFileSystem);
             this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 5. Null binding info provider
             act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, bindingConfigProvider);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("unboundProjectFinder");
-            
+
             // 6. Null rules configuration provider
             act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, finder, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");

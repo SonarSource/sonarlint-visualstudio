@@ -20,7 +20,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -35,33 +35,25 @@ namespace SonarLint.VisualStudio.Integration
     /// </summary>
     internal class SourceControlledFileSystem : ISourceControlledFileSystem
     {
+        public IFileSystem FileSystem { get; }
+
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
-        private readonly IFileSystem fileSystemWrapper;
         private readonly HashSet<string> filesEdit = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> filesCreate = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Queue<Func<bool>> fileWriteOperations = new Queue<Func<bool>>();
         private IVsQueryEditQuerySave2 queryFileOperation;
 
         public SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, null)
+            : this(serviceProvider, logger, new FileSystem())
         {
         }
 
         internal /*for testing purposes*/ SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.serviceProvider = serviceProvider;
-            this.logger = logger;
-            this.fileSystemWrapper = fileSystem ?? this;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         protected IVsQueryEditQuerySave2 QueryFileOperation
@@ -78,9 +70,11 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         #region ISourceControlledFileSystem
+
+
         public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
-            if (this.fileSystemWrapper.FileExist(filePath))
+            if (this.FileSystem.File.Exists(filePath))
             {
                 this.filesEdit.Add(filePath);
             }
@@ -94,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public bool FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.filesCreate.Contains(filePath) || this.fileSystemWrapper.FileExist(filePath);
+            return this.filesCreate.Contains(filePath) || this.FileSystem.File.Exists(filePath);
         }
 
         public bool WriteQueuedFiles()
@@ -129,24 +123,6 @@ namespace SonarLint.VisualStudio.Integration
 
             return success;
         }
-        #endregion
-
-        #region IFileSystem
-        bool IFileSystem.DirectoryExists(string path)
-        {
-            return Directory.Exists(path);
-        }
-
-        bool IFileSystem.FileExist(string filePath)
-        {
-            return File.Exists(filePath);
-        }
-
-        void IFileSystem.CreateDirectory(string path)
-        {
-            Directory.CreateDirectory(path);
-        }
-
         #endregion
 
         #region Helpers

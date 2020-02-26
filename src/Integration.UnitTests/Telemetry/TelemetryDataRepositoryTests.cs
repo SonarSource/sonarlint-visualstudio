@@ -20,36 +20,37 @@
 
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Text;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
     [TestClass]
     public class TelemetryDataRepositoryTests
     {
-        private Mock<IFile> fileMock;
+        private Mock<IFileSystem> fileSystemMock;
         private Mock<IFileSystemWatcherFactory> watcherFactoryMock;
-        private static Mock<IDirectory> directoryMock;
 
         [TestMethod]
         public void Ctor_Create_Storage_File()
         {
-            // Arrange
             var fileContents = new StringBuilder();
-
+            // Arrange
             InitializeMocks(fileContents, fileExists: false, dirExists: false);
-            directoryMock
-                .Setup(x => x.Create(Path.GetDirectoryName(TelemetryDataRepository.GetStorageFilePath())));
-            fileMock
-               .Setup(x => x.CreateText(TelemetryDataRepository.GetStorageFilePath()))
-               .Returns(() => new StringWriter(fileContents));
+
+            fileSystemMock
+                .Setup(x => x.Directory.CreateDirectory(Path.GetDirectoryName(TelemetryDataRepository.GetStorageFilePath())))
+                .Returns(null as IDirectoryInfo);
+
+            fileSystemMock
+                .Setup(x => x.File.WriteAllText(TelemetryDataRepository.GetStorageFilePath(), It.IsAny<string>()))
+                .Callback((string path, string content) => fileContents.Append(content));
 
             // Act
-            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
+            var repository = new TelemetryDataRepository(fileSystemMock.Object, watcherFactoryMock.Object);
 
             // Assert
             RemoveLineEndings(fileContents.ToString()).Should().Be(RemoveLineEndings(@"<?xml version=""1.0"" encoding=""utf-16""?>
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <Analyses />
 </TelemetryData>"));
 
-            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
+            Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
 
         [TestMethod]
@@ -81,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
 
             // Act
-            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
+            var repository = new TelemetryDataRepository(fileSystemMock.Object, watcherFactoryMock.Object);
 
             // Assert
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
@@ -90,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
 
-            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
+            Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
 
         [TestMethod]
@@ -109,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var fileSystemWatcherMock = new Mock<IFileSystemWatcher>();
             InitializeMocks(fileContents, fileExists: true, dirExists: true, fileSystemWatcher: fileSystemWatcherMock.Object);
 
-            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
+            var repository = new TelemetryDataRepository(fileSystemMock.Object, watcherFactoryMock.Object);
 
             // Act
             var newIsAnonymousDataShared = true;
@@ -137,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastSavedAnalysisDate.Should().Be(newLastSavedAnalysisDate);
             repository.Data.LastUploadDate.Should().Be(newLastUploadDate);
 
-            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock, fileSystemWatcherMock);
+            Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }
 
         [TestMethod]
@@ -163,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
 
             // Act
-            var repository = new TelemetryDataRepository(fileMock.Object, directoryMock.Object, watcherFactoryMock.Object);
+            var repository = new TelemetryDataRepository(fileSystemMock.Object, watcherFactoryMock.Object);
 
             // Assert
             repository.Data.InstallationDate.Should().Be(expectedDateTimeOffset);
@@ -172,28 +173,29 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastUploadDate.Should().Be(expectedDateTimeOffset);
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
 
-            Mock.VerifyAll(fileMock, directoryMock, watcherFactoryMock);
+            Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
 
         private void InitializeMocks(StringBuilder fileContents, bool fileExists, bool dirExists,
             IFileSystemWatcher fileSystemWatcher = null)
         {
-            fileMock = new Mock<IFile>(MockBehavior.Strict);
-            fileMock
-                .Setup(x => x.OpenText(TelemetryDataRepository.GetStorageFilePath()))
-                .Returns(() => new StringReader(fileContents.ToString()));
-            fileMock
-                .Setup(x => x.Exists(TelemetryDataRepository.GetStorageFilePath()))
+            fileSystemMock = new Mock<IFileSystem>(MockBehavior.Strict);
+
+            fileSystemMock
+                .Setup(x => x.File.ReadAllText(TelemetryDataRepository.GetStorageFilePath()))
+                .Returns(fileContents.ToString);
+
+            fileSystemMock
+                .Setup(x => x.File.Exists(TelemetryDataRepository.GetStorageFilePath()))
                 .Returns(fileExists);
 
-            directoryMock = new Mock<IDirectory>(MockBehavior.Strict);
-            directoryMock
-                .Setup(x => x.Exists(Path.GetDirectoryName(TelemetryDataRepository.GetStorageFilePath())))
+            fileSystemMock
+                .Setup(x => x.Directory.Exists(Path.GetDirectoryName(TelemetryDataRepository.GetStorageFilePath())))
                 .Returns(dirExists);
 
             watcherFactoryMock = new Mock<IFileSystemWatcherFactory>(MockBehavior.Strict);
             watcherFactoryMock
-                .Setup(x => x.Create())
+                .Setup(x => x.CreateNew())
                 .Returns(fileSystemWatcher ?? new Mock<IFileSystemWatcher>().Object);
         }
 

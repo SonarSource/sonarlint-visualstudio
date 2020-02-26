@@ -21,8 +21,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -54,17 +54,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private DateTime lastWriteTime = DateTime.MinValue;
 
         public SingleFileMonitor(string filePathToMonitor, ILogger logger)
-            : this(new FileSystemWatcherWrapperFactory(), new DirectoryWrapper(), filePathToMonitor, logger)
+            : this(new FileSystemWatcherFactory(), new FileSystem(), filePathToMonitor, logger)
         {
         }
 
-        public SingleFileMonitor(IFileSystemWatcherFactory factory, IDirectory directoryWrapper, string filePathToMonitor, ILogger logger)
+        public SingleFileMonitor(IFileSystemWatcherFactory factory, IFileSystem fileSystem, string filePathToMonitor, ILogger logger)
         {
             this.MonitoredFilePath = filePathToMonitor;
 
-            EnsureDirectoryExists(filePathToMonitor, directoryWrapper, logger);
+            EnsureDirectoryExists(filePathToMonitor, fileSystem, logger);
 
-            fileWatcher = factory.Create();
+            fileWatcher = factory.CreateNew();
             fileWatcher.Path = Path.GetDirectoryName(filePathToMonitor); // NB will throw if the directory does not exist
             fileWatcher.Filter = Path.GetFileName(filePathToMonitor);
             fileWatcher.NotifyFilter = System.IO.NotifyFilters.CreationTime | System.IO.NotifyFilters.LastWrite |
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             fileWatcher.Changed += OnFileChanged;
             fileWatcher.Created += OnFileChanged;
             fileWatcher.Deleted += OnFileChanged;
-            fileWatcher.Renamed += (s, args) => OnFileChanged(s, args);
+            fileWatcher.Renamed += OnFileChanged;
 
             this.logger = logger;
         }
@@ -106,15 +106,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private static void EnsureDirectoryExists(string filePath, IDirectory directoryWrapper, ILogger logger)
+        private static void EnsureDirectoryExists(string filePath, IFileSystem fileSystem, ILogger logger)
         {
             // Exception handling: not much point in catch exceptions here - if we can't 
             // create a missing directory then the creation of the file watcher will
             // fail too, so the monitor class won't be constructed correctly.
             var dirPath = Path.GetDirectoryName(filePath);
-            if (!directoryWrapper.Exists(dirPath))
+            if (!fileSystem.Directory.Exists(dirPath))
             {
-                directoryWrapper.Create(dirPath);
+                fileSystem.Directory.CreateDirectory(dirPath);
                 logger.WriteLine(AnalysisStrings.FileMonitory_CreatedDirectory, dirPath);
             }
         }
