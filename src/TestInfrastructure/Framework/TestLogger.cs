@@ -30,18 +30,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public IList<string> OutputStrings { get; } = new List<string>();
 
         private readonly bool logToConsole;
+        private readonly bool logThreadId;
 
-        public TestLogger()
-            : this(false)
-        {
-        }
-
-        public TestLogger(bool logToConsole)
+        public TestLogger(bool logToConsole = false, bool logThreadId = false)
         {
             // When executing tests in VS, the console output will automatically be captured by
             // the test runner. The Properties window for the test result will have an "Output"
             // link to show the output.
             this.logToConsole = logToConsole;
+
+            this.logThreadId = logThreadId;
         }
 
         public void AssertOutputStrings(int expectedOutputMessages)
@@ -99,10 +97,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public void WriteLine(string message)
         {
-            OutputStrings.Add(message + Environment.NewLine);
+            var messageToLog = message + Environment.NewLine;
+            if (logThreadId)
+            {
+                messageToLog = $"[Thread {System.Threading.Thread.CurrentThread.ManagedThreadId}] {messageToLog}";
+            }
+
+            OutputStrings.Add(messageToLog);
             if (logToConsole)
             {
-                Console.WriteLine(message);
+                Console.WriteLine(messageToLog);
             }
         }
 
