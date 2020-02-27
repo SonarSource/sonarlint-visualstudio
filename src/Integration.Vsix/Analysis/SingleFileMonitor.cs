@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private void OnFileChanged(object sender, System.IO.FileSystemEventArgs args)
         {
             Debug.Assert(fileChangedHandlers != null, "Not expecting file system events to be monitored if there are no listeners");
-            if (fileChangedHandlers == null)
+            if (fileChangedHandlers == null || disposedValue)
             {
                 return;
             }
@@ -153,7 +153,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             finally
             {
-                fileWatcher.EnableRaisingEvents = true;
+                // Re-check we haven't been disposed on another thread (possible race condition
+                // if Dispose is called after the !disposedValue check)
+                if (!disposedValue)
+                {
+                    fileWatcher.EnableRaisingEvents = true;
+                }
             }
         }
 
@@ -164,13 +169,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             if (!disposedValue)
             {
+                disposedValue = true;
+
                 if (disposing)
                 {
+                    fileWatcher.Changed -= OnFileChanged;
+                    fileWatcher.Created -= OnFileChanged;
+                    fileWatcher.Deleted -= OnFileChanged;
+                    fileWatcher.Renamed -= OnFileChanged;
                     fileWatcher.Dispose();
                     fileChangedHandlers = null;
                 }
-
-                disposedValue = true;
             }
         }
 
