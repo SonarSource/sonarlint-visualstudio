@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             fileWatcher.Changed += OnFileChanged;
             fileWatcher.Created += OnFileChanged;
             fileWatcher.Deleted += OnFileChanged;
-            fileWatcher.Renamed += OnFileRenamed;
+            fileWatcher.Renamed += OnFileChanged;
 
             this.logger = logger;
         }
@@ -119,9 +119,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private void OnFileRenamed(object sender, System.IO.FileSystemEventArgs args)
-            => OnFileChanged(sender, args);
-
         private void OnFileChanged(object sender, System.IO.FileSystemEventArgs args)
         {
             Debug.Assert(fileChangedHandlers != null, "Not expecting file system events to be monitored if there are no listeners");
@@ -156,7 +153,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
             finally
             {
-                // Re-check we haven't been disposed on another thread
+                // Re-check we haven't been disposed on another thread (possible race condition
+                // if Dispose is called after the !disposedValue check)
                 if (!disposedValue)
                 {
                     fileWatcher.EnableRaisingEvents = true;
@@ -178,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                     fileWatcher.Changed -= OnFileChanged;
                     fileWatcher.Created -= OnFileChanged;
                     fileWatcher.Deleted -= OnFileChanged;
-                    fileWatcher.Renamed -= OnFileRenamed;
+                    fileWatcher.Renamed -= OnFileChanged;
                     fileWatcher.Dispose();
                     fileChangedHandlers = null;
                 }
