@@ -22,6 +22,8 @@ using System;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -29,16 +31,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class LegacySolutionBindingPathProviderTests
     {
-        private ConfigurableServiceProvider serviceProvider;
+        private Mock<ISolutionRuleSetsInformationProvider> solutionRuleSetsInformationProvider;
+        private Mock<IServiceProvider> serviceProvider;
         private LegacySolutionBindingPathProvider testSubject;
-
-        public TestContext TestContext { get; set; }
 
         [TestInitialize]
         public void TestInitialize()
         {
-            serviceProvider = new ConfigurableServiceProvider();
-            testSubject = new LegacySolutionBindingPathProvider(serviceProvider);
+            solutionRuleSetsInformationProvider = new Mock<ISolutionRuleSetsInformationProvider>();
+            serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider
+                .Setup(x => x.GetService(typeof(ISolutionRuleSetsInformationProvider)))
+                .Returns(solutionRuleSetsInformationProvider.Object);
+
+            testSubject = new LegacySolutionBindingPathProvider(serviceProvider.Object);
         }
 
         [TestMethod]
@@ -52,11 +58,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Get_SolutionFolderIsNull_Null()
         {
-            var solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider
-            {
-                SolutionRootFolder = null
-            };
-            serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), solutionRuleSetsInfoProvider);
+            solutionRuleSetsInformationProvider
+                .Setup(x => x.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected))
+                .Returns(null as string);
 
             var actual = testSubject.Get();
 
@@ -66,19 +70,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Get_SolutionFolderIsNotNull_FilePathUnderSolutionFolder()
         {
-            var solutionPath = Path.Combine(TestContext.TestRunDirectory, TestContext.TestName, "solution.sln");
-            var dte = new DTEMock();
-            dte.Solution = new SolutionMock(dte, solutionPath);
-
-            var solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider
-            {
-                SolutionRootFolder = Path.GetDirectoryName(dte.Solution.FilePath)
-            };
-            serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), solutionRuleSetsInfoProvider);
+            solutionRuleSetsInformationProvider
+                .Setup(x => x.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected))
+                .Returns("c:\\test");
 
             var actual = testSubject.Get();
 
-            actual.Should().Be(solutionPath + '\\' + LegacySolutionBindingPathProvider.LegacyBindingConfigurationFileName);
+            actual.Should().Be("c:\\test" + '\\' + LegacySolutionBindingPathProvider.LegacyBindingConfigurationFileName);
         }
     }
 }

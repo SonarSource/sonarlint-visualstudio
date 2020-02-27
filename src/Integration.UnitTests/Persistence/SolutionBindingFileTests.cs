@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             Action act = () => new SolutionBindingFile(null, null, null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sccFileSystem");
         }
 
         [TestMethod]
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ReadBindingInformation_ProjectIsNotNull_ReturnsProjectWithCredentials()
         {
-            boundSonarQubeProject.ServerUri = new Uri("test");
+            boundSonarQubeProject.ServerUri = new Uri("http://sonarsource.com");
             boundSonarQubeProject.Credentials = null;
 
             serializer.Setup(x => x.DeserializeFromFile(MockFilePath)).Returns(boundSonarQubeProject);
@@ -162,25 +162,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_ProjectIsNull_ReturnsFalse()
+        public void WriteSolutionBinding_ProjectIsNull_Exception()
         {
-            var actual = testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object);
-            actual.Should().BeFalse();
+            Assert.ThrowsException<ArgumentNullException>(() =>  testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object));
         }
 
         [TestMethod]
         public void WriteSolutionBinding_ProjectIsNull_FileNotWritten()
         {
-            testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object);
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object));
 
-            serializer.Verify(x => x.SerializeToFile(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()),
-                Times.Never);
+            serializer.Verify(x => x.SerializeToFile(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()), Times.Never);
         }
 
         [TestMethod]
         public void WriteSolutionBinding_ProjectIsNull_CredentialsNotWritten()
         {
-            testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object);
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object));
 
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
@@ -188,18 +186,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WriteSolutionBinding_ProjectIsNull_OnSaveCallbackNotInvoked()
         {
-            testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object);
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.WriteSolutionBinding(MockFilePath, null, onSaveCallback.Object));
 
             onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void WriteSolutionBinding_FileNotWritten_False()
-        {
-            serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(false);
-
-            var actual = testSubject.WriteSolutionBinding(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
-            actual.Should().BeFalse();
         }
 
         [TestMethod]
@@ -234,23 +223,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_FileWritten_OnSaveCallbackReturnsTrue_True()
+        public void WriteSolutionBinding_FileWritten_OnSaveCallbackIsInvoked()
         {
             serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(true);
             onSaveCallback.Setup(x => x(MockFilePath)).Returns(true);
 
-            var actual = testSubject.WriteSolutionBinding(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
-            actual.Should().BeTrue();
-        }
+            testSubject.WriteSolutionBinding(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 
-        [TestMethod]
-        public void WriteSolutionBinding_FileWritten_OnSaveCallbackReturnsFalse_False()
-        {
-            serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(true);
-            onSaveCallback.Setup(x => x(MockFilePath)).Returns(false);
-
-            var actual = testSubject.WriteSolutionBinding(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
-            actual.Should().BeTrue();
+            onSaveCallback.Verify(x=> x(MockFilePath), Times.Once);
         }
     }
 }

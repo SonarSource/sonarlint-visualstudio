@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             ISolutionBindingCredentialsLoader credentialsLoader)
         {
             this.sccFileSystem = sccFileSystem ?? throw new ArgumentNullException(nameof(sccFileSystem));
-            this.solutionBindingSerializer = solutionBindingSerializer;
-            this.credentialsLoader = credentialsLoader;
+            this.solutionBindingSerializer = solutionBindingSerializer ?? throw new ArgumentNullException(nameof(solutionBindingSerializer));
+            this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         }
 
         public BoundSonarQubeProject ReadSolutionBinding(string configFilePath)
