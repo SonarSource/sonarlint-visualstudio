@@ -168,13 +168,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             void DoRaise_Dispose_RaiseAgain(Action<Mock<IFileSystemWatcher>> raiseEvent)
             {
                 // Arrange
-                var directoryMock = new Mock<IDirectory>();
-                directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+                var fileSystemMock = new Mock<IFileSystem>();
+                fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
                 var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
                 var testLogger = new TestLogger();
 
-                var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
+                var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
 
                 var eventCount = 0;
                 fileMonitor.FileChanged += (s, args) => eventCount++;
@@ -201,11 +201,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
             var testLogger = new TestLogger();
 
-            var directoryMock = new Mock<IDirectory>();
-            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
+            var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
 
             var eventHandlerStartedEvent = new ManualResetEvent(false);
             var disposeCalledEvent = new ManualResetEvent(false);
