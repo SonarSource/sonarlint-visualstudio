@@ -205,9 +205,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            watcherMock.SetupProperty(x => x.EnableRaisingEvents);
-            watcherMock.Object.EnableRaisingEvents.Should().BeFalse();
-
             var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
 
             var eventHandlerStartedEvent = new ManualResetEvent(false);
@@ -228,26 +225,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 disposedEventSignalled = disposeCalledEvent.WaitOne(timeout);
             };
 
-            watcherMock.Object.EnableRaisingEvents.Should().BeTrue();
-            watcherMock.VerifySet(x => x.EnableRaisingEvents = true, Times.Exactly(1));
-
 
             // Stage 2: raise the file system event then block until we are in the event handler
             var eventHandlerMethodTask = System.Threading.Tasks.Task.Run(() =>
                 watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", "")));
 
             eventHandlerStartedEvent.WaitOne(timeout).Should().BeTrue();
-            watcherMock.Object.EnableRaisingEvents.Should().BeFalse();
 
 
             // Stage 3: dispose the monitor, unblock the background thread and wait until it has finished
+            watcherMock.Reset(); // reset the counts of calls to the watcher
+
             fileMonitor.Dispose();
             disposeCalledEvent.Set();
-            eventHandlerMethodTask.Wait(timeout).Should().BeTrue();
 
+            eventHandlerMethodTask.Wait(timeout).Should().BeTrue();
             disposedEventSignalled.Should().BeTrue();
-            watcherMock.Object.EnableRaisingEvents.Should().BeFalse();
-            watcherMock.VerifySet(x => x.EnableRaisingEvents = true, Times.Exactly(1));
+
+            // Expect a single call to watcher.Dispose(), and no other calls
+            watcherMock.Verify(x => x.Dispose(), Times.Once);
+            watcherMock.VerifyNoOtherCalls();
         }
 
         #region Simple file operations
