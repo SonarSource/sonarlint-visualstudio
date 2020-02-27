@@ -29,39 +29,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     [TestClass]
     public class CredentialStoreTests
     {
+        private Mock<ICredentialStore> mockCredentialStore;
+        private CredentialStore testSubject;
+        private TargetUri WellKnownTargetUri;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            mockCredentialStore = new Mock<ICredentialStore>();
+            testSubject = new CredentialStore(mockCredentialStore.Object);
+            WellKnownTargetUri = new TargetUri("http://sonarcredtest/");
+        }
+
         [TestMethod]
         public void DeleteCreds()
         {
-            // Arrange
-            var mockCredentialStore = new Mock<ICredentialStore>();
-
-            var testSubject = new CredentialStore(mockCredentialStore.Object);
-            var targetUri = new TargetUri("http://sonarcredtest/");
-
             // Act
-            testSubject.DeleteCredentials(targetUri);
+            testSubject.DeleteCredentials(WellKnownTargetUri);
 
             // Assert
             mockCredentialStore.Verify(x => x.DeleteCredentials(
-                It.Is<TargetUri>(uri => uri.ToString() == "http://sonarcredtest/")), Times.Once);
+                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, WellKnownTargetUri))), Times.Once);
         }
 
         [TestMethod]
         public void Write_UserNameAndPassword()
         {
             // Arrange
-            var mockCredentialStore = new Mock<ICredentialStore>();
-
-            var testSubject = new CredentialStore(mockCredentialStore.Object);
-            var targetUri = new TargetUri("http://sonarcredtest/");
             var inputCredentials = new Credential("user name", "password");
 
             // Act
-            testSubject.WriteCredentials(targetUri, inputCredentials);
+            testSubject.WriteCredentials(WellKnownTargetUri, inputCredentials);
 
             // Assert
             mockCredentialStore.Verify(x => x.WriteCredentials(
-                It.Is<TargetUri>(uri => uri.ToString() == "http://sonarcredtest/"),
+                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, WellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == "user name" && cred.Password == "password")), Times.Once);
         }
 
@@ -69,38 +71,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void Read_UserNameAndPassword()
         {
             // Arrange
-            var mockCredentialStore = new Mock<ICredentialStore>();
-
-            var testSubject = new CredentialStore(mockCredentialStore.Object);
-            var targetUri = new TargetUri("http://sonarcredtest/");
             var storedCreds = new Credential("user name", "password");
 
             mockCredentialStore.Setup(x => x.ReadCredentials(It.IsAny<TargetUri>())).Returns(storedCreds);
 
             // Act
-            var actualCreds = testSubject.ReadCredentials(targetUri);
+            var actualCreds = testSubject.ReadCredentials(WellKnownTargetUri);
 
             // Assert
             actualCreds.Should().Be(storedCreds);
-            mockCredentialStore.Verify(x => x.ReadCredentials(targetUri), Times.Once);
+            mockCredentialStore.Verify(x => x.ReadCredentials(WellKnownTargetUri), Times.Once);
         }
 
         [TestMethod]
         public void Write_TokenAsUserName()
         {
             // Arrange
-            var mockCredentialStore = new Mock<ICredentialStore>();
-
-            var testSubject = new CredentialStore(mockCredentialStore.Object);
-            var targetUri = new TargetUri("http://sonarcredtest/");
             var inputCredentials = new Credential("token1", String.Empty);
 
             // Act
-            testSubject.WriteCredentials(targetUri, inputCredentials);
+            testSubject.WriteCredentials(WellKnownTargetUri, inputCredentials);
 
             // Assert
             mockCredentialStore.Verify(x => x.WriteCredentials(
-                It.Is<TargetUri>(uri => uri.ToString() == "http://sonarcredtest/"),
+                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, WellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == CredentialStore.UserNameForTokenCredential  && cred.Password == "token1")), Times.Once);
         }
 
@@ -108,19 +102,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void Read_TokenAsUserName()
         {
             // Arrange
-            var mockCredentialStore = new Mock<ICredentialStore>();
-
-            var testSubject = new CredentialStore(mockCredentialStore.Object);
-            var targetUri = new TargetUri("http://sonarcredtest/");
             var storedCreds = new Credential("PersonalAccessToken", "token 2");
 
             mockCredentialStore.Setup(x => x.ReadCredentials(It.IsAny<TargetUri>())).Returns(storedCreds);
 
             // Act
-            var actualCreds = testSubject.ReadCredentials(targetUri);
+            var actualCreds = testSubject.ReadCredentials(WellKnownTargetUri);
 
             // Assert
-            mockCredentialStore.Verify(x => x.ReadCredentials(targetUri), Times.Once);
+            mockCredentialStore.Verify(x => x.ReadCredentials(WellKnownTargetUri), Times.Once);
 
             actualCreds.Username.Should().Be("token 2");
             actualCreds.Password.Should().BeEmpty();
@@ -132,25 +122,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             // Prior to fixing #768, the token was stored in the user name field.
             // Test we can successfully load and save creds stored in that format.
 
-
             // Arrange
-            var mockCredentialStore = new Mock<ICredentialStore>();
-
-            var testSubject = new CredentialStore(mockCredentialStore.Object);
-            var targetUri = new TargetUri("http://sonarcredtest/");
             var storedCreds = new Credential("old token", string.Empty);
 
             mockCredentialStore.Setup(x => x.ReadCredentials(It.IsAny<TargetUri>())).Returns(storedCreds);
 
             // 1. Load creds from old format -> should be translated to new format
-            var loadedCreds1 = testSubject.ReadCredentials(targetUri);
+            var loadedCreds1 = testSubject.ReadCredentials(WellKnownTargetUri);
             loadedCreds1.Username.Should().Be("old token");
             loadedCreds1.Password.Should().BeEmpty();
 
             // 2. Save -> should be in new format
-            testSubject.WriteCredentials(targetUri, loadedCreds1);
+            testSubject.WriteCredentials(WellKnownTargetUri, loadedCreds1);
             mockCredentialStore.Verify(x => x.WriteCredentials(
-                It.Is<TargetUri>(uri => uri.ToString() == "http://sonarcredtest/"),
+                It.Is<TargetUri>(uri => object.ReferenceEquals(uri, WellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == CredentialStore.UserNameForTokenCredential && cred.Password == "old token")), Times.Once);
         }
     }
