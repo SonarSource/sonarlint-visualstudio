@@ -25,7 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Persistence
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class LegacySolutionBindingPostSaveOperationTests
