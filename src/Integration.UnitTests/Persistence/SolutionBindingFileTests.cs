@@ -35,9 +35,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISolutionBindingSerializer> serializer;
         private Mock<Predicate<string>> onSaveCallback;
         private BoundSonarQubeProject boundSonarQubeProject;
-        private BasicAuthCredentials testCredentials;
         private SolutionBindingFile testSubject;
 
+        private BasicAuthCredentials mockCredentials;
         private const string MockFilePath = "test file path";
 
         [TestInitialize]
@@ -52,13 +52,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 serializer.Object,
                 credentialsLoader.Object);
 
+            mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
+
             boundSonarQubeProject = new BoundSonarQubeProject(
                 new Uri("http://xxx.www.zzz/yyy:9000"),
                 "MyProject Key",
                 "projectName",
-                new BasicAuthCredentials("user", "pwd".ToSecureString()));
-
-            testCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
+                mockCredentials);
 
             sourceControlledFileSystem
                 .Setup(x => x.QueueFileWrite(MockFilePath, It.IsAny<Func<bool>>()))
@@ -115,10 +115,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             boundSonarQubeProject.Credentials = null;
 
             serializer.Setup(x => x.DeserializeFromFile(MockFilePath)).Returns(boundSonarQubeProject);
-            credentialsLoader.Setup(x => x.Load(boundSonarQubeProject.ServerUri)).Returns(testCredentials);
+            credentialsLoader.Setup(x => x.Load(boundSonarQubeProject.ServerUri)).Returns(mockCredentials);
 
             var actual = testSubject.ReadSolutionBinding(MockFilePath);
-            actual.Credentials.Should().Be(testCredentials);
+            actual.Credentials.Should().Be(mockCredentials);
         }
 
         [DataTestMethod]

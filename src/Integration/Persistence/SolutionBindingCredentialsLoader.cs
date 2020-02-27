@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         public SolutionBindingCredentialsLoader(ICredentialStoreService store)
         {
-            this.store = store;
+            this.store = store ?? throw new ArgumentNullException(nameof(store));
         }
 
         public ICredentials Load(Uri boundServerUri)
