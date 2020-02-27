@@ -149,8 +149,106 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             }
         }
 
+        [TestMethod]
+        public void AfterDispose_EventsAreIgnored()
+        {
+            Action<Mock<IFileSystemWatcher>> op = (watcherMock) => watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
+            DoRaise_Dispose_RaiseAgain(op);
+
+            op = (watcherMock) => watcherMock.Raise(x => x.Deleted += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
+            DoRaise_Dispose_RaiseAgain(op);
+
+            op = (watcherMock) => watcherMock.Raise(x => x.Changed += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", ""));
+            DoRaise_Dispose_RaiseAgain(op);
+
+            op = (watcherMock) => watcherMock.Raise(x => x.Renamed += null, new RenamedEventArgs(WatcherChangeTypes.Created, "", "", ""));
+            DoRaise_Dispose_RaiseAgain(op);
+
+
+            void DoRaise_Dispose_RaiseAgain(Action<Mock<IFileSystemWatcher>> raiseEvent)
+            {
+                // Arrange
+                var directoryMock = new Mock<IDirectory>();
+                directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+
+                var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+                var testLogger = new TestLogger();
+
+                var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
+
+                var eventCount = 0;
+                fileMonitor.FileChanged += (s, args) => eventCount++;
+
+                // 1. First event is handled
+                raiseEvent(watcherMock);
+                eventCount.Should().Be(1);
+
+                // 2. Dispose then re-raise
+                fileMonitor.Dispose();
+                raiseEvent(watcherMock);
+                eventCount.Should().Be(1);
+            }
+        }
+    
+        [TestMethod]
+        public void DisposeWhileHandlingFileEvent_DisposedWatcherIsNotCalled()
+        {
+            // Timing issue - event notifications happen on a different thread so we could
+            // be in the middle of handling an event when the monitor is disposed. This
+            // shouldn't cause an error.
+
+            // Arrange
+            var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
+            var testLogger = new TestLogger();
+
+            var directoryMock = new Mock<IDirectory>();
+            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+
+            var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
+            var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
+
+            var eventHandlerStartedEvent = new ManualResetEvent(false);
+            var disposeCalledEvent = new ManualResetEvent(false);
+
+
+            // Stage 1: listen to events from the monitor
+            var disposedEventSignalled = false;
+            fileMonitor.FileChanged += (s, args) =>
+            {
+                //*******************************
+                // Do not assert in this callback
+                //*******************************
+                // We're on a background thread so assertions won't cause a test failure
+
+                // Signal that we are in the event handler, and block until dispose is called
+                eventHandlerStartedEvent.Set();
+                disposedEventSignalled = disposeCalledEvent.WaitOne(timeout);
+            };
+
+
+            // Stage 2: raise the file system event then block until we are in the event handler
+            var eventHandlerMethodTask = System.Threading.Tasks.Task.Run(() =>
+                watcherMock.Raise(x => x.Created += null, new FileSystemEventArgs(WatcherChangeTypes.Created, "", "")));
+
+            eventHandlerStartedEvent.WaitOne(timeout).Should().BeTrue();
+
+
+            // Stage 3: dispose the monitor, unblock the background thread and wait until it has finished
+            watcherMock.Reset(); // reset the counts of calls to the watcher
+
+            fileMonitor.Dispose();
+            disposeCalledEvent.Set();
+
+            eventHandlerMethodTask.Wait(timeout).Should().BeTrue();
+            disposedEventSignalled.Should().BeTrue();
+
+            // Expect a single call to watcher.Dispose(), and no other calls
+            watcherMock.Verify(x => x.Dispose(), Times.Once);
+            watcherMock.VerifyNoOtherCalls();
+        }
+
         #region Simple file operations
-            // Check simple file operations are handled and don't produce duplicates
+        // Check simple file operations are handled and don't produce duplicates
 
         [TestMethod]
         public void RealFile_FileCreationIsTracked()
@@ -326,6 +424,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             void testBody()
             {
+                const int pauseBetweenOpsInMs = 125;
+
                 using (var singleFileMonitor = new SingleFileMonitor(filePathToMonitor, testLogger))
                 {
                     var testWrapper = new WaitableFileMonitor(singleFileMonitor);
@@ -333,24 +433,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
                     // 1. Create the file
                     File.WriteAllText(filePathToMonitor, "initial text");
-                    testWrapper.PauseForEvent(100);
+                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
 
                     // 2. Amend the file
                     File.AppendAllText(filePathToMonitor, " more text");
-                    testWrapper.PauseForEvent(100);
+                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
 
                     // 3. Rename from the tracked name
                     var renamedFile = Path.ChangeExtension(filePathToMonitor, "moved");
                     File.Move(filePathToMonitor, renamedFile);
-                    testWrapper.PauseForEvent(100);
+                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
 
                     // 4. Rename back to the tracked name
                     File.Move(renamedFile, filePathToMonitor);
-                    testWrapper.PauseForEvent(100);
+                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
 
                     // 5. Delete
                     File.Delete(filePathToMonitor);
-                    testWrapper.PauseForEvent(100);
+                    testWrapper.PauseForEvent(pauseBetweenOpsInMs);
 
                     totalEventCount += testWrapper.EventCount;
                 }
