@@ -1,0 +1,224 @@
+---
+
+# Base directory: bin\Debug\VS2019\net46\
+# Include patterns: Sonar*
+# Exclude patterns: 
+# Number of matches: 11
+
+---
+
+Assembly: SonarAnalyzer.CFG, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+Relative path: SonarAnalyzer.CFG.dll
+
+Referenced assemblies:   # count = 6
+- Microsoft.CodeAnalysis, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.CSharp, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: SonarAnalyzer.CSharp, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+Relative path: SonarAnalyzer.CSharp.dll
+
+Referenced assemblies:   # count = 12
+- Microsoft.CodeAnalysis, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.CSharp, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- SonarAnalyzer, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+- SonarAnalyzer.CFG, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+- System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: SonarAnalyzer, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+Relative path: SonarAnalyzer.dll
+
+Referenced assemblies:   # count = 9
+- Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604
+- Microsoft.CodeAnalysis, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xml.Linq, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: SonarAnalyzer.VisualBasic, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+Relative path: SonarAnalyzer.VisualBasic.dll
+
+Referenced assemblies:   # count = 8
+- Microsoft.CodeAnalysis, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.VisualBasic, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- SonarAnalyzer, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Collections.Immutable, Version=1.1.37.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: SonarLint.2019, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarLint.2019.dll
+
+Referenced assemblies:   # count = 32
+- EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604
+- Grpc.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=d754f35622e28bad
+- Microsoft.CodeAnalysis, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CodeAnalysis.Workspaces, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.CSharp, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.CoreUtility, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.LanguageServices, Version=1.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Immutable.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Text.Data, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Text.Logic, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Text.UI, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Threading, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- SonarAnalyzer, Version=8.4.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244
+- SonarLint.VisualStudio.Core, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- SonarLint.VisualStudio.Integration, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- SonarQube.Client, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Interactive.Async, Version=3.0.1000.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263
+- System.IO.Compression.FileSystem, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: SonarLint.VisualStudio.Core, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarLint.VisualStudio.Core.dll
+
+Referenced assemblies:   # count = 6
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed
+- SonarQube.Client, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+
+---
+
+Assembly: SonarLint.VisualStudio.Integration, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarLint.VisualStudio.Integration.dll
+
+Referenced assemblies:   # count = 28
+- EnvDTE, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- EnvDTE80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null
+- Microsoft.VisualStudio.CodeAnalysis, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.ComponentModelHost, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.ImageCatalog, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Imaging, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Immutable.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed
+- PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- SonarLint.VisualStudio.Core, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- SonarLint.VisualStudio.Progress, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- SonarLint.VisualStudio.ProgressVS, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- SonarQube.Client, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+
+---
+
+Assembly: SonarLint.VisualStudio.Integration.TeamExplorer, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarLint.VisualStudio.Integration.TeamExplorer.dll
+
+Referenced assemblies:   # count = 13
+- Microsoft.TeamFoundation.Client, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.TeamFoundation.Controls, Version=16.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.OLE.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Immutable.10.0, Version=10.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- SonarLint.VisualStudio.Integration, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- SonarQube.Client, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+---
+
+Assembly: SonarLint.VisualStudio.Progress, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarLint.VisualStudio.Progress.dll
+
+Referenced assemblies:   # count = 7
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+
+---
+
+Assembly: SonarLint.VisualStudio.ProgressVS, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarLint.VisualStudio.ProgressVS.dll
+
+Referenced assemblies:   # count = 11
+- Microsoft.VisualStudio.Shell.14.0, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop.11.0, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- Microsoft.VisualStudio.Shell.Interop.8.0, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+- SonarLint.VisualStudio.Progress, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Xaml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- WindowsBase, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35
+
+---
+
+Assembly: SonarQube.Client, Version=4.19.0.0, Culture=neutral, PublicKeyToken=null
+Relative path: SonarQube.Client.dll
+
+Referenced assemblies:   # count = 7
+- Google.Protobuf, Version=3.6.1.0, Culture=neutral, PublicKeyToken=a7d26565bac4d604
+- mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed
+- System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+- System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a
+- System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089
+
+...
