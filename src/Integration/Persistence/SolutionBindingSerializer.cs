@@ -21,98 +21,100 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using EnvDTE;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    /// <summary>
-    /// Serializer for legacy connected mode
-    /// </summary>
-    internal class SolutionBindingSerializer : FileBindingSerializer
+    internal class SolutionBindingSerializer : ISolutionBindingSerializer
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly ILogger logger;
+        private readonly IFile fileWrapper;
+        private readonly IDirectory directoryWrapper;
 
-        public const string LegacyBindingConfigurationFileName = "SolutionBinding.sqconfig";
-        public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
-
-        public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            : this(serviceProvider,
-                  serviceProvider?.GetService<ISourceControlledFileSystem>(),
-                  serviceProvider?.GetService<ICredentialStoreService>(),
-                  serviceProvider?.GetMefService<ILogger>(),
-                  new FileWrapper())
+        public SolutionBindingSerializer(ILogger logger, IFile fileWrapper, IDirectory directoryWrapper)
         {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileWrapper = fileWrapper;
+            this.directoryWrapper = directoryWrapper;
         }
 
-        internal /*for testing purposes*/ SolutionBindingSerializer(
-            IServiceProvider serviceProvider,
-            ISourceControlledFileSystem sccFileSystem,
-            ICredentialStoreService store,
-            ILogger logger,
-            IFile fileWrapper)
-            : base(sccFileSystem, store, logger, fileWrapper)
+        public bool SerializeToFile(string filePath, BoundSonarQubeProject project)
         {
-            if (serviceProvider == null)
+            var serializedProject = Serialize(project);
+
+            return SafePerformFileSystemOperation(() => WriteConfig(filePath, serializedProject));
+        }
+
+        private void WriteConfig(string configFile, string serializedProject)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(configFile));
+
+            var directoryName = Path.GetDirectoryName(configFile);
+
+            if (!directoryWrapper.Exists(directoryName))
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                directoryWrapper.Create(directoryName);
             }
-            this.serviceProvider = serviceProvider;
+
+            fileWrapper.WriteAllText(configFile, serializedProject);
         }
 
-        protected override bool OnSuccessfulFileWrite(string filePath)
+        public BoundSonarQubeProject DeserializeFromFile(string filePath)
         {
-            this.AddSolutionItemFile(filePath);
-            this.RemoveSolutionItemFile(filePath);
-            return true;
-        }
-
-        private void AddSolutionItemFile(string configFile)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
-
-            var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
-
-            Project solutionItemsProject = projectSystemHelper.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
-            if (solutionItemsProject == null)
-            {
-                Debug.Fail("Could not find the solution items project"); // Should never happen
-            }
-            else
-            {
-                projectSystemHelper.AddFileToProject(solutionItemsProject, configFile);
-            }
-        }
-
-        private void RemoveSolutionItemFile(string configFile)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
-
-            var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
-
-            Project solutionItemsProject = projectSystemHelper.GetSolutionItemsProject(false);
-            if (solutionItemsProject != null)
-            {
-                // Remove file from project and if project is empty, remove project from solution
-                var fileName = Path.GetFileName(configFile);
-                projectSystemHelper.RemoveFileFromProject(solutionItemsProject, fileName);
-            }
-        }
-
-        protected override string GetFullConfigurationFilePath()
-        {
-            var solutionRuleSetsInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            string rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder(NewConnectedMode.SonarLintMode.LegacyConnected);
-
-            // When the solution is closed return null
-            if (rootFolder == null)
+            if (string.IsNullOrEmpty(filePath) || !fileWrapper.Exists(filePath))
             {
                 return null;
             }
 
-            return Path.Combine(rootFolder, LegacyBindingConfigurationFileName);
+            string configJson = null;
+
+            if (SafePerformFileSystemOperation(() => ReadConfig(filePath, out configJson)))
+            {
+                try
+                {
+                    return Deserialize(configJson);
+                }
+                catch (JsonException)
+                {
+                    logger.WriteLine(Strings.FailedToDeserializeSQCOnfiguration, filePath);
+                }
+            }
+
+            return null;
+        }
+
+        private void ReadConfig(string configFile, out string text)
+        {
+            text = fileWrapper.ReadAllText(configFile);
+        }
+
+        private bool SafePerformFileSystemOperation(Action operation)
+        {
+            Debug.Assert(operation != null);
+
+            try
+            {
+                operation();
+                return true;
+            }
+            catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(e.Message);
+                return false;
+            }
+        }
+
+        private BoundSonarQubeProject Deserialize(string projectJson)
+        {
+            return JsonHelper.Deserialize<BoundSonarQubeProject>(projectJson);
+        }
+
+        private string Serialize(BoundSonarQubeProject project)
+        {
+            return JsonHelper.Serialize(project);
         }
     }
 }

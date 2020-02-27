@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace SonarLint.VisualStudio.Integration.UnitTests.Persistence
+namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    [TestClass]
-    public class SolutionBindingSerializerTests
+    internal interface ISolutionBindingPathProvider
     {
+        /// <summary>
+        /// Return the path of solution's binding configuration file
+        /// </summary>
+        /// <returns></returns>
+        string Get();
     }
 }

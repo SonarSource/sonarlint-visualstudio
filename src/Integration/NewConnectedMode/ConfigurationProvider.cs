@@ -27,38 +27,58 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     internal class ConfigurationProvider : IConfigurationProvider
     {
-        private readonly ISolutionBindingSerializer legacySerializer;
-        private readonly ISolutionBindingSerializer newConnectedModeSerializer;
+        private readonly ISolutionBindingPathProvider legacyPathProvider;
+        private readonly ISolutionBindingPathProvider connectedModePathProvider;
+        private readonly ISolutionBindingFile solutionBindingFile;
+        private readonly ISolutionBindingPostSaveOperation legacyPostSaveOperation;
 
-        public ConfigurationProvider(ISolutionBindingSerializer legacySerializer, ISolutionBindingSerializer newConnectedModeSerializer)
+        public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
+            ISolutionBindingPathProvider connectedModePathProvider,
+            ISolutionBindingFile solutionBindingFile,
+            ISolutionBindingPostSaveOperation legacyPostSaveOperation)
         {
-            if (legacySerializer == null)
-            {
-                throw new ArgumentNullException(nameof(legacySerializer));
-            }
-            if (newConnectedModeSerializer == null)
-            {
-                throw new ArgumentNullException(nameof(newConnectedModeSerializer));
-            }
-            this.legacySerializer = legacySerializer;
-            this.newConnectedModeSerializer = newConnectedModeSerializer;
+            this.legacyPathProvider = legacyPathProvider ??
+                                      throw new ArgumentNullException(nameof(legacyPathProvider));
+
+            this.connectedModePathProvider = connectedModePathProvider ??
+                                             throw new ArgumentNullException(nameof(connectedModePathProvider));
+
+            this.solutionBindingFile = solutionBindingFile ??
+                                             throw new ArgumentNullException(nameof(solutionBindingFile));
+
+            this.legacyPostSaveOperation = legacyPostSaveOperation ??
+                                           throw new ArgumentNullException(nameof(legacyPostSaveOperation));
         }
 
         public BindingConfiguration GetConfiguration()
         {
-            var project = legacySerializer.ReadSolutionBinding();
-            if (project != null)
+            var bindingPath = GetBindingPath(out var sonarLintMode);
+
+            if (bindingPath == null)
             {
-                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: true);
+                return BindingConfiguration.Standalone;
             }
 
-            project = newConnectedModeSerializer.ReadSolutionBinding();
-            if (project != null)
+            var project = solutionBindingFile.ReadSolutionBinding(bindingPath);
+
+            return BindingConfiguration.CreateBoundConfiguration(project, sonarLintMode);
+        }
+
+        private string GetBindingPath(out SonarLintMode sonarLintMode)
+        {
+            var bindingPath = legacyPathProvider.Get();
+
+            if (bindingPath != null)
             {
-                return BindingConfiguration.CreateBoundConfiguration(project, isLegacy: false);
+                sonarLintMode = SonarLintMode.LegacyConnected;
+
+                return bindingPath;
             }
 
-            return BindingConfiguration.Standalone;
+            bindingPath = connectedModePathProvider.Get();
+            sonarLintMode = SonarLintMode.Connected;
+
+            return bindingPath;
         }
 
         public bool WriteConfiguration(BindingConfiguration configuration)
@@ -68,18 +88,46 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 throw new ArgumentNullException(nameof(configuration));
             }
 
+            var onSuccessfulFileWrite = GetOnSuccessfulFileWriteOperation(configuration);
+            
+            if (onSuccessfulFileWrite == null)
+            {
+                return false;
+            }
+
+            var bindingPath = GetBindingPath(out _);
+
+            return solutionBindingFile.WriteSolutionBinding(bindingPath, configuration.Project, onSuccessfulFileWrite);
+        }
+
+        private Predicate<string> GetOnSuccessfulFileWriteOperation(BindingConfiguration configuration)
+        {
+            Predicate<string> onSuccessfulFileWrite;
+
             switch (configuration.Mode)
             {
                 case SonarLintMode.LegacyConnected:
-                    return legacySerializer.WriteSolutionBinding(configuration.Project) != null;
+                {
+                    onSuccessfulFileWrite = legacyPostSaveOperation.OnSuccessfulSave;
+                    break;
+                }
                 case SonarLintMode.Connected:
-                    return newConnectedModeSerializer.WriteSolutionBinding(configuration.Project) != null;
+                {
+                    onSuccessfulFileWrite = s => true;
+                    break;
+                }
                 case SonarLintMode.Standalone:
+                {
                     throw new InvalidOperationException(Strings.Bind_CannotSaveStandaloneConfiguration);
+                }
                 default:
-                    Debug.Fail("Unrecognised write mode");
-                    return false;
+                {
+                    Debug.Fail("Unrecognised write mode " + configuration.Mode);
+                    return null;
+                }
             }
+
+            return onSuccessfulFileWrite;
         }
     }
 }

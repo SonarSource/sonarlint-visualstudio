@@ -24,29 +24,29 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal class ConfigurableSolutionBindingSerializer : ISolutionBindingSerializer
+    internal class ConfigurableSolutionBindingFile : ISolutionBindingFile
     {
         internal int WrittenFilesCount { get; private set; }
 
-        #region ISolutionBindingSerializer
+        #region ISolutionBindingFile
 
-        BoundSonarQubeProject ISolutionBindingSerializer.ReadSolutionBinding()
+        BoundSonarQubeProject ISolutionBindingFile.ReadSolutionBinding(string configPath)
         {
             this.ReadSolutionBindingAction?.Invoke();
             return this.CurrentBinding;
         }
 
-        string ISolutionBindingSerializer.WriteSolutionBinding(BoundSonarQubeProject binding)
+        bool ISolutionBindingFile.WriteSolutionBinding(string configPath, BoundSonarQubeProject binding, Predicate<string> onSaveOperation)
         {
             binding.Should().NotBeNull("Required argument");
 
             string filePath = this.WriteSolutionBindingAction?.Invoke(binding) ?? binding.ProjectKey;
             this.WrittenFilesCount++;
 
-            return filePath;
+            return true;
         }
 
-        #endregion ISolutionBindingSerializer
+        #endregion ISolutionBindingFile
 
         #region Test helpers
 

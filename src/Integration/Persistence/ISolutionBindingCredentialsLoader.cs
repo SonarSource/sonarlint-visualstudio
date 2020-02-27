@@ -18,12 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Persistence
+namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    [TestClass]
-    public class SolutionBindingSerializerTests
+    interface ISolutionBindingCredentialsLoader
     {
+        ICredentials Load(Uri boundServerUri);
+        void Save(ICredentials credentials, Uri boundServerUri);
     }
 }

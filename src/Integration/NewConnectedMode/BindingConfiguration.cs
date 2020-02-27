@@ -25,15 +25,16 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
     {
-        public readonly static BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
+        public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
 
-        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, bool isLegacy)
+        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
-            return new BindingConfiguration(project, isLegacy ? SonarLintMode.LegacyConnected : SonarLintMode.Connected);
+
+            return new BindingConfiguration(project, sonarLintMode);
         }
 
         internal /*for testing purposes*/ BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode)

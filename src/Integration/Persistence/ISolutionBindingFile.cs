@@ -18,12 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Persistence
+namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    [TestClass]
-    public class SolutionBindingSerializerTests
+    internal interface ISolutionBindingFile
     {
+        /// <summary>
+        /// Retrieves solution binding information
+        /// </summary>
+        /// <returns>Can be null if not bound</returns>
+        BoundSonarQubeProject ReadSolutionBinding(string configFilePath);
+
+        /// <summary>
+        /// Writes the binding information
+        /// </summary>
+        /// <returns>Has file been saved</returns>
+        bool WriteSolutionBinding(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
     }
 }

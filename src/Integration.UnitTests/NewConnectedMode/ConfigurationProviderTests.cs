@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
@@ -29,46 +30,70 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ConfigurationProviderTests
     {
-        private ConfigurableSolutionBindingSerializer legacySerializer;
-        private ConfigurableSolutionBindingSerializer newSerializer;
+        private Mock<ISolutionBindingPathProvider> legacySerializer;
+        private Mock<ISolutionBindingPathProvider> newSerializer;
+        private Mock<ISolutionBindingFile> solutionBindingSerializer;
         private ConfigurationProvider testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            legacySerializer = new ConfigurableSolutionBindingSerializer { CurrentBinding = null };
-            newSerializer = new ConfigurableSolutionBindingSerializer { CurrentBinding = null };
-            testSubject = new ConfigurationProvider(legacySerializer, newSerializer);
+            legacySerializer = new Mock<ISolutionBindingPathProvider>();
+            newSerializer = new Mock<ISolutionBindingPathProvider>();
+            solutionBindingSerializer = new Mock<ISolutionBindingFile>();
+
+            testSubject = new ConfigurationProvider(legacySerializer.Object,
+                newSerializer.Object,
+                solutionBindingSerializer.Object,
+                null);
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullLegacySerializer_Throws()
         {
             // Arrange
-            var serializer = new ConfigurableSolutionBindingSerializer();
-            Action act = () => new ConfigurationProvider(null, serializer);
+            Action act = () => new ConfigurationProvider(null, newSerializer.Object, null, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacySerializer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyPathProvider");
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullConnectedModeSerializer_Throws()
         {
             // Arrange
-            var serializer = new ConfigurableSolutionBindingSerializer();
-            Action act = () => new ConfigurationProvider(serializer, null);
+            Action act = () => new ConfigurationProvider(legacySerializer.Object, null, null,null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("newConnectedModeSerializer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("connectedModePathProvider");
+        }
+
+        [TestMethod]
+        public void Ctor_InvalidArgs_NullSolutionBindingSerializer_Throws()
+        {
+            // Arrange
+            Action act = () => new ConfigurationProvider(legacySerializer.Object, newSerializer.Object, null, null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFile");
+        }
+
+        [TestMethod]
+        public void Ctor_InvalidArgs_NullPostSaveAction_Throws()
+        {
+            // Arrange
+            Action act = () => new ConfigurationProvider(legacySerializer.Object, newSerializer.Object, solutionBindingSerializer.Object, null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyPostSaveOperation");
         }
 
         [TestMethod]
         public void GetConfig_NoConfig_ReturnsStandalone()
         {
             // Arrange
-            legacySerializer.CurrentBinding = null;
-            newSerializer.CurrentBinding = null;
+            legacySerializer.Setup(x => x.Get()).Returns(null as string);
+            newSerializer.Setup(x => x.Get()).Returns(null as string);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -86,8 +111,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // or new bindings to present. However, the legacy should take priority.
 
             // Arrange
-            legacySerializer.CurrentBinding = new BoundSonarQubeProject();
-            newSerializer.CurrentBinding = new BoundSonarQubeProject();
+            legacySerializer.Setup(x => x.Get()).Returns("legacy");
+            newSerializer.Setup(x => x.Get()).Returns("new");
+
+            var expectedProject = new BoundSonarQubeProject();
+            solutionBindingSerializer.Setup(x => x.ReadSolutionBinding("legacy")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -95,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().NotBeNull();
             actual.Project.Should().NotBeNull();
-            actual.Project.Should().BeSameAs(legacySerializer.CurrentBinding);
+            actual.Project.Should().BeSameAs(expectedProject);
             actual.Mode.Should().Be(SonarLintMode.LegacyConnected);
         }
 
@@ -103,8 +131,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetConfig_NewConfigOnly_ReturnsLegacy()
         {
             // Arrange
-            legacySerializer.CurrentBinding = null;
-            newSerializer.CurrentBinding = new BoundSonarQubeProject();
+            legacySerializer.Setup(x => x.Get()).Returns(null as string);
+            newSerializer.Setup(x => x.Get()).Returns("new");
+
+            var expectedProject = new BoundSonarQubeProject();
+            solutionBindingSerializer.Setup(x => x.ReadSolutionBinding("new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -112,17 +143,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().NotBeNull();
             actual.Project.Should().NotBeNull();
-            actual.Project.Should().BeSameAs(newSerializer.CurrentBinding);
+            actual.Project.Should().BeSameAs(expectedProject);
             actual.Mode.Should().Be(SonarLintMode.Connected);
         }
 
         [TestMethod]
         public void WriteConfig_InvalidArg_Throws()
         {
-            // Arrange
-            legacySerializer.CurrentBinding = null;
-            newSerializer.CurrentBinding = null;
-
             // Act
             Action act = () => testSubject.WriteConfiguration(null);
 
@@ -141,37 +168,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WriteConfig_LegacyConfig_CallsLegacySerializer()
+        public void WriteConfig_LegacyConfig_SavesLegacyConfig()
         {
             // Arrange
-            legacySerializer.WriteSolutionBindingAction = p => "filename.txt";
+            var projectToWrite = new BoundSonarQubeProject();
 
-            var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: true);
+            legacySerializer.Setup(x => x.Get()).Returns("old.txt");
+            solutionBindingSerializer.Setup(x => x.WriteSolutionBinding("old.txt", projectToWrite, null)).Returns(true);
+
+            var config = BindingConfiguration.CreateBoundConfiguration(projectToWrite, SonarLintMode.LegacyConnected);
 
             // Act
             var actual = testSubject.WriteConfiguration(config);
 
             // Assert
             actual.Should().BeTrue();
-            legacySerializer.WrittenFilesCount.Should().Be(1);
-            newSerializer.WrittenFilesCount.Should().Be(0);
+
+            solutionBindingSerializer.Verify(x => x.WriteSolutionBinding("old.txt", projectToWrite, null));
         }
 
         [TestMethod]
         public void WriteConfig_NewConnectedModeConfig_CallsNewSerializer()
         {
-            // Arrange
-            newSerializer.WriteSolutionBindingAction = p => "filename.txt";
+            var projectToWrite = new BoundSonarQubeProject();
 
-            var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), isLegacy: false);
+            legacySerializer.Setup(x => x.Get()).Returns(null as string);
+            newSerializer.Setup(x => x.Get()).Returns("new.txt");
+            solutionBindingSerializer.Setup(x => x.WriteSolutionBinding("new.txt", projectToWrite, null)).Returns(true);
+
+            var config = BindingConfiguration.CreateBoundConfiguration(projectToWrite, SonarLintMode.Connected);
 
             // Act
             var actual = testSubject.WriteConfiguration(config);
 
             // Assert
             actual.Should().BeTrue();
-            legacySerializer.WrittenFilesCount.Should().Be(0);
-            newSerializer.WrittenFilesCount.Should().Be(1);
+
+            solutionBindingSerializer.Verify(x => x.WriteSolutionBinding("new.txt", projectToWrite, null));
         }
     }
 }

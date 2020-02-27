@@ -28,6 +28,7 @@ using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -82,39 +83,14 @@ namespace SonarLint.VisualStudio.Integration
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (sonarQubeService == null)
-            {
-                throw new ArgumentNullException(nameof(sonarQubeService));
-            }
-
-            if (solutionTacker == null)
-            {
-                throw new ArgumentNullException(nameof(solutionTacker));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            if (uiDispatcher == null)
-            {
-                throw new ArgumentNullException(nameof(uiDispatcher));
-            }
-
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.VisualStateManager = state ?? new StateManager(this, new TransferableVisualState());
             this.progressStepRunner = progressStepRunner ?? this;
-            this.UIDispatcher = uiDispatcher;
-            this.SonarQubeService = sonarQubeService;
-            this.solutionTracker = solutionTacker;
+            this.UIDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
+            this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
+            this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
-            this.Logger = logger;
+            this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.RegisterLocalServices();
         }
@@ -307,15 +283,23 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
-            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore(SolutionBindingSerializer.StoreNamespace))));
+            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore("SonarLint.VisualStudio.Integration"))));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
                 var solution = this.GetService<SVsSolution, IVsSolution>();
+                var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
+                var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
+                var legacyPostSaveOperation = new LegacySolutionBindingPostSaveOperation(this);
+
                 var store = this.GetService<ICredentialStoreService>();
-                var legacySerializer = new SolutionBindingSerializer(this);
+                var credentialsLoader = new SolutionBindingCredentialsLoader(store);
+                var bindingSerializer = new SolutionBindingSerializer(Logger, new FileWrapper(), new DirectoryWrapper());
+
                 var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
-                var newConfigSerializer = new ConfigurationSerializer(solution, sccFileSystem, store, Logger);
-                return new ConfigurationProvider(legacySerializer, newConfigSerializer);
+
+                var solutionBindingSerializer = new SolutionBindingFile(sccFileSystem, bindingSerializer, credentialsLoader);
+
+                return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingSerializer, legacyPostSaveOperation);
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));

@@ -216,7 +216,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
         {
             var project = new BoundSonarQubeProject(new Uri(serverUri), "dummy.project.key", "dummy.projectName");
-            return BindingConfiguration.CreateBoundConfiguration(project, mode == SonarLintMode.LegacyConnected);
+            return BindingConfiguration.CreateBoundConfiguration(project, mode);
         }
 
         private static void CheckIsNotSonarCloud(string uri)

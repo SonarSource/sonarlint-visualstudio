@@ -33,12 +33,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public BindingConfiguration GetConfiguration()
         {
             GetConfigurationAction?.Invoke();
-            
-            if (ModeToReturn == SonarLintMode.Standalone)
-            {
-                return BindingConfiguration.Standalone;
-            }
-            return BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, SonarLintMode.LegacyConnected == ModeToReturn);
+
+            return ModeToReturn == SonarLintMode.Standalone
+                ? BindingConfiguration.Standalone
+                : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn);
         }
 
         public bool WriteConfiguration(BindingConfiguration configuration)

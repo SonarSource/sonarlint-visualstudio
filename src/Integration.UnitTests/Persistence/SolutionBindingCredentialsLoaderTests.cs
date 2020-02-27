@@ -23,7 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Persistence
 {
     [TestClass]
-    public class SolutionBindingSerializerTests
+    public class SolutionBindingCredentialsLoaderTests
     {
     }
 }

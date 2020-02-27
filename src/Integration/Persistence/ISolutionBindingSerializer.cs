@@ -20,21 +20,9 @@
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    // Test interface
     internal interface ISolutionBindingSerializer
     {
-        /// <summary>
-        /// Retrieves solution binding information
-        /// </summary>
-        /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject ReadSolutionBinding();
-
-        /// <summary>
-        /// Writes the binding information
-        /// </summary>
-        /// <param name="binding">Required</param>
-        /// <param name="sccFileSystem">Required</param>
-        /// <returns>The file path to the binding file</returns>
-        string WriteSolutionBinding(BoundSonarQubeProject binding);
+        bool SerializeToFile(string filePath, BoundSonarQubeProject project);
+        BoundSonarQubeProject DeserializeFromFile(string filePath);
     }
 }
