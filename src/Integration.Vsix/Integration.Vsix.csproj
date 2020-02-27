@@ -182,6 +182,7 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
+    <None Remove="ThirdPartyLicenses\System.IO.Abstractions.txt" />
     
     <Content Include="Resources\sonarlint_32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -192,6 +193,10 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ThirdPartyLicenses\System.IO.Abstractions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -411,7 +416,7 @@
 
   <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
     <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)"  />
+      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" />
     </ItemGroup>
   </Target>
 
