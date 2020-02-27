@@ -109,6 +109,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.3.2099" />
 
@@ -405,6 +406,18 @@
         <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
         <Visible>false</Visible>
       </Content>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)"  />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeNuGetPackageReferences" AfterTargets="GetVsixSourceItems">
+    <ItemGroup>
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />
     </ItemGroup>
   </Target>
 

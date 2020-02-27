@@ -326,7 +326,6 @@ namespace SonarLint.VisualStudio.Integration
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
-            this.localServices.Add(typeof(IFileSystem), sccFs);
 
             Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");

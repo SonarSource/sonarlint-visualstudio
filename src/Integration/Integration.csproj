@@ -34,6 +34,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
   </ItemGroup>
 
   <ItemGroup>
@@ -97,11 +98,7 @@
        NB the target is based on the one from Microsoft.VisualStudio.SDK.EmbedInteropTypes above. -->
   <Target Name="HackIncludeALMAuthInVsix" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
-      <ReferencePath Condition="
-              '%(FileName)' == 'Microsoft.Alm.Authentication'
-           or '%(FileName)' == 'Microsoft.Alm.Git'
-           or '%(FileName)' == 'Microsoft.Vsts.Authentication'
-              ">
+      <ReferencePath Condition="&#xD;&#xA;              '%(FileName)' == 'Microsoft.Alm.Authentication'&#xD;&#xA;           or '%(FileName)' == 'Microsoft.Alm.Git'&#xD;&#xA;           or '%(FileName)' == 'Microsoft.Vsts.Authentication'&#xD;&#xA;              ">
         <CopyLocal>true</CopyLocal>
       </ReferencePath>
     </ItemGroup>
