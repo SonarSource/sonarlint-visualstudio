@@ -50,6 +50,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
 
+            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
+
             boundProject = new BoundSonarQubeProject(
                 new Uri("http://xxx.www.zzz/yyy:9000"),
                 "MyProject Key",
@@ -120,6 +122,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Save_ReturnsTrue()
         {
+            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
+
             var actual = testSubject.Save(MockFilePath, boundProject);
             actual.Should().BeTrue();
         }
