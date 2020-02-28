@@ -18,24 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-
-namespace SonarLint.VisualStudio.Core.SystemAbstractions
+namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    [ExcludeFromCodeCoverage] // Wrapper around System.IO.File
-    public class FileWrapper : IFile
+    internal interface ISolutionBindingFileLoader
     {
-        public void Delete(string path) => File.Delete(path);
-
-        public bool Exists(string path) => File.Exists(path);
-
-        public TextReader OpenText(string path) => File.OpenText(path);
-
-        public TextWriter CreateText(string path) => File.CreateText(path);
-
-        public string ReadAllText(string path) => File.ReadAllText(path);
-
-        public void WriteAllText(string path, string contents) => File.WriteAllText(path, contents);
+        BoundSonarQubeProject Load(string filePath);
+        bool Save(string filePath, BoundSonarQubeProject project);
     }
 }

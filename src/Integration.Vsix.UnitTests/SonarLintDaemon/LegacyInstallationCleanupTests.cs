@@ -20,11 +20,11 @@
 
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
@@ -50,125 +50,125 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // "Strict" mocks, so will throw if any methods on the mock are called
             // (we don't expect either the logger or directory wrapper to be used if
             // the legacy folder does not exist)
-            var mockDirectory = new Mock<IDirectory>(MockBehavior.Strict);
+            var fileSystemMock = new Mock<IFileSystem>(MockBehavior.Strict);
             var mockLogger = new Mock<ILogger>(MockBehavior.Strict);
 
-            mockDirectory.Setup(x => x.GetDirectories(It.IsAny<string>(), It.IsAny<string>())).Returns(new string[] { });
+            fileSystemMock.Setup(x => x.Directory.GetDirectories(It.IsAny<string>(), It.IsAny<string>())).Returns(new string[] { });
 
             var cleaner = new LegacyInstallationCleanup(
                 mockLogger.Object,
                 "c:\\dummy directory\\that does\\not\\exist",
-                mockDirectory.Object);
+                fileSystemMock.Object);
 
             // Act
             cleaner.Clean();
 
             // Assert
-            AssertDeleteCalledExpectedTimes(mockDirectory, 0);
+            AssertDeleteCalledExpectedTimes(fileSystemMock, 0);
         }
 
         [TestMethod]
         public void Clean_MatchingDaemonFoldersExist_Deleted()
         {
             // Arrange
-            var mockDirectory = new Mock<IDirectory>();
+            var fileSystemMock = new Mock<IFileSystem>();
             var mockLogger = new Mock<ILogger>();
 
-            SetupDirectories(mockDirectory, "c:\\aaa\\rootfolder",
+            SetupDirectories(fileSystemMock, "c:\\aaa\\rootfolder",
                 "sonarlint-daemon-match1-windows",
                 "sonarlint-daemon-2.17.0.899-windows");
 
             var cleaner = new LegacyInstallationCleanup(
                 mockLogger.Object,
                 "c:\\aaa\\rootfolder",
-                mockDirectory.Object);
+                fileSystemMock.Object);
 
             // Act
             cleaner.Clean();
 
             // Assert
-            AssertRenamedFolderDeleted(mockDirectory, "c:\\aaa\\rootfolder\\sonarlint-daemon-match1-windows");
-            AssertRenamedFolderDeleted(mockDirectory, "c:\\aaa\\rootfolder\\sonarlint-daemon-2.17.0.899-windows");
-            AssertDeleteCalledExpectedTimes(mockDirectory, 2);
+            AssertRenamedFolderDeleted(fileSystemMock, "c:\\aaa\\rootfolder\\sonarlint-daemon-match1-windows");
+            AssertRenamedFolderDeleted(fileSystemMock, "c:\\aaa\\rootfolder\\sonarlint-daemon-2.17.0.899-windows");
+            AssertDeleteCalledExpectedTimes(fileSystemMock, 2);
         }
 
         [TestMethod]
         public void Clean_MatchingDaemonFoldersNotFound_NoError_NotDeleted()
         {
             // Arrange
-            var mockDirectory = new Mock<IDirectory>();
+            var fileSystemMock = new Mock<IFileSystem>();
             var mockLogger = new Mock<ILogger>();
 
-            SetupDirectories(mockDirectory, "c:\\",
+            SetupDirectories(fileSystemMock, "c:\\",
                 "aaa",
                 "bbb");
 
             // Mark the first directory as not existing
-            mockDirectory.Setup(x => x.Exists("c:\\aaa")).Returns(false);
+            fileSystemMock.Setup(x => x.Directory.Exists("c:\\aaa")).Returns(false);
 
             var cleaner = new LegacyInstallationCleanup(
                 mockLogger.Object,
                 "c:\\",
-                mockDirectory.Object);
+                fileSystemMock.Object);
 
             // Act
             cleaner.Clean();
 
             // Assert
-            AssertRenamedFolderDeleted(mockDirectory, "c:\\bbb");
-            AssertDeleteCalledExpectedTimes(mockDirectory, 1);
+            AssertRenamedFolderDeleted(fileSystemMock, "c:\\bbb");
+            AssertDeleteCalledExpectedTimes(fileSystemMock, 1);
         }
 
         [TestMethod]
         public void Clean_ErrorDuringDelete_ErrorSuppressedAndOtherFoldersDeleted()
         {
             // Arrange
-            var mockDirectory = new Mock<IDirectory>();
+            var fileSystemMock = new Mock<IFileSystem>();
             var mockLogger = new Mock<ILogger>();
 
-            SetupDirectories(mockDirectory, "c:\\aaa\\rootfolder",
+            SetupDirectories(fileSystemMock, "c:\\aaa\\rootfolder",
                 "xxx",
                 "yyy");
 
             // Set up to throw when the first directory is deleted
-            mockDirectory
-                .Setup(x => x.Delete(It.Is<string>(n => n.StartsWith("c:\\aaa\\rootfolder\\xxx")), true))
+            fileSystemMock
+                .Setup(x => x.Directory.Delete(It.Is<string>(n => n.StartsWith("c:\\aaa\\rootfolder\\xxx")), true))
                 .Throws(new FileNotFoundException());
 
             var cleaner = new LegacyInstallationCleanup(
                 mockLogger.Object,
                 "c:\\aaa\\rootfolder",
-                mockDirectory.Object);
+                fileSystemMock.Object);
 
             // Act
             cleaner.Clean();
 
             // Assert
-            AssertRenamedFolderDeleted(mockDirectory, "c:\\aaa\\rootfolder\\xxx");
-            AssertRenamedFolderDeleted(mockDirectory, "c:\\aaa\\rootfolder\\yyy");
+            AssertRenamedFolderDeleted(fileSystemMock, "c:\\aaa\\rootfolder\\xxx");
+            AssertRenamedFolderDeleted(fileSystemMock, "c:\\aaa\\rootfolder\\yyy");
 
-            AssertDeleteCalledExpectedTimes(mockDirectory, 2);
+            AssertDeleteCalledExpectedTimes(fileSystemMock, 2);
         }
 
-        private static void SetupDirectories(Mock<IDirectory> mock, string rootFolderName, params string[] subFolderNames)
+        private static void SetupDirectories(Mock<IFileSystem> mock, string rootFolderName, params string[] subFolderNames)
         {
             var fullReturnPaths = subFolderNames.Select(f => Path.Combine(rootFolderName, f)).ToArray();
-            mock.Setup(x => x.GetDirectories(It.Is<string>(f => f == rootFolderName), It.IsAny<string>())).Returns(fullReturnPaths);
+            mock.Setup(x => x.Directory.GetDirectories(It.Is<string>(f => f == rootFolderName), It.IsAny<string>())).Returns(fullReturnPaths);
 
-            mock.Setup(x => x.Exists(It.IsAny<string>())).Returns<string>(n => n == rootFolderName || fullReturnPaths.Contains(n));
+            mock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns<string>(n => n == rootFolderName || fullReturnPaths.Contains(n));
         }
 
-        private static void AssertDeleteCalledExpectedTimes(Mock<IDirectory> mock, int count)
+        private static void AssertDeleteCalledExpectedTimes(Mock<IFileSystem> mock, int count)
         {
-            mock.Verify(x => x.Delete(It.IsAny<string>(), true), Times.Exactly(count));
+            mock.Verify(x => x.Directory.Delete(It.IsAny<string>(), true), Times.Exactly(count));
         }
 
-        private static void AssertRenamedFolderDeleted(Mock<IDirectory> mock, string partialFolderName)
+        private static void AssertRenamedFolderDeleted(Mock<IFileSystem> mock, string partialFolderName)
         {
             // Should not be trying to delete the exact folder name - we expect
             // to have been renamed by appending a suffix
-            mock.Verify(x => x.Delete(partialFolderName, true), Times.Never);
-            mock.Verify(x => x.Delete(It.Is<string>(n => n.StartsWith(partialFolderName)), true), Times.Once);
+            mock.Verify(x => x.Directory.Delete(partialFolderName, true), Times.Never);
+            mock.Verify(x => x.Directory.Delete(It.Is<string>(n => n.StartsWith(partialFolderName)), true), Times.Once);
         }
     }
 }

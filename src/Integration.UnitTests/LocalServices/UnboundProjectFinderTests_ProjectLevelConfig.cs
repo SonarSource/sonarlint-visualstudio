@@ -20,13 +20,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableRuleSetSerializer ruleSetSerializer;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfoProvider;
-        private Mock<IFile> fileMock;
+        private Mock<IFileSystem> fileMock;
 
         [TestInitialize]
         public void TestInit()
@@ -61,10 +62,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ruleSetInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
-            this.ruleSetSerializer = new ConfigurableRuleSetSerializer();
+            this.ruleSetSerializer = new ConfigurableRuleSetSerializer(new MockFileSystem());
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleSetSerializer);
 
-            this.fileMock = new Mock<IFile>();
+            this.fileMock = new Mock<IFileSystem>();
+            fileMock.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(false);
         }
 
         #region Tests
@@ -225,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private UnboundProjectFinder CreateTestSubject() =>
             new UnboundProjectFinder(this.serviceProvider, this.fileMock.Object);
-       
+
         private IEnumerable<Project> SetValidFilteredProjects()
         {
             var project1 = new ProjectMock(@"c:\SolutionRoot\Project1\Project1.csproj");
@@ -295,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string expectedSolutionRulesFile = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider)
                 .CalculateSolutionSonarQubeRuleSetFilePath(projectKey, language, bindingMode);
 
-            fileMock.Setup(x => x.Exists(expectedSolutionRulesFile)).Returns(true);
+            fileMock.Setup(x => x.File.Exists(expectedSolutionRulesFile)).Returns(true);
             return expectedSolutionRulesFile;
         }
 

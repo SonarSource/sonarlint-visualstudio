@@ -20,7 +20,7 @@
 
 using System;
 using System.IO;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
+using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly ILogger logger;
         private readonly string legacyStoragePath;
-        private readonly IDirectory directory;
+        private readonly IFileSystem fileSystem;
 
         public static void CleanupDaemonFiles(ILogger logger)
         {
@@ -45,19 +45,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             new LegacyInstallationCleanup(logger,
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                new DirectoryWrapper()).Clean();
+                new FileSystem()).Clean();
         }
 
-        internal /* for testing */ LegacyInstallationCleanup(ILogger logger, string legacyStoragePath, IDirectory directory)
+        internal /* for testing */ LegacyInstallationCleanup(ILogger logger, string legacyStoragePath, IFileSystem fileSystem)
         {
             this.logger = logger;
             this.legacyStoragePath = legacyStoragePath;
-            this.directory = directory;
+            this.fileSystem = fileSystem;
         }
 
         public void Clean()
         {
-            var foldersToDelete = directory.GetDirectories(legacyStoragePath, "sonarlint-daemon-*-windows");
+            var foldersToDelete = fileSystem.Directory.GetDirectories(legacyStoragePath, "sonarlint-daemon-*-windows");
 
             if (foldersToDelete.Length == 0)
             {
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void SafeDeleteDirectory(string fullPath)
         {
-            if (!directory.Exists(fullPath))
+            if (!fileSystem.Directory.Exists(fullPath))
             {
                 return;
             }
@@ -86,8 +86,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             try
             {
-                directory.Move(fullPath, renamedPath);
-                directory.Delete(renamedPath, true);
+                fileSystem.Directory.Move(fullPath, renamedPath);
+                fileSystem.Directory.Delete(renamedPath, true);
                 logger.WriteLine($"Deleted daemon folder {fullPath}");
             }
             catch (IOException ex)

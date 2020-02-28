@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsQueryEditQuerySave2 queryEditAndSave;
-        private ConfigurableFileSystem fileSystem;
+        private MockFileSystem fileSystem;
         private TestLogger logger;
 
         [TestInitialize]
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider = new ConfigurableServiceProvider();
             this.queryEditAndSave = new ConfigurableVsQueryEditQuerySave2();
             this.serviceProvider.RegisterService(typeof(SVsQueryEditQuerySave), this.queryEditAndSave);
-            this.fileSystem = new ConfigurableFileSystem();
+            this.fileSystem = new MockFileSystem();
             this.logger = new TestLogger();
         }
 
@@ -63,13 +64,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string file = @"Z:\Y\XXX \n.lll";
 
             // Case 1: file exists
-            this.fileSystem.RegisterFile(file);
+            this.fileSystem.AddFile(file, new MockFileData(""));
 
             // Act + Assert
             testSubject.FileExistOrQueuedToBeWritten(file.ToLowerInvariant()).Should().BeTrue();
 
             // Case 2: file not exists, but pending
-            this.fileSystem.ClearFiles();
+            foreach (var filePath in fileSystem.AllFiles)
+            {
+                fileSystem.RemoveFile(filePath);
+            }
             testSubject.QueueFileWrite(file, () => true);
 
             // Act + Assert
@@ -106,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file = @"Z:\Y\XXX \n.lll";
-            this.fileSystem.RegisterFile(file);
+            this.fileSystem.AddFile(file, new MockFileData(""));
             bool pendExecuted = false;
 
             // Act
@@ -127,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
             string file3 = @"Z:\Y\XXX \2.lll";
-            this.fileSystem.RegisterFile(file1);
+            this.fileSystem.AddFile(file1, new MockFileData(""));
             List<string> executionOrder = new List<string>();
 
             // Act
@@ -148,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
-            this.fileSystem.RegisterFile(file1);
+            this.fileSystem.AddFile(file1, new MockFileData(""));
             this.queryEditAndSave.VerifyQueryEditFlags |= (uint)VsQueryEditFlags.NoReload;
             KnownUIContextsAccessor.MonitorSelectionService.SetContext(VSConstants.UICONTEXT.Debugging_guid, true);
             testSubject.QueueFileWrite(file1, () => true);
@@ -166,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
-            this.fileSystem.RegisterFile(file1);
+            this.fileSystem.AddFile(file1, new MockFileData(""));
             this.queryEditAndSave.VerifyQueryEditFlags |= (uint)VsQueryEditFlags.NoReload;
             KnownUIContextsAccessor.MonitorSelectionService.SetContext(VSConstants.UICONTEXT.SolutionBuilding_guid, true);
             testSubject.QueueFileWrite(file1, () => true);
@@ -184,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             SourceControlledFileSystem testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             string file1 = @"Z:\Y\XXX \1.lll";
-            this.fileSystem.RegisterFile(file1);
+            this.fileSystem.AddFile(file1, new MockFileData(""));
             this.queryEditAndSave.QueryEditFilesVerdict = tagVSQueryEditResult.QER_EditNotOK;
             this.queryEditAndSave.QueryEditFilesMoreInfo = tagVSQueryEditResultFlags.QER_EditNotPossible | tagVSQueryEditResultFlags.QER_NoisyPromptRequired;
             testSubject.QueueFileWrite(file1, () => true);
@@ -207,7 +211,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 if (flags == VsQuerySaveFlags.SilentMode)
                 {
-                     return tagVSQuerySaveResult.QSR_NoSave_NoisyPromptRequired;
+                    return tagVSQuerySaveResult.QSR_NoSave_NoisyPromptRequired;
                 }
                 if (flags == VsQuerySaveFlags.DefaultOperation)
                 {
@@ -253,8 +257,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             string file1 = @"Z:\Y\XXX \1.lll";
             string file2 = @"Z:\Y\XXX \3.lll";
             string file3 = @"Z:\Y\XXX \2.lll";
-            this.fileSystem.RegisterFile(file1);
-            this.fileSystem.RegisterFile(file3);
+            this.fileSystem.AddFile(file1, new MockFileData(""));
+            this.fileSystem.AddFile(file3, new MockFileData(""));
             List<string> executionOrder = new List<string>();
 
             // Act

@@ -20,11 +20,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
@@ -70,8 +70,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             string actualPath = null;
             string actualText = null;
 
-            var fileSystemMock = new Mock<IFile>();
-            fileSystemMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
             var testSubject = new CFamilyBindingConfigFile(settings, fileSystemMock.Object);

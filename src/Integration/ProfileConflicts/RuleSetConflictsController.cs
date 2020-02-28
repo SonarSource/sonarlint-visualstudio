@@ -39,17 +39,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         public RuleSetConflictsController(IHost host, IConflictsManager conflictsManager)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-            if (conflictsManager == null)
-            {
-                throw new ArgumentNullException(nameof(conflictsManager));
-            }
-
-            this.host = host;
-            this.conflictsManager = conflictsManager;
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.conflictsManager = conflictsManager ?? throw new ArgumentNullException(nameof(conflictsManager));
             this.FixConflictsCommand = new RelayCommand<IEnumerable<ProjectRuleSetConflict>>(this.OnFixConflicts, this.OnFixConflictsStatus);
         }
 

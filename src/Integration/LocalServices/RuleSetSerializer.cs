@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Xml;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
@@ -28,16 +29,16 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal sealed class RuleSetSerializer : IRuleSetSerializer
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly IFileSystem fileSystem;
 
-        public RuleSetSerializer(IServiceProvider serviceProvider)
+        public RuleSetSerializer()
+            : this(new FileSystem())
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
+        }
 
-            this.serviceProvider = serviceProvider;
+        internal RuleSetSerializer(IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(this.fileSystem));
         }
 
         public RuleSet LoadRuleSet(string path)
@@ -47,10 +48,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(path));
             }
 
-            var fileSystem = this.serviceProvider.GetService<IFileSystem>();
-            fileSystem.AssertLocalServiceIsNotNull();
-
-            if (fileSystem.FileExist(path))
+            if (fileSystem.File.Exists(path))
             {
                 try
                 {

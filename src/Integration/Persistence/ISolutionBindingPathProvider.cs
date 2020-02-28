@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// <summary>
         /// Return the path of solution's binding configuration file
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Null if the solutioמ is closed</returns>
         string Get();
     }
 }

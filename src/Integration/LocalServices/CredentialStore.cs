@@ -28,9 +28,18 @@ namespace SonarLint.VisualStudio.Integration
     /// </summary>
     public class CredentialStore : ICredentialStoreService
     {
-        private readonly SecretStore store;
+        private readonly ICredentialStore store;
 
-        public CredentialStore(SecretStore store)
+        // This class implements an ugly fix for #768 - SonarQube token is visible in Credential Manager
+        // https://github.com/SonarSource/sonarlint-visualstudio/issues/768
+        // If we only have a user name and no password, we assume the user name is a token.
+        // All other classes are still unaware of tokens and just use user name and password.
+
+        // We have to supply a "user name" when storing credentials, even if we are storing
+        // a token. Other apps (e.g. the Git credential manager) use "PersonalAccessToken".
+        internal const string UserNameForTokenCredential = "PersonalAccessToken";
+
+        public CredentialStore(ICredentialStore store)
         {
             if (store == null)
             {
@@ -42,10 +51,26 @@ namespace SonarLint.VisualStudio.Integration
         public void DeleteCredentials(TargetUri targetUri) =>
             store.DeleteCredentials(targetUri);
 
-        public Credential ReadCredentials(TargetUri targetUri) =>
-            store.ReadCredentials(targetUri);
+        public Credential ReadCredentials(TargetUri targetUri)
+        {
+            var storedCreds = store.ReadCredentials(targetUri);
+            if (UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase))
+            {
+                storedCreds = new Credential(storedCreds.Password);
+            }
+            return storedCreds;
+        }
 
-        public void WriteCredentials(TargetUri targetUri, Credential credentials) =>
-            store.WriteCredentials(targetUri, credentials);
+
+        public void WriteCredentials(TargetUri targetUri, Credential credentials)
+        {
+            var credsToStore = credentials;
+            if (string.IsNullOrEmpty(credentials.Password))
+            {
+                credsToStore = new Credential(UserNameForTokenCredential, credentials.Username);
+            }
+
+            store.WriteCredentials(targetUri, credsToStore);
+        }
     }
 }
