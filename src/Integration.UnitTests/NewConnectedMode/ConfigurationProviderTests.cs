@@ -232,7 +232,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected);
-
             legacyPathProvider.Setup(x => x.Get()).Returns("old.txt");
 
             solutionBindingFile
@@ -255,8 +254,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var projectToWrite = new BoundSonarQubeProject();
             var config = BindingConfiguration.CreateBoundConfiguration(projectToWrite, SonarLintMode.Connected);
-
-            legacyPathProvider.Setup(x => x.Get()).Returns(null as string);
             newPathProvider.Setup(x => x.Get()).Returns("new.txt");
 
             solutionBindingFile
