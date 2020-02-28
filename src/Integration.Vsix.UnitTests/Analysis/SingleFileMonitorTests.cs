@@ -20,11 +20,11 @@
 
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -38,13 +38,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void NonCriticalExceptions_AreSuppressed()
         {
             // Arrange
-            var directoryMock = new Mock<IDirectory>();
-            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
                 fileMonitor.FileChanged += (s, args) => throw new InvalidOperationException("XXX non-critical exception");
 
@@ -62,8 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void CriticalExceptions_AreNotSuppressed()
         {
             // Arrange
-            var directoryMock = new Mock<IDirectory>();
-            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             Action act = () =>
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
                 fileMonitor.FileChanged += (s, args) => throw new StackOverflowException("YYY critical exception");
 
@@ -86,18 +86,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void DirectoryDoesNotExist_IsCreated()
         {
             // Arrange
-            var directoryMock = new Mock<IDirectory>();
-            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(false);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(false);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
             // Act
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
                 // Assert
-                directoryMock.Verify(x => x.Exists("c:\\dummy"), Times.Once);
-                directoryMock.Verify(x => x.Create("c:\\dummy"), Times.Once);
+                fileSystemMock.Verify(x => x.Directory.Exists("c:\\dummy"), Times.Once);
+                fileSystemMock.Verify(x => x.Directory.CreateDirectory("c:\\dummy"), Times.Once);
                 testLogger.AssertPartialOutputStringExists("c:\\dummy");
             }
         }
@@ -106,18 +106,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void DirectoryDoesExist_IsNotCreated()
         {
             // Arrange
-            var directoryMock = new Mock<IDirectory>();
-            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
             var testLogger = new TestLogger(logToConsole: true, logThreadId: true);
 
             // Act
-            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger))
+            using (var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger))
             {
                 // Assert
-                directoryMock.Verify(x => x.Exists("c:\\dummy"), Times.Once);
-                directoryMock.Verify(x => x.Create("c:\\dummy"), Times.Never);
+                fileSystemMock.Verify(x => x.Directory.Exists("c:\\dummy"), Times.Once);
+                fileSystemMock.Verify(x => x.Directory.CreateDirectory("c:\\dummy"), Times.Never);
                 testLogger.AssertPartialOutputStringDoesNotExist("c:\\dummy");
             }
         }
@@ -168,13 +168,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             void DoRaise_Dispose_RaiseAgain(Action<Mock<IFileSystemWatcher>> raiseEvent)
             {
                 // Arrange
-                var directoryMock = new Mock<IDirectory>();
-                directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+                var fileSystemMock = new Mock<IFileSystem>();
+                fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
                 var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
                 var testLogger = new TestLogger();
 
-                var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
+                var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
 
                 var eventCount = 0;
                 fileMonitor.FileChanged += (s, args) => eventCount++;
@@ -201,11 +201,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var timeout = System.Diagnostics.Debugger.IsAttached ? 1000 * 60 * 5 : 1000;
             var testLogger = new TestLogger();
 
-            var directoryMock = new Mock<IDirectory>();
-            directoryMock.Setup(x => x.Exists(It.IsAny<string>())).Returns(true);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(true);
 
             var watcherFactoryMock = CreateFactoryAndWatcherMocks(out var watcherMock);
-            var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, directoryMock.Object, "c:\\dummy\\file.txt", testLogger);
+            var fileMonitor = new SingleFileMonitor(watcherFactoryMock.Object, fileSystemMock.Object, "c:\\dummy\\file.txt", testLogger);
 
             var eventHandlerStartedEvent = new ManualResetEvent(false);
             var disposeCalledEvent = new ManualResetEvent(false);
@@ -384,7 +384,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             watcherMock = new Mock<IFileSystemWatcher>();
             var watcherFactoryMock = new Mock<IFileSystemWatcherFactory>();
             watcherFactoryMock
-                .Setup(x => x.Create())
+                .Setup(x => x.CreateNew())
                 .Returns(watcherMock.Object);
             return watcherFactoryMock;
         }

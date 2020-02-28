@@ -19,13 +19,14 @@
  */
 
 using System;
+using System.IO;
+using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
@@ -39,17 +40,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSourceControlledFileSystem configurableSccFileSystem;
         private ICredentialStoreService configurableStore;
         private Mock<ILogger> loggerMock;
-        private Mock<IFile> fileMock;
+        private Mock<IFileSystem> fileMock;
         private ConfigurationSerializer testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
             solutionMock = new Mock<IVsSolution>();
-            configurableSccFileSystem = new ConfigurableSourceControlledFileSystem();
             configurableStore = new ConfigurableCredentialStore();
             loggerMock = new Mock<ILogger>();
-            fileMock = new Mock<IFile>();
+            fileMock = new Mock<IFileSystem>();
+            configurableSccFileSystem = new ConfigurableSourceControlledFileSystem(fileMock.Object);
             testSubject = new ConfigurationSerializer(solutionMock.Object, configurableSccFileSystem, configurableStore, loggerMock.Object, fileMock.Object);
         }
 
@@ -212,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             Credential cred = new Credential("user1");
             configurableStore.WriteCredentials(new TargetUri("https://xxx:123"), cred);
-            
+
             // Act
             var actual = testSubject.ReadSolutionBinding();
 
@@ -250,7 +251,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             actualFilePath.Should().Be(expectedFilePath);
-            fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
+            fileMock.Verify(x => x.File.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
             var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
             savedCredentials.Should().BeNull();
         }
@@ -277,13 +278,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             actualFilePath.Should().Be(expectedFilePath);
             configurableSccFileSystem.AssertQueuedOperationCount(1);
-            fileMock.Verify(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            fileMock.Verify(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
 
             // Step 2 - execute the queued write
             configurableSccFileSystem.WritePendingNoErrorsExpected(); // write the queued changes
 
             actualFilePath.Should().Be(expectedFilePath);
-            fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
+            fileMock.Verify(x => x.File.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
             var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
             savedCredentials.Should().NotBeNull();
             savedCredentials.Username.Should().Be("user1");
@@ -313,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             actualFilePath.Should().Be(expectedFilePath);
-            fileMock.Verify(x => x.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
+            fileMock.Verify(x => x.File.WriteAllText(expectedFilePath, It.IsAny<string>()), Times.Once);
             var savedCredentials = configurableStore.ReadCredentials(new Uri("http://localhost:9000"));
             savedCredentials.Should().NotBeNull();
             savedCredentials.Username.Should().Be("user1");
@@ -326,7 +327,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             SetSolutionFilePath(@"c:\my solution file.foo");
             var expectedFilePath = @"c:\.sonarlint\my solution file.slconfig";
-            fileMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<System.IO.IOException>();
+            fileMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<System.IO.IOException>();
 
             var boundProject = new BoundSonarQubeProject
             {
@@ -349,7 +350,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             SetSolutionFilePath(@"c:\mysolutionfile.foo");
-            fileMock.Setup(x => x.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<StackOverflowException>();
+            fileMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>())).Throws<StackOverflowException>();
 
             var boundProject = new BoundSonarQubeProject
             {
@@ -368,12 +369,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             object outVal = filePath;
             int returnCode = filePath == null ? VSConstants.S_FALSE : VSConstants.S_OK;
             solutionMock.Setup(x => x.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out outVal)).Returns(returnCode);
+            fileMock.Setup(x => x.File.Exists(filePath)).Returns(false);
+            fileMock.Setup(x => x.Directory.Exists(Path.GetDirectoryName(filePath))).Returns(true);
         }
 
         private void SetFileContents(string fullPath, string contents)
         {
-            fileMock.Setup(x => x.Exists(fullPath)).Returns(true);
-            fileMock.Setup(x => x.ReadAllText(fullPath)).Returns(contents);
+            fileMock.Setup(x => x.File.Exists(fullPath)).Returns(true);
+            fileMock.Setup(x => x.File.ReadAllText(fullPath)).Returns(contents);
         }
     }
 }

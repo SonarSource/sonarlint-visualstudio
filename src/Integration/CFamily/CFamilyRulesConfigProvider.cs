@@ -20,9 +20,9 @@
 
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 // Note: currently this class needs to be in the the Integration assembly because it
@@ -51,12 +51,12 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
             : this(host, activeSolutionBoundTracker, userSettingsProvider, logger,
                  new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
-                 new FileWrapper())
+                 new FileSystem())
         {
         }
 
         public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
-            ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFile fileWrapper)
+            ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFileSystem fileSystem)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.userSettingsProvider = userSettingsProvider;
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             solutionInfoProvider.AssertLocalServiceIsNotNull();
 
             this.sonarWayProvider = sonarWayProvider;
-            this.serializer = new UserSettingsSerializer(fileWrapper, logger);
+            this.serializer = new UserSettingsSerializer(fileSystem, logger);
 
             this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(logger);
         }

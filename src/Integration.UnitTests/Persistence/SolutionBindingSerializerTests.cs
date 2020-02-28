@@ -21,13 +21,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -69,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
-            this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem();
+            this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem(new MockFileSystem());
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sourceControlledFileSystem);
 
             this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider
@@ -87,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionBindingSerializer_ArgChecks()
         {
             ILogger loggerMock = new Mock<ILogger>().Object;
-            IFile fileWrapper = new FileWrapper();
+            IFileSystem fileWrapper = new FileSystem();
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null, sourceControlledFileSystem, store, loggerMock, fileWrapper));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, null, store, loggerMock, fileWrapper));
@@ -373,7 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private SolutionBindingSerializer CreateTestSubject()
         {
-            return new SolutionBindingSerializer(this.serviceProvider, this.sourceControlledFileSystem, this.store, new SonarLintOutputLogger(serviceProvider), new FileWrapper());
+            return new SolutionBindingSerializer(this.serviceProvider, this.sourceControlledFileSystem, this.store, new SonarLintOutputLogger(serviceProvider), new FileSystem());
         }
 
         #endregion Helpers

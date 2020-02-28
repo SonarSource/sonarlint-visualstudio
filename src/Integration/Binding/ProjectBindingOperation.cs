@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
@@ -36,19 +37,26 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal partial class ProjectBindingOperation : IBindingOperation
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly ISolutionBindingConfigFileStore configFileStore;
+        private readonly IFileSystem fileSystem;
+        private readonly ISourceControlledFileSystem sourceControlledFileSystem;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
-        private readonly ILogger logger;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, ILogger logger)
+        public ProjectBindingOperation(IServiceProvider serviceProvider,
+            Project project,
+            ISolutionBindingConfigFileStore configFileStore)
+            : this(serviceProvider, project, configFileStore, new FileSystem())
+        {
+        }
+
+        internal ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
             this.configFileStore = configFileStore ?? throw new ArgumentNullException(nameof(configFileStore));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
@@ -61,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing purposes*/ Language ProjectLanguage { get; private set; }
 
         internal /*for testing purposes*/ string ProjectFullPath { get; private set; }
-
+       
         internal /*for testing purposes*/ IReadOnlyDictionary<Property, PropertyInformation> PropertyInformationMap { get { return this.propertyInformationMap; } }
         #endregion
 
@@ -109,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 string ruleSetFullFilePath = keyValue.Value.NewRuleSetFilePath;
 
                 Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFullFilePath), "Prepare was not called");
-                Debug.Assert(this.sourceControlledFileSystem.FileExist(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
+                Debug.Assert(fileSystem.File.Exists(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
 
                 string updatedRuleSetValue = PathHelper.CalculateRelativePath(this.ProjectFullPath, ruleSetFullFilePath);
                 property.Value = updatedRuleSetValue;

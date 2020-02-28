@@ -20,12 +20,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             private readonly SonarLintMode mode;
             private readonly string sqProjectKey;
 
-            private readonly Mock<IFile> fileMock = new Mock<IFile>();
+            private readonly Mock<IFileSystem> fileSystemMock = new Mock<IFileSystem>();
             private readonly List<ProjectMock> projects = new List<ProjectMock>();
             private readonly Mock<ISolutionRuleSetsInformationProvider> ruleSetsInfoProvider = new Mock<ISolutionRuleSetsInformationProvider>();
             private readonly Mock<IRuleSetSerializer> ruleSetSerializerMock = new Mock<IRuleSetSerializer>();
@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 ruleSetsInfoProvider.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath(sqProjectKey, language, mode))
                     .Returns(filePathToReturn);
 
-                fileMock.Setup(x => x.Exists(filePathToReturn)).Returns(fileExists);
+                fileSystemMock.Setup(x => x.File.Exists(filePathToReturn)).Returns(fileExists);
             }
 
             public ProjectMock AddFilteredProject(string projectKind)
@@ -203,12 +203,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, fileMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, fileSystemMock.Object);
                 return testSubject;
             }
 
             public void AssertExistenceOfFileWasChecked(string filePath) =>
-                fileMock.Verify(x => x.Exists(filePath), Times.Once);
+                fileSystemMock.Verify(x => x.File.Exists(filePath), Times.Once);
 
             public void AssertNoAttemptToLoadRulesetFile(string filePath) =>
                 ruleSetSerializerMock.Verify(x => x.LoadRuleSet(filePath), Times.Never);

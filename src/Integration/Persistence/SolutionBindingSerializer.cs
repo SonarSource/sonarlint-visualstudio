@@ -21,8 +21,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using EnvDTE;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
                   serviceProvider?.GetService<ISourceControlledFileSystem>(),
                   serviceProvider?.GetService<ICredentialStoreService>(),
                   serviceProvider?.GetMefService<ILogger>(),
-                  new FileWrapper())
+                  new FileSystem())
         {
         }
 
@@ -50,14 +50,10 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             ISourceControlledFileSystem sccFileSystem,
             ICredentialStoreService store,
             ILogger logger,
-            IFile fileWrapper)
-            : base(sccFileSystem, store, logger, fileWrapper)
+            IFileSystem fileSystem)
+            : base(sccFileSystem, store, logger, fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         protected override bool OnSuccessfulFileWrite(string filePath)

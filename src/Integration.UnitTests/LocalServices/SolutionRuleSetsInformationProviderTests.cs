@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
@@ -44,10 +45,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ProjectMock projectMock;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private SolutionRuleSetsInformationProvider testSubject;
+        private MockFileSystem fileSystem;
 
         [TestInitialize]
         public void TestInitialize()
         {
+            fileSystem = new MockFileSystem();
             this.dte = new DTEMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
@@ -59,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
 
-            this.testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new SonarLintOutputLogger(serviceProvider));
+            this.testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem);
         }
 
         #region Tests
@@ -67,14 +70,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object, new MockFileSystem()));
         }
 
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ArgChecks()
         {
             // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object);
+            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object, new MockFileSystem());
 
             // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectRuleSetsDeclarations(null).ToArray());
@@ -324,15 +327,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
         {
             // Arrange
-            var fileSystem = new ConfigurableFileSystem();
-            this.serviceProvider.RegisterService(typeof(IFileSystem), fileSystem);
             ProjectMock project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
             RuleSetDeclaration declaration;
             string ruleSetPath;
 
             // Case 1: Declaration has an full path which exists on disk
             declaration = CreateDeclaration(project, @"c:\RuleSet.ruleset");
-            fileSystem.RegisterFile(declaration.RuleSetPath);
+            fileSystem.AddFile(declaration.RuleSetPath, new MockFileData(""));
 
             // Act
             testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeTrue();
@@ -341,9 +342,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ruleSetPath.Should().Be(@"c:\RuleSet.ruleset");
 
             // Case 2: Declaration is relative to project and on disk
-            fileSystem.ClearFiles();
+            foreach (var filePath in fileSystem.AllFiles)
+            {
+                fileSystem.RemoveFile(filePath);
+            }
+
             declaration = CreateDeclaration(project, @"..\RuleSet.ruleset");
-            fileSystem.RegisterFile(@"c:\Solution\RuleSet.ruleset");
+            fileSystem.AddFile(@"c:\Solution\RuleSet.ruleset", new MockFileData(""));
 
             // Act
             testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeTrue();
@@ -352,7 +357,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ruleSetPath.Should().Be(@"c:\Solution\RuleSet.ruleset");
 
             // Case 3: File doesn't exist
-            fileSystem.ClearFiles();
+            foreach (var filePath in fileSystem.AllFiles)
+            {
+                fileSystem.RemoveFile(filePath);
+            }
             declaration = CreateDeclaration(project, "MyFile.ruleset");
 
             // Act
