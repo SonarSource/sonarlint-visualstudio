@@ -37,7 +37,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0" Version="8.0.50727" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
-    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="7.1.10" />
+    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
