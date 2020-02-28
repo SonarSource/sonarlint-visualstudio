@@ -21,8 +21,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Helpers;
 
@@ -31,14 +31,17 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     internal class SolutionBindingSerializer : ISolutionBindingSerializer
     {
         private readonly ILogger logger;
-        private readonly IFile fileWrapper;
-        private readonly IDirectory directoryWrapper;
+        private readonly IFileSystem fileSystem;
 
-        public SolutionBindingSerializer(ILogger logger, IFile fileWrapper, IDirectory directoryWrapper)
+        public SolutionBindingSerializer(ILogger logger)
+            : this(logger, new FileSystem())
+        {
+        }
+
+        internal SolutionBindingSerializer(ILogger logger, IFileSystem fileSystem)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
-            this.directoryWrapper = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public bool SerializeToFile(string filePath, BoundSonarQubeProject project)
@@ -54,17 +57,17 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
             var directoryName = Path.GetDirectoryName(configFile);
 
-            if (!directoryWrapper.Exists(directoryName))
+            if (!fileSystem.Directory.Exists(directoryName))
             {
-                directoryWrapper.Create(directoryName);
+                fileSystem.Directory.CreateDirectory(directoryName);
             }
 
-            fileWrapper.WriteAllText(configFile, serializedProject);
+            fileSystem.File.WriteAllText(configFile, serializedProject);
         }
 
         public BoundSonarQubeProject DeserializeFromFile(string filePath)
         {
-            if (string.IsNullOrEmpty(filePath) || !fileWrapper.Exists(filePath))
+            if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
             {
                 return null;
             }
@@ -88,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         private void ReadConfig(string configFile, out string text)
         {
-            text = fileWrapper.ReadAllText(configFile);
+            text = fileSystem.File.ReadAllText(configFile);
         }
 
         private bool SafePerformFileSystemOperation(Action operation)

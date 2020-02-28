@@ -19,13 +19,13 @@
  */
 
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.CFamily;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
@@ -181,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             private readonly Mock<IUserSettingsProvider> standaloneSettingsProviderMock;
             private readonly Mock<ICFamilyRulesConfigProvider> sonarWayProviderMock;
 
-            private readonly Mock<IFile> fileWrapperMock;
+            private readonly Mock<IFileSystem> fileSystemMock;
 
             private readonly Mock<IHost> host;
             private readonly ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             public TestEnvironmentBuilder(SonarLintMode mode)
             {
                 standaloneSettingsProviderMock = new Mock<IUserSettingsProvider>();
-                fileWrapperMock = new Mock<IFile>();
+                fileSystemMock = new Mock<IFileSystem>();
                 Logger = new TestLogger();
 
                 sonarWayProviderMock = new Mock<ICFamilyRulesConfigProvider>();
@@ -231,8 +231,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 rulesetInfoProviderMock.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath("sqProjectKey", It.IsAny<Language>(), bindingMode))
                     .Returns(connectedSettingsFilesPath);
 
-                fileWrapperMock.Setup(x => x.Exists(connectedSettingsFilesPath)).Returns(ConnectedSettingsFileExists);
-                fileWrapperMock.Setup(x => x.ReadAllText(connectedSettingsFilesPath))
+                fileSystemMock.Setup(x => x.File.Exists(connectedSettingsFilesPath)).Returns(ConnectedSettingsFileExists);
+                fileSystemMock.Setup(x => x.File.ReadAllText(connectedSettingsFilesPath))
                     .Returns(connectedSettingsData);
 
                 // Data: SonarWay configuration
@@ -240,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     .Returns(SonarWayConfig);
 
                 var testSubject = new CFamilyRuleConfigProvider(host.Object, activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
-                    sonarWayProviderMock.Object, fileWrapperMock.Object);
+                    sonarWayProviderMock.Object, fileSystemMock.Object);
 
                 return testSubject;
             }
@@ -249,8 +249,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             {
                 rulesetInfoProviderMock.Verify(x => x.CalculateSolutionSonarQubeRuleSetFilePath(It.IsAny<string>(),
                     It.IsAny<Language>(), It.IsAny<SonarLintMode>()), Times.Never);
-                fileWrapperMock.Verify(x => x.Exists(It.IsAny<string>()), Times.Never);
-                fileWrapperMock.Verify(x => x.ReadAllText(It.IsAny<string>()), Times.Never);
+                fileSystemMock.Verify(x => x.File.Exists(It.IsAny<string>()), Times.Never);
+                fileSystemMock.Verify(x => x.File.ReadAllText(It.IsAny<string>()), Times.Never);
             }
 
             public void AssertStandaloneSettingsNotAccessed()

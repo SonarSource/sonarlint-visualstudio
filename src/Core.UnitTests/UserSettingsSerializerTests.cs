@@ -21,10 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 }";
             File.WriteAllText(filePath1, validSettingsData);
 
-            var testSubject = new UserSettingsSerializer(new FileWrapper(), testLogger);
+            var testSubject = new UserSettingsSerializer(new FileSystem(), testLogger);
 
             // 1. Load from disc
             var loadedSettings = testSubject.SafeLoad(filePath1);
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 }";
             File.WriteAllText(filePath1, validSettingsData);
 
-            var testSubject = new UserSettingsSerializer(new FileWrapper(), testLogger);
+            var testSubject = new UserSettingsSerializer(new FileSystem(), testLogger);
 
             // 1. Load from disc
             var loadedSettings = testSubject.SafeLoad(filePath1);
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                 }
             };
 
-            var testSubject = new UserSettingsSerializer(new FileWrapper(), testLogger);
+            var testSubject = new UserSettingsSerializer(new FileSystem(), testLogger);
 
             // Act: save and reload
             testSubject.SafeSave(filePath, settings);
@@ -245,31 +245,31 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Load_MissingFile_NullReturned()
         {
             // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("settings.file")).Returns(false);
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(false);
 
             var logger = new TestLogger(logToConsole: true);
 
-            var testSubject = new UserSettingsSerializer(fileMock.Object, logger);
+            var testSubject = new UserSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             var result = testSubject.SafeLoad("settings.file");
 
             // Assert
             result.Should().BeNull();
-            fileMock.Verify(x => x.ReadAllText(It.IsAny<string>()), Times.Never);
+            fileSystemMock.Verify(x => x.File.ReadAllText(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
         public void Load_NonCriticalError_IsSquashed_AndNullReturned()
         {
             // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
-            fileMock.Setup(x => x.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
+            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new UserSettingsSerializer(fileMock.Object, logger);
+            var testSubject = new UserSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             var result = testSubject.SafeLoad("settings.file");
@@ -283,12 +283,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Load_CriticalError_IsNotSquashed()
         {
             // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.Exists("settings.file")).Returns(true);
-            fileMock.Setup(x => x.ReadAllText("settings.file")).Throws(new System.StackOverflowException("critical custom error message"));
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.Exists("settings.file")).Returns(true);
+            fileSystemMock.Setup(x => x.File.ReadAllText("settings.file")).Throws(new System.StackOverflowException("critical custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new UserSettingsSerializer(fileMock.Object, logger);
+            var testSubject = new UserSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             Action act = () => testSubject.SafeLoad("settings.file");
@@ -302,11 +302,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Save_NonCriticalError_IsSquashed()
         {
             // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.InvalidOperationException("custom error message"));
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.InvalidOperationException("custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new UserSettingsSerializer(fileMock.Object, logger);
+            var testSubject = new UserSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act - should not throw
             testSubject.SafeSave("settings.file", new UserSettings());
@@ -319,11 +319,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void Save_CriticalError_IsNotSquashed()
         {
             // Arrange
-            var fileMock = new Mock<IFile>();
-            fileMock.Setup(x => x.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.StackOverflowException("critical custom error message"));
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.WriteAllText("settings.file", It.IsAny<string>())).Throws(new System.StackOverflowException("critical custom error message"));
 
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new UserSettingsSerializer(fileMock.Object, logger);
+            var testSubject = new UserSettingsSerializer(fileSystemMock.Object, logger);
 
             // Act
             Action act = () => testSubject.SafeSave("settings.file", new UserSettings());

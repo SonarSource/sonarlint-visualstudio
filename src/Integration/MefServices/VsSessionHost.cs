@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Windows.Threading;
 using Microsoft.Alm.Authentication;
@@ -50,7 +51,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IRuleSetSerializer),
                 typeof(IProjectSystemHelper),
                 typeof(ISourceControlledFileSystem),
-                typeof(IFileSystem),
                 typeof(IRuleSetInspector),
                 typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration
         private void RegisterLocalServices()
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(this)));
+            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore("SonarLint.VisualStudio.Integration"))));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
@@ -293,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 var store = this.GetService<ICredentialStoreService>();
                 var credentialsLoader = new SolutionBindingCredentialsLoader(store);
-                var bindingSerializer = new SolutionBindingSerializer(Logger, new FileWrapper(), new DirectoryWrapper());
+                var bindingSerializer = new SolutionBindingSerializer(Logger);
 
                 var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
 
@@ -310,7 +310,6 @@ namespace SonarLint.VisualStudio.Integration
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
             this.localServices.Add(typeof(ISourceControlledFileSystem), sccFs);
-            this.localServices.Add(typeof(IFileSystem), sccFs);
 
             Debug.Assert(SupportedLocalServices.Length == this.localServices.Count, "Unexpected number of local services");
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");

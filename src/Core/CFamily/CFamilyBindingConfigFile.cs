@@ -19,25 +19,25 @@
  */
 
 using System;
+using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
     public class CFamilyBindingConfigFile : IBindingConfigFile
     {
-        private readonly IFile fileWrapper;
+        private readonly IFileSystem fileSystem;
 
         public CFamilyBindingConfigFile(UserSettings userSettings)
-            : this (userSettings, new FileWrapper())
+            : this (userSettings, new FileSystem())
         {
         }
 
-        public CFamilyBindingConfigFile(UserSettings userSettings, IFile fileWrapper)
+        public CFamilyBindingConfigFile(UserSettings userSettings, IFileSystem fileSystem)
         {
             this.UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
-            this.fileWrapper = fileWrapper;
+            this.fileSystem = fileSystem;
         }
 
         internal /* for testing */ UserSettings UserSettings { get; }
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public void Save(string fullFilePath)
         {
             string dataAsText = JsonConvert.SerializeObject(this.UserSettings, Formatting.Indented);
-            fileWrapper.WriteAllText(fullFilePath, dataAsText);
+            fileSystem.File.WriteAllText(fullFilePath, dataAsText);
         }
 
         #endregion IBindingConfigFile implementation

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ProjectMock solutionItemsProject;
         private SolutionMock solutionMock;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
+        private MockFileSystem fileSystem;
 
         // Note: currently the project binding saves files using the IRuleSetSerializer.
         // However, solution binding saves files using IBindingConfigFileWithRuleSet.Save(...)
@@ -71,8 +73,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.solutionItemsProject = this.solutionMock.AddOrGetProject("Solution items");
             this.projectSystemHelper.SolutionItemsProject = this.solutionItemsProject;
             this.projectSystemHelper.CurrentActiveSolution = this.solutionMock;
-            this.sccFileSystem = new ConfigurableSourceControlledFileSystem();
-            this.ruleFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
+            this.fileSystem = new MockFileSystem();
+            this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
+            this.ruleFS = new ConfigurableRuleSetSerializer(fileSystem);
             this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider
             {
                 SolutionRootFolder = SolutionRoot
@@ -242,7 +245,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var vbRulesetPath = Path.Combine(sonarQubeRulesDirectory, "keyvb.ruleset");
 
             // Sanity
-            this.sccFileSystem.directories.Should().NotContain(sonarQubeRulesDirectory);
+            fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
             testSubject.RuleSetsInformationMap[Language.CSharp].NewFilePath.Should().Be(csharpRulesetPath);
             testSubject.RuleSetsInformationMap[Language.VBNET].NewFilePath.Should().Be(vbRulesetPath);
 
@@ -250,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Assert
-            this.sccFileSystem.directories.Should().NotContain(sonarQubeRulesDirectory);
+            fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
             prepareCalledForBinder.Should().BeTrue("Expected to propagate the prepare call to binders");
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
@@ -261,7 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             CheckRuleSetFileWasSaved(csConfigFile, csharpRulesetPath);
             CheckRuleSetFileWasSaved(vbConfigFile, vbRulesetPath);
-            this.sccFileSystem.directories.Should().Contain(sonarQubeRulesDirectory);
+            fileSystem.AllDirectories.Should().Contain(sonarQubeRulesDirectory);
         }
 
         [TestMethod]
@@ -352,7 +355,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var expectedRuleset = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName, "keyCSharp.ruleset");
             this.solutionItemsProject.Files.ContainsKey(expectedRuleset).Should().BeTrue("Ruleset was expected to be added to solution items when in legacy mode");
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleset); // check the file was saved
+            fileSystem.GetFile(expectedRuleset).Should().NotBe(null); // check the file was saved
         }
 
         [TestMethod]
@@ -363,7 +366,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             this.solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
             var expectedRuleset = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyConnectedModeFolderName, "keyCSharp.ruleset");
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleset); // check the file was saved
+            fileSystem.GetFile(expectedRuleset).Should().NotBe(null); // check the file was saved
         }
 
         private void ExecuteCommitSolutionBindingTest(SonarLintMode bindingMode)
@@ -383,7 +386,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             {
                 { Language.CSharp, configFileMock.Object }
             };
-            
+
             testSubject.RegisterKnownConfigFiles(languageToFileMap);
             var profiles = GetQualityProfiles();
 
@@ -436,7 +439,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 projectKey,
                 bindingMode,
-                logger ?? new TestLogger());
+                logger ?? new TestLogger(),
+                fileSystem);
         }
 
         private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()
@@ -453,7 +457,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).
             rulesetConfig.Setup(x => x.Save(It.IsAny<string>()))
-                .Callback<string>(s => this.sccFileSystem.UpdateTimestamp(s));
+                .Callback<string>(s =>
+                {
+                    fileSystem.AddFile(s, new MockFileData(""));
+                });
 
             return rulesetConfig;
         }
