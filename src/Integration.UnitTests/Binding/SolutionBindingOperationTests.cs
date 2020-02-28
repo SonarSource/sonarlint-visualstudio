@@ -439,7 +439,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 projectKey,
                 bindingMode,
-                logger ?? new TestLogger());
+                logger ?? new TestLogger(),
+                fileSystem);
         }
 
         private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()
