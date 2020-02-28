@@ -19,12 +19,14 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using Moq;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -34,6 +36,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
         private SolutionBindingFileLoader testSubject;
+        private BoundSonarQubeProject boundProject;
+        private string serializedProject;
 
         private const string MockFilePath = "c:\\test.txt";
         private const string MockDirectory = "c:\\";
@@ -45,6 +49,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem = new Mock<IFileSystem>();
 
             testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
+
+            boundProject = new BoundSonarQubeProject(
+                new Uri("http://xxx.www.zzz/yyy:9000"),
+                "MyProject Key",
+                "projectName")
+            {
+                Profiles = new Dictionary<Language, ApplicableQualityProfile>
+                {
+                    {
+                        Language.CSharp,
+                        new ApplicableQualityProfile
+                        {
+                            ProfileKey = "sonar way", ProfileTimestamp = DateTime.Parse("2020-02-25T08:57:54+0000")
+                        }
+                    }
+                }
+            };
+
+            serializedProject = @"{
+  ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
+  ""Organization"": null,
+  ""ProjectKey"": ""MyProject Key"",
+  ""ProjectName"": ""projectName"",
+  ""Profiles"": {
+    ""CSharp"": {
+      ""ProfileKey"": ""sonar way"",
+      ""ProfileTimestamp"": ""2020-02-25T08:57:54Z""
+    }
+  }
+}";
         }
 
         [TestMethod]
@@ -68,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(false);
 
-            testSubject.Save(MockFilePath, new BoundSonarQubeProject());
+            testSubject.Save(MockFilePath, boundProject);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(MockDirectory), Times.Once);
         }
@@ -78,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
 
-            testSubject.Save(MockFilePath, new BoundSonarQubeProject());
+            testSubject.Save(MockFilePath, boundProject);
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(It.IsAny<string>()), Times.Never);
         }
@@ -86,31 +120,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Save_ReturnsTrue()
         {
-            var actual = testSubject.Save(MockFilePath, new BoundSonarQubeProject());
+            var actual = testSubject.Save(MockFilePath, boundProject);
             actual.Should().BeTrue();
         }
 
         [TestMethod]
         public void Save_FileSerializedAndWritten()
         {
-            var boundSonarQubeProject = new BoundSonarQubeProject(
-                new Uri("http://xxx.www.zzz/yyy:9000"),
-                "MyProject Key",
-                "projectName");
+            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, serializedProject));
 
-            var expectedContent = @"{
-  ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
-  ""Organization"": null,
-  ""ProjectKey"": ""MyProject Key"",
-  ""ProjectName"": ""projectName"",
-  ""Profiles"": null
-}";
+            testSubject.Save(MockFilePath, boundProject);
 
-            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, expectedContent));
-
-            testSubject.Save(MockFilePath, boundSonarQubeProject);
-
-            fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, expectedContent), Times.Once);
+            fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, serializedProject), Times.Once);
         }
 
         [TestMethod]
@@ -118,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
 
-            var actual = testSubject.Save(MockFilePath, new BoundSonarQubeProject());
+            var actual = testSubject.Save(MockFilePath, boundProject);
             actual.Should().BeFalse();
         }
 
@@ -127,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
 
-            Action act = () => testSubject.Save(MockFilePath, new BoundSonarQubeProject());
+            Action act = () => testSubject.Save(MockFilePath, boundProject);
 
             act.Should().ThrowExactly<StackOverflowException>();
         }
@@ -184,25 +205,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Load_FileExists_DeserializedProject()
         {
-            var fileContent = @"{
-  ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
-  ""Organization"": null,
-  ""ProjectKey"": ""MyProject Key"",
-  ""ProjectName"": ""projectName"",
-  ""Profiles"": null
-}";
-
-            var expectedProject = new BoundSonarQubeProject(
-                new Uri("http://xxx.www.zzz/yyy:9000"),
-                "MyProject Key",
-                "projectName");
-
-
             fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(fileContent);
+            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
 
             var actual = testSubject.Load(MockFilePath);
-            actual.Should().BeEquivalentTo(expectedProject);
+            actual.Should().BeEquivalentTo(boundProject);
         }
     }
 }
