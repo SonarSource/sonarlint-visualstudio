@@ -32,10 +32,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<ISourceControlledFileSystem> sourceControlledFileSystem;
         private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
-        private Mock<ISolutionBindingSerializer> serializer;
+        private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
         private Mock<Predicate<string>> onSaveCallback;
         private BoundSonarQubeProject boundSonarQubeProject;
-        private SolutionBindingFileLoader testSubject;
+        private SolutionBindingSerializer testSubject;
 
         private BasicAuthCredentials mockCredentials;
         private const string MockFilePath = "test file path";
@@ -45,11 +45,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             sourceControlledFileSystem = new Mock<ISourceControlledFileSystem>();
             credentialsLoader = new Mock<ISolutionBindingCredentialsLoader>();
-            serializer = new Mock<ISolutionBindingSerializer>();
+            solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
             onSaveCallback = new Mock<Predicate<string>>();
 
-            testSubject = new SolutionBindingFileLoader(sourceControlledFileSystem.Object,
-                serializer.Object,
+            testSubject = new SolutionBindingSerializer(sourceControlledFileSystem.Object,
+                solutionBindingFileLoader.Object,
                 credentialsLoader.Object);
 
             mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullSourceControlledFileSystem_Exception()
         {
-            Action act = () => new SolutionBindingFileLoader(null, null, null);
+            Action act = () => new SolutionBindingSerializer(null, null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sccFileSystem");
         }
@@ -76,77 +76,77 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullSerializer_Exception()
         {
-            Action act = () => new SolutionBindingFileLoader(sourceControlledFileSystem.Object, null, null);
+            Action act = () => new SolutionBindingSerializer(sourceControlledFileSystem.Object, null, null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingSerializer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
         }
 
         [TestMethod]
         public void Ctor_NullCredentialsLoader_Exception()
         {
-            Action act = () => new SolutionBindingFileLoader(sourceControlledFileSystem.Object, serializer.Object, null);
+            Action act = () => new SolutionBindingSerializer(sourceControlledFileSystem.Object, solutionBindingFileLoader.Object, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("credentialsLoader");
         }
 
         [TestMethod]
-        public void ReadBindingInformation_ProjectIsNull_Null()
+        public void Read_ProjectIsNull_Null()
         {
-            serializer.Setup(x => x.DeserializeFromFile(MockFilePath)).Returns(null as BoundSonarQubeProject);
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
 
-            var actual = testSubject.ReadFromFile(MockFilePath);
+            var actual = testSubject.Read(MockFilePath);
             actual.Should().Be(null);
         }
 
         [TestMethod]
-        public void ReadBindingInformation_ProjectIsNull_CredentialsNotRead()
+        public void Read_ProjectIsNull_CredentialsNotRead()
         {
-            serializer.Setup(x => x.DeserializeFromFile(MockFilePath)).Returns(null as BoundSonarQubeProject);
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
 
-            testSubject.ReadFromFile(MockFilePath);
+            testSubject.Read(MockFilePath);
 
             credentialsLoader.Verify(x => x.Load(It.IsAny<Uri>()), Times.Never);
         }
 
         [TestMethod]
-        public void ReadBindingInformation_ProjectIsNotNull_ReturnsProjectWithCredentials()
+        public void Read_ProjectIsNotNull_ReturnsProjectWithCredentials()
         {
             boundSonarQubeProject.ServerUri = new Uri("http://sonarsource.com");
             boundSonarQubeProject.Credentials = null;
 
-            serializer.Setup(x => x.DeserializeFromFile(MockFilePath)).Returns(boundSonarQubeProject);
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(boundSonarQubeProject);
             credentialsLoader.Setup(x => x.Load(boundSonarQubeProject.ServerUri)).Returns(mockCredentials);
 
-            var actual = testSubject.ReadFromFile(MockFilePath);
+            var actual = testSubject.Read(MockFilePath);
             actual.Credentials.Should().Be(mockCredentials);
         }
 
         [DataTestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void WriteSolutionBinding_ConfigFilePathIsNull_ReturnsFalse(string filePath)
+        public void Write_ConfigFilePathIsNull_ReturnsFalse(string filePath)
         {
-            var actual = testSubject.WriteToFile(filePath, boundSonarQubeProject, onSaveCallback.Object);
+            var actual = testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
             actual.Should().Be(false);
         }
 
         [DataTestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void WriteSolutionBinding_ConfigFilePathIsNull_FileNotWritten(string filePath)
+        public void Write_ConfigFilePathIsNull_FileNotWritten(string filePath)
         {
-            testSubject.WriteToFile(filePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
 
-            serializer.Verify(x => x.SerializeToFile(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()),
+            solutionBindingFileLoader.Verify(x => x.Save(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()),
                 Times.Never);
         }
 
         [DataTestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void WriteSolutionBinding_ConfigFilePathIsNull_CredentialsNotWritten(string filePath)
+        public void Write_ConfigFilePathIsNull_CredentialsNotWritten(string filePath)
         {
-            testSubject.WriteToFile(filePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
 
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
@@ -154,81 +154,81 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataTestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void WriteSolutionBinding_ConfigFilePathIsNull_OnSaveCallbackNotInvoked(string filePath)
+        public void Write_ConfigFilePathIsNull_OnSaveCallbackNotInvoked(string filePath)
         {
-            testSubject.WriteToFile(filePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
 
             onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_ProjectIsNull_Exception()
+        public void Write_ProjectIsNull_Exception()
         {
-            Assert.ThrowsException<ArgumentNullException>(() =>  testSubject.WriteToFile(MockFilePath, null, onSaveCallback.Object));
+            Assert.ThrowsException<ArgumentNullException>(() =>  testSubject.Write(MockFilePath, null, onSaveCallback.Object));
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_ProjectIsNull_FileNotWritten()
+        public void Write_ProjectIsNull_FileNotWritten()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => testSubject.WriteToFile(MockFilePath, null, onSaveCallback.Object));
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null, onSaveCallback.Object));
 
-            serializer.Verify(x => x.SerializeToFile(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()), Times.Never);
+            solutionBindingFileLoader.Verify(x => x.Save(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()), Times.Never);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_ProjectIsNull_CredentialsNotWritten()
+        public void Write_ProjectIsNull_CredentialsNotWritten()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => testSubject.WriteToFile(MockFilePath, null, onSaveCallback.Object));
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null, onSaveCallback.Object));
 
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_ProjectIsNull_OnSaveCallbackNotInvoked()
+        public void Write_ProjectIsNull_OnSaveCallbackNotInvoked()
         {
-            Assert.ThrowsException<ArgumentNullException>(() => testSubject.WriteToFile(MockFilePath, null, onSaveCallback.Object));
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null, onSaveCallback.Object));
 
             onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_FileNotWritten_CredentialsNotWritten()
+        public void Write_FileNotWritten_CredentialsNotWritten()
         {
-            serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(false);
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(false);
 
-            testSubject.WriteToFile(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 
             credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_FileNotWritten_OnSaveCallbackNotInvoked()
+        public void Write_FileNotWritten_OnSaveCallbackNotInvoked()
         {
-            serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(false);
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(false);
 
-            testSubject.WriteToFile(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 
             onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_FileWritten_CredentialsWritten()
+        public void Write_FileWritten_CredentialsWritten()
         {
-            serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(true);
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
 
-            testSubject.WriteToFile(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 
             credentialsLoader.Verify(x => x.Save(boundSonarQubeProject.Credentials, boundSonarQubeProject.ServerUri),
                 Times.Once);
         }
 
         [TestMethod]
-        public void WriteSolutionBinding_FileWritten_OnSaveCallbackIsInvoked()
+        public void Write_FileWritten_OnSaveCallbackIsInvoked()
         {
-            serializer.Setup(x => x.SerializeToFile(MockFilePath, boundSonarQubeProject)).Returns(true);
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
             onSaveCallback.Setup(x => x(MockFilePath)).Returns(true);
 
-            testSubject.WriteToFile(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 
             onSaveCallback.Verify(x=> x(MockFilePath), Times.Once);
         }

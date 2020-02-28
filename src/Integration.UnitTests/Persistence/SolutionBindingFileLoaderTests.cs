@@ -29,11 +29,11 @@ using Moq;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SolutionBindingSerializerTests
+    public class SolutionBindingFileLoaderTests
     {
         private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
-        private SolutionBindingSerializer testSubject;
+        private SolutionBindingFileLoader testSubject;
 
         private const string MockFilePath = "c:\\test.txt";
         private const string MockDirectory = "c:\\";
@@ -44,13 +44,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             logger = new Mock<ILogger>();
             fileSystem = new Mock<IFileSystem>();
 
-            testSubject = new SolutionBindingSerializer(logger.Object, fileSystem.Object);
+            testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
         }
 
         [TestMethod]
         public void Ctor_NullLogger_Exception()
         {
-            Action act = () => new SolutionBindingSerializer(null, null);
+            Action act = () => new SolutionBindingFileLoader(null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -58,40 +58,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullFileSystem_Exception()
         {
-            Action act = () => new SolutionBindingSerializer(logger.Object, null);
+            Action act = () => new SolutionBindingFileLoader(logger.Object, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
-        public void SerializeToFile_DirectoryDoesNotExist_DirectoryIsCreated()
+        public void Save_DirectoryDoesNotExist_DirectoryIsCreated()
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(false);
 
-            testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+            testSubject.Save(MockFilePath, new BoundSonarQubeProject());
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(MockDirectory), Times.Once);
         }
 
         [TestMethod]
-        public void SerializeToFile_DirectoryExists_DirectoryNotCreated()
+        public void Save_DirectoryExists_DirectoryNotCreated()
         {
             fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
 
-            testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+            testSubject.Save(MockFilePath, new BoundSonarQubeProject());
 
             fileSystem.Verify(x => x.Directory.CreateDirectory(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void SerializeToFile_ReturnsTrue()
+        public void Save_ReturnsTrue()
         {
-            var actual = testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+            var actual = testSubject.Save(MockFilePath, new BoundSonarQubeProject());
             actual.Should().BeTrue();
         }
 
         [TestMethod]
-        public void SerializeToFile_FileSerializedAndWritten()
+        public void Save_FileSerializedAndWritten()
         {
             var boundSonarQubeProject = new BoundSonarQubeProject(
                 new Uri("http://xxx.www.zzz/yyy:9000"),
@@ -108,26 +108,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, expectedContent));
 
-            testSubject.SerializeToFile(MockFilePath, boundSonarQubeProject);
+            testSubject.Save(MockFilePath, boundSonarQubeProject);
 
             fileSystem.Verify(x => x.File.WriteAllText(MockFilePath, expectedContent), Times.Once);
         }
 
         [TestMethod]
-        public void SerializeToFile_NonCriticalException_False()
+        public void Save_NonCriticalException_False()
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
 
-            var actual = testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+            var actual = testSubject.Save(MockFilePath, new BoundSonarQubeProject());
             actual.Should().BeFalse();
         }
 
         [TestMethod]
-        public void SerializeToFile_CriticalException_Exception()
+        public void Save_CriticalException_Exception()
         {
             fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
 
-            Action act = () => testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+            Action act = () => testSubject.Save(MockFilePath, new BoundSonarQubeProject());
 
             act.Should().ThrowExactly<StackOverflowException>();
         }
@@ -135,54 +135,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataTestMethod]
         [DataRow("")]
         [DataRow(null)]
-        public void DeserializeFromFile_FilePathIsNull_Null(string filePath)
+        public void Load_FilePathIsNull_Null(string filePath)
         {
-            var actual = testSubject.DeserializeFromFile(filePath);
+            var actual = testSubject.Load(filePath);
             actual.Should().Be(null);
         }
 
         [TestMethod]
-        public void DeserializeFromFile_FileDoesNotExist_Null()
+        public void Load_FileDoesNotExist_Null()
         {
             fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(false);
 
-            var actual = testSubject.DeserializeFromFile(MockFilePath);
+            var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
         }
 
         [TestMethod]
-        public void DeserializeFromFile_InvalidJson_Null()
+        public void Load_InvalidJson_Null()
         {
             fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns("bad json");
 
-            var actual = testSubject.DeserializeFromFile(MockFilePath);
+            var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
         }
 
         [TestMethod]
-        public void DeserializeFromFile_NonCriticalException_Null()
+        public void Load_NonCriticalException_Null()
         {
             fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Throws<PathTooLongException>();
 
-            var actual = testSubject.DeserializeFromFile(MockFilePath);
+            var actual = testSubject.Load(MockFilePath);
             actual.Should().Be(null);
         }
 
         [TestMethod]
-        public void DeserializeFromFile_CriticalException_Exception()
+        public void Load_CriticalException_Exception()
         {
             fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Throws<StackOverflowException>();
 
-            Action act = () => testSubject.DeserializeFromFile(MockFilePath);
+            Action act = () => testSubject.Load(MockFilePath);
 
             act.Should().ThrowExactly<StackOverflowException>();
         }
 
         [TestMethod]
-        public void DeserializeFromFile_FileExists_DeserializedProject()
+        public void Load_FileExists_DeserializedProject()
         {
             var fileContent = @"{
   ""ServerUri"": ""http://xxx.www.zzz/yyy:9000"",
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(fileContent);
 
-            var actual = testSubject.DeserializeFromFile(MockFilePath);
+            var actual = testSubject.Load(MockFilePath);
             actual.Should().BeEquivalentTo(expectedProject);
         }
     }

@@ -20,75 +20,104 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Abstractions;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.Integration.Resources;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    /// <summary>
-    /// Writes the binding configuration file to the source controlled file system
-    /// </summary>
-    /// <remarks>
-    /// The file will be enqueued but not actually written.
-    /// It is the responsibility of the caller to flush the queue.
-    /// This is to allow multiple other files to be written using the 
-    /// same instance of the SCC wrapper (e.g. ruleset files).
-    /// </remarks>
-    internal sealed class SolutionBindingFileLoader : ISolutionBindingFileLoader
+    internal class SolutionBindingFileLoader : ISolutionBindingFileLoader
     {
-        private readonly ISolutionBindingSerializer solutionBindingSerializer;
-        private readonly ISolutionBindingCredentialsLoader credentialsLoader;
-        private readonly ISourceControlledFileSystem sccFileSystem;
+        private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
-        public SolutionBindingFileLoader(ISourceControlledFileSystem sccFileSystem,
-            ISolutionBindingSerializer solutionBindingSerializer,
-            ISolutionBindingCredentialsLoader credentialsLoader)
+        public SolutionBindingFileLoader(ILogger logger)
+            : this(logger, new FileSystem())
         {
-            this.sccFileSystem = sccFileSystem ?? throw new ArgumentNullException(nameof(sccFileSystem));
-            this.solutionBindingSerializer = solutionBindingSerializer ?? throw new ArgumentNullException(nameof(solutionBindingSerializer));
-            this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         }
 
-        public BoundSonarQubeProject ReadFromFile(string configFilePath)
+        internal SolutionBindingFileLoader(ILogger logger, IFileSystem fileSystem)
         {
-           var bound = solutionBindingSerializer.DeserializeFromFile(configFilePath);
-
-           if (bound == null)
-           {
-               return null;
-           }
-
-           bound.Credentials = credentialsLoader.Load(bound.ServerUri);
-
-            Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
-                "Not expecting the deserialized binding config to contain the profile for an unknown language");
-
-            return bound;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public bool WriteToFile(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite)
+        public bool Save(string filePath, BoundSonarQubeProject project)
         {
-            if (binding == null)
+            var serializedProject = Serialize(project);
+
+            return SafePerformFileSystemOperation(() => WriteConfig(filePath, serializedProject));
+        }
+
+        private void WriteConfig(string configFile, string serializedProject)
+        {
+            Debug.Assert(!string.IsNullOrWhiteSpace(configFile));
+
+            var directoryName = Path.GetDirectoryName(configFile);
+
+            if (!fileSystem.Directory.Exists(directoryName))
             {
-                throw new ArgumentNullException(nameof(binding));
+                fileSystem.Directory.CreateDirectory(directoryName);
             }
 
-            if (string.IsNullOrEmpty(configFilePath))
+            fileSystem.File.WriteAllText(configFile, serializedProject);
+        }
+
+        public BoundSonarQubeProject Load(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !fileSystem.File.Exists(filePath))
             {
-                return false;
+                return null;
             }
 
-            sccFileSystem.QueueFileWrite(configFilePath, () =>
+            string configJson = null;
+
+            if (SafePerformFileSystemOperation(() => ReadConfig(filePath, out configJson)))
             {
-                if (solutionBindingSerializer.SerializeToFile(configFilePath, binding))
+                try
                 {
-                    credentialsLoader.Save(binding.Credentials, binding.ServerUri);
-
-                    return onSuccessfulFileWrite(configFilePath);
+                    return Deserialize(configJson);
                 }
+                catch (JsonException)
+                {
+                    logger.WriteLine(Strings.FailedToDeserializeSQCOnfiguration, filePath);
+                }
+            }
 
+            return null;
+        }
+
+        private void ReadConfig(string configFile, out string text)
+        {
+            text = fileSystem.File.ReadAllText(configFile);
+        }
+
+        private bool SafePerformFileSystemOperation(Action operation)
+        {
+            Debug.Assert(operation != null);
+
+            try
+            {
+                operation();
+                return true;
+            }
+            catch (Exception e) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(e.Message);
                 return false;
-            });
+            }
+        }
 
-            return true;
+        private BoundSonarQubeProject Deserialize(string projectJson)
+        {
+            return JsonHelper.Deserialize<BoundSonarQubeProject>(projectJson);
+        }
+
+        private string Serialize(BoundSonarQubeProject project)
+        {
+            return JsonHelper.Serialize(project);
         }
     }
 }

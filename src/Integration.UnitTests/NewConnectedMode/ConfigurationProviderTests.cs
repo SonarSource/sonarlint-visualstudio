@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<ISolutionBindingPathProvider> legacyPathProvider;
         private Mock<ISolutionBindingPathProvider> newPathProvider;
-        private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
+        private Mock<ISolutionBindingSerializer> solutionBindingSerializer;
         private Mock<ISolutionBindingPostSaveOperation> legacyPostSaveOperation;
         private ConfigurationProvider testSubject;
 
@@ -41,12 +41,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             legacyPathProvider = new Mock<ISolutionBindingPathProvider>();
             newPathProvider = new Mock<ISolutionBindingPathProvider>();
-            solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
+            solutionBindingSerializer = new Mock<ISolutionBindingSerializer>();
             legacyPostSaveOperation = new Mock<ISolutionBindingPostSaveOperation>();
 
             testSubject = new ConfigurationProvider(legacyPathProvider.Object,
                 newPathProvider.Object,
-                solutionBindingFileLoader.Object,
+                solutionBindingSerializer.Object,
                 legacyPostSaveOperation.Object);
         }
 
@@ -77,14 +77,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, null, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("iboth");
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullPostSaveAction_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, solutionBindingFileLoader.Object, null);
+            Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, solutionBindingSerializer.Object, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyPostSaveOperation");
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newPathProvider.Setup(x => x.Get()).Returns("new");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("new")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             legacyPathProvider.Setup(x => x.Get()).Returns("old");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("old")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("old")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -151,10 +151,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             legacyPathProvider.Setup(x => x.Get()).Returns("legacy");
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("legacy")).Returns(null as BoundSonarQubeProject);
+            solutionBindingSerializer.Setup(x => x.Read("legacy")).Returns(null as BoundSonarQubeProject);
 
             newPathProvider.Setup(x => x.Get()).Returns("new");
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("new")).Returns(null as BoundSonarQubeProject);
+            solutionBindingSerializer.Setup(x => x.Read("new")).Returns(null as BoundSonarQubeProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -170,11 +170,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             legacyPathProvider.Setup(x => x.Get()).Returns("legacy");
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("legacy")).Returns(null as BoundSonarQubeProject);
+            solutionBindingSerializer.Setup(x => x.Read("legacy")).Returns(null as BoundSonarQubeProject);
 
             var expectedProject = new BoundSonarQubeProject();
             newPathProvider.Setup(x => x.Get()).Returns("new");
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("new")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newPathProvider.Setup(x => x.Get()).Returns("new");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingFileLoader.Setup(x => x.ReadFromFile("legacy")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("legacy")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -234,8 +234,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected);
             legacyPathProvider.Setup(x => x.Get()).Returns("old.txt");
 
-            solutionBindingFileLoader
-                .Setup(x => x.WriteToFile("old.txt", config.Project, legacyPostSaveOperation.Object.OnSuccessfulSave))
+            solutionBindingSerializer
+                .Setup(x => x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.OnSuccessfulSave))
                 .Returns(true);
 
             // Act
@@ -244,8 +244,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().BeTrue();
 
-            solutionBindingFileLoader.Verify(x =>
-                    x.WriteToFile("old.txt", config.Project, legacyPostSaveOperation.Object.OnSuccessfulSave),
+            solutionBindingSerializer.Verify(x =>
+                    x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.OnSuccessfulSave),
                 Times.Once);
         }
 
@@ -256,8 +256,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var config = BindingConfiguration.CreateBoundConfiguration(projectToWrite, SonarLintMode.Connected);
             newPathProvider.Setup(x => x.Get()).Returns("new.txt");
 
-            solutionBindingFileLoader
-                .Setup(x => x.WriteToFile("new.txt", config.Project, It.Is<Predicate<string>>(s => true)))
+            solutionBindingSerializer
+                .Setup(x => x.Write("new.txt", config.Project, It.Is<Predicate<string>>(s => true)))
                 .Returns(true);
 
             // Act
@@ -266,8 +266,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().BeTrue();
 
-            solutionBindingFileLoader.Verify(x =>
-                    x.WriteToFile("new.txt", config.Project, It.Is<Predicate<string>>(s => true)),
+            solutionBindingSerializer.Verify(x =>
+                    x.Write("new.txt", config.Project, It.Is<Predicate<string>>(s => true)),
                 Times.Once);
         }
     }
