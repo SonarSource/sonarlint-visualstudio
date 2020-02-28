@@ -98,7 +98,7 @@
        NB the target is based on the one from Microsoft.VisualStudio.SDK.EmbedInteropTypes above. -->
   <Target Name="HackIncludeALMAuthInVsix" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
     <ItemGroup>
-      <ReferencePath Condition="&#xD;&#xA;              '%(FileName)' == 'Microsoft.Alm.Authentication'&#xD;&#xA;           or '%(FileName)' == 'Microsoft.Alm.Git'&#xD;&#xA;           or '%(FileName)' == 'Microsoft.Vsts.Authentication'&#xD;&#xA;              ">
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.Alm.Authentication' or '%(FileName)' == 'Microsoft.Alm.Git' or '%(FileName)' == 'Microsoft.Vsts.Authentication'">
         <CopyLocal>true</CopyLocal>
       </ReferencePath>
     </ItemGroup>

@@ -414,12 +414,6 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
-    <ItemGroup>
-      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" />
-    </ItemGroup>
-  </Target>
-
   <Target Name="IncludeNuGetPackageReferences" AfterTargets="GetVsixSourceItems">
     <ItemGroup>
       <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />

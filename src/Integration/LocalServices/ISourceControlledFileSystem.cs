@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -29,8 +28,6 @@ namespace SonarLint.VisualStudio.Integration
     /// </summary>
     internal interface ISourceControlledFileSystem : ILocalService
     {
-        IFileSystem FileSystem { get; }
-
         /// <summary>
         /// Queues a write operation for a file path. New or edit is determined internally at the time of this method execution.
         /// </summary>

@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableSourceControlledFileSystem sccFS;
         private ConfigurableRuleSetSerializer rsSerializer;
         private ConfigurableConflictsManager conflictsManager;
+        private MockFileSystem fileSystem;
 
         [TestInitialize]
         public void TestInit()
@@ -68,6 +69,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
+
+            fileSystem = new MockFileSystem();
         }
 
         #region Tests
@@ -206,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fixMeCommand.Execute(null);
 
             // Assert
-            (this.sccFS.FileSystem as MockFileSystem).GetFile(fixedRuleSet.FilePath).Should().NotBe(null);
+            fileSystem.GetFile(fixedRuleSet.FilePath).Should().NotBe(null);
             this.rsSerializer.AssertRuleSetsAreSame(fixedRuleSet.FilePath, fixedRuleSet);
             this.outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
@@ -224,10 +227,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ruleSetInspector = new ConfigurableRuleSetInspector();
             this.serviceProvider.RegisterService(typeof(IRuleSetInspector), this.ruleSetInspector);
 
-            this.sccFS = new ConfigurableSourceControlledFileSystem();
+            this.sccFS = new ConfigurableSourceControlledFileSystem(fileSystem);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFS);
 
-            this.rsSerializer = new ConfigurableRuleSetSerializer(sccFS.FileSystem as MockFileSystem);
+            this.rsSerializer = new ConfigurableRuleSetSerializer(fileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.rsSerializer);
         }
 

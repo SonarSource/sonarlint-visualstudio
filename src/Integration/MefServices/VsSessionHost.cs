@@ -305,8 +305,8 @@ namespace SonarLint.VisualStudio.Integration
         #region IServiceProvider
         private void RegisterLocalServices()
         {
-            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger, new FileSystem())));
-            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer(new FileSystem())));
+            this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
+            this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore(SolutionBindingSerializer.StoreNamespace))));
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(() =>
             {
@@ -319,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger, new FileSystem()))));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
             this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new UnboundProjectFinder(this))));
 

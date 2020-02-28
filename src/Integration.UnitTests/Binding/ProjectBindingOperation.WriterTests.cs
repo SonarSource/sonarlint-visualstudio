@@ -28,7 +28,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Binding;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -66,8 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Test case 1: desired name exists
             // Arrange
-            var mockFileSystem = sccFileSystem.FileSystem as MockFileSystem;
-            mockFileSystem.AddFile($"X:\\NameTaken.ruleset", new MockFileData(""));
+            fileSystem.AddFile($"X:\\NameTaken.ruleset", new MockFileData(""));
 
             // Act
             string actual = testSubject.GenerateNewProjectRuleSetPath
@@ -81,8 +79,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Test case 2: desired name + 1 + 2 exists
             // Arrange
-            mockFileSystem.AddFile(@"X:\NameTaken-1.ruleset", new MockFileData(""));
-            mockFileSystem.AddFile(@"X:\NameTaken-2.ruleset", new MockFileData(""));
+            fileSystem.AddFile(@"X:\NameTaken-1.ruleset", new MockFileData(""));
+            fileSystem.AddFile(@"X:\NameTaken-2.ruleset", new MockFileData(""));
 
             // Act
             actual = testSubject.GenerateNewProjectRuleSetPath
@@ -116,13 +114,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string ruleSetRootPath = @"X:\";
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             string[] existingFiles = Enumerable.Range(0, 10).Select(i => $@"X:\{fileName}-{i}.ruleset").ToArray();
-           
-            var mockFileSystem = sccFileSystem.FileSystem as MockFileSystem;
-            mockFileSystem.AddFile($@"X:\{fileName}.ruleset", new MockFileData(""));
+
+            fileSystem.AddFile($@"X:\{fileName}.ruleset", new MockFileData(""));
 
             foreach (var existingFile in existingFiles)
             {
-                mockFileSystem.AddFile(existingFile, new MockFileData(""));
+                fileSystem.AddFile(existingFile, new MockFileData(""));
             }
 
             // Act
@@ -435,8 +432,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var existingRuleSet = TestRuleSetHelper.CreateTestRuleSet(existingRuleSetFullPath);
             this.ruleSetFS.RegisterRuleSet(existingRuleSet, existingRuleSetFullPath);
-            var mockFileSystem = sccFileSystem.FileSystem as MockFileSystem;
-            var beforeTimestamp = mockFileSystem.GetFile(existingRuleSetFullPath).LastAccessTime;
+            var beforeTimestamp = fileSystem.GetFile(existingRuleSetFullPath).LastAccessTime;
 
             // Act
             string pathOutResult;
@@ -448,7 +444,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             rsOutput.Should().Be(existingRuleSet, "Same RuleSet instance expected");
             pathOutResult.Should().Be(existingRuleSetFullPath, "Unexpected rule set path was returned");
 
-            mockFileSystem.GetFile(existingRuleSetFullPath).LastAccessTime.Should().Be(beforeTimestamp);
+            fileSystem.GetFile(existingRuleSetFullPath).LastAccessTime.Should().Be(beforeTimestamp);
         }
 
         [TestMethod]
@@ -466,8 +462,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var existingRuleSet = new RuleSet("test") { FilePath = existingRuleSetFullPath };
             testSubject.AlreadyUpdatedExistingRuleSetPaths.Add(existingRuleSet.FilePath, existingRuleSet);
             this.ruleSetFS.RegisterRuleSet(existingRuleSet);
-            var mockFileSystem = sccFileSystem.FileSystem as MockFileSystem;
-            var beforeTimestamp = mockFileSystem.GetFile(existingRuleSetFullPath).LastAccessTime;
+            var beforeTimestamp = fileSystem.GetFile(existingRuleSetFullPath).LastAccessTime;
 
             // Act
             string pathOutResult;
@@ -478,7 +473,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             result.Should().BeTrue("Expected to return true when trying to update already updated existing rule set");
             rsOutput.Should().Be(existingRuleSet, "Same RuleSet instance is expected");
             pathOutResult.Should().Be(existingRuleSetFullPath, "Unexpected rule set path was returned");
-            mockFileSystem.GetFile(existingRuleSetFullPath).LastAccessTime.Should().Be(beforeTimestamp);
+            fileSystem.GetFile(existingRuleSetFullPath).LastAccessTime.Should().Be(beforeTimestamp);
         }
 
         [TestMethod]

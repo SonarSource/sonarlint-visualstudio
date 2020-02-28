@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
@@ -37,16 +38,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionBindingConfigFileStore configFileStore;
+        private readonly IFileSystem fileSystem;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore)
+        public ProjectBindingOperation(IServiceProvider serviceProvider,
+            Project project,
+            ISolutionBindingConfigFileStore configFileStore)
+            : this(serviceProvider, project, configFileStore, new FileSystem())
+        {
+        }
+
+        internal ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
             this.configFileStore = configFileStore ?? throw new ArgumentNullException(nameof(configFileStore));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
@@ -107,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 string ruleSetFullFilePath = keyValue.Value.NewRuleSetFilePath;
 
                 Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFullFilePath), "Prepare was not called");
-                Debug.Assert(sourceControlledFileSystem.FileSystem.File.Exists(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
+                Debug.Assert(fileSystem.File.Exists(ruleSetFullFilePath), "File not written: " + ruleSetFullFilePath);
 
                 string updatedRuleSetValue = PathHelper.CalculateRelativePath(this.ProjectFullPath, ruleSetFullFilePath);
                 property.Value = updatedRuleSetValue;

@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -69,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
-            this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem();
+            this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem(new MockFileSystem());
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sourceControlledFileSystem);
 
             this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider

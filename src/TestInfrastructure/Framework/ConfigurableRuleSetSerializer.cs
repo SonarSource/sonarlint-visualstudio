@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
@@ -34,14 +33,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private readonly MockFileSystem fileSystem;
         private readonly Dictionary<string, int> ruleSetLoaded = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-        public ConfigurableRuleSetSerializer()
-            : this(new MockFileSystem())
+        public ConfigurableRuleSetSerializer(MockFileSystem fileSystem)
         {
-        }
-
-        public ConfigurableRuleSetSerializer(MockFileSystem fs)
-        {
-            this.fileSystem = fs;
+            this.fileSystem = fileSystem;
         }
 
         #region IRuleSetFileSystem

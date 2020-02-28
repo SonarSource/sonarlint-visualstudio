@@ -35,13 +35,12 @@ namespace SonarLint.VisualStudio.Integration
     /// </summary>
     internal class SourceControlledFileSystem : ISourceControlledFileSystem
     {
-        public IFileSystem FileSystem { get; }
-
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
         private readonly HashSet<string> filesEdit = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> filesCreate = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly Queue<Func<bool>> fileWriteOperations = new Queue<Func<bool>>();
+        private readonly IFileSystem fileSystem;
         private IVsQueryEditQuerySave2 queryFileOperation;
 
         public SourceControlledFileSystem(IServiceProvider serviceProvider, ILogger logger)
@@ -53,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         protected IVsQueryEditQuerySave2 QueryFileOperation
@@ -74,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
-            if (this.FileSystem.File.Exists(filePath))
+            if (this.fileSystem.File.Exists(filePath))
             {
                 this.filesEdit.Add(filePath);
             }
@@ -88,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public bool FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.filesCreate.Contains(filePath) || this.FileSystem.File.Exists(filePath);
+            return this.filesCreate.Contains(filePath) || this.fileSystem.File.Exists(filePath);
         }
 
         public bool WriteQueuedFiles()

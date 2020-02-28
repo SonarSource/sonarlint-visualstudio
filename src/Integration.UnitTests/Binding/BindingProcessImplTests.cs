@@ -66,8 +66,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
 
-            var sccFileSystem = new ConfigurableSourceControlledFileSystem();
-            var ruleSerializer = new ConfigurableRuleSetSerializer(sccFileSystem.FileSystem as MockFileSystem);
+            var mockFileSystem = new MockFileSystem();
+            var sccFileSystem = new ConfigurableSourceControlledFileSystem(mockFileSystem);
+            var ruleSerializer = new ConfigurableRuleSetSerializer(mockFileSystem);
             this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
 
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), sccFileSystem);

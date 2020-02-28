@@ -47,7 +47,12 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
+        public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
+            : this(serviceProvider, logger, new FileSystem())
+        {
+        }
+
+        internal ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));

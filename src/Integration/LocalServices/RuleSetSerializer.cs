@@ -31,7 +31,12 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IFileSystem fileSystem;
 
-        public RuleSetSerializer(IFileSystem fileSystem)
+        public RuleSetSerializer()
+            : this(new FileSystem())
+        {
+        }
+
+        internal RuleSetSerializer(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(this.fileSystem));
         }

@@ -39,21 +39,16 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
+        public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger)
+            : this(serviceProvider, logger, new FileSystem())
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
+        }
 
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.serviceProvider = serviceProvider;
-            this.logger = logger;
-            this.fileSystem = fileSystem;
+        internal SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
+        {
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)

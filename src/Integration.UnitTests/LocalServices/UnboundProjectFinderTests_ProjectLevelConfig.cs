@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.ruleSetInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
-            this.ruleSetSerializer = new ConfigurableRuleSetSerializer();
+            this.ruleSetSerializer = new ConfigurableRuleSetSerializer(new MockFileSystem());
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleSetSerializer);
 
             this.fileMock = new Mock<IFileSystem>();
