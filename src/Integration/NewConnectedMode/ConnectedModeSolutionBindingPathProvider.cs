@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     /// <summary>
     /// Return the path of solution's binding configuration file when in connected mode.
-    /// The legacy binding is written using <see cref="LegacySolutionBindingPathProvider"/>.
+    /// The legacy binding is calculated using <see cref="LegacySolutionBindingPathProvider"/>.
     /// </summary>
     internal class ConnectedModeSolutionBindingPathProvider : ISolutionBindingPathProvider
     {
