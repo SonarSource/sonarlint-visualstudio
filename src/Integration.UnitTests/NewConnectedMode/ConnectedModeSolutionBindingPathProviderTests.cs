@@ -20,7 +20,9 @@
 
 using System;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -28,6 +30,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ConnectedModeSolutionBindingPathProviderTests
     {
+        private Mock<IVsSolution> solution;
+        private ConnectedModeSolutionBindingPathProvider testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            solution = new Mock<IVsSolution>();
+            testSubject = new ConnectedModeSolutionBindingPathProvider(solution.Object);
+
+        }
+
         [TestMethod]
         public void Ctor_InvalidArgs_NullSolution_Throws()
         {
@@ -36,6 +49,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solution");
+        }
+
+        [TestMethod]
+        public void Get_NoOpenSolution_ReturnsNull()
+        {
+            object fullSolutionFilePath = null;
+            solution.Setup(x => x.GetProperty((int) __VSPROPID.VSPROPID_SolutionFileName, out fullSolutionFilePath));
+
+            var actual = testSubject.Get();
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Get_HasOpenSolution_ReturnsNull()
+        {
+            object fullSolutionFilePath = @"c:\aaa\bbbb\C C\mysolutionName.sln";
+            solution.Setup(x => x.GetProperty((int) __VSPROPID.VSPROPID_SolutionFileName, out fullSolutionFilePath));
+
+            var actual = testSubject.Get();
+            
+            actual.Should().Be(@"c:\aaa\bbbb\C C\.sonarlint\mysolutionName.slconfig");
         }
 
         [TestMethod]
