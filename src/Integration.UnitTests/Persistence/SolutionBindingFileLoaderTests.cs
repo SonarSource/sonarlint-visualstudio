@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem = new Mock<IFileSystem>();
 
             testSubject = new SolutionBindingFileLoader(logger.Object, fileSystem.Object);
+
+            fileSystem.Setup(x => x.Directory.Exists(MockDirectory)).Returns(true);
         }
 
         [TestMethod]
@@ -86,6 +88,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Save_ReturnsTrue()
         {
+            fileSystem.Setup(x => x.File.WriteAllText(MockFilePath, It.IsAny<string>()));
+
             var actual = testSubject.Save(MockFilePath, new BoundSonarQubeProject());
             actual.Should().BeTrue();
         }
