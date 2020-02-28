@@ -24,7 +24,6 @@ using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -109,12 +108,20 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
         private BoundSonarQubeProject Deserialize(string projectJson)
         {
-            return JsonHelper.Deserialize<BoundSonarQubeProject>(projectJson);
+            return JsonConvert.DeserializeObject<BoundSonarQubeProject>(projectJson, new JsonSerializerSettings
+            {
+                DateFormatHandling = DateFormatHandling.IsoDateFormat,
+                DateTimeZoneHandling = DateTimeZoneHandling.Local,
+                DateParseHandling = DateParseHandling.DateTimeOffset
+            });
         }
 
         private string Serialize(BoundSonarQubeProject project)
         {
-            return JsonHelper.Serialize(project);
+            return JsonConvert.SerializeObject(project, Formatting.Indented, new JsonSerializerSettings
+            {
+                DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            });
         }
     }
 }
