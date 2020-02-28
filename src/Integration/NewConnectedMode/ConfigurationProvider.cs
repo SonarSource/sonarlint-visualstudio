@@ -52,33 +52,46 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         public BindingConfiguration GetConfiguration()
         {
-            var bindingPath = GetBindingPath(out var sonarLintMode);
+            var project = GetBoundProject(out var sonarLintMode, out _);
 
-            if (bindingPath == null)
-            {
-                return BindingConfiguration.Standalone;
-            }
-
-            var project = solutionBindingFile.ReadSolutionBinding(bindingPath);
-
-            return BindingConfiguration.CreateBoundConfiguration(project, sonarLintMode);
+            return project == null
+                ? BindingConfiguration.Standalone
+                : BindingConfiguration.CreateBoundConfiguration(project, sonarLintMode);
         }
 
-        private string GetBindingPath(out SonarLintMode sonarLintMode)
+        private BoundSonarQubeProject GetBoundProject(out SonarLintMode sonarLintMode, out string bindingPath)
         {
-            var bindingPath = legacyPathProvider.Get();
+            bindingPath = legacyPathProvider.Get();
+            BoundSonarQubeProject project;
 
             if (bindingPath != null)
             {
-                sonarLintMode = SonarLintMode.LegacyConnected;
+                project = solutionBindingFile.ReadSolutionBinding(bindingPath);
 
-                return bindingPath;
+                if (project != null)
+                {
+                    sonarLintMode = SonarLintMode.LegacyConnected;
+                    return project;
+                }
             }
 
             bindingPath = connectedModePathProvider.Get();
-            sonarLintMode = SonarLintMode.Connected;
 
-            return bindingPath;
+            if (bindingPath != null)
+            {
+                project = solutionBindingFile.ReadSolutionBinding(bindingPath);
+
+                if (project != null)
+                {
+                    sonarLintMode = SonarLintMode.Connected;
+                    return project;
+                }
+            }
+
+            sonarLintMode = SonarLintMode.LegacyConnected;
+            bindingPath = null;
+
+            return null;
         }
 
         public bool WriteConfiguration(BindingConfiguration configuration)
@@ -95,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 return false;
             }
 
-            var bindingPath = GetBindingPath(out _);
+            GetBoundProject(out _, out var bindingPath);
 
             return solutionBindingFile.WriteSolutionBinding(bindingPath, configuration.Project, onSuccessfulFileWrite);
         }
