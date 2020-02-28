@@ -32,13 +32,13 @@ namespace SonarLint.VisualStudio.Integration.Persistence
     /// This is to allow multiple other files to be written using the 
     /// same instance of the SCC wrapper (e.g. ruleset files).
     /// </remarks>
-    internal sealed class SolutionBindingFile : ISolutionBindingFile
+    internal sealed class SolutionBindingFileLoader : ISolutionBindingFileLoader
     {
         private readonly ISolutionBindingSerializer solutionBindingSerializer;
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
         private readonly ISourceControlledFileSystem sccFileSystem;
 
-        public SolutionBindingFile(ISourceControlledFileSystem sccFileSystem,
+        public SolutionBindingFileLoader(ISourceControlledFileSystem sccFileSystem,
             ISolutionBindingSerializer solutionBindingSerializer,
             ISolutionBindingCredentialsLoader credentialsLoader)
         {
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         }
 
-        public BoundSonarQubeProject ReadSolutionBinding(string configFilePath)
+        public BoundSonarQubeProject ReadFromFile(string configFilePath)
         {
            var bound = solutionBindingSerializer.DeserializeFromFile(configFilePath);
 
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return bound;
         }
 
-        public bool WriteSolutionBinding(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite)
+        public bool WriteToFile(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite)
         {
             if (binding == null)
             {

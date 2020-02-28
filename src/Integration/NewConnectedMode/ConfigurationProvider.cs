@@ -29,12 +29,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
-        private readonly ISolutionBindingFile solutionBindingFile;
+        private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
         private readonly ISolutionBindingPostSaveOperation legacyPostSaveOperation;
 
         public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingFile solutionBindingFile,
+            ISolutionBindingFileLoader solutionBindingFileLoader,
             ISolutionBindingPostSaveOperation legacyPostSaveOperation)
         {
             this.legacyPathProvider = legacyPathProvider ??
@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.connectedModePathProvider = connectedModePathProvider ??
                                              throw new ArgumentNullException(nameof(connectedModePathProvider));
 
-            this.solutionBindingFile = solutionBindingFile ??
-                                             throw new ArgumentNullException(nameof(solutionBindingFile));
+            this.solutionBindingFileLoader = solutionBindingFileLoader ??
+                                             throw new ArgumentNullException(nameof(solutionBindingFileLoader));
 
             this.legacyPostSaveOperation = legacyPostSaveOperation ??
                                            throw new ArgumentNullException(nameof(legacyPostSaveOperation));
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             var writeSettings = GetWriteSettings(configuration);
 
-            return solutionBindingFile.WriteSolutionBinding(writeSettings.ConfigPath, configuration.Project, writeSettings.OnSuccessfulFileWrite);
+            return solutionBindingFileLoader.WriteToFile(writeSettings.ConfigPath, configuration.Project, writeSettings.OnSuccessfulFileWrite);
         }
 
         private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 return null;
             }
 
-            var boundProject = solutionBindingFile.ReadSolutionBinding(bindingPath);
+            var boundProject = solutionBindingFileLoader.ReadFromFile(bindingPath);
 
             return boundProject == null
                 ? null

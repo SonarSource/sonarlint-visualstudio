@@ -22,18 +22,18 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ISolutionBindingFile
+    internal interface ISolutionBindingFileLoader
     {
         /// <summary>
         /// Retrieves solution binding information
         /// </summary>
         /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject ReadSolutionBinding(string configFilePath);
+        BoundSonarQubeProject ReadFromFile(string configFilePath);
 
         /// <summary>
         /// Writes the binding information
         /// </summary>
         /// <returns>Has file been saved</returns>
-        bool WriteSolutionBinding(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
+        bool WriteToFile(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
     }
 }

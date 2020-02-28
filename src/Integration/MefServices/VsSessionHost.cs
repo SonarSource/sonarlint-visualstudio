@@ -297,9 +297,9 @@ namespace SonarLint.VisualStudio.Integration
 
                 var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
 
-                var solutionBindingFile = new SolutionBindingFile(sccFileSystem, bindingSerializer, credentialsLoader);
+                var solutionBindingFileLoader = new SolutionBindingFileLoader(sccFileSystem, bindingSerializer, credentialsLoader);
 
-                return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingFile, legacyPostSaveOperation);
+                return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingFileLoader, legacyPostSaveOperation);
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
