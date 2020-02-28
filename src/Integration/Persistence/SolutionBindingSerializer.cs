@@ -37,8 +37,8 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public SolutionBindingSerializer(ILogger logger, IFile fileWrapper, IDirectory directoryWrapper)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileWrapper = fileWrapper;
-            this.directoryWrapper = directoryWrapper;
+            this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+            this.directoryWrapper = directoryWrapper ?? throw new ArgumentNullException(nameof(directoryWrapper));
         }
 
         public bool SerializeToFile(string filePath, BoundSonarQubeProject project)
