@@ -68,7 +68,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             var writeSettings = GetWriteSettings(configuration);
 
-            return solutionBindingFileLoader.WriteToFile(writeSettings.ConfigPath, configuration.Project, writeSettings.OnSuccessfulFileWrite);
+            return writeSettings.HasValue && 
+                   solutionBindingFileLoader.WriteToFile(writeSettings?.ConfigPath, configuration.Project, writeSettings?.OnSuccessfulFileWrite);
         }
 
         private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
@@ -85,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 : BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode);
         }
 
-        private WriteSettings GetWriteSettings(BindingConfiguration configuration)
+        private WriteSettings? GetWriteSettings(BindingConfiguration configuration)
         {
             var writeSettings = new WriteSettings();
 
@@ -117,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return writeSettings;
         }
 
-        private class WriteSettings
+        private struct WriteSettings
         {
             public Predicate<string> OnSuccessfulFileWrite { get; set; }
             public string ConfigPath { get; set; }
