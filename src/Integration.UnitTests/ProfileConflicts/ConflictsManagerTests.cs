@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableServiceProvider serviceProvider;
         private ConfigurableVsProjectSystemHelper projectHelper;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfoProvider;
-        private ConfigurableFileSystem fileSystem;
+        private MockFileSystem fileSystem;
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableRuleSetInspector inspector;
         private ConfigurableVsOutputWindowPane outputWindowPane;
@@ -62,8 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
-            this.fileSystem = new ConfigurableFileSystem();
-            this.serviceProvider.RegisterService(typeof(IFileSystem), this.fileSystem);
+            this.fileSystem = new MockFileSystem();
 
             this.configProvider = new ConfigurableConfigurationProvider();
             this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
@@ -78,13 +78,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
 
-            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider));
+            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem);
         }
 
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, fileSystem));
 
             testSubject.Should().NotBeNull("Avoid code analysis warning when testSubject is unused");
         }
@@ -287,13 +287,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void SetSolutionBinding(SonarLintMode mode)
         {
             this.configProvider.ModeToReturn = mode;
-            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null :  new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
+            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null : new BoundSonarQubeProject { ProjectKey = "ProjectKey" };
         }
 
         private void SetValidProjects(int numberOfProjects = 1)
         {
             List<ProjectMock> projects = new List<ProjectMock>();
-            for(int i=0;i< numberOfProjects;i++)
+            for (int i = 0; i < numberOfProjects; i++)
             {
                 ProjectMock project = this.dte.Solution.AddOrGetProject($@"X:\Solution\Project\Project{i}.csproj");
                 project.SetCSProjectKind();
@@ -312,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     this.configProvider.ProjectToReturn.ProjectKey,
                     ProjectToLanguageMapper.GetLanguageForProject(project),
                     SonarLintMode.LegacyConnected);
-                this.fileSystem.RegisterFile(solutionRuleSet);
+                this.fileSystem.AddFile(solutionRuleSet, new MockFileData(""));
             }
         }
 
@@ -368,7 +368,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 baseline.Should().NotBeNull();
                 ruleset.Should().NotBeNull();
-                this.fileSystem.files.Should().ContainKey(baseline);
+                this.fileSystem.AllFiles.Should().Contain(baseline);
 
                 knownDeclarations.Any(dec =>
                 {

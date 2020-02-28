@@ -109,6 +109,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.3.2099" />
 
@@ -181,6 +182,7 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
+    <None Remove="ThirdPartyLicenses\System.IO.Abstractions.txt" />
     
     <Content Include="Resources\sonarlint_32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -191,6 +193,10 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ThirdPartyLicenses\System.IO.Abstractions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -405,6 +411,12 @@
         <VSIXSubPath>$(CFamilyFolderName)</VSIXSubPath>
         <Visible>false</Visible>
       </Content>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="IncludeNuGetPackageReferences" AfterTargets="GetVsixSourceItems">
+    <ItemGroup>
+      <VSIXSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' == 'System.IO.Abstractions'" />
     </ItemGroup>
   </Target>
 

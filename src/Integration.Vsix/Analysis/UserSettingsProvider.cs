@@ -22,8 +22,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -37,25 +37,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private readonly ISingleFileMonitor settingsFileMonitor;
 
-        private readonly IFile fileWrapper;
+        private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
         private readonly UserSettingsSerializer serializer;
 
         [ImportingConstructor]
         public UserSettingsProvider(ILogger logger)
-            : this(logger, new FileWrapper(),
+            : this(logger, new FileSystem(),
                   new SingleFileMonitor(UserSettingsFilePath, logger))
         {
         }
 
         internal /* for testing */ UserSettingsProvider(ILogger logger,
-            IFile fileWrapper, ISingleFileMonitor settingsFileMonitor)
+            IFileSystem fileSystem, ISingleFileMonitor settingsFileMonitor)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileWrapper = fileWrapper ?? throw new ArgumentNullException(nameof(fileWrapper));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
 
-            this.serializer = new UserSettingsSerializer(fileWrapper, logger);
+            this.serializer = new UserSettingsSerializer(fileSystem, logger);
 
             SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
             UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void EnsureFileExists()
         {
-            if (!fileWrapper.Exists(SettingsFilePath))
+            if (!fileSystem.File.Exists(SettingsFilePath))
             {
                 serializer.SafeSave(SettingsFilePath, UserSettings);
             }

@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
@@ -44,10 +45,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableSolutionRuleStore ruleStore;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleSetFS;
+        private MockFileSystem fileSystem;
 
         [TestInitialize]
         public void TestInitialize()
         {
+            fileSystem = new MockFileSystem();
+
             this.dte = new DTEMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.solutionMock = new SolutionMock(dte, Path.Combine(SolutionRoot, "xxx.sln"));
@@ -56,13 +60,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
             this.ruleStore = new ConfigurableSolutionRuleStore();
-            this.sccFileSystem = new ConfigurableSourceControlledFileSystem();
-            this.ruleSetFS = new ConfigurableRuleSetSerializer(this.sccFileSystem);
-
+            this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
+            this.ruleSetFS = new ConfigurableRuleSetSerializer(fileSystem);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleSetFS);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider),
-                new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object));
+                new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
         }
 
@@ -72,10 +75,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_ArgChecks()
         {
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.ruleStore, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.ruleStore, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore, null));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null));
 
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             testSubject.Should().NotBeNull("Suppress warning that not used");
@@ -194,25 +196,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            this.sccFileSystem.files.Should().NotContainKey(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().Be(null);
             testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected all the properties with default ruleset to have the same new ruleset");
             testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected all the properties with default ruleset to have the same new ruleset");
 
             string expectedRuleSetForConfig1 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config1.ruleset");
             testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetForConfig1, "Expected different rule set path for properties with custom rulesets");
-            this.sccFileSystem.files.Should().NotContainKey(expectedRuleSetForConfig1);
+            fileSystem.GetFile(expectedRuleSetForConfig1).Should().Be(null);
 
             string expectedRuleSetForConfig2 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config2.ruleset");
             testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetForConfig2, "Expected different rule set path for properties with custom rulesets");
-            this.sccFileSystem.files.Should().NotContainKey(expectedRuleSetForConfig2);
+            fileSystem.GetFile(expectedRuleSetForConfig2).Should().Be(null);
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert that written
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleSetFileForPropertiesWithDefaultRulSets);
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleSetForConfig1);
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleSetForConfig2);
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().NotBe(null);
+            fileSystem.GetFile(expectedRuleSetForConfig1).Should().NotBe(null);
+            fileSystem.GetFile(expectedRuleSetForConfig2).Should().NotBe(null);
         }
 
         [TestMethod]
@@ -231,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            this.sccFileSystem.files.Should().NotContainKey(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().Be(null);
             testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
             testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
 
@@ -239,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert that written
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().NotBe(null);
         }
 
         [TestMethod]
@@ -256,9 +258,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act
             testSubject.Prepare(CancellationToken.None);
 
+
             // Assert
             string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            this.sccFileSystem.files.Should().NotContainKey(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().Be(null);
             testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
             testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected different rule set path for properties with custom rulesets");
 
@@ -266,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert that written
-            this.sccFileSystem.files.Should().ContainKey(expectedRuleSetFileForPropertiesWithDefaultRulSets);
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().NotBe(null);
         }
 
         [TestMethod]
@@ -364,7 +367,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private ProjectBindingOperation CreateTestSubject()
         {
-            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore, new TestLogger());
+            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore);
         }
 
         #endregion Helpers

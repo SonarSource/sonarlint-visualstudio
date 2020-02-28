@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
@@ -53,33 +54,41 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
 
-        public SolutionBindingOperation(IServiceProvider serviceProvider, ConnectionInformation connection, string projectKey, string projectName, SonarLintMode bindingMode,
+        public SolutionBindingOperation(IServiceProvider serviceProvider,
+            ConnectionInformation connection,
+            string projectKey,
+            string projectName,
+            SonarLintMode bindingMode,
             ILogger logger)
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, new FileSystem())
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-            if (connection == null)
-            {
-                throw new ArgumentNullException(nameof(connection));
-            }
+        }
+
+        internal SolutionBindingOperation(IServiceProvider serviceProvider, 
+            ConnectionInformation connection, 
+            string projectKey, 
+            string projectName, 
+            SonarLintMode bindingMode,
+            ILogger logger,
+            IFileSystem fileSystem)
+        {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
                 throw new ArgumentNullException(nameof(projectKey));
             }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
 
             bindingMode.ThrowIfNotConnected();
 
-            this.serviceProvider = serviceProvider;
-            this.connection = connection;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+
             this.projectKey = projectKey;
             this.projectName = projectName;
+            this.bindingMode = bindingMode;
 
             this.projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
@@ -87,8 +96,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
 
-            this.bindingMode = bindingMode;
-            this.logger = logger;
         }
 
         #region State
@@ -168,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 if (BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
                 {
-                    var binder = new ProjectBindingOperation(serviceProvider, project, this, this.logger);
+                    var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();
                     this.childBinder.Add(binder);
                 }
@@ -195,9 +202,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 
                 this.sourceControlledFileSystem.QueueFileWrite(info.NewFilePath, () =>
                 {
-                    string ruleSetDirectoryPath = Path.GetDirectoryName(info.NewFilePath);
+                    var ruleSetDirectoryPath = Path.GetDirectoryName(info.NewFilePath);
 
-                    this.sourceControlledFileSystem.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
+                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
                     // Create or overwrite existing rule set
                     info.BindingConfigFile.Save(info.NewFilePath);
@@ -279,7 +286,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             foreach (ConfigFileInformation info in bindingConfigInformationMap.Values)
             {
-                Debug.Assert(this.sourceControlledFileSystem.FileExist(info.NewFilePath), "File not written " + info.NewFilePath);
+                Debug.Assert(fileSystem.File.Exists(info.NewFilePath), "File not written " + info.NewFilePath);
                 this.AddFileToSolutionItems(info.NewFilePath);
                 this.RemoveFileFromSolutionItems(info.NewFilePath);
             }
@@ -287,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddFileToSolutionItems(string fullFilePath)
         {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.FileExist(fullFilePath), "Expecting a rooted path to existing file");
+            Debug.Assert(Path.IsPathRooted(fullFilePath) && fileSystem.File.Exists(fullFilePath), "Expecting a rooted path to existing file");
 
             Project solutionItemsProject = this.projectSystem.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
             if (solutionItemsProject == null)
@@ -305,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void RemoveFileFromSolutionItems(string fullFilePath)
         {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && this.sourceControlledFileSystem.FileExist(fullFilePath), "Expecting a rooted path to existing file");
+            Debug.Assert(Path.IsPathRooted(fullFilePath) && fileSystem.File.Exists(fullFilePath), "Expecting a rooted path to existing file");
 
             Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject(false);
             if (solutionItemsProject != null)

@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Windows.Threading;
 using EnvDTE;
@@ -80,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
             this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
+            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
@@ -383,7 +385,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.LegacyConnected;
             configProvider.ProjectToReturn = ValidProject;
-            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
+            
 
             // Act
             var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
@@ -400,7 +402,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.Standalone;
             configProvider.ProjectToReturn = ValidProject;
-            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
             // Act
             var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);
@@ -419,7 +420,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             configProvider.ModeToReturn = SonarLintMode.Connected;
             configProvider.ProjectToReturn = ValidProject;
-            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem());
 
             // Act
             var actual = BindingController.CreateBindingProcess(host, ValidBindingArgs);

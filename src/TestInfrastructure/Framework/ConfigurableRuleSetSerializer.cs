@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
@@ -29,17 +30,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     internal class ConfigurableRuleSetSerializer : IRuleSetSerializer
     {
         private readonly Dictionary<string, RuleSet> savedRuleSets = new Dictionary<string, RuleSet>(StringComparer.OrdinalIgnoreCase);
-        private readonly ConfigurableFileSystem fileSystem;
+        private readonly MockFileSystem fileSystem;
         private readonly Dictionary<string, int> ruleSetLoaded = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
-        public ConfigurableRuleSetSerializer()
-            : this(new ConfigurableFileSystem())
+        public ConfigurableRuleSetSerializer(MockFileSystem fileSystem)
         {
-        }
-
-        public ConfigurableRuleSetSerializer(ConfigurableFileSystem fs)
-        {
-            this.fileSystem = fs;
+            this.fileSystem = fileSystem;
         }
 
         #region IRuleSetFileSystem
@@ -59,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 this.savedRuleSets[path] = ruleSet;
             }
-            this.fileSystem.UpdateTimestamp(path);
+            this.fileSystem.AddFile(path, new MockFileData(""));
         }
 
         #endregion IRuleSetFileSystem
@@ -82,23 +78,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RegisterRuleSet(RuleSet ruleSet, string path)
         {
             this.savedRuleSets[path] = ruleSet;
-            this.fileSystem.RegisterFile(path);
+            this.fileSystem.AddFile(path, new MockFileData(""));
         }
 
         public void ClearRuleSets()
         {
-            this.fileSystem.ClearFiles();
-            this.savedRuleSets.Clear();
+            foreach (var filePath in fileSystem.AllFiles)
+            {
+                fileSystem.RemoveFile(filePath);
+            }
+            savedRuleSets.Clear();
         }
 
         public void AssertRuleSetExists(string path)
         {
-            this.fileSystem.files.Should().ContainKey(path);
+            fileSystem.GetFile(path).Should().NotBe(null);
         }
 
         public void AssertRuleSetNotExists(string path)
         {
-            this.fileSystem.files.Should().NotContainKey(path);
+            fileSystem.GetFile(path).Should().Be(null);
         }
 
         public void AssertRuleSetsAreEqual(string ruleSetPath, RuleSet expectedRuleSet)

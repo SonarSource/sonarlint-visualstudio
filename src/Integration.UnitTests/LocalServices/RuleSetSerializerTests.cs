@@ -21,6 +21,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,8 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class RuleSetSerializerTests
     {
-        private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableFileSystem fileSystem;
+        private MockFileSystem fileSystem;
         private TempFileCollection temporaryFiles;
         private RuleSetSerializer testSubject;
 
@@ -42,14 +42,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInit()
         {
-            this.temporaryFiles = new TempFileCollection(this.TestContext.TestRunDirectory, keepFiles: false);
-
-            this.serviceProvider = new ConfigurableServiceProvider();
-
-            this.fileSystem = new ConfigurableFileSystem();
-            this.serviceProvider.RegisterService(typeof(IFileSystem), this.fileSystem);
-
-            this.testSubject = new RuleSetSerializer(this.serviceProvider);
+            fileSystem = new MockFileSystem();
+            temporaryFiles = new TempFileCollection(this.TestContext.TestRunDirectory, keepFiles: false);
+            testSubject = new RuleSetSerializer(fileSystem);
         }
 
         [TestCleanup]
@@ -65,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RuleSetSerializer_LoadRuleSet_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(()=> this.testSubject.LoadRuleSet(null));
-            Exceptions.Expect<ArgumentNullException>(()=> this.testSubject.LoadRuleSet(""));
-            Exceptions.Expect<ArgumentNullException>(()=> this.testSubject.LoadRuleSet("\t\n"));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.LoadRuleSet(null));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.LoadRuleSet(""));
+            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.LoadRuleSet("\t\n"));
         }
 
         [TestMethod]
@@ -75,9 +70,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSet(this.TestContext.TestRunDirectory, this.TestContext.TestName + ".ruleset");
-            this.temporaryFiles.AddFile(ruleSet.FilePath, false);
+            temporaryFiles.AddFile(ruleSet.FilePath, false);
             ruleSet.WriteToFile(ruleSet.FilePath);
-            this.fileSystem.RegisterFile(ruleSet.FilePath);
+            fileSystem.AddFile(ruleSet.FilePath, new MockFileData(""));
 
             // Act
             RuleSet loaded = this.testSubject.LoadRuleSet(ruleSet.FilePath);
@@ -92,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             string existingRuleSet = Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName + ".ruleset");
-            this.temporaryFiles.AddFile(existingRuleSet, false);
+            temporaryFiles.AddFile(existingRuleSet, false);
 
             // Case 1: file not exists
             RuleSet missing = testSubject.LoadRuleSet(existingRuleSet);
@@ -102,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Case 2: file exists, badly formed rule set (invalid xml)
             File.WriteAllText(existingRuleSet, "<xml>");
-            this.fileSystem.RegisterFile(existingRuleSet);
+            fileSystem.AddFile(existingRuleSet, "");
 
             // Act
             RuleSet loadedBad = testSubject.LoadRuleSet(existingRuleSet);

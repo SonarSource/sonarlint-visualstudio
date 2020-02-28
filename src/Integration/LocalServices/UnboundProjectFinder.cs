@@ -21,10 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
@@ -34,14 +34,14 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
-        private readonly IFile fileWrapper;
+        private readonly IFileSystem fileSystem;
 
         public UnboundProjectFinder(IServiceProvider serviceProvider)
-            : this(serviceProvider, new FileWrapper())
+            : this(serviceProvider, new FileSystem())
         {
         }
 
-        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IFile fileWrapper)
+        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
         {
             if (serviceProvider == null)
             {
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration
             ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
             
-            this.fileWrapper = fileWrapper;
+            this.fileSystem = fileSystem;
         }
 
         #region IUnboundProjectFinder implementation
@@ -99,27 +99,27 @@ namespace SonarLint.VisualStudio.Integration
 
             // Reuse the binding information passed in to avoid reading it more than once
             return projectSystem.GetFilteredSolutionProjects()
-                .Where(p => !IsFullyBoundProject(ruleSetInfoProvider, cachingSerializer, binding, p, fileWrapper))
+                .Where(p => !IsFullyBoundProject(ruleSetInfoProvider, cachingSerializer, binding, p))
                 .ToArray();
         }
 
         private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer,
-            BindingConfiguration binding, Project project, IFile fileWrapper)
+            BindingConfiguration binding, Project project)
         {
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
 
-            return languages.All(l => IsFullyBoundProject(ruleSetInfoProvider, ruleSetSerializer, binding, project, l, fileWrapper));
+            return languages.All(l => IsFullyBoundProject(ruleSetInfoProvider, ruleSetSerializer, binding, project, l));
         }
 
         private bool IsFullyBoundProject(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, IRuleSetSerializer ruleSetSerializer,
-            BindingConfiguration binding, Project project, Core.Language language, IFile fileWrapper)
+            BindingConfiguration binding, Project project, Core.Language language)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
             // If solution is not bound/is missing a rules configuration file, no need to go further
             var slnLevelBindingConfigFilepath = CalculateSonarQubeSolutionBindingConfigPath(ruleSetInfoProvider, binding, language);
-            if (!fileWrapper.Exists(slnLevelBindingConfigFilepath))
+            if (!fileSystem.File.Exists(slnLevelBindingConfigFilepath))
             {
                 return false;
             }

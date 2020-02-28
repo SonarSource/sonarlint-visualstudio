@@ -21,8 +21,9 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.IO.Abstractions;
+using System.Text;
 using System.Xml.Serialization;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -35,26 +36,23 @@ namespace SonarLint.VisualStudio.Integration
         private readonly XmlSerializer telemetrySerializer = new XmlSerializer(typeof(TelemetryData));
 
         private bool ignoreFileChange;
-        private readonly IFile fileWrapper;
-        private readonly IDirectory directoryWrapper;
+        private readonly IFileSystem fileSystem;
 
         public TelemetryData Data { get; private set; } = new TelemetryData { IsAnonymousDataShared = true };
 
         public TelemetryDataRepository()
-            : this(new FileWrapper(), new DirectoryWrapper(), new FileSystemWatcherWrapperFactory())
+            : this(new FileSystem(), new FileSystemWatcherFactory())
         {
         }
 
-        public TelemetryDataRepository(IFile fileWrapper, IDirectory directoryWrapper,
-            IFileSystemWatcherFactory fileSystemWatcherFactory)
+        public TelemetryDataRepository(IFileSystem fileSystem, IFileSystemWatcherFactory fileSystemWatcherFactory)
         {
-            this.fileWrapper = fileWrapper;
-            this.directoryWrapper = directoryWrapper;
+            this.fileSystem = fileSystem;
 
             EnsureFileExists(StorageFilePath);
             ReadFromXmlFile();
 
-            fileWatcher = fileSystemWatcherFactory.Create();
+            fileWatcher = fileSystemWatcherFactory.CreateNew();
             fileWatcher.Path = Path.GetDirectoryName(StorageFilePath);
             fileWatcher.Filter = Path.GetFileName(StorageFilePath);
             fileWatcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -86,11 +84,11 @@ namespace SonarLint.VisualStudio.Integration
         private void EnsureFileExists(string filePath)
         {
             var directoryPath = Path.GetDirectoryName(filePath);
-            if (!directoryWrapper.Exists(directoryPath))
+            if (!fileSystem.Directory.Exists(directoryPath))
             {
-                directoryWrapper.Create(directoryPath);
+                fileSystem.Directory.CreateDirectory(directoryPath);
             }
-            if (!fileWrapper.Exists(filePath))
+            if (!fileSystem.File.Exists(filePath))
             {
                 WriteToXmlFile();
             }
@@ -98,41 +96,37 @@ namespace SonarLint.VisualStudio.Integration
 
         private void WriteToXmlFile()
         {
-            TextWriter writer = null;
             var success = RetryHelper.RetryOnException(3, TimeSpan.FromSeconds(2),
                 () =>
                 {
-                    writer = fileWrapper.CreateText(StorageFilePath);
-                    this.ignoreFileChange = true;
-                    telemetrySerializer.Serialize(writer, Data);
-                    writer?.Flush();
+                    ignoreFileChange = true;
+                    var stringBuilder = new StringBuilder();
+                    telemetrySerializer.Serialize(new StringWriter(stringBuilder), Data);
+                    fileSystem.File.WriteAllText(StorageFilePath, stringBuilder.ToString());
                 });
-            writer?.Dispose();
 
             if (!success)
             {
-                this.ignoreFileChange = false;
+                ignoreFileChange = false;
             }
         }
 
         private void ReadFromXmlFile()
         {
-            TextReader reader = null;
             RetryHelper.RetryOnException(3, TimeSpan.FromSeconds(2),
                 () =>
                 {
-                    reader = fileWrapper.OpenText(StorageFilePath);
                     try
                     {
-                        this.Data = telemetrySerializer.Deserialize(reader) as TelemetryData;
+                        var fileContent = fileSystem.File.ReadAllText(StorageFilePath);
+                        this.Data = telemetrySerializer.Deserialize(new StringReader(fileContent)) as TelemetryData;
                     }
                     catch (InvalidOperationException)
                     {
-                        fileWrapper.Delete(StorageFilePath);
+                        fileSystem.File.Delete(StorageFilePath);
                         EnsureFileExists(StorageFilePath);
                     }
                 });
-            reader?.Dispose();
         }
 
         public void Save()

@@ -20,8 +20,8 @@
 
 using System;
 using System.IO;
+using System.IO.Abstractions;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             ISourceControlledFileSystem sccFileSystem,
             ICredentialStoreService store,
             ILogger logger)
-            :this(solution, sccFileSystem, store, logger, new FileWrapper())
+            :this(solution, sccFileSystem, store, logger, new FileSystem())
         {
         }
 
@@ -48,15 +48,10 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             ISourceControlledFileSystem sccFileSystem,
             ICredentialStoreService store,
             ILogger logger,
-            IFile fileWrapper)
-            :base(sccFileSystem, store, logger, fileWrapper)
+            IFileSystem fileSystem)
+            :base(sccFileSystem, store, logger, fileSystem)
         {
-            if (solution == null)
-            {
-                throw new ArgumentNullException(nameof(solution));
-            }
-
-            this.solution = solution;
+            this.solution = solution ?? throw new ArgumentNullException(nameof(solution));
         }
 
         internal static string GetConnectionFilePath(string solutionFilePath)
