@@ -19,12 +19,12 @@
  */
 
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Persistence;
 using Moq;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -117,6 +117,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             file.Verify(x => x.WriteAllText(MockFilePath, expectedContent), Times.Once);
         }
 
+        [TestMethod]
+        public void SerializeToFile_NonCriticalException_False()
+        {
+            file.Setup(x => x.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<PathTooLongException>();
+
+            var actual = testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+            actual.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void SerializeToFile_CriticalException_Exception()
+        {
+            file.Setup(x => x.WriteAllText(MockFilePath, It.IsAny<string>())).Throws<StackOverflowException>();
+
+            Action act = () => testSubject.SerializeToFile(MockFilePath, new BoundSonarQubeProject());
+
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
         [DataTestMethod]
         [DataRow("")]
         [DataRow(null)]
@@ -133,6 +152,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var actual = testSubject.DeserializeFromFile(MockFilePath);
             actual.Should().Be(null);
+        }
+
+        [TestMethod]
+        public void DeserializeFromFile_InvalidJson_Null()
+        {
+            file.Setup(x => x.Exists(MockFilePath)).Returns(true);
+            file.Setup(x => x.ReadAllText(MockFilePath)).Returns("bad json");
+
+            var actual = testSubject.DeserializeFromFile(MockFilePath);
+            actual.Should().Be(null);
+        }
+
+        [TestMethod]
+        public void DeserializeFromFile_NonCriticalException_Null()
+        {
+            file.Setup(x => x.Exists(MockFilePath)).Returns(true);
+            file.Setup(x => x.ReadAllText(MockFilePath)).Throws<PathTooLongException>();
+
+            var actual = testSubject.DeserializeFromFile(MockFilePath);
+            actual.Should().Be(null);
+        }
+
+        [TestMethod]
+        public void DeserializeFromFile_CriticalException_Exception()
+        {
+            file.Setup(x => x.Exists(MockFilePath)).Returns(true);
+            file.Setup(x => x.ReadAllText(MockFilePath)).Throws<StackOverflowException>();
+
+            Action act = () => testSubject.DeserializeFromFile(MockFilePath);
+
+            act.Should().ThrowExactly<StackOverflowException>();
         }
 
         [TestMethod]
