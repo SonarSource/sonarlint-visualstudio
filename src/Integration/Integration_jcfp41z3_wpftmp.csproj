@@ -1,0 +1,208 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup Label="Specify which VS-specific refs are required">
+    <RequiresRuleset>true</RequiresRuleset>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <ProjectGuid>{03278C1A-EE78-4FA7-A5B0-1AB0A81EA76F}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Integration</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Integration</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
+  </PropertyGroup>
+  <ItemGroup Label="Framework references">
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="14.3.25407" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
+    <PackageReference Include="EnvDTE" Version="8.0.0" />
+    <PackageReference Include="EnvDTE80" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime" Version="14.3.25407" />
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
+    <PackageReference Include="NuGet.Core" Version="2.12.0" />
+    <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
+    <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\Strings.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
+    <EmbeddedResource Update="Resources\Strings.resx">
+      <!-- Note: must be public so the resources are visible to XAML -->
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="StrongNamer" Version="0.0.8" />
+  </ItemGroup>
+  <ItemGroup Label="Alm authentication">
+    <!-- The package from MS isn't signed so we need to reference the StrongName package
+         and conditionally set the DisableStrongName properties -->
+    <PackageReference Include="Microsoft.Alm.Authentication" Version="4.0.0.1" IncludeAssets="compile" />
+    <PackageReference Include="StrongNamer" Version="0.0.8" />
+  </ItemGroup>
+  <PropertyGroup>
+    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Connection\UI\ConnectionInfoDialogView.xaml" />
+    <None Remove="Connection\UI\OrganizationSelectionWindow.xaml" />
+    <None Remove="Notifications\NotificationIndicator.xaml" />
+    <None Remove="Progress\ProgressControl.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Progress\Progress.csproj" />
+    <ProjectReference Include="..\ProgressVS\ProgressVS.csproj" />
+  </ItemGroup>
+  <!--**********************************************************************-->
+  <!-- Workarounds -->
+  <!--**********************************************************************-->
+  <ItemGroup>
+    <!-- Workaround for NuGet bug https://github.com/NuGet/Home/issues/2365 
+         EmbedInterAssemblies isn't set for PackagReferences. -->
+    <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
+  </ItemGroup>
+  <!-- The Alm.Auth assemblies aren't being included in the VSIX for some reason.
+       This workaround adds metadata to three artifacts so that the standard VSSDK targets will
+       include them.
+       NB the target is based on the one from Microsoft.VisualStudio.SDK.EmbedInteropTypes above. -->
+  <Target Name="HackIncludeALMAuthInVsix" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.Alm.Authentication' or '%(FileName)' == 'Microsoft.Alm.Git' or '%(FileName)' == 'Microsoft.Vsts.Authentication'">
+        <CopyLocal>true</CopyLocal>
+      </ReferencePath>
+    </ItemGroup>
+    <Message Importance="high" Text="In HackIncludeAlmAuthInVsix" />
+    <Message Importance="high" Text="Reference paths: @(ReferencePath)" />
+  </Target>
+  <!--**********************************************************************-->
+  <!-- End of workarounds -->
+  <!--**********************************************************************-->
+  <ItemGroup>
+    <ReferencePath Include="c:\Projects\Nuget\envdte\8.0.0\lib\net10\EnvDTE.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\envdte80\8.0.0\lib\net10\EnvDTE80.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\google.protobuf\3.6.1\lib\net45\Google.Protobuf.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.alm.authentication\4.0.0.1\lib\net451\Microsoft.Alm.Authentication.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.alm.authentication\4.0.0.1\lib\net451\Microsoft.Alm.Git.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Microsoft.CSharp.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.identitymodel.clients.activedirectory\3.13.8\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.identitymodel.clients.activedirectory\3.13.8\lib\net45\Microsoft.IdentityModel.Clients.ActiveDirectory.Platform.dll" />
+    <ReferencePath Include="C:\Projects\sonarlint-visualstudio\src\\..\third-parties\VS2019\Microsoft.VisualStudio.CodeAnalysis.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.componentmodelhost\14.0.25424\lib\net45\Microsoft.VisualStudio.ComponentModelHost.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.imagecatalog\14.3.25407\lib\net45\Microsoft.VisualStudio.ImageCatalog.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.imaging\14.3.25407\lib\net45\Microsoft.VisualStudio.Imaging.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.imaging.interop.14.0.designtime\14.3.25407\lib\Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.ole.interop\7.10.6070\lib\Microsoft.VisualStudio.OLE.Interop.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.immutable.10.0\10.0.30319\lib\net40\Microsoft.VisualStudio.Shell.Immutable.10.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.immutable.11.0\11.0.50727\lib\net45\Microsoft.VisualStudio.Shell.Immutable.11.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.immutable.12.0\12.0.21003\lib\net45\Microsoft.VisualStudio.Shell.Immutable.12.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.immutable.14.0\14.3.25407\lib\net45\Microsoft.VisualStudio.Shell.Immutable.14.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop.10.0\10.0.30319\lib\Microsoft.VisualStudio.Shell.Interop.10.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop.11.0\11.0.61030\lib\Microsoft.VisualStudio.Shell.Interop.11.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop.12.0\12.0.30110\lib\Microsoft.VisualStudio.Shell.Interop.12.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop.14.0.designtime\14.3.25407\lib\Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop.8.0\8.0.50727\lib\Microsoft.VisualStudio.Shell.Interop.8.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop.9.0\9.0.30729\lib\Microsoft.VisualStudio.Shell.Interop.9.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.shell.interop\7.10.6071\lib\Microsoft.VisualStudio.Shell.Interop.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.textmanager.interop.8.0\8.0.50727\lib\Microsoft.VisualStudio.TextManager.Interop.8.0.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.textmanager.interop\7.10.6070\lib\Microsoft.VisualStudio.TextManager.Interop.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.threading\14.1.111\lib\net45\Microsoft.VisualStudio.Threading.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.utilities\14.3.25407\lib\net45\Microsoft.VisualStudio.Utilities.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.visualstudio.validation\14.1.111\lib\net45\Microsoft.VisualStudio.Validation.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.alm.authentication\4.0.0.1\lib\net451\Microsoft.Vsts.Authentication.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\microsoft.web.xdt\2.1.0\lib\net40\Microsoft.Web.XmlTransform.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\mscorlib.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\newtonsoft.json\6.0.8\lib\net45\Newtonsoft.Json.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\nuget.core\2.12.0\lib\net40-Client\NuGet.Core.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\nuget.visualstudio\3.3.0\lib\net45\NuGet.VisualStudio.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\PresentationCore.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\PresentationFramework.dll" />
+    <ReferencePath Include="C:\Projects\sonarlint-visualstudio\src\Core\bin\Debug\net46\SonarLint.VisualStudio.Core.dll" />
+    <ReferencePath Include="C:\Projects\sonarlint-visualstudio\src\Progress\bin\Debug\net46\SonarLint.VisualStudio.Progress.dll" />
+    <ReferencePath Include="C:\Projects\sonarlint-visualstudio\src\ProgressVS\bin\Debug\net46\SonarLint.VisualStudio.ProgressVS.dll" />
+    <ReferencePath Include="C:\Projects\sonarlint-visualstudio\sonarqube-webclient\SonarQube.Client\bin\Debug\net46\SonarQube.Client.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\stdole\7.0.3300\lib\net10\stdole.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.ComponentModel.Composition.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Core.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Data.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Drawing.dll" />
+    <ReferencePath Include="c:\Projects\Nuget\system.io.abstractions\7.1.10\lib\net40\System.IO.Abstractions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.IO.Compression.FileSystem.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Net.Http.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Numerics.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Runtime.Serialization.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Web.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Xaml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\System.Xml.Linq.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\WindowsBase.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Collections.Concurrent.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Collections.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ComponentModel.Annotations.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ComponentModel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ComponentModel.EventBasedAsync.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Diagnostics.Contracts.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Diagnostics.Debug.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Diagnostics.Tools.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Diagnostics.Tracing.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Dynamic.Runtime.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Globalization.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.IO.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Linq.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Linq.Expressions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Linq.Parallel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Linq.Queryable.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Net.NetworkInformation.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Net.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Net.Requests.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Net.WebHeaderCollection.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ObjectModel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Reflection.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Reflection.Emit.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Reflection.Emit.ILGeneration.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Reflection.Emit.Lightweight.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Reflection.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Reflection.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Resources.ResourceManager.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.Handles.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.InteropServices.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.InteropServices.WindowsRuntime.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.Numerics.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.Serialization.Json.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.Serialization.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Runtime.Serialization.Xml.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Security.Principal.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ServiceModel.Duplex.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ServiceModel.Http.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ServiceModel.NetTcp.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ServiceModel.Primitives.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.ServiceModel.Security.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Text.Encoding.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Text.Encoding.Extensions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Text.RegularExpressions.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Threading.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Threading.Tasks.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Threading.Tasks.Parallel.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Threading.Timer.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Xml.ReaderWriter.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Xml.XDocument.dll" />
+    <ReferencePath Include="C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6\Facades\System.Xml.XmlSerializer.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="C:\Projects\sonarlint-visualstudio\src\Integration\obj\Debug\net46\Connection\UI\ConnectionInfoDialogView.g.cs" />
+    <Compile Include="C:\Projects\sonarlint-visualstudio\src\Integration\obj\Debug\net46\Connection\UI\OrganizationSelectionWindow.g.cs" />
+    <Compile Include="C:\Projects\sonarlint-visualstudio\src\Integration\obj\Debug\net46\Notifications\NotificationIndicator.g.cs" />
+    <Compile Include="C:\Projects\sonarlint-visualstudio\src\Integration\obj\Debug\net46\Progress\ProgressControl.g.cs" />
+    <Compile Include="C:\Projects\sonarlint-visualstudio\src\Integration\obj\Debug\net46\GeneratedInternalTypeHelper.g.cs" />
+  </ItemGroup>
+</Project>
