@@ -267,6 +267,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.LineHash.Should().Be("e1b4eea6db405a204a21bd5251c5385d");
         }
 
+        [TestMethod]
+        public void Create_WhenDiagnosticLocationIsNotInTheTextBuffer_ReturnsNull()
+        {
+            // Regression test for #1010
+            // Arrange & Act
+            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
+                DiagnosticSeverity.Hidden, true),
+                Location.Create("C:\\MySource.cs",
+                    new TextSpan(1, 1),
+                    new LinePositionSpan(new LinePosition(999, 100), new LinePosition(1000, 200))));
+            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
+
+            // Assert
+            result.Should().BeNull();
+        }
+
         private LiveIssue SetupAndCreate(Diagnostic diagnostic, string filePath)
         {
             // Arrange
