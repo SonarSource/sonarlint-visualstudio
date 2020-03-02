@@ -28,7 +28,7 @@ using SonarQube.Client.Helpers;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SolutionBindingFileTests
+    public class SolutionBindingSerializerTests
     {
         private Mock<ISourceControlledFileSystem> sourceControlledFileSystem;
         private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
