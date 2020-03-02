@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             string sonarQubeDirectory = Path.Combine(this.solutionRootFolder, Constants.LegacySonarQubeManagedFolderName);
-            GenerateBindingInformationFile(sonarQubeDirectory, SolutionBindingSerializer.LegacyBindingConfigurationFileName);
+            GenerateBindingInformationFile(sonarQubeDirectory, LegacySolutionBindingPathProvider.LegacyBindingConfigurationFileName);
             BoundSolutionAnalyzer testSubject = null;
 
             try

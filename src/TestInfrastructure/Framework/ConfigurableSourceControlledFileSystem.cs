@@ -43,7 +43,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.fileWriteOperations.ContainsKey(filePath) || fileSystem.File.Exists(filePath);
         }
 
-
         void ISourceControlledFileSystem.QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
             this.fileWriteOperations.Should().NotContainKey(filePath, "Not expected to modify the same file during execution");
