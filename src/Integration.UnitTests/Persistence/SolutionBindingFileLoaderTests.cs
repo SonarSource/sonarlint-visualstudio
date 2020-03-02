@@ -215,5 +215,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = testSubject.Load(MockFilePath);
             actual.Should().BeEquivalentTo(boundProject);
         }
+
+        [TestMethod]
+        public void Load_FileExists_ProjectWithNonUtcTimestamp_DeserializedProjectWithCorrectTimestampData()
+        {
+            const string utcDate = "2020-02-25T08:57:54Z";
+            const string localDate = "2020-02-25T10:57:54+02:00";
+            serializedProject = serializedProject.Replace(utcDate, localDate);
+
+            fileSystem.Setup(x => x.File.Exists(MockFilePath)).Returns(true);
+            fileSystem.Setup(x => x.File.ReadAllText(MockFilePath)).Returns(serializedProject);
+
+            var actual = testSubject.Load(MockFilePath);
+            actual.Should().BeEquivalentTo(boundProject);
+
+            var deserializedTimestamp = actual.Profiles[Language.CSharp].ProfileTimestamp.Value.ToUniversalTime();
+            deserializedTimestamp.Should().Be(new DateTime(2020, 2, 25, 8, 57, 54));
+        }
     }
 }
