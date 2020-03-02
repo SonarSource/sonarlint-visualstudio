@@ -22,18 +22,9 @@ using System;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ISolutionBindingSerializer
+    interface ISolutionBindingCredentialsLoader
     {
-        /// <summary>
-        /// Retrieves solution binding information
-        /// </summary>
-        /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject Read(string configFilePath);
-
-        /// <summary>
-        /// Writes the binding information
-        /// </summary>
-        /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
+        ICredentials Load(Uri boundServerUri);
+        void Save(ICredentials credentials, Uri boundServerUri);
     }
 }

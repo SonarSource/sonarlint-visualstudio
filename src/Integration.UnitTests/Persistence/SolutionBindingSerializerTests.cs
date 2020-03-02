@@ -19,364 +19,218 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
-using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class SolutionBindingSerializerTests
     {
-        private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsOutputWindowPane outputPane;
-        private ConfigurableVsProjectSystemHelper projectSystemHelper;
-        private ConfigurableSourceControlledFileSystem sourceControlledFileSystem;
-        private ConfigurableSolutionRuleSetsInformationProvider solutionRuleSetsInfoProvider;
-        private DTEMock dte;
-        private ConfigurableCredentialStore store;
+        private Mock<ISourceControlledFileSystem> sourceControlledFileSystem;
+        private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
+        private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
+        private Mock<Predicate<string>> onSaveCallback;
+        private BoundSonarQubeProject boundSonarQubeProject;
+        private SolutionBindingSerializer testSubject;
 
-        public TestContext TestContext { get; set; }
+        private BasicAuthCredentials mockCredentials;
+        private const string MockFilePath = "test file path";
 
         [TestInitialize]
         public void TestInitialize()
         {
-            this.serviceProvider = new ConfigurableServiceProvider();
+            sourceControlledFileSystem = new Mock<ISourceControlledFileSystem>();
+            credentialsLoader = new Mock<ISolutionBindingCredentialsLoader>();
+            solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
+            onSaveCallback = new Mock<Predicate<string>>();
 
-            this.dte = new DTEMock();
-            this.dte.Solution = new SolutionMock(dte, Path.Combine(this.TestContext.TestRunDirectory, this.TestContext.TestName, "solution.sln"));
-            this.serviceProvider.RegisterService(typeof(DTE), this.dte);
+            testSubject = new SolutionBindingSerializer(sourceControlledFileSystem.Object,
+                solutionBindingFileLoader.Object,
+                credentialsLoader.Object);
 
-            var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            mockCredentials = new BasicAuthCredentials("user", "pwd".ToSecureString());
 
-            this.store = new ConfigurableCredentialStore();
-            this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.store);
+            boundSonarQubeProject = new BoundSonarQubeProject(
+                new Uri("http://xxx.www.zzz/yyy:9000"),
+                "MyProject Key",
+                "projectName",
+                mockCredentials);
 
-            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider)
-            {
-                SolutionItemsProject = this.dte.Solution.AddOrGetProject("Solution Items")
-            };
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-
-            this.sourceControlledFileSystem = new ConfigurableSourceControlledFileSystem(new MockFileSystem());
-            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sourceControlledFileSystem);
-
-            this.solutionRuleSetsInfoProvider = new ConfigurableSolutionRuleSetsInformationProvider
-            {
-                SolutionRootFolder = Path.GetDirectoryName(this.dte.Solution.FilePath)
-            };
-            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.solutionRuleSetsInfoProvider);
-
-            var mefExport = MefTestHelpers.CreateExport<ILogger>(new SonarLintOutputLogger(serviceProvider));
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport);
-            this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
+            sourceControlledFileSystem
+                .Setup(x => x.QueueFileWrite(MockFilePath, It.IsAny<Func<bool>>()))
+                .Callback((string filePath, Func<bool> method) => method());
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_ArgChecks()
+        public void Ctor_NullSourceControlledFileSystem_Exception()
         {
-            ILogger loggerMock = new Mock<ILogger>().Object;
-            IFileSystem fileWrapper = new FileSystem();
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(null, sourceControlledFileSystem, store, loggerMock, fileWrapper));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, null, store, loggerMock, fileWrapper));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, sourceControlledFileSystem, null, loggerMock, fileWrapper));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, sourceControlledFileSystem, store, null, fileWrapper));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingSerializer(serviceProvider, sourceControlledFileSystem, store, loggerMock, null));
+            Action act = () => new SolutionBindingSerializer(null, null, null);
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sccFileSystem");
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_WriteSolutionBinding_ArgChecks()
+        public void Ctor_NullSerializer_Exception()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
+            Action act = () => new SolutionBindingSerializer(sourceControlledFileSystem.Object, null, null);
 
-            // Act + Assert
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.WriteSolutionBinding(null));
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding()
+        public void Ctor_NullCredentialsLoader_Exception()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var projectKey = "MyProject Key";
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
+            Action act = () => new SolutionBindingSerializer(sourceControlledFileSystem.Object, solutionBindingFileLoader.Object, null);
 
-            // Act (write)
-            string output = testSubject.WriteSolutionBinding(written);
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            output.Should().NotBeNull("Expected a real file");
-            this.TestContext.AddResultFile(output);
-            File.Exists(output).Should().BeTrue("Expected a real file");
-
-            // Assert
-            this.store.data.Should().ContainKey(serverUri);
-
-            // Act (read)
-            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
-
-            // Assert
-            var newCreds = read.Credentials as BasicAuthCredentials;
-            newCreds.Should().NotBe(creds, "Different credential instance were expected");
-            newCreds.UserName.Should().Be(creds.UserName);
-            newCreds.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
-            read.ServerUri.Should().Be(written.ServerUri);
-            this.outputPane.AssertOutputStrings(0);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("credentialsLoader");
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding_WithProfiles()
+        public void Read_ProjectIsNull_Null()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var projectKey = "MyProject Key";
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds)
-            {
-                Profiles = new Dictionary<Language, ApplicableQualityProfile>()
-                {
-                    { Language.VBNET, new ApplicableQualityProfile { ProfileKey = "VB" } },
-                    { Language.CSharp, new ApplicableQualityProfile { ProfileKey = "CS", ProfileTimestamp = DateTime.Now } }
-                }
-            };
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
 
-            // Act (write)
-            string output = testSubject.WriteSolutionBinding(written);
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            output.Should().NotBeNull("Expected a real file");
-            this.TestContext.AddResultFile(output);
-            File.Exists(output).Should().BeTrue("Expected a real file");
-
-            // Assert
-            this.store.data.Should().ContainKey(serverUri);
-
-            // Act (read)
-            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
-
-            // Assert
-            var newCreds = read.Credentials as BasicAuthCredentials;
-            newCreds.Should().NotBe(creds, "Different credential instance were expected");
-            newCreds.UserName.Should().Be(creds.UserName);
-            newCreds.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
-            read.ServerUri.Should().Be(written.ServerUri);
-            (read.Profiles?.Count ?? 0).Should().Be(2);
-            read.Profiles[Language.VBNET].ProfileKey.Should().Be(written.Profiles[Language.VBNET].ProfileKey);
-            read.Profiles[Language.VBNET].ProfileTimestamp.Should().Be(written.Profiles[Language.VBNET].ProfileTimestamp);
-            read.Profiles[Language.CSharp].ProfileKey.Should().Be(written.Profiles[Language.CSharp].ProfileKey);
-            read.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(written.Profiles[Language.CSharp].ProfileTimestamp);
-            this.outputPane.AssertOutputStrings(0);
+            var actual = testSubject.Read(MockFilePath);
+            actual.Should().Be(null);
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_WriteSolutionBinding_ReadSolutionBinding_OnRealStore()
+        public void Read_ProjectIsNull_CredentialsNotRead()
         {
-            // Arrange
-            var testSubject = new SolutionBindingSerializer(this.serviceProvider);
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var projectKey = "MyProject Key";
-            this.store.DeleteCredentials(serverUri);
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
 
-            // Case 1: has credentials
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
+            testSubject.Read(MockFilePath);
 
-            // Act (write + read)
-            BoundSonarQubeProject read = null;
-            try
-            {
-                testSubject.WriteSolutionBinding(written);
-                this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-                read = testSubject.ReadSolutionBinding();
-            }
-            finally
-            {
-                this.store.DeleteCredentials(serverUri);
-            }
-
-            // Assert
-            var newCreds = read.Credentials as BasicAuthCredentials;
-            newCreds.Should().NotBe(creds, "Different credential instance were expected");
-            newCreds.UserName.Should().Be(creds.UserName);
-            newCreds?.Password.ToUnsecureString().Should().Be(creds.Password.ToUnsecureString());
-            read.ServerUri.Should().Be(written.ServerUri);
-            this.outputPane.AssertOutputStrings(0);
-
-            // Case 2: has not credentials (anonymous)
-            creds = null;
-            written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
-
-            // Act (write + read)
-            read = null;
-            try
-            {
-                testSubject.WriteSolutionBinding(written);
-                read = testSubject.ReadSolutionBinding();
-            }
-            finally
-            {
-                this.store.DeleteCredentials(serverUri);
-            }
-
-            // Assert
-            read.Credentials.Should().BeNull();
-            read.ServerUri.Should().Be(written.ServerUri);
-            this.outputPane.AssertOutputStrings(0);
+            credentialsLoader.Verify(x => x.Load(It.IsAny<Uri>()), Times.Never);
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_ReadSolutionBinding_InvalidData()
+        public void Read_ProjectIsNotNull_ReturnsProjectWithCredentials()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var projectKey = "MyProject Key";
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
-            string output = testSubject.WriteSolutionBinding(written);
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            output.Should().NotBeNull("Expected a real file");
-            File.WriteAllText(output, "bla bla bla: bla");
+            boundSonarQubeProject.ServerUri = new Uri("http://sonarsource.com");
+            boundSonarQubeProject.Credentials = null;
 
-            // Act (read)
-            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
+            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(boundSonarQubeProject);
+            credentialsLoader.Setup(x => x.Load(boundSonarQubeProject.ServerUri)).Returns(mockCredentials);
 
-            // Assert
-            read.Should().BeNull("Not expecting any binding information in case of error");
-            this.outputPane.AssertOutputStrings(1);
+            var actual = testSubject.Read(MockFilePath);
+            actual.Credentials.Should().Be(mockCredentials);
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Write_ConfigFilePathIsNull_ReturnsFalse(string filePath)
+        {
+            var actual = testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
+            actual.Should().Be(false);
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Write_ConfigFilePathIsNull_FileNotWritten(string filePath)
+        {
+            testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
+
+            solutionBindingFileLoader.Verify(x => x.Save(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()),
+                Times.Never);
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Write_ConfigFilePathIsNull_CredentialsNotWritten(string filePath)
+        {
+            testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
+
+            credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
+        }
+
+        [DataTestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Write_ConfigFilePathIsNull_OnSaveCallbackNotInvoked(string filePath)
+        {
+            testSubject.Write(filePath, boundSonarQubeProject, onSaveCallback.Object);
+
+            onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_ReadSolutionBinding_NoFile()
+        public void Write_ProjectIsNull_Exception()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-
-            // Act (read)
-            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
-
-            // Assert
-            read.Should().BeNull("Not expecting any binding information when there is no file");
-            this.outputPane.AssertOutputStrings(0);
+            Assert.ThrowsException<ArgumentNullException>(() =>  testSubject.Write(MockFilePath, null, onSaveCallback.Object));
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_ReadSolutionBinding_IOError()
+        public void Write_ProjectIsNull_FileNotWritten()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var projectKey = "MyProject Key";
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
-            string output = testSubject.WriteSolutionBinding(written);
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-            using (new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
-            {
-                // Act (read)
-                BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null, onSaveCallback.Object));
 
-                // Assert
-                read.Should().BeNull("Not expecting any binding information in case of error");
-                this.outputPane.AssertOutputStrings(1);
-            }
+            solutionBindingFileLoader.Verify(x => x.Save(It.IsAny<string>(), It.IsAny<BoundSonarQubeProject>()), Times.Never);
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_ReadSolutionBinding_OnClosedSolution()
+        public void Write_ProjectIsNull_CredentialsNotWritten()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            this.dte.Solution = new SolutionMock(dte, "" /*When the solution is closed the file is empty*/);
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null, onSaveCallback.Object));
 
-            // Act (read)
-            BoundSonarQubeProject read = testSubject.ReadSolutionBinding();
-
-            // Assert
-            read.Should().BeNull();
+            credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_WriteSolutionBinding_IOError()
+        public void Write_ProjectIsNull_OnSaveCallbackNotInvoked()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var projectKey = "MyProject Key";
-            var written = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
-            string output = testSubject.WriteSolutionBinding(written);
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
+            Assert.ThrowsException<ArgumentNullException>(() => testSubject.Write(MockFilePath, null, onSaveCallback.Object));
 
-            using (new FileStream(output, FileMode.Open, FileAccess.Read, FileShare.None))
-            {
-                // Act (write again)
-                string output2 = testSubject.WriteSolutionBinding(written);
-                this.sourceControlledFileSystem.WritePendingErrorsExpected();
-
-                // Assert
-                output2.Should().Be(output, "Same output is expected");
-                this.outputPane.AssertOutputStrings(1);
-            }
+            onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void SolutionBindingSerializer_WriteSolutionBinding_AddConfigFileToSolutionItemsFolder()
+        public void Write_FileNotWritten_CredentialsNotWritten()
         {
-            // Arrange
-            SolutionBindingSerializer testSubject = this.CreateTestSubject();
-            var serverUri = new Uri("http://xxx.www.zzz/yyy:9000");
-            var creds = new BasicAuthCredentials("user", "pwd".ToSecureString());
-            var projectKey = "MyProject Key";
-            var toWrite = new BoundSonarQubeProject(serverUri, projectKey, "projectName", creds);
-            ProjectMock solutionProject = (ProjectMock)this.projectSystemHelper.SolutionItemsProject;
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(false);
 
-            // Act
-            string output = testSubject.WriteSolutionBinding(toWrite);
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 
-            // Assert that not actually done anything until the pending files were written
-            this.store.data.Should().NotContainKey(serverUri);
-            solutionProject.Files.ContainsKey(output).Should().BeFalse("Not expected to be added to solution items folder just yet");
-
-            // Act (write pending)
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-
-            // Assert
-            this.store.data.Should().ContainKey(serverUri);
-            solutionProject.Files.ContainsKey(output).Should().BeTrue("File {0} was not added to project", output);
-
-            // Act (write again)
-            string output2 = testSubject.WriteSolutionBinding(toWrite);
-            this.sourceControlledFileSystem.WritePendingNoErrorsExpected();
-
-            // Assert
-            output2.Should().Be(output, "Should be the same file");
-            this.store.data.Should().ContainKey(serverUri);
-            solutionProject.Files.ContainsKey(output).Should().BeTrue("File {0} should remain in the project", output);
+            credentialsLoader.Verify(x => x.Save(It.IsAny<ICredentials>(), It.IsAny<Uri>()), Times.Never);
         }
 
-        #region Helpers
-
-        private SolutionBindingSerializer CreateTestSubject()
+        [TestMethod]
+        public void Write_FileNotWritten_OnSaveCallbackNotInvoked()
         {
-            return new SolutionBindingSerializer(this.serviceProvider, this.sourceControlledFileSystem, this.store, new SonarLintOutputLogger(serviceProvider), new FileSystem());
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(false);
+
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+
+            onSaveCallback.Verify(x => x(It.IsAny<string>()), Times.Never);
         }
 
-        #endregion Helpers
+        [TestMethod]
+        public void Write_FileWritten_CredentialsWritten()
+        {
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
+
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+
+            credentialsLoader.Verify(x => x.Save(boundSonarQubeProject.Credentials, boundSonarQubeProject.ServerUri),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public void Write_FileWritten_OnSaveCallbackIsInvoked()
+        {
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
+            onSaveCallback.Setup(x => x(MockFilePath)).Returns(true);
+
+            testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
+
+            onSaveCallback.Verify(x=> x(MockFilePath), Times.Once);
+        }
     }
 }

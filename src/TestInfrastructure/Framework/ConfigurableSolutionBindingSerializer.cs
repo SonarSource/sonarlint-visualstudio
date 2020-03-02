@@ -30,20 +30,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISolutionBindingSerializer
 
-        BoundSonarQubeProject ISolutionBindingSerializer.ReadSolutionBinding()
+        BoundSonarQubeProject ISolutionBindingSerializer.Read(string configPath)
         {
             this.ReadSolutionBindingAction?.Invoke();
             return this.CurrentBinding;
         }
 
-        string ISolutionBindingSerializer.WriteSolutionBinding(BoundSonarQubeProject binding)
+        bool ISolutionBindingSerializer.Write(string configPath, BoundSonarQubeProject binding, Predicate<string> onSaveOperation)
         {
             binding.Should().NotBeNull("Required argument");
 
             string filePath = this.WriteSolutionBindingAction?.Invoke(binding) ?? binding.ProjectKey;
             this.WrittenFilesCount++;
 
-            return filePath;
+            return true;
         }
 
         #endregion ISolutionBindingSerializer

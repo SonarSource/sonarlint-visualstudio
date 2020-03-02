@@ -18,22 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ISolutionBindingSerializer
+    internal interface ISolutionBindingPathProvider
     {
         /// <summary>
-        /// Retrieves solution binding information
+        /// Return the path of solution's binding configuration file
         /// </summary>
-        /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject Read(string configFilePath);
-
-        /// <summary>
-        /// Writes the binding information
-        /// </summary>
-        /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
+        /// <returns>Null if the solutioמ is closed</returns>
+        string Get();
     }
 }

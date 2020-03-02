@@ -19,21 +19,28 @@
  */
 
 using System;
+using System.IO;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ISolutionBindingSerializer
+    internal class LegacySolutionBindingPathProvider : ISolutionBindingPathProvider
     {
-        /// <summary>
-        /// Retrieves solution binding information
-        /// </summary>
-        /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject Read(string configFilePath);
+        private readonly IServiceProvider serviceProvider;
 
-        /// <summary>
-        /// Writes the binding information
-        /// </summary>
-        /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
+        public const string LegacyBindingConfigurationFileName = "SolutionBinding.sqconfig";
+
+        public LegacySolutionBindingPathProvider(IServiceProvider serviceProvider)
+        { 
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        }
+
+        public string Get()
+        {
+            var solutionRuleSetsInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            var rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder(NewConnectedMode.SonarLintMode.LegacyConnected);
+
+            // When the solution is closed return null
+            return rootFolder == null ? null : Path.Combine(rootFolder, LegacyBindingConfigurationFileName);
+        }
     }
 }

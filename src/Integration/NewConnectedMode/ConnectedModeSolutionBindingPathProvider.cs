@@ -20,38 +20,31 @@
 
 using System;
 using System.IO;
-using System.IO.Abstractions;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     /// <summary>
-    /// Reads/write the binding configuration for the new connected mode.
-    /// The legacy connected mode binding is written using <see cref="SolutionBindingSerializer"/>.
+    /// Return the path of solution's binding configuration file when in connected mode.
+    /// The legacy binding is calculated using <see cref="LegacySolutionBindingPathProvider"/>.
     /// </summary>
-    internal class ConfigurationSerializer : FileBindingSerializer
+    internal class ConnectedModeSolutionBindingPathProvider : ISolutionBindingPathProvider
     {
         private readonly IVsSolution solution;
 
-        public ConfigurationSerializer(
-            IVsSolution solution,
-            ISourceControlledFileSystem sccFileSystem,
-            ICredentialStoreService store,
-            ILogger logger)
-            :this(solution, sccFileSystem, store, logger, new FileSystem())
-        {
-        }
-
-        internal /* for testing */ ConfigurationSerializer(
-            IVsSolution solution,
-            ISourceControlledFileSystem sccFileSystem,
-            ICredentialStoreService store,
-            ILogger logger,
-            IFileSystem fileSystem)
-            :base(sccFileSystem, store, logger, fileSystem)
+        public ConnectedModeSolutionBindingPathProvider(IVsSolution solution)
         {
             this.solution = solution ?? throw new ArgumentNullException(nameof(solution));
+        }
+
+        public string Get()
+        {
+            // If there isn't an open solution the returned hresult will indicate an error
+            // and the returned solution name will be null. We'll just ignore the hresult.
+            solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out var fullSolutionName);
+
+            return GetConnectionFilePath(fullSolutionName as string);
         }
 
         internal static string GetConnectionFilePath(string solutionFilePath)
@@ -65,16 +58,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var solutionName = Path.GetFileNameWithoutExtension(solutionFilePath);
             
             return Path.Combine(solutionFolder, Constants.SonarlintManagedFolderName, $"{solutionName}.slconfig");
-        }
-
-        protected override string GetFullConfigurationFilePath()
-        {
-            object fullSolutionName;
-            // If there isn't an open solution the returned hresult will indicate an error
-            // and the returned solution name will be null. We'll just ignore the hresult.
-            solution.GetProperty((int)__VSPROPID.VSPROPID_SolutionFileName, out fullSolutionName);
-
-            return GetConnectionFilePath(fullSolutionName as string);
         }
     }
 }

@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         public static void AreEqual(RuleSet expected, RuleSet actual, string message = null)
         {
-            // Load files
+            // Save files
             XDocument expectedDocument = expected.ToXDocument();
             XDocument actualDocument = actual.ToXDocument();
 

@@ -20,95 +20,75 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Abstractions;
-using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
     /// <summary>
-    /// Serializer for legacy connected mode
+    /// Writes the binding configuration file to the source controlled file system
     /// </summary>
-    internal class SolutionBindingSerializer : FileBindingSerializer
+    /// <remarks>
+    /// The file will be enqueued but not actually written.
+    /// It is the responsibility of the caller to flush the queue.
+    /// This is to allow multiple other files to be written using the 
+    /// same instance of the SCC wrapper (e.g. ruleset files).
+    /// </remarks>
+    internal sealed class SolutionBindingSerializer : ISolutionBindingSerializer
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
+        private readonly ISolutionBindingCredentialsLoader credentialsLoader;
+        private readonly ISourceControlledFileSystem sccFileSystem;
 
-        public const string LegacyBindingConfigurationFileName = "SolutionBinding.sqconfig";
-        public const string StoreNamespace = "SonarLint.VisualStudio.Integration";
-
-        public SolutionBindingSerializer(IServiceProvider serviceProvider)
-            : this(serviceProvider,
-                  serviceProvider?.GetService<ISourceControlledFileSystem>(),
-                  serviceProvider?.GetService<ICredentialStoreService>(),
-                  serviceProvider?.GetMefService<ILogger>(),
-                  new FileSystem())
+        public SolutionBindingSerializer(ISourceControlledFileSystem sccFileSystem,
+            ISolutionBindingFileLoader solutionBindingFileLoader,
+            ISolutionBindingCredentialsLoader credentialsLoader)
         {
+            this.sccFileSystem = sccFileSystem ?? throw new ArgumentNullException(nameof(sccFileSystem));
+            this.solutionBindingFileLoader = solutionBindingFileLoader ?? throw new ArgumentNullException(nameof(solutionBindingFileLoader));
+            this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         }
 
-        internal /*for testing purposes*/ SolutionBindingSerializer(
-            IServiceProvider serviceProvider,
-            ISourceControlledFileSystem sccFileSystem,
-            ICredentialStoreService store,
-            ILogger logger,
-            IFileSystem fileSystem)
-            : base(sccFileSystem, store, logger, fileSystem)
+        public BoundSonarQubeProject Read(string configFilePath)
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+           var bound = solutionBindingFileLoader.Load(configFilePath);
+
+           if (bound == null)
+           {
+               return null;
+           }
+
+           bound.Credentials = credentialsLoader.Load(bound.ServerUri);
+
+            Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
+                "Not expecting the deserialized binding config to contain the profile for an unknown language");
+
+            return bound;
         }
 
-        protected override bool OnSuccessfulFileWrite(string filePath)
+        public bool Write(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite)
         {
-            this.AddSolutionItemFile(filePath);
-            this.RemoveSolutionItemFile(filePath);
+            if (binding == null)
+            {
+                throw new ArgumentNullException(nameof(binding));
+            }
+
+            if (string.IsNullOrEmpty(configFilePath))
+            {
+                return false;
+            }
+
+            sccFileSystem.QueueFileWrite(configFilePath, () =>
+            {
+                if (solutionBindingFileLoader.Save(configFilePath, binding))
+                {
+                    credentialsLoader.Save(binding.Credentials, binding.ServerUri);
+
+                    return onSuccessfulFileWrite(configFilePath);
+                }
+
+                return false;
+            });
+
             return true;
-        }
-
-        private void AddSolutionItemFile(string configFile)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
-
-            var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
-
-            Project solutionItemsProject = projectSystemHelper.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
-            if (solutionItemsProject == null)
-            {
-                Debug.Fail("Could not find the solution items project"); // Should never happen
-            }
-            else
-            {
-                projectSystemHelper.AddFileToProject(solutionItemsProject, configFile);
-            }
-        }
-
-        private void RemoveSolutionItemFile(string configFile)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
-
-            var projectSystemHelper = this.serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
-
-            Project solutionItemsProject = projectSystemHelper.GetSolutionItemsProject(false);
-            if (solutionItemsProject != null)
-            {
-                // Remove file from project and if project is empty, remove project from solution
-                var fileName = Path.GetFileName(configFile);
-                projectSystemHelper.RemoveFileFromProject(solutionItemsProject, fileName);
-            }
-        }
-
-        protected override string GetFullConfigurationFilePath()
-        {
-            var solutionRuleSetsInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            string rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder(NewConnectedMode.SonarLintMode.LegacyConnected);
-
-            // When the solution is closed return null
-            if (rootFolder == null)
-            {
-                return null;
-            }
-
-            return Path.Combine(rootFolder, LegacyBindingConfigurationFileName);
         }
     }
 }
