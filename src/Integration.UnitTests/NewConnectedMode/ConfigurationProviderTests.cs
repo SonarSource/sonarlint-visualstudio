@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, null, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("iboth");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingSerializer");
         }
 
         [TestMethod]
