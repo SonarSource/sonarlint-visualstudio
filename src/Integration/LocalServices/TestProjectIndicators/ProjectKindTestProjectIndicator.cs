@@ -42,9 +42,10 @@ namespace SonarLint.VisualStudio.Integration
         public bool? IsTestProject(Project project)
         {
             var hierarchy = projectSystem.GetIVsHierarchy(project);
-            var aggregateProjectKinds = projectSystem.GetAggregateProjectKinds(hierarchy);
+            var aggregateProjectKinds = projectSystem.GetAggregateProjectKinds(hierarchy).ToList();
 
-            return aggregateProjectKinds.Contains(ProjectSystemHelper.TestProjectKindGuid);
+            return aggregateProjectKinds.Contains(ProjectSystemHelper.TestProjectKindGuid) ||
+                   aggregateProjectKinds.Contains(ProjectSystemHelper.ExternalTestProjectKindGuid);
         }
     }
 }

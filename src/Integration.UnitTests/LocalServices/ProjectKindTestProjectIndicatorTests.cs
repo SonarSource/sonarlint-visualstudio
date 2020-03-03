@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
 
         [TestMethod]
-        public void IsTestProject_ProjectGuidIsTestGuid_True()
+        public void IsTestProject_ProjectGuidIsMsTestGuid_True()
         {
             projectKinds.Add(ProjectSystemHelper.TestProjectKindGuid);
 
@@ -54,8 +54,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
+        public void IsTestProject_ProjectGuidIsExternalTestGuid_True()
+        {
+            projectKinds.Add(ProjectSystemHelper.ExternalTestProjectKindGuid);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void IsTestProject_ProjectGuidIsNotTestGuid_False()
         {
+            projectKinds.Add(new Guid(ProjectSystemHelper.CSharpProjectKind));
+
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeFalse();
         }
