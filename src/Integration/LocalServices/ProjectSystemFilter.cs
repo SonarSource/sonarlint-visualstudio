@@ -97,8 +97,6 @@ namespace SonarLint.VisualStudio.Integration
             // Should never realistically take more than 1 second to match against a project name
             var timeout = TimeSpan.FromSeconds(1);
             testRegex = new Regex(pattern, RegexOptions.IgnoreCase, timeout);
-
-            Debug.Assert(this.testRegex.MatchTimeout != Regex.InfiniteMatchTimeout, "Should have set non-infinite timeout");
         }
 
         #endregion
