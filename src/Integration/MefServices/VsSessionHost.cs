@@ -307,9 +307,15 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(ITestProjectIndicator), new Lazy<ILocalService>(() =>
             {
                 var buildPropertyTestProjectIndicator = new BuildPropertyTestProjectIndicator(this);
-                var projectKindTestProjectIndicator = new ProjectKindTestProjectIndicator(this);
+                var testProjectIndicators = new List<ITestProjectIndicator>
+                {
+                    new ProjectKindTestProjectIndicator(this),
+                    projectNameTestProjectIndicator.Value as ITestProjectIndicator,
+                    new PackageReferenceTestProjectIndicator(),
+                    new ProjectCapabilityTestProjectIndicator(this)
+                };
 
-                return new TestProjectIndicator(buildPropertyTestProjectIndicator, projectKindTestProjectIndicator, projectNameTestProjectIndicator.Value as ITestProjectIndicator);
+                return new TestProjectIndicator(buildPropertyTestProjectIndicator, testProjectIndicators);
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));

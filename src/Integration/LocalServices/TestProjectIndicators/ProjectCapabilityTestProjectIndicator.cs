@@ -19,27 +19,32 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal class TestProjectIndicator : ITestProjectIndicator
+    internal class ProjectCapabilityTestProjectIndicator : ITestProjectIndicator
     {
-        private readonly ITestProjectIndicator buildPropertyIndicator;
-        private readonly IEnumerable<ITestProjectIndicator> testProjectIndicators;
+        private readonly IProjectSystemHelper projectSystem;
 
-        public TestProjectIndicator(ITestProjectIndicator buildPropertyIndicator, IEnumerable<ITestProjectIndicator> testProjectIndicators)
+        public ProjectCapabilityTestProjectIndicator(IServiceProvider serviceProvider)
         {
-            this.buildPropertyIndicator = buildPropertyIndicator ?? throw new ArgumentNullException(nameof(buildPropertyIndicator));
-            this.testProjectIndicators = testProjectIndicators ?? throw new ArgumentNullException(nameof(testProjectIndicators));
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
         }
 
-        public bool? IsTestProject(EnvDTE.Project project)
+        public bool? IsTestProject(Project project)
         {
-            var isTestProject = buildPropertyIndicator.IsTestProject(project);
+            var hierarchy = projectSystem.GetIVsHierarchy(project);
+            var hasTestCapability = hierarchy.IsCapabilityMatch("TestContainer");
 
-            return isTestProject ?? testProjectIndicators.Any(x => x.IsTestProject(project).GetValueOrDefault(false));
+            return hasTestCapability;
         }
     }
 }
