@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Text.RegularExpressions;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Resources;
 using DteProject = EnvDTE.Project;
@@ -29,10 +28,9 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal class ProjectSystemFilter : IProjectSystemFilter
     {
+        private readonly ITestProjectIndicator testProjectIndicator;
         private readonly IProjectSystemHelper projectSystem;
         private readonly IProjectPropertyManager propertyManager;
-
-        private Regex testRegex;
 
         public ProjectSystemFilter(IHost host)
         {
@@ -44,11 +42,11 @@ namespace SonarLint.VisualStudio.Integration
             this.projectSystem = host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
+            this.testProjectIndicator = host.GetService<ITestProjectIndicator>();
+            this.projectSystem.AssertLocalServiceIsNotNull();
+
             this.propertyManager = host.GetMefService<IProjectPropertyManager>();
             Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
-
-            const string defaultRegex = @"[^\\]*test[^\\]*$";
-            SetTestRegex(defaultRegex);
         }
 
         #region IProjectSystemFilter
@@ -60,7 +58,6 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(project));
             }
 
-            var projectName = project.Name;
             var hierarchy = this.projectSystem.GetIVsHierarchy(project);
             var propertyStorage = hierarchy as IVsBuildPropertyStorage;
 
@@ -69,63 +66,17 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(project));
             }
 
-            if (IsNotSupportedProject(project))
-            {
-                return false;
-            }
+            var isUnsupported = IsNotSupportedProject(project) ||
+                                IsSharedProject(project) ||
+                                IsExcludedViaProjectProperty(project) ||
+                                testProjectIndicator.IsTestProject(project).GetValueOrDefault(false);
 
-            if (IsSharedProject(project))
-            {
-                return false;
-            }
-
-            if (IsExcludedViaProjectProperty(project))
-            {
-                return false;
-            }
-
-            if (IsTestProject(project, hierarchy, this.testRegex, projectName))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public void SetTestRegex(string pattern)
-        {
-            // Should never realistically take more than 1 second to match against a project name
-            var timeout = TimeSpan.FromSeconds(1);
-            testRegex = new Regex(pattern, RegexOptions.IgnoreCase, timeout);
+            return !isUnsupported;
         }
 
         #endregion
 
         #region Helpers
-        private bool IsTestProject(DteProject dteProject, IVsHierarchy projectHierarchy, Regex testProjectNameRegex, string projectName)
-        {
-            Debug.Assert(dteProject != null);
-            Debug.Assert(projectHierarchy != null);
-
-            // Ignore test projects
-            // If specifically marked with test project property, use that to specify if test project or not
-            bool? sonarTest = this.propertyManager.GetBooleanProperty(dteProject, Constants.SonarQubeTestProjectBuildPropertyKey);
-            if (sonarTest.HasValue)
-            {
-                // Even if the project is a test project by the checks below, if this property was set to false
-                // then we treat it as if it's not a test project
-                return sonarTest.Value;
-            }
-
-            // Otherwise, try to detect test project using known project types and/or regex match
-            if (this.projectSystem.IsKnownTestProject(projectHierarchy))
-            {
-                return true;
-            }
-
-            // Heuristically exclude by project name
-            return (testProjectNameRegex != null && testProjectNameRegex.IsMatch(projectName));
-        }
 
         private static bool IsNotSupportedProject(DteProject project)
         {

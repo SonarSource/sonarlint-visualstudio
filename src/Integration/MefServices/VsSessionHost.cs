@@ -22,14 +22,12 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using System.IO.Abstractions;
 using System.Linq;
 using System.Windows.Threading;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -45,8 +43,7 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class VsSessionHost : IHost, IProgressStepRunnerWrapper, IDisposable
     {
-        internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = new Type[]
-        {
+        internal /*for testing purposes*/ static readonly Type[] SupportedLocalServices = {
                 typeof(ISolutionRuleSetsInformationProvider),
                 typeof(IRuleSetSerializer),
                 typeof(IProjectSystemHelper),
@@ -56,7 +53,9 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
                 typeof(IConfigurationProvider),
-                typeof(ICredentialStoreService)
+                typeof(ICredentialStoreService),
+                typeof(ITestProjectIndicator),
+                typeof(ITestProjectRegexSetter)
         };
 
         private readonly IServiceProvider serviceProvider;
@@ -300,6 +299,17 @@ namespace SonarLint.VisualStudio.Integration
                 var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
 
                 return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer, legacyPostSaveOperation);
+            }));
+
+            var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
+            this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
+
+            this.localServices.Add(typeof(ITestProjectIndicator), new Lazy<ILocalService>(() =>
+            {
+                var buildPropertyTestProjectIndicator = new BuildPropertyTestProjectIndicator(this);
+                var projectKindTestProjectIndicator = new ProjectKindTestProjectIndicator(this);
+
+                return new TestProjectIndicator(buildPropertyTestProjectIndicator, projectKindTestProjectIndicator, projectNameTestProjectIndicator.Value as ITestProjectIndicator);
             }));
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));

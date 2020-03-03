@@ -18,31 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Linq;
-using Microsoft.VisualStudio.Shell.Interop;
-
 namespace SonarLint.VisualStudio.Integration
 {
-    internal static class IProjectSystemHelperExtensions
+    internal interface ITestProjectRegexSetter : ILocalService
     {
         /// <summary>
-        /// Returns whether or not a project is of a known test project type.
+        /// Sets the regex to that identifies project's name as test project
         /// </summary>
-        public static bool IsKnownTestProject(this IProjectSystemHelper projectSystem, IVsHierarchy vsProject)
-        {
-            //TODO: is this relevant for core projects?
-            if (projectSystem == null)
-            {
-                throw new ArgumentNullException(nameof(projectSystem));
-            }
-
-            if (vsProject == null)
-            {
-                throw new ArgumentNullException(nameof(vsProject));
-            }
-
-            return projectSystem.GetAggregateProjectKinds(vsProject).Contains(ProjectSystemHelper.TestProjectKindGuid);
-        }
+        /// <param name="pattern"></param>
+        void SetTestRegex(string pattern);
     }
 }

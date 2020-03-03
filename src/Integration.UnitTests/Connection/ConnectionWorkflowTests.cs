@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -53,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableVsProjectSystemHelper projectSystemHelper;
         private Mock<ICredentialStoreService> credentialStoreMock;
+        private Mock<ITestProjectRegexSetter> testProjectRegexSetter;
 
         [TestInitialize]
         public void TestInit()
@@ -86,6 +86,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             this.credentialStoreMock = new Mock<ICredentialStoreService>();
             this.serviceProvider.RegisterService(typeof(ICredentialStoreService), this.credentialStoreMock.Object);
+
+            this.testProjectRegexSetter = new Mock<ITestProjectRegexSetter>();
+            this.serviceProvider.RegisterService(typeof(ITestProjectRegexSetter), testProjectRegexSetter.Object);
         }
 
         #region Tests
@@ -549,26 +552,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         }
 
         [TestMethod]
-        public async Task ConnectionWorkflow_DownloadServiceParameters_RegexPropertyNotSet_SetsFilterWithDefaultExpression()
-        {
-            // Arrange
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey,
-                    SonarQubeProperty.TestProjectRegexDefaultValue) });
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-            var expectedExpression = SonarQubeProperty.TestProjectRegexDefaultValue;
-            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
-
-            // Act
-            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
-
-            // Assert
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
-        }
-
-        [TestMethod]
         public async Task ConnectionWorkflow_DownloadServiceParameters_CustomRegexProperty_SetsFilterWithCorrectExpression()
         {
             // Arrange
@@ -585,31 +568,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
 
             // Assert
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
-        }
-
-        [TestMethod]
-        public async Task ConnectionWorkflow_DownloadServiceParameters_InvalidRegex_UsesDefault()
-        {
-            // Arrange
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            var badExpression = "*-gf/d*-b/try\\*-/r-*yeb/\\";
-            var expectedExpression = SonarQubeProperty.TestProjectRegexDefaultValue;
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<SonarQubeProperty> { new SonarQubeProperty(SonarQubeProperty.TestProjectRegexKey, badExpression) });
-
-            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
-
-            // Act
-            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
-
-            // Assert
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
-            this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.InvalidTestProjectRegexPattern, badExpression));
+            testProjectRegexSetter.Verify(x => x.SetTestRegex(expectedExpression), Times.Once);
         }
 
         [TestMethod]
@@ -631,26 +590,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             controller.NumberOfAbortRequests.Should().Be(1);
             AssertServiceDisconnectCalled();
-        }
-
-        [TestMethod]
-        public async Task ConnectionWorkflow_DownloadServiceParameters_NoTestProjectRegexProperty()
-        {
-            // Arrange
-            var controller = new ConfigurableProgressController();
-            var progressEvents = new ConfigurableProgressStepExecutionEvents();
-
-            this.sonarQubeServiceMock.Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new List<SonarQubeProperty> { });
-
-            ConnectionWorkflow testSubject = SetTestSubjectWithConnectedServer();
-
-            // Act
-            await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
-
-            // Assert
-            filter.AssertTestRegex(SonarQubeProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase);
-            progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
         [TestMethod]
