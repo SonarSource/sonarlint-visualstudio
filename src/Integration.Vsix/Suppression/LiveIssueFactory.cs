@@ -108,12 +108,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 return new LiveIssue(diagnostic, projectGuid, lineSpan.Path);
             }
 
-            var startLine = lineSpan.StartLinePosition.Line;
-            var additionalLineCount = lineSpan.EndLinePosition.Line - startLine;
-            var lineText = syntaxTree.GetText().Lines[startLine + additionalLineCount].ToString();
-            var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
-
-            return new LiveIssue(diagnostic, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineText); // Line-level issue
+            try
+            {
+                var lineText = syntaxTree.GetText().Lines[lineSpan.EndLinePosition.Line].ToString();
+                var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
+                return new LiveIssue(diagnostic, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineText); // Line-level issue
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Squash non-critical exceptions
+            }
+            return null;
         }
 
         internal /* for testing */ static IDictionary<string, string> BuildProjectPathToIdMap(IVsSolution solution)
