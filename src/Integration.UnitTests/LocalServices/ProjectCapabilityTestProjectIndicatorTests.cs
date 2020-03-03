@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(IProjectSystemHelper))).Returns(projectSystemHelper.Object);
 
-            project = Mock.Of<Project>();
+            project = new ProjectMock("proj.csproj");
             projectSystemHelper.Setup(x => x.GetIVsHierarchy(project)).Returns(vsHierarchy.Object);
 
             testSubject = new ProjectCapabilityTestProjectIndicator(serviceProvider.Object);
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void IsTestProject_NotTestCapability_False()
         {
-            vsHierarchy.Setup(x => x.IsCapabilityMatch("TestContainer")).Returns(false);
+            // vsHierarchy.Setup(x => x.IsCapabilityMatch("TestContainer")).Returns(false);
 
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeFalse();
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void IsTestProject_IsTestCapability_False()
         {
-            vsHierarchy.Setup(x => x.IsCapabilityMatch("TestContainer")).Returns(true);
+            // vsHierarchy.Setup(x => x.IsCapabilityMatch("TestContainer")).Returns(true);
 
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeTrue();

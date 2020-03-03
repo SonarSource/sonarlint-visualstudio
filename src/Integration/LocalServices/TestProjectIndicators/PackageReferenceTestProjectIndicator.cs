@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         public bool? IsTestProject(Project project)
         {
-            throw new System.NotImplementedException();
+            return false;
         }
     }
 }
