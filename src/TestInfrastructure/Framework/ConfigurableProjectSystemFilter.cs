@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         void IProjectSystemFilter.SetTestRegex(string pattern)
         {
-            this.TestRegex = new Regex(pattern);
+            this.TestRegex = new Regex(pattern, RegexOptions.IgnoreCase);
         }
 
         #endregion IProjectSystemFilter
