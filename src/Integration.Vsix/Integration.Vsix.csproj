@@ -182,6 +182,9 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
+    <None Remove="ThirdPartyLicenses\Google.Protobuf.txt" />
+    <None Remove="ThirdPartyLicenses\grpc.txt" />
+    <None Remove="ThirdPartyLicenses\Newtonsoft.Json.txt" />
     <None Remove="ThirdPartyLicenses\System.IO.Abstractions.txt" />
     
     <Content Include="Resources\sonarlint_32.png">
@@ -193,6 +196,18 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ThirdPartyLicenses\Google.Protobuf.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ThirdPartyLicenses\grpc.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="ThirdPartyLicenses\Newtonsoft.Json.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
