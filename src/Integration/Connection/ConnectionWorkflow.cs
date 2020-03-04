@@ -250,12 +250,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         {
             Debug.Assert(this.ConnectedServer != null);
 
-            const string TestProjectRegexDefaultValue = @"[^\\]*test[^\\]*$";
-
-            // Should never realistically take more than 1 second to match against a project name
-            var timeout = TimeSpan.FromSeconds(1);
-            var defaultRegex = new Regex(TestProjectRegexDefaultValue, RegexOptions.IgnoreCase, timeout);
-
             notifications.ProgressChanged(Strings.DownloadingServerSettingsProgessMessage);
 
             var properties = await this.host.SonarQubeService.GetAllPropertiesAsync(this.host.VisualStateManager.BoundProjectKey, token);
@@ -267,7 +261,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
 
             var testProjRegexPattern = properties.FirstOrDefault(IsTestProjectPatternProperty)?.Value;
 
-            Regex regex = null;
             if (testProjRegexPattern != null)
             {
                 // Try and create regex from provided server pattern.
@@ -275,18 +268,17 @@ namespace SonarLint.VisualStudio.Integration.Connection
                 // the Regex object.
                 try
                 {
-                    regex = new Regex(testProjRegexPattern, RegexOptions.IgnoreCase, timeout);
+                    Regex.IsMatch("", testProjRegexPattern);
+
+                    var projectFilter = this.host.GetService<IProjectSystemFilter>();
+                    projectFilter.AssertLocalServiceIsNotNull();
+                    projectFilter.SetTestRegex(testProjRegexPattern);
                 }
                 catch (ArgumentException)
                 {
-                    this.host.Logger.WriteLine(Strings.InvalidTestProjectRegexPattern,
-                        testProjRegexPattern);
+                    this.host.Logger.WriteLine(Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
                 }
             }
-
-            var projectFilter = this.host.GetService<IProjectSystemFilter>();
-            projectFilter.AssertLocalServiceIsNotNull();
-            projectFilter.SetTestRegex(regex ?? defaultRegex);
         }
 
         private static bool IsTestProjectPatternProperty(SonarQubeProperty property)

@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Text.RegularExpressions;
-
 namespace SonarLint.VisualStudio.Integration
 {
     internal interface IProjectSystemFilter : ILocalService
@@ -32,6 +30,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Set regular expression to be used to identify a test project.
         /// </summary>
-        void SetTestRegex(Regex regex);
+        void SetTestRegex(string pattern);
     }
 }

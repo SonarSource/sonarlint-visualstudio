@@ -47,9 +47,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.MatchingProjects.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.UniqueName, dteProject.UniqueName));
         }
 
-        void IProjectSystemFilter.SetTestRegex(Regex regex)
+        void IProjectSystemFilter.SetTestRegex(string pattern)
         {
-            this.TestRegex = regex;
+            this.TestRegex = new Regex(pattern, RegexOptions.IgnoreCase);
         }
 
         #endregion IProjectSystemFilter

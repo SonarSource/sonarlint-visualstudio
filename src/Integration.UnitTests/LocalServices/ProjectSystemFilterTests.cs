@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             project.ProjectKind = projectTypeGuid;
 
             // Case 1: Regex match
-            testSubject.SetTestRegex(new Regex(".*barfoo.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
+            testSubject.SetTestRegex(".*barfoo.*");
 
             // Act
             var result = testSubject.IsAccepted(project);
@@ -291,7 +291,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             result.Should().BeFalse("Project with name that matches test regex should NOT be accepted");
 
             // Case 2: Regex doesn't match
-            testSubject.SetTestRegex(new Regex(".*notfound.*", RegexOptions.None, TimeSpan.FromSeconds(1)));
+            testSubject.SetTestRegex(".*notfound.*");
 
             // Act
             result = testSubject.IsAccepted(project);

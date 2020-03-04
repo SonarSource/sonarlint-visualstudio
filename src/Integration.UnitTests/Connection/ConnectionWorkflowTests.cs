@@ -593,6 +593,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public async Task ConnectionWorkflow_DownloadServiceParameters_InvalidRegex_UsesDefault()
         {
             // Arrange
+            filter.TestRegex = new Regex("default", RegexOptions.Compiled);
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
@@ -607,7 +608,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
 
             // Assert
-            filter.AssertTestRegex(expectedExpression, RegexOptions.IgnoreCase);
+            filter.AssertTestRegex("default", RegexOptions.Compiled);
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
             this.outputWindowPane.AssertOutputStrings(string.Format(CultureInfo.CurrentCulture, Strings.InvalidTestProjectRegexPattern, badExpression));
         }
@@ -637,6 +638,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
         public async Task ConnectionWorkflow_DownloadServiceParameters_NoTestProjectRegexProperty()
         {
             // Arrange
+            filter.TestRegex = new Regex("default", RegexOptions.Compiled);
             var controller = new ConfigurableProgressController();
             var progressEvents = new ConfigurableProgressStepExecutionEvents();
 
@@ -649,7 +651,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             await testSubject.DownloadServiceParametersAsync(controller, progressEvents, CancellationToken.None);
 
             // Assert
-            filter.AssertTestRegex(SonarQubeProperty.TestProjectRegexDefaultValue, RegexOptions.IgnoreCase);
+            filter.AssertTestRegex("default", RegexOptions.Compiled);
             progressEvents.AssertProgressMessages(Strings.DownloadingServerSettingsProgessMessage);
         }
 
