@@ -46,6 +46,9 @@ namespace SonarLint.VisualStudio.Integration
 
             this.propertyManager = host.GetMefService<IProjectPropertyManager>();
             Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
+
+            const string defaultRegex = @"[^\\]*test[^\\]*$";
+            SetTestRegex(defaultRegex);
         }
 
         #region IProjectSystemFilter
@@ -89,15 +92,11 @@ namespace SonarLint.VisualStudio.Integration
             return true;
         }
 
-        public void SetTestRegex(Regex regex)
+        public void SetTestRegex(string pattern)
         {
-            if (regex == null)
-            {
-                throw new ArgumentNullException(nameof(regex));
-            }
-
-            this.testRegex = regex;
-            Debug.Assert(this.testRegex.MatchTimeout != Regex.InfiniteMatchTimeout, "Should have set non-infinite timeout");
+            // Should never realistically take more than 1 second to match against a project name
+            var timeout = TimeSpan.FromSeconds(1);
+            testRegex = new Regex(pattern, RegexOptions.IgnoreCase, timeout);
         }
 
         #endregion
