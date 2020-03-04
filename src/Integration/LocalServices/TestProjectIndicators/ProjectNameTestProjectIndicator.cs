@@ -50,9 +50,6 @@ namespace SonarLint.VisualStudio.Integration
                 return;
             }
 
-            // Try and create regex from provided server pattern.
-            // No way to determine a valid pattern other than attempting to construct
-            // the Regex object.
             try
             {
                 Regex.IsMatch("", pattern);
@@ -60,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration
                 // Should never realistically take more than 1 second to match against a project name
                 var timeout = TimeSpan.FromSeconds(1);
                 testRegex = new Regex(pattern, RegexOptions.IgnoreCase, timeout);
-
             }
             catch (ArgumentException)
             {
