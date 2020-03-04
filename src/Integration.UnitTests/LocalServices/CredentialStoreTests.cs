@@ -96,11 +96,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void Write_CredsAreNull_CredsNotWritten()
+        public void Write_CredsAreNull_NullCredsAreWritten()
         {
             testSubject.WriteCredentials(wellKnownTargetUri, null);
 
-            mockCredentialStore.VerifyNoOtherCalls();
+            mockCredentialStore.Verify(x=> x.WriteCredentials(wellKnownTargetUri, null), Times.Once);
         }
 
         [TestMethod]
