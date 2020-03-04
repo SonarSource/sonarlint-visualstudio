@@ -51,15 +51,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         [DataTestMethod]
         [DataRow("", false)]
-        [DataRow("a.tes", false)]
-        [DataRow("a.testinfra", true)]
-        [DataRow("a.testsinfra", true)]
-        [DataRow("a.test", true)]
-        [DataRow("a.tests", true)]
-        [DataRow("a.test.infra", true)]
-        [DataRow("a.tests.infra", true)]
-        [DataRow("tests.a", true)]
-        [DataRow("test.a", true)]
+        [DataRow("test\\", false)]
+        [DataRow("\\asd\\.!@#$%sdftest234234@~!sdasd\\", false)]
+        [DataRow(".!@#$%sdftest", true)]
+        [DataRow(".!@#$%sdftest234234@~!sdasd", true)]
+        [DataRow("\\asd\\.!@#$%sdftest234234@~!sdasd", true)]
+        [DataRow("test", true)]
+        [DataRow("thetestisalie", true)]
         public void IsTestProject_RegexTests(string projectName, bool shouldMatch)
         {
             project.Name = projectName;
