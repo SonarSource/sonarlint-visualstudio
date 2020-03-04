@@ -28,7 +28,6 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 using static SonarLint.VisualStudio.Integration.UnitTests.Helpers.MoqExtensions;
 
@@ -37,6 +36,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class LiveIssueFactoryTests
     {
+        // Well-known value for a project that exists in the solution
+        private const string ProjectInSolutionFilePath = "C:\\Project1.csproj";
+
+        // Text span to use when the value doesn't matter
+        private readonly TextSpan AnyTextSpan = new TextSpan(123, 45);
+
         [TestMethod]
         public void Ctor_WithNullWorkspace_ThrowsArgumentNullException()
         {
@@ -176,8 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Returns(Guid.Empty);
             var liveIssueFactory = new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
 
-            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true), Location.None);
+            var diagnostic = CreateDiagnostic(Location.None);
 
             // Act
             var result = liveIssueFactory.Create(null, diagnostic);
@@ -190,9 +194,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Create_WhenProjectFilePathIsNull_ReturnsNull()
         {
             // Arrange & Act
-            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true), Location.None);
-            var result = SetupAndCreate(diagnostic, filePath: null);
+            var diagnostic = CreateDiagnostic(Location.None);
+            var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: null);
 
             // Assert
             result.Should().BeNull();
@@ -202,9 +205,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Create_WhenProjectFilePathIsNotFoundInDictionary_ReturnsNull()
         {
             // Arrange & Act
-            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true), Location.None);
-            var result = SetupAndCreate(diagnostic, filePath: "foo");
+            var diagnostic = CreateDiagnostic(Location.None);
+            var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: "d:\\missing project file.path");
 
             // Assert
             result.Should().BeNull();
@@ -214,9 +216,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Create_WhenIssueIsModuleLevel_ReturnsExpectedIssue()
         {
             // Arrange & Act
-            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true), Location.None);
-            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
+            var diagnostic = CreateDiagnostic(Location.None);
+            var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
 
             // Assert
             result.Should().NotBeNull();
@@ -232,9 +233,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Create_WhenIssueIsFileLevel_ReturnsExpectedIssue()
         {
             // Arrange & Act
-            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true), Location.Create("C:\\MySource.cs", new TextSpan(0, 0), new LinePositionSpan()));
-            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
+            var location = Location.Create("C:\\MySource.cs", AnyTextSpan, new LinePositionSpan());
+            var diagnostic = CreateDiagnostic(location);
+
+            var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
 
             // Assert
             result.Should().NotBeNull();
@@ -250,12 +252,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Create_WhenIssueIsLineLevel_ReturnsExpectedIssue()
         {
             // Arrange & Act
-            var diagnostic = Diagnostic.Create(new DiagnosticDescriptor("id", "title", "message", "category",
-                DiagnosticSeverity.Hidden, true),
-                Location.Create("C:\\MySource.cs",
-                    new TextSpan(1, 1),
-                    new LinePositionSpan(new LinePosition(1, 1), new LinePosition(1, 2))));
-            var result = SetupAndCreate(diagnostic, filePath: "C:\\Project1.csproj");
+            const int inRangeLineNumber = 1;
+            var location = Location.Create("C:\\MySource.cs",
+                    AnyTextSpan,
+                    new LinePositionSpan(new LinePosition(inRangeLineNumber, 1), new LinePosition(inRangeLineNumber, 2)));
+            var diagnostic = CreateDiagnostic(location);
+
+            var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
 
             // Assert
             result.Should().NotBeNull();
@@ -267,18 +270,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.LineHash.Should().Be("e1b4eea6db405a204a21bd5251c5385d");
         }
 
-        private LiveIssue SetupAndCreate(Diagnostic diagnostic, string filePath)
+        [TestMethod]
+        public void Create_WhenDiagnosticLocationIsNotInTheTextBuffer_ReturnsNull()
+        {
+            // Regression test for #1010
+            // Arrange & Act
+            const int outOfRangeLineNumber = 999;
+
+            var location = Location.Create("C:\\anyfile.cs",
+                    AnyTextSpan,
+                    new LinePositionSpan(new LinePosition(outOfRangeLineNumber, 100), new LinePosition(outOfRangeLineNumber, 200)));
+            var diagnostic = CreateDiagnostic(location);
+
+            var result = SetupAndCreate(diagnostic, diagnosticProjectFilePath: ProjectInSolutionFilePath);
+
+            // Assert
+            result.Should().BeNull();
+        }
+
+        private Diagnostic CreateDiagnostic(Location location)
+        {
+            var anyDescriptor = new DiagnosticDescriptor("id",
+                "title", "message", "category", DiagnosticSeverity.Hidden, true);
+
+            return Diagnostic.Create(anyDescriptor, location);
+        }
+
+        private LiveIssue SetupAndCreate(Diagnostic diagnostic, string diagnosticProjectFilePath)
         {
             // Arrange
             var vsSolutionMock = SetupSolutionMocks(
-                new KeyValuePair<string, string>("C:\\Project1.csproj", "{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
+                new KeyValuePair<string, string>(ProjectInSolutionFilePath, "{31D0DAAC-8606-40FE-8DF0-01784706EA3E}"));
 
             var projectId = ProjectId.CreateNewId();
             var workspace = new AdhocWorkspace();
             var solution = workspace.CurrentSolution
                 .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "Project1", "Assembly1", LanguageNames.CSharp,
-                    filePath))
-                .AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), "MySource.cs",
+                    diagnosticProjectFilePath))
+                .AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), "name is unimportant.cs",
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From(@"namespace {
     class Foo
     {
