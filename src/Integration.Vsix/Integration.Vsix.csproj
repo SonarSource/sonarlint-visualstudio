@@ -172,6 +172,11 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Link>LICENSE</Link>
     </Content>
+    <Content Include="..\..\THIRD-PARTY-NOTICES">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>THIRD-PARTY-NOTICES</Link>
+    </Content>
 
   </ItemGroup>
 
@@ -182,10 +187,6 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
-    <None Remove="ThirdPartyLicenses\Google.Protobuf.txt" />
-    <None Remove="ThirdPartyLicenses\grpc.txt" />
-    <None Remove="ThirdPartyLicenses\Newtonsoft.Json.txt" />
-    <None Remove="ThirdPartyLicenses\System.IO.Abstractions.txt" />
     
     <Content Include="Resources\sonarlint_32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -196,22 +197,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ThirdPartyLicenses\Google.Protobuf.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ThirdPartyLicenses\grpc.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ThirdPartyLicenses\Newtonsoft.Json.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ThirdPartyLicenses\System.IO.Abstractions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
@@ -370,6 +355,10 @@
     <GrpcSystemInteractiveAsyncFilePath>$(NuGetPackageRoot)System.Interactive.Async\3.1.1\lib\net45\System.Interactive.Async.dll</GrpcSystemInteractiveAsyncFilePath>
     <GrpcSystemInteractiveAsyncFilePath Condition="!(Exists('$(GrpcSystemInteractiveAsyncFilePath)'))">$(_NugetFallbackFolder)\System.Interactive.Async\3.1.1\lib\net45\System.Interactive.Async.dll</GrpcSystemInteractiveAsyncFilePath>
   </PropertyGroup>
+  <ItemGroup>
+    <AdditionalFiles Remove="c:\Projects\Nuget\microsoft.visualstudio.sdk.analyzers\15.8.33\build\AdditionalFiles\vs-threading.MainThreadAssertingMethods.txt" />
+    <AdditionalFiles Remove="c:\Projects\Nuget\microsoft.visualstudio.sdk.analyzers\15.8.33\build\AdditionalFiles\vs-threading.MainThreadSwitchingMethods.txt" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Grpc.Core" Version="1.4.1" ExcludeAssets="all" PrivateAssets="all" />
     <Reference Include="$(NuGetPackageRoot)grpc.core\1.4.1\lib\net45\Grpc.Core.dll" />
