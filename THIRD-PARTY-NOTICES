@@ -6,8 +6,8 @@ Attributions and licence notices for test cases originally authored by
 third parties can be found in the respective test directories.
 
 In the event that we accidentally failed to list a required notice, please
-bring it to our attention by posting an issue in the following jira project:
-https://jira.sonarsource.com/browse/SVS
+bring it to our attention by posting an issue in the following project:
+https://github.com/SonarSource/sonarlint-visualstudio
 
 The attached notices are provided for information only.
 
