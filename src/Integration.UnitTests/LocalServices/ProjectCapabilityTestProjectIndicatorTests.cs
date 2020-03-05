@@ -22,12 +22,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var configurableVsProjectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), configurableVsProjectSystemHelper);
 
-            var booleanEvaluator = new Mock<IVsBooleanSymbolExpressionEvaluator>();
-            booleanEvaluator
-                .Setup(x => x.EvaluateExpression(TestCapability, TestCapability))
-                .Returns(true);
-
-            SetupBooleanEvaluator(serviceProvider, booleanEvaluator.Object);
+            SetupCapabilityEvaluator(serviceProvider);
 
             testSubject = new ProjectCapabilityTestProjectIndicator(serviceProvider);
         }
@@ -75,8 +70,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             vsHierarchy.SetProperty(VSConstants.VSITEMID_ROOT, -2124, capability);
         }
 
-        private static void SetupBooleanEvaluator(ConfigurableServiceProvider serviceProvider, IVsBooleanSymbolExpressionEvaluator booleanEvaluator)
+        private static void SetupCapabilityEvaluator(ConfigurableServiceProvider serviceProvider)
         {
+            var booleanEvaluator = new Mock<IVsBooleanSymbolExpressionEvaluator>();
+            booleanEvaluator
+                .Setup(x => x.EvaluateExpression(TestCapability, TestCapability))
+                .Returns(true);
+
             var localRegister = new Mock<ILocalRegistry>();
             var iidIunknown = VSConstants.IID_IUnknown;
             var iUnknownForObject = Marshal.GetIUnknownForObject(booleanEvaluator);
