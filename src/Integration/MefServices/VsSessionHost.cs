@@ -311,7 +311,6 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     new ProjectKindTestProjectIndicator(this),
                     projectNameTestProjectIndicator.Value as ITestProjectIndicator,
-                    new PackageReferenceTestProjectIndicator(),
                     new ProjectCapabilityTestProjectIndicator(this)
                 };
 

@@ -1,6 +1,7 @@
 ﻿using System;
-using EnvDTE;
+using System.Runtime.InteropServices;
 using FluentAssertions;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -11,25 +12,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     [TestClass]
     public class ProjectCapabilityTestProjectIndicatorTests
     {
-        private Mock<IVsHierarchy> vsHierarchy;
-        private Mock<IProjectSystemHelper> projectSystemHelper;
         private ProjectCapabilityTestProjectIndicator testSubject;
-
-        private Project project;
+        private const string TestCapability = "TestContainer";
 
         [TestInitialize]
         public void TestInit()
         {
-            projectSystemHelper = new Mock<IProjectSystemHelper>();
-            vsHierarchy = new Mock<IVsHierarchy>();
+            var serviceProvider = new ConfigurableServiceProvider();
+            var configurableVsProjectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
+            serviceProvider.RegisterService(typeof(IProjectSystemHelper), configurableVsProjectSystemHelper);
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(IProjectSystemHelper))).Returns(projectSystemHelper.Object);
+            var booleanEvaluator = new Mock<IVsBooleanSymbolExpressionEvaluator>();
+            booleanEvaluator
+                .Setup(x => x.EvaluateExpression(TestCapability, TestCapability))
+                .Returns(true);
 
-            project = new ProjectMock("proj.csproj");
-            projectSystemHelper.Setup(x => x.GetIVsHierarchy(project)).Returns(vsHierarchy.Object);
+            SetupBooleanEvaluator(serviceProvider, booleanEvaluator.Object);
 
-            testSubject = new ProjectCapabilityTestProjectIndicator(serviceProvider.Object);
+            testSubject = new ProjectCapabilityTestProjectIndicator(serviceProvider);
         }
 
         [TestMethod]
@@ -41,21 +41,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_NotTestCapability_False()
+        public void IsTestProject_ProjectHasNoCapabilities_False()
         {
-            // vsHierarchy.Setup(x => x.IsCapabilityMatch("TestContainer")).Returns(false);
+            var projectMock = new ProjectMock("csproj.csproj");
 
-            var actual = testSubject.IsTestProject(project);
+            var actual = testSubject.IsTestProject(projectMock);
             actual.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsTestProject_IsTestCapability_False()
+        public void IsTestProject_ProjectHasNonTestCapability_False()
         {
-            // vsHierarchy.Setup(x => x.IsCapabilityMatch("TestContainer")).Returns(true);
+            var projectMock = new ProjectMock("csproj.csproj");
+            SetCapability(projectMock, "some other capability");
 
-            var actual = testSubject.IsTestProject(project);
+            var actual = testSubject.IsTestProject(projectMock);
+            actual.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasTestCapability_True()
+        {
+            var projectMock = new ProjectMock("csproj.csproj");
+            SetCapability(projectMock, TestCapability);
+
+            var actual = testSubject.IsTestProject(projectMock);
             actual.Should().BeTrue();
+        }
+
+        private static void SetCapability(ProjectMock projectMock, string capability)
+        {
+            var vsHierarchy = projectMock as IVsHierarchy;
+            vsHierarchy.SetProperty(VSConstants.VSITEMID_ROOT, -2124, capability);
+        }
+
+        private static void SetupBooleanEvaluator(ConfigurableServiceProvider serviceProvider, IVsBooleanSymbolExpressionEvaluator booleanEvaluator)
+        {
+            var localRegister = new Mock<ILocalRegistry>();
+            var iidIunknown = VSConstants.IID_IUnknown;
+            var iUnknownForObject = Marshal.GetIUnknownForObject(booleanEvaluator);
+
+            localRegister
+                .Setup(x => x.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
+                    ref iidIunknown, 1U, out iUnknownForObject));
+
+            serviceProvider.RegisterService(typeof(SLocalRegistry), localRegister.Object);
+            serviceProvider.RegisterService(typeof(SVsActivityLog), Mock.Of<IVsActivityLog>());
+            ServiceProvider.CreateFromSetSite(serviceProvider);
         }
     }
 }

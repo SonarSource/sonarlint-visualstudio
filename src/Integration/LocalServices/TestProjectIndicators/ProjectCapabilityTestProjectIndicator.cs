@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration
         public bool? IsTestProject(Project project)
         {
             var hierarchy = projectSystem.GetIVsHierarchy(project);
-            var hasTestCapability = hierarchy.IsCapabilityMatch("TestContainer");
+            var hasTestCapability = PackageUtilities.IsCapabilityMatch(hierarchy, "TestContainer");
 
             return hasTestCapability;
         }

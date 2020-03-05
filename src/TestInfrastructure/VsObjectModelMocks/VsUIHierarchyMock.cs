@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -144,7 +144,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         int IVsHierarchy.SetProperty(uint itemid, int propid, object var)
         {
-            throw new NotImplementedException();
+            SetProperty(itemid, propid, var);
+            return 0;
         }
 
         int IVsHierarchy.GetNestedHierarchy(uint itemid, ref Guid iidHierarchyNested, out IntPtr ppHierarchyNested, out uint pitemidNested)
