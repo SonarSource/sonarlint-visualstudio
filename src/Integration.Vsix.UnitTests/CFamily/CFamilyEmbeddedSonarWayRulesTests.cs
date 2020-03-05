@@ -49,10 +49,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             using var client = new HttpClient();
             var uri = $"https://sonarcloud.io/api/qualityprofiles/backup?qualityProfile=Sonar%20way&language={language}&organization=microsoft";
-            var rulesXml = client.GetStringAsync(uri).Result;
+            var cRules = client.GetStringAsync(uri).Result;
 
             var xmldoc = new XmlDocument();
-            xmldoc.LoadXml(rulesXml);
+            xmldoc.LoadXml(cRules);
             return xmldoc.GetElementsByTagName("rule").Count;
         }
 
