@@ -41,6 +41,7 @@
   <PropertyGroup>
     <!-- Suppress NuGet warning about the explicit downgrade to System.Collections.Immutable v1.1.37 -->
     <NoWarn>NU1605</NoWarn>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
