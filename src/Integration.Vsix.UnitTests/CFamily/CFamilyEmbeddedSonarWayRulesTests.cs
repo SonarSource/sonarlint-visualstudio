@@ -19,8 +19,6 @@
  */
 
 using System.Linq;
-using System.Net.Http;
-using System.Xml;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,34 +31,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class CFamilyEmbeddedSonarWayRulesTests
     {
         // Sanity checks that the rules metata for the CFamily plugin is present and can be loaded
-        private static int Active_C_Rules;
-        private static int Active_CPP_Rules;
+
+        // Note: how to find the expected number of active/inactive rules in SonarWay by language:
+        // 1. Start a local SQ instance with the correct plugin version installed
+        // 2. Browse to "Rules" e.g. http://localhost:9000/
+        // 3. Filter by Repository = SonarAnalyzer C
+        // 4. Filter by Quality Profile = Sonar way C
+        // The QP filter has "active/inactive" tabs. The number of rules is shown in the top-right of the screen.
+        // 5. Repeat for C++.
+
+        // Rule data for C-Family plugin v6.6 (build 13759)
+        private const int Active_C_Rules = 165;
+        private const int Inactive_C_Rules = 107;
+
+        private const int Active_CPP_Rules = 268;
+        private const int Inactive_CPP_Rules = 171;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
-
-        [ClassInitialize]
-        public static void ClassInitialize(TestContext testContext)
-        {
-            Active_C_Rules = LoadRulesCount("c");
-            Active_CPP_Rules = LoadRulesCount("cpp");
-        }
-
-        private static int LoadRulesCount(string language)
-        {
-            using var client = new HttpClient();
-            var uri = $"https://sonarcloud.io/api/qualityprofiles/backup?qualityProfile=Sonar%20way&language={language}&organization=microsoft";
-            var cRules = client.GetStringAsync(uri).Result;
-
-            var xmldoc = new XmlDocument();
-            xmldoc.LoadXml(cRules);
-            return xmldoc.GetElementsByTagName("rule").Count;
-        }
 
         [TestMethod]
         public void Read_Rules()
         {
-            rulesMetadataCache.GetRulesConfiguration("c").AllPartialRuleKeys.Should().HaveCountGreaterThan(Active_C_Rules);
-            rulesMetadataCache.GetRulesConfiguration("cpp").AllPartialRuleKeys.Should().HaveCountGreaterThan(Active_CPP_Rules);
+            rulesMetadataCache.GetRulesConfiguration("c").AllPartialRuleKeys.Should().HaveCount(Active_C_Rules + Inactive_C_Rules);
+            rulesMetadataCache.GetRulesConfiguration("cpp").AllPartialRuleKeys.Should().HaveCount(Active_CPP_Rules + Inactive_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
             rulesMetadataCache.GetRulesConfiguration("objc").Should().BeNull();
@@ -69,9 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void Read_Active_Rules()
         {
-            const int versionDifferenceBuffer = 10;
-            rulesMetadataCache.GetRulesConfiguration("c").ActivePartialRuleKeys.Count().Should().BeInRange(Active_C_Rules- versionDifferenceBuffer, Active_C_Rules+ versionDifferenceBuffer);
-            rulesMetadataCache.GetRulesConfiguration("cpp").ActivePartialRuleKeys.Count().Should().BeInRange(Active_CPP_Rules- versionDifferenceBuffer, Active_CPP_Rules+ versionDifferenceBuffer);
+            rulesMetadataCache.GetRulesConfiguration("c").ActivePartialRuleKeys.Should().HaveCount(Active_C_Rules);
+            rulesMetadataCache.GetRulesConfiguration("cpp").ActivePartialRuleKeys.Should().HaveCount(Active_CPP_Rules);
 
             // We don't currently support ObjC rules in VS
             rulesMetadataCache.GetRulesConfiguration("objc").Should().BeNull();
