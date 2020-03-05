@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         private static void SetupCapabilityEvaluator(ConfigurableServiceProvider serviceProvider)
         {
-            var booleanEvaluator = new Mock<Microsoft.VisualStudio.Shell.Interop.IVsBooleanSymbolExpressionEvaluator>();
+            var booleanEvaluator = new Mock<IVsBooleanSymbolExpressionEvaluator>();
             booleanEvaluator
                 .Setup(x => x.EvaluateExpression(TestCapability, TestCapability))
                 .Returns(true);
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var iUnknownForObject = Marshal.GetIUnknownForObject(booleanEvaluator.Object);
 
             localRegister
-                .Setup(x => x.CreateInstance(typeof(Microsoft.VisualStudio.Shell.Interop.BooleanSymbolExpressionEvaluator).GUID, (object)null,
+                .Setup(x => x.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
                     ref iidIunknown, 1U, out iUnknownForObject));
 
             serviceProvider.RegisterService(typeof(SLocalRegistry), localRegister.Object);
