@@ -356,10 +356,6 @@
     <GrpcSystemInteractiveAsyncFilePath Condition="!(Exists('$(GrpcSystemInteractiveAsyncFilePath)'))">$(_NugetFallbackFolder)\System.Interactive.Async\3.1.1\lib\net45\System.Interactive.Async.dll</GrpcSystemInteractiveAsyncFilePath>
   </PropertyGroup>
   <ItemGroup>
-    <AdditionalFiles Remove="c:\Projects\Nuget\microsoft.visualstudio.sdk.analyzers\15.8.33\build\AdditionalFiles\vs-threading.MainThreadAssertingMethods.txt" />
-    <AdditionalFiles Remove="c:\Projects\Nuget\microsoft.visualstudio.sdk.analyzers\15.8.33\build\AdditionalFiles\vs-threading.MainThreadSwitchingMethods.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Grpc.Core" Version="1.4.1" ExcludeAssets="all" PrivateAssets="all" />
     <Reference Include="$(NuGetPackageRoot)grpc.core\1.4.1\lib\net45\Grpc.Core.dll" />
 
