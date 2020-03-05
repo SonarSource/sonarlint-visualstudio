@@ -54,18 +54,17 @@ namespace SonarLint.VisualStudio.Integration
         public Credential ReadCredentials(TargetUri targetUri)
         {
             var storedCreds = store.ReadCredentials(targetUri);
-            if (UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase))
+            if (storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase))
             {
                 storedCreds = new Credential(storedCreds.Password);
             }
             return storedCreds;
         }
-
-
         public void WriteCredentials(TargetUri targetUri, Credential credentials)
         {
             var credsToStore = credentials;
-            if (string.IsNullOrEmpty(credentials.Password))
+
+            if (credentials != null && string.IsNullOrEmpty(credentials.Password))
             {
                 credsToStore = new Credential(UserNameForTokenCredential, credentials.Username);
             }

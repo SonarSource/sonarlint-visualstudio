@@ -172,6 +172,11 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <Link>LICENSE</Link>
     </Content>
+    <Content Include="..\..\THIRD-PARTY-NOTICES">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+      <Link>THIRD-PARTY-NOTICES</Link>
+    </Content>
 
   </ItemGroup>
 
@@ -182,7 +187,6 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
-    <None Remove="ThirdPartyLicenses\System.IO.Abstractions.txt" />
     
     <Content Include="Resources\sonarlint_32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -193,10 +197,6 @@
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
     <Content Include="Resources\sonarlint_200.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
-    <Content Include="ThirdPartyLicenses\System.IO.Abstractions.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
