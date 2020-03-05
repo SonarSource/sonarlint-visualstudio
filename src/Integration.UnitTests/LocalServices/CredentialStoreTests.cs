@@ -68,6 +68,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
+        public void Read_NullCredsFromStore_NullReturned()
+        {
+            mockCredentialStore
+                .Setup(x => x.ReadCredentials(It.IsAny<TargetUri>()))
+                .Returns(null as Credential);
+
+            var actualCreds = testSubject.ReadCredentials(wellKnownTargetUri);
+
+            actualCreds.Should().BeNull();
+        }
+
+        [TestMethod]
         public void Read_UserNameAndPassword()
         {
             // Arrange
@@ -81,6 +93,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             // Assert
             actualCreds.Should().Be(storedCreds);
             mockCredentialStore.Verify(x => x.ReadCredentials(wellKnownTargetUri), Times.Once);
+        }
+
+        [TestMethod]
+        public void Write_CredsAreNull_NullCredsAreWritten()
+        {
+            testSubject.WriteCredentials(wellKnownTargetUri, null);
+
+            mockCredentialStore.Verify(x=> x.WriteCredentials(wellKnownTargetUri, null), Times.Once);
         }
 
         [TestMethod]
