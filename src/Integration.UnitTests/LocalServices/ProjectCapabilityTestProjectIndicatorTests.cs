@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             var localRegister = new Mock<ILocalRegistry>();
             var iidIunknown = VSConstants.IID_IUnknown;
-            var iUnknownForObject = Marshal.GetIUnknownForObject(booleanEvaluator);
+            var iUnknownForObject = Marshal.GetIUnknownForObject(booleanEvaluator.Object);
 
             localRegister
                 .Setup(x => x.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
