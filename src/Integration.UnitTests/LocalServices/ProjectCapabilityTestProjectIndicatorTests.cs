@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -18,9 +17,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestInitialize]
         public void TestInit()
         {
-            var serviceProvider = new ConfigurableServiceProvider();
+            var serviceProvider = VsServiceProviderHelper.GlobalServiceProvider;
             var configurableVsProjectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
-            serviceProvider.RegisterService(typeof(IProjectSystemHelper), configurableVsProjectSystemHelper);
+            serviceProvider.RegisterService(typeof(IProjectSystemHelper), configurableVsProjectSystemHelper, true);
 
             SetupCapabilityEvaluator(serviceProvider);
 
@@ -85,34 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 .Setup(x => x.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
                     ref iidIunknown, 1U, out iUnknownForObject));
 
-            IntPtr obj;
-            try
-            {
-                localRegister.Object.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
-                    ref iidIunknown, 1U, out obj);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
-            try
-            {
-
-                var objectForIUnknown = Marshal.GetObjectForIUnknown(obj);
-
-                Assert.IsNotNull(objectForIUnknown);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
-            serviceProvider.RegisterService(typeof(SLocalRegistry), localRegister.Object);
-            serviceProvider.RegisterService(typeof(SVsActivityLog), Mock.Of<IVsActivityLog>());
-            ServiceProvider.CreateFromSetSite(serviceProvider);
+            serviceProvider.RegisterService(typeof(SLocalRegistry), localRegister.Object, true);
         }
     }
 }
