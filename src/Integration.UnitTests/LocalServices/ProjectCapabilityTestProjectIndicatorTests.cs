@@ -85,6 +85,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 .Setup(x => x.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
                     ref iidIunknown, 1U, out iUnknownForObject));
 
+            IntPtr obj;
+            try
+            {
+                localRegister.Object.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
+                    ref iidIunknown, 1U, out obj);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
+            try
+            {
+
+                var objectForIUnknown = Marshal.GetObjectForIUnknown(obj);
+
+                Assert.IsNotNull(objectForIUnknown);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
             serviceProvider.RegisterService(typeof(SLocalRegistry), localRegister.Object);
             serviceProvider.RegisterService(typeof(SVsActivityLog), Mock.Of<IVsActivityLog>());
             ServiceProvider.CreateFromSetSite(serviceProvider);
