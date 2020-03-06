@@ -18,27 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using DteProject = EnvDTE.Project;
-
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration
 {
-    public class ConfigurableProjectSystemFilter : IProjectSystemFilter
+    internal interface ITestProjectIndicator
     {
-        public bool? AllProjectsMatchReturn { get; set; }
-
-        public List<DteProject> MatchingProjects { get; } = new List<DteProject>();
-
-        bool IProjectSystemFilter.IsAccepted(DteProject dteProject)
-        {
-            if (this.AllProjectsMatchReturn.HasValue)
-            {
-                return this.AllProjectsMatchReturn.Value;
-            }
-
-            return this.MatchingProjects.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.UniqueName, dteProject.UniqueName));
-        }
+        /// <summary>
+        /// Checks if a project is a known test project based on criteria https://github.com/SonarSource/sonar-scanner-msbuild/wiki/Analysis-of-product-projects-vs.-test-projects
+        /// Returns true/false if a project is marked as a test project and null if unknown
+        /// </summary>
+        bool? IsTestProject(EnvDTE.Project project);
     }
 }

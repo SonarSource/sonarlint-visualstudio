@@ -19,26 +19,32 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using DteProject = EnvDTE.Project;
+using EnvDTE;
+using Microsoft.VisualStudio.Shell;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration
 {
-    public class ConfigurableProjectSystemFilter : IProjectSystemFilter
+    internal class ProjectCapabilityTestProjectIndicator : ITestProjectIndicator
     {
-        public bool? AllProjectsMatchReturn { get; set; }
+        private readonly IProjectSystemHelper projectSystem;
 
-        public List<DteProject> MatchingProjects { get; } = new List<DteProject>();
-
-        bool IProjectSystemFilter.IsAccepted(DteProject dteProject)
+        public ProjectCapabilityTestProjectIndicator(IServiceProvider serviceProvider)
         {
-            if (this.AllProjectsMatchReturn.HasValue)
+            if (serviceProvider == null)
             {
-                return this.AllProjectsMatchReturn.Value;
+                throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            return this.MatchingProjects.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.UniqueName, dteProject.UniqueName));
+            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+        }
+
+        public bool? IsTestProject(Project project)
+        {
+            var hierarchy = projectSystem.GetIVsHierarchy(project);
+            var hasTestCapability = PackageUtilities.IsCapabilityMatch(hierarchy, "TestContainer");
+
+            return hasTestCapability ? true : (bool?) null;
         }
     }
 }

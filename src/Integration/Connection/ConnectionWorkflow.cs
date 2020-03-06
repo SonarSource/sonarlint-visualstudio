@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -52,24 +51,20 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private readonly ICommand parentCommand;
         private readonly IProjectSystemHelper projectSystem;
         private readonly ICredentialStoreService credentialStore;
+        private readonly ITestProjectRegexSetter testProjectRegexSetter;
 
         public ConnectionWorkflow(IHost host, ICommand parentCommand)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.parentCommand = parentCommand ?? throw new ArgumentNullException(nameof(parentCommand));
 
-            if (parentCommand == null)
-            {
-                throw new ArgumentNullException(nameof(parentCommand));
-            }
-
-            this.host = host;
-            this.parentCommand = parentCommand;
             this.projectSystem = this.host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
+
             this.credentialStore = this.host.GetService<ICredentialStoreService>();
+
+            this.testProjectRegexSetter = this.host.GetService<ITestProjectRegexSetter>();
+            testProjectRegexSetter.AssertLocalServiceIsNotNull();
         }
 
         internal /*for testing purposes*/ ConnectionInformation ConnectedServer
@@ -260,31 +255,13 @@ namespace SonarLint.VisualStudio.Integration.Connection
             }
 
             var testProjRegexPattern = properties.FirstOrDefault(IsTestProjectPatternProperty)?.Value;
-
-            if (testProjRegexPattern != null)
-            {
-                // Try and create regex from provided server pattern.
-                // No way to determine a valid pattern other than attempting to construct
-                // the Regex object.
-                try
-                {
-                    Regex.IsMatch("", testProjRegexPattern);
-
-                    var projectFilter = this.host.GetService<IProjectSystemFilter>();
-                    projectFilter.AssertLocalServiceIsNotNull();
-                    projectFilter.SetTestRegex(testProjRegexPattern);
-                }
-                catch (ArgumentException)
-                {
-                    this.host.Logger.WriteLine(Strings.InvalidTestProjectRegexPattern, testProjRegexPattern);
-                }
-            }
+            testProjectRegexSetter.SetTestRegex(testProjRegexPattern);
         }
 
         private static bool IsTestProjectPatternProperty(SonarQubeProperty property)
         {
-            const string TestProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
-            return StringComparer.Ordinal.Equals(property.Key, TestProjectRegexKey);
+            const string testProjectRegexKey = "sonar.cs.msbuild.testProjectPattern";
+            return StringComparer.Ordinal.Equals(property.Key, testProjectRegexKey);
         }
 
         #endregion
