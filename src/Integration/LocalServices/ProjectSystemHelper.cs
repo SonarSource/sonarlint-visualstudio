@@ -44,9 +44,6 @@ namespace SonarLint.VisualStudio.Integration
         internal static readonly Guid TestProjectKindGuid = new Guid(TestProjectKind);
         internal const string VsProjectItemKindSolutionFolder = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
-        internal const string ExternalTestProjectKind = "{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}";
-        public static Guid ExternalTestProjectKindGuid = new Guid(ExternalTestProjectKind);
-
         /// <summary>
         /// This is the HResult returned by IVsBuildPropertyStorage when attempting to
         /// read a property that does not exist.

@@ -43,9 +43,9 @@ namespace SonarLint.VisualStudio.Integration
         {
             var hierarchy = projectSystem.GetIVsHierarchy(project);
             var aggregateProjectKinds = projectSystem.GetAggregateProjectKinds(hierarchy).ToList();
+            var isTestProjectKind = aggregateProjectKinds.Contains(ProjectSystemHelper.TestProjectKindGuid);
 
-            return aggregateProjectKinds.Contains(ProjectSystemHelper.TestProjectKindGuid) ||
-                   aggregateProjectKinds.Contains(ProjectSystemHelper.ExternalTestProjectKindGuid);
+            return isTestProjectKind ? true : (bool?)null;
         }
     }
 }

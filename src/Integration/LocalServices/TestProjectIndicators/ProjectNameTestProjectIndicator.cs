@@ -40,7 +40,9 @@ namespace SonarLint.VisualStudio.Integration
 
         public bool? IsTestProject(Project project)
         {
-            return testRegex.IsMatch(project.Name);
+            var isMatch = testRegex.IsMatch(project.Name);
+
+            return isMatch ? true : (bool?)null;
         }
 
         public void SetTestRegex(string pattern)

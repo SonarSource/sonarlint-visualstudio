@@ -1,4 +1,24 @@
-﻿using System;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2020 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
@@ -10,72 +30,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     [TestClass]
     public class TestProjectIndicatorTests
     {
-        private Mock<ITestProjectIndicator> buildPropertyIndicator;
-        private IList<ITestProjectIndicator> otherIndicators;
+        private IList<ITestProjectIndicator> testIndicators;
         private TestProjectIndicator testSubject;
         private Project project;
-        private Mock<ITestProjectIndicator> firstOtherIndicator;
-        private Mock<ITestProjectIndicator> secondOtherIndicator;
+        private Mock<ITestProjectIndicator> firstIndicator;
+        private Mock<ITestProjectIndicator> secondIndicator;
 
         [TestInitialize]
-        public void TestInit()
+        public void TestInitialize()
         {
             project = Mock.Of<Project>();
 
-            buildPropertyIndicator = new Mock<ITestProjectIndicator>();
-            buildPropertyIndicator.Setup(x => x.IsTestProject(project)).Returns((bool?) null);
-
-            firstOtherIndicator = new Mock<ITestProjectIndicator>();
-            secondOtherIndicator = new Mock<ITestProjectIndicator>();
-            otherIndicators = new List<ITestProjectIndicator>();
+            firstIndicator = new Mock<ITestProjectIndicator>();
+            secondIndicator = new Mock<ITestProjectIndicator>();
+            testIndicators = new List<ITestProjectIndicator>();
             
-            testSubject = new TestProjectIndicator(buildPropertyIndicator.Object, otherIndicators);
-        }
-
-        [TestMethod]
-        public void Ctor_NullBuildPropertyIndicator_ArgumentNullException()
-        {
-            Action act = () => new TestProjectIndicator(null, otherIndicators);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("buildPropertyIndicator");
+            testSubject = new TestProjectIndicator(testIndicators);
         }
 
         [TestMethod]
         public void Ctor_NullIndicatorsCollection_ArgumentNullException()
         {
-            Action act = () => new TestProjectIndicator(buildPropertyIndicator.Object, null);
+            Action act = () => new TestProjectIndicator(null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("testProjectIndicators");
         }
 
         [TestMethod]
-        public void IsTestProject_CheckPrecedenceOrder_BuildPropertyIndicatorIsTrue_True()
-        {
-            otherIndicators.Add(firstOtherIndicator.Object);
-
-            buildPropertyIndicator.Setup(x => x.IsTestProject(project)).Returns(true);
-
-            var actual = testSubject.IsTestProject(project);
-            actual.Should().BeTrue();
-
-            firstOtherIndicator.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void IsTestProject_CheckPrecedenceOrder_BuildPropertyIndicatorIsFalse_False()
-        {
-            otherIndicators.Add(firstOtherIndicator.Object);
-
-            buildPropertyIndicator.Setup(x => x.IsTestProject(project)).Returns(false);
-
-            var actual = testSubject.IsTestProject(project);
-            actual.Should().BeFalse();
-
-            firstOtherIndicator.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void IsTestProject_BuildPropertyIsNotSet_NoOtherIndicators_False()
+        public void IsTestProject_NoIndicators_False()
         {
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeFalse();
@@ -84,31 +66,64 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [DataTestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void IsTestProject_BuildPropertyIsNotSet_OneOtherIndicator_IndicatorCalled(bool indicatorResponse)
+        public void IsTestProject_OneIndicator_IndicatorHasResponse_IndicatorResponse(bool indicatorResponse)
         {
-            otherIndicators.Add(firstOtherIndicator.Object);
-
-            firstOtherIndicator.Setup(x => x.IsTestProject(project)).Returns(indicatorResponse);
+            testIndicators.Add(firstIndicator.Object);
+            firstIndicator.Setup(x => x.IsTestProject(project)).Returns(indicatorResponse);
 
             var actual = testSubject.IsTestProject(project);
             actual.Should().Be(indicatorResponse);
         }
 
-        [DataTestMethod]
-        [DataRow(true, true)]
-        [DataRow(false, true)]
-        [DataRow(true, false)]
-        [DataRow(false, false)]
-        public void IsTestProject_BuildPropertyIsNotSet_TwoOtherIndicators_IndicatorsCalled(bool firstIndicatorResponse, bool secondIndicatorResponse)
+        [TestMethod]
+        public void IsTestProject_OneIndicator_IndicatorHasNoResponse_False()
         {
-            otherIndicators.Add(firstOtherIndicator.Object);
-            otherIndicators.Add(secondOtherIndicator.Object);
-
-            firstOtherIndicator.Setup(x => x.IsTestProject(project)).Returns(firstIndicatorResponse);
-            secondOtherIndicator.Setup(x => x.IsTestProject(project)).Returns(secondIndicatorResponse);
+            testIndicators.Add(firstIndicator.Object);
+            firstIndicator.Setup(x => x.IsTestProject(project)).Returns(null as bool?);
 
             var actual = testSubject.IsTestProject(project);
-            actual.Should().Be(firstIndicatorResponse || secondIndicatorResponse);
+            actual.Should().Be(false);
+        }
+
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void IsTestProject_TwoIndicators_FirstIndicatorHasResponse_SecondIndicatorNotCalled(bool firstIndicatorResponse)
+        {
+            testIndicators.Add(firstIndicator.Object);
+            testIndicators.Add(secondIndicator.Object);
+            firstIndicator.Setup(x => x.IsTestProject(project)).Returns(firstIndicatorResponse);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().Be(firstIndicatorResponse);
+
+            secondIndicator.Verify(x=> x.IsTestProject(It.IsAny<Project>()), Times.Never());
+        }
+
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void IsTestProject_TwoIndicators_FirstIndicatorHasNoResponse_SecondIndicatorHasResponse_SecondIndicatorResponse(bool secondIndicatorResponse)
+        {
+            testIndicators.Add(firstIndicator.Object);
+            testIndicators.Add(secondIndicator.Object);
+            firstIndicator.Setup(x => x.IsTestProject(project)).Returns(null as bool?);
+            secondIndicator.Setup(x => x.IsTestProject(project)).Returns(secondIndicatorResponse);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().Be(secondIndicatorResponse);
+        }
+
+        [TestMethod]
+        public void IsTestProject_TwoIndicators_NeitherHasResponse_False()
+        {
+            testIndicators.Add(firstIndicator.Object);
+            testIndicators.Add(secondIndicator.Object);
+            firstIndicator.Setup(x => x.IsTestProject(project)).Returns(null as bool?);
+            secondIndicator.Setup(x => x.IsTestProject(project)).Returns(null as bool?);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeFalse();
         }
     }
 }

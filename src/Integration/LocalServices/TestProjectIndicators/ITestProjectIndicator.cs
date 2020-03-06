@@ -20,10 +20,11 @@
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal interface ITestProjectIndicator : ILocalService
+    internal interface ITestProjectIndicator
     {
         /// <summary>
-        /// Returns true/false if a project is a known test project based on criteria https://github.com/SonarSource/sonar-scanner-msbuild/wiki/Analysis-of-product-projects-vs.-test-projects
+        /// Checks if a project is a known test project based on criteria https://github.com/SonarSource/sonar-scanner-msbuild/wiki/Analysis-of-product-projects-vs.-test-projects
+        /// Returns true/false if a project is marked as a test project and null if unknown
         /// </summary>
         bool? IsTestProject(EnvDTE.Project project);
     }

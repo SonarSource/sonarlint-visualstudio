@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
 
             testProjectIndicatorMock = new Mock<ITestProjectIndicator>();
-            serviceProvider.RegisterService(typeof(ITestProjectIndicator), testProjectIndicatorMock.Object);
 
             host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
 
@@ -54,13 +53,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
             serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
-            testSubject = new ProjectSystemFilter(host);
+            testSubject = new ProjectSystemFilter(host, testProjectIndicatorMock.Object);
         }
 
         [TestMethod]
         public void Ctor_NullHost_ArgumentNullException()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectSystemFilter(null));
+            Action act = () => new ProjectSystemFilter(null, null);
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
+        }
+
+        [TestMethod]
+        public void Ctor_NullTestIndicator_ArgumentNullException()
+        {
+            Action act = () => new ProjectSystemFilter(host, null);
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("testProjectIndicator");
         }
 
         [TestMethod]

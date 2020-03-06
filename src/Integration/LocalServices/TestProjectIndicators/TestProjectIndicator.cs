@@ -26,20 +26,26 @@ namespace SonarLint.VisualStudio.Integration
 {
     internal class TestProjectIndicator : ITestProjectIndicator
     {
-        private readonly ITestProjectIndicator buildPropertyIndicator;
         private readonly IEnumerable<ITestProjectIndicator> testProjectIndicators;
 
-        public TestProjectIndicator(ITestProjectIndicator buildPropertyIndicator, IEnumerable<ITestProjectIndicator> testProjectIndicators)
+        public TestProjectIndicator(IEnumerable<ITestProjectIndicator> testProjectIndicators)
         {
-            this.buildPropertyIndicator = buildPropertyIndicator ?? throw new ArgumentNullException(nameof(buildPropertyIndicator));
             this.testProjectIndicators = testProjectIndicators ?? throw new ArgumentNullException(nameof(testProjectIndicators));
         }
 
         public bool? IsTestProject(EnvDTE.Project project)
         {
-            var isTestProject = buildPropertyIndicator.IsTestProject(project);
+            foreach (var testProjectIndicator in testProjectIndicators)
+            {
+                var isTestProject = testProjectIndicator.IsTestProject(project);
 
-            return isTestProject ?? testProjectIndicators.Any(x => x.IsTestProject(project).GetValueOrDefault(false));
+                if (isTestProject.HasValue)
+                {
+                    return isTestProject.Value;
+                }
+            }
+
+            return false;
         }
     }
 }

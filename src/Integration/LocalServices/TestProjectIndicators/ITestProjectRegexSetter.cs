@@ -25,7 +25,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Sets the regex to that identifies project's name as test project
         /// </summary>
-        /// <param name="pattern"></param>
         void SetTestRegex(string pattern);
     }
 }

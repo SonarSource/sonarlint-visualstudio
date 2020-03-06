@@ -1,4 +1,24 @@
-﻿using System;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2020 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
@@ -15,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         private const string TestCapability = "TestContainer";
 
         [TestInitialize]
-        public void TestInit()
+        public void TestInitialize()
         {
             var serviceProvider = VsServiceProviderHelper.GlobalServiceProvider;
             var configurableVsProjectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
@@ -35,22 +55,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasNoCapabilities_False()
+        public void IsTestProject_ProjectHasNoCapabilities_Null()
         {
             var projectMock = new ProjectMock("csproj.csproj");
 
             var actual = testSubject.IsTestProject(projectMock);
-            actual.Should().BeFalse();
+            actual.Should().BeNull();
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasNonTestCapability_False()
+        public void IsTestProject_ProjectHasNonTestCapability_Null()
         {
             var projectMock = new ProjectMock("csproj.csproj");
             SetCapability(projectMock, "some other capability");
 
             var actual = testSubject.IsTestProject(projectMock);
-            actual.Should().BeFalse();
+            actual.Should().BeNull();
         }
 
         [TestMethod]

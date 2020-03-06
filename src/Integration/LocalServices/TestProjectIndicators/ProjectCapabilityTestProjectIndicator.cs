@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration
             var hierarchy = projectSystem.GetIVsHierarchy(project);
             var hasTestCapability = PackageUtilities.IsCapabilityMatch(hierarchy, "TestContainer");
 
-            return hasTestCapability;
+            return hasTestCapability ? true : (bool?) null;
         }
     }
 }

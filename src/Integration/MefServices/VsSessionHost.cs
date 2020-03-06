@@ -54,7 +54,6 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IErrorListInfoBarController),
                 typeof(IConfigurationProvider),
                 typeof(ICredentialStoreService),
-                typeof(ITestProjectIndicator),
                 typeof(ITestProjectRegexSetter)
         };
 
@@ -304,22 +303,23 @@ namespace SonarLint.VisualStudio.Integration
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
             this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
 
-            this.localServices.Add(typeof(ITestProjectIndicator), new Lazy<ILocalService>(() =>
+            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
+            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
+            this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>
             {
-                var buildPropertyTestProjectIndicator = new BuildPropertyTestProjectIndicator(this);
                 var testProjectIndicators = new List<ITestProjectIndicator>
                 {
+                    new BuildPropertyTestProjectIndicator(this),
                     new ProjectKindTestProjectIndicator(this),
                     projectNameTestProjectIndicator.Value as ITestProjectIndicator,
                     new ProjectCapabilityTestProjectIndicator(this)
                 };
 
-                return new TestProjectIndicator(buildPropertyTestProjectIndicator, testProjectIndicators);
+                var testProjectIndicator = new TestProjectIndicator(testProjectIndicators);
+
+                return new ProjectSystemFilter(this, testProjectIndicator);
             }));
-            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
-            this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
-            this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() => new ProjectSystemFilter(this)));
             this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new UnboundProjectFinder(this))));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance

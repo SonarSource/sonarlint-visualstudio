@@ -32,17 +32,16 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IProjectSystemHelper projectSystem;
         private readonly IProjectPropertyManager propertyManager;
 
-        public ProjectSystemFilter(IHost host)
+        public ProjectSystemFilter(IHost host, ITestProjectIndicator testProjectIndicator)
         {
             if (host == null)
             {
                 throw new ArgumentNullException(nameof(host));
             }
 
-            this.projectSystem = host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
+            this.testProjectIndicator = testProjectIndicator ?? throw new ArgumentNullException(nameof(testProjectIndicator));
 
-            this.testProjectIndicator = host.GetService<ITestProjectIndicator>();
+            this.projectSystem = host.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.propertyManager = host.GetMefService<IProjectPropertyManager>();
