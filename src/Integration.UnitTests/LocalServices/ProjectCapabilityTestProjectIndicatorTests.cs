@@ -13,6 +13,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class ProjectCapabilityTestProjectIndicatorTests
     {
         private ProjectCapabilityTestProjectIndicator testSubject;
+        private static Mock<IVsBooleanSymbolExpressionEvaluator> booleanEvaluator;
+        private static Mock<ILocalRegistry> localRegister;
         private const string TestCapability = "TestContainer";
 
         [TestInitialize]
@@ -60,8 +62,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var projectMock = new ProjectMock("csproj.csproj");
             SetCapability(projectMock, TestCapability);
 
-            var actual = testSubject.IsTestProject(projectMock);
-            actual.Should().BeTrue();
+            try
+            {
+                var actual = testSubject.IsTestProject(projectMock);
+                actual.Should().BeTrue();
+            }
+            catch (Exception e)
+            {
+                localRegister.VerifyAll();
+                booleanEvaluator.VerifyAll();
+                Console.WriteLine(e);
+                throw;
+            }
+        
         }
 
         private static void SetCapability(ProjectMock projectMock, string capability)
@@ -72,43 +85,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
         private static void SetupCapabilityEvaluator(ConfigurableServiceProvider serviceProvider)
         {
-            var booleanEvaluator = new Mock<IVsBooleanSymbolExpressionEvaluator>();
+            booleanEvaluator = new Mock<IVsBooleanSymbolExpressionEvaluator>();
             booleanEvaluator
                 .Setup(x => x.EvaluateExpression(TestCapability, TestCapability))
                 .Returns(true);
 
-            var localRegister = new Mock<ILocalRegistry>();
+            localRegister = new Mock<ILocalRegistry>();
             var iidIunknown = VSConstants.IID_IUnknown;
             var iUnknownForObject = Marshal.GetIUnknownForObject(booleanEvaluator.Object);
 
             localRegister
                 .Setup(x => x.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
                     ref iidIunknown, 1U, out iUnknownForObject));
-
-            IntPtr obj;
-            try
-            {
-                localRegister.Object.CreateInstance(typeof(BooleanSymbolExpressionEvaluator).GUID, (object)null,
-                    ref iidIunknown, 1U, out obj);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-
-            try
-            {
-
-                var objectForIUnknown = Marshal.GetObjectForIUnknown(obj);
-
-                Assert.IsNotNull(objectForIUnknown);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
 
             serviceProvider.RegisterService(typeof(SLocalRegistry), localRegister.Object);
             serviceProvider.RegisterService(typeof(SVsActivityLog), Mock.Of<IVsActivityLog>());
