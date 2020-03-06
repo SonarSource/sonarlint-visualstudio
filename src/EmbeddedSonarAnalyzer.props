@@ -4,6 +4,7 @@
        NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
   <PropertyGroup>
     <EmbeddedSonarAnalyzerVersion>8.4.0.15306</EmbeddedSonarAnalyzerVersion>
+    <EmbeddedSonarCFamilyAnalyzerVersion>6.7.0.15300</EmbeddedSonarCFamilyAnalyzerVersion>
   </PropertyGroup>
 
   <ItemGroup Label="Embedded SonarLint analyzers">
