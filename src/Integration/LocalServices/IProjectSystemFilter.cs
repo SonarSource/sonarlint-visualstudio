@@ -26,10 +26,5 @@ namespace SonarLint.VisualStudio.Integration
         /// Returns true if the given project passed the filter criteria. False otherwise.
         /// </summary>
         bool IsAccepted(EnvDTE.Project project);
-
-        /// <summary>
-        /// Set regular expression to be used to identify a test project.
-        /// </summary>
-        void SetTestRegex(string pattern);
     }
 }

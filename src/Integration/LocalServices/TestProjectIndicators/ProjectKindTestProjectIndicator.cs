@@ -19,26 +19,33 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using DteProject = EnvDTE.Project;
+using EnvDTE;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration
 {
-    public class ConfigurableProjectSystemFilter : IProjectSystemFilter
+    internal class ProjectKindTestProjectIndicator : ITestProjectIndicator
     {
-        public bool? AllProjectsMatchReturn { get; set; }
+        private readonly IProjectSystemHelper projectSystem;
 
-        public List<DteProject> MatchingProjects { get; } = new List<DteProject>();
-
-        bool IProjectSystemFilter.IsAccepted(DteProject dteProject)
+        public ProjectKindTestProjectIndicator(IServiceProvider serviceProvider)
         {
-            if (this.AllProjectsMatchReturn.HasValue)
+            if (serviceProvider == null)
             {
-                return this.AllProjectsMatchReturn.Value;
+                throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            return this.MatchingProjects.Any(x => StringComparer.OrdinalIgnoreCase.Equals(x.UniqueName, dteProject.UniqueName));
+            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+        }
+
+        public bool? IsTestProject(Project project)
+        {
+            var hierarchy = projectSystem.GetIVsHierarchy(project);
+            var aggregateProjectKinds = projectSystem.GetAggregateProjectKinds(hierarchy).ToList();
+            var isTestProjectKind = aggregateProjectKinds.Contains(ProjectSystemHelper.TestProjectKindGuid);
+
+            return isTestProjectKind ? true : (bool?)null;
         }
     }
 }

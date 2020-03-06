@@ -67,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration
             this.serviceProvider = serviceProvider;
         }
 
+
         public IEnumerable<Project> GetSolutionProjects()
         {
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();

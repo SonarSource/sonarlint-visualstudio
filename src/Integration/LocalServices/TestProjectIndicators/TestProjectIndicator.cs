@@ -19,30 +19,32 @@
  */
 
 using System;
-using System.Linq;
-using Microsoft.VisualStudio.Shell.Interop;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    internal static class IProjectSystemHelperExtensions
+    internal class TestProjectIndicator : ITestProjectIndicator
     {
-        /// <summary>
-        /// Returns whether or not a project is of a known test project type.
-        /// </summary>
-        public static bool IsKnownTestProject(this IProjectSystemHelper projectSystem, IVsHierarchy vsProject)
+        private readonly IEnumerable<ITestProjectIndicator> testProjectIndicators;
+
+        public TestProjectIndicator(IEnumerable<ITestProjectIndicator> testProjectIndicators)
         {
-            //TODO: is this relevant for core projects?
-            if (projectSystem == null)
+            this.testProjectIndicators = testProjectIndicators ?? throw new ArgumentNullException(nameof(testProjectIndicators));
+        }
+
+        public bool? IsTestProject(EnvDTE.Project project)
+        {
+            foreach (var testProjectIndicator in testProjectIndicators)
             {
-                throw new ArgumentNullException(nameof(projectSystem));
+                var isTestProject = testProjectIndicator.IsTestProject(project);
+
+                if (isTestProject.HasValue)
+                {
+                    return isTestProject.Value;
+                }
             }
 
-            if (vsProject == null)
-            {
-                throw new ArgumentNullException(nameof(vsProject));
-            }
-
-            return projectSystem.GetAggregateProjectKinds(vsProject).Contains(ProjectSystemHelper.TestProjectKindGuid);
+            return false;
         }
     }
 }
