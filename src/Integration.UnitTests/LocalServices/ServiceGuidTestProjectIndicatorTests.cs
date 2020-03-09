@@ -130,6 +130,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
+        public void IsTestProject_ProjectOneServiceIncludeInComment_Null()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--<Service Include=""{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}"" />-->
+</ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
         public void IsTestProject_ProjectHasMultipleServiceIncludes_NotTestServiceInclude_Null()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
