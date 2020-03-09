@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -15,7 +14,12 @@ namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
         private readonly IFileSystem fileSystem;
         private const string TestServiceGuid = "{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}";
 
-        public ServiceGuidTestProjectIndicator(IFileSystem fileSystem)
+        public ServiceGuidTestProjectIndicator()
+            : this(new FileSystem())
+        {
+        }
+
+        internal ServiceGuidTestProjectIndicator(IFileSystem fileSystem)
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
