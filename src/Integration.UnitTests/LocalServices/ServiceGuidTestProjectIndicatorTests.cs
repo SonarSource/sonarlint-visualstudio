@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasOneServiceInclude_NonTestServiceInclude_Null()
+        public void IsTestProject_ProjectHasOneServiceInclude_NotTestServiceInclude_Null()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasOneServiceInclude_HasTestServiceInclude_True()
+        public void IsTestProject_ProjectHasOneServiceInclude_TestServiceInclude_True()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasMultipleTestServiceIncludes_NoTestServiceIncludes_Null()
+        public void IsTestProject_ProjectHasMultipleServiceIncludes_NotTestServiceInclude_Null()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasMultipleTestServiceIncludes_HasTestServiceIncludes_True()
+        public void IsTestProject_ProjectHasMultipleServiceIncludes_TestServiceInclude_True()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectHasMultipleTestServiceIncludesInDifferentItemGroups_HasTestServiceIncludes_True()
+        public void IsTestProject_ProjectHasMultipleServiceIncludesInDifferentItemGroups_TestServiceInclude_True()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
