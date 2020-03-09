@@ -758,4 +758,8 @@ This is the general format to use when writing errors to output window or when t
     <value>Using connected mode settings. User-specified settings in settings.json will be ignored.</value>
     <comment>Output window message</comment>
   </data>
+  <data name="FailedToCheckIfTestProject" xml:space="preserve">
+    <value>Error identifying project '{0}' as test project: {1}</value>
+    <comment>Error message indicating that an error occured while checking if a project is a test project</comment>
+  </data>
 </root>
