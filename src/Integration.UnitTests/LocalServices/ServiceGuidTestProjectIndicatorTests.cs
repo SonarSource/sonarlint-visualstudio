@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ProjectOneServiceIncludeInComment_Null()
+        public void IsTestProject_ProjectHasOneServiceIncludeThatIsCommentedOut_Null()
         {
             var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
