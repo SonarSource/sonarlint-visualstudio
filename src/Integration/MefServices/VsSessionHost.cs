@@ -28,6 +28,7 @@ using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -312,8 +313,9 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     new BuildPropertyTestProjectIndicator(this),
                     new ProjectKindTestProjectIndicator(this),
+                    new ProjectCapabilityTestProjectIndicator(this),
+                    new ServiceGuidTestProjectIndicator(Logger),
                     projectNameTestProjectIndicator.Value as ITestProjectIndicator,
-                    new ProjectCapabilityTestProjectIndicator(this)
                 };
 
                 var testProjectIndicator = new TestProjectIndicator(testProjectIndicators);
