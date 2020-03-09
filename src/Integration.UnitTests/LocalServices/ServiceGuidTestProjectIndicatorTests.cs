@@ -227,6 +227,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
+        public void IsTestProject_CriticalExceptionOccurs_NotSuppressedOrLogged()
+        {
+            var critialException = new StackOverflowException("BANG!");
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws(critialException);
+
+            Action act = () => testSubject.IsTestProject(project);
+
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("BANG!");
+            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
+                Times.Never);
+        }
+
+        [TestMethod]
         public void IsTestProject_NoException_NoErrorIsWrittenToLog()
         {
             var projectXml = @"<?xml version=""1.0"" ?><metadata></metadata>";

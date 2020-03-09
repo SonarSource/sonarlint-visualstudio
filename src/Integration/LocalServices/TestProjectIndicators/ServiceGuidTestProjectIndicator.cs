@@ -26,6 +26,7 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using EnvDTE;
+using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
 
                 return hasTestGuid ? true : (bool?) null;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.FailedToCheckIfTestProject, project.UniqueName, ex.ToString());
 
