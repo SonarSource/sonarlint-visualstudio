@@ -629,6 +629,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error identifying project &apos;{0}&apos; as test project: {1}.
+        /// </summary>
+        public static string FailedToCheckIfTestProject {
+            get {
+                return ResourceManager.GetString("FailedToCheckIfTestProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create the configuration for language {0}.
         /// </summary>
         public static string FailedToCreateBindingConfigForLanguage {

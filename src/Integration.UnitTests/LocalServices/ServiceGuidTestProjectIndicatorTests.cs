@@ -1,4 +1,24 @@
-﻿using System;
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2020 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System;
 using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -10,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     [TestClass]
     public class ServiceGuidTestProjectIndicatorTests
     {
+        private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
         private ProjectMock project;
         private ServiceGuidTestProjectIndicator testSubject;
@@ -17,16 +38,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestInitialize]
         public void TestInitialize()
         {
+            logger = new Mock<ILogger>();
             fileSystem = new Mock<IFileSystem>();
             project = new ProjectMock("test.csproj");
 
-            testSubject = new ServiceGuidTestProjectIndicator(fileSystem.Object);
+            testSubject = new ServiceGuidTestProjectIndicator(logger.Object, fileSystem.Object);
+        }
+
+        [TestMethod]
+        public void Ctor_NullLogger_ArgumentNullException()
+        {
+            Action act = () => new ServiceGuidTestProjectIndicator(null, null);
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new ServiceGuidTestProjectIndicator(null);
+            Action act = () => new ServiceGuidTestProjectIndicator(logger.Object, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
@@ -156,6 +186,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ExceptionOccurs_Null()
+        {
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws<ArgumentException>();
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ExceptionOccurs_ErrorIsWrittenToLog()
+        {
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws<ArgumentException>();
+
+            testSubject.IsTestProject(project);
+
+            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public void IsTestProject_NoException_NoErrorIsWrittenToLog()
+        {
+            var projectXml = @"<?xml version=""1.0"" ?><metadata></metadata>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            testSubject.IsTestProject(project);
+
+            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
+                Times.Never);
         }
     }
 }
