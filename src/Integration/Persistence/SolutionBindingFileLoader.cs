@@ -24,7 +24,6 @@ using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {

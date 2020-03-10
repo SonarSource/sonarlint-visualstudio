@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
-            Action act = () => new BuildPropertyTestProjectIndicator(null);
+            Action act = () => new ProjectKindTestProjectIndicator(null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
