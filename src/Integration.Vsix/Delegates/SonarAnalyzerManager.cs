@@ -24,11 +24,9 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarAnalyzer.Helpers;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -36,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal sealed class SonarAnalyzerManager : IDisposable
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISonarQubeService sonarQubeService;
+        private readonly ISonarQubeIssuesProvider sonarQubeIssuesProvider;
         private readonly Workspace workspace;
         private readonly IVsSolution vsSolution;
         private readonly ILogger logger;
@@ -45,43 +43,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly Action<IReportingContext> previousReportDiagnostic;
         private readonly Func<SyntaxTree, Diagnostic, bool> previousShouldDiagnosticBeReported;
 
-        private readonly List<IDisposable> disposableObjects = new List<IDisposable>();
-
         internal /* for testing purposes */ SonarAnalyzerWorkflowBase currentWorklow;
 
-        public SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker, ISonarQubeService sonarQubeService,
-            Workspace workspace, IVsSolution vsSolution, ILogger logger)
+        public SonarAnalyzerManager(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            Workspace workspace,
+            IVsSolution vsSolution,
+            ILogger logger,
+            ISonarQubeIssuesProvider sonarQubeIssuesProvider)
         {
-            if (activeSolutionBoundTracker == null)
-            {
-                throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
-            }
-
-            if (sonarQubeService == null)
-            {
-                throw new ArgumentNullException(nameof(sonarQubeService));
-            }
-
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
-            if (vsSolution == null)
-            {
-                throw new ArgumentNullException(nameof(vsSolution));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker;
-            this.sonarQubeService = sonarQubeService;
-            this.workspace = workspace;
-            this.vsSolution = vsSolution;
-            this.logger = logger;
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
+            this.workspace = workspace ?? throw new ArgumentNullException(nameof(workspace));
+            this.vsSolution = vsSolution ?? throw new ArgumentNullException(nameof(vsSolution));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.sonarQubeIssuesProvider = sonarQubeIssuesProvider ?? throw new ArgumentNullException(nameof(sonarQubeIssuesProvider));
 
             // Saving previous state so that SonarLint doesn't have to know what's the default state in SonarAnalyzer
             this.previousShouldExecuteRegisteredAction = SonarAnalysisContext.ShouldExecuteRegisteredAction;
@@ -124,11 +98,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 case SonarLintMode.LegacyConnected:
                 case SonarLintMode.Connected:
                     this.logger.WriteLine(Resources.Strings.AnalyzerManager_InConnectedMode);
-                    var sonarQubeIssueProvider = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey,
-                        new TimerFactory(), this.logger);
-                    this.disposableObjects.Add(sonarQubeIssueProvider);
                     var liveIssueFactory = new LiveIssueFactory(workspace, vsSolution);
-                    var suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarQubeIssueProvider);
+                    var suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarQubeIssuesProvider);
 
                     if (configuration.Mode == SonarLintMode.Connected)
                     {
@@ -145,8 +116,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void ResetState()
         {
-            this.disposableObjects.ForEach(x => x.Dispose());
-            this.disposableObjects.Clear();
             this.currentWorklow?.Dispose();
             this.currentWorklow = null;
 
@@ -166,6 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             ResetState();
             this.activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
+            this.activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
             this.disposedValue = true;
         }
         #endregion

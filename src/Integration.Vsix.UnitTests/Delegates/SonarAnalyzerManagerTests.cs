@@ -29,8 +29,8 @@ using Moq;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
+using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -40,8 +40,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private AdhocWorkspace workspace;
         private ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
         private Mock<ILogger> loggerMock;
-        private Mock<ISonarQubeService> sonarQubeServiceMock;
         private Mock<IVsSolution> vsSolutionMock;
+        private Mock<ISonarQubeIssuesProvider> sonarQubeIssuesProvider;
 
         [TestInitialize]
         public void TestInitialize()
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             workspace = new AdhocWorkspace();
             activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
             loggerMock = new Mock<ILogger>();
-            sonarQubeServiceMock = new Mock<ISonarQubeService>();
+            sonarQubeIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
             vsSolutionMock = new Mock<IVsSolution>();
             vsSolutionMock.As<IVsSolution5>(); // Allows to cast IVsSolution into IVsSolution5
         }
@@ -58,30 +58,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenIActiveSolutionBoundTrackerIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerManager(null, sonarQubeServiceMock.Object, workspace,
-                vsSolutionMock.Object, loggerMock.Object);
+            Action act = () => new SonarAnalyzerManager(null, workspace, vsSolutionMock.Object, loggerMock.Object, sonarQubeIssuesProvider.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
         }
 
         [TestMethod]
-        public void Ctor_WhenISonarQubeServiceIsNull_ThrowsArgumentNullException()
-        {
-            // Arrange & Act
-            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, null, workspace,
-                vsSolutionMock.Object, loggerMock.Object);
-
-            // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
-        }
-
-        [TestMethod]
         public void Ctor_WhenVisualStudioWorkspaceIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object, null,
-                vsSolutionMock.Object, loggerMock.Object);
+            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, null, vsSolutionMock.Object, loggerMock.Object, sonarQubeIssuesProvider.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
@@ -91,8 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenIVsSolutionIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, null, loggerMock.Object);
+            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, null, loggerMock.Object, sonarQubeIssuesProvider.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
@@ -102,11 +88,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenILoggerIsNull_ThrowsArgumentNullException()
         {
             // Arrange & Act
-            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeServiceMock.Object,
-                workspace, vsSolutionMock.Object, null);
+            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolutionMock.Object, null, sonarQubeIssuesProvider.Object);
 
             // Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+
+        [TestMethod]
+        public void Ctor_WhenISonarQubeIssuesProviderIsNull_ThrowsArgumentNullException()
+        {
+            // Arrange & Act
+            Action act = () => new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolutionMock.Object, loggerMock.Object, null);
+
+            // Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeIssuesProvider");
         }
 
         [TestMethod]
@@ -248,7 +244,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarAnalysisContext.ReportDiagnostic.Should().NotBe(expectedReportDiagnostic);
         }
 
-        private SonarAnalyzerManager CreateTestSubject() => new SonarAnalyzerManager(activeSolutionBoundTracker,
-            sonarQubeServiceMock.Object, workspace, vsSolutionMock.Object, loggerMock.Object);
+        private SonarAnalyzerManager CreateTestSubject() => new SonarAnalyzerManager(activeSolutionBoundTracker, 
+            workspace, 
+            vsSolutionMock.Object, 
+            loggerMock.Object, 
+            sonarQubeIssuesProvider.Object);
     }
 }
