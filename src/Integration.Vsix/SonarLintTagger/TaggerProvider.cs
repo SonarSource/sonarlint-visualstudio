@@ -34,6 +34,7 @@ using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         internal readonly ITableManager errorTableManager;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
+        internal readonly IIssuesFilter issuesFilter;
         internal readonly DTE dte;
 
         private readonly ISet<SinkManager> managers = new HashSet<SinkManager>();
@@ -67,15 +69,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
             ITextDocumentFactoryService textDocumentFactoryService,
+            IIssuesFilter issuesFilter,
             IAnalyzerController analyzerController,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
             ILogger logger)
         {
             this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             this.textDocumentFactoryService = textDocumentFactoryService;
+            this.issuesFilter = issuesFilter;
 
             this.errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
                                                    StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
@@ -149,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(TextBufferIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, logger));
+                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, logger, issuesFilter));
 
                 // Always create a new tagger for each request
                 return new IssueTagger(issueTracker) as ITagger<T>;

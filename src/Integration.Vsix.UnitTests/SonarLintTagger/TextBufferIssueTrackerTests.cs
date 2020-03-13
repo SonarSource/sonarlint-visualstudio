@@ -32,6 +32,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -48,13 +49,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private TaggerProvider taggerProvider;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
+        private Mock<IssuesFilter> issuesFilter;
         private AnalysisLanguage[] javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
         [TestInitialize]
         public void SetUp()
         {
             mockAnalyzerController = new Mock<IAnalyzerController>();
-
+            issuesFilter = new Mock<IssuesFilter>();
             taggerProvider = CreateTaggerProvider();
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             // 1. No tagger -> analysis not requested
             CheckAnalysisWasNotRequested();
@@ -84,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             var errorListSink = RegisterNewErrorListSink();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0); // sanity check
@@ -107,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             _ = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             CheckAnalysisWasNotRequested();
 
@@ -123,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             // 1. No tagger -> analysis not requested
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
@@ -149,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             using (var tagger = new IssueTagger(testSubject))
             {
@@ -204,7 +206,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var errorListSinkMock2 = RegisterNewErrorListSink();
 
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             // Act
             using (new AssertIgnoreScope())
@@ -233,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var errorListSinkMock2 = RegisterNewErrorListSink();
 
             var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger());
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             // Sanity check
             testSubject.LastIssues.Should().BeNull();
@@ -317,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
-            var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, mockAnalyzerController.Object,
+            var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
                 serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger());
             return provider;
         }
