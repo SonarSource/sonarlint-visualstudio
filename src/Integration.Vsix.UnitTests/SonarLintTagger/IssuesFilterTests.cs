@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Suppression;
@@ -36,6 +38,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             sonarQubeIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
             testSubject = new IssuesFilter(sonarQubeIssuesProvider.Object);
+        }
+
+        [TestMethod]
+        public void Ctor_NullSonarQubeIssuesProvider_ArgumentNullException()
+        {
+            Action act = () => new IssuesFilter(null);
+
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeIssuesProvider");
         }
     }
 }
