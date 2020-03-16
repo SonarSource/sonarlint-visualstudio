@@ -21,9 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
@@ -33,30 +31,20 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     public class SuppressedIssuesProvider : ISonarQubeIssuesProvider
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISonarQubeService sonarQubeService;
-        private readonly ILogger logger;
-        private readonly ITimerFactory timerFactory;
+        private readonly ISonarQubeIssuesProviderFactory sonarQubeIssuesProviderFactory;
 
         private ISonarQubeIssuesProvider instance;
         private bool disposed;
 
         [ImportingConstructor]
-        public SuppressedIssuesProvider(ISonarQubeService sonarQubeService,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ILogger logger)
-            : this(sonarQubeService, activeSolutionBoundTracker, logger, new TimerFactory())
+        public SuppressedIssuesProvider(ISonarQubeIssuesProviderFactory sonarQubeIssuesProviderFactory, 
+            IActiveSolutionBoundTracker activeSolutionBoundTracker)
         {
-        }
+            this.sonarQubeIssuesProviderFactory = sonarQubeIssuesProviderFactory ??
+                                                  throw new ArgumentNullException(nameof(sonarQubeIssuesProviderFactory));
 
-        internal SuppressedIssuesProvider(ISonarQubeService sonarQubeService,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ILogger logger,
-            ITimerFactory timerFactory)
-        {
-            this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.timerFactory = timerFactory ?? throw new ArgumentNullException(nameof(timerFactory));
+            this.activeSolutionBoundTracker = activeSolutionBoundTracker ??
+                                              throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
@@ -80,7 +68,11 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private void Refresh(BindingConfiguration configuration)
         {
             CleanupResources();
-            instance = new SonarQubeIssuesProvider(sonarQubeService, configuration.Project.ProjectKey, timerFactory, logger);
+            
+            if (configuration.Mode != SonarLintMode.Standalone)
+            {
+                instance = sonarQubeIssuesProviderFactory.Create(configuration);
+            }
         }
 
         private void CleanupResources()
@@ -105,6 +97,5 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 disposed = true;
             }
         }
-
     }
 }
