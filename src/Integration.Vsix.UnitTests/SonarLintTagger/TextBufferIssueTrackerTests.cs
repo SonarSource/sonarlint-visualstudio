@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -46,20 +47,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class TextBufferIssueTrackerTests
     {
         private Mock<IAnalyzerController> mockAnalyzerController;
-
         private TaggerProvider taggerProvider;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
-        private Mock<IssuesFilter> issuesFilter;
+        private Mock<IIssuesFilter> issuesFilter;
         private AnalysisLanguage[] javascriptLanguage = new[] { AnalysisLanguage.Javascript };
+        private TextBufferIssueTracker testSubject;
 
         [TestInitialize]
         public void SetUp()
         {
             mockAnalyzerController = new Mock<IAnalyzerController>();
-            issuesFilter = new Mock<IssuesFilter>();
+            issuesFilter = new Mock<IIssuesFilter>();
             taggerProvider = CreateTaggerProvider();
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
+
+            var originalIssues = new List<Issue>();
+            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<Issue>>()))
+                .Callback((string path, IEnumerable<Issue> issues) => originalIssues.AddRange(issues))
+                .Returns(originalIssues);
+
+            testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
         }
 
         #region Triggering analysis tests
@@ -67,10 +76,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WhenTaggerIsRegistered_AnalysisIsRequested()
         {
-            // Arrange
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
-
             // 1. No tagger -> analysis not requested
             CheckAnalysisWasNotRequested();
 
@@ -84,10 +89,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WhenFileRenamed_FileNameIsUpdated_AndAnalysisIsNotRequested()
         {
-            // Arrange
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
-
             var errorListSink = RegisterNewErrorListSink();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0); // sanity check
 
@@ -108,9 +109,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void WhenFileIsSaved_ButNoTaggers_AnalysisIsNotRequested()
         {
             // Arrange
-            _ = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
-
             CheckAnalysisWasNotRequested();
 
             // Act
@@ -123,10 +121,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WhenFileIsSaved_AnalysisIsRequested_ButOnlyIfATaggerIsRegistered()
         {
-            // Arrange
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
-
             // 1. No tagger -> analysis not requested
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             CheckAnalysisWasNotRequested();
@@ -149,10 +143,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WhenFileIsLoaded_AnalysisIsNotRequested()
         {
-            // Arrange
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
-
             using (var tagger = new IssueTagger(testSubject))
             {
                 mockAnalyzerController.Invocations.Clear();
