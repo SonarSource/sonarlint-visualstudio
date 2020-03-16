@@ -420,4 +420,36 @@
     </ItemGroup>
   </Target>
 
+  
+  <!-- *************************************************************************** -->
+  <!-- Build-time safety net to catch changes to the set of referenced assemblies -->
+  <!-- *************************************************************************** -->
+  <!-- If the set/versions of referenced assemblies changes the build will fail.
+       Check the following:
+       
+       New dependencies:
+       * are they included in the VSIX?
+       * if it's a third-party component, do the third-party license statements need to be updated?
+       
+       New versions of existing dependencies:
+       * is the new version of the dependency compatible with the minimum targetted .NET Framework?
+       * if it is not already included in the VSIX, does it need to be?
+       
+       If the dependency changes are ok, then re-run the build specifying "/p:AsmRefUpdateBaseline=true"
+       to update the baseline file, then check in the updated baseline with the rest of your changes.
+  -->
+  <PropertyGroup>
+    <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
+    <AsmRefVersionCompatibility>MajorMinorBuild</AsmRefVersionCompatibility>
+
+    <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
+    <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.8.0-rc">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  
 </Project>
