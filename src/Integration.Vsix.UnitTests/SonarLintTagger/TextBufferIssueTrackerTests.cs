@@ -195,9 +195,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var errorListSinkMock1 = RegisterNewErrorListSink();
             var errorListSinkMock2 = RegisterNewErrorListSink();
 
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
-
             // Act
             using (new AssertIgnoreScope())
             {
@@ -223,9 +220,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
             var errorListSinkMock2 = RegisterNewErrorListSink();
-
-            var testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
 
             // Sanity check
             testSubject.LastIssues.Should().BeNull();
