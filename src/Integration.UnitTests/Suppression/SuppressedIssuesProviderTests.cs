@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class SuppressedIssuesProviderTests
     {
-        private Mock<ISonarQubeIssuesProviderFactory> sonarQubeIssuesProviderFactory;
+        private Mock<Func<BindingConfiguration, ISonarQubeIssuesProvider>> createProviderFunc;
         private ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
 
         private SuppressedIssuesProvider testSubject;
@@ -41,24 +41,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestInitialize]
         public void TestInitialize()
         {
-            sonarQubeIssuesProviderFactory = new Mock<ISonarQubeIssuesProviderFactory>();
+            createProviderFunc = new Mock<Func<BindingConfiguration, ISonarQubeIssuesProvider>>();
             activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
 
-            testSubject = new SuppressedIssuesProvider(sonarQubeIssuesProviderFactory.Object, activeSolutionBoundTracker);
+            testSubject = new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);
         }
 
         [TestMethod]
-        public void Ctor_NullSonarQubeIssuesProviderFactory_ArgumentNullException()
+        public void Ctor_NullCreateProviderFunc_ArgumentNullException()
         {
-            Action act = () => new SuppressedIssuesProvider(null, null);
+            Action act = () => new SuppressedIssuesProvider(activeSolutionBoundTracker, null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeIssuesProviderFactory");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("createProviderFunc");
         }
 
         [TestMethod]
         public void Ctor_NullActiveSolutionBoundTracker_ArgumentNullException()
         {
-            Action act = () => new SuppressedIssuesProvider(sonarQubeIssuesProviderFactory.Object, null);
+            Action act = () => new SuppressedIssuesProvider(null, createProviderFunc.Object);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeSolutionBoundTracker");
         }
@@ -92,8 +92,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             testSubject.GetSuppressedIssues("project guid", "file path");
 
-            sonarQubeIssuesProviderFactory.Verify(x =>
-                    x.Create(It.IsAny<BindingConfiguration>()),
+            createProviderFunc.Verify(x =>
+                    x(It.IsAny<BindingConfiguration>()),
                 Times.Never);
         }
 
@@ -126,8 +126,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var firstProvider = new Mock<ISonarQubeIssuesProvider>();
             var firstConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected);
 
-            sonarQubeIssuesProviderFactory
-                .Setup(x => x.Create(firstConfiguration))
+            createProviderFunc
+                .Setup(x => x(firstConfiguration))
                 .Returns(firstProvider.Object);
 
             SetupBindingEvent(eventType, firstConfiguration);
@@ -147,8 +147,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             var firstProvider = new Mock<ISonarQubeIssuesProvider>();
             var firstConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected);
 
-            sonarQubeIssuesProviderFactory
-                .Setup(x => x.Create(firstConfiguration))
+            createProviderFunc
+                .Setup(x => x(firstConfiguration))
                 .Returns(firstProvider.Object);
 
             SetupBindingEvent(SolutionBindingEventType.SolutionBindingChanged, firstConfiguration);
@@ -205,8 +205,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Setup(x => x.GetSuppressedIssues("project guid", "file path"))
                 .Returns(expectedIssues);
 
-            sonarQubeIssuesProviderFactory
-                .Setup(x => x.Create(bindingConfiguration))
+            createProviderFunc
+                .Setup(x => x(bindingConfiguration))
                 .Returns(issuesProvider.Object);
 
             return expectedIssues;

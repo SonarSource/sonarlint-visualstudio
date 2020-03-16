@@ -21,7 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarQube.Client;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
@@ -31,20 +33,33 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     public class SuppressedIssuesProvider : ISonarQubeIssuesProvider
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly ISonarQubeIssuesProviderFactory sonarQubeIssuesProviderFactory;
+        private readonly Func<BindingConfiguration, ISonarQubeIssuesProvider> createProviderFunc;
 
         private ISonarQubeIssuesProvider instance;
         private bool disposed;
 
         [ImportingConstructor]
-        public SuppressedIssuesProvider(ISonarQubeIssuesProviderFactory sonarQubeIssuesProviderFactory, 
-            IActiveSolutionBoundTracker activeSolutionBoundTracker)
+        public SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            ISonarQubeService sonarQubeService,
+            ILogger logger)
+            : this(activeSolutionBoundTracker,
+                bindingConfiguration => new SonarQubeIssuesProvider(
+                    sonarQubeService,
+                    bindingConfiguration.Project.ProjectKey, 
+                    new TimerFactory(), 
+                    logger))
         {
-            this.sonarQubeIssuesProviderFactory = sonarQubeIssuesProviderFactory ??
-                                                  throw new ArgumentNullException(nameof(sonarQubeIssuesProviderFactory));
+        }
+
+        internal SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
+            Func<BindingConfiguration, ISonarQubeIssuesProvider> createProviderFunc)
+        {
+            this.createProviderFunc = createProviderFunc ??
+                                          throw new ArgumentNullException(nameof(createProviderFunc));
 
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ??
                                               throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
+            this.createProviderFunc = createProviderFunc;
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
@@ -71,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             
             if (configuration.Mode != SonarLintMode.Standalone)
             {
-                instance = sonarQubeIssuesProviderFactory.Create(configuration);
+                instance = createProviderFunc(configuration);
             }
         }
 
