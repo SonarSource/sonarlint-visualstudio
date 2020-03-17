@@ -77,6 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void OnSuppressionsUpdated(object sender, EventArgs e)
         {
+            // NB assumes exception handling is done by the AnalysisRequester
             logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingUpdated);
             analysisRequester.RequestAnalysis();
         }
