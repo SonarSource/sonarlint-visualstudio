@@ -259,6 +259,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Number of issues suppressed on the server: {0}.
+        /// </summary>
+        internal static string Daemon_SuppressedIssuesInfo {
+            get {
+                return ResourceManager.GetString("Daemon_SuppressedIssuesInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Using default daemon download URL.
         /// </summary>
         internal static string Daemon_UsingDefaultDownloadLocation {

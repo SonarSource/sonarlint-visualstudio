@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
@@ -243,6 +244,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualMarkers[1].Issue.RuleKey.Should().Be("S333");
         }
 
+        [TestMethod]
+        public void WhenNewIssuesAreFound_IssueFilterIsApplied()
+        {
+            // Arrange
+            var inputIssues = new[] {
+                new Sonarlint.Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
+                new Sonarlint.Issue { RuleKey = "S222", StartLine = 2, EndLine = 2 },
+                new Sonarlint.Issue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
+            };
+
+            // Set up the filter to return only one issue
+            var originalIssues = new List<IFilterableIssue>();
+            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
+                .Callback((string path, IEnumerable<IFilterableIssue> issues) => originalIssues.AddRange(issues))
+                .Returns(originalIssues.Where(i => i.RuleId == "S222"));
+
+            var errorListSinkMock1 = RegisterNewErrorListSink();
+
+            // Act
+            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
+
+            // Assert
+            // We can't check that the editors listeners are notified: we can't mock
+            // SnapshotSpan well enough for the product code to work -> affected span
+            // is always null so the taggers don't notify their listeners.
+            CheckSinkNotified(errorListSinkMock1, 1);
+
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.First().Issue.RuleKey.Should().Be("S222");
+        }
+
         private Mock<ITableDataSink> RegisterNewErrorListSink()
         {
             // Adds a new error list sink to the tagger provider.
@@ -262,7 +294,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Exactly(count));
         }
 
+
         #endregion
+
+        #region CreateFilterableIssues tests
+
+        [DataTestMethod]
+        [DataRow(100, 1)]
+        [DataRow(101, 100)]
+        public void CreateFilterableIssue_IssueLineOutsideSnapshot_ReturnsNull(int issueLine, int bufferLineCount)
+        {
+            var issue = new Sonarlint.Issue {StartLine = issueLine};
+            var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "unimportant");
+
+            TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object)
+                .Should().BeNull();
+        }
+
+        [DataTestMethod]
+        [DataRow(2, 100)]
+        [DataRow(100, 100)]
+        public void CreateFilterableIssue_IssueLineInSnapshot_ReturnsFilterableIssue(int issueLine, int bufferLineCount)
+        {
+            var issue = new Sonarlint.Issue { StartLine = issueLine };
+            var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "some text");
+
+            // Act
+            var actual = TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object);
+
+            // Assert
+            actual.Should().BeOfType(typeof(DaemonIssueAdapter));
+
+            // Assert
+            var adapterIssue = (DaemonIssueAdapter)actual;
+            adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
+            adapterIssue.WholeLineText.Should().Be("some text");
+            adapterIssue.LineHash.Should().Be(ChecksumCalculator.Calculate("some text"));
+        }
+
+        #endregion CreateFilterableIssues tests
 
         private TaggerProvider CreateTaggerProvider()
         {
@@ -314,12 +384,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var dummyProperties = new PropertyCollection();
             mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
 
-            var mockSnapshot = new Mock<ITextSnapshot>();
-            mockSnapshot.Setup(x => x.Length).Returns(9999);
-            mockSnapshot.Setup(x => x.LineCount).Returns(1000);
-            mockSnapshot.Setup(x => x.GetLineFromLineNumber(It.IsAny<int>()))
-                .Returns(new Mock<ITextSnapshotLine>().Object);
-
+            var mockSnapshot = CreateMockTextSnapshot(1000, "some text");            
             mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
 
             // Create the document and associate the buffer with the it
@@ -331,5 +396,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return mockTextDocument;
         }
+
+        private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn)
+        {
+            var mockSnapshotLine = new Mock<ITextSnapshotLine>();
+            mockSnapshotLine.Setup(x => x.GetText()).Returns(textToReturn);
+
+            var mockSnapshot = new Mock<ITextSnapshot>();
+            mockSnapshot.Setup(x => x.Length).Returns(9999);
+            mockSnapshot.Setup(x => x.LineCount).Returns(lineCount);
+            mockSnapshot.Setup(x => x.GetLineFromLineNumber(It.IsAny<int>()))
+                .Returns(mockSnapshotLine.Object);
+
+            return mockSnapshot;
+        }
+
     }
 }
