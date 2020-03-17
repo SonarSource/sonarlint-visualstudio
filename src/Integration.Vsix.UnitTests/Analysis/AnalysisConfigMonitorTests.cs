@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -53,47 +54,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Standalone, false)]
-        [DataRow(SonarLintMode.Connected, true)]
-        [DataRow(SonarLintMode.LegacyConnected, true)]
-        public void WhenBindingIsUpdated(SonarLintMode bindingMode, bool shouldAnalysisBeRequested)
+        public void WhenSupressionsUpdated_AnalysisIsRequested()
         {
-            var builder = new TestEnvironmentBuilder(bindingMode);
+            var builder = new TestEnvironmentBuilder(SonarLintMode.Connected);
 
-            builder.SimulateBindingUpdated ();
+            builder.SimulateSuppressionsUpdated();
 
-            if (shouldAnalysisBeRequested)
-            {
-                builder.AssertAnalysisIsRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingUpdated);
-            }
-            else
-            {
-                builder.AssertAnalysisIsNotRequested();
-                builder.Logger.AssertNoOutputMessages();
-            }
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Standalone, false)]
-        [DataRow(SonarLintMode.Connected, true)]
-        [DataRow(SonarLintMode.LegacyConnected, true)]
-        public void WhenBindingIsChanged(SonarLintMode bindingMode, bool shouldAnalysisBeRequested)
-        {
-            var builder = new TestEnvironmentBuilder(bindingMode);
-
-            builder.SimulateBindingChanged();
-
-            if (shouldAnalysisBeRequested)
-            {
-                builder.AssertAnalysisIsRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SolutionBound);
-            }
-            else
-            {
-                builder.AssertAnalysisIsNotRequested();
-                builder.Logger.AssertNoOutputMessages();
-            }
+            builder.AssertAnalysisIsRequested();
+            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
         }
 
         [TestMethod]
@@ -108,8 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.TestSubject.Dispose();
 
             // Raise events and check they are ignored
-            builder.SimulateBindingChanged();
-            builder.SimulateBindingUpdated();
+            builder.SimulateSuppressionsUpdated();
             builder.SimulateUserSettingsChanged();
 
             builder.AssertAnalysisIsNotRequested();
@@ -119,17 +86,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             private readonly Mock<IAnalysisRequester> analysisRequesterMock;
             private readonly Mock<IUserSettingsProvider> userSettingsProviderMock;
-            private readonly ConfigurableActiveSolutionBoundTracker solutionBoundTracker;
-
-            private readonly SonarLintMode bindingMode;
+            private readonly Mock<ISuppressedIssuesMonitor> suppressedIssuesMonitorMock;
 
             public TestEnvironmentBuilder(SonarLintMode bindingMode)
             {
-                this.bindingMode = bindingMode;
-
                 analysisRequesterMock = new Mock<IAnalysisRequester>();
                 userSettingsProviderMock = new Mock<IUserSettingsProvider>();
-                solutionBoundTracker = new ConfigurableActiveSolutionBoundTracker()
+                suppressedIssuesMonitorMock = new Mock<ISuppressedIssuesMonitor>();
+
+                var solutionBoundTracker = new ConfigurableActiveSolutionBoundTracker
                 {
                     CurrentConfiguration = new BindingConfiguration(new Persistence.BoundSonarQubeProject(), bindingMode)
                 };
@@ -137,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 Logger = new TestLogger();
 
                 TestSubject = new AnalysisConfigMonitor(analysisRequesterMock.Object,
-                    userSettingsProviderMock.Object, solutionBoundTracker, Logger);
+                    userSettingsProviderMock.Object, solutionBoundTracker, suppressedIssuesMonitorMock.Object, Logger);
             }
 
             public TestLogger Logger { get; }
@@ -149,15 +114,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 userSettingsProviderMock.Raise(x => x.SettingsChanged += null, EventArgs.Empty);
             }
 
-            public void SimulateBindingChanged()
+            public void SimulateSuppressionsUpdated()
             {
-                var newConfig = new BindingConfiguration(new Persistence.BoundSonarQubeProject(), bindingMode);
-                solutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(newConfig));
-            }
-
-            public void SimulateBindingUpdated()
-            {
-                solutionBoundTracker.SimulateSolutionBindingUpdated();
+                suppressedIssuesMonitorMock.Raise(x=> x.SuppressionsUpdated += null, EventArgs.Empty);
             }
 
             public void AssertAnalysisIsRequested()

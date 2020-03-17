@@ -117,14 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ConfigMonitor_BindingUpdated" xml:space="preserve">
-    <value>Binding has been updated. Open documents will be re-analysed.</value>
+  <data name="ConfigMonitor_SuppressionsUpdated" xml:space="preserve">
+    <value>Suppressions have been updated. Open documents will be re-analysed.</value>
   </data>
   <data name="ConfigMonitor_IgnoringUserSettingsChanged" xml:space="preserve">
     <value>User settings have changed but the solution is in connected mode. Open documents will not be re-analysed.</value>
-  </data>
-  <data name="ConfigMonitor_SolutionBound" xml:space="preserve">
-    <value>Solution has been bound. Open documents will be re-analysed.</value>
   </data>
   <data name="ConfigMonitor_UserSettingsChanged" xml:space="preserve">
     <value>User settings have changed. Open documents will be re-analysed.</value>
