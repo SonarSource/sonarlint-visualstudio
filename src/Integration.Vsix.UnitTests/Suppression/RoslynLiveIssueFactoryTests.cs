@@ -34,7 +34,7 @@ using static SonarLint.VisualStudio.Integration.UnitTests.Helpers.MoqExtensions;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
     [TestClass]
-    public class LiveIssueFactoryTests
+    public class RoslynLiveIssueFactoryTests
     {
         // Well-known value for a project that exists in the solution
         private const string ProjectInSolutionFilePath = "C:\\Project1.csproj";
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Ctor_WithNullWorkspace_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new LiveIssueFactory(null, new Mock<IVsSolution>().Object);
+            Action action = () => new RoslynLiveIssueFactory(null, new Mock<IVsSolution>().Object);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("workspace");
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void Ctor_WithNullVsSolution_ThrowsArgumentNullException()
         {
             // Arrange
-            Action action = () => new LiveIssueFactory(new AdhocWorkspace(), null);
+            Action action = () => new RoslynLiveIssueFactory(new AdhocWorkspace(), null);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 new KeyValuePair<string, string>("Project2", "22222222-2222-2222-2222-222222222222"));
 
             // Act
-            new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
+            new RoslynLiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
 
             // Assert
             vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCountOut),
@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             uint fileCountOut;
 
             // Act
-            IDictionary<string, string> map = LiveIssueFactory.BuildProjectPathToIdMap(vsSolutionMock.Object);
+            IDictionary<string, string> map = RoslynLiveIssueFactory.BuildProjectPathToIdMap(vsSolutionMock.Object);
 
             // Assert
             vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCountOut),
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Returns(Guid.Empty);
 
             // Act
-            new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
+            new RoslynLiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
 
             // Assert
             vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCount),
@@ -147,13 +147,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             uint fileCount = 0;
             vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, null, out fileCount))
                 .Returns(VSConstants.S_OK);
-            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, new string[0], out fileCount))
+            vsSolutionMock.Setup(x => x.GetProjectFilesInSolution(0, 0, Array.Empty<string>(), out fileCount))
                 .Returns(VSConstants.E_FAIL);
             vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
                 .Returns(Guid.Empty);
 
             // Act
-            new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
+            new RoslynLiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
 
             // Assert
             vsSolutionMock.Verify(x => x.GetProjectFilesInSolution(0, It.IsAny<uint>(), It.IsAny<string[]>(), out fileCount),
@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 }));
             vsSolutionMock.As<IVsSolution5>().Setup(x => x.GetGuidOfProjectFile(It.IsAny<string>()))
                 .Returns(Guid.Empty);
-            var liveIssueFactory = new LiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
+            var liveIssueFactory = new RoslynLiveIssueFactory(new AdhocWorkspace(), vsSolutionMock.Object);
 
             var diagnostic = CreateDiagnostic(Location.None);
 
@@ -315,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 }"), VersionStamp.Default))));
             workspace.TryApplyChanges(solution);
 
-            var liveIssueFactory = new LiveIssueFactory(workspace, vsSolutionMock.Object);
+            var liveIssueFactory = new RoslynLiveIssueFactory(workspace, vsSolutionMock.Object);
 
             var syntaxTree = workspace.CurrentSolution.Projects.First().GetCompilationAsync().Result.SyntaxTrees.First();
 
@@ -358,6 +358,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             return vsSolutionMock;
         }
-
     }
 }

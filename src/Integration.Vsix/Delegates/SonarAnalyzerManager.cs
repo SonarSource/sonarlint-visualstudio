@@ -98,8 +98,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 case SonarLintMode.LegacyConnected:
                 case SonarLintMode.Connected:
                     this.logger.WriteLine(Resources.Strings.AnalyzerManager_InConnectedMode);
-                    var liveIssueFactory = new LiveIssueFactory(workspace, vsSolution);
-                    var suppressionHandler = new SuppressionHandler(liveIssueFactory, sonarQubeIssuesProvider);
+                    var liveIssueFactory = new RoslynLiveIssueFactory(workspace, vsSolution);
+                    var suppressionHandler = new RoslynSuppressionHandler(liveIssueFactory, sonarQubeIssuesProvider);
 
                     if (configuration.Mode == SonarLintMode.Connected)
                     {

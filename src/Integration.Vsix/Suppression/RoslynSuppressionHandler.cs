@@ -25,12 +25,12 @@ using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
-    internal class SuppressionHandler : ISuppressionHandler
+    internal class RoslynSuppressionHandler : IRoslynSuppressionHandler
     {
-        private readonly ILiveIssueFactory liveIssueFactory;
+        private readonly IRoslynLiveIssueFactory liveIssueFactory;
         private readonly ISonarQubeIssuesProvider serverIssuesProvider;
 
-        public SuppressionHandler(ILiveIssueFactory liveIssueFactory, ISonarQubeIssuesProvider serverIssuesProvider)
+        public RoslynSuppressionHandler(IRoslynLiveIssueFactory liveIssueFactory, ISonarQubeIssuesProvider serverIssuesProvider)
         {
             if (liveIssueFactory == null)
             {
