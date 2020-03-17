@@ -20,15 +20,27 @@
 
 using System;
 using System.Collections.Generic;
-using SonarQube.Client.Models;
+using System.ComponentModel.Composition;
+using Sonarlint;
+using SonarLint.VisualStudio.Integration.Suppression;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 {
-    public interface ISonarQubeIssuesProvider : IDisposable
+    [Export(typeof(IIssuesFilter))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class IssuesFilter : IIssuesFilter
     {
-        /// <summary>
-        ///     Returns SonarQube suppressed issues for the specified project and file
-        /// </summary>
-        IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
+        private readonly ISonarQubeIssuesProvider sonarQubeIssuesProvider;
+
+        [ImportingConstructor]
+        public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
+        {
+            this.sonarQubeIssuesProvider = sonarQubeIssuesProvider ?? throw new ArgumentNullException(nameof(sonarQubeIssuesProvider));
+        }
+
+        public IEnumerable<Issue> Filter(string path, IEnumerable<Issue> issues)
+        {
+            return issues;
+        }
     }
 }

@@ -28,8 +28,8 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
-using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private ILogger logger;
 
-        protected async override System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await base.InitializeAsync(cancellationToken, progress);
             await JoinableTaskFactory.SwitchToMainThreadAsync();
@@ -88,13 +88,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 IServiceProvider serviceProvider = this;
 
                 var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
-                var sonarQubeService = await this.GetMefServiceAsync<ISonarQubeService>();
+                var sonarQubeIssuesProvider = await this.GetMefServiceAsync<ISonarQubeIssuesProvider>();
                 var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
 
-
                 var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
-                this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, sonarQubeService, workspace,
-                    vsSolution, logger);
+                this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolution, logger, sonarQubeIssuesProvider);
 
                 this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 

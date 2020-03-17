@@ -39,5 +39,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
         }
+
+        public Delegate[] GetSolutionBindingUpdatedInvocationList()
+        {
+            return SolutionBindingUpdated?.GetInvocationList();
+        }
+
+        public Delegate[] GetSolutionBindingChangedInvocationList()
+        {
+            return SolutionBindingChanged?.GetInvocationList();
+        }
     }
 }

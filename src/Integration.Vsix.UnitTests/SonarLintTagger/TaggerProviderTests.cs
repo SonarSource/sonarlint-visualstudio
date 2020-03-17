@@ -34,6 +34,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -109,7 +110,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
-            this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, analyzerController, serviceProvider,
+            var issuesFilter = new Mock<IIssuesFilter>();
+            this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
                 sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object);
         }
 
