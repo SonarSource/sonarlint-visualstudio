@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             if (diagnostic.Location == Location.None) // Project-level issue
             {
-                return new LiveIssue(diagnostic, projectGuid);
+                return new LiveIssue(diagnostic.Id, projectGuid);
             }
 
             var lineSpan = diagnostic.Location.GetLineSpan();
@@ -105,14 +105,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             if (isFileLevelIssue) // File-level issue
             {
-                return new LiveIssue(diagnostic, projectGuid, lineSpan.Path);
+                return new LiveIssue(diagnostic.Id, projectGuid, lineSpan.Path);
             }
 
             try
             {
                 var lineText = syntaxTree.GetText().Lines[lineSpan.EndLinePosition.Line].ToString();
                 var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
-                return new LiveIssue(diagnostic, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineText); // Line-level issue
+                return new LiveIssue(diagnostic.Id, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineText); // Line-level issue
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
