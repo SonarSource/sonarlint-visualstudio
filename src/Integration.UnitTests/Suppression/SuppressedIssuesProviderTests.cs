@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class SuppressedIssuesProviderTests
     {
-        private Mock<Func<BindingConfiguration, ISonarQubeIssuesProvider>> createProviderFunc;
+        private Mock<SuppressedIssuesProvider.CreateProviderFunc> createProviderFunc;
         private ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
 
         private SuppressedIssuesProvider testSubject;
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestInitialize]
         public void TestInitialize()
         {
-            createProviderFunc = new Mock<Func<BindingConfiguration, ISonarQubeIssuesProvider>>();
+            createProviderFunc = new Mock<SuppressedIssuesProvider.CreateProviderFunc>();
             activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
 
             testSubject = new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);

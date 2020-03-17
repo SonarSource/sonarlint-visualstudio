@@ -32,8 +32,10 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class SuppressedIssuesProvider : ISonarQubeIssuesProvider
     {
+        public delegate ISonarQubeIssuesProvider CreateProviderFunc(BindingConfiguration bindingConfiguration);
+
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
-        private readonly Func<BindingConfiguration, ISonarQubeIssuesProvider> createProviderFunc;
+        private readonly CreateProviderFunc createProviderFunc;
 
         private ISonarQubeIssuesProvider instance;
         private bool disposed;
@@ -42,17 +44,21 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         public SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             ISonarQubeService sonarQubeService,
             ILogger logger)
-            : this(activeSolutionBoundTracker,
-                bindingConfiguration => new SonarQubeIssuesProvider(
-                    sonarQubeService,
-                    bindingConfiguration.Project.ProjectKey, 
-                    new TimerFactory(), 
-                    logger))
+            : this(activeSolutionBoundTracker, GetCreateProviderFunc(sonarQubeService, logger))
         {
         }
 
-        internal SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            Func<BindingConfiguration, ISonarQubeIssuesProvider> createProviderFunc)
+        private static CreateProviderFunc GetCreateProviderFunc(ISonarQubeService sonarQubeService, ILogger logger)
+        {
+            return bindingConfiguration => new SonarQubeIssuesProvider(
+                sonarQubeService,
+                bindingConfiguration.Project.ProjectKey,
+                new TimerFactory(),
+                logger);
+        }
+
+        internal SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, 
+            CreateProviderFunc createProviderFunc)
         {
             this.createProviderFunc = createProviderFunc ??
                                           throw new ArgumentNullException(nameof(createProviderFunc));
