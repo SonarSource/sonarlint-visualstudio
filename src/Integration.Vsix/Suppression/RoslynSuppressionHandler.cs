@@ -21,7 +21,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {

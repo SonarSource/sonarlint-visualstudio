@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Text;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -57,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IIssueConverter issueConverter;
         private readonly string charset;
         private readonly ILogger logger;
-        private readonly IIssuesFilter issuesFilter;
+        private readonly Core.IIssuesFilter issuesFilter;
 
         public string FilePath { get; private set; }
         public SnapshotFactory Factory { get; }
@@ -67,13 +66,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
         
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, IIssuesFilter issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, Core.IIssuesFilter issuesFilter)
             : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger, issuesFilter)
         {
         }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger, IIssuesFilter issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger, Core.IIssuesFilter issuesFilter)
         {
             this.dte = dte;
 
@@ -275,7 +274,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            issues = issuesFilter.Filter(path, issues);
+            // TODO: collect the additional information required to compare be able to filter
+            // the issues (i.e. the text of the line and the line hash)
+            // issues = issuesFilter.Filter(path, issues);
 
             var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             UpdateIssues(newMarkers);
