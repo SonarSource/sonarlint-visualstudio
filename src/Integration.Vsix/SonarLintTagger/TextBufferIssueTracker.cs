@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IIssueConverter issueConverter;
         private readonly string charset;
         private readonly ILogger logger;
+        private readonly IIssuesFilter issuesFilter;
 
         public string FilePath { get; private set; }
         public SnapshotFactory Factory { get; }
@@ -65,11 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
         
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger)
-            : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger) { }
+            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, IIssuesFilter issuesFilter)
+            : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger, issuesFilter)
+        {
+        }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger, IIssuesFilter issuesFilter)
         {
             this.dte = dte;
 
@@ -80,6 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.detectedLanguages = detectedLanguages;
             this.issueConverter = issueConverter;
             this.logger = logger;
+            this.issuesFilter = issuesFilter;
 
             this.document = document;
             this.FilePath = document.FilePath;
@@ -269,6 +274,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Debug.Fail("Issues returned for an unexpected file path");
                 return;
             }
+
+            issues = issuesFilter.Filter(path, issues);
 
             var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             UpdateIssues(newMarkers);

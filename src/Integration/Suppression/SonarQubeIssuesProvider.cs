@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    public sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider, IDisposable
+    public sealed class SonarQubeIssuesProvider : ISonarQubeIssuesProvider
     {
         private const double MillisecondsToWaitBetweenRefresh = 1000 * 60 * 10; // 10 minutes
 
