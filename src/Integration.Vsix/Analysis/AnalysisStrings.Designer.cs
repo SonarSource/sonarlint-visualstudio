@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Binding has been updated. Open documents will be re-analysed..
-        /// </summary>
-        internal static string ConfigMonitor_BindingUpdated {
-            get {
-                return ResourceManager.GetString("ConfigMonitor_BindingUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to User settings have changed but the solution is in connected mode. Open documents will not be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_IgnoringUserSettingsChanged {
@@ -79,11 +70,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Solution has been bound. Open documents will be re-analysed..
+        ///   Looks up a localized string similar to Suppressions have been updated. Open documents will be re-analysed..
         /// </summary>
-        internal static string ConfigMonitor_SolutionBound {
+        internal static string ConfigMonitor_SuppressionsUpdated {
             get {
-                return ResourceManager.GetString("ConfigMonitor_SolutionBound", resourceCulture);
+                return ResourceManager.GetString("ConfigMonitor_SuppressionsUpdated", resourceCulture);
             }
         }
         

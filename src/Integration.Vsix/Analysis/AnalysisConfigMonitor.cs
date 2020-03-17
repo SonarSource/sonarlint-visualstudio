@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -38,24 +39,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal sealed class AnalysisConfigMonitor : IAnalysisConfigMonitor, IDisposable
     {
         private readonly IAnalysisRequester analysisRequester;
-        private readonly IUserSettingsProvider userSettingsProvider;
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IUserSettingsProvider userSettingsProvider;
+        private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
             IActiveSolutionBoundTracker activeSolutionBoundTracker, // reports changes to connected mode
+            ISuppressedIssuesMonitor suppressedIssuesMonitor,
             ILogger logger)
         {
             this.analysisRequester = analysisRequester;
             this.userSettingsProvider = userSettingsProvider;
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
+            this.suppressedIssuesMonitor = suppressedIssuesMonitor;
             this.logger = logger;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
-            activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
-            activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
+            suppressedIssuesMonitor.SuppressionsUpdated += OnSuppressionsUpdated;
         }
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
@@ -72,24 +75,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             }
         }
 
-        private void OnSolutionBindingUpdated(object sender, EventArgs e)
+        private void OnSuppressionsUpdated(object sender, EventArgs e)
         {
             // NB assumes exception handling is done by the AnalysisRequester
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
-            {
-                logger.WriteLine(AnalysisStrings.ConfigMonitor_BindingUpdated);
-                analysisRequester.RequestAnalysis();
-            }
-        }
-
-        private void OnSolutionBindingChanged(object sender, ActiveSolutionBindingEventArgs e)
-        {
-            // NB assumes exception handling is done by the AnalysisRequester
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
-            {
-                logger.WriteLine(AnalysisStrings.ConfigMonitor_SolutionBound);
-                analysisRequester.RequestAnalysis();
-            }
+            logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
+            analysisRequester.RequestAnalysis();
         }
 
         #region IDisposable Support
@@ -102,8 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 if (disposing)
                 {
                     userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
-                    activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
-                    activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
+                    suppressedIssuesMonitor.SuppressionsUpdated -= OnSuppressionsUpdated;
                 }
                 disposedValue = true;
             }
