@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 
             // Try to find an issue with the same ID and either the same line number or some line hash
             bool matchFound = potentialMatchingIssues
-                .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.Diagnostic.Id, i.RuleId))
+                .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.RuleId, i.RuleId))
                 .Any(i => liveIssue.StartLine == i.Line || StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
 
             return !matchFound;

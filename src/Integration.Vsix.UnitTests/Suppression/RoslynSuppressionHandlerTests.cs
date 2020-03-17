@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         private void SetLiveIssue(Diagnostic diagnostic, int startLine, string wholeLineText)
         {
-            LiveIssue liveIssue = new LiveIssue(diagnostic, Guid.NewGuid().ToString(),
+            LiveIssue liveIssue = new LiveIssue(diagnostic.Id, Guid.NewGuid().ToString(),
                 filePath: "dummy file path",
                 startLine: startLine,
                 wholeLineText: wholeLineText);

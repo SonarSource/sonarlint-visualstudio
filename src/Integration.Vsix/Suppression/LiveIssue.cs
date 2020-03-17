@@ -19,34 +19,33 @@
  */
 
 using System.IO;
-using Microsoft.CodeAnalysis;
 using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
     /// <summary>
-    /// Information about a single Roslyn issue, decorated with the extra information required to map it to a
+    /// Information about a single issue in the IDE, decorated with the extra information required to map it to a
     /// SonarQube issue.
     /// </summary>
     public class LiveIssue
     {
         // module level issue
-        public LiveIssue(Diagnostic diagnostic, string projectGuid)
-            : this(diagnostic, projectGuid, null)
+        public LiveIssue(string ruleId, string projectGuid)
+            : this(ruleId, projectGuid, null)
         {
         }
 
         // file level issue
-        public LiveIssue(Diagnostic diagnostic, string projectGuid, string filePath)
-            : this(diagnostic, projectGuid, filePath, null, null)
+        public LiveIssue(string ruleId, string projectGuid, string filePath)
+            : this(ruleId, projectGuid, filePath, null, null)
         {
         }
 
         // line(s) level issue
-        public LiveIssue(Diagnostic diagnostic, string projectGuid, string filePath, int? startLine,
+        public LiveIssue(string ruleId, string projectGuid, string filePath, int? startLine,
             string wholeLineText = "")
         {
-            Diagnostic = diagnostic;
+            RuleId = ruleId;
             ProjectGuid = projectGuid;
 
             if (filePath != null)
@@ -57,12 +56,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             if (startLine != null)
             {
                 StartLine = startLine;
-                WholeLineText = wholeLineText;                
+                WholeLineText = wholeLineText;
                 LineHash = ChecksumCalculator.Calculate(WholeLineText);
-            }            
+            }
         }
 
-        public Diagnostic Diagnostic { get; }
+        public string RuleId { get; }
         public string FilePath { get; }
         public string LineHash { get; }
         public string ProjectGuid { get; }
