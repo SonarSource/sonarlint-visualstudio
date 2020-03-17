@@ -18,13 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
-using Sonarlint;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
+namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    public interface IIssuesFilter
+    [Export(typeof(IIssuesFilter))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class IssuesFilter : IIssuesFilter
     {
-        IEnumerable<Issue> Filter(string path, IEnumerable<Issue> issues);
+        private readonly ISonarQubeIssuesProvider sonarQubeIssuesProvider;
+
+        [ImportingConstructor]
+        public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
+        {
+            this.sonarQubeIssuesProvider = sonarQubeIssuesProvider ?? throw new ArgumentNullException(nameof(sonarQubeIssuesProvider));
+        }
+
+        public IEnumerable<IFilterableIssue> Filter(string path, IEnumerable<IFilterableIssue> issues)
+        {
+            return issues;
+        }
     }
 }

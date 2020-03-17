@@ -25,9 +25,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SonarQube.Client.Models;
-using SonarQube.Client;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {

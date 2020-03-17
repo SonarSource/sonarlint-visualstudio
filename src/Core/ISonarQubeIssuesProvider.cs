@@ -22,12 +22,12 @@ using System;
 using System.Collections.Generic;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.Core
 {
     public interface ISonarQubeIssuesProvider : IDisposable
     {
         /// <summary>
-        ///     Returns SonarQube suppressed issues for the specified project and file
+        /// Returns SonarQube suppressed issues for the specified project and file
         /// </summary>
         IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
     }
