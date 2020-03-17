@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
-    public interface ISuppressionHandler
+    public interface IRoslynSuppressionHandler
     {
         bool ShouldIssueBeReported(SyntaxTree syntaxTree, Diagnostic diagnostic);
     }

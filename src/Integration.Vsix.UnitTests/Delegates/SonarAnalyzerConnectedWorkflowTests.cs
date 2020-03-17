@@ -33,12 +33,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class SonarAnalyzerConnectedWorkflowTests
     {
-        private Mock<ISuppressionHandler> suppressionHandlerMock;
+        private Mock<IRoslynSuppressionHandler> suppressionHandlerMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            suppressionHandlerMock = new Mock<ISuppressionHandler>();
+            suppressionHandlerMock = new Mock<IRoslynSuppressionHandler>();
         }
 
         #region Ctor Tests
