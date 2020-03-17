@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             builder.SimulateSuppressionsUpdated();
 
             builder.AssertAnalysisIsRequested();
-            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_BindingUpdated);
+            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
         }
 
         [TestMethod]
