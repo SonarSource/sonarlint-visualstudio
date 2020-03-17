@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.InfoBar;
-using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -88,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 IServiceProvider serviceProvider = this;
 
                 var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
-                var sonarQubeIssuesProvider = await this.GetMefServiceAsync<ISonarQubeIssuesProvider>();
+                var sonarQubeIssuesProvider = await this.GetMefServiceAsync<Core.ISonarQubeIssuesProvider>();
                 var workspace = await this.GetMefServiceAsync<VisualStudioWorkspace>();
 
                 var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();

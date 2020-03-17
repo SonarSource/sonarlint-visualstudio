@@ -18,29 +18,26 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using Sonarlint;
-using SonarLint.VisualStudio.Integration.Suppression;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
+namespace SonarLint.VisualStudio.Core
 {
-    [Export(typeof(IIssuesFilter))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    public class IssuesFilter : IIssuesFilter
+    /// <summary>
+    /// Describes a single issue with the properties required for
+    /// it to be compared against server-side issues by the issues filter
+    /// </summary>
+    public interface IFilterableIssue
     {
-        private readonly ISonarQubeIssuesProvider sonarQubeIssuesProvider;
+        string RuleId { get; }
+        string FilePath { get; }
+        string LineHash { get; }
+        string ProjectGuid { get; }
+        int? StartLine { get; }
+        string WholeLineText { get; }
+    }
 
-        [ImportingConstructor]
-        public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
-        {
-            this.sonarQubeIssuesProvider = sonarQubeIssuesProvider ?? throw new ArgumentNullException(nameof(sonarQubeIssuesProvider));
-        }
-
-        public IEnumerable<Issue> Filter(string path, IEnumerable<Issue> issues)
-        {
-            return issues;
-        }
+    public interface IIssuesFilter
+    {
+        IEnumerable<IFilterableIssue> Filter(string path, IEnumerable<IFilterableIssue> issues);
     }
 }

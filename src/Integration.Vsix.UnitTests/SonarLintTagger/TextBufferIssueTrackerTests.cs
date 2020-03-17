@@ -29,11 +29,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
-using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -62,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
-            var originalIssues = new List<Issue>();
-            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<Issue>>()))
-                .Callback((string path, IEnumerable<Issue> issues) => originalIssues.AddRange(issues))
+            var originalIssues = new List<IFilterableIssue>();
+            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
+                .Callback((string path, IEnumerable<IFilterableIssue> issues) => originalIssues.AddRange(issues))
                 .Returns(originalIssues);
 
             testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
