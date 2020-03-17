@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
-        public void SolutionBindingEvent_Standalone_DoesNotRaiseSupressionsUpdatedEvent(SolutionBindingEventType eventType)
+        public void SolutionBindingEvent_Standalone_DoesNotRaiseSuppressionsUpdatedEvent(SolutionBindingEventType eventType)
         {
             var eventMock = new Mock<EventHandler>();
             testSubject.SuppressionsUpdated += eventMock.Object;
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.Connected)]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.LegacyConnected)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.LegacyConnected)]
-        public void SolutionBindingEvent_Connected_RaisesSupressionsUpdatedEvent(SolutionBindingEventType eventType, SonarLintMode mode)
+        public void SolutionBindingEvent_Connected_RaisesSuppressionsUpdatedEvent(SolutionBindingEventType eventType, SonarLintMode mode)
         {
             var eventMock = new Mock<EventHandler>();
             testSubject.SuppressionsUpdated += eventMock.Object;
