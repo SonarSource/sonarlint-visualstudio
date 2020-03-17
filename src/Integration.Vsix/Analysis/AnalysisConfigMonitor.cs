@@ -47,8 +47,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
             IUserSettingsProvider userSettingsProvider, // reports changes to user settings.json
-            IActiveSolutionBoundTracker activeSolutionBoundTracker,
-            ISuppressedIssuesMonitor suppressedIssuesMonitor, // reports changes to connected mode
+            IActiveSolutionBoundTracker activeSolutionBoundTracker, // reports changes to connected mode
+            ISuppressedIssuesMonitor suppressedIssuesMonitor,
             ILogger logger)
         {
             this.analysisRequester = analysisRequester;
