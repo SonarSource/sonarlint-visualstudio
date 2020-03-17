@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private class TestableSonarAnalyzerLegacyConnectedWorkflow : SonarAnalyzerLegacyConnectedWorkflow
         {
-            public TestableSonarAnalyzerLegacyConnectedWorkflow(ISuppressionHandler suppressionHandler, ILogger logger)
+            public TestableSonarAnalyzerLegacyConnectedWorkflow(IRoslynSuppressionHandler suppressionHandler, ILogger logger)
                 : base(new AdhocWorkspace(), suppressionHandler, logger)
             {
             }
@@ -60,13 +60,13 @@ namespace SonarAnalyzer.Helpers
 }";
         private const string SonarAnalyzerAssemblyName = "SonarAnalyzer";
 
-        private Mock<ISuppressionHandler> suppressionHandlerMock;
+        private Mock<IRoslynSuppressionHandler> suppressionHandlerMock;
         private Mock<ILogger> loggerMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            suppressionHandlerMock = new Mock<ISuppressionHandler>();
+            suppressionHandlerMock = new Mock<IRoslynSuppressionHandler>();
             loggerMock = new Mock<ILogger>();
         }
 

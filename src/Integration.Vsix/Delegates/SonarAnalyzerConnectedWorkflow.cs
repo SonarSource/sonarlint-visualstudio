@@ -29,9 +29,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     // This workflow affects only the VSIX Analyzers
     internal class SonarAnalyzerConnectedWorkflow : SonarAnalyzerWorkflowBase
     {
-        private readonly ISuppressionHandler suppressionHandler;
+        private readonly IRoslynSuppressionHandler suppressionHandler;
 
-        public SonarAnalyzerConnectedWorkflow(Workspace workspace, ISuppressionHandler suppressionHandler)
+        public SonarAnalyzerConnectedWorkflow(Workspace workspace, IRoslynSuppressionHandler suppressionHandler)
             : base(workspace)
         {
             if (suppressionHandler == null)

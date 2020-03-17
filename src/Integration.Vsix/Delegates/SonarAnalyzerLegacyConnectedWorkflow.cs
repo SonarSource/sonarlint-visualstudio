@@ -30,12 +30,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     // This workflow affects both the VSIX Analyzers + the NuGet Analyzers
     internal class SonarAnalyzerLegacyConnectedWorkflow : SonarAnalyzerWorkflowBase
     {
-        private readonly ISuppressionHandler suppressionHandler;
+        private readonly IRoslynSuppressionHandler suppressionHandler;
         private readonly ILogger logger;
 
         private readonly Func<SyntaxTree, Diagnostic, bool> shouldDiagnosticBeReportedFunc;
 
-        public SonarAnalyzerLegacyConnectedWorkflow(Workspace workspace, ISuppressionHandler suppressionHandler, ILogger logger)
+        public SonarAnalyzerLegacyConnectedWorkflow(Workspace workspace, IRoslynSuppressionHandler suppressionHandler, ILogger logger)
             : base(workspace)
         {
             if (suppressionHandler == null)
