@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -41,11 +42,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void Ctor_NullSonarQubeIssuesProvider_ArgumentNullException()
+        public void Ctor_NullSonarQubeIssuesProvider_ThrowsArgumentNullException()
         {
             Action act = () => new IssuesFilter(null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeIssuesProvider");
+        }
+
+        [TestMethod]
+        public void Filter_NullIssues_ThrowsArgumentNullException()
+        {
+
+            Action act = () => testSubject.Filter("c:\\path\\file1.txt", null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issues");
+        }
+
+        [TestMethod]
+        public void Filter_NullFile_DoesNotThrow()
+        {
+            var inputIssues = new List<IFilterableIssue>();
+
+            var result = testSubject.Filter(null, inputIssues);
+            result.Should().NotBeNull();
         }
     }
 }
