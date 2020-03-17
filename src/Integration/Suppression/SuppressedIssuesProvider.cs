@@ -29,10 +29,12 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
     [Export(typeof(ISonarQubeIssuesProvider))]
+    [Export(typeof(ISuppressedIssuesMonitor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class SuppressedIssuesProvider : ISonarQubeIssuesProvider
+    public class SuppressedIssuesProvider : ISonarQubeIssuesProvider, ISuppressedIssuesMonitor
     {
         public delegate ISonarQubeIssuesProvider CreateProviderFunc(BindingConfiguration bindingConfiguration);
+        public event EventHandler SuppressionsUpdated;
 
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly CreateProviderFunc createProviderFunc;
@@ -92,6 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             if (configuration.Mode != SonarLintMode.Standalone)
             {
                 instance = createProviderFunc(configuration);
+                SuppressionsUpdated?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -112,6 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             if (disposing && !disposed)
             {
                 CleanupResources();
+                SuppressionsUpdated = null;
                 activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
                 activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
                 disposed = true;
