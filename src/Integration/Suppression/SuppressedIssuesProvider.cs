@@ -65,7 +65,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ??
                                               throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
-            this.createProviderFunc = createProviderFunc;
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
