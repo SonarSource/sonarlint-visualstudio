@@ -274,13 +274,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            var filteredIssues = FilterIssues(path, issues);
+            var filteredIssues = RemoveSuppressedIssues(path, issues);
 
             var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             UpdateIssues(newMarkers);
         }
 
-        private IEnumerable<Issue> FilterIssues(string path, IEnumerable<Issue> issues)
+        private IEnumerable<Issue> RemoveSuppressedIssues(string path, IEnumerable<Issue> issues)
         {
             var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
 

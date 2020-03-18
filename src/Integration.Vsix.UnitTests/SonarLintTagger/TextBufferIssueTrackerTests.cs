@@ -215,10 +215,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             // Setup up the filter to return whatever was supplied
-            var originalIssues = new List<IFilterableIssue>();
-            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
-                .Callback((string path, IEnumerable<IFilterableIssue> suppliedIssues) => originalIssues.AddRange(suppliedIssues))
-                .Returns(originalIssues);
+            SetupIssuesFilter(out var _);
 
             // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
@@ -264,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new Issue { RuleKey = "xxx", StartLine = 3 }, "text1", "hash1")
             };
 
-            SetupIssuesFilter(issuesToReturnFromFilter, out var issuesPassedToFilter);
+            SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
 
             var errorListSinkMock1 = RegisterNewErrorListSink();
 
@@ -294,7 +291,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
 
             var issuesToReturnFromFilter = Enumerable.Empty<DaemonIssueAdapter>();
-            SetupIssuesFilter(issuesToReturnFromFilter, out var capturedFilterInput);
+            SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
 
             var errorListSinkMock1 = RegisterNewErrorListSink();
 
@@ -316,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void WhenNoIssuesAreFound_ListenersAreUpdated()
         {
             // Arrange
-            SetupIssuesFilter(Enumerable.Empty<IFilterableIssue>(), out var capturedFilterInput);
+            SetupIssuesFilter(out var capturedFilterInput, Enumerable.Empty<IFilterableIssue>());
 
             var errorListSinkMock1 = RegisterNewErrorListSink();
 
@@ -331,12 +328,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
         }
 
-        private void SetupIssuesFilter(IEnumerable<IFilterableIssue> dataToReturn, out IList<IFilterableIssue> capturedFilterInput)
+        private void SetupIssuesFilter(out IList<IFilterableIssue> capturedFilterInput,
+            IEnumerable<IFilterableIssue> optionalDataToReturn = null /* if null then the supplied input will be returned */)
         {
             var captured = new List<IFilterableIssue>();
             issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
                 .Callback((string path, IEnumerable<IFilterableIssue> inputIssues) => captured.AddRange(inputIssues))
-                .Returns(dataToReturn);
+                .Returns(optionalDataToReturn ?? captured);
             capturedFilterInput = captured;
         }
 

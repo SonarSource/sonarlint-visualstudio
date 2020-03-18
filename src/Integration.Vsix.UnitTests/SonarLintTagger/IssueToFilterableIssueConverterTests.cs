@@ -36,10 +36,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataTestMethod]
         [DataRow(100, 1)]
         [DataRow(101, 100)]
-        public void CreateFilterableIssue_IssueLineOutsideSnapshot_ReturnsNull(int issueLine, int bufferLineCount)
+        public void CreateFilterableIssue_IssueLineOutsideSnapshot_ReturnsNull(int issueStartLine, int bufferLineCount)
         {
             // Arrange
-            var issue = new Sonarlint.Issue {StartLine = issueLine};
+            var issue = new Sonarlint.Issue {StartLine = issueStartLine};
             var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "unimportant");
 
             // Act and assert
@@ -50,9 +50,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataTestMethod]
         [DataRow(2, 100)]
         [DataRow(100, 100)]
-        public void CreateFilterableIssue_IssueLineInSnapshot_ReturnsFilterableIssue(int issueLine, int bufferLineCount)
+        public void CreateFilterableIssue_IssueLineInSnapshot_ReturnsFilterableIssue(int issueStartLine, int bufferLineCount)
         {
-            var issue = new Sonarlint.Issue { StartLine = issueLine };
+            var issue = new Sonarlint.Issue { StartLine = issueStartLine };
             var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "some text");
 
             // Act
