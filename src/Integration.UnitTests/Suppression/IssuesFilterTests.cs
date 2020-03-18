@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using NuGet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Suppression;
 
@@ -31,28 +32,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class IssuesFilterTests
     {
-        private Mock<ISonarQubeIssuesProvider> sonarQubeIssuesProvider;
+        private Mock<ISuppressionIssueMatcher> issueMatcher;
         private IssuesFilter testSubject;
+
+        private readonly IList<IFilterableIssue> matchedIssues = new List<IFilterableIssue>();
+
+        private readonly IFilterableIssue Issue1 = CreateIssue();
+        private readonly IFilterableIssue Issue2 = CreateIssue();
+        private readonly IFilterableIssue Issue3 = CreateIssue();
+        private readonly IFilterableIssue Issue4 = CreateIssue();
+        private readonly IFilterableIssue Issue5 = CreateIssue();
 
         [TestInitialize]
         public void TestInitialize()
         {
-            sonarQubeIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
-            testSubject = new IssuesFilter(sonarQubeIssuesProvider.Object);
+            issueMatcher = new Mock<ISuppressionIssueMatcher>();
+            issueMatcher.Setup(x => x.SuppressionExists(It.IsAny<IFilterableIssue>()))
+                .Returns((IFilterableIssue i) => matchedIssues.Contains(i));
+
+            testSubject = new IssuesFilter(issueMatcher.Object);
         }
 
         [TestMethod]
         public void Ctor_NullSonarQubeIssuesProvider_ThrowsArgumentNullException()
         {
-            Action act = () => new IssuesFilter(null);
+            Action act = () => new IssuesFilter((SuppressionIssueMatcher)null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeIssuesProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueMatcher");
         }
 
         [TestMethod]
         public void Filter_NullIssues_ThrowsArgumentNullException()
         {
-
             Action act = () => testSubject.Filter("c:\\path\\file1.txt", null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issues");
         }
@@ -60,10 +71,61 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Filter_NullFile_DoesNotThrow()
         {
+            // TODO - remove. Path is not used so it can be removed from the interface
             var inputIssues = new List<IFilterableIssue>();
 
             var result = testSubject.Filter(null, inputIssues);
             result.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void Filter_NoMatchingIssues_ReturnsOriginalIssues()
+        {
+            // Arrange
+            var inputIssues = new[] { Issue1, Issue2, Issue3 };
+            SetMatchableIssues(Issue4, Issue5);
+
+            // Act
+            var result = testSubject.Filter(null, inputIssues);
+
+            // Assert
+            result.Should().BeEquivalentTo(inputIssues);
+        }
+
+        [TestMethod]
+        public void Filter_SomeIssuesMatch_ReturnsUnmatchedIssues()
+        {
+            // Arrange
+            var inputIssues = new[] { Issue1, Issue2, Issue3, Issue4 };
+            SetMatchableIssues(Issue1, Issue2, Issue5);
+
+            // Act
+            var result = testSubject.Filter(null, inputIssues);
+
+            // Assert
+            result.Should().BeEquivalentTo(Issue3, Issue4);
+        }
+
+        [TestMethod]
+        public void Filter_AllIssuesMatch_ReturnsEmptyList()
+        {
+            // Arrange
+            var inputIssues = new[] { Issue1, Issue2, Issue3, Issue4 };
+            SetMatchableIssues(inputIssues);
+
+            // Act
+            var result = testSubject.Filter(null, inputIssues);
+
+            // Assert
+            result.Should().BeEmpty();
+        }
+
+        private static IFilterableIssue CreateIssue()
+            => new Mock<IFilterableIssue>().Object;
+
+        private void SetMatchableIssues(params IFilterableIssue[] issues)
+        {
+            matchedIssues.AddRange(issues);
         }
     }
 }
