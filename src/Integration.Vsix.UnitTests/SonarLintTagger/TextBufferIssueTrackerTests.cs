@@ -251,14 +251,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var inputIssues = new[] {
                 new Sonarlint.Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
                 new Sonarlint.Issue { RuleKey = "S222", StartLine = 2, EndLine = 2 },
-                new Sonarlint.Issue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
+                new Sonarlint.Issue { RuleKey = "S333", StartLine = 10, EndLine = 20 },
+                new Sonarlint.Issue { RuleKey = "S444", StartLine = 100, EndLine = 101 }
             };
 
             // Set up the filter to return only one issue
             var originalIssues = new List<IFilterableIssue>();
             issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
                 .Callback((string path, IEnumerable<IFilterableIssue> issues) => originalIssues.AddRange(issues))
-                .Returns(originalIssues.Where(i => i.RuleId == "S222"));
+                .Returns(originalIssues.Where(i => i.RuleId == "S222" || i.RuleId == "S444"));
 
             var errorListSinkMock1 = RegisterNewErrorListSink();
 
@@ -266,13 +267,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
 
             // Assert
-            // We can't check that the editors listeners are notified: we can't mock
-            // SnapshotSpan well enough for the product code to work -> affected span
-            // is always null so the taggers don't notify their listeners.
             CheckSinkNotified(errorListSinkMock1, 1);
 
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(2);
             testSubject.Factory.CurrentSnapshot.IssueMarkers.First().Issue.RuleKey.Should().Be("S222");
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.Last().Issue.RuleKey.Should().Be("S444");
         }
 
         private Mock<ITableDataSink> RegisterNewErrorListSink()
@@ -338,7 +337,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var issue = new Sonarlint.Issue { StartLine = 0 };
-            var mockSnapshot = CreateMockTextSnapshot(10, null);
+            var mockSnapshot = CreateMockTextSnapshot(10, "anything");
 
             // Act
             var actual = TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object);

@@ -56,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
                 StartLine = 111
             };
 
-
             // Act
             var result = new DaemonIssueAdapter(issue, "line text", "line hash");
 
