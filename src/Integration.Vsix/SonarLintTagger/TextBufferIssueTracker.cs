@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public IssuesSnapshot LastIssues { get; private set; }
 
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
-        
+
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, Core.IIssuesFilter issuesFilter)
             : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger, issuesFilter)
@@ -274,12 +274,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            // TODO: collect the additional information required to compare be able to filter
-            // the issues (i.e. the text of the line and the line hash)
-            // issues = issuesFilter.Filter(path, issues);
+            var filteredIssues = RemoveSuppressedIssues(path, issues);
 
-            var newMarkers = issues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
+            var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             UpdateIssues(newMarkers);
+        }
+
+        private IEnumerable<Issue> RemoveSuppressedIssues(string path, IEnumerable<Issue> issues)
+        {
+            var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
+
+            var filteredIssues = issuesFilter.Filter(path, filterableIssues);
+            Debug.Assert(filteredIssues.All(x => x is DaemonIssueAdapter), "Not expecting the issue filter to change the list item type");
+
+            var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
+            logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
+
+            return filteredIssues.OfType<DaemonIssueAdapter>()
+                .Select(x => x.SonarLintIssue);
         }
 
         private void RefreshIssues()
