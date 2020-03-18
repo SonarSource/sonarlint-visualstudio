@@ -25,31 +25,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class DaemonIssueAdapter : IFilterableIssue
     {
+        private readonly string wholeLineText;
+        private readonly string lineHash;
+
         public DaemonIssueAdapter(Sonarlint.Issue sonarLintIssue, string wholeLineText, string lineHash)
         {
             SonarLintIssue = sonarLintIssue ?? throw new ArgumentNullException(nameof(sonarLintIssue));
 
-            WholeLineText = wholeLineText;
-            LineHash = lineHash;
+            this.wholeLineText = wholeLineText;
+            this.lineHash = lineHash;
         }
 
         public Sonarlint.Issue SonarLintIssue { get; }
 
-        #region ILiveIssue interface
+        string IFilterableIssue.RuleId => SonarLintIssue.RuleKey;
 
-        public string RuleId => SonarLintIssue.RuleKey;
+        string IFilterableIssue.FilePath => SonarLintIssue.FilePath;
 
-        public string FilePath => SonarLintIssue.FilePath;
+        string IFilterableIssue.ProjectGuid { get; } // TODO: remove if not needed by the issue matcher
 
-        public string LineHash { get; }
+        int? IFilterableIssue.StartLine => SonarLintIssue.StartLine;
 
-        public string ProjectGuid { get; } // TODO: remove if not needed by the issue matcher
+        string IFilterableIssue.WholeLineText => wholeLineText;
 
-        public int? StartLine => SonarLintIssue.StartLine;
-
-        public string WholeLineText { get; }
-
-        #endregion
-
+        string IFilterableIssue.LineHash => lineHash;
     }
 }
+
+

@@ -26,7 +26,6 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Sonarlint;
-using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -275,22 +274,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            // Collect the additional information required to compare be able to filter
-            // the issues, then apply the filter
-            var unfilteredIssues = issues.Select(x => CreateFilterableIssue(x, currentSnapshot))
-                .Where(i => i != null)
-                .ToArray();
+            var filteredIssues = FilterIssues(path, issues);
 
-            var filteredIssues = issuesFilter.Filter(path, unfilteredIssues);
+            var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
+            UpdateIssues(newMarkers);
+        }
+
+        private IEnumerable<Issue> FilterIssues(string path, IEnumerable<Issue> issues)
+        {
+            var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
+
+            var filteredIssues = issuesFilter.Filter(path, filterableIssues);
             Debug.Assert(filteredIssues.All(x => x is DaemonIssueAdapter), "Not expecting the issue filter to change the list item type");
 
-            var suppressedCount = unfilteredIssues.Length - filteredIssues.Count();
+            var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
             logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
 
-            var newMarkers = filteredIssues.OfType<DaemonIssueAdapter>()
-                .Select(x => x.SonarLintIssue)
-                .Where(IsValidIssueTextRange).Select(CreateIssueMarker);
-            UpdateIssues(newMarkers);
+            return filteredIssues.OfType<DaemonIssueAdapter>()
+                .Select(x => x.SonarLintIssue);
         }
 
         private void RefreshIssues()
@@ -303,28 +304,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var oldSnapshot = this.Factory.CurrentSnapshot;
             var newSnapshot = new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
             SnapToNewSnapshot(newSnapshot);
-        }
-
-        internal /* for testing */ static Core.IFilterableIssue CreateFilterableIssue(Issue issue, ITextSnapshot textSnapshot)
-        {
-            // SonarLint issues line numbers are 1-based, spans lines are 0-based
-
-            // A start line of zero means the issue is file-level i.e. not associated with a particular line
-            if (issue.StartLine == 0)
-            {
-                return new DaemonIssueAdapter(issue, null, null);
-            }
-
-            if (issue.StartLine > textSnapshot.LineCount)
-            {
-                // Race condition: the line reported in the diagnostic is beyond the end of the file, so presumably
-                // the file has been edited while the analysis was being executed
-                return null;
-            }
-
-            var text = textSnapshot.GetLineFromLineNumber(issue.StartLine - 1).GetText();
-            var lineHash = ChecksumCalculator.Calculate(text);
-            return new DaemonIssueAdapter(issue, text, lineHash);
         }
 
         #endregion

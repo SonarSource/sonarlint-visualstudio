@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
@@ -37,16 +38,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         }
 
         [TestMethod]
-        public void Ctor_NullPathAndHash_NoException()
+        public void Ctor_NullPathAndHash_PathAndHashAreSetToNull()
         {
-            var result = new DaemonIssueAdapter(new Sonarlint.Issue(), null, null);
+            var result = (IFilterableIssue)new DaemonIssueAdapter(new Sonarlint.Issue(), null, null);
 
             result.WholeLineText.Should().BeNull();
             result.LineHash.Should().BeNull();
         }
 
         [TestMethod]
-        public void Ctor_ValidIssue()
+        public void Ctor_ValidIssue_CorrectlyInitialized()
         {
             // Arrange
             var issue = new Sonarlint.Issue
@@ -62,13 +63,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             // Assert
             result.SonarLintIssue.Should().BeSameAs(issue);
 
-            result.FilePath.Should().Be("path");
-            result.RuleId.Should().Be("rule id");
-            result.StartLine.Should().Be(111);
+            var filterableResult = (IFilterableIssue)result;
+            filterableResult.FilePath.Should().Be("path");
+            filterableResult.RuleId.Should().Be("rule id");
+            filterableResult.StartLine.Should().Be(111);
 
-            result.ProjectGuid.Should().BeNull();
-            result.WholeLineText.Should().Be("line text");
-            result.LineHash.Should().Be("line hash");
+            filterableResult.ProjectGuid.Should().BeNull();
+            filterableResult.WholeLineText.Should().Be("line text");
+            filterableResult.LineHash.Should().Be("line hash");
         }
     }
 }

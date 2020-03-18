@@ -29,8 +29,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using Sonarlint;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
@@ -60,11 +60,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             taggerProvider = CreateTaggerProvider();
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
-
-            var originalIssues = new List<IFilterableIssue>();
-            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
-                .Callback((string path, IEnumerable<IFilterableIssue> issues) => originalIssues.AddRange(issues))
-                .Returns(originalIssues);
 
             testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
@@ -185,10 +180,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Processing analysis results tests
 
         [TestMethod]
-        public void WhenNewIssuesAreFound_ButForIncorrectFile_ListenersAreNotUpdated()
+        public void WhenNewIssuesAreFound_ButForIncorrectFile_FilterNotCalledAndListenersAreNotUpdated()
         {
             // Arrange
-            var issues = new[] { new Sonarlint.Issue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
+            var issues = new[] { new Issue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
 
             // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
@@ -203,18 +198,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             CheckSinkNotNotified(errorListSinkMock1);
             CheckSinkNotNotified(errorListSinkMock2);
+
+            issuesFilter.Verify(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()), Times.Never);
         }
 
         [TestMethod]
-        public void WhenNewIssuesAreFound_ListenersAreUpdated()
+        public void WhenNewIssuesAreFound_OutOfRangeIssuesAreIgnored_ListenersAreUpdated()
         {
             // Arrange
-            var issues = new[] {
-                new Sonarlint.Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
+            var issues = new[]
+            {
+                new Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
                 // The next issue is outside the range of the new snapshot and should be ignored
-                new Sonarlint.Issue { RuleKey = "S222", StartLine = 99999998, EndLine = 99999999 },
-                new Sonarlint.Issue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
+                new Issue { RuleKey = "S222", StartLine = 99999998, EndLine = 99999999 },
+                new Issue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
             };
+
+            // Setup up the filter to return whatever was supplied
+            var originalIssues = new List<IFilterableIssue>();
+            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
+                .Callback((string path, IEnumerable<IFilterableIssue> suppliedIssues) => originalIssues.AddRange(suppliedIssues))
+                .Returns(originalIssues);
 
             // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
@@ -245,21 +249,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WhenNewIssuesAreFound_IssueFilterIsApplied()
+        public void WhenNewIssuesAreFound_FilterIsApplied_ListenersAreUpdated()
         {
             // Arrange
-            var inputIssues = new[] {
-                new Sonarlint.Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
-                new Sonarlint.Issue { RuleKey = "S222", StartLine = 2, EndLine = 2 },
-                new Sonarlint.Issue { RuleKey = "S333", StartLine = 10, EndLine = 20 },
-                new Sonarlint.Issue { RuleKey = "S444", StartLine = 100, EndLine = 101 }
+            var inputIssues = new[]
+            {
+                new Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
+                new Issue { RuleKey = "S222", StartLine = 2, EndLine = 2 }
             };
 
-            // Set up the filter to return only one issue
-            var originalIssues = new List<IFilterableIssue>();
-            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
-                .Callback((string path, IEnumerable<IFilterableIssue> issues) => originalIssues.AddRange(issues))
-                .Returns(originalIssues.Where(i => i.RuleId == "S222" || i.RuleId == "S444"));
+            var issuesToReturnFromFilter = new[]
+            {
+                new DaemonIssueAdapter(
+                    new Issue { RuleKey = "xxx", StartLine = 3 }, "text1", "hash1")
+            };
+
+            SetupIssuesFilter(issuesToReturnFromFilter, out var issuesPassedToFilter);
 
             var errorListSinkMock1 = RegisterNewErrorListSink();
 
@@ -267,11 +272,72 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
 
             // Assert
+            // Check the expected issues were passed to the filter
+            issuesPassedToFilter.Count.Should().Be(2);
+            issuesPassedToFilter[0].RuleId.Should().Be("S111");
+            issuesPassedToFilter[1].RuleId.Should().Be("S222");
+
             CheckSinkNotified(errorListSinkMock1, 1);
 
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(2);
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.First().Issue.RuleKey.Should().Be("S222");
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Last().Issue.RuleKey.Should().Be("S444");
+            // Check the post-filter issues
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.First().Issue.RuleKey.Should().Be("xxx");
+        }
+
+        [TestMethod]
+        public void WhenNewIssuesAreFound_AndFilterRemovesAllIssues_ListenersAreUpdated()
+        {
+            // Arrange
+            var inputIssues = new[]
+            {
+                new Issue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
+            };
+
+            var issuesToReturnFromFilter = Enumerable.Empty<DaemonIssueAdapter>();
+            SetupIssuesFilter(issuesToReturnFromFilter, out var capturedFilterInput);
+
+            var errorListSinkMock1 = RegisterNewErrorListSink();
+
+            // Act
+            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
+
+            // Assert
+            // Check the expected issues were passed to the filter
+            capturedFilterInput.Count.Should().Be(1);
+            capturedFilterInput[0].RuleId.Should().Be("single issue");
+
+            CheckSinkNotified(errorListSinkMock1, 1);
+
+            // Check there are no markers
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
+        }
+
+        [TestMethod]
+        public void WhenNoIssuesAreFound_ListenersAreUpdated()
+        {
+            // Arrange
+            SetupIssuesFilter(Enumerable.Empty<IFilterableIssue>(), out var capturedFilterInput);
+
+            var errorListSinkMock1 = RegisterNewErrorListSink();
+
+            // Act
+            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, Enumerable.Empty<Issue>());
+
+            // Assert
+            capturedFilterInput.Should().BeEmpty();
+
+            CheckSinkNotified(errorListSinkMock1, 1);
+
+            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
+        }
+
+        private void SetupIssuesFilter(IEnumerable<IFilterableIssue> dataToReturn, out IList<IFilterableIssue> capturedFilterInput)
+        {
+            var captured = new List<IFilterableIssue>();
+            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
+                .Callback((string path, IEnumerable<IFilterableIssue> inputIssues) => captured.AddRange(inputIssues))
+                .Returns(dataToReturn);
+            capturedFilterInput = captured;
         }
 
         private Mock<ITableDataSink> RegisterNewErrorListSink()
@@ -295,64 +361,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
 
         #endregion
-
-        #region CreateFilterableIssues tests
-
-        [DataTestMethod]
-        [DataRow(100, 1)]
-        [DataRow(101, 100)]
-        public void CreateFilterableIssue_IssueLineOutsideSnapshot_ReturnsNull(int issueLine, int bufferLineCount)
-        {
-            // Arrange
-            var issue = new Sonarlint.Issue {StartLine = issueLine};
-            var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "unimportant");
-
-            // Act and assert
-            TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object)
-                .Should().BeNull();
-        }
-
-        [DataTestMethod]
-        [DataRow(2, 100)]
-        [DataRow(100, 100)]
-        public void CreateFilterableIssue_IssueLineInSnapshot_ReturnsFilterableIssue(int issueLine, int bufferLineCount)
-        {
-            var issue = new Sonarlint.Issue { StartLine = issueLine };
-            var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "some text");
-
-            // Act
-            var actual = TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object);
-
-            // Assert
-            actual.Should().BeOfType(typeof(DaemonIssueAdapter));
-
-            var adapterIssue = (DaemonIssueAdapter)actual;
-            adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
-            adapterIssue.WholeLineText.Should().Be("some text");
-            adapterIssue.LineHash.Should().Be(ChecksumCalculator.Calculate("some text"));
-        }
-
-        [TestMethod]
-        public void CreateFilterableIssue_FileLevelIssue_ReturnsFilterableIssue()
-        {
-            // Arrange
-            var issue = new Sonarlint.Issue { StartLine = 0 };
-            var mockSnapshot = CreateMockTextSnapshot(10, "anything");
-
-            // Act
-            var actual = TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object);
-
-            // Assert
-            actual.Should().BeOfType(typeof(DaemonIssueAdapter));
-
-            var adapterIssue = (DaemonIssueAdapter)actual;
-            adapterIssue.StartLine.Should().Be(0);
-            adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
-            adapterIssue.WholeLineText.Should().BeNull();
-            adapterIssue.LineHash.Should().BeNull();
-        }
-
-        #endregion CreateFilterableIssues tests
 
         private TaggerProvider CreateTaggerProvider()
         {
