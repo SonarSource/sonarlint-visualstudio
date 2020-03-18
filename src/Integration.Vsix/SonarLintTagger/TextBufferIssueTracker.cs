@@ -308,10 +308,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal /* for testing */ static Core.IFilterableIssue CreateFilterableIssue(Issue issue, ITextSnapshot textSnapshot)
         {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
-            Debug.Assert(issue.StartLine >= 1, "Expecting issue lines to be 1-based");
 
-            var maxLine = textSnapshot.LineCount;
-            if (issue.StartLine > maxLine)
+            // A start line of zero means the issue is file-level i.e. not associated with a particular line
+            if (issue.StartLine == 0)
+            {
+                return new DaemonIssueAdapter(issue, null, null);
+            }
+
+            if (issue.StartLine > textSnapshot.LineCount)
             {
                 // Race condition: the line reported in the diagnostic is beyond the end of the file, so presumably
                 // the file has been edited while the analysis was being executed

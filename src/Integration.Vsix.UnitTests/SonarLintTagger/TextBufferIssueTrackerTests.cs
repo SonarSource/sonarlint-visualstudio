@@ -304,9 +304,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(101, 100)]
         public void CreateFilterableIssue_IssueLineOutsideSnapshot_ReturnsNull(int issueLine, int bufferLineCount)
         {
+            // Arrange
             var issue = new Sonarlint.Issue {StartLine = issueLine};
             var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "unimportant");
 
+            // Act and assert
             TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object)
                 .Should().BeNull();
         }
@@ -325,11 +327,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().BeOfType(typeof(DaemonIssueAdapter));
 
-            // Assert
             var adapterIssue = (DaemonIssueAdapter)actual;
             adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
             adapterIssue.WholeLineText.Should().Be("some text");
             adapterIssue.LineHash.Should().Be(ChecksumCalculator.Calculate("some text"));
+        }
+
+        [TestMethod]
+        public void CreateFilterableIssue_FileLevelIssue_ReturnsFilterableIssue()
+        {
+            // Arrange
+            var issue = new Sonarlint.Issue { StartLine = 0 };
+            var mockSnapshot = CreateMockTextSnapshot(10, null);
+
+            // Act
+            var actual = TextBufferIssueTracker.CreateFilterableIssue(issue, mockSnapshot.Object);
+
+            // Assert
+            actual.Should().BeOfType(typeof(DaemonIssueAdapter));
+
+            var adapterIssue = (DaemonIssueAdapter)actual;
+            adapterIssue.StartLine.Should().Be(0);
+            adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
+            adapterIssue.WholeLineText.Should().BeNull();
+            adapterIssue.LineHash.Should().BeNull();
         }
 
         #endregion CreateFilterableIssues tests

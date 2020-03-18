@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Number of issues suppressed on the server: {0}.
+        ///   Looks up a localized string similar to Number of suppressed issues: {0}.
         /// </summary>
         internal static string Daemon_SuppressedIssuesInfo {
             get {
