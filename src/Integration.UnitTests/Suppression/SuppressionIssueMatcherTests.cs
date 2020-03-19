@@ -55,58 +55,52 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issue");
         }
 
+        [DataTestMethod]
+        [DataRow("RightRuleId", 1, "RightHash", true)]    // exact matches
+        [DataRow("rightRULEID", 1, "RightHash", true)]    // rule-id is case-insensitive
+        [DataRow("RightRuleId", 1, "wrong hash", true)]   // matches on line
+        [DataRow("RightRuleId", 9999, "RightHash", true)] // matches on hash only
+
+        [DataRow("RightRuleId", 2, "righthash", false)]   // hash is case-sensitive
+        [DataRow("RightRuleId", 2, "wrong hash", false)]  // wrong line and hash
+        [DataRow("wrong rule Id", 1, "RightHash", false)]
+        public void MatchExists_SingleServerIssue(string serverRuleId, int serverIssueLine, string serverHash, bool expectedResult)
+        {
+            var issueToMatch = CreateIssueToMatch("RightRuleId", 1, "RightHash");
+            ConfigureServerIssues(issueToMatch, CreateServerIssue(serverRuleId, serverIssueLine, serverHash));
+
+            // Act and assert
+            testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
+        }
+
         [TestMethod]
         public void MatchExists_NoServerIssues_ReturnsFalse()
         {
             // Arrange
             var issueToMatch = CreateIssueToMatch("rule1", 1, "hash1");
-            ConfigureServerIssues(issueToMatch /* no server issues */);
+            ConfigureServerIssues(issueToMatch, Array.Empty<SonarQubeIssue>());
 
             // Act and assert
             testSubject.SuppressionExists(issueToMatch).Should().BeFalse();
         }
 
-        [TestMethod]
-        public void MatchExists_NoMatches_ReturnsFalse()
+        [DataTestMethod]
+        [DataRow("aaa", 222, "aaa hash", true)]
+        [DataRow("bbb", 333, "bbb hash", true)]
+        [DataRow("ccc", 444, "ccc hash", true)]
+        [DataRow("xxx", 111, "xxx hash", false)]
+        public void MatchExists_MultipleServerIssues_NoMatches_ReturnsFalse(string localRuleId, int localIssueLine, string localHash, bool expectedResult)
         {
             // Arrange
-            var issueToMatch = CreateIssueToMatch("RightRuleId", 1, "RightHash");
+            var issueToMatch = CreateIssueToMatch(localRuleId, localIssueLine, localHash);
 
             ConfigureServerIssues(issueToMatch,
-                CreateServerIssue("WrongRuleId", 1, "RightHash"),  // wrong rule id
-                CreateServerIssue("RightRuleId", 2, "wrong hash"), // wrong line and hash
-                CreateServerIssue("RightRuleId", 3, "RIGHTHASH")); // wrong hash and wrong-case hash
+                CreateServerIssue("aaa", 222, "aaa hash"),
+                CreateServerIssue("bbb", 333, "bbb hash"),
+                CreateServerIssue("ccc", 444, "ccc hash"));
 
             // Act and assert
-            testSubject.SuppressionExists(issueToMatch).Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void MatchExists_MatchingIdAndLine_ReturnsTrue()
-        {
-            // Arrange
-            var issueToMatch = CreateIssueToMatch("RightRuleId", 1, "RightHash");
-            ConfigureServerIssues(issueToMatch,
-                CreateServerIssue("wrong rule ID", 2, "RightHash"),
-                CreateServerIssue("RIGHTRULEID", 1, "WrongHash") // rule id comparison is case-insensitive -> match on line
-                );
-
-            // Act and assert
-            testSubject.SuppressionExists(issueToMatch).Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void MatchExists_MatchingIdAndLineHash_ReturnsTrue()
-        {
-            var issueToMatch = CreateIssueToMatch("YYY", 999, "correct hash");
-            ConfigureServerIssues(issueToMatch,
-                CreateServerIssue("YYY", 1, "incorrect hash"),      // wrong line and hash
-                CreateServerIssue("xxx", 999, "wrong hash"),        // wrong rule
-                CreateServerIssue("YYY", 9999, "incorrect hash"),   // wrong hash
-                CreateServerIssue("yyy", 9999999, "correct hash")); // rule id comparison is case-insensitive -> match on hash
-
-            // Act and assert
-            testSubject.SuppressionExists(issueToMatch).Should().BeTrue();
+            testSubject.SuppressionExists(issueToMatch).Should().Be(expectedResult);
         }
 
         private IFilterableIssue CreateIssueToMatch(string ruleId, int startLine, string lineHash)
