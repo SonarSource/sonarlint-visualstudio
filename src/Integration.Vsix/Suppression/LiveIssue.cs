@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
@@ -27,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
     /// Information about a single issue in the IDE, decorated with the extra information required to map it to a
     /// SonarQube issue.
     /// </summary>
-    public class LiveIssue
+    public class LiveIssue : IFilterableIssue
     {
         // module level issue
         public LiveIssue(string ruleId, string projectGuid)

@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    internal class SuppressedIssueMatcher : ISuppressedIssueMatcher
+    public class SuppressedIssueMatcher : ISuppressedIssueMatcher
     {
         private readonly ISonarQubeIssuesProvider issuesProvider;
 
