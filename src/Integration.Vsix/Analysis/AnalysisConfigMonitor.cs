@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.logger = logger;
 
             userSettingsProvider.SettingsChanged += OnUserSettingsChanged;
-            suppressedIssuesMonitor.SuppressionsUpdated += OnSuppressionsUpdated;
+            suppressedIssuesMonitor.SuppressionsUpdateRequested += OnSuppressionsUpdated;
         }
 
         private void OnUserSettingsChanged(object sender, EventArgs e)
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 if (disposing)
                 {
                     userSettingsProvider.SettingsChanged -= OnUserSettingsChanged;
-                    suppressedIssuesMonitor.SuppressionsUpdated -= OnSuppressionsUpdated;
+                    suppressedIssuesMonitor.SuppressionsUpdateRequested -= OnSuppressionsUpdated;
                 }
                 disposedValue = true;
             }

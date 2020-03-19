@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             createProviderFunc = new Mock<SuppressedIssuesProvider.CreateProviderFunc>();
             activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
+            activeSolutionBoundTracker.CurrentConfiguration = BindingConfiguration.Standalone;
 
             testSubject = new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);
         }
@@ -65,17 +66,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void GetSuppressedIssues_NoSolutionBinding_EmptyList()
+        public void Ctor_SolutionBindingIsStandalone_SonarQubeIssuesProviderNotCreated()
         {
-            var actual = testSubject.GetSuppressedIssues("project guid", "file path");
+            activeSolutionBoundTracker.CurrentConfiguration = BindingConfiguration.Standalone;
+            new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);
 
-            actual.Should().BeEmpty();
+            createProviderFunc.VerifyNoOtherCalls();
+        }
+
+        [DataTestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void Ctor_SolutionBindingIsConnected_SonarQubeIssuesProviderCreated(SonarLintMode mode)
+        {
+            activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), mode);
+            new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);
+
+            createProviderFunc.Verify(x=> x(activeSolutionBoundTracker.CurrentConfiguration), Times.Once);
         }
 
         [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
-        public void GetSuppressedIssues_HasSolutionBinding_StandaloneMode_EmptyList(SolutionBindingEventType eventType)
+        public void GetSuppressedIssues_SolutionBindingIsStandalone_EmptyList(SolutionBindingEventType eventType)
         {
             SimulateBindingEvent(eventType, BindingConfiguration.Standalone);
 
@@ -87,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
-        public void GetSuppressedIssues_HasSolutionBinding_StandaloneMode_ShouldNotCreateSonarQubeIssuesProvider(SolutionBindingEventType eventType)
+        public void GetSuppressedIssues_SolutionBindingIsStandalone_SonarQubeIssuesProviderNotCreated(SolutionBindingEventType eventType)
         {
             SimulateBindingEvent(eventType, BindingConfiguration.Standalone);
 
@@ -103,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.Connected)]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.LegacyConnected)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.LegacyConnected)]
-        public void GetSuppressedIssues_HasSolutionBinding_ConnectedMode_ListFromBinding(SolutionBindingEventType eventType, SonarLintMode mode)
+        public void GetSuppressedIssues_SolutionBindingIsConnected_ListFromSonarQubeIssuesProvider(SolutionBindingEventType eventType, SonarLintMode mode)
         {
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), mode);
             var expectedIssues = SetupExpectedIssues(bindingConfiguration);
@@ -118,10 +131,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
-        public void SolutionBindingEvent_Standalone_DoesNotRaiseSuppressionsUpdatedEvent(SolutionBindingEventType eventType)
+        public void SolutionBindingEvent_Standalone_SuppressionsEventNotRaised(SolutionBindingEventType eventType)
         {
             var eventMock = new Mock<EventHandler>();
-            testSubject.SuppressionsUpdated += eventMock.Object;
+            testSubject.SuppressionsUpdateRequested += eventMock.Object;
 
             var configuration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Standalone);
             SimulateBindingEvent(eventType, configuration);
@@ -130,14 +143,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [DataTestMethod]
+        [DataRow(SolutionBindingEventType.SolutionBindingUpdated)]
+        [DataRow(SolutionBindingEventType.SolutionBindingChanged)]
+        public void SolutionBindingEvent_Standalone_SonarQubeIssuesProviderNotCreated(SolutionBindingEventType eventType)
+        {
+            var configuration = new BindingConfiguration(new BoundSonarQubeProject(), SonarLintMode.Standalone);
+            SimulateBindingEvent(eventType, configuration);
+
+            createProviderFunc.VerifyNoOtherCalls();
+        }
+
+        [DataTestMethod]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.Connected)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.Connected)]
         [DataRow(SolutionBindingEventType.SolutionBindingUpdated, SonarLintMode.LegacyConnected)]
         [DataRow(SolutionBindingEventType.SolutionBindingChanged, SonarLintMode.LegacyConnected)]
-        public void SolutionBindingEvent_Connected_RaisesSuppressionsUpdatedEvent(SolutionBindingEventType eventType, SonarLintMode mode)
+        public void SolutionBindingEvent_Connected_SuppressionsEventRaised(SolutionBindingEventType eventType, SonarLintMode mode)
         {
             var eventMock = new Mock<EventHandler>();
-            testSubject.SuppressionsUpdated += eventMock.Object;
+            testSubject.SuppressionsUpdateRequested += eventMock.Object;
 
             var configuration = new BindingConfiguration(new BoundSonarQubeProject(), mode);
             SimulateBindingEvent(eventType, configuration);
