@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.Core.Suppression
 {
     public interface IIssuesFilter
     {
-        IEnumerable<IFilterableIssue> Filter(string path, IEnumerable<IFilterableIssue> issues);
+        IEnumerable<IFilterableIssue> Filter(IEnumerable<IFilterableIssue> issues);
     }
 }

@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         string IFilterableIssue.FilePath => SonarLintIssue.FilePath;
 
-        string IFilterableIssue.ProjectGuid { get; } // TODO: remove if not needed by the issue matcher
+        string IFilterableIssue.ProjectGuid { get; }
 
         int? IFilterableIssue.StartLine => SonarLintIssue.StartLine;
 
