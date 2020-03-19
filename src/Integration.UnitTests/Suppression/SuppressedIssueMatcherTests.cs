@@ -29,22 +29,22 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
     [TestClass]
-    public class SuppressionIssueMatcherTests
+    public class SuppressedIssueMatcherTests
     {
-        private SuppressionIssueMatcher testSubject;
+        private SuppressedIssueMatcher testSubject;
         private Mock<ISonarQubeIssuesProvider> mockIssuesProvider;
 
         [TestInitialize]
         public void TestInitialize()
         {
             mockIssuesProvider = new Mock<ISonarQubeIssuesProvider>();
-            testSubject = new SuppressionIssueMatcher(mockIssuesProvider.Object);
+            testSubject = new SuppressedIssueMatcher(mockIssuesProvider.Object);
         }
 
         [TestMethod]
         public void Ctor_NullProvider_Throws()
         {
-            Action act = () => new SuppressionIssueMatcher(null);
+            Action act = () => new SuppressedIssueMatcher(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issuesProvider");
         }
 

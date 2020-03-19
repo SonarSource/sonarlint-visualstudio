@@ -22,7 +22,7 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    internal interface ISuppressionIssueMatcher
+    public interface ISuppressedIssueMatcher
     {
         bool SuppressionExists(IFilterableIssue issue);
     }

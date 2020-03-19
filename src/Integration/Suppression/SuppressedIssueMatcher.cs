@@ -24,11 +24,11 @@ using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
-    internal class SuppressionIssueMatcher : ISuppressionIssueMatcher
+    internal class SuppressedIssueMatcher : ISuppressedIssueMatcher
     {
         private readonly ISonarQubeIssuesProvider issuesProvider;
 
-        public SuppressionIssueMatcher(ISonarQubeIssuesProvider issuesProvider)
+        public SuppressedIssueMatcher(ISonarQubeIssuesProvider issuesProvider)
         {
             this.issuesProvider = issuesProvider ?? throw new ArgumentNullException(nameof(issuesProvider));
         }

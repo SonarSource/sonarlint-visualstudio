@@ -30,15 +30,15 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssuesFilter : IIssuesFilter
     {
-        private readonly ISuppressionIssueMatcher issueMatcher;
+        private readonly ISuppressedIssueMatcher issueMatcher;
 
         [ImportingConstructor]
         public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
-            : this(new SuppressionIssueMatcher(sonarQubeIssuesProvider))
+            : this(new SuppressedIssueMatcher(sonarQubeIssuesProvider))
         {
         }
 
-        internal  /* for testing */ IssuesFilter(ISuppressionIssueMatcher issueMatcher)
+        internal  /* for testing */ IssuesFilter(ISuppressedIssueMatcher issueMatcher)
         {
             this.issueMatcher = issueMatcher ?? throw new ArgumentNullException(nameof(issueMatcher));
         }

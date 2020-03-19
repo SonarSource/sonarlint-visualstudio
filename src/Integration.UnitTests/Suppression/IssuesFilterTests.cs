@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
     [TestClass]
     public class IssuesFilterTests
     {
-        private Mock<ISuppressionIssueMatcher> issueMatcher;
+        private Mock<ISuppressedIssueMatcher> issueMatcher;
         private IssuesFilter testSubject;
 
         private readonly IList<IFilterableIssue> matchedIssues = new List<IFilterableIssue>();
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestInitialize]
         public void TestInitialize()
         {
-            issueMatcher = new Mock<ISuppressionIssueMatcher>();
+            issueMatcher = new Mock<ISuppressedIssueMatcher>();
             issueMatcher.Setup(x => x.SuppressionExists(It.IsAny<IFilterableIssue>()))
                 .Returns((IFilterableIssue i) => matchedIssues.Contains(i));
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Ctor_NullSonarQubeIssuesProvider_ThrowsArgumentNullException()
         {
-            Action act = () => new IssuesFilter((SuppressionIssueMatcher)null);
+            Action act = () => new IssuesFilter((SuppressedIssueMatcher)null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueMatcher");
         }
