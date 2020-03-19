@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [DataRow("bbb", 333, "bbb hash", true)]
         [DataRow("ccc", 444, "ccc hash", true)]
         [DataRow("xxx", 111, "xxx hash", false)]
-        public void MatchExists_MultipleServerIssues_NoMatches_ReturnsFalse(string localRuleId, int localIssueLine, string localHash, bool expectedResult)
+        public void MatchExists_MultipleServerIssues(string localRuleId, int localIssueLine, string localHash, bool expectedResult)
         {
             // Arrange
             var issueToMatch = CreateIssueToMatch(localRuleId, localIssueLine, localHash);
