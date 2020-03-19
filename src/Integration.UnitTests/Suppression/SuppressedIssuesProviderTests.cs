@@ -66,15 +66,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         }
 
         [TestMethod]
-        public void Ctor_NullSolutionBinding_ArgumentNullException()
-        {
-            activeSolutionBoundTracker.CurrentConfiguration = null;
-            Action act = () => new SuppressedIssuesProvider(activeSolutionBoundTracker, createProviderFunc.Object);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("CurrentConfiguration");
-        }
-
-        [TestMethod]
         public void Ctor_SolutionBindingIsStandalone_SonarQubeIssuesProviderNotCreated()
         {
             activeSolutionBoundTracker.CurrentConfiguration = BindingConfiguration.Standalone;
