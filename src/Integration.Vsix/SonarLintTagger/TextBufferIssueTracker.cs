@@ -26,6 +26,7 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Sonarlint;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IIssueConverter issueConverter;
         private readonly string charset;
         private readonly ILogger logger;
-        private readonly Core.IIssuesFilter issuesFilter;
+        private readonly IIssuesFilter issuesFilter;
 
         public string FilePath { get; private set; }
         public SnapshotFactory Factory { get; }
@@ -66,13 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, Core.IIssuesFilter issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, IIssuesFilter issuesFilter)
             : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger, issuesFilter)
         {
         }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger, Core.IIssuesFilter issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger, IIssuesFilter issuesFilter)
         {
             this.dte = dte;
 

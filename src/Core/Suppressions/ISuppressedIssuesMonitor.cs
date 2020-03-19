@@ -18,26 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.Suppression
 {
-    /// <summary>
-    /// Describes a single issue with the properties required for
-    /// it to be compared against server-side issues by the issues filter
-    /// </summary>
-    public interface IFilterableIssue
+    public interface ISuppressedIssuesMonitor
     {
-        string RuleId { get; }
-        string FilePath { get; }
-        string LineHash { get; }
-        string ProjectGuid { get; }
-        int? StartLine { get; }
-        string WholeLineText { get; }
-    }
-
-    public interface IIssuesFilter
-    {
-        IEnumerable<IFilterableIssue> Filter(string path, IEnumerable<IFilterableIssue> issues);
+        event EventHandler SuppressionsUpdateRequested;
     }
 }
