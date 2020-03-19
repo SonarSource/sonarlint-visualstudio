@@ -20,7 +20,7 @@
 
 using System;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {

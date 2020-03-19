@@ -19,7 +19,7 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

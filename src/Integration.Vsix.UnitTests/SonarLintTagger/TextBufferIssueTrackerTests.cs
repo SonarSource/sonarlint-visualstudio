@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Sonarlint;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 

@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarQube.Client;

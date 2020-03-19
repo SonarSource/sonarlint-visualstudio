@@ -25,8 +25,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression

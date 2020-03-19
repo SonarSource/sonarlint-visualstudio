@@ -24,7 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression

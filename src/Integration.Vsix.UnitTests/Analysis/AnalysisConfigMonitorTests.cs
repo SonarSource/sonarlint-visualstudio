@@ -22,8 +22,8 @@ using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
