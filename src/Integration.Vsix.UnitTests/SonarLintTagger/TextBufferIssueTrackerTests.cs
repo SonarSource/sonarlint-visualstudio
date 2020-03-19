@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckSinkNotNotified(errorListSinkMock1);
             CheckSinkNotNotified(errorListSinkMock2);
 
-            issuesFilter.Verify(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()), Times.Never);
+            issuesFilter.Verify(x => x.Filter(It.IsAny<IEnumerable<IFilterableIssue>>()), Times.Never);
         }
 
         [TestMethod]
@@ -333,8 +333,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             IEnumerable<IFilterableIssue> optionalDataToReturn = null /* if null then the supplied input will be returned */)
         {
             var captured = new List<IFilterableIssue>();
-            issuesFilter.Setup(x => x.Filter(It.IsAny<string>(), It.IsAny<IEnumerable<IFilterableIssue>>()))
-                .Callback((string path, IEnumerable<IFilterableIssue> inputIssues) => captured.AddRange(inputIssues))
+            issuesFilter.Setup(x => x.Filter(It.IsAny<IEnumerable<IFilterableIssue>>()))
+                .Callback((IEnumerable<IFilterableIssue> inputIssues) => captured.AddRange(inputIssues))
                 .Returns(optionalDataToReturn ?? captured);
             capturedFilterInput = captured;
         }
@@ -357,7 +357,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Exactly(count));
         }
-
 
         #endregion
 
@@ -411,7 +410,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var dummyProperties = new PropertyCollection();
             mockTextBuffer.Setup(p => p.Properties).Returns(dummyProperties);
 
-            var mockSnapshot = CreateMockTextSnapshot(1000, "some text");            
+            var mockSnapshot = CreateMockTextSnapshot(1000, "some text");
             mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
 
             // Create the document and associate the buffer with the it
@@ -437,6 +436,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return mockSnapshot;
         }
-
     }
 }

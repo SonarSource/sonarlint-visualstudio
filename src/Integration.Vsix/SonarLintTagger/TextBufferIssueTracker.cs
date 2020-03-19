@@ -275,17 +275,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            var filteredIssues = RemoveSuppressedIssues(path, issues);
+            // TODO - filter out any issues that are not for the current file
+
+            var filteredIssues = RemoveSuppressedIssues(issues);
 
             var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             UpdateIssues(newMarkers);
         }
 
-        private IEnumerable<Issue> RemoveSuppressedIssues(string path, IEnumerable<Issue> issues)
+        private IEnumerable<Issue> RemoveSuppressedIssues(IEnumerable<Issue> issues)
         {
             var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
 
-            var filteredIssues = issuesFilter.Filter(path, filterableIssues);
+            var filteredIssues = issuesFilter.Filter(filterableIssues);
             Debug.Assert(filteredIssues.All(x => x is DaemonIssueAdapter), "Not expecting the issue filter to change the list item type");
 
             var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
