@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
@@ -29,12 +30,17 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssuesFilter : IIssuesFilter
     {
-        private readonly ISonarQubeIssuesProvider sonarQubeIssuesProvider;
+        private readonly ISuppressedIssueMatcher issueMatcher;
 
         [ImportingConstructor]
         public IssuesFilter(ISonarQubeIssuesProvider sonarQubeIssuesProvider)
+            : this(new SuppressedIssueMatcher(sonarQubeIssuesProvider))
         {
-            this.sonarQubeIssuesProvider = sonarQubeIssuesProvider ?? throw new ArgumentNullException(nameof(sonarQubeIssuesProvider));
+        }
+
+        internal  /* for testing */ IssuesFilter(ISuppressedIssueMatcher issueMatcher)
+        {
+            this.issueMatcher = issueMatcher ?? throw new ArgumentNullException(nameof(issueMatcher));
         }
 
         public IEnumerable<IFilterableIssue> Filter(string path, IEnumerable<IFilterableIssue> issues)
@@ -44,8 +50,10 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 throw new ArgumentNullException(nameof(issues));
             }
 
-            // TODO: add filtering
-            return issues;
+            var filteredIssues = issues
+                .Where(i => !issueMatcher.SuppressionExists(i))
+                .ToArray();
+            return filteredIssues;
         }
     }
 }
