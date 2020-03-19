@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using FluentAssertions;
 using Microsoft.CodeAnalysis;
@@ -29,7 +28,6 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
-using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
@@ -39,29 +37,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         private readonly Expression<Func<IRoslynLiveIssueFactory, LiveIssue>> createMethod =
             x => x.Create(It.IsAny<SyntaxTree>(), It.IsAny<Diagnostic>());
 
-        private readonly Expression<Func<ISonarQubeIssuesProvider, IEnumerable<SonarQubeIssue>>> getSuppressedIssuesMethod =
-            x => x.GetSuppressedIssues(It.IsAny<string>(), It.IsAny<string>());
+        private readonly Expression<Func<ISuppressedIssueMatcher, bool>> suppressionExistsMethod =
+            x => x.SuppressionExists(It.IsAny<IFilterableIssue>());
 
         private Mock<IRoslynLiveIssueFactory> issueFactoryMock;
-        private Mock<ISonarQubeIssuesProvider> issueProviderMock;
+        private Mock<ISuppressedIssueMatcher> issueMatcherMock;
         private Mock<SyntaxTree> syntaxTreeMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
             issueFactoryMock = new Mock<IRoslynLiveIssueFactory>();
-            issueProviderMock = new Mock<ISonarQubeIssuesProvider>();
+            issueMatcherMock = new Mock<ISuppressedIssueMatcher>();
             syntaxTreeMock = new Mock<SyntaxTree>();
         }
 
         [TestMethod]
         public void Ctor_Arguments()
         {
-            Action op = () => new RoslynSuppressionHandler(null, issueProviderMock.Object);
+            Action op = () => new RoslynSuppressionHandler(null, issueMatcherMock.Object);
             op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("liveIssueFactory");
 
             op = () => new RoslynSuppressionHandler(issueFactoryMock.Object, null);
-            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serverIssuesProvider");
+            op.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueMatcher");
         }
 
         [TestMethod]
@@ -70,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             Diagnostic diag = CreateDiagnostic("dummy rule ID", CreateNonSourceLocation());
 
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
+            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueMatcherMock.Object);
 
             // Act
             bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
@@ -90,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             Diagnostic diag = CreateDiagnostic("dummy rule id", CreateSourceLocation());
             SetLiveIssue(null);
 
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
+            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueMatcherMock.Object);
 
             // Act
             bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
@@ -101,15 +99,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.Should().BeTrue();
         }
 
-        [TestMethod]
-        public void ShouldReport_NoServerIssues_ReturnsTrue()
+        [DataTestMethod]
+        [DataRow(false, true)]
+        [DataRow(true, false)]
+        public void ShouldReport_MatchingSuppressionExists(bool suppressionExists, bool expectedShouldIssueBeReported)
         {
             // Arrange
             Diagnostic diag = CreateDiagnostic("dummy rule id", CreateSourceLocation());
             SetLiveIssue(diag, startLine: 1, wholeLineText: "text");
-            SetServerIssues(Array.Empty<SonarQubeIssue>());
+            SetSuppressionExistsResponse(suppressionExists);
 
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
+            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueMatcherMock.Object);
 
             // Act
             bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
@@ -117,118 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Assert
             VerifyLiveIssueCreated(Times.Once());
             VerifyServerIssuesRequested(Times.Once());
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ShouldReport_NoMatchingServerIssues_ReturnsTrue()
-        {
-            // Arrange
-            const string wholeLineText = "whole line text";
-            string lineHash = ChecksumCalculator.Calculate(wholeLineText);
-
-            Diagnostic diag = CreateDiagnostic("RuleId 1", CreateSourceLocation());
-            SetLiveIssue(diag, startLine: 10, wholeLineText: wholeLineText);
-
-            var serverIssue1 = CreateServerIssue("Wrong rule id", 10, lineHash); // wrong rule id
-            var serverIssue2 = CreateServerIssue("RuleId 1", 999, "wrong hash"); // wrong line and hash
-            var serverIssue3 = CreateServerIssue("RuleId 1", 999, lineHash.ToUpperInvariant()); // wrong line and wrong-case hash
-
-            SetServerIssues(serverIssue1, serverIssue2, serverIssue3);
-
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
-
-            // Act
-            bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
-
-            // Assert
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ShouldReport_ServerIssueMatchesOnLine_ReturnsFalse()
-        {
-            // Arrange
-            const string wholeLineText = "whole line text";
-
-            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
-            SetLiveIssue(diag, startLine: 101, wholeLineText: wholeLineText);
-
-            var serverIssue = CreateServerIssue("RightRuleId", 101, "wrong hash");
-            SetServerIssues(serverIssue);
-
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
-
-            // Act
-            bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldReport_ServerIssueMatchesOnLineHash_ReturnsFalse()
-        {
-            // Arrange
-            const string wholeLineText = "whole line text";
-            string lineHash = ChecksumCalculator.Calculate(wholeLineText);
-
-            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
-            SetLiveIssue(diag, startLine: 101, wholeLineText: wholeLineText);
-
-            var serverIssue = CreateServerIssue("RIGHTRULEID", 999, lineHash); // rule id comparison is case-insensitive
-            SetServerIssues(serverIssue);
-
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
-
-            // Act
-            bool result = handler.ShouldIssueBeReported(syntaxTreeMock.Object, diag);
-
-            // Assert
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ShouldReport_FileOrProjectIssue_NoMatch_ReturnsTrue()
-        {
-            // Arrange
-            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
-            SetLiveIssue(diag, startLine: 0, wholeLineText: "");
-
-            var serverIssue1 = CreateServerIssue("WrongRuleId", 0, "");
-            var serverIssue2 = CreateServerIssue("RightRuleId", 1, "wrong hash"); // wrong line and hash
-            var serverIssue3 = CreateServerIssue("RightRuleId", 999, "wrong hash"); // not a file/project issue -> no match
-            SetServerIssues(serverIssue1, serverIssue2, serverIssue3);
-
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
-
-            // Act
-            bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
-
-            // Assert
-            result.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void ShouldReport_FileOrProjectIssue_MatchExists_ReturnsFalse()
-        {
-            // Arrange
-            Diagnostic diag = CreateDiagnostic("RightRuleId", CreateSourceLocation());
-            SetLiveIssue(diag, startLine: 0, wholeLineText: "");
-
-            var serverIssue1 = CreateServerIssue("WrongRuleId", 0, "");
-            var serverIssue2 = CreateServerIssue("RightRuleId", 0, "wrong hash"); // wrong hash
-            var serverIssue3 = CreateServerIssue("RightRuleId", 0, "");
-
-            SetServerIssues(serverIssue1, serverIssue2, serverIssue3);
-
-            RoslynSuppressionHandler handler = new RoslynSuppressionHandler(issueFactoryMock.Object, issueProviderMock.Object);
-
-            // Act
-            bool result = handler.ShouldIssueBeReported(new Mock<SyntaxTree>().Object, diag);
-
-            // Assert
-            result.Should().BeFalse();
+            result.Should().Be(expectedShouldIssueBeReported);
         }
 
         private static Location CreateNonSourceLocation()
@@ -253,21 +142,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             return Diagnostic.Create(descriptor, loc);
         }
 
-        private static SonarQubeIssue CreateServerIssue(string ruleId, int line, string lineHash)
-        {
-            // The IServerIssuesProvider is responsible for matching on the file path and module key,
-            // so it doesn't matter what values we set here
-            return new SonarQubeIssue(
-                filePath: "irrelevant path.cs",
-                hash: lineHash,
-                line: line,
-                message: "irrelevant message",
-                moduleKey: "irrelevant module key",
-                ruleId: ruleId,
-                isResolved: true
-                );
-        }
-
         private void SetLiveIssue(Diagnostic diagnostic, int startLine, string wholeLineText)
         {
             LiveIssue liveIssue = new LiveIssue(diagnostic.Id, Guid.NewGuid().ToString(),
@@ -285,10 +159,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 .Verifiable();
         }
 
-        private void SetServerIssues(params SonarQubeIssue[] issues)
+        private void SetSuppressionExistsResponse(bool suppressionExists)
         {
-            issueProviderMock.Setup(getSuppressedIssuesMethod)
-                .Returns(issues)
+            issueMatcherMock.Setup(suppressionExistsMethod)
+                .Returns(suppressionExists)
                 .Verifiable();
         }
 
@@ -299,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
         private void VerifyServerIssuesRequested(Times expected)
         {
-            issueProviderMock.Verify(getSuppressedIssuesMethod, expected);
+            issueMatcherMock.Verify(suppressionExistsMethod, expected);
         }
     }
 }
