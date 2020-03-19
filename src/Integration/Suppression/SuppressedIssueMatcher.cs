@@ -41,9 +41,15 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 throw new ArgumentNullException(nameof(issue));
             }
 
-            // Issues match if:
+
+            // File-level issues (i.e. line = null) match if:
+            // 1. Same component, same file, same error code.
+
+            // Non-file-level issues match if:
             // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
             // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
+
+            // File-level issues never match non-file-level issues.
 
             // Retrieve all issues relating to this file (file level or precise location) or project (for module level issues)
             var serverIssues = issuesProvider.GetSuppressedIssues(issue.ProjectGuid, issue.FilePath);
