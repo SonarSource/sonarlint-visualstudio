@@ -21,6 +21,7 @@
 using System;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
@@ -48,11 +49,24 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             var serverIssues = issuesProvider.GetSuppressedIssues(issue.ProjectGuid, issue.FilePath);
 
             // Try to find an issue with the same ID and either the same line number or some line hash
-            bool matchFound = serverIssues
-                .Where(i => StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, i.RuleId))
-                .Any(i => issue.StartLine == i.Line || StringComparer.Ordinal.Equals(issue.LineHash, i.Hash));
+            bool matchFound = serverIssues.Any(s => IsMatch(issue, s));
 
             return matchFound;
+        }
+        private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
+        {
+            if (!StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, serverIssue.RuleId))
+            {
+                return false;
+            }
+            if (issue.StartLine.HasValue)
+            {
+                return issue.StartLine == serverIssue.Line || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
+            }
+            else
+            {
+                return !serverIssue.Line.HasValue;
+            }
         }
     }
 }
