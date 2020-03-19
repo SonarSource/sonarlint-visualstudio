@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -99,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 case SonarLintMode.Connected:
                     this.logger.WriteLine(Resources.Strings.AnalyzerManager_InConnectedMode);
                     var liveIssueFactory = new RoslynLiveIssueFactory(workspace, vsSolution);
-                    var suppressionHandler = new RoslynSuppressionHandler(liveIssueFactory, sonarQubeIssuesProvider);
+                    var suppressionHandler = new RoslynSuppressionHandler(liveIssueFactory, new SuppressedIssueMatcher(sonarQubeIssuesProvider));
 
                     if (configuration.Mode == SonarLintMode.Connected)
                     {

@@ -19,30 +19,21 @@
  */
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
     internal class RoslynSuppressionHandler : IRoslynSuppressionHandler
     {
         private readonly IRoslynLiveIssueFactory liveIssueFactory;
-        private readonly ISonarQubeIssuesProvider serverIssuesProvider;
+        private readonly ISuppressedIssueMatcher issueMatcher;
 
-        public RoslynSuppressionHandler(IRoslynLiveIssueFactory liveIssueFactory, ISonarQubeIssuesProvider serverIssuesProvider)
+        public RoslynSuppressionHandler(IRoslynLiveIssueFactory liveIssueFactory, ISuppressedIssueMatcher issueMatcher)
         {
-            if (liveIssueFactory == null)
-            {
-                throw new ArgumentNullException(nameof(liveIssueFactory));
-            }
-            if (serverIssuesProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serverIssuesProvider));
-            }
 
-            this.liveIssueFactory = liveIssueFactory;
-            this.serverIssuesProvider = serverIssuesProvider;
+            this.liveIssueFactory = liveIssueFactory ?? throw new ArgumentNullException(nameof(liveIssueFactory));
+            this.issueMatcher = issueMatcher ?? throw new ArgumentNullException(nameof(issueMatcher));
         }
 
         public bool ShouldIssueBeReported(SyntaxTree syntaxTree, Diagnostic diagnostic)
@@ -60,19 +51,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
                 return true; // Unable to get the data required to map a Roslyn issue to a SonarQube issue
             }
 
-            // Issues match if:
-            // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
-            // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
-
-            // Retrieve all issues relating to this file (file level or precise location) or project (for module level issues)
-            var potentialMatchingIssues = serverIssuesProvider.GetSuppressedIssues(liveIssue.ProjectGuid, liveIssue.FilePath);
-
-            // Try to find an issue with the same ID and either the same line number or some line hash
-            bool matchFound = potentialMatchingIssues
-                .Where(i => StringComparer.OrdinalIgnoreCase.Equals(liveIssue.RuleId, i.RuleId))
-                .Any(i => liveIssue.StartLine == i.Line || StringComparer.Ordinal.Equals(liveIssue.LineHash, i.Hash));
-
-            return !matchFound;
+            var matchFound = !issueMatcher.SuppressionExists(liveIssue);
+            return matchFound;
         }
     }
 }
