@@ -64,18 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void Filter_NullIssues_ThrowsArgumentNullException()
         {
-            Action act = () => testSubject.Filter("c:\\path\\file1.txt", null);
+            Action act = () => testSubject.Filter(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issues");
-        }
-
-        [TestMethod]
-        public void Filter_NullFile_DoesNotThrow()
-        {
-            // TODO - remove. Path is not used so it can be removed from the interface
-            var inputIssues = new List<IFilterableIssue>();
-
-            var result = testSubject.Filter(null, inputIssues);
-            result.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -86,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SetMatchableIssues(Issue4, Issue5);
 
             // Act
-            var result = testSubject.Filter(null, inputIssues);
+            var result = testSubject.Filter(inputIssues);
 
             // Assert
             result.Should().BeEquivalentTo(inputIssues);
@@ -100,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SetMatchableIssues(Issue1, Issue2, Issue5);
 
             // Act
-            var result = testSubject.Filter(null, inputIssues);
+            var result = testSubject.Filter(inputIssues);
 
             // Assert
             result.Should().BeEquivalentTo(Issue3, Issue4);
@@ -114,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             SetMatchableIssues(inputIssues);
 
             // Act
-            var result = testSubject.Filter(null, inputIssues);
+            var result = testSubject.Filter(inputIssues);
 
             // Assert
             result.Should().BeEmpty();
