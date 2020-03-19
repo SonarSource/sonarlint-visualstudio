@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
@@ -295,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class DummyTextDocumentFactoryService : ITextDocumentFactoryService
         {
-            private Dictionary<ITextBuffer, ITextDocument> bufferToDocMapping = new Dictionary<ITextBuffer, ITextDocument>();
+            private readonly Dictionary<ITextBuffer, ITextDocument> bufferToDocMapping = new Dictionary<ITextBuffer, ITextDocument>();
 
             public void RegisterDocument(ITextDocument document)
             {

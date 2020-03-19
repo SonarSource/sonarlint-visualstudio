@@ -18,17 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using SonarQube.Client.Models;
-
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.Suppression
 {
-    public interface ISonarQubeIssuesProvider : IDisposable
+    public interface ISuppressedIssueMatcher
     {
-        /// <summary>
-        /// Returns SonarQube suppressed issues for the specified project and file
-        /// </summary>
-        IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath);
+        bool SuppressionExists(IFilterableIssue issue);
     }
 }
