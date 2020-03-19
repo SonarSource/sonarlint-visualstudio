@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
     public class SuppressedIssuesProvider : ISonarQubeIssuesProvider, ISuppressedIssuesMonitor
     {
         public delegate ISonarQubeIssuesProvider CreateProviderFunc(BindingConfiguration bindingConfiguration);
-        public event EventHandler SuppressionsUpdated;
+        public event EventHandler SuppressionsUpdateRequested;
 
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
         private readonly CreateProviderFunc createProviderFunc;
@@ -69,8 +69,15 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             this.activeSolutionBoundTracker = activeSolutionBoundTracker ??
                                               throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
 
+            if (activeSolutionBoundTracker.CurrentConfiguration == null)
+            {
+                throw new ArgumentNullException(nameof(activeSolutionBoundTracker.CurrentConfiguration));
+            }
+
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
+            
+            Refresh(activeSolutionBoundTracker.CurrentConfiguration);
         }
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
@@ -95,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             if (configuration.Mode != SonarLintMode.Standalone)
             {
                 instance = createProviderFunc(configuration);
-                SuppressionsUpdated?.Invoke(this, EventArgs.Empty);
+                SuppressionsUpdateRequested?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -116,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             if (disposing && !disposed)
             {
                 CleanupResources();
-                SuppressionsUpdated = null;
+                SuppressionsUpdateRequested = null;
                 activeSolutionBoundTracker.SolutionBindingChanged -= OnSolutionBindingChanged;
                 activeSolutionBoundTracker.SolutionBindingUpdated -= OnSolutionBindingUpdated;
                 disposed = true;

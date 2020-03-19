@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 {
     public interface ISuppressedIssuesMonitor
     {
-        event EventHandler SuppressionsUpdated;
+        event EventHandler SuppressionsUpdateRequested;
     }
 }
