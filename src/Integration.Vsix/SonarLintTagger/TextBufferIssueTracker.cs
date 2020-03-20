@@ -275,8 +275,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            // TODO - filter out any issues that are not for the current file
-
             var filteredIssues = RemoveSuppressedIssues(issues);
 
             var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
