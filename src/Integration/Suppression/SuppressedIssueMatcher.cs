@@ -21,6 +21,7 @@
 using System;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
@@ -40,19 +41,39 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 throw new ArgumentNullException(nameof(issue));
             }
 
-            // Issues match if:
+
+            // File-level issues (i.e. line = null) match if:
+            // 1. Same component, same file, same error code.
+
+            // Non-file-level issues match if:
             // 1. Same component, same file, same error code, same line hash        // tolerant to line number changing
             // 2. Same component, same file, same error code, same line             // tolerant to code on the line changing e.g. var rename
+
+            // File-level issues never match non-file-level issues.
 
             // Retrieve all issues relating to this file (file level or precise location) or project (for module level issues)
             var serverIssues = issuesProvider.GetSuppressedIssues(issue.ProjectGuid, issue.FilePath);
 
             // Try to find an issue with the same ID and either the same line number or some line hash
-            bool matchFound = serverIssues
-                .Where(i => StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, i.RuleId))
-                .Any(i => issue.StartLine == i.Line || StringComparer.Ordinal.Equals(issue.LineHash, i.Hash));
+            bool matchFound = serverIssues.Any(s => IsMatch(issue, s));
 
             return matchFound;
+        }
+
+        private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
+        {
+            if (!StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, serverIssue.RuleId))
+            {
+                return false;
+            }
+
+            if (!issue.StartLine.HasValue) // i.e. file-level issue
+            {
+                return !serverIssue.Line.HasValue;
+            }
+
+            // Non-file level issue
+            return issue.StartLine == serverIssue.Line || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
         }
     }
 }
