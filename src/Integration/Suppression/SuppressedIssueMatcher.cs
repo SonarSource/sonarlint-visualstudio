@@ -59,20 +59,21 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             return matchFound;
         }
+
         private static bool IsMatch(IFilterableIssue issue, SonarQubeIssue serverIssue)
         {
             if (!StringComparer.OrdinalIgnoreCase.Equals(issue.RuleId, serverIssue.RuleId))
             {
                 return false;
             }
-            if (issue.StartLine.HasValue)
-            {
-                return issue.StartLine == serverIssue.Line || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
-            }
-            else
+
+            if (!issue.StartLine.HasValue) // i.e. file-level issue
             {
                 return !serverIssue.Line.HasValue;
             }
+
+            // Non-file level issue
+            return issue.StartLine == serverIssue.Line || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
         }
     }
 }
