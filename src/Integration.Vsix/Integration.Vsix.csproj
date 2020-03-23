@@ -403,11 +403,14 @@
        to update the baseline file, then check in the updated baseline with the rest of your changes.
   -->
   <PropertyGroup>
+    <!-- Only check the VS2019 build -->
+    <AsmRefDisableBaselining Condition=" $(VsTargetVersion) != '2019' " >true</AsmRefDisableBaselining>
+    
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
     <AsmRefVersionCompatibility>MajorMinorBuild</AsmRefVersionCompatibility>
     
-    <!-- CI builds are strong-named so use the baseline file containing the public key tokens -->
-    <AsmRefBaselineFilePath Condition="$(AGENT_BUILDDIRECTORY) != '' " >$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt</AsmRefBaselineFilePath>
+    <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
+    <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'true' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt</AsmRefBaselineFilePath>
 
     <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
     <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
