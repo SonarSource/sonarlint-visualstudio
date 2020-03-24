@@ -77,14 +77,11 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 return effectiveConfig;
             }
 
+            logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
+
             if ((customSettings?.Rules?.Count ?? 0) == 0)
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
-                customSettings = new RulesSettings();
-            }
-            else
-            {
-                logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
             }
 
             // TODO: apply filters to exclude which should not be run
