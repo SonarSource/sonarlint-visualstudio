@@ -35,22 +35,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         public void Ctor_InvalidArgs()
         {
             Action act = () => new CFamilyBindingConfigFile(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("userSettings");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesSettings");
         }
 
         [TestMethod]
         public void Ctor_ValidArgs()
         {
-            var userSettings = new UserSettings();
-            var testSubject = new CFamilyBindingConfigFile(userSettings);
-            testSubject.UserSettings.Equals(userSettings);
+            var settings = new RulesSettings();
+            var testSubject = new CFamilyBindingConfigFile(settings);
+            testSubject.RuleSettings.Equals(settings);
         }
 
         [TestMethod]
         public void Save_SettingsAreSerializedAndSaved()
         {
             // Arrange
-            var settings = new UserSettings
+            var settings = new RulesSettings
             {
                 Rules = new Dictionary<string, RuleConfig>
                 {

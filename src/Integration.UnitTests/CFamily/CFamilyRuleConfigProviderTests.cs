@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Arrange
             var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone)
             {
-                ConnectedModeSettings = new UserSettings
+                ConnectedModeSettings = new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     }
                 },
 
-                StandaloneModeSettings = new UserSettings
+                StandaloneModeSettings = new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Arrange
             var builder = new TestEnvironmentBuilder(mode)
             {
-                ConnectedModeSettings = new UserSettings
+                ConnectedModeSettings = new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     }
                 },
 
-                StandaloneModeSettings = new UserSettings
+                StandaloneModeSettings = new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             {
                 ConnectedSettingsFileExists = false,
 
-                StandaloneModeSettings = new UserSettings
+                StandaloneModeSettings = new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -189,8 +189,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             private readonly SonarLintMode bindingMode;
 
-            public UserSettings StandaloneModeSettings { get; set; }
-            public UserSettings ConnectedModeSettings { get; set; }
+            public RulesSettings StandaloneModeSettings { get; set; }
+            public RulesSettings ConnectedModeSettings { get; set; }
             public DummyCFamilyRulesConfig SonarWayConfig { get; set; }
 
             public bool ConnectedSettingsFileExists { get; set; } = true;

@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private const int DefaultAnalysisTimeoutMs = 10 * 1000;
         private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
- 
+
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider)
         {
             if (IsHeaderFile(absoluteFilePath))
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 var success = ExecuteAnalysis(runner, tempFileName, logger);
-                
+
                 if (success)
                 {
                     using (var readStream = new FileStream(tempFileName, FileMode.Open))
@@ -150,7 +150,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     File.Delete(tempFileName);
                 }
             }
-
         }
 
         internal /* for testing */ static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
@@ -160,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             // BUT special case of EndLine=0, Column=0, EndColumn=0 meaning "select the whole line"
             Debug.Assert(cfamilyIssue.EndLine >= 0);
-            Debug.Assert(cfamilyIssue.Column > 0 || cfamilyIssue.Column == 0); 
+            Debug.Assert(cfamilyIssue.Column > 0 || cfamilyIssue.Column == 0);
             Debug.Assert(cfamilyIssue.EndColumn > 0 || cfamilyIssue.EndLine == 0);
 
             // Look up default severity and type
@@ -351,7 +350,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             public string StdOut { get; set; }
 
             public string StdErr { get; set; }
-
         }
     }
 }

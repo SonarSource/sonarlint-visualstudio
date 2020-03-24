@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// The settings for the current user
         /// </summary>
-        UserSettings UserSettings { get; }
+        RulesSettings UserSettings { get; }
 
         /// <summary>
         /// Full path to the file containing the user settings

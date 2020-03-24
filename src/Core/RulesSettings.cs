@@ -25,7 +25,6 @@ using Newtonsoft.Json.Converters;
 
 namespace SonarLint.VisualStudio.Core
 {
-
     /*
      // Example config file - same format as the VS Code settings.json file, with the addition of "parameters"
      // and "severity", both of which are optional.
@@ -56,7 +55,7 @@ namespace SonarLint.VisualStudio.Core
      */
 
     // Json-serializable data class
-    public class UserSettings
+    public class RulesSettings
     {
         [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);

@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Act
             var command = CreateDisableRuleMenuCommand(errorList, userSettingsProvider, solutionTracker, new TestLogger());
-            
+
             // Assert
             command.CommandID.ID.Should().Be(DisableRuleCommand.CommandId);
             command.CommandID.Guid.Should().Be(DisableRuleCommand.CommandSet);
@@ -328,7 +328,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             errorCode.Should().BeNull();
         }
 
-
         [TestMethod]
         public void GetErrorCode_MultipleItemsSelected_ErrorCodeNotReturned()
         {
@@ -411,7 +410,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
         #region Helper classes
 
-        private class DummySnapshot : ITableEntriesSnapshot
+        private sealed class DummySnapshot : ITableEntriesSnapshot
         {
             public int Index { get; set; }
             public IDictionary<string, object> Properties { get; set; }

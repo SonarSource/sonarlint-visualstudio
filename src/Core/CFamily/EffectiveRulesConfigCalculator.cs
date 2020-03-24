@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
     /// Returns the effective rules configuration to use i.e. overrides the defaults with
     /// values in the user settings.
     /// </summary>
-    /// <remarks>The calculator has an internal cache to reduce unnecessary re-calculations of 
+    /// <remarks>The calculator has an internal cache to reduce unnecessary re-calculations of
     /// the effective settings (and the associated object allocations).</remarks>
     public class EffectiveRulesConfigCalculator
     {
@@ -64,21 +64,21 @@ namespace SonarLint.VisualStudio.Core.CFamily
             configCache = new RulesConfigCache();
         }
 
-        public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, UserSettings userSettings)
+        public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesConfiguration)
         {
             if (defaultRulesConfig == null)
             {
                 throw new ArgumentNullException(nameof(defaultRulesConfig));
             }
 
-            // Optimisation - if there are no user-specified rules settings then just return the default
-            if ((userSettings?.Rules?.Count ?? 0) == 0)
+            // Optimisation - if there are no custom rules settings then just return the default
+            if ((customRulesConfiguration?.Rules?.Count ?? 0) == 0)
             {
-                logger.WriteLine(CoreStrings.EffectiveRules_NoUserSettings);
+                logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
                 return defaultRulesConfig;
             }
 
-            var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, userSettings);
+            var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customRulesConfiguration);
             if (effectiveConfig != null)
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheHit);
@@ -86,8 +86,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
             else
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
-                effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, userSettings);
-                configCache.Add(languageKey, defaultRulesConfig, userSettings, effectiveConfig);
+                effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customRulesConfiguration);
+                configCache.Add(languageKey, defaultRulesConfig, customRulesConfiguration, effectiveConfig);
             }
 
             return effectiveConfig;
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
         {
             private struct CacheEntry
             {
-                public CacheEntry(ICFamilyRulesConfig sourceConfig, UserSettings sourceSettings, ICFamilyRulesConfig effectiveConfig)
+                public CacheEntry(ICFamilyRulesConfig sourceConfig, RulesSettings sourceSettings, ICFamilyRulesConfig effectiveConfig)
                 {
                     SourceConfig = sourceConfig;
                     SourceSettings = sourceSettings;
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 }
 
                 public ICFamilyRulesConfig SourceConfig { get; }
-                public UserSettings SourceSettings { get; }
+                public RulesSettings SourceSettings { get; }
                 public ICFamilyRulesConfig EffectiveConfig { get; }
             }
 
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
             internal /* for testing */ int CacheCount { get { return languageToConfigMap.Count; } }
 
-            public ICFamilyRulesConfig FindConfig(string languageKey, ICFamilyRulesConfig sourceConfig, UserSettings sourceSettings)
+            public ICFamilyRulesConfig FindConfig(string languageKey, ICFamilyRulesConfig sourceConfig, RulesSettings sourceSettings)
             {
                 if (!languageToConfigMap.TryGetValue(languageKey, out var cachedValue))
                 {
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 return null;
             }
 
-            public void Add(string languageKey, ICFamilyRulesConfig sourceConfig, UserSettings sourceSettings, ICFamilyRulesConfig effectiveConfig)
+            public void Add(string languageKey, ICFamilyRulesConfig sourceConfig, RulesSettings sourceSettings, ICFamilyRulesConfig effectiveConfig)
             {
                 languageToConfigMap[languageKey] = new CacheEntry(sourceConfig, sourceSettings, effectiveConfig);
             }

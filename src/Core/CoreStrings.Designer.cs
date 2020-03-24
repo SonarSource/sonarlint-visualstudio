@@ -97,11 +97,11 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No user-specified rule settings - using defaults.
+        ///   Looks up a localized string similar to No custom rules settings - using defaults.
         /// </summary>
-        public static string EffectiveRules_NoUserSettings {
+        public static string EffectiveRules_NoCustomRulesSettings {
             get {
-                return ResourceManager.GetString("EffectiveRules_NoUserSettings", resourceCulture);
+                return ResourceManager.GetString("EffectiveRules_NoCustomRulesSettings", resourceCulture);
             }
         }
         

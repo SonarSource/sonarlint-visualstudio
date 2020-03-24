@@ -66,17 +66,17 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var config = CreateUserSettingsFromQPRules(result);
-            var configFile = new CFamilyBindingConfigFile(config);
+            var settings = CreateRulesSettingsFromQPRules(result);
+            var configFile = new CFamilyBindingConfigFile(settings);
 
             return configFile;
         }
 
         #endregion IBindingConfigProvider implementation
 
-        internal /* for testing */ static UserSettings CreateUserSettingsFromQPRules(IList<SonarQubeRule> rules)
+        internal /* for testing */ static RulesSettings CreateRulesSettingsFromQPRules(IList<SonarQubeRule> rules)
         {
-            var settings = new UserSettings()
+            var settings = new RulesSettings()
             {
                 Rules = rules.ToDictionary(ToRuleConfigKey, ToRuleConfig)
             };
