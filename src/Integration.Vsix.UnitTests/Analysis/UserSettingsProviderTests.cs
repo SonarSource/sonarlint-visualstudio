@@ -121,8 +121,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Assert
             settingsChangedEventCount.Should().Be(2);
             testSubject.UserSettings.Should().NotBeNull();
-            testSubject.UserSettings.Rules.Should().NotBeNull();
-            testSubject.UserSettings.Rules.Count.Should().Be(1);
+            testSubject.UserSettings.RulesSettings.Should().NotBeNull();
+            testSubject.UserSettings.RulesSettings.Rules.Should().NotBeNull();
+            testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
         }
 
         [TestMethod]
@@ -194,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var testSubject = new UserSettingsProvider(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
 
             // Sanity check of test setup
-            testSubject.UserSettings.Rules.Count.Should().Be(0);
+            testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0);
             File.Exists(settingsFile).Should().BeFalse();
 
             // Act - Disable a rule
@@ -230,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var testSubject = new UserSettingsProvider(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
 
             // Sanity check of test setup
-            testSubject.UserSettings.Rules.Count.Should().Be(3);
+            testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(3);
 
             // Act - Disable a rule
             testSubject.DisableRule("cpp:S111");
@@ -270,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
             var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, singleFileMonitorMock.Object);
-            testSubject.UserSettings.Rules.Count.Should().Be(0); // sanity check of setup
+            testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(0); // sanity check of setup
 
             testSubject.SettingsChanged += (s, args) =>
                 {
@@ -296,8 +297,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             eventCount.Should().Be(1);
 
             // Check the data was actually reloaded from the file
-            testSubject.UserSettings.Rules.Count.Should().Be(1);
-            testSubject.UserSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
+            testSubject.UserSettings.RulesSettings.Rules.Count.Should().Be(1);
+            testSubject.UserSettings.RulesSettings.Rules["typescript:S2685"].Level.Should().Be(RuleLevel.On);
         }
 
         private string CreateTestSpecificDirectory()
@@ -334,11 +335,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             return mockFile;
         }
 
-        private static void CheckSettingsAreEmpty(RulesSettings settings)
+        private static void CheckSettingsAreEmpty(UserSettings settings)
         {
             settings.Should().NotBeNull();
-            settings.Rules.Should().NotBeNull();
-            settings.Rules.Count.Should().Be(0);
+            settings.RulesSettings.Should().NotBeNull();
+            settings.RulesSettings.Rules.Should().NotBeNull();
+            settings.RulesSettings.Rules.Count.Should().Be(0);
         }
     }
 }

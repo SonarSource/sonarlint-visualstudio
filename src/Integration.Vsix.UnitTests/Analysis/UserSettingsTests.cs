@@ -19,34 +19,30 @@
  */
 
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 {
-    public interface IUserSettingsProvider
+    [TestClass]
+    public class UserSettingsTests
     {
-        /// <summary>
-        /// Notification that one or more settings have changed
-        /// </summary>
-        event EventHandler SettingsChanged;
+        [TestMethod]
+        public void Ctor_NullArg_Throws()
+        {
+            Action act = () => new UserSettings(null);
 
-        /// <summary>
-        /// The settings for the current user
-        /// </summary>
-        UserSettings UserSettings { get; }
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesSettings");
+        }
 
-        /// <summary>
-        /// Full path to the file containing the user settings
-        /// </summary>
-        string SettingsFilePath { get; }
 
-        /// <summary>
-        /// Updates the user settings to disabled the specified rule
-        /// </summary>
-        void DisableRule(string ruleId);
+        [TestMethod]
+        public void Ctor_NonNullSettings_PropertyReturnsExpectedSettings()
+        {
+            var settings = new RulesSettings();
 
-        /// <summary>
-        /// Ensure the settings file exists, creating a new file if necessary
-        /// </summary>
-        void EnsureFileExists();
+            new UserSettings(settings).RulesSettings.Should().BeSameAs(settings);
+        }
     }
 }
