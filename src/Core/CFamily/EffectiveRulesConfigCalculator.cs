@@ -70,25 +70,30 @@ namespace SonarLint.VisualStudio.Core.CFamily
             {
                 throw new ArgumentNullException(nameof(defaultRulesConfig));
             }
-
-            // Optimisation - if there are no custom rules settings then just return the default
-            if ((customRulesConfiguration?.Rules?.Count ?? 0) == 0)
-            {
-                logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
-                return defaultRulesConfig;
-            }
-
             var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customRulesConfiguration);
             if (effectiveConfig != null)
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheHit);
+                return effectiveConfig;
+            }
+
+            // Optimisation - if there are no user-specified rules settings then just return the default
+            if ((customRulesConfiguration?.Rules?.Count ?? 0) == 0)
+            {
+                logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
+                customRulesConfiguration = new RulesSettings();
             }
             else
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
-                effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customRulesConfiguration);
-                configCache.Add(languageKey, defaultRulesConfig, customRulesConfiguration, effectiveConfig);
             }
+
+            //// Apply filters to exclude which should not be run
+            //customRulesConfiguration.Rules["S5536"] = new RuleConfig { Level = RuleLevel.Off };
+
+            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customRulesConfiguration);
+
+            configCache.Add(languageKey, defaultRulesConfig, customRulesConfiguration, effectiveConfig);
 
             return effectiveConfig;
         }
