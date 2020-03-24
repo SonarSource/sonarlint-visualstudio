@@ -48,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             act = () => new UserSettingsProvider(new TestLogger(), new FileSystem(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("settingsFileMonitor");
-
         }
 
         [TestMethod]
@@ -94,8 +93,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             int settingsChangedEventCount = 0;
 
-            var invalidSettingsData = @"NOT VALID JSON";
-            var validSettingsData = @"{
+            const string invalidSettingsData = "NOT VALID JSON";
+            const string validSettingsData = @"{
     'sonarlint.rules': {
         'typescript:S2685': {
             'level': 'on'
@@ -130,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void EnsureFileExists_CreatedIfMissing()
         {
             // Arrange
-            var fileName = "c:\\missingFile.txt";
+            const string fileName = "c:\\missingFile.txt";
 
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(false);
@@ -139,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Act
             testSubject.EnsureFileExists();
-            
+
             // Assert
             fileSystemMock.Verify(x => x.File.Exists(fileName), Times.Exactly(2));
             fileSystemMock.Verify(x => x.File.WriteAllText(fileName, It.IsAny<string>()), Times.Once);
@@ -149,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         public void EnsureFileExists_NotCreatedIfExists()
         {
             // Arrange
-            var fileName = "c:\\subDir1\\existingFile.txt";
+            const string fileName = "c:\\subDir1\\existingFile.txt";
 
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(true);
@@ -168,7 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         [TestMethod]
         public void ConstructAndDispose()
         {
-            var fileName = "c:\\aaa\\bbb\\file.txt";
+            const string fileName = "c:\\aaa\\bbb\\file.txt";
             // Arrange
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(false);
@@ -215,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var dir = CreateTestSpecificDirectory();
             var settingsFile = Path.Combine(dir, "settings.txt");
 
-            var initialSettings = new UserSettings
+            var initialSettings = new RulesSettings
             {
                 Rules = new System.Collections.Generic.Dictionary<string, RuleConfig>
                 {
@@ -226,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             };
 
             SaveSettings(settingsFile, initialSettings);
-            
+
             var testLogger = new TestLogger(logToConsole: true);
             var testSubject = new UserSettingsProvider(testLogger, new FileSystem(), new SingleFileMonitor(settingsFile, testLogger));
 
@@ -251,13 +250,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         {
             int pause = System.Diagnostics.Debugger.IsAttached ? 20000 : 300;
 
-            var fileName = "mySettings.xxx";
+            const string fileName = "mySettings.xxx";
 
             // We're deliberately returning different data on each call to IFile.ReadAllText
             // so we can check that the provider is correctly reloading and using the file data,
             // and not re-using the in-memory version.
-            var originalData = @"{}";
-            var modifiedData = @"{
+            const string originalData = "{}";
+            const string modifiedData = @"{
     'sonarlint.rules': {
         'typescript:S2685': {
             'level': 'on'
@@ -265,14 +264,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     }
 }";
             var fileSystemMock = CreateMockFile(fileName, originalData);
-            
+
             var singleFileMonitorMock = CreateMockFileMonitor(fileName);
             int eventCount = 0;
             var settingsChangedEventReceived = new ManualResetEvent(initialState: false);
 
             var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, singleFileMonitorMock.Object);
             testSubject.UserSettings.Rules.Count.Should().Be(0); // sanity check of setup
-            
+
             testSubject.SettingsChanged += (s, args) =>
                 {
                     eventCount++;
@@ -308,15 +307,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             return dir;
         }
 
-        private static void SaveSettings(string filePath, UserSettings userSettings)
+        private static void SaveSettings(string filePath, RulesSettings userSettings)
         {
-            var serializer = new UserSettingsSerializer(new FileSystem(), new TestLogger());
+            var serializer = new RulesSettingsSerializer(new FileSystem(), new TestLogger());
             serializer.SafeSave(filePath, userSettings);
         }
 
-        private UserSettings LoadSettings(string filePath)
+        private RulesSettings LoadSettings(string filePath)
         {
-            var serializer = new UserSettingsSerializer(new FileSystem(), new TestLogger());
+            var serializer = new RulesSettingsSerializer(new FileSystem(), new TestLogger());
             return serializer.SafeLoad(filePath);
         }
 
@@ -335,11 +334,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             return mockFile;
         }
 
-        private static void CheckSettingsAreEmpty(UserSettings userSettings)
+        private static void CheckSettingsAreEmpty(RulesSettings settings)
         {
-            userSettings.Should().NotBeNull();
-            userSettings.Rules.Should().NotBeNull();
-            userSettings.Rules.Count.Should().Be(0);
+            settings.Should().NotBeNull();
+            settings.Rules.Should().NotBeNull();
+            settings.Rules.Count.Should().Be(0);
         }
     }
 }

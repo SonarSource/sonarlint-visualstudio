@@ -26,23 +26,23 @@ using SonarLint.VisualStudio.Integration;
 namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
-    /// Loads and saves settings files to disc.
+    /// Loads and saves rules settings to disc.
     /// Logs user-friendly messages and suppresses non-critical exceptions.
     /// </summary>
-    public class UserSettingsSerializer
+    public class RulesSettingsSerializer
     {
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
-        public UserSettingsSerializer(IFileSystem fileSystem, ILogger logger)
+        public RulesSettingsSerializer(IFileSystem fileSystem, ILogger logger)
         {
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public UserSettings SafeLoad(string filePath)
+        public RulesSettings SafeLoad(string filePath)
         {
-            UserSettings userSettings = null;
+            RulesSettings settings = null;
             if (!fileSystem.File.Exists(filePath))
             {
                 logger?.WriteLine(CoreStrings.Settings_NoSettingsFile, filePath);
@@ -53,17 +53,17 @@ namespace SonarLint.VisualStudio.Core
                 {
                     logger?.WriteLine(CoreStrings.Settings_LoadedSettingsFile, filePath);
                     var data = fileSystem.File.ReadAllText(filePath);
-                    userSettings = JsonConvert.DeserializeObject<UserSettings>(data);
+                    settings = JsonConvert.DeserializeObject<RulesSettings>(data);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
                     logger?.WriteLine(CoreStrings.Settings_ErrorLoadingSettingsFile, filePath, ex.Message);
                 }
             }
-            return userSettings;
+            return settings;
         }
 
-        public void SafeSave(string filePath, UserSettings data)
+        public void SafeSave(string filePath, RulesSettings data)
         {
             try
             {

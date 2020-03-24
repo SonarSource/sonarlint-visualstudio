@@ -85,7 +85,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
         }
 
-
         [TestMethod]
         public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings1()
         {

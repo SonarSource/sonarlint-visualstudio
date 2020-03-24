@@ -260,7 +260,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Daemon interaction
 
-
         public void RequestAnalysis()
         {
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem);
