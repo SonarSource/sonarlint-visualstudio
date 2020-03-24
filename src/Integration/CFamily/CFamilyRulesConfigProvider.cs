@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             }
 
             // If we are not in connected mode or couldn't find the connected mode settings then fall back on the standalone settings.
-            settings = settings ?? userSettingsProvider.UserSettings;
+            settings = settings ?? userSettingsProvider.UserSettings.RulesSettings;
             var sonarWayConfig = sonarWayProvider.GetRulesConfiguration(languageKey);
             return CreateConfiguration(languageKey, sonarWayConfig, settings);
         }

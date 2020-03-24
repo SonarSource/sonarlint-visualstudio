@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Arrange
             var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone)
             {
-                ConnectedModeSettings = new RulesSettings
+                ConnectedModeSettings = new UserSettings(new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -49,9 +49,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                         {  "cpp:rule3", new RuleConfig { Level = RuleLevel.On } },
                         {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
                     }
-                },
+                }),
 
-                StandaloneModeSettings = new RulesSettings
+                StandaloneModeSettings = new UserSettings(new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                         {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
                         {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
                     }
-                },
+                }),
 
                 SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
                     .AddRule("rule1", IssueSeverity.Blocker, isActive: false)
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Arrange
             var builder = new TestEnvironmentBuilder(mode)
             {
-                ConnectedModeSettings = new RulesSettings
+                ConnectedModeSettings = new UserSettings(new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -98,9 +98,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                         { "cpp:rule3", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Critical } },
                         { "XXX:rule4", new RuleConfig { Level = RuleLevel.On, Severity = IssueSeverity.Info } }
                     }
-                },
+                }),
 
-                StandaloneModeSettings = new RulesSettings
+                StandaloneModeSettings = new UserSettings(new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                         { "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
                         { "XXX:rule4", new RuleConfig { Level = RuleLevel.On } }
                     }
-                },
+                }),
 
                 SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
                     .AddRule("rule1", IssueSeverity.Info, isActive: false)
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             {
                 ConnectedSettingsFileExists = false,
 
-                StandaloneModeSettings = new RulesSettings
+                StandaloneModeSettings = new UserSettings(new RulesSettings
                 {
                     Rules = new Dictionary<string, RuleConfig>
                     {
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                         {  "cpp:rule4", new RuleConfig { Level = RuleLevel.On } },
                         {  "XXX:rule3", new RuleConfig { Level = RuleLevel.On } }
                     }
-                },
+                }),
 
                 SonarWayConfig = new DummyCFamilyRulesConfig("cpp")
                     .AddRule("rule1", IssueSeverity.Info, isActive: false)
@@ -189,8 +189,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             private readonly SonarLintMode bindingMode;
 
-            public RulesSettings StandaloneModeSettings { get; set; }
-            public RulesSettings ConnectedModeSettings { get; set; }
+            public UserSettings StandaloneModeSettings { get; set; }
+            public UserSettings ConnectedModeSettings { get; set; }
             public DummyCFamilyRulesConfig SonarWayConfig { get; set; }
 
             public bool ConnectedSettingsFileExists { get; set; } = true;
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
                 // Data: connected mode settings
                 const string connectedSettingsFilesPath = "zzz\\foo.bar";
-                var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings, Formatting.Indented);
+                var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings?.RulesSettings, Formatting.Indented);
 
                 rulesetInfoProviderMock.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath("sqProjectKey", It.IsAny<Language>(), bindingMode))
                     .Returns(connectedSettingsFilesPath);
