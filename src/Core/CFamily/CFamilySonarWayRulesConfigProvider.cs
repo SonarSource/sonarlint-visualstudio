@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         private class SingleLanguageRulesConfiguration : ICFamilyRulesConfig
         {
-            private static StringComparer RuleKeyComparer = StringComparer.OrdinalIgnoreCase;
+            private static readonly StringComparer RuleKeyComparer = StringComparer.OrdinalIgnoreCase;
 
             public SingleLanguageRulesConfiguration(CFamilySonarWayRulesConfigProvider cache, string cFamilyLanguage)
             {

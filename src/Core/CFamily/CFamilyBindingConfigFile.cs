@@ -29,24 +29,24 @@ namespace SonarLint.VisualStudio.Core.CFamily
     {
         private readonly IFileSystem fileSystem;
 
-        public CFamilyBindingConfigFile(UserSettings userSettings)
-            : this (userSettings, new FileSystem())
+        public CFamilyBindingConfigFile(RulesSettings ruleSettings)
+            : this (ruleSettings, new FileSystem())
         {
         }
 
-        public CFamilyBindingConfigFile(UserSettings userSettings, IFileSystem fileSystem)
+        public CFamilyBindingConfigFile(RulesSettings rulesSettings, IFileSystem fileSystem)
         {
-            this.UserSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            this.RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
             this.fileSystem = fileSystem;
         }
 
-        internal /* for testing */ UserSettings UserSettings { get; }
+        internal /* for testing */ RulesSettings RuleSettings { get; }
 
         #region IBindingConfigFile implementation
 
         public void Save(string fullFilePath)
         {
-            string dataAsText = JsonConvert.SerializeObject(this.UserSettings, Formatting.Indented);
+            string dataAsText = JsonConvert.SerializeObject(this.RuleSettings, Formatting.Indented);
             fileSystem.File.WriteAllText(fullFilePath, dataAsText);
         }
 

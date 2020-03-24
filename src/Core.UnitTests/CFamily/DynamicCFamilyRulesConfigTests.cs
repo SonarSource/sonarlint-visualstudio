@@ -33,9 +33,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [TestMethod]
         public void Ctor_NullArguments()
         {
-            var userSettings = new UserSettings();
+            var settings = new RulesSettings();
 
-            Action act = () => new DynamicCFamilyRulesConfig(null, userSettings);
+            Action act = () => new DynamicCFamilyRulesConfig(null, settings);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
 
             // Null settings should be ok
@@ -48,9 +48,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
-        [DataRow(false, DisplayName = "UserSettings are null")]
-        [DataRow(true, DisplayName = "UserSettings are not null but empty")]
-        public void NullOrEmptyUserSettings_DefaultsUsed(bool areUserSettingsNull)
+        [DataRow(false, DisplayName = "RulesSettings are null")]
+        [DataRow(true, DisplayName = "RulesSettings are not null but empty")]
+        public void NullOrEmptyRulesSettings_DefaultsUsed(bool areCustomSettingsNull)
         {
             // Arrange
             var defaultConfig = new DummyCFamilyRulesConfig("123")
@@ -61,10 +61,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                 .AddRule("rule3", IssueSeverity.Minor, isActive: false,
                     parameters: new Dictionary<string, string> { { "p3", "v3" } });
 
-            var userSettings = areUserSettingsNull ? null : new UserSettings();
+            var settings = areCustomSettingsNull ? null : new RulesSettings();
 
             // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, userSettings);
+            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings);
 
             // Assert
             testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3");
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void ActiveRules_UserSettingsOverrideDefaults()
+        public void ActiveRules_CustomSettingsOverrideDefaults()
         {
             // Arrange
             var defaultConfig = new DummyCFamilyRulesConfig("c")
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                 .AddRule("rule2", isActive: true)
                 .AddRule("rule3", isActive: true);
 
-            var userSettings = new UserSettings
+            var settings = new RulesSettings
             {
                 Rules = new Dictionary<string, RuleConfig>
                 {
@@ -109,14 +109,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             };
 
             // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, userSettings);
+            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings);
 
             // Assert
             testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3");
         }
 
         [TestMethod]
-        public void EffectiveSeverity_UserSettingsOverrideDefaults()
+        public void EffectiveSeverity_CustomSettingsOverrideDefaults()
         {
             // Arrange
             var defaultConfig = new DummyCFamilyRulesConfig("c")
@@ -124,23 +124,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                 .AddRule("rule2", IssueSeverity.Minor, isActive: true)
                 .AddRule("rule3", IssueSeverity.Info, isActive: true);
 
-            var userSettings = new UserSettings();
+            var settings = new RulesSettings();
 
             // Rule 1 - severity not specified -> should use default
-            userSettings.Rules["c:rule1"] = new RuleConfig();
+            settings.Rules["c:rule1"] = new RuleConfig();
 
             // Rule 2 - should override default severity
             // Rule key comparison should be case-sensitive
-            userSettings.Rules["c:RULE2"] = new RuleConfig { Severity = IssueSeverity.Blocker };
+            settings.Rules["c:RULE2"] = new RuleConfig { Severity = IssueSeverity.Blocker };
 
             // Rule 3 for a different language -> should be ignored and the default config used
-            userSettings.Rules["cpp:rule3"] = new RuleConfig { Severity = IssueSeverity.Critical };
+            settings.Rules["cpp:rule3"] = new RuleConfig { Severity = IssueSeverity.Critical };
 
             // rule in user settings that isn't in the default config should be ignored
-            userSettings.Rules["c:missingRule"] = new RuleConfig { Severity = IssueSeverity.Critical };
+            settings.Rules["c:missingRule"] = new RuleConfig { Severity = IssueSeverity.Critical };
 
             // Act
-            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, userSettings);
+            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, settings);
 
             // Assert
             dynamicConfig.RulesMetadata.Count.Should().Be(3);
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Parameters_UserSettingsOverrideDefaults()
+        public void Parameters_CustomSettingsOverrideDefaults()
         {
             // Arrange
             var defaultConfig = new DummyCFamilyRulesConfig("c")
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                     }
                 );
 
-            var userSettings = new UserSettings
+            var settings = new RulesSettings
             {
                 Rules = new Dictionary<string, RuleConfig>
                 {
@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             };
 
             // Act
-            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, userSettings);
+            var dynamicConfig = new DynamicCFamilyRulesConfig(defaultConfig, settings);
 
             // Assert
             dynamicConfig.RulesParameters.Count.Should().Be(3);
@@ -245,7 +245,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void EffectiveParameters_UserSettingsOverrideDefaults()
+        public void EffectiveParameters_CustomSettingsOverrideDefaults()
         {
             // Arrange
             var defaultParams = new Dictionary<string, string>

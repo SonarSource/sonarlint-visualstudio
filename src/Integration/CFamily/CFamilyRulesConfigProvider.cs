@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         // Local services
         private readonly ISolutionRuleSetsInformationProvider solutionInfoProvider;
 
-        private readonly UserSettingsSerializer serializer;
+        private readonly RulesSettingsSerializer serializer;
 
         [ImportingConstructor]
         public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             solutionInfoProvider.AssertLocalServiceIsNotNull();
 
             this.sonarWayProvider = sonarWayProvider;
-            this.serializer = new UserSettingsSerializer(fileSystem, logger);
+            this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
             this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(logger);
         }
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
         public ICFamilyRulesConfig GetRulesConfiguration(string languageKey)
         {
-            UserSettings settings = null;
+            RulesSettings settings = null;
 
             // If in connected mode, look for the C++/C family settings in the .sonarlint/sonarqube folder.
             var binding = this.activeSolutionBoundTracker.CurrentConfiguration;
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
         #endregion IRulesConfigurationProvider implementation
 
-        private UserSettings FindConnectedModeSettings(string languageKey, BindingConfiguration binding)
+        private RulesSettings FindConnectedModeSettings(string languageKey, BindingConfiguration binding)
         {
             var language = Language.GetLanguageFromLanguageKey(languageKey);
             Debug.Assert(language != null, $"Unknown language key: {languageKey}");
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             return null;
         }
 
-        protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(string languageKey, ICFamilyRulesConfig sonarWayConfig, UserSettings settings)
+        protected virtual /* for testing */ ICFamilyRulesConfig CreateConfiguration(string languageKey, ICFamilyRulesConfig sonarWayConfig, RulesSettings settings)
             => effectiveConfigCalculator.GetEffectiveRulesConfig(languageKey, sonarWayConfig, settings);
     }
 }

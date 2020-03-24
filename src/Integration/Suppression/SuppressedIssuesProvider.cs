@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 logger);
         }
 
-        internal SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, 
+        internal SuppressedIssuesProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker,
             CreateProviderFunc createProviderFunc)
         {
             this.createProviderFunc = createProviderFunc ??
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             this.activeSolutionBoundTracker.SolutionBindingChanged += OnSolutionBindingChanged;
             this.activeSolutionBoundTracker.SolutionBindingUpdated += OnSolutionBindingUpdated;
-            
+
             Refresh(activeSolutionBoundTracker.CurrentConfiguration);
         }
 
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
         private void Refresh(BindingConfiguration configuration)
         {
             CleanupResources();
-            
+
             if (configuration.Mode != SonarLintMode.Standalone)
             {
                 instance = createProviderFunc(configuration);

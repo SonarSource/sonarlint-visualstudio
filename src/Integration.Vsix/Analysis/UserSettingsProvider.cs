@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
-        private readonly UserSettingsSerializer serializer;
+        private readonly RulesSettingsSerializer serializer;
 
         [ImportingConstructor]
         public UserSettingsProvider(ILogger logger)
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.settingsFileMonitor = settingsFileMonitor ?? throw new ArgumentNullException(nameof(settingsFileMonitor));
 
-            this.serializer = new UserSettingsSerializer(fileSystem, logger);
+            this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
             SettingsFilePath = settingsFileMonitor.MonitoredFilePath;
             UserSettings = SafeLoadUserSettings(SettingsFilePath, logger);
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         #region IUserSettingsProvider implementation
 
-        public UserSettings UserSettings { get; private set; }
+        public RulesSettings UserSettings { get; private set; }
 
         public event EventHandler SettingsChanged;
 
@@ -102,13 +102,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         #endregion
 
-        private UserSettings SafeLoadUserSettings(string filePath, ILogger logger)
+        private RulesSettings SafeLoadUserSettings(string filePath, ILogger logger)
         {
             var settings = serializer.SafeLoad(filePath);
             if (settings == null)
             {
                 logger.WriteLine(AnalysisStrings.Settings_UsingDefaultSettings);
-                settings = new UserSettings();
+                settings = new RulesSettings();
             }
             return settings;
         }

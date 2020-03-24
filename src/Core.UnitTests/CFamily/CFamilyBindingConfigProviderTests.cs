@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         {
             CFamilyBindingConfigProvider.Convert(sqSeverity).Should().Be(expected);
         }
- 
+
         [TestMethod]
         public void ConvertRulesToSettings()
         {
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             };
 
             // Act
-            var settings = CFamilyBindingConfigProvider.CreateUserSettingsFromQPRules(qpRules);
+            var settings = CFamilyBindingConfigProvider.CreateRulesSettingsFromQPRules(qpRules);
 
             // Assert
             settings.Rules.Count.Should().Be(3);
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
             settings.Rules["repo1:key1"].Parameters.Should().BeNull();
             settings.Rules["repo1:key2"].Parameters.Should().BeNull();
-    
+
             var rule3Params = settings.Rules["repo1:key3"].Parameters;
             rule3Params.Should().NotBeNull();
             rule3Params.Keys.Should().BeEquivalentTo("paramKey1", "paramKey2", "paramKey3");
@@ -106,7 +106,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                     {
                         {  "p1", "v1" },
                         {  "p2", "v2" }
-
                     })
             };
 
@@ -124,9 +123,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             result.Should().BeOfType<CFamilyBindingConfigFile>();
 
             var cfamilyConfigFile = (CFamilyBindingConfigFile)result;
-            cfamilyConfigFile.UserSettings.Should().NotBeNull();
+            cfamilyConfigFile.RuleSettings.Should().NotBeNull();
 
-            var slvsRules = cfamilyConfigFile.UserSettings.Rules;
+            var slvsRules = cfamilyConfigFile.RuleSettings.Rules;
             slvsRules.Should().NotBeNull();
             slvsRules.Keys.Should().BeEquivalentTo("repo1:key1", "repo2:key2");
             slvsRules["repo1:key1"].Level.Should().Be(RuleLevel.On);
@@ -169,9 +168,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             result.Should().BeOfType<CFamilyBindingConfigFile>();
 
             var cfamilyConfigFile = (CFamilyBindingConfigFile)result;
-            cfamilyConfigFile.UserSettings.Should().NotBeNull();
-            cfamilyConfigFile.UserSettings.Rules.Should().NotBeNull();
-            cfamilyConfigFile.UserSettings.Rules.Count.Should().Be(0);
+            cfamilyConfigFile.RuleSettings.Should().NotBeNull();
+            cfamilyConfigFile.RuleSettings.Rules.Should().NotBeNull();
+            cfamilyConfigFile.RuleSettings.Rules.Count.Should().Be(0);
 
             testLogger.AssertNoOutputMessages();
         }

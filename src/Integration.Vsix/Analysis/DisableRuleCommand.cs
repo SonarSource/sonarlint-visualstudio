@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             var settingsProvider = await package.GetMefServiceAsync<IUserSettingsProvider>();
             var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
 
-            IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync((typeof(IMenuCommandService)));
+            IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
             Instance = new DisableRuleCommand(commandService, eList, settingsProvider, tracker, logger);
         }
 

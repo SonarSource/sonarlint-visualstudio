@@ -30,34 +30,34 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
     public class EffectiveRulesConfigCalculatorTests
     {
         [TestMethod]
-        [DataRow(true /* user settings are null */)]
-        [DataRow(false /* user settings are not null, but emtpy */)]
-        public void GetConfig_NullUserSettings_DefaultConfigReturned(bool sourceUserSettingsAreNull)
+        [DataRow(true /* custom settings are null */)]
+        [DataRow(false /* custom settings are not null, but emtpy */)]
+        public void GetConfig_NullCustomSettings_DefaultConfigReturned(bool sourceCustomSettingsAreNull)
         {
             // Arrange
             var testLogger = new TestLogger();
             var testSubject = new EffectiveRulesConfigCalculator(testLogger);
 
             var defaultRulesConfig = CreateMockConfig("language1");
-            var sourcesSettings = sourceUserSettingsAreNull ? null : new UserSettings();
+            var sourcesSettings = sourceCustomSettingsAreNull ? null : new RulesSettings();
 
             // Act
             var result = testSubject.GetEffectiveRulesConfig("language1", defaultRulesConfig, sourcesSettings);
 
             // Assert - optimisation - expecting the same object instance
             result.Should().BeSameAs(defaultRulesConfig);
-            testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_NoUserSettings);
+            testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_NoCustomRulesSettings);
         }
 
         [TestMethod]
-        public void GetConfig_RulesInUserSettings_MergedConfigReturned()
+        public void GetConfig_RulesInCustomSettings_MergedConfigReturned()
         {
             // Arrange
             var testLogger = new TestLogger();
             var testSubject = new EffectiveRulesConfigCalculator(testLogger);
 
             var defaultRulesConfig = CreateMockConfig("key");
-            var sourcesSettings = new UserSettings
+            var sourcesSettings = new RulesSettings
             {
                 Rules = new System.Collections.Generic.Dictionary<string, RuleConfig>
                 {
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         public void Cache_DifferentSourceConfig_NotFound_AndEntryCleared()
         {
             var sourceConfig1 = new Mock<ICFamilyRulesConfig>().Object;
-            var sourceSettings1 = new UserSettings();
+            var sourceSettings1 = new RulesSettings();
             var effectiveConfig1 = new Mock<ICFamilyRulesConfig>().Object;
 
             var testSubject = new EffectiveRulesConfigCalculator.RulesConfigCache();
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         public void Cache_DifferentSourceSettings_NotFound_AndEntryCleared()
         {
             var sourceConfig1 = new Mock<ICFamilyRulesConfig>().Object;
-            var sourceSettings1 = new UserSettings();
+            var sourceSettings1 = new RulesSettings();
             var effectiveConfig1 = new Mock<ICFamilyRulesConfig>().Object;
 
             var testSubject = new EffectiveRulesConfigCalculator.RulesConfigCache();
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             testSubject.CacheCount.Should().Be(1);
 
             // 2. Different source settings -> not found
-            testSubject.FindConfig("key1", sourceConfig1, new UserSettings()).Should().BeNull();
+            testSubject.FindConfig("key1", sourceConfig1, new RulesSettings()).Should().BeNull();
             testSubject.CacheCount.Should().Be(0);
         }
 
@@ -136,8 +136,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var sourceConfig1 = new Mock<ICFamilyRulesConfig>().Object;
             var sourceConfig2 = new Mock<ICFamilyRulesConfig>().Object;
 
-            var sourceSettings1 = new UserSettings();
-            var sourceSettings2 = new UserSettings();
+            var sourceSettings1 = new RulesSettings();
+            var sourceSettings2 = new RulesSettings();
 
             var effectiveConfig1 = new Mock<ICFamilyRulesConfig>().Object;
             var effectiveConfig2 = new Mock<ICFamilyRulesConfig>().Object;
@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         private static ICFamilyRulesConfig CreateMockConfig(string languageKey)
         {
             var defaultRulesConfigMock = new Mock<ICFamilyRulesConfig>();
-            defaultRulesConfigMock.Setup(x => x.LanguageKey).Returns("foo");
+            defaultRulesConfigMock.Setup(x => x.LanguageKey).Returns(languageKey);
             return defaultRulesConfigMock.Object;
         }
     }

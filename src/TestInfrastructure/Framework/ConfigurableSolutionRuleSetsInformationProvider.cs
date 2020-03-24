@@ -61,7 +61,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 default:
                     throw new System.ArgumentOutOfRangeException($"Invalid bindingMode supplied: {bindingMode}");
             }
-            return Path.Combine(this.SolutionRootFolder, bindingMode.ToString());
         }
 
         string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode)
