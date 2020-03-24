@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         #region IUserSettingsProvider implementation
 
-        public RulesSettings UserSettings { get; private set; }
+        public UserSettings UserSettings { get; private set; }
 
         public event EventHandler SettingsChanged;
 
@@ -78,16 +78,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             Debug.Assert(!string.IsNullOrEmpty(ruleId), "DisableRule: ruleId should not be null/empty");
 
-            if (UserSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
+            if (UserSettings.RulesSettings.Rules.TryGetValue(ruleId, out var ruleConfig))
             {
                 ruleConfig.Level = RuleLevel.Off;
             }
             else
             {
-                UserSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
+                UserSettings.RulesSettings.Rules[ruleId] = new RuleConfig { Level = RuleLevel.Off };
             }
 
-            serializer.SafeSave(SettingsFilePath, UserSettings);
+            serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
         }
 
         public string SettingsFilePath { get; }
@@ -96,13 +96,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             if (!fileSystem.File.Exists(SettingsFilePath))
             {
-                serializer.SafeSave(SettingsFilePath, UserSettings);
+                serializer.SafeSave(SettingsFilePath, UserSettings.RulesSettings);
             }
         }
 
         #endregion
 
-        private RulesSettings SafeLoadUserSettings(string filePath, ILogger logger)
+        private UserSettings SafeLoadUserSettings(string filePath, ILogger logger)
         {
             var settings = serializer.SafeLoad(filePath);
             if (settings == null)
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 logger.WriteLine(AnalysisStrings.Settings_UsingDefaultSettings);
                 settings = new RulesSettings();
             }
-            return settings;
+            return new UserSettings(settings);
         }
 
         public void Dispose()
