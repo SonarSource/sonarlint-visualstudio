@@ -64,31 +64,30 @@ namespace SonarLint.VisualStudio.Core.CFamily
             configCache = new RulesConfigCache();
         }
 
-        public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesConfiguration)
+        public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customSettings)
         {
             if (defaultRulesConfig == null)
             {
                 throw new ArgumentNullException(nameof(defaultRulesConfig));
             }
-
-            // Optimisation - if there are no custom rules settings then just return the default
-            if ((customRulesConfiguration?.Rules?.Count ?? 0) == 0)
-            {
-                logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
-                return defaultRulesConfig;
-            }
-
-            var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customRulesConfiguration);
+            var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customSettings);
             if (effectiveConfig != null)
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheHit);
+                return effectiveConfig;
             }
-            else
+
+            logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
+
+            if ((customSettings?.Rules?.Count ?? 0) == 0)
             {
-                logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
-                effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customRulesConfiguration);
-                configCache.Add(languageKey, defaultRulesConfig, customRulesConfiguration, effectiveConfig);
+                logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
             }
+
+            // TODO: apply filters to exclude which should not be run
+            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings);
+
+            configCache.Add(languageKey, defaultRulesConfig, customSettings, effectiveConfig);
 
             return effectiveConfig;
         }
