@@ -64,36 +64,33 @@ namespace SonarLint.VisualStudio.Core.CFamily
             configCache = new RulesConfigCache();
         }
 
-        public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesConfiguration)
+        public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customSettings)
         {
             if (defaultRulesConfig == null)
             {
                 throw new ArgumentNullException(nameof(defaultRulesConfig));
             }
-            var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customRulesConfiguration);
+            var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customSettings);
             if (effectiveConfig != null)
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheHit);
                 return effectiveConfig;
             }
 
-            // Optimisation - if there are no user-specified rules settings then just return the default
-            if ((customRulesConfiguration?.Rules?.Count ?? 0) == 0)
+            if ((customSettings?.Rules?.Count ?? 0) == 0)
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
-                customRulesConfiguration = new RulesSettings();
+                customSettings = new RulesSettings();
             }
             else
             {
                 logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
             }
 
-            //// Apply filters to exclude which should not be run
-            //customRulesConfiguration.Rules["S5536"] = new RuleConfig { Level = RuleLevel.Off };
+            // TODO: apply filters to exclude which should not be run
+            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings);
 
-            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customRulesConfiguration);
-
-            configCache.Add(languageKey, defaultRulesConfig, customRulesConfiguration, effectiveConfig);
+            configCache.Add(languageKey, defaultRulesConfig, customSettings, effectiveConfig);
 
             return effectiveConfig;
         }

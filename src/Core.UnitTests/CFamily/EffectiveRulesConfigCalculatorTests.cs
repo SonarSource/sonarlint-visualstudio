@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
@@ -32,20 +34,23 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [TestMethod]
         [DataRow(true /* custom settings are null */)]
         [DataRow(false /* custom settings are not null, but emtpy */)]
-        public void GetConfig_NullCustomSettings_DefaultConfigReturned(bool sourceCustomSettingsAreNull)
+        public void GetConfig_NoCustomSettings_NoError_DefaultsReturned(bool customSettingsAreNull)
         {
             // Arrange
             var testLogger = new TestLogger();
             var testSubject = new EffectiveRulesConfigCalculator(testLogger);
 
-            var defaultRulesConfig = CreateMockConfig("language1");
-            var sourcesSettings = sourceCustomSettingsAreNull ? null : new RulesSettings();
+            var defaultRulesConfig = CreateWellKnownRulesConfig("language1");
+            var sourcesSettings = customSettingsAreNull ? null : new RulesSettings();
 
             // Act
             var result = testSubject.GetEffectiveRulesConfig("language1", defaultRulesConfig, sourcesSettings);
 
-            // Assert - optimisation - expecting the same object instance
-            result.Should().BeSameAs(defaultRulesConfig);
+            // Assert
+            result.Should().NotBeSameAs(defaultRulesConfig);
+            result.LanguageKey.Should().Be("language1");
+            result.AllPartialRuleKeys.Should().BeEquivalentTo(defaultRulesConfig.AllPartialRuleKeys);
+
             testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_NoCustomRulesSettings);
         }
 
@@ -56,7 +61,33 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var testLogger = new TestLogger();
             var testSubject = new EffectiveRulesConfigCalculator(testLogger);
 
-            var defaultRulesConfig = CreateMockConfig("key");
+            var defaultRulesConfig = CreateWellKnownRulesConfig("key");
+            var sourcesSettings = new RulesSettings
+            {
+                Rules = new Dictionary<string, RuleConfig>
+                {
+                    // Turn an active rule off...
+                    { "key:" + WellKnownPartialRuleKey1_Active, new RuleConfig { Level = RuleLevel.Off } },
+                    // ... and an inactive rule one
+                    { "key:" + WellKnownPartialRuleKey3_Inactive, new RuleConfig { Level = RuleLevel.On } }
+                }
+            };
+
+            var result = testSubject.GetEffectiveRulesConfig("language1", defaultRulesConfig, sourcesSettings);
+
+            result.LanguageKey.Should().Be("key");
+            result.AllPartialRuleKeys.Should().BeEquivalentTo(defaultRulesConfig.AllPartialRuleKeys);
+            result.ActivePartialRuleKeys.Should().BeEquivalentTo(WellKnownPartialRuleKey2_Active, WellKnownPartialRuleKey3_Inactive);
+        }
+
+        [TestMethod]
+        public void GetConfig_CachedResultsReturnedIfAvailable()
+        {
+            // Arrange
+            var testLogger = new TestLogger();
+            var testSubject = new EffectiveRulesConfigCalculator(testLogger);
+
+            var defaultRulesConfig = CreateWellKnownRulesConfig("key");
             var sourcesSettings = new RulesSettings
             {
                 Rules = new System.Collections.Generic.Dictionary<string, RuleConfig>
@@ -165,11 +196,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
         #endregion Cache tests
 
-        private static ICFamilyRulesConfig CreateMockConfig(string languageKey)
+        internal const string WellKnownPartialRuleKey1_Active = "rule1";
+        internal const string WellKnownPartialRuleKey2_Active = "rule2";
+        internal const string WellKnownPartialRuleKey3_Inactive = "rule3";
+
+        private static ICFamilyRulesConfig CreateWellKnownRulesConfig(string languageKey)
         {
-            var defaultRulesConfigMock = new Mock<ICFamilyRulesConfig>();
-            defaultRulesConfigMock.Setup(x => x.LanguageKey).Returns(languageKey);
-            return defaultRulesConfigMock.Object;
+            var defaultRulesConfig = new DummyCFamilyRulesConfig(languageKey)
+                .AddRule(WellKnownPartialRuleKey1_Active, IssueSeverity.Blocker, isActive: true, parameters: null)
+                .AddRule(WellKnownPartialRuleKey2_Active, IssueSeverity.Major, isActive: true, parameters: null)
+                .AddRule(WellKnownPartialRuleKey3_Inactive, IssueSeverity.Minor, isActive: false, parameters: null);
+
+            return defaultRulesConfig;
         }
     }
 }
