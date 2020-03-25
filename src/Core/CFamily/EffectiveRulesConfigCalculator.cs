@@ -66,10 +66,19 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         public ICFamilyRulesConfig GetEffectiveRulesConfig(string languageKey, ICFamilyRulesConfig defaultRulesConfig, RulesSettings customSettings)
         {
+            if (languageKey == null)
+            {
+                throw new ArgumentNullException(nameof(languageKey));
+            }
             if (defaultRulesConfig == null)
             {
                 throw new ArgumentNullException(nameof(defaultRulesConfig));
             }
+            if (customSettings == null)
+            {
+                throw new ArgumentNullException(nameof(customSettings));
+            }
+
             var effectiveConfig = configCache.FindConfig(languageKey, defaultRulesConfig, customSettings);
             if (effectiveConfig != null)
             {
@@ -79,13 +88,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
             logger.WriteLine(CoreStrings.EffectiveRules_CacheMiss);
 
-            if ((customSettings?.Rules?.Count ?? 0) == 0)
-            {
-                logger.WriteLine(CoreStrings.EffectiveRules_NoCustomRulesSettings);
-            }
-
-            // TODO: apply filters to exclude which should not be run
-            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings);
+            effectiveConfig = new DynamicCFamilyRulesConfig(defaultRulesConfig, customSettings, logger);
 
             configCache.Add(languageKey, defaultRulesConfig, customSettings, effectiveConfig);
 

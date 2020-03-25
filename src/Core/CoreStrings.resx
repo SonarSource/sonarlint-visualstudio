@@ -117,6 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CFamily_NoCustomRulesSettings" xml:space="preserve">
+    <value>No custom rules settings - using defaults</value>
+  </data>
+  <data name="CFamily_RulesUnavailableInSonarLint" xml:space="preserve">
+    <value>Note: the following CFamily rules are not available in SonarLint: {0}</value>
+    <comment>Output window messge</comment>
+  </data>
   <data name="CppLanguageName" xml:space="preserve">
     <value>C++</value>
     <comment>C++ language name</comment>
@@ -130,9 +137,6 @@
   </data>
   <data name="EffectiveRules_CacheMiss" xml:space="preserve">
     <value>Calculating effective rule settings...</value>
-  </data>
-  <data name="EffectiveRules_NoCustomRulesSettings" xml:space="preserve">
-    <value>No custom rules settings - using defaults</value>
   </data>
   <data name="Settings_ErrorLoadingSettingsFile" xml:space="preserve">
     <value>Error loading settings from "{0}".
