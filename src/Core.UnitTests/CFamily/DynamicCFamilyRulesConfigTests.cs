@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             settings.Rules["c:rule1"] = new RuleConfig();
 
             // Rule 2 - should override default severity
-            // Rule key comparison should be case-sensitive
+            // Rule key comparison should be case-insensitive
             settings.Rules["c:RULE2"] = new RuleConfig { Severity = IssueSeverity.Blocker };
 
             // Rule 3 for a different language -> should be ignored and the default config used
@@ -317,12 +317,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                 .AddRule("custom2", RuleLevel.On);
 
             // Act
-            DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
+            var result = DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
 
             // Assert
-            custom.Rules.Keys.Should().BeEquivalentTo("custom1", "custom2");
-            custom.Rules["custom1"].Level.Should().Be(RuleLevel.On);
-            custom.Rules["custom2"].Level.Should().Be(RuleLevel.On);
+            result.Should().NotBeSameAs(custom);
+
+            result.Rules.Keys.Should().BeEquivalentTo("custom1", "custom2");
+            result.Rules["custom1"].Level.Should().Be(RuleLevel.On);
+            result.Rules["custom2"].Level.Should().Be(RuleLevel.On);
         }
 
         [TestMethod]
@@ -335,11 +337,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var custom = new RulesSettings();
 
             // Act
-            DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
+            var result = DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
 
             // Assert
-            custom.Rules.Keys.Should().BeEquivalentTo("excluded");
-            custom.Rules["excluded"].Level.Should().Be(RuleLevel.Off);
+            result.Should().NotBeSameAs(custom);
+            custom.Rules.Count.Should().Be(0);
+
+            result.Rules.Keys.Should().BeEquivalentTo("excluded");
+            result.Rules["excluded"].Level.Should().Be(RuleLevel.Off);
          
             testLogger.AssertPartialOutputStringExists("excluded");
         }
@@ -359,15 +364,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                 .AddRule("excluded4", RuleLevel.On);
 
             // Act
-            DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
+            var result = DynamicCFamilyRulesConfig.DisableExcludedRules(custom, excluded, testLogger);
 
             // Assert
-            custom.Rules.Keys.Should().BeEquivalentTo("xxx", "excluded1", "yyy", "excluded2", "excluded3", "excluded4");
-            custom.Rules["xxx"].Level.Should().Be(RuleLevel.On);
-            custom.Rules["excluded1"].Level.Should().Be(RuleLevel.Off); // changed from On to Off
-            custom.Rules["yyy"].Level.Should().Be(RuleLevel.Off);
-            custom.Rules["excluded2"].Level.Should().Be(RuleLevel.Off); // unchanged - still Off
-            custom.Rules["excluded4"].Level.Should().Be(RuleLevel.Off); // changed from On to Off
+            result.Should().NotBeSameAs(custom);
+            custom.Rules.Count.Should().BeLessThan(result.Rules.Count);
+
+            result.Rules.Keys.Should().BeEquivalentTo("xxx", "excluded1", "yyy", "excluded2", "excluded3", "excluded4");
+            result.Rules["xxx"].Level.Should().Be(RuleLevel.On);
+            result.Rules["excluded1"].Level.Should().Be(RuleLevel.Off); // changed from On to Off
+            result.Rules["yyy"].Level.Should().Be(RuleLevel.Off);
+            result.Rules["excluded2"].Level.Should().Be(RuleLevel.Off); // unchanged - still Off
+            result.Rules["excluded4"].Level.Should().Be(RuleLevel.Off); // changed from On to Off
 
             testLogger.AssertPartialOutputStringExists("excluded1", "excluded2", "excluded3", "excluded4");
         }
