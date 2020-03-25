@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -41,13 +42,30 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
-        [DataRow(true /* custom settings are null */)]
-        [DataRow(false /* custom settings are not null, but emtpy */)]
-        public void GetConfig_NoCustomSettings_DefaultsReturned(bool customSettingsAreNull)
+        public void GetConfig_NullArguments_Throws()
+        {
+            var defaultRulesConfig = CreateWellKnownRulesConfig("language1");
+            var customSettings = new RulesSettings();
+
+            // 1. Language
+            Action act = () => testSubject.GetEffectiveRulesConfig(null, defaultRulesConfig, customSettings);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("languageKey");
+
+            // 2. Default rules config
+            act = () => testSubject.GetEffectiveRulesConfig("x", null, customSettings);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("defaultRulesConfig");
+
+            // 3. Custom settings
+            act = () => testSubject.GetEffectiveRulesConfig("x", defaultRulesConfig, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("customSettings");
+        }
+
+        [TestMethod]
+        public void GetConfig_NoCustomSettings_DefaultsReturned()
         {
             // Arrange
             var defaultRulesConfig = CreateWellKnownRulesConfig("language1");
-            var sourcesSettings = customSettingsAreNull ? null : new RulesSettings();
+            var sourcesSettings = new RulesSettings();
 
             // Act
             var result = testSubject.GetEffectiveRulesConfig("language1", defaultRulesConfig, sourcesSettings);
@@ -56,7 +74,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             result.LanguageKey.Should().Be("language1");
             result.AllPartialRuleKeys.Should().BeEquivalentTo(defaultRulesConfig.AllPartialRuleKeys);
 
-            testLogger.AssertOutputStringExists(CoreStrings.EffectiveRules_NoCustomRulesSettings);
+            testLogger.AssertOutputStringExists(CoreStrings.CFamily_NoCustomRulesSettings);
         }
 
         [TestMethod]
