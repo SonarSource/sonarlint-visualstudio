@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
@@ -34,9 +35,31 @@ namespace SonarLint.VisualStudio.Core.CFamily
     {
         private readonly ICFamilyRulesConfig defaultRulesConfig;
 
-        public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings)
+        internal static readonly string[] ExcludedRulesKeys = new string[] { "cpp:S5536", "c:S5536" };
+
+        public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)
+            :this(defaultRulesConfig, customRulesSettings, logger, ExcludedRulesKeys)
+        {
+        }
+
+        internal /* for testing */ DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger, IEnumerable<string> excludedRuleKeys)
         {
             this.defaultRulesConfig = defaultRulesConfig ?? throw new ArgumentNullException(nameof(defaultRulesConfig));
+            if (customRulesSettings == null)
+            {
+                throw new ArgumentNullException(nameof(customRulesSettings));
+            }
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            if (customRulesSettings.Rules.Count == 0)
+            {
+                logger.WriteLine(CoreStrings.CFamily_NoCustomRulesSettings);
+            }
+
+            DisableExcludedRules(customRulesSettings, excludedRuleKeys, logger);
 
             if ((customRulesSettings?.Rules?.Count ?? 0) == 0)
             {
@@ -153,6 +176,16 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 effectiveParams[userParam.Key] = userParam.Value;
             }
             return effectiveParams;
+        }
+
+        internal /* for testing */ static void DisableExcludedRules(RulesSettings customRules, IEnumerable<string> excludedRuleKeys, ILogger logger)
+        {
+            logger.WriteLine(CoreStrings.CFamily_RulesUnavailableInSonarLint, string.Join(", ", excludedRuleKeys));
+
+            foreach (var key in excludedRuleKeys)
+            {
+                customRules.Rules[key] = new RuleConfig { Level = RuleLevel.Off };
+            }
         }
 
         private static string GetFullRuleKey(string language, string partialRuleKey)
