@@ -59,22 +59,12 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 logger.WriteLine(CoreStrings.CFamily_NoCustomRulesSettings);
             }
 
-            DisableExcludedRules(customRulesSettings, excludedRuleKeys, logger);
+            var modifiedCustomRules = DisableExcludedRules(customRulesSettings, excludedRuleKeys, logger);
 
-            if ((customRulesSettings?.Rules?.Count ?? 0) == 0)
-            {
-                ActivePartialRuleKeys = defaultRulesConfig.ActivePartialRuleKeys;
-                RulesMetadata = defaultRulesConfig.RulesMetadata;
-                RulesParameters = defaultRulesConfig.RulesParameters;
-            }
-            else
-            {
-                ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, customRulesSettings);
-
-                RulesMetadata = new Dictionary<string, RuleMetadata>();
-                RulesParameters = new Dictionary<string, IDictionary<string, string>>();
-                CalculateEffectiveSettings(defaultRulesConfig, customRulesSettings);
-            }
+            ActivePartialRuleKeys = CalculateActiveRules(defaultRulesConfig, modifiedCustomRules);
+            RulesMetadata = new Dictionary<string, RuleMetadata>();
+            RulesParameters = new Dictionary<string, IDictionary<string, string>>();
+            CalculateEffectiveSettings(defaultRulesConfig, modifiedCustomRules);
         }
 
         #region IRulesConfiguration interface methods
@@ -93,8 +83,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         private static IEnumerable<string> CalculateActiveRules(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings)
         {
-            Debug.Assert(customRulesSettings?.Rules != null && customRulesSettings.Rules.Count != 0);
-
             // We're only interested settings for rules that are for the same language as the supplied rules configuration.
             // The rule keys in the custom rules settings include the repo prefix, but the rule keys in the default rules config do not.
             var partialKeyToConfigMap = GetFilteredRulesKeyedByPartialKey(customRulesSettings, defaultRulesConfig.LanguageKey);
@@ -178,14 +166,28 @@ namespace SonarLint.VisualStudio.Core.CFamily
             return effectiveParams;
         }
 
-        internal /* for testing */ static void DisableExcludedRules(RulesSettings customRules, IEnumerable<string> excludedRuleKeys, ILogger logger)
+        /// <summary>
+        /// Returns a copy of the custom rules unioned with the config to disable the
+        /// list of excluded rules
+        /// </summary>
+        internal /* for testing */ static RulesSettings DisableExcludedRules(RulesSettings customRules, IEnumerable<string> excludedRuleKeys, ILogger logger)
         {
             logger.WriteLine(CoreStrings.CFamily_RulesUnavailableInSonarLint, string.Join(", ", excludedRuleKeys));
 
+            // We're making a shallow copy of the list of rules. If we modify the original list, any exclusions we 
+            // add could end up be saved in the user settings.json file (if that is where the custom rules
+            // came from). That doesn't cause a functional problem but it could be confusing.
+            var modifiedSettings = new RulesSettings
+            {
+                Rules = new Dictionary<string, RuleConfig>(customRules.Rules, customRules.Rules.Comparer)
+            };
+
             foreach (var key in excludedRuleKeys)
             {
-                customRules.Rules[key] = new RuleConfig { Level = RuleLevel.Off };
+                modifiedSettings.Rules[key] = new RuleConfig { Level = RuleLevel.Off };
             }
+
+            return modifiedSettings;
         }
 
         private static string GetFullRuleKey(string language, string partialRuleKey)
