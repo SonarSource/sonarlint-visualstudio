@@ -425,6 +425,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     request.Flags |= Request.CharIsUnsigned;
                     predefines.Append("#define _CHAR_UNSIGNED 1\n");
                 }
+                request.Flags |= Request.SonarLint;
                 request.MsVersion = major * 10000000 + minor * 100000 + micro;
                 request.IncludeDirs = includeDirs.ToArray();
                 request.FrameworkDirs = Array.Empty<string>();

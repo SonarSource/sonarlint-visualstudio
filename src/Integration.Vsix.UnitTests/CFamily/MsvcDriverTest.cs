@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
             req.File.Should().Be("basePath/file.cpp");
-            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14);
+            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.SonarLint);
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
             req.File.Should().Be("basePath/file.c");
-            req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11);
+            req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11 | Request.SonarLint);
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
             req.File.Should().Be("basePath/file.c");
-            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14);
+            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.SonarLint);
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
             req.File.Should().Be("basePath/file.cpp");
-            req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11);
+            req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11 | Request.SonarLint);
         }
 
         [TestMethod]
@@ -453,7 +453,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     },
                 }
             });
-            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.CharIsUnsigned);
+            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 
+                | Request.CharIsUnsigned | Request.SonarLint);
             req.Predefines.Should().Contain("#define _CHAR_UNSIGNED 1\n");
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -468,7 +469,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     },
                 }
             });
-            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14);
+            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.SonarLint);
             req.Predefines.Should().NotContain("#define _CHAR_UNSIGNED 1\n");
         }
 
@@ -489,7 +490,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     },
                 }
             });
-            req.Flags.Should().Be(Request.C99 | Request.C11);
+            req.Flags.Should().Be(Request.C99 | Request.C11 | Request.SonarLint);
             req.Predefines.Should().Contain("#define __STDC__ 1\n");
             req.File.Should().Be("basePath/file.c");
 
@@ -508,7 +509,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     },
                 }
             });
-            req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.CPlusPlus17 | Request.OperatorNames);
+            req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 |
+                Request.CPlusPlus17 | Request.OperatorNames | Request.SonarLint);
             req.File.Should().Be("c:\\file.cpp");
         }
 
