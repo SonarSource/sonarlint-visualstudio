@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
+            return false;
             return daemon.IsAnalysisSupported(languages);
         }
 

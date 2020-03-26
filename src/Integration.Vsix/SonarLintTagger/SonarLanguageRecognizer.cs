@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ISonarLanguageRecognizer))]
     internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
-        private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
+        private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue", "ts" };
 
         private readonly IContentTypeRegistryService contentTypeRegistryService;
         private readonly IFileExtensionRegistryService fileExtensionRegistryService;
@@ -95,7 +95,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static bool IsJavascriptDocument(string fileExtension, IEnumerable<IContentType> contentTypes) =>
             JavascriptSupportedExtensions.Contains(fileExtension) ||
             contentTypes.Any(type => type.IsOfType("JavaScript") ||
-                                     type.IsOfType("Vue"));
+                                     type.IsOfType("Vue") ||
+                                     type.IsOfType("TypeScript"));
 
         private static bool IsCFamilyDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType("C/C++"));
