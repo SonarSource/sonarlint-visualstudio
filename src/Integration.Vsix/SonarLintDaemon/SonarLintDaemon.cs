@@ -412,7 +412,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
-            return false;
             // TODO: this method is called when deciding whether to create a tagger.
             // If support for additional languages is not active when the user opens a document
             // then we won't create a tagger. If the user then activates support for additional

@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     public enum AnalysisLanguage
     {
         Javascript,
-        CFamily
+        CFamily,
+        Typescript
     }
 }

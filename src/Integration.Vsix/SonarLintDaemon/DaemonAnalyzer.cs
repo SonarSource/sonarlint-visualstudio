@@ -30,8 +30,9 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    [Export(typeof(IAnalyzer))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
+    // POC: stubbed out the daemon analyser export - we want JS to be handled by the new JS/TypeScript analyzer.
+    //[Export(typeof(IAnalyzer))]
+    //[PartCreationPolicy(CreationPolicy.Shared)]
     internal class DaemonAnalyzer : IAnalyzer
     {
         private readonly ISonarLintDaemon daemon;
@@ -48,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
-            return false;
             return daemon.IsAnalysisSupported(languages);
         }
 
