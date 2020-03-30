@@ -11,6 +11,20 @@ using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.TSAnalysis
 {
+
+    // TODO:
+    // * launch server and capture port
+    //      * assume we want launch the server, capture the output streams, and leave it running in the background.
+    // * check how parsing errors are handled (?don't want to display them to the user?)
+    //      * understand set of possible server error codes: e.g. missing TS, missing node, wrong version of node
+    // * experiment with passing "fileContent" instead/as well as "path"
+    
+
+    // * investigate embedding artefacts in the VSIX: likely size increase if we embed e.g. the minimum required bits, TypeScript, node
+    // * discover list of available rule keys: from files in the jar? API calls at build time?
+    // * location of node in VS / location/existence of TS?
+    // * number of Java-based vs Node-based rules
+
     [Export(typeof(IAnalyzer))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class TypescriptAnalyzer : IAnalyzer
