@@ -21,6 +21,7 @@
   <!-- Building the project creates an assembly that contains this custom task.   
        We then need to execute the CopyEmbeddedFiles task to execute the task and copy the files. -->
   <UsingTask TaskName="DownloadAndExtract" AssemblyFile="$(OutputPath)DownloadCFamilyPlugin.dll" />
+  <UsingTask TaskName="DownloadAndExtractJsTs" AssemblyFile="$(OutputPath)DownloadCFamilyPlugin.dll" />
   
   <Target Name="CopyEmbeddedFiles" >
     <Message Importance="high" Text="Fetching CFamily files..." />
@@ -41,5 +42,31 @@
     <Copy DestinationFolder="$(TargetDirectory)" SkipUnchangedFiles="true" SourceFiles="@(FilesToEmbed)" />
     
   </Target>
+
+  <Target Name="CopyEmbeddedFiles_SonarJS">
+    <Message Importance="high" Text="Fetching SonarJS files..." />
+
+    <!-- Parameter validation -->
+    <Error Condition="$(PluginUrl_SonarJS)==''" Text="PluginUrl_SonarJS property must be specified (url from which the CFamily jar can be downloaded)" />
+    <Error Condition="$(TargetDirectory_SonarJS)==''" Text="TargetDirectory_SonarJS property must be specified (i.e. destination to copy the CFamily files to)" />
+
+    <DownloadAndExtractJsTs DownloadUrl="$(PluginUrl_SonarJS)">
+      <Output TaskParameter="FilesToEmbed" ItemName="FilesToEmbed_SonarJS" />
+    </DownloadAndExtractJsTs>
+
+    <Message Importance="high" Text="List of SonarJS files to be embedded in the VSIX:" />
+    <Message Importance="high" Text="  %(FilesToEmbed_SonarJS.Identity)" />
+
+    <Message Importance="high" Text="Copying files to $(TargetDirectory_SonarJS)..." />
+    <MakeDir Directories="$(TargetDirectory_SonarJS)" />
+    <Copy DestinationFolder="$(TargetDirectory_SonarJS)" SkipUnchangedFiles="true" SourceFiles="@(FilesToEmbed_SonarJS)" />
+
+  </Target>
+
+  <!-- PROTOTYPING... -->
+  <PropertyGroup>
+    <TargetDirectory_SonarJS Condition=" $(TargetDirectory_SonarJS) == '' ">d:\junk\sonarjs</TargetDirectory_SonarJS>
+    <PluginUrl_SonarJs Condition=" $(PluginUrl_SonarJs) == '' ">https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.2.0.12043.jar</PluginUrl_SonarJs>
+  </PropertyGroup>
 
 </Project>
