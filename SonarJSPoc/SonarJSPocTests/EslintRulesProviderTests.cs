@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using System.Collections.Generic;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarJsConfig;
 
@@ -7,6 +8,8 @@ namespace SonarJSPocTests
     [TestClass]
     public class EslintRulesProviderTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void GetTypescriptRules()
         {
@@ -16,6 +19,8 @@ namespace SonarJSPocTests
             var actual = loader.GetTypeScriptRules();
 
             actual.Should().NotBeEmpty();
+            
+            DumpKeys(actual);
         }
 
         [TestMethod]
@@ -27,7 +32,18 @@ namespace SonarJSPocTests
             var actual = loader.GetJavaScriptRules();
 
             actual.Should().NotBeEmpty();
+
+            DumpKeys(actual);
         }
+
+        private void DumpKeys(IEnumerable<EslintRuleInfo> eslintRuleInfos)
+        {
+            foreach(var item in eslintRuleInfos)
+            {
+                TestContext.WriteLine(item.Key);
+            }
+        }
+
 
         private string EnsurePluginDownloaded()
         {
