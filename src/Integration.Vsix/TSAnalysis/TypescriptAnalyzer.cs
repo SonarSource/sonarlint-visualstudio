@@ -29,21 +29,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.TSAnalysis
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class TypescriptAnalyzer : IAnalyzer
     {
-        const int Default_ESLintBridge_Port = 50487;
-
-        private readonly int port;
         private readonly ILogger logger;
+        private int port;
+        private readonly string serverStartupScriptLocation;
+
+        private const string ScriptLocation = "c:\\Projects\\SonarJS\\eslint-bridge\\bin\\server";
 
         [ImportingConstructor]
-        public TypescriptAnalyzer(ILogger logger)
-            :this(Default_ESLintBridge_Port, logger)
+        public TypescriptAnalyzer(ILogger logger) 
+            :this(logger, 0, ScriptLocation)
         {
         }
 
-        internal TypescriptAnalyzer(int port, ILogger logger)
+        internal TypescriptAnalyzer(ILogger logger, int port, string serverStartupScriptLocation)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.port = port;
+            this.serverStartupScriptLocation = serverStartupScriptLocation;
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -66,13 +68,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.TSAnalysis
                 throw new ArgumentOutOfRangeException($"Unsupported language");
             }
 
+            using var serverStarter = new EslintBridgeServerStarter(logger, serverStartupScriptLocation, port);
+            this.port = serverStarter.Start().Result;
+
             var serverEndpoint = detectedLanguages.Contains(AnalysisLanguage.Typescript) ?
                 "analyze-ts" : "analyze-js";
+
+            var fileContent = "";
+
+            if (projectItem != null)
+            {
+                var textDocument = (projectItem.Document.Object() as TextDocument);
+                var editPoint = textDocument.StartPoint.CreateEditPoint();
+                fileContent = editPoint.GetText(textDocument.EndPoint);
+            }
 
             using var httpClient = new System.Net.Http.HttpClient();
             var request = new
             {
                 filePath = path,
+                fileContent = fileContent,
                 rules = new[]
                 {
                     // NOTE: the rule keys we pass to the eslint-bridge are not the Sonar "Sxxxx" keys.
@@ -116,6 +131,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.TSAnalysis
 
             var eslintBridgeResponse = JsonConvert.DeserializeObject<EslintBridgeResponse>(responseString);
 
+            if (eslintBridgeResponse.EslintBridgeParsingError != null)
+            {
+                LogParsingError(path, eslintBridgeResponse.EslintBridgeParsingError);
+                return;
+            }
+
             var analysisIssues = eslintBridgeResponse.Issues.Select(x =>
                 new Issue
                 {
@@ -127,13 +148,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix.TSAnalysis
                 });
             consumer.Accept(path, analysisIssues);
         }
+
+        private void LogParsingError(string path, EslintBridgeParsingError parsingError)
+        {
+            //https://github.com/SonarSource/SonarJS/blob/1916267988093cb5eb1d0b3d74bb5db5c0dbedec/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/AbstractEslintSensor.java#L134
+            if (parsingError.ErrorCode == "MISSING_TYPESCRIPT")
+            {
+                logger.WriteLine("TypeScript dependency was not found and it is required for analysis.");
+            } 
+            else if (parsingError.ErrorCode == "UNSUPPORTED_TYPESCRIPT")
+            {
+                logger.WriteLine(parsingError.Message);
+                logger.WriteLine("If it's not possible to upgrade version of TypeScript used by the project, consider installing supported TypeScript version just for the time of analysis");
+            }
+            else
+            {
+                logger.WriteLine($"Failed to parse file [{path}] at line {parsingError.Line}: {parsingError.Message}");
+            }
+        }
     }
 
     public class EslintBridgeResponse
     {
         [JsonProperty("issues")]
         public IEnumerable<EslintBridgeIssue> Issues { get; set; }
+
+        [JsonProperty("parsingError")]
+        public EslintBridgeParsingError EslintBridgeParsingError { get; set; }
     }
+
+    public class EslintBridgeParsingError
+    {
+        [JsonProperty("line")]
+        public int Line { get; set; }
+
+        [JsonProperty("message")]
+        public string Message { get; set; }
+
+        [JsonProperty("code")]
+        public string ErrorCode { get; set; }
+    }
+
 
     public class EslintBridgeIssue
     {
