@@ -349,7 +349,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public string StdOut { get; set; }
 
-            public string StdErr { get; set; }
+            public string CompilerVersion { get; set; }
+
+            public bool X64 { get; set; }
+
         }
     }
 }

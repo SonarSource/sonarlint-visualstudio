@@ -44,13 +44,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 dynamic file = projectItem.Object; // Microsoft.VisualStudio.VCProjectEngine.VCFile
                 dynamic fileConfig = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
                 dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
+                string platformToolset = config.Rules.Item("ConfigurationGeneral").GetEvaluatedPropertyValue("PlatformToolset");
 
                 return new FileConfig()
                 {
                     AbsoluteFilePath = absoluteFilePath,
 
                     PlatformName = platformName,
-                    PlatformToolset = config.Rules.Item("ConfigurationGeneral").GetEvaluatedPropertyValue("PlatformToolset"),
+                    PlatformToolset = platformToolset,
 
                     IncludeDirectories = config.Rules.Item("ConfigurationDirectories").GetEvaluatedPropertyValue("IncludePath"),
                     AdditionalIncludeDirectories = GetEvaluatedPropertyValue(fileTool, "AdditionalIncludeDirectories"),
@@ -79,8 +80,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     RuntimeTypeInfo = GetEvaluatedPropertyValue(fileTool, "RuntimeTypeInfo"),
                     BasicRuntimeChecks = GetEvaluatedPropertyValue(fileTool, "BasicRuntimeChecks"),
                     LanguageStandard = GetPotentiallyUnsupportedPropertyValue(fileTool, "LanguageStandard", null),
-
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
+                    CompilerVersion = getCompilerVersion(platformToolset, project.ActiveConfiguration.GetEvaluatedPropertyValue("VCToolsVersion")),
                 };
             }
 
@@ -184,7 +185,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             public string AdditionalOptions { get; set; }
 
             public string LanguageStandard { get; set; }
-            
+
+            public string CompilerVersion { get; set; }
+
             #endregion
 
             public Capture[] ToCaptures(string path, out string cfamilyLanguage)
@@ -193,7 +196,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     Executable = "cl.exe",
                     Cwd = Path.GetDirectoryName(AbsoluteFilePath),
-                    StdErr = string.Format("{0} for {1}", ConvertPlatformToolset(PlatformToolset), ConvertPlatformName(PlatformName)),
+                    CompilerVersion= CompilerVersion,
+                    X64= isPlatformX64(PlatformName),
                     StdOut = "",
                 };
 
@@ -247,20 +251,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return request;
             }
 
-            internal /* for testing */ static string ConvertPlatformName(string platformName)
+            internal /* for testing */ static bool isPlatformX64(string platformName)
             {
                 switch (platformName)
                 {
                     default:
                         throw new ArgumentException($"Unsupported PlatformName: {platformName}", nameof(platformName));
                     case "Win32":
-                        return "x86";
+                        return false;
                     case "x64":
-                        return "x64";
+                        return true;
                 }
             }
 
-            internal /* for testing */ static string ConvertPlatformToolset(string platformToolset)
+            internal /* for testing */ static string getCompilerVersion(string platformToolset, string vcToolsVersion)
             {
                 switch (platformToolset)
                 {
@@ -268,11 +272,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         throw new ArgumentException($"Unsupported PlatformToolset: {platformToolset}", nameof(platformToolset));
                     case "": // Bug https://github.com/SonarSource/sonarlint-visualstudio/issues/804
                         throw new ArgumentException(Strings.Daemon_PlatformToolsetNotSpecified);
+                    // VCToolsVersion is only avaialble from VS2017 onward
+                    // Before VS2017 the platform was enough to deduce the compiler version
                     case "v142":
-                        return "19.20.00";
                     case "v141":
                     case "v141_xp":
-                        return "19.10.00";
+                        int index = vcToolsVersion.IndexOf('.');
+                        if (index != -1)
+                        {
+                            return "19" + vcToolsVersion.Substring(index);
+                        }
+                        else
+                        {
+                            throw new ArgumentException($"Unsupported VCToolsVersion: {vcToolsVersion}", nameof(vcToolsVersion));
+                        }
                     case "v140":
                     case "v140_xp":
                         return "19.00.00";
