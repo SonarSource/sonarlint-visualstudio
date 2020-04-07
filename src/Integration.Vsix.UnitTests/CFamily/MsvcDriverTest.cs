@@ -409,6 +409,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             req.Predefines.Should().Contain(X86_MACROS);
             req.Predefines.Should().NotContain(X64_MACROS);
             req.Predefines.Should().NotContain("#define _HAS_CHAR16_T_LANGUAGE_SUPPORT 1\n");
+            req.Predefines.Should().NotContain("#define _HAS_CONDITIONAL_EXPLICIT 0\n");
 
 
             req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -436,7 +437,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             req.Predefines.Should().NotContain(X86_MACROS);
             req.Predefines.Should().Contain(X64_MACROS);
             req.Predefines.Should().Contain("#define _HAS_CHAR16_T_LANGUAGE_SUPPORT 1\n");
+            req.Predefines.Should().NotContain("#define _HAS_CONDITIONAL_EXPLICIT 0\n");
 
+            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    StdOut = "",
+                    CompilerVersion = "19.25.28610",
+                    X64=true
+                },
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() {
+                      "cl.exe"
+                    },
+                }
+            });
+            req.MsVersion.Should().Be(192528610);
+            req.Predefines.Should().Contain("#define _MSC_FULL_VER 192528610\n" +
+              "#define _MSC_VER 1925\n" +
+              "#define _MSC_BUILD 0\n");
+            req.Predefines.Should().NotContain(X86_MACROS);
+            req.Predefines.Should().Contain(X64_MACROS);
+            req.Predefines.Should().Contain("#define _HAS_CHAR16_T_LANGUAGE_SUPPORT 1\n");
+            req.Predefines.Should().Contain("#define _HAS_CONDITIONAL_EXPLICIT 0\n");
         }
 
         [TestMethod]
