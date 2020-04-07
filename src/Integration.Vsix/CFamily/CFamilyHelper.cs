@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private static readonly string analyzerExeFilePath = Path.Combine(
             CFamilyFilesDirectory, "subprocess.exe");
 
-        private const int DefaultAnalysisTimeoutMs = 10 * 1000;
+        private const int DefaultAnalysisTimeoutMs = 20 * 1000;
         private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
 
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider)
