@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 
 /**
@@ -36,8 +35,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
     internal static class MsvcDriver
     {
-        static Regex versionMatcher = new Regex(@"\d+\.\d+\.\d+(\.\d+)?");
-
         public static Request ToRequest(CFamilyHelper.Capture[] captures)
         {
             Request request = new Request();
@@ -45,18 +42,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             foreach (CFamilyHelper.Capture capture in captures)
             {
-                if (capture.StdErr != null)
+                if (capture.CompilerVersion != null)
                 {
-                    Match match = versionMatcher.Match(capture.StdErr);
-                    if (match.Success)
-                    {
-                        probes.Add(capture.Executable, new Probe(match.Value, capture.StdErr.Contains("x64")));
-                    }
-                    else
-                    {
-                        throw new InvalidDataException("Unable to extract version of Microsoft Compiler");
-                    }
-
+                    probes.Add(capture.Executable, new Probe(capture.CompilerVersion, capture.X64));
                     continue;
                 }
 
