@@ -59,17 +59,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 BasicRuntimeChecks = "Default",
                 AdditionalOptions = "/a1 /a2",
                 AbsoluteFilePath = FileName,
+                CompilerVersion="19.00.00",
             }.ToCaptures(FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
 
             p.Compiler.Should().Be("msvc-cl");
-            p.StdErr.Should().Be("19.00.00 for x86");
+            p.CompilerVersion.Should().Be("19.00.00");
+            p.X64.Should().Be(false);
             p.Cwd.Should().Be(@"C:\absolute\path\to");
             p.Executable.Should().Be("cl.exe");
 
             c.Compiler.Should().Be("msvc-cl");
-            c.StdErr.Should().BeNull("otherwise will be considered as probe");
+            c.CompilerVersion.Should().BeNull("otherwise will be considered as probe");
             c.Cwd.Should().Be(p.Cwd);
             c.Executable.Should().BeSameAs(p.Executable, "otherwise won't be associated with probe");
             c.Env.Should().Equal(new[] { "INCLUDE=sys1;sys2;" });
@@ -114,11 +116,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 BasicRuntimeChecks = "EnableFastChecks",
                 AdditionalOptions = "",
                 AbsoluteFilePath = FileName,
+                CompilerVersion = "19.00.00",
             }.ToCaptures(FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
 
-            p.StdErr.Should().Be("19.00.00 for x64");
+            p.CompilerVersion.Should().Be("19.00.00");
+            p.X64.Should().Be(true);
 
             c.Cmd.Should().Equal(new[] {
                 "cl.exe",
@@ -204,38 +208,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void PlatformName()
         {
-            CFamilyHelper.FileConfig.ConvertPlatformName("Win32").Should().Be("x86");
-            CFamilyHelper.FileConfig.ConvertPlatformName("x64").Should().Be("x64");
+            CFamilyHelper.FileConfig.IsPlatformX64("Win32").Should().Be(false);
+            CFamilyHelper.FileConfig.IsPlatformX64("x64").Should().Be(true);
 
-            Action action = () => CFamilyHelper.FileConfig.ConvertPlatformName("foo");
+            Action action = () => CFamilyHelper.FileConfig.IsPlatformX64("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformName: foo");
         }
 
         [TestMethod]
         public void PlatformToolset()
         {
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v90").Should().Be("15.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");
 
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v100").Should().Be("16.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v100", "").Should().Be("16.00.00");
 
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v110").Should().Be("17.00.00");
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v110_xp").Should().Be("17.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v110", "").Should().Be("17.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v110_xp", "").Should().Be("17.00.00");
 
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v120").Should().Be("18.00.00");
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v120_xp").Should().Be("18.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v120", "").Should().Be("18.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v120_xp", "").Should().Be("18.00.00");
 
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v140").Should().Be("19.00.00");
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v140_xp").Should().Be("19.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v140", "").Should().Be("19.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v140_xp", "").Should().Be("19.00.00");
 
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v141").Should().Be("19.10.00");
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v141_xp").Should().Be("19.10.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v141", "14.10.00").Should().Be("19.10.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v141_xp", "14.10.50").Should().Be("19.10.50");
 
-            CFamilyHelper.FileConfig.ConvertPlatformToolset("v142").Should().Be("19.20.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
 
-            Action action = () => CFamilyHelper.FileConfig.ConvertPlatformToolset("v143");
+            Action action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v142", "2132");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported VCToolsVersion: 2132");
+
+            action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v143", "14.30.0000");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v143");
 
-            action = () => CFamilyHelper.FileConfig.ConvertPlatformToolset("");
+            action = () => CFamilyHelper.FileConfig.GetCompilerVersion("", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
                 ("The file cannot be analyzed because the platform toolset has not been specified.");
         }

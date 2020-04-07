@@ -33,7 +33,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             Executable = "",
             StdOut = "",
-            StdErr = "19.10.25017 for x86"
+            CompilerVersion = "19.10.25017",
+            X64 = false
         };
 
         [TestMethod]
@@ -388,7 +389,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 {
                     Executable = "",
                     StdOut = "",
-                    StdErr = "18.00.21005.1 for x86"
+                    CompilerVersion = "18.00.21005.1",
+                    X64=false
                 },
                 new CFamilyHelper.Capture()
                 {
@@ -414,7 +416,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 {
                     Executable = "",
                     StdOut = "",
-                    StdErr = "19.10.25017 for x64"
+                    CompilerVersion = "19.10.25017",
+                    X64=true
                 },
                 new CFamilyHelper.Capture()
                 {
@@ -543,7 +546,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Executable = "cl.exe",
                     // stdout is empty and stderr contains only toolset version and platform name:
                     StdOut = "",
-                    StdErr = "19.10.00 for x86"
+                    CompilerVersion = "19.10.00",
+                    X64=false
                 },
                 new CFamilyHelper.Capture()
                 {
