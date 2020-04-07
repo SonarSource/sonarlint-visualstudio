@@ -642,16 +642,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void SubProcessTimeout()
         {
-            SetTimeoutAndCheckCalculatedTimeout("", 20000); // not set -> default
+            const int defaultExpectedTimeout = 20000;
+            SetTimeoutAndCheckCalculatedTimeout("", defaultExpectedTimeout); // not set -> default
 
             SetTimeoutAndCheckCalculatedTimeout("222", 222); // valid -> used
             SetTimeoutAndCheckCalculatedTimeout("200000", 200000); // valid -> used
 
-            SetTimeoutAndCheckCalculatedTimeout("-111", 10000); // invalid -> default
-            SetTimeoutAndCheckCalculatedTimeout("not an integer", 10000);
-            SetTimeoutAndCheckCalculatedTimeout("1.23", 10000);
-            SetTimeoutAndCheckCalculatedTimeout("2,000", 10000);
-            SetTimeoutAndCheckCalculatedTimeout("2.001", 10000);
+            SetTimeoutAndCheckCalculatedTimeout("-111", defaultExpectedTimeout); // invalid -> default
+            SetTimeoutAndCheckCalculatedTimeout("not an integer", defaultExpectedTimeout);
+            SetTimeoutAndCheckCalculatedTimeout("1.23", defaultExpectedTimeout);
+            SetTimeoutAndCheckCalculatedTimeout("2,000", defaultExpectedTimeout);
+            SetTimeoutAndCheckCalculatedTimeout("2.001", defaultExpectedTimeout);
 
             void SetTimeoutAndCheckCalculatedTimeout(string valueToSet, int expectedTimeout)
             {
