@@ -208,41 +208,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void PlatformName()
         {
-            CFamilyHelper.FileConfig.isPlatformX64("Win32").Should().Be(false);
-            CFamilyHelper.FileConfig.isPlatformX64("x64").Should().Be(true);
+            CFamilyHelper.FileConfig.IsPlatformX64("Win32").Should().Be(false);
+            CFamilyHelper.FileConfig.IsPlatformX64("x64").Should().Be(true);
 
-            Action action = () => CFamilyHelper.FileConfig.isPlatformX64("foo");
+            Action action = () => CFamilyHelper.FileConfig.IsPlatformX64("foo");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformName: foo");
         }
 
         [TestMethod]
         public void PlatformToolset()
         {
-            CFamilyHelper.FileConfig.getCompilerVersion("v90", "").Should().Be("15.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");
 
-            CFamilyHelper.FileConfig.getCompilerVersion("v100", "").Should().Be("16.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v100", "").Should().Be("16.00.00");
 
-            CFamilyHelper.FileConfig.getCompilerVersion("v110", "").Should().Be("17.00.00");
-            CFamilyHelper.FileConfig.getCompilerVersion("v110_xp", "").Should().Be("17.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v110", "").Should().Be("17.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v110_xp", "").Should().Be("17.00.00");
 
-            CFamilyHelper.FileConfig.getCompilerVersion("v120", "").Should().Be("18.00.00");
-            CFamilyHelper.FileConfig.getCompilerVersion("v120_xp", "").Should().Be("18.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v120", "").Should().Be("18.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v120_xp", "").Should().Be("18.00.00");
 
-            CFamilyHelper.FileConfig.getCompilerVersion("v140", "").Should().Be("19.00.00");
-            CFamilyHelper.FileConfig.getCompilerVersion("v140_xp", "").Should().Be("19.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v140", "").Should().Be("19.00.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v140_xp", "").Should().Be("19.00.00");
 
-            CFamilyHelper.FileConfig.getCompilerVersion("v141", "14.10.00").Should().Be("19.10.00");
-            CFamilyHelper.FileConfig.getCompilerVersion("v141_xp", "14.10.50").Should().Be("19.10.50");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v141", "14.10.00").Should().Be("19.10.00");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v141_xp", "14.10.50").Should().Be("19.10.50");
 
-            CFamilyHelper.FileConfig.getCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
+            CFamilyHelper.FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
 
-            Action action = () => CFamilyHelper.FileConfig.getCompilerVersion("v142", "2132");
+            Action action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v142", "2132");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported VCToolsVersion: 2132");
 
-            action = () => CFamilyHelper.FileConfig.getCompilerVersion("v143", "14.30.0000");
+            action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v143", "14.30.0000");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v143");
 
-            action = () => CFamilyHelper.FileConfig.getCompilerVersion("", "");
+            action = () => CFamilyHelper.FileConfig.GetCompilerVersion("", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
                 ("The file cannot be analyzed because the platform toolset has not been specified.");
         }

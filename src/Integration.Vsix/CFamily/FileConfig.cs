@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     BasicRuntimeChecks = GetEvaluatedPropertyValue(fileTool, "BasicRuntimeChecks"),
                     LanguageStandard = GetPotentiallyUnsupportedPropertyValue(fileTool, "LanguageStandard", null),
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
-                    CompilerVersion = getCompilerVersion(platformToolset, project.ActiveConfiguration.GetEvaluatedPropertyValue("VCToolsVersion")),
+                    CompilerVersion = GetCompilerVersion(platformToolset, project.ActiveConfiguration.GetEvaluatedPropertyValue("VCToolsVersion")),
                 };
             }
 
@@ -197,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     Executable = "cl.exe",
                     Cwd = Path.GetDirectoryName(AbsoluteFilePath),
                     CompilerVersion= CompilerVersion,
-                    X64= isPlatformX64(PlatformName),
+                    X64= IsPlatformX64(PlatformName),
                     StdOut = "",
                 };
 
@@ -251,7 +251,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return request;
             }
 
-            internal /* for testing */ static bool isPlatformX64(string platformName)
+            internal /* for testing */ static bool IsPlatformX64(string platformName)
             {
                 switch (platformName)
                 {
@@ -264,7 +264,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
-            internal /* for testing */ static string getCompilerVersion(string platformToolset, string vcToolsVersion)
+            internal /* for testing */ static string GetCompilerVersion(string platformToolset, string vcToolsVersion)
             {
                 switch (platformToolset)
                 {
