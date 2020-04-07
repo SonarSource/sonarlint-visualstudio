@@ -642,7 +642,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void SubProcessTimeout()
         {
-            SetTimeoutAndCheckCalculatedTimeout("", 10000); // not set -> default
+            SetTimeoutAndCheckCalculatedTimeout("", 20000); // not set -> default
 
             SetTimeoutAndCheckCalculatedTimeout("222", 222); // valid -> used
             SetTimeoutAndCheckCalculatedTimeout("200000", 200000); // valid -> used
