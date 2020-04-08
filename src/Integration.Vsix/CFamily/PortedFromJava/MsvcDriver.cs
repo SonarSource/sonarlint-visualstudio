@@ -372,6 +372,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     {
                         // if major > 19 we rely on /std.  By default, /std:c++14 is specified
                         predefines.Append("#define _HAS_CHAR16_T_LANGUAGE_SUPPORT 1\n");
+                        if (minor > 23)
+                        {
+                            predefines.Append("#define _HAS_CONDITIONAL_EXPLICIT 0\n");
+                        }
                         switch (std)
                         {
                             default:

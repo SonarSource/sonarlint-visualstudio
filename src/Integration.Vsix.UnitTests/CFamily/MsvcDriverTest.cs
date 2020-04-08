@@ -440,6 +440,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        [DataRow("18.24.21005.1", false)] // major < 19, minor > 23
+        [DataRow("19.22.21005.1", false)] // major = 19, minor < 23
+        [DataRow("19.23.21005.1", false)] // major = 19, minor = 23
+        [DataRow("19.24.21005.1", true)]  // major = 19, minor > 23
+        [DataRow("19.101.21005.1", true)] // major = 19, minor > 23
+        [DataRow("20.22.21005.1", false)] // v20 hasn't been released yet so we don't know whether the macro will still exist -> assume not
+        public void Version_HasConditionalExplicit(string compilerVersion, bool expectedToContainHasConditionalExplicit)
+        {
+            var req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    StdOut = "",
+                    CompilerVersion = compilerVersion,
+                    X64=true
+                },
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() {
+                      "cl.exe"
+                    },
+                }
+            });
+
+            req.Predefines.Contains("#define _HAS_CONDITIONAL_EXPLICIT 0\n").Should().Be(expectedToContainHasConditionalExplicit);
+        }
+
+        [TestMethod]
         public void Char_Is_Unsigned()
         {
             Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -456,7 +487,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     },
                 }
             });
-            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 
+            req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14
                 | Request.CharIsUnsigned | Request.SonarLint);
             req.Predefines.Should().Contain("#define _CHAR_UNSIGNED 1\n");
 
@@ -521,7 +552,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [ExpectedException(typeof(System.InvalidOperationException), "'/std:latest' is not supported. This test should throw an exception.")]
         public void unsupported_std_version()
         {
-             MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
