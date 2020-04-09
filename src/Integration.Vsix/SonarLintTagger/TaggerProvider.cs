@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
-            this.analysisJobs = new ConcurrentDictionary<string, CancellationTokenSource>();
+            this.analysisJobs = new Dictionary<string, CancellationTokenSource>();
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
