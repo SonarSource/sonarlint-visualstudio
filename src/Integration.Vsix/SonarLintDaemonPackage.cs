@@ -87,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Resources.Strings.Daemon_Initializing);
 
                 await DisableRuleCommand.InitializeAsync(this, logger);
+                await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
                 daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
 
