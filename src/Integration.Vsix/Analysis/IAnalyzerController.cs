@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Threading;
 using EnvDTE;
 
 // TODO: decide whether both of these interfaces are required
@@ -29,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
-        void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem);
+        void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken);
     }
 
     // Marker interface used by for MEF exporting/importing

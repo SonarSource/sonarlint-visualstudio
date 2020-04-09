@@ -62,6 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public string ExeName { get; }
 
+        public CancellationToken CancellationToken { get; set; }
+
         /// <summary>
         /// Non-sensitive command line arguments (i.e. ones that can safely be logged). Optional.
         /// </summary>

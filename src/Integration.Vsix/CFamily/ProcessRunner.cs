@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using SonarLint.VisualStudio.Core;
 
 // Note: copied from the S4MSB
 // https://github.com/SonarSource/sonar-scanner-msbuild/blob/b28878e21cbdda9aca6bd08d90c3364cca882861/src/SonarScanner.MSBuild.Common/ProcessRunner.cs#L31
@@ -44,8 +45,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
         }
-
-        #region Public methods
 
         public int ExitCode { get; private set; }
 
@@ -84,7 +83,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             bool succeeded;
             using (var process = new Process())
+            using (runnerArgs.CancellationToken.Register(KillProcess(process)))
             {
+                if (runnerArgs.CancellationToken.IsCancellationRequested)
+                {
+                    return false;
+                }
                 process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
                 process.OutputDataReceived += OnOutputDataReceived;
@@ -103,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     process.Id);
 
                 succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
+
                 if (succeeded)
                 {
                     process.WaitForExit(); // Give any asynchronous events the chance to complete
@@ -136,9 +141,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return succeeded;
         }
 
-        #endregion Public methods
-
-        #region Private methods
+        private static Action KillProcess(Process process)
+        {
+            return () =>
+            {
+                try
+                {
+                    if (process != null && !process.HasExited)
+                    {
+                        process.Kill();
+                    }
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                }
+            };
+        }
 
         private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
         {
@@ -179,8 +197,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 LogError(e.Data);
             }
-
-            #endregion Private methods
         }
 
         private void LogMessage(string message, params object[] args)

@@ -19,9 +19,11 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -66,6 +68,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IVsStatusbar vsStatusBar;
         private readonly ILogger logger;
 
+        private readonly IDictionary<string, CancellationTokenSource> analysisJobs;
+
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
             ITextDocumentFactoryService textDocumentFactoryService,
@@ -92,6 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
+            this.analysisJobs = new ConcurrentDictionary<string, CancellationTokenSource>();
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
@@ -181,12 +186,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
-                analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem);
+                var cancellationToken = GetCancellationToken(path);
+                analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, cancellationToken);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Analysis error: {ex.ToString()}");
             }
+        }
+
+        private CancellationToken GetCancellationToken(string path)
+        {
+            CancellationToken token;
+            lock (analysisJobs)
+            {
+                if (analysisJobs.ContainsKey(path))
+                {
+                    logger.WriteLine($"Cancelled analysis for {path}");
+                    analysisJobs[path].Cancel(throwOnFirstException: false);
+                    analysisJobs[path].Dispose();
+                }
+
+                analysisJobs[path] = new CancellationTokenSource();
+                token = analysisJobs[path].Token;
+            }
+
+            return token;
         }
 
         public void AddSinkManager(SinkManager manager)

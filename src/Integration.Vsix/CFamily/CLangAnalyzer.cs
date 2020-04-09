@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return languages.Contains(AnalysisLanguage.CFamily);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
@@ -65,11 +66,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return;
             }
 
-            TriggerAnalysisAsync(request, consumer)
+            TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
         }
 
-        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer)
+        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be synchronous, rather than fire-and-forget.
-            var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(settings, logger), logger);
+            var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(settings, logger), logger, cancellationToken);
 
             if (response != null)
             {

@@ -24,6 +24,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -51,7 +52,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return daemon.IsAnalysisSupported(languages);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken)
         {
             if (!IsAnalysisSupported(detectedLanguages))
             {
@@ -61,14 +63,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Optimise for the common case of daemon up and running
             if (installer.IsInstalled() && daemon.IsRunning)
             {
-                InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem);
+                InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem, cancellationToken);
                 return;
             }
 
             new DelayedRequest(this, path, charset, detectedLanguages, consumer, projectItem).Execute();
         }
 
-        private void InvokeDaemon(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        private void InvokeDaemon(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken)
         {
             Debug.Assert(detectedLanguages?.Contains(AnalysisLanguage.Javascript) ?? false, "Not expecting the daemon to be called for languages other than JavaScript");
 
@@ -76,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // decisions about whether to run or not. That should all be handled by 
             // this class.
             telemetryManager.LanguageAnalyzed("js");
-            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem);
+            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem, cancellationToken);
         }
 
         /// <summary>
@@ -140,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 daemon.Ready -= HandleDaemonReady;
                 daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
-                daemonAnalyzer.InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem);
+                daemonAnalyzer.InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem, CancellationToken.None);
             }
 
             private void HandleInstallCompleted(object sender, AsyncCompletedEventArgs e)

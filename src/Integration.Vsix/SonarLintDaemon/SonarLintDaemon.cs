@@ -28,6 +28,9 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using EnvDTE;
+using Process = System.Diagnostics.Process;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -424,7 +427,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return isSupported;
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, EnvDTE.ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
+            ProjectItem projectItem, CancellationToken cancellationToken)
         {
             if (!settings.IsActivateMoreEnabled)
             {

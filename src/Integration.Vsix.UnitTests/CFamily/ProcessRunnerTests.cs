@@ -26,6 +26,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -36,8 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class ProcessRunnerTests
     {
         public TestContext TestContext { get; set; }
-
-        #region Tests
 
         [TestMethod]
         public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
@@ -409,7 +410,67 @@ xxx yyy
             DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs);
         }
 
-        #endregion Tests
+        [TestMethod]
+        public void Execute_CancellationTokenIsAlreadyCancelled_ProcessNotExecuted()
+        {
+            var exeName = WriteBatchFileForTest(TestContext,
+                @"@echo Hello world
+xxx yyy
+@echo Testing 1,2,3...>&2
+");
+
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true);
+            var runner = CreateProcessRunner(logger);
+
+            args.CancellationToken = new CancellationToken(true);
+
+            // Act
+            var success = runner.Execute(args);
+
+            // Assert
+            success.Should().BeFalse("");
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
+
+            logger.AssertNoOutputMessages(); 
+        }
+
+        [TestMethod]
+        public async Task Execute_CancellationTokenIsCancelledMidway_ProcessKilled()
+        {
+            var exeName = WriteBatchFileForTest(TestContext,
+                @"
+@echo Hello world
+waitfor /t 2 somethingThatNeverHappen
+@echo Done!
+");
+
+            var logger = new TestLogger();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var args = new ProcessRunnerArguments(exeName, true)
+            {
+                TimeoutInMilliseconds = 4000,
+                CancellationToken = cancellationTokenSource.Token
+            };
+
+            var runner = CreateProcessRunner(logger);
+
+            bool? result = null;
+
+            var runProcess = Task.Run(() =>
+            {
+                result = runner.Execute(args);
+            });
+
+            cancellationTokenSource.CancelAfter(500);
+
+            await runProcess;
+
+            result.Should().BeFalse("Expecting the process to have failed");
+            runner.ExitCode.Should().Be(-1, "Unexpected exit code");
+            logger.AssertOutputStringExists("Hello world");
+            logger.AssertPartialOutputStringDoesNotExist("Done!");
+        }
 
         #region Private methods
 
@@ -435,12 +496,6 @@ xxx yyy
         {
             var matches = logger.OutputStrings.Where(m => m.Contains(text));
             matches.Should().BeEmpty($"Not expecting the text to appear in the log output: {text}");
-        }
-
-        private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries)
-        {
-            logEntries.Should().NotContain(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1,
-                "Specified text should not appear anywhere in the log file: {0}", text);
         }
 
         /// <summary>
