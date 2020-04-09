@@ -436,7 +436,7 @@ xxx yyy
         }
 
         [TestMethod]
-        public async Task Execute_CancellationTokenIsCancelledMidway_ProcessKilled()
+        public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
             var exeName = WriteBatchFileForTest(TestContext,
                 @"
@@ -472,9 +472,32 @@ waitfor /t 2 somethingThatNeverHappen
             logger.AssertPartialOutputStringDoesNotExist("Done!");
         }
 
+        [TestMethod]
+        public void Execute_CancellationTokenCancelledAfterProcessAlreadyFinished_DoesNotThrow()
+        {
+            var exeName = WriteBatchFileForTest(TestContext,
+                @"@echo Hello world
+xxx yyy
+@echo Testing 1,2,3...>&2
+");
+
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true);
+            var runner = CreateProcessRunner(logger);
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            args.CancellationToken = cancellationTokenSource.Token;
+
+            runner.Execute(args);
+
+            Action act = () => cancellationTokenSource.Cancel(false);
+
+            act.Should().NotThrow();
+        }
+
         #region Private methods
 
-        private static ProcessRunner CreateProcessRunner(ILogger logger)
+            private static ProcessRunner CreateProcessRunner(ILogger logger)
         {
             return new ProcessRunner(new ConfigurableSonarLintSettings(), logger);
         }
