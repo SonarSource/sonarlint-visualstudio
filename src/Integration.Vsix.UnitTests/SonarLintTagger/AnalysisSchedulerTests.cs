@@ -170,6 +170,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             tokens.Count(x => !x.IsCancellationRequested).Should().Be(1, "Only one token should not be cancelled");
         }
 
+        [TestMethod]
+        public void Schedule_MultipleCalls_Parallel_FilePathIsNotCaseSensitive()
+        {
+            var firstAnalysis = SetupAnalyzeAction(out var getFirstToken, sleepInMiliseconds: 300);
+            var secondAnalysis = SetupAnalyzeAction(out var getSecondToken, sleepInMiliseconds: 100);
+
+            var firstAnalysisTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstAnalysis.Object));
+            var secondAnalysisTask = Task.Factory.StartNew(() => testSubject.Schedule("test PATH", secondAnalysis.Object));
+
+            Task.WaitAll(firstAnalysisTask, secondAnalysisTask);
+
+            var tokens = new List<CancellationToken>
+            {
+                getFirstToken(),
+                getSecondToken(),
+            };
+
+            tokens.Count(x => !x.IsCancellationRequested).Should().Be(1, "Only one token should not be cancelled");
+        }
+
         private static Mock<Action<CancellationToken>> SetupAnalyzeAction(out Func<CancellationToken> getCreatedToken, int? sleepInMiliseconds = null)
         {
             CancellationToken cancellationToken;

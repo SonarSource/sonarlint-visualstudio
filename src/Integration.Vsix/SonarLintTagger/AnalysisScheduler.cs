@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public AnalysisScheduler(ILogger logger)
         {
             this.logger = logger;
-            this.analysisJobs = new Dictionary<string, CancellationTokenSource>();
+            this.analysisJobs = new Dictionary<string, CancellationTokenSource>(StringComparer.OrdinalIgnoreCase);
         }
 
         public void Schedule(string filePath, Action<CancellationToken> analyzeAction)
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (analysisJobs.ContainsKey(filePath))
             {
-                logger.WriteLine($"Cancelled analysis for {filePath}");
+                logger.WriteLine($"Cancelled analysis for {filePath.ToLower()}");
 
                 analysisJobs[filePath]?.Cancel(throwOnFirstException: false);
 
