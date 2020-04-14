@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 lock (jobs)
                 {
-                    if (jobs[jobId] == newToken)
+                    if (jobs.ContainsKey(jobId) && jobs[jobId] == newToken)
                     {
                         jobs.Remove(jobId);
                     }
