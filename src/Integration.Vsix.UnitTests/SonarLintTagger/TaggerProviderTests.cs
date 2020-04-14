@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -110,9 +111,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
+            var mockAnalysisScheduler = new Mock<IAnalysisScheduler>();
+            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>()))
+                .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
+
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object);
+                sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
