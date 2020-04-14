@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
         private readonly ILogger logger;
-        private readonly IAnalysisScheduler analysisScheduler;
+        private readonly IScheduler scheduler;
 
         [ImportingConstructor]
         internal TaggerProvider(ITableManagerProvider tableManagerProvider,
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
             ILogger logger,
-            IAnalysisScheduler analysisScheduler)
+            IScheduler scheduler)
         {
             this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             this.textDocumentFactoryService = textDocumentFactoryService;
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
             this.logger = logger;
-            this.analysisScheduler = analysisScheduler;
+            this.scheduler = scheduler;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
@@ -184,12 +184,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
-                analysisScheduler.Schedule(path, cancellationToken =>
+                scheduler.Schedule(path, cancellationToken =>
                     analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, cancellationToken));
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine($"Analysis error: {ex.ToString()}");
+                logger.WriteLine($"Analysis error: {ex}");
             }
         }
 

@@ -28,7 +28,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -103,7 +102,7 @@ xxx yyy
             // Alternatives such as
             // pinging a non-existent address with a timeout were not reliable.
             var exeName = WriteBatchFileForTest(TestContext,
-@"waitfor /t 2 somethingThatNeverHappen
+$@"waitfor /t 2 {Guid.NewGuid():N}
 @echo Hello world
 ");
 
@@ -439,9 +438,9 @@ xxx yyy
         public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
             var exeName = WriteBatchFileForTest(TestContext,
-                @"
+$@"
 @echo Hello world
-waitfor /t 2 somethingThatNeverHappen
+waitfor /t 4 { Guid.NewGuid():N}
 @echo Done!
 ");
 
@@ -462,7 +461,7 @@ waitfor /t 2 somethingThatNeverHappen
                 result = runner.Execute(args);
             });
 
-            cancellationTokenSource.CancelAfter(500);
+            cancellationTokenSource.CancelAfter(100);
 
             await runProcess;
 
@@ -497,7 +496,7 @@ xxx yyy
 
         #region Private methods
 
-            private static ProcessRunner CreateProcessRunner(ILogger logger)
+        private static ProcessRunner CreateProcessRunner(ILogger logger)
         {
             return new ProcessRunner(new ConfigurableSonarLintSettings(), logger);
         }

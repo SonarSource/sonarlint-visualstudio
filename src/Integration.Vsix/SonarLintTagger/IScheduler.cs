@@ -23,8 +23,8 @@ using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public interface IAnalysisScheduler
+    public interface IScheduler
     {
-        void Schedule(string filePath, Action<CancellationToken> analyzeAction);
+        void Schedule(string jobId, Action<CancellationToken> action);
     }
 }

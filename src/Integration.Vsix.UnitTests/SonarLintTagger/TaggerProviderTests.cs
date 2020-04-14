@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
-            var mockAnalysisScheduler = new Mock<IAnalysisScheduler>();
+            var mockAnalysisScheduler = new Mock<IScheduler>();
             mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>()))
                 .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
 

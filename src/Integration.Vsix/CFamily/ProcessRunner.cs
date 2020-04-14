@@ -58,7 +58,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 throw new ArgumentNullException(nameof(runnerArgs));
             }
-            Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName), "Process runner exe name should not be null/empty");
+
+            Debug.Assert(!string.IsNullOrWhiteSpace(runnerArgs.ExeName),
+                "Process runner exe name should not be null/empty");
 
             if (!File.Exists(runnerArgs.ExeName))
             {
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return false;
             }
 
-            var psi = new ProcessStartInfo()
+            var psi = new ProcessStartInfo
             {
                 FileName = runnerArgs.ExeName,
                 RedirectStandardError = true,
@@ -81,82 +83,106 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables);
 
-            bool succeeded;
+            var hasProcessStarted = false;
+
             using (var process = new Process())
-            using (runnerArgs.CancellationToken.Register(KillProcess(process)))
+            using (runnerArgs.CancellationToken.Register(() =>
             {
-                if (runnerArgs.CancellationToken.IsCancellationRequested)
+                lock (process)
                 {
-                    return false;
+                    if (!hasProcessStarted)
+                    {
+                        // Cancellation was requested before process started - do nothing
+                        return;
+                    }
                 }
+                // Cancellation was requested after process started - kill it
+                KillProcess(process);
+            }))
+            {
                 process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
                 process.OutputDataReceived += OnOutputDataReceived;
 
-                process.Start();
-                process.BeginErrorReadLine();
-                process.BeginOutputReadLine();
-
-                // Warning: do not log the raw command line args as they
-                // may contain sensitive data
-                LogDebug(CFamilyStrings.MSG_ExecutingFile,
-                    runnerArgs.ExeName,
-                    runnerArgs.AsLogText(),
-                    runnerArgs.WorkingDirectory,
-                    runnerArgs.TimeoutInMilliseconds,
-                    process.Id);
-
-                succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
-
-                if (succeeded)
+                lock (process)
                 {
-                    process.WaitForExit(); // Give any asynchronous events the chance to complete
-                }
-
-                // false means we asked the process to stop but it didn't.
-                // true: we might still have timed out, but the process ended when we asked it to
-                if (succeeded)
-                {
-                    LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
-                    ExitCode = process.ExitCode;
-                }
-                else
-                {
-                    ExitCode = ErrorCode;
-
-                    try
+                    if (!runnerArgs.CancellationToken.IsCancellationRequested)
                     {
-                        process.Kill();
-                        LogWarning(CFamilyStrings.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                        process.Start();
+                        hasProcessStarted = true;
                     }
-                    catch
+                    else
                     {
-                        LogWarning(CFamilyStrings.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds, runnerArgs.ExeName);
+                        return false;
                     }
                 }
 
-                succeeded = succeeded && (ExitCode == 0);
+                var result = WaitForProcessToFinish(process, runnerArgs);
+                return result;
             }
-
-            return succeeded;
         }
 
-        private static Action KillProcess(Process process)
+        private bool WaitForProcessToFinish(Process process, ProcessRunnerArguments runnerArgs)
         {
-            return () =>
+            process.BeginErrorReadLine();
+            process.BeginOutputReadLine();
+
+            // Warning: do not log the raw command line args as they
+            // may contain sensitive data
+            LogDebug(CFamilyStrings.MSG_ExecutingFile,
+                runnerArgs.ExeName,
+                runnerArgs.AsLogText(),
+                runnerArgs.WorkingDirectory,
+                runnerArgs.TimeoutInMilliseconds,
+                process.Id);
+
+            var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
+
+            if (succeeded)
             {
+                process.WaitForExit(); // Give any asynchronous events the chance to complete
+            }
+
+            // false means we asked the process to stop but it didn't.
+            // true: we might still have timed out, but the process ended when we asked it to
+            if (succeeded)
+            {
+                LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
+                ExitCode = process.ExitCode;
+            }
+            else
+            {
+                ExitCode = ErrorCode;
+
                 try
                 {
-                    if (process != null && !process.HasExited)
-                    {
-                        process.Kill();
-                    }
+                    process.Kill();
+                    LogWarning(CFamilyStrings.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds,
+                        runnerArgs.ExeName);
                 }
-                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                catch
                 {
-                    // It's possible that the process exited just between the IF and the Kill(), in which case an exception is thrown.
+                    LogWarning(CFamilyStrings.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds,
+                        runnerArgs.ExeName);
                 }
-            };
+            }
+
+            return succeeded && ExitCode == 0;
+        }
+
+        private void KillProcess(Process process)
+        {
+            try
+            {
+                if (process != null && !process.HasExited)
+                {
+                    process.Kill();
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // It's possible that the process exited just between the IF and the Kill(), in which case an exception is thrown.
+            }
         }
 
         private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
