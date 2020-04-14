@@ -146,6 +146,62 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Active document can be analyzed by the CFamily analyzer: {0}.
+        /// </summary>
+        internal static string ReproCmd_DocumentIsAnalyzable {
+            get {
+                return ResourceManager.GetString("ReproCmd_DocumentIsAnalyzable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot run SonarLint CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}.
+        /// </summary>
+        internal static string ReproCmd_DocumentIsNotAnalyzable {
+            get {
+                return ResourceManager.GetString("ReproCmd_DocumentIsNotAnalyzable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error executing the SonarLint CFamily reproducer command:
+        ///  Error: {0}.
+        /// </summary>
+        internal static string ReproCmd_Error_Execute {
+            get {
+                return ResourceManager.GetString("ReproCmd_Error_Execute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error in calculating whether the SonarLint CFamily reproducer command is available:
+        ///  Error: {0}.
+        /// </summary>
+        internal static string ReproCmd_Error_QueryStatus {
+            get {
+                return ResourceManager.GetString("ReproCmd_Error_QueryStatus", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Calling the SonarLint CFamily reproducer....
+        /// </summary>
+        internal static string ReproCmd_ExecutingReproducer {
+            get {
+                return ResourceManager.GetString("ReproCmd_ExecutingReproducer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot run SonarLint CFamily reproducer - no active document..
+        /// </summary>
+        internal static string ReproCmd_NoActiveDocument {
+            get {
+                return ResourceManager.GetString("ReproCmd_NoActiveDocument", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running..
         /// </summary>
         internal static string WARN_ExecutionTimedOutKilled {

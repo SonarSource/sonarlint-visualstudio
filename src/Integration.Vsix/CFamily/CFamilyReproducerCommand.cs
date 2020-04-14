@@ -20,16 +20,17 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.Linq;
+using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
+
+
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.CFamily;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     /// <summary>
     /// Command handler
@@ -41,7 +42,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         public const int CommandId = 0x0300;
 
         private readonly OleMenuCommand menuItem;
-        private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
+        private readonly IActiveDocumentLocator activeDocumentLocator;
+        private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
         private readonly ILogger logger;
 
         /// <summary>
@@ -54,10 +56,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            var tracker = await package.GetMefServiceAsync<IActiveSolutionBoundTracker>();
+            var monitorSelection = await package.GetServiceAsync(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            var adapterService = await package.GetMefServiceAsync<IVsEditorAdaptersFactoryService>();
+            var docLocator = new ActiveDocumentLocator(monitorSelection, adapterService);
+
+            var languageRecognizer = await package.GetMefServiceAsync<ISonarLanguageRecognizer>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
-            Instance = new CFamilyReproducerCommand(commandService, tracker, logger);
+            Instance = new CFamilyReproducerCommand(commandService, docLocator, languageRecognizer, logger);
         }
 
         /// <summary>
@@ -67,13 +73,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
         internal /* for testing */ CFamilyReproducerCommand(IMenuCommandService menuCommandService,
-            IActiveSolutionBoundTracker activeSolutionBoundTracker, ILogger logger)
+            IActiveDocumentLocator activeDocumentLocator, ISonarLanguageRecognizer languageRecognizer, ILogger logger)
         {
             if (menuCommandService == null)
             {
                 throw new ArgumentNullException(nameof(menuCommandService));
             }
-            this.activeSolutionBoundTracker = activeSolutionBoundTracker ?? throw new ArgumentNullException(nameof(activeSolutionBoundTracker));
+
+            this.activeDocumentLocator = activeDocumentLocator ?? throw new ArgumentNullException(nameof(activeDocumentLocator));
+            this.sonarLanguageRecognizer = languageRecognizer ?? throw new ArgumentNullException(nameof(languageRecognizer));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -88,11 +96,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             try
             {
                 menuItem.Visible = false;
-                menuItem.Enabled = true;
+                menuItem.Enabled = HasActiveCFamilyDoc();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(AnalysisStrings.DisableRule_ErrorCheckingCommandStatus, ex.Message);
+                logger.WriteLine(CFamilyStrings.ReproCmd_Error_QueryStatus, ex.Message);
             }
         }
 
@@ -114,16 +122,45 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            string errorCode = null;
             try
             {
-                // Do stuff
-                logger.WriteLine("Executing Sonar CFamily reproducer...");
-
+                TriggerReproducer();
             }
             catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, errorCode ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
+                logger.WriteLine(CFamilyStrings.ReproCmd_Error_Execute, ex.Message);
+            }
+        }
+
+        private bool HasActiveCFamilyDoc()
+        {
+            var activeDoc = activeDocumentLocator.FindActiveDocument();
+            if (activeDoc == null)
+            {
+                logger.WriteLine(CFamilyStrings.ReproCmd_NoActiveDocument);
+                return false;
+            }
+
+            var languages = sonarLanguageRecognizer.Detect(activeDoc, activeDoc.TextBuffer);
+            if (languages.Contains(AnalysisLanguage.CFamily))
+            {
+                logger.WriteLine(CFamilyStrings.ReproCmd_DocumentIsAnalyzable, activeDoc.FilePath);
+                return true;
+            }
+
+            logger.WriteLine(CFamilyStrings.ReproCmd_DocumentIsNotAnalyzable, activeDoc.FilePath);
+            return false;
+        }
+
+        private void TriggerReproducer()
+        {
+            Debug.Assert(HasActiveCFamilyDoc(), "Expecting a document that can be analyzed by the CFamily analyzer to be active");
+
+            var activeDoc = activeDocumentLocator.FindActiveDocument();
+
+            if (activeDoc != null)
+            {
+                logger.WriteLine(CFamilyStrings.ReproCmd_ExecutingReproducer);
             }
         }
     }

@@ -148,6 +148,26 @@
   <data name="MSG_Runner_SettingEnvVar" xml:space="preserve">
     <value>Setting environment variable '{0}'. Value: {1}</value>
   </data>
+  <data name="ReproCmd_DocumentIsAnalyzable" xml:space="preserve">
+    <value>Active document can be analyzed by the CFamily analyzer: {0}</value>
+  </data>
+  <data name="ReproCmd_DocumentIsNotAnalyzable" xml:space="preserve">
+    <value>Cannot run SonarLint CFamily reproducer - the active document is not analyzable by the CFamily analyzer: {0}</value>
+  </data>
+  <data name="ReproCmd_Error_Execute" xml:space="preserve">
+    <value>Error executing the SonarLint CFamily reproducer command:
+  Error: {0}</value>
+  </data>
+  <data name="ReproCmd_Error_QueryStatus" xml:space="preserve">
+    <value>Error in calculating whether the SonarLint CFamily reproducer command is available:
+  Error: {0}</value>
+  </data>
+  <data name="ReproCmd_ExecutingReproducer" xml:space="preserve">
+    <value>Calling the SonarLint CFamily reproducer...</value>
+  </data>
+  <data name="ReproCmd_NoActiveDocument" xml:space="preserve">
+    <value>Cannot run SonarLint CFamily reproducer - no active document.</value>
+  </data>
   <data name="WARN_ExecutionTimedOutKilled" xml:space="preserve">
     <value>Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running.</value>
   </data>

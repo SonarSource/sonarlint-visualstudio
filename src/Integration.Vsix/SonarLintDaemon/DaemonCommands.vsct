@@ -23,14 +23,12 @@
         <!-- It looks like the command needs to belong to a parent menu group, even though it only
              appears in the command window.
              We're adding it to the top-level Analye menu, so the command the user types will be
-               "Analyze.SonarCFamilyReproducer" -->
+               "Analyze.SonarLint.CFamily.Reproducer" -->
         <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_CODEANALYSIS_TOPLEVEL"/>
         
         <CommandFlag>CommandWellOnly</CommandFlag>
         <Strings>
-          <ButtonText>Sonar CFamily Reproducer</ButtonText>
-          <!--<CanonicalName>Sonar.CFamily.Reproducer</CanonicalName>
-          <CommandName>XXX.Sonar</CommandName>-->
+          <ButtonText>SonarLint.CFamily.Reproducer</ButtonText>
         </Strings>
       </Button>
 
