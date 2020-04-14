@@ -154,6 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
+                    // It's possible that the process exited just between the IF and the Kill(), in which case an exception is thrown.
                 }
             };
         }
