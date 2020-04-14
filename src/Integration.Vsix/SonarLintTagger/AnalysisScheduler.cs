@@ -41,15 +41,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Schedule(string filePath, Action<CancellationToken> analyzeAction)
         {
-            using var newAnalysisToken = IssueToken(filePath);
-
-            analyzeAction(newAnalysisToken.Token);
-
-            lock (analysisJobs)
+            using (var newAnalysisToken = IssueToken(filePath))
             {
-                if (analysisJobs[filePath] == newAnalysisToken)
+                analyzeAction(newAnalysisToken.Token);
+
+                lock (analysisJobs)
                 {
-                    analysisJobs[filePath] = null;
+                    if (analysisJobs[filePath] == newAnalysisToken)
+                    {
+                        analysisJobs[filePath] = null;
+                    }
                 }
             }
         }
