@@ -25,6 +25,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     public interface IScheduler
     {
+        /// <summary>
+        /// Issues a cancellation token for a given job and fires cancellation request for the previous job for same jobId.
+        /// </summary>
+        /// <param name="jobId">Unique key based on which previous job is cancelled</param>
+        /// <param name="action">Job action</param>
         void Schedule(string jobId, Action<CancellationToken> action);
     }
 }
