@@ -39,4 +39,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal interface IAnalyzerController : IAnalyzer
     {
     }
+
+    public interface IAnalyzerOptions
+    {
+    }
 }
