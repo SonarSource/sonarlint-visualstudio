@@ -32,7 +32,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Returns the current active document, or null if there is no active document
         /// </summary>
-        /// <returns></returns>
         ITextDocument FindActiveDocument();
     }
 
