@@ -25,6 +25,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -87,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Resources.Strings.Daemon_Initializing);
 
                 await DisableRuleCommand.InitializeAsync(this, logger);
+                await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
                 daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
 

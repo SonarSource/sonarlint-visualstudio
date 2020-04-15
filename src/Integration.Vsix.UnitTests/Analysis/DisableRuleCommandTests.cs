@@ -437,26 +437,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             #endregion ITableEntriesSnapshot methods
         }
 
-        private class DummyMenuCommandService : IMenuCommandService
-        {
-            public IList<MenuCommand> AddedMenuCommands { get; } = new List<MenuCommand>();
-
-            #region IMenuCommandService methods 
-
-            public DesignerVerbCollection Verbs => throw new NotImplementedException();
-
-            public void AddCommand(MenuCommand command) => AddedMenuCommands.Add(command);
-
-            public void AddVerb(DesignerVerb verb) => throw new NotImplementedException();
-            public MenuCommand FindCommand(CommandID commandID) => throw new NotImplementedException();
-            public bool GlobalInvoke(CommandID commandID) => throw new NotImplementedException();
-            public void RemoveCommand(MenuCommand command) => throw new NotImplementedException();
-            public void RemoveVerb(DesignerVerb verb) => throw new NotImplementedException();
-            public void ShowContextMenu(CommandID menuID, int x, int y) => throw new NotImplementedException();
-
-            #endregion IMenuCommandService methods 
-        }
-
         #endregion Helper classes
     }
 }

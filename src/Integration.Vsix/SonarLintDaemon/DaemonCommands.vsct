@@ -18,6 +18,20 @@
           <ButtonText>Disable SonarLint rule</ButtonText>
         </Strings>
       </Button>
+
+      <Button guid="guidDaemonCmdSet" id="cmdidCreateCFamilyReproducer" priority="0x0200" type="Button">
+        <!-- It looks like the command needs to belong to a parent menu group, even though it only
+             appears in the command window.
+             We're adding it to the top-level Analyze menu, so the command the user types will be
+               "Analyze.SonarLint.CFamily.RunReproducer" -->
+        <Parent guid="guidCodeAnalysisMenuGroup" id="IDG_CODEANALYSIS_TOPLEVEL"/>
+        
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>SonarLint.CFamily.RunReproducer</ButtonText>
+        </Strings>
+      </Button>
+
     </Buttons>
   </Commands>
   
@@ -26,6 +40,7 @@
     <GuidSymbol name="guidDaemonCmdSet" value="{1F83EA11-3B07-45B3-BF39-307FD4F42194}">
       <IDSymbol name="cmdidErrorListDisableSonarLintRule" value="0x200"/>
       <IDSymbol name="grpDaemonErrorList" value="0x100" />
+      <IDSymbol name="cmdidCreateCFamilyReproducer" value="0x300" />
     </GuidSymbol>
         
   </Symbols>
