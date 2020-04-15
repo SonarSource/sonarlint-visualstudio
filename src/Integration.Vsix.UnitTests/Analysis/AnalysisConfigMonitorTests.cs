@@ -121,12 +121,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             public void AssertAnalysisIsRequested()
             {
-                analysisRequesterMock.Verify(x => x.RequestAnalysis(), Times.Once);
+                analysisRequesterMock.Verify(x => x.RequestAnalysis(null, null), Times.Once);
             }
 
             public void AssertAnalysisIsNotRequested()
             {
-                analysisRequesterMock.Verify(x => x.RequestAnalysis(), Times.Never);
+                analysisRequesterMock.Verify(x => x.RequestAnalysis(null, null), Times.Never);
             }
         }
     }

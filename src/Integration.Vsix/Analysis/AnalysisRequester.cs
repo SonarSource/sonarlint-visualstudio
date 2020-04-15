@@ -38,13 +38,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         #region IAnalysisRequester implementation
 
-        public event EventHandler AnalysisRequested;
+        public event EventHandler<AnalysisRequestEventArgs> AnalysisRequested;
 
-        public void RequestAnalysis()
+        public void RequestAnalysis(IAnalyzerOptions analyzerOptions, params string[] filePaths)
         {
             try
             {
-                AnalysisRequested?.Invoke(this, EventArgs.Empty);
+                var args = new AnalysisRequestEventArgs(analyzerOptions, filePaths);
+                AnalysisRequested?.Invoke(this, args);
             }
             catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
