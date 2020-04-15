@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -77,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 2. Add a tagger -> analysis requested
             using (var tagger = new IssueTagger(testSubject))
             {
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -125,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalyzerController.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>(), It.IsAny<CancellationToken>()), Times.Once);
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
@@ -148,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Sanity check (that the test setup is correct and that events are actually being handled)
                 RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>()), Times.Once);
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -173,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void CheckAnalysisWasNotRequested()
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
-                It.IsAny<IIssueConsumer>(), It.IsAny<ProjectItem>()), Times.Never);
+                It.IsAny<IIssueConsumer>(), It.IsAny<ProjectItem>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         #endregion
@@ -397,8 +398,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
+            var mockAnalysisScheduler = new Mock<IScheduler>();
+            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>()))
+                .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
+
             var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger());
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger(), mockAnalysisScheduler.Object);
             return provider;
         }
 

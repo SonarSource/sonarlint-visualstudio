@@ -18,25 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
+using System;
 using System.Threading;
-using EnvDTE;
 
-// TODO: decide whether both of these interfaces are required
-
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
+namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    public interface IAnalyzer
+    public interface IScheduler
     {
-        bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
-
-        void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken);
-    }
-
-    // Marker interface used by for MEF exporting/importing
-    // (there are multiple implementations of IAnalyzer but only one implentation
-    // of this interface).
-    internal interface IAnalyzerController : IAnalyzer
-    {
+        /// <summary>
+        /// Issues a cancellation token for a given job and fires cancellation request for the previous job for same jobId.
+        /// </summary>
+        /// <param name="jobId">Unique key based on which previous job is cancelled</param>
+        /// <param name="action">Job action</param>
+        void Schedule(string jobId, Action<CancellationToken> action);
     }
 }

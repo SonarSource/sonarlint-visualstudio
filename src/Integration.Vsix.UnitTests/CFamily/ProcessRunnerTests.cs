@@ -26,6 +26,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -36,8 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class ProcessRunnerTests
     {
         public TestContext TestContext { get; set; }
-
-        #region Tests
 
         [TestMethod]
         public void Execute_WhenRunnerArgsIsNull_ThrowsArgumentNullException()
@@ -102,7 +102,7 @@ xxx yyy
             // Alternatives such as
             // pinging a non-existent address with a timeout were not reliable.
             var exeName = WriteBatchFileForTest(TestContext,
-@"waitfor /t 2 somethingThatNeverHappen
+$@"waitfor /t 2 {Guid.NewGuid():N}
 @echo Hello world
 ");
 
@@ -409,7 +409,91 @@ xxx yyy
             DummyExeHelper.AssertExpectedLogContents(exeLogFile, allArgs);
         }
 
-        #endregion Tests
+        [TestMethod]
+        public void Execute_CancellationTokenIsAlreadyCancelled_ProcessNotExecuted()
+        {
+            var exeName = WriteBatchFileForTest(TestContext,
+                @"@echo Hello world
+xxx yyy
+@echo Testing 1,2,3...>&2
+");
+
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true);
+            var runner = CreateProcessRunner(logger);
+
+            args.CancellationToken = new CancellationToken(true);
+
+            // Act
+            var success = runner.Execute(args);
+
+            // Assert
+            success.Should().BeFalse();
+            runner.ExitCode.Should().Be(0, "Unexpected exit code");
+
+            logger.AssertOutputStringDoesNotExist("Hello world"); 
+        }
+
+        [TestMethod]
+        [Description("This test checks that a process can be cancelled midway. It's timing-dependent, so could be flaky.")]
+        public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
+        {
+            var exeName = WriteBatchFileForTest(TestContext,
+$@"
+@echo Hello world
+waitfor /t 4 { Guid.NewGuid():N}
+@echo Done!
+");
+
+            var logger = new TestLogger();
+            var cancellationTokenSource = new CancellationTokenSource();
+            var args = new ProcessRunnerArguments(exeName, true)
+            {
+                TimeoutInMilliseconds = 4000,
+                CancellationToken = cancellationTokenSource.Token
+            };
+
+            var runner = CreateProcessRunner(logger);
+
+            bool? result = null;
+
+            var runProcess = Task.Run(() =>
+            {
+                result = runner.Execute(args);
+            });
+
+            cancellationTokenSource.CancelAfter(100);
+
+            await runProcess;
+
+            result.Should().BeFalse("Expecting the process to have failed");
+            runner.ExitCode.Should().Be(-1, "Unexpected exit code");
+            logger.AssertOutputStringExists("Hello world");
+            logger.AssertPartialOutputStringDoesNotExist("Done!");
+        }
+
+        [TestMethod]
+        public void Execute_CancellationTokenCancelledAfterProcessAlreadyFinished_DoesNotThrow()
+        {
+            var exeName = WriteBatchFileForTest(TestContext,
+                @"@echo Hello world
+xxx yyy
+@echo Testing 1,2,3...>&2
+");
+
+            var logger = new TestLogger();
+            var args = new ProcessRunnerArguments(exeName, true);
+            var runner = CreateProcessRunner(logger);
+
+            var cancellationTokenSource = new CancellationTokenSource();
+            args.CancellationToken = cancellationTokenSource.Token;
+
+            runner.Execute(args);
+
+            Action act = () => cancellationTokenSource.Cancel(false);
+
+            act.Should().NotThrow();
+        }
 
         #region Private methods
 
@@ -435,12 +519,6 @@ xxx yyy
         {
             var matches = logger.OutputStrings.Where(m => m.Contains(text));
             matches.Should().BeEmpty($"Not expecting the text to appear in the log output: {text}");
-        }
-
-        private static void AssertTextDoesNotAppearInLog(string text, IList<string> logEntries)
-        {
-            logEntries.Should().NotContain(e => e.IndexOf(text, StringComparison.OrdinalIgnoreCase) > -1,
-                "Specified text should not appear anywhere in the log file: {0}", text);
         }
 
         /// <summary>
