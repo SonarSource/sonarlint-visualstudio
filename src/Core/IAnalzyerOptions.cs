@@ -18,25 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using System.Threading;
-using EnvDTE;
-
-// TODO: decide whether both of these interfaces are required
-
-namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
+namespace SonarLint.VisualStudio.Core
 {
-    public interface IAnalyzer
-    {
-        bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
-
-        void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken);
-    }
-
-    // Marker interface used by for MEF exporting/importing
-    // (there are multiple implementations of IAnalyzer but only one implentation
-    // of this interface).
-    internal interface IAnalyzerController : IAnalyzer
+    /// <summary>
+    /// Marker interface for any analyzer-specific configuration options
+    /// </summary>
+    public interface IAnalyzerOptions
     {
     }
 }
