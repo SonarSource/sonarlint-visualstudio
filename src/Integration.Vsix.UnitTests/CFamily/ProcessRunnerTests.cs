@@ -428,13 +428,14 @@ xxx yyy
             var success = runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse("");
+            success.Should().BeFalse();
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             logger.AssertNoOutputMessages(); 
         }
 
         [TestMethod]
+        [Description("This test checks that a process can be cancelled midway. It's timing-dependent, so could be flaky.")]
         public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
             var exeName = WriteBatchFileForTest(TestContext,

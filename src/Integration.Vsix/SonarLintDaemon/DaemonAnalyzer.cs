@@ -52,6 +52,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return daemon.IsAnalysisSupported(languages);
         }
 
+        /// <summary>
+        /// Executes analysis for the given path. CancellationToken is not currently supported.
+        /// </summary>
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken)
         {
