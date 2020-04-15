@@ -25,8 +25,6 @@ using System.Linq;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-
-
 using SonarLint.VisualStudio.Core;
 using Task = System.Threading.Tasks.Task;
 
@@ -160,6 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (activeDoc != null)
             {
+                // TODO: implement the trigger code
                 logger.WriteLine(CFamilyStrings.ReproCmd_ExecutingReproducer);
             }
         }

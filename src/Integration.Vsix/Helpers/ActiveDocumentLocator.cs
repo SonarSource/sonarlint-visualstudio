@@ -67,8 +67,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Finally, convert from the legacy VS editor interface to the new-style interface
             var textBuffer = editorAdapterService.GetDocumentBuffer(vsTextBuffer);
-            textBuffer.Properties.TryGetProperty(
-                typeof(ITextDocument), out ITextDocument newTextDocument);
+
+            ITextDocument newTextDocument = null;
+            textBuffer?.Properties?.TryGetProperty(
+                typeof(ITextDocument), out newTextDocument);
 
             return newTextDocument;
         }
