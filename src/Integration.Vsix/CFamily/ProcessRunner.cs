@@ -88,6 +88,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             using (var process = new Process())
             using (runnerArgs.CancellationToken.Register(() =>
             {
+                LogMessage(CFamilyStrings.MSG_ExecutionCancelled);
+
                 lock (process)
                 {
                     if (!hasProcessStarted)
@@ -113,6 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                     else
                     {
+                        LogMessage(CFamilyStrings.MSG_ExecutionCancelled);
                         return false;
                     }
                 }
@@ -176,6 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 if (process != null && !process.HasExited)
                 {
+                    LogMessage(CFamilyStrings.MSG_ExectutionCancelledKilled, process.Id);
                     process.Kill();
                 }
             }

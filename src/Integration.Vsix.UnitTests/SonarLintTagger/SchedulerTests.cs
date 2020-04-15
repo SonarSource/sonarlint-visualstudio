@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new Scheduler(new TestLogger());
+            testSubject = new Scheduler();
         }
 
         [TestMethod]

@@ -431,7 +431,7 @@ xxx yyy
             success.Should().BeFalse();
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertNoOutputMessages(); 
+            logger.AssertOutputStringDoesNotExist("Hello world"); 
         }
 
         [TestMethod]
