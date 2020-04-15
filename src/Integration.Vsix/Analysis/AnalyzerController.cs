@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -56,7 +57,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             return isSupported;
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
+            ProjectItem projectItem, CancellationToken cancellationToken)
         {
             bool handled = false;
             foreach(var analyzer in analyzers)
@@ -64,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 if (analyzer.IsAnalysisSupported(detectedLanguages))
                 {
                     handled = true;
-                    analyzer.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem);
+                    analyzer.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem, cancellationToken);
                 }
             }
 

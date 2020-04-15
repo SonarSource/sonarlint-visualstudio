@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Integration.Vsix;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -69,7 +70,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return SupportedLanguages?.Intersect(languages).Any() ?? false;
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
+            ProjectItem projectItem, CancellationToken cancellationToken)
         {
             RequestAnalysisCallCount++;
             RequestAnalysisOperation?.Invoke();

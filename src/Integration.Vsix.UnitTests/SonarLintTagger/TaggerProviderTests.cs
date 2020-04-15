@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IContentType jsContentType;
 
         private DummyTextDocumentFactoryService dummyDocumentFactoryService;
+        private Mock<IScheduler> mockAnalysisScheduler;
 
         [TestInitialize]
         public void SetUp()
@@ -110,9 +112,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
+            mockAnalysisScheduler = new Mock<IScheduler>();
+            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>()))
+                .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
+
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object);
+                sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
@@ -244,6 +250,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // factories of existing trackers are propagated to new sink manager
             mockTableDataSink.Verify(s => s.AddFactory(trackers[0].Factory, false));
             mockTableDataSink.Verify(s => s.AddFactory(trackers[1].Factory, false));
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_Should_NotThrow_When_AnalysisFails()
+        {
+            mockAnalysisScheduler
+                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>()))
+                .Throws<Exception>();
+
+            Action act = () => 
+            provider.RequestAnalysis("doc1.js", "", new []{AnalysisLanguage.CFamily}, null, null);
+
+            act.Should().NotThrow();
         }
 
         private IssueTagger CreateTagger(IContentType bufferContentType = null)

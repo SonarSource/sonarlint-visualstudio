@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Process {0} was cancelled and killed..
+        /// </summary>
+        internal static string MSG_ExectutionCancelledKilled {
+            get {
+                return ResourceManager.GetString("MSG_ExectutionCancelledKilled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Executing file {0}
         ///  Args: {1}
         ///  Working directory: {2}
@@ -88,6 +97,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_ExecutingFile {
             get {
                 return ResourceManager.GetString("MSG_ExecutingFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Execution cancelled..
+        /// </summary>
+        internal static string MSG_ExecutionCancelled {
+            get {
+                return ResourceManager.GetString("MSG_ExecutionCancelled", resourceCulture);
             }
         }
         

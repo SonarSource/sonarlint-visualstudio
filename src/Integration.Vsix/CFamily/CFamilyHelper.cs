@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -110,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger)
+        internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
             string tempFileName = null;
             try
@@ -130,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     Protocol.Write(new BinaryWriter(writeStream), request);
                 }
 
-                var success = ExecuteAnalysis(runner, tempFileName, logger);
+                var success = ExecuteAnalysis(runner, tempFileName, logger, cancellationToken);
 
                 if (success)
                 {
@@ -224,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger)
+        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
@@ -232,11 +233,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return false;
             }
 
-            ProcessRunnerArguments args = new ProcessRunnerArguments(analyzerExeFilePath, false);
-            args.CmdLineArgs = new string[] { fileName };
-            args.TimeoutInMilliseconds = GetTimeoutInMs();
+            var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
+            {
+                CmdLineArgs = new[] {fileName},
+                TimeoutInMilliseconds = GetTimeoutInMs(),
+                CancellationToken = cancellationToken
+            };
 
-            bool success = runner.Execute(args);
+            var success = runner.Execute(args);
+
             return success;
         }
 

@@ -123,12 +123,18 @@
   <data name="MSG_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
     <value>&lt;sensitive data removed&gt;</value>
   </data>
+  <data name="MSG_ExectutionCancelledKilled" xml:space="preserve">
+    <value>Process {0} was cancelled and killed.</value>
+  </data>
   <data name="MSG_ExecutingFile" xml:space="preserve">
     <value>Executing file {0}
   Args: {1}
   Working directory: {2}
   Timeout (ms):{3}
   Process id: {4}</value>
+  </data>
+  <data name="MSG_ExecutionCancelled" xml:space="preserve">
+    <value>Execution cancelled.</value>
   </data>
   <data name="MSG_ExecutionExitCode" xml:space="preserve">
     <value>Process returned exit code {0}</value>
