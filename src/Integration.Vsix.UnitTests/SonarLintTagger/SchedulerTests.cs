@@ -89,17 +89,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var thirdJob = SetupJobAction(out var getThirdToken);
 
             testSubject.Schedule("test path", firstJob.Object);
+
+            var firstToken = getFirstToken();
+            firstToken.IsCancellationRequested.Should().BeFalse();
+
             testSubject.Schedule("test path", secondJob.Object);
+
+            var secondToken = getSecondToken();
+            secondToken.IsCancellationRequested.Should().BeFalse();
+
             testSubject.Schedule("test path", thirdJob.Object);
 
-            var tokens = new List<CancellationToken>
-            {
-                getFirstToken(),
-                getSecondToken(),
-                getThirdToken()
-            };
-
-            tokens.All(x => !x.IsCancellationRequested).Should().BeTrue("No token should be cancelled");
+            var thirdToken = getThirdToken();
+            thirdToken.IsCancellationRequested.Should().BeFalse();
         }
 
         [TestMethod]
