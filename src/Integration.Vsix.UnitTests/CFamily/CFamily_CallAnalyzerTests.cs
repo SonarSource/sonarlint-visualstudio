@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var dummyProcessRunner = new DummyProcessRunner(MockResponse(), true);
 
             // Act
-            var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), TODO);
+            var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), CancellationToken.None);
 
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var dummyProcessRunner = new DummyProcessRunner(MockEmptyResponse(), false);
 
             // Act
-            var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), TODO);
+            var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), CancellationToken.None);
 
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             // Arrange
             var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse(), true);
-            Action act = () => CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), TODO);
+            Action act = () => CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), CancellationToken.None);
 
             // Act and Assert
             act.Should().ThrowExactly<InvalidDataException>();
