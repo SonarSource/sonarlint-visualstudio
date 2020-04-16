@@ -67,10 +67,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
+            return CreateRequest(logger, fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
         }
 
-        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
+        private static Request CreateRequest(ILogger logger, FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
             var request = fileConfig.ToRequest(absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
@@ -136,10 +136,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     Protocol.Write(new BinaryWriter(writeStream), request);
                 }
 
-                var success = ExecuteAnalysis(runner, tempFileName, logger, cancellationToken);
+                var workingDirectory = Path.GetTempPath();
+                var success = ExecuteAnalysis(runner, tempFileName, workingDirectory, logger, cancellationToken);
 
                 if (success)
                 {
+                    if ((request.Flags & Request.CreateReproducer) != 0)
+                    {
+                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved,
+                            Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+                    }
+
                     using (var readStream = new FileStream(tempFileName, FileMode.Open))
                     {
                         Response response = Protocol.Read(new BinaryReader(readStream), request.File);
@@ -230,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger, CancellationToken cancellationToken)
+        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, string workingDirectory, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
@@ -240,10 +247,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
             {
-                CmdLineArgs = new[] {fileName },
+                CmdLineArgs = new[] {fileName},
                 TimeoutInMilliseconds = GetTimeoutInMs(),
                 CancellationToken = cancellationToken,
-                WorkingDirectory = Path.GetTempPath()
+                WorkingDirectory = workingDirectory
             };
 
             var success = runner.Execute(args);
