@@ -39,9 +39,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private IssuesSnapshot issues;
         private bool isDisposed;
-        internal /* for testing */ TextBufferIssueTracker IssueTracker { get; }
+        internal /* for testing */ IIssueTracker IssueTracker { get; }
 
-        public IssueTagger(TextBufferIssueTracker issueTracker)
+        public IssueTagger(IIssueTracker issueTracker)
         {
             this.IssueTracker = issueTracker;
             this.issues = issueTracker.LastIssues;
