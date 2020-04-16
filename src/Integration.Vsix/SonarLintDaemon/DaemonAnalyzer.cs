@@ -26,8 +26,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
-using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

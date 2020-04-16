@@ -21,6 +21,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 
 // TODO: decide whether both of these interfaces are required
 
@@ -43,10 +44,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     // (there are multiple implementations of IAnalyzer but only one implentation
     // of this interface).
     internal interface IAnalyzerController : IAnalyzer
-    {
-    }
-
-    public interface IAnalyzerOptions
     {
     }
 }

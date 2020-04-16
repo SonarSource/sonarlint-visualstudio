@@ -19,7 +19,6 @@
  */
 
 using Grpc.Core;
-using Microsoft.VisualStudio;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
@@ -30,7 +29,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Core;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Process = System.Diagnostics.Process;
 
 namespace SonarLint.VisualStudio.Integration.Vsix

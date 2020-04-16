@@ -1,4 +1,4 @@
-﻿using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+﻿using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {

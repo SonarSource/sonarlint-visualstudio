@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
