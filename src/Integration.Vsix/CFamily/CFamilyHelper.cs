@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private const int DefaultAnalysisTimeoutMs = 20 * 1000;
         private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
 
-        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
             if (IsHeaderFile(absoluteFilePath))
             {
@@ -67,10 +67,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, cFamilyAnalyzerOptions);
+            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
         }
 
-        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
+        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
             var request = fileConfig.ToRequest(absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
 
-            if (cFamilyAnalyzerOptions != null && cFamilyAnalyzerOptions.RunReproducer)
+            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions && cFamilyAnalyzerOptions.RunReproducer)
             {
                 request.Flags |= Request.CreateReproducer;
             }

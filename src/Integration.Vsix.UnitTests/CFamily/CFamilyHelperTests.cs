@@ -452,6 +452,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CreateRequest_AnalyzerOptionsAreNotCFamilyOptions_RequestCreatedWithoutOptions()
+        {
+            var request = GetSuccessfulRequest(Mock.Of<IAnalyzerOptions>());
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().Be(0);
+        }
+
+        [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
         {
             var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions{RunReproducer = true});
@@ -459,7 +468,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             (request.Flags & Request.CreateReproducer).Should().NotBe(0);
         }
-
 
         [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
@@ -741,7 +749,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return projectItemMock;
         }
 
-        private Request GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions)
+        private Request GetSuccessfulRequest(IAnalyzerOptions analyzerOptions)
         {
             var loggerMock = new Mock<ILogger>();
             var rulesConfig = GetDummyRulesConfiguration();
