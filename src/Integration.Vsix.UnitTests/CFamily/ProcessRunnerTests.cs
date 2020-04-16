@@ -435,9 +435,7 @@ xxx yyy
         }
 
         [TestMethod]
-        [Description(
-            "This test checks that a process can be cancelled midway. It's timing-dependent, so could be flaky.")]
-        public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
+        public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
             var testFolder = CreateTestSpecificFolder(TestContext);
             var signalFileName = $"{testFolder}\\signal-{Guid.NewGuid():N}.txt";
@@ -445,14 +443,14 @@ xxx yyy
             var exeName = WriteBatchFileForTest(TestContext,
                 $@"
 echo test > ""{signalFileName}"" 
-waitfor /t 4 {Guid.NewGuid():N}
+waitfor /t 10 {Guid.NewGuid():N}
 @echo Done!
 ");
             using var cancellationTokenSource = new CancellationTokenSource(); 
             var logger = new TestLogger(true, true);
             var args = new ProcessRunnerArguments(exeName, true)
             {
-                TimeoutInMilliseconds = 4000,
+                TimeoutInMilliseconds = 12000,
                 CancellationToken = cancellationTokenSource.Token
             };
 
@@ -460,16 +458,18 @@ waitfor /t 4 {Guid.NewGuid():N}
 
             bool? result = null;
             var processTask = Task.Run(() => { result = runner.Execute(args); });
-            var cancelMidwayTask = Task.Run(() =>
+
+            Task.Run(() =>
             {
                 while (!File.Exists(signalFileName))
                 {
                     Thread.Sleep(10);
                 }
+
                 cancellationTokenSource.Cancel();
             });
 
-            Task.WaitAll(new[] {processTask, cancelMidwayTask}, TimeSpan.FromSeconds(5));
+            await processTask;
 
             result.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
