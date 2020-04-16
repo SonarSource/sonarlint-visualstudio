@@ -19,6 +19,7 @@
  */
 
 using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
@@ -121,12 +122,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             public void AssertAnalysisIsRequested()
             {
-                analysisRequesterMock.Verify(x => x.RequestAnalysis(), Times.Once);
+                analysisRequesterMock.Verify(x => x.RequestAnalysis((IAnalyzerOptions)null, Array.Empty<string>()), Times.Once);
             }
 
             public void AssertAnalysisIsNotRequested()
             {
-                analysisRequesterMock.Verify(x => x.RequestAnalysis(), Times.Never);
+                analysisRequesterMock.Invocations.Count.Should().Be(0);
             }
         }
     }

@@ -25,6 +25,8 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 
@@ -35,6 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     {
         private Mock<IActiveDocumentLocator> docLocatorMock;
         private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
+        private Mock<IAnalysisRequester> analysisRequesterMock;
         private TestLogger logger;
 
         private ITextDocument ValidTextDocument;
@@ -46,8 +49,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             docLocatorMock = new Mock<IActiveDocumentLocator>();
             languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
+            analysisRequesterMock = new Mock<IAnalysisRequester>();
+
             logger = new TestLogger();
-            testSubject = CreateCFamilyReproducerCommand(docLocatorMock.Object, languageRecognizerMock.Object, logger);
+            testSubject = CreateCFamilyReproducerCommand(docLocatorMock.Object, languageRecognizerMock.Object,
+                analysisRequesterMock.Object, logger);
 
             ValidTextDocument = CreateValidTextDocument("c:\\subdir1\\file.txt");
         }
@@ -57,16 +63,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var menuCommandService = new DummyMenuCommandService();
 
-            Action act = () => new CFamilyReproducerCommand(null, docLocatorMock.Object, languageRecognizerMock.Object, logger);
+            Action act = () => new CFamilyReproducerCommand(null, docLocatorMock.Object, languageRecognizerMock.Object, analysisRequesterMock.Object, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("menuCommandService");
 
-            act = () => new CFamilyReproducerCommand(menuCommandService, null, languageRecognizerMock.Object, logger);
+            act = () => new CFamilyReproducerCommand(menuCommandService, null, languageRecognizerMock.Object, analysisRequesterMock.Object, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeDocumentLocator");
 
-            act = () => new CFamilyReproducerCommand(menuCommandService, docLocatorMock.Object, null, logger);
+            act = () => new CFamilyReproducerCommand(menuCommandService, docLocatorMock.Object, null, analysisRequesterMock.Object, logger);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("languageRecognizer");
 
-            act = () => new CFamilyReproducerCommand(menuCommandService, docLocatorMock.Object, languageRecognizerMock.Object, null);
+            act = () => new CFamilyReproducerCommand(menuCommandService, docLocatorMock.Object, languageRecognizerMock.Object, null, logger);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisRequester");
+
+            act = () => new CFamilyReproducerCommand(menuCommandService, docLocatorMock.Object, languageRecognizerMock.Object, analysisRequesterMock.Object, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
@@ -94,6 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             VerifyDocumentLocatorCalled();
             VerifyLanguageRecognizerNotCalled();
+            VerifyAnalysisNotRequested();
         }
 
         [TestMethod]
@@ -113,6 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             VerifyDocumentLocatorCalled();
             VerifyLanguageRecognizerCalled();
+            VerifyAnalysisNotRequested();
         }
 
         [TestMethod]
@@ -132,6 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             VerifyDocumentLocatorCalled();
             VerifyLanguageRecognizerCalled();
+            VerifyAnalysisNotRequested();
         }
 
         [TestMethod]
@@ -140,12 +152,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             SetActiveDocument(ValidTextDocument, AnalysisLanguage.CFamily);
 
+            IAnalyzerOptions actualOptions = null;
+            string[] actualFilePaths = null;
+            analysisRequesterMock.Setup(x => x.RequestAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<string[]>()))
+                .Callback<IAnalyzerOptions, string[]>((opts, filePaths) => { actualOptions = opts; actualFilePaths = filePaths; });
+
             // Act
             testSubject.Invoke();
 
             // Assert
-            // TODO: product code still to be implemented
             logger.AssertOutputStringExists(CFamilyStrings.ReproCmd_ExecutingReproducer);
+            actualOptions.Should().BeOfType<CFamilyAnalyzerOptions>();
+            ((CFamilyAnalyzerOptions)actualOptions).RunReproducer.Should().BeTrue();
+            actualFilePaths.Should().BeEquivalentTo(ValidTextDocument.FilePath);
         }
 
         [TestMethod]
@@ -194,10 +213,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             logger.AssertPartialOutputStringDoesNotExist("exception xxx");
         }
 
-        private static MenuCommand CreateCFamilyReproducerCommand(IActiveDocumentLocator documentLocator, ISonarLanguageRecognizer languageRecognizer, ILogger logger)
+        private static MenuCommand CreateCFamilyReproducerCommand(IActiveDocumentLocator documentLocator, 
+            ISonarLanguageRecognizer languageRecognizer, IAnalysisRequester analysisRequester, ILogger logger)
         {
             var dummyMenuService = new DummyMenuCommandService();
-            new CFamilyReproducerCommand(dummyMenuService, documentLocator, languageRecognizer, logger);
+            new CFamilyReproducerCommand(dummyMenuService, documentLocator, languageRecognizer, analysisRequester, logger);
 
             dummyMenuService.AddedMenuCommands.Count.Should().Be(1);
             return dummyMenuService.AddedMenuCommands[0];
@@ -222,18 +242,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         private void VerifyDocumentLocatorCalled()
-        {
-            docLocatorMock.Verify(x => x.FindActiveDocument(), Times.AtLeastOnce);
-        }
+            => docLocatorMock.Verify(x => x.FindActiveDocument(), Times.AtLeastOnce);
 
         private void VerifyLanguageRecognizerNotCalled()
-        {
-            languageRecognizerMock.Verify(x => x.Detect(It.IsAny<ITextDocument>(), It.IsAny<ITextBuffer>()), Times.Never);
-        }
+            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<ITextDocument>(), It.IsAny<ITextBuffer>()), Times.Never);
 
         private void VerifyLanguageRecognizerCalled()
-        {
-            languageRecognizerMock.Verify(x => x.Detect(It.IsAny<ITextDocument>(), It.IsAny<ITextBuffer>()), Times.AtLeastOnce);
-        }
+            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<ITextDocument>(), It.IsAny<ITextBuffer>()), Times.AtLeastOnce);
+
+        private void VerifyAnalysisNotRequested() =>
+            analysisRequesterMock.Verify(x => x.RequestAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<string[]>()), Times.Never);
     }
 }

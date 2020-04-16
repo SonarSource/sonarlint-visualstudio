@@ -21,6 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -46,20 +48,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var testSubject = new AnalysisRequester(logger);
 
             bool eventRaised = false;
+            object actualSender = null;
+            AnalysisRequestEventArgs actualEventArgs = null;
 
-            testSubject.AnalysisRequested += (s, e) =>
+            testSubject.AnalysisRequested += (s, args) =>
             {
-                s.Should().Be(testSubject);
-                e.Should().Be(EventArgs.Empty);
+                // Don't assert here - one a background thread,
+                // and the exception will be caught and suppressed.
 
+                actualSender = s;
+                actualEventArgs = args;
                 eventRaised = true;
             };
 
+
+            var inputOptions = new Mock<IAnalyzerOptions>().Object;
+
             // Act
-            testSubject.RequestAnalysis();
+            testSubject.RequestAnalysis(inputOptions, "file1", "c:\\aaa\\bbb.cs");
 
             // Assert
             eventRaised.Should().BeTrue();
+            actualSender.Should().Be(testSubject);
+            actualEventArgs.Should().NotBeNull();
+            actualEventArgs.Options.Should().BeSameAs(inputOptions);
+            actualEventArgs.FilePaths.Should().BeEquivalentTo("file1", "c:\\aaa\\bbb.cs");
         }
 
         [TestMethod]
