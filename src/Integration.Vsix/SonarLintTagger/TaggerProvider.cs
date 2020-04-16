@@ -116,7 +116,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisJob?.Cancel();
                 reanalysisProgressHandler?.Dispose();
 
-                var operations = this.issueTrackers
+                var filteredIssueTrackers = FilterIssuesTrackersByPath(this.issueTrackers, args.FilePaths);
+
+                var operations = filteredIssueTrackers
                     .Select<IIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
@@ -125,6 +127,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations,
                     reanalysisProgressHandler, logger);
             }
+        }
+
+        internal /* for testing */ static IEnumerable<IIssueTracker> FilterIssuesTrackersByPath(
+            IEnumerable<IIssueTracker> issueTrackers, IEnumerable<string> filePaths)
+        {
+            if (filePaths == null || !filePaths.Any())
+            {
+                return issueTrackers;
+            }
+            return issueTrackers.Where(it => filePaths.Contains(it.FilePath, StringComparer.OrdinalIgnoreCase));
         }
 
         internal IEnumerable<IIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
@@ -214,28 +226,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddIssueTracker(IIssueTracker bufferHandler)
+        public void AddIssueTracker(IIssueTracker issueTracker)
         {
             lock (managers)
             {
-                issueTrackers.Add(bufferHandler);
+                issueTrackers.Add(issueTracker);
 
                 foreach (var manager in managers)
                 {
-                    manager.AddFactory(bufferHandler.Factory);
+                    manager.AddFactory(issueTracker.Factory);
                 }
             }
         }
 
-        public void RemoveIssueTracker(IIssueTracker bufferHandler)
+        public void RemoveIssueTracker(IIssueTracker issueTracker)
         {
             lock (managers)
             {
-                issueTrackers.Remove(bufferHandler);
+                issueTrackers.Remove(issueTracker);
 
                 foreach (var manager in managers)
                 {
-                    manager.RemoveFactory(bufferHandler.Factory);
+                    manager.RemoveFactory(issueTracker.Factory);
                 }
             }
         }
