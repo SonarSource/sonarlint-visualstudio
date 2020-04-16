@@ -435,7 +435,7 @@ xxx yyy
         }
 
         [TestMethod]
-        public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
+        public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
             var testFolder = CreateTestSpecificFolder(TestContext);
             var signalFileName = $"{testFolder}\\signal-{Guid.NewGuid():N}.txt";
@@ -459,7 +459,7 @@ waitfor /t 10 {Guid.NewGuid():N}
             bool? result = null;
             var processTask = Task.Run(() => { result = runner.Execute(args); });
 
-            Task.Run(() =>
+            var cancellationTask = Task.Run(() =>
             {
                 while (!File.Exists(signalFileName))
                 {
@@ -469,7 +469,7 @@ waitfor /t 10 {Guid.NewGuid():N}
                 cancellationTokenSource.Cancel();
             });
 
-            await processTask;
+            Task.WaitAll(new[] {processTask, cancellationTask}, TimeSpan.FromSeconds(15));
 
             result.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
