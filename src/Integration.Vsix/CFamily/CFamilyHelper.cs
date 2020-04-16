@@ -136,10 +136,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     Protocol.Write(new BinaryWriter(writeStream), request);
                 }
 
-                var success = ExecuteAnalysis(runner, tempFileName, logger, cancellationToken);
+                var workingDirectory = Path.GetTempPath();
+                var success = ExecuteAnalysis(runner, tempFileName, workingDirectory, logger, cancellationToken);
 
                 if (success)
                 {
+                    if ((request.Flags & Request.CreateReproducer) != 0)
+                    {
+                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved,
+                            Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+                    }
+
                     using (var readStream = new FileStream(tempFileName, FileMode.Open))
                     {
                         Response response = Protocol.Read(new BinaryReader(readStream), request.File);
@@ -230,7 +237,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, ILogger logger, CancellationToken cancellationToken)
+        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, string workingDirectory, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
@@ -242,7 +249,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 CmdLineArgs = new[] {fileName},
                 TimeoutInMilliseconds = GetTimeoutInMs(),
-                CancellationToken = cancellationToken
+                CancellationToken = cancellationToken,
+                WorkingDirectory = workingDirectory
             };
 
             var success = runner.Execute(args);
