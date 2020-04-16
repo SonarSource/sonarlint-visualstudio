@@ -67,10 +67,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            return CreateRequest(logger, fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
+            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
         }
 
-        private static Request CreateRequest(ILogger logger, FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
+        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
             var request = fileConfig.ToRequest(absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
