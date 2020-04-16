@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal sealed class TextBufferIssueTracker : IIssueConsumer
+    internal sealed class TextBufferIssueTracker : IIssueTracker, IIssueConsumer
     {
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
@@ -261,9 +261,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Daemon interaction
 
-        public void RequestAnalysis(IAnalyzerOptions analyzerOptions)
+        public void RequestAnalysis(IAnalyzerOptions options)
         {
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, analyzerOptions);
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, options);
         }
 
         void IIssueConsumer.Accept(string path, IEnumerable<Issue> issues)
