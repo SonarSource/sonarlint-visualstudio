@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-            ProjectItem projectItem, CancellationToken cancellationToken)
+            ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
         {
             RequestAnalysisCallCount++;
             RequestAnalysisOperation?.Invoke();

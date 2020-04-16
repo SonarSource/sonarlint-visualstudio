@@ -30,7 +30,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     {
         bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages);
 
-        void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken);
+        void ExecuteAnalysis(string path,
+            string charset,
+            IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer,
+            ProjectItem projectItem,
+            CancellationToken cancellationToken,
+            IAnalyzerOptions analyzerOptions);
     }
 
     // Marker interface used by for MEF exporting/importing

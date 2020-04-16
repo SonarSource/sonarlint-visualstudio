@@ -56,11 +56,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return languages.Contains(AnalysisLanguage.CFamily);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider);
+            var cFamilyAnalyzerOptions = analyzerOptions as CFamilyAnalyzerOptions;
+            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, cFamilyAnalyzerOptions);
             if (request == null)
             {
                 return;

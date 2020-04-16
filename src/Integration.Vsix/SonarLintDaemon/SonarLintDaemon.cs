@@ -30,6 +30,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using Process = System.Diagnostics.Process;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -428,7 +429,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-            ProjectItem projectItem, CancellationToken cancellationToken)
+            ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
         {
             if (!settings.IsActivateMoreEnabled)
             {

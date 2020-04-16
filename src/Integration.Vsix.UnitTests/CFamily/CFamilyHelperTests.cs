@@ -20,10 +20,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -37,6 +39,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class CFamilyHelperTests
     {
         private const string FileName = @"C:\absolute\path\to\file.cpp";
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            CFamilyHelper.FileConfig.getEvaluatedPropertyValue = null;
+        }
+
         [TestMethod]
         public void FileConfig_Test1()
         {
@@ -387,7 +396,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", rulesConfigProviderMock.Object);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", rulesConfigProviderMock.Object, null);
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
@@ -404,7 +413,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object, null);
 
             // Assert
             AssertMessageLogged(loggerMock,
@@ -419,15 +428,46 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
+            var vcProjectMock = projectItemMock.Object.Object as VCProjectMock;
+            vcProjectMock.ActiveConfiguration = null;
+
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object, null);
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
                 "Unable to collect C/C++ configuration for c:\\dummy\\file.cpp: ");
             request.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CreateRequest_NoAnalyzerOptions_RequestCreatedWithoutOptions()
+        {
+            var request = GetSuccessfulRequest(null);
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().Be(0);
+        }
+
+        [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions{RunReproducer = true});
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().NotBe(0);
+        }
+
+
+        [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { RunReproducer = false });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().Be(0);
         }
 
         [TestMethod]
@@ -692,12 +732,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
         {
             var projectItemMock = new Mock<ProjectItem>();
-            var projectMock = new ProjectMock(projectName);
+            var projectMock = new ProjectMock(projectName) {Project = new VCProjectMock()};
             projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
+            projectItemMock.Setup(i => i.Object).Returns((projectMock as Project).Object);
             projectItemMock.Setup(i => i.ConfigurationManager).Returns(projectMock.ConfigurationManager);
             projectMock.ConfigurationManager.ActiveConfiguration = new ConfigurationMock("dummy config");
 
             return projectItemMock;
+        }
+
+        private Request GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions)
+        {
+            var loggerMock = new Mock<ILogger>();
+            var rulesConfig = GetDummyRulesConfiguration();
+            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
+            rulesConfigProviderMock
+                .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
+                .Returns(rulesConfig);
+
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\file.cpp");
+
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp",
+                rulesConfigProviderMock.Object, analyzerOptions);
+
+            return request;
         }
 
         private static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
@@ -733,4 +791,46 @@ namespace Microsoft.VisualStudio.VCProjectEngine
         }
     }
 
+    public class VCProjectMock
+    {
+        public VCConfigurationMock Configurations { get; set; } = new VCConfigurationMock();
+        public VCConfigurationMock FileConfigurations { get; set; } = new VCConfigurationMock();
+        public VCConfigurationMock ActiveConfiguration { get; set; } = new VCConfigurationMock();
+        public VCProjectMock Object => this;
+    }
+
+    public class VCConfigurationMock : IVCRulePropertyStorage
+    {
+        public VCConfigurationMock Rules => this;
+        public VCConfigurationMock Tool => this;
+        public string PlatformToolset => "v140_xp";
+        public string PrecompiledHeader => "NotUsing";
+        public string CompileAs => "CompileAsCpp";
+        public string CompileAsManaged => "false";
+        public string BasicRuntimeChecks => "UninitializedLocalUsageCheck";
+        public string ExceptionHandling => "Sync";
+        public string EnableEnhancedInstructionSet => "";
+        public string RuntimeLibrary => "";
+        public string LanguageStandard => "";
+
+        string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
+        {
+            return GetEvaluatedPropertyValue(propertyName);
+        }
+
+        public string GetEvaluatedPropertyValue(string propertyName)
+        {
+            var propertyInfo = GetType().GetProperty(propertyName);
+            if (propertyInfo != null)
+            {
+                return (string)propertyInfo.GetValue(this);
+            }
+            return "dummy property value";
+        }
+
+        public dynamic Item(string name)
+        {
+            return this;
+        }
+    }
 }

@@ -27,6 +27,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Sonarlint;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -262,7 +263,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis()
         {
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem);
+            IAnalyzerOptions analyzerOptions = null;
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, analyzerOptions);
         }
 
         void IIssueConsumer.Accept(string path, IEnumerable<Issue> issues)

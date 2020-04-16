@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private const int DefaultAnalysisTimeoutMs = 20 * 1000;
         private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
 
-        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider)
+        public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
         {
             if (IsHeaderFile(absoluteFilePath))
             {
@@ -67,10 +67,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider);
+            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, cFamilyAnalyzerOptions);
         }
 
-        private static Request CreateRequest(CFamilyHelper.FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider)
+        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
         {
             var request = fileConfig.ToRequest(absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
@@ -81,6 +81,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
             Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
+
+            if (cFamilyAnalyzerOptions != null && cFamilyAnalyzerOptions.RunReproducer)
+            {
+                request.Flags |= Request.CreateReproducer;
+            }
 
             return request;
         }

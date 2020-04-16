@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 };
             }
 
-            private static MethodInfo getEvaluatedPropertyValue;
+            internal static MethodInfo getEvaluatedPropertyValue;
 
             /// <summary>
             /// Computes property value taking into account inheritance, property sheets and macros.
