@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private CancellableJobRunner reanalysisJob;
         private StatusBarReanalysisProgressHandler reanalysisProgressHandler;
 
-        private void OnAnalysisRequested(object sender, EventArgs e)
+        private void OnAnalysisRequested(object sender, AnalysisRequestEventArgs args)
         {
             // Handle notification from the single file monitor that the settings file has changed.
 
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisProgressHandler?.Dispose();
 
                 var operations = this.issueTrackers
-                    .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis())
+                    .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
