@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly OleMenuCommand menuItem;
         private readonly IActiveDocumentLocator activeDocumentLocator;
         private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
+        private readonly IAnalysisRequester analysisRequester;
         private readonly ILogger logger;
 
         /// <summary>
@@ -59,9 +61,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var docLocator = new ActiveDocumentLocator(monitorSelection, adapterService);
 
             var languageRecognizer = await package.GetMefServiceAsync<ISonarLanguageRecognizer>();
+            var requester = await package.GetMefServiceAsync<IAnalysisRequester>();
 
             IMenuCommandService commandService = (IMenuCommandService)await package.GetServiceAsync(typeof(IMenuCommandService));
-            Instance = new CFamilyReproducerCommand(commandService, docLocator, languageRecognizer, logger);
+            Instance = new CFamilyReproducerCommand(commandService, docLocator, languageRecognizer, requester, logger);
         }
 
         /// <summary>
@@ -71,7 +74,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// <param name="package">Owner package, not null.</param>
         /// <param name="menuCommandService">Command service to add command to, not null.</param>
         internal /* for testing */ CFamilyReproducerCommand(IMenuCommandService menuCommandService,
-            IActiveDocumentLocator activeDocumentLocator, ISonarLanguageRecognizer languageRecognizer, ILogger logger)
+            IActiveDocumentLocator activeDocumentLocator, ISonarLanguageRecognizer languageRecognizer,
+            IAnalysisRequester analysisRequester, ILogger logger)
         {
             if (menuCommandService == null)
             {
@@ -80,6 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             this.activeDocumentLocator = activeDocumentLocator ?? throw new ArgumentNullException(nameof(activeDocumentLocator));
             this.sonarLanguageRecognizer = languageRecognizer ?? throw new ArgumentNullException(nameof(languageRecognizer));
+            this.analysisRequester = analysisRequester ?? throw new ArgumentNullException(nameof(analysisRequester));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
@@ -158,8 +163,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (activeDoc != null)
             {
-                // TODO: implement the trigger code
+                var options = new CFamilyAnalyzerOptions
+                {
+                    RunReproducer = true
+                };
+
                 logger.WriteLine(CFamilyStrings.ReproCmd_ExecutingReproducer);
+                analysisRequester.RequestAnalysis(options, activeDoc.FilePath);
             }
         }
     }
