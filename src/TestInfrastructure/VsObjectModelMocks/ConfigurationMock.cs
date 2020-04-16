@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -38,124 +38,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             get;
         }
 
-        public string ConfigurationName
-        {
-            get { return this.configurationName; }
-        }
+        public string ConfigurationName => configurationName;
 
         #region Configuration
 
-        ConfigurationManager Configuration.Collection
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        ConfigurationManager Configuration.Collection => throw new NotImplementedException();
 
-        string Configuration.ConfigurationName
-        {
-            get
-            {
-                return this.configurationName;
-            }
-        }
+        string Configuration.ConfigurationName => configurationName;
 
-        DTE Configuration.DTE
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        DTE Configuration.DTE => throw new NotImplementedException();
 
-        string Configuration.ExtenderCATID
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        string Configuration.ExtenderCATID => throw new NotImplementedException();
 
-        object Configuration.ExtenderNames
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        object Configuration.ExtenderNames => throw new NotImplementedException();
 
-        bool Configuration.IsBuildable
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        bool Configuration.IsBuildable => throw new NotImplementedException();
 
-        bool Configuration.IsDeployable
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        bool Configuration.IsDeployable => throw new NotImplementedException();
 
-        bool Configuration.IsRunable
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        bool Configuration.IsRunable => throw new NotImplementedException();
 
-        object Configuration.Object
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        object Configuration.Object => throw new NotImplementedException();
 
-        OutputGroups Configuration.OutputGroups
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        OutputGroups Configuration.OutputGroups => throw new NotImplementedException();
 
-        object Configuration.Owner
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        object Configuration.Owner => throw new NotImplementedException();
 
-        string Configuration.PlatformName
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        string Configuration.PlatformName => "x64";
 
-        Properties Configuration.Properties
-        {
-            get
-            {
-                return this.Properties;
-            }
-        }
+        Properties Configuration.Properties => Properties;
 
-        vsConfigurationType Configuration.Type
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        vsConfigurationType Configuration.Type => throw new NotImplementedException();
 
         object Configuration.get_Extender(string ExtenderName)
         {

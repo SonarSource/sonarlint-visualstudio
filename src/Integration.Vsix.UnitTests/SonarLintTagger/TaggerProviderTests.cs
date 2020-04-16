@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Throws<Exception>();
 
             Action act = () => 
-            provider.RequestAnalysis("doc1.js", "", new []{AnalysisLanguage.CFamily}, null, null);
+            provider.RequestAnalysis("doc1.js", "", new []{AnalysisLanguage.CFamily}, null, null, null);
 
             act.Should().NotThrow();
         }
