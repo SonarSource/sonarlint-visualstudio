@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 };
             }
 
-            internal /* for testing */ static MethodInfo getEvaluatedPropertyValue;
+            private static MethodInfo getEvaluatedPropertyValue;
 
             /// <summary>
             /// Computes property value taking into account inheritance, property sheets and macros.
@@ -465,6 +465,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     case "stdcpp14":
                         return "/std:c++14";
                 }
+            }
+
+            internal /* for testing */ static void ClearGetEvaluatedPropertyValueMethod()
+            {
+                getEvaluatedPropertyValue = null;
             }
         }
     }

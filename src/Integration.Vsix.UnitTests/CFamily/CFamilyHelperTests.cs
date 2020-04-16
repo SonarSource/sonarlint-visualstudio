@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            CFamilyHelper.FileConfig.getEvaluatedPropertyValue = null;
+            CFamilyHelper.FileConfig.ClearGetEvaluatedPropertyValueMethod();
         }
 
         [TestMethod]
