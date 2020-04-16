@@ -58,4 +58,11 @@ namespace SonarLint.VisualStudio.Core
         /// </summary>
         public IEnumerable<string> FilePaths { get; }
     }
+
+    public static class AnalysisRequesterExtensions
+    {
+        public static void RequestAnalysis(this IAnalysisRequester analysisRequester, params string[] filePaths)
+             => analysisRequester.RequestAnalysis(null, filePaths);
+    }
+
 }

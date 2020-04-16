@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var logger = new TestLogger();
             var testSubject = new AnalysisRequester(logger);
 
-            testSubject.RequestAnalysis(null, null);
+            testSubject.RequestAnalysis();
 
             logger.AssertNoOutputMessages();
         }
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             testSubject.AnalysisRequested += (s, e) => throw new ArgumentException("XXX yyy");
 
             // Act
-            testSubject.RequestAnalysis(null, null);
+            testSubject.RequestAnalysis();
 
             // Assert
             logger.AssertPartialOutputStringExists("XXX yyy");
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             testSubject.AnalysisRequested += (s, e) => throw new StackOverflowException("XXX overflow");
 
-            Action act = () => testSubject.RequestAnalysis(null, null);
+            Action act = () => testSubject.RequestAnalysis();
 
             // Act
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("XXX overflow");

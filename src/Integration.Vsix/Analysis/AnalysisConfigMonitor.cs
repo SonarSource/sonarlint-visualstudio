@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Standalone)
             {
                 logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
-                analysisRequester.RequestAnalysis(null, null);
+                analysisRequester.RequestAnalysis();
             }
             else
             {
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             // NB assumes exception handling is done by the AnalysisRequester
             logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
-            analysisRequester.RequestAnalysis(null, null);
+            analysisRequester.RequestAnalysis();
         }
 
         #region IDisposable Support

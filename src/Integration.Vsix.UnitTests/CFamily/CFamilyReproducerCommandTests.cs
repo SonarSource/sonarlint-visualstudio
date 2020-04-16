@@ -143,6 +143,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             VerifyDocumentLocatorCalled();
             VerifyLanguageRecognizerCalled();
+            VerifyAnalysisNotRequested();
         }
 
         [TestMethod]
