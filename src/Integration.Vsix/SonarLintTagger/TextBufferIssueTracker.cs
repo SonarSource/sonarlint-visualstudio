@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 Provider.AddIssueTracker(this);
 
-                RequestAnalysis();
+                RequestAnalysis(null /* no options */);
             }
         }
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
                     && activeTaggers.Count > 0)
                 {
-                    RequestAnalysis();
+                    RequestAnalysis(null /* no options */);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -261,9 +261,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Daemon interaction
 
-        public void RequestAnalysis()
+        public void RequestAnalysis(IAnalyzerOptions analyzerOptions)
         {
-            IAnalyzerOptions analyzerOptions = null;
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, analyzerOptions);
         }
 
