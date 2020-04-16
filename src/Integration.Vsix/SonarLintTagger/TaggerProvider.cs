@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 scheduler.Schedule(path, cancellationToken =>
-                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, cancellationToken, analyzerOptions));
+                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, analyzerOptions, cancellationToken));
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {

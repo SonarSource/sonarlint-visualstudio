@@ -57,7 +57,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// Executes analysis for the given path. CancellationToken is not currently supported.
         /// </summary>
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
+            IIssueConsumer consumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions,
+            CancellationToken cancellationToken)
         {
             if (!IsAnalysisSupported(detectedLanguages))
             {
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // decisions about whether to run or not. That should all be handled by 
             // this class.
             telemetryManager.LanguageAnalyzed("js");
-            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem, cancellationToken, analyzerOptions);
+            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem, analyzerOptions, cancellationToken);
         }
 
         /// <summary>

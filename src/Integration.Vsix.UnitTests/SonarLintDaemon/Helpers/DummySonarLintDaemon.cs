@@ -71,8 +71,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return SupportedLanguages?.Intersect(languages).Any() ?? false;
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-            ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer,
+            ProjectItem projectItem, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             RequestAnalysisCallCount++;
             RequestAnalysisOperation?.Invoke();

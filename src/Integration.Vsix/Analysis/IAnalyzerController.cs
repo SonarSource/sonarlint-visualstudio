@@ -36,8 +36,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
             ProjectItem projectItem,
-            CancellationToken cancellationToken,
-            IAnalyzerOptions analyzerOptions);
+            IAnalyzerOptions analyzerOptions,
+            CancellationToken cancellationToken);
     }
 
     // Marker interface used by for MEF exporting/importing

@@ -57,7 +57,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return languages.Contains(AnalysisLanguage.CFamily);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions,
+            CancellationToken cancellationToken)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 

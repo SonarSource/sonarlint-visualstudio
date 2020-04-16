@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
@@ -68,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 BasicRuntimeChecks = "Default",
                 AdditionalOptions = "/a1 /a2",
                 AbsoluteFilePath = FileName,
-                CompilerVersion="19.00.00",
+                CompilerVersion = "19.00.00",
             }.ToCaptures(FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
@@ -83,8 +82,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             c.CompilerVersion.Should().BeNull("otherwise will be considered as probe");
             c.Cwd.Should().Be(p.Cwd);
             c.Executable.Should().BeSameAs(p.Executable, "otherwise won't be associated with probe");
-            c.Env.Should().Equal(new[] { "INCLUDE=sys1;sys2;" });
-            c.Cmd.Should().Equal(new[] {
+            c.Env.Should().Equal(new[] {"INCLUDE=sys1;sys2;"});
+            c.Cmd.Should().Equal(new[]
+            {
                 "cl.exe",
                 "/I", "dir1", "/I", "dir2",
                 "/FI", "h1", "/FI", "h2",
@@ -133,7 +133,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             p.CompilerVersion.Should().Be("19.00.00");
             p.X64.Should().Be(true);
 
-            c.Cmd.Should().Equal(new[] {
+            c.Cmd.Should().Equal(new[]
+            {
                 "cl.exe",
                 "/X",
                 "/Yustdafx.h",
@@ -158,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void GetEvalutedPropertyValue_NoException_ReturnsValue()
         {
             // Arrange
-            var dummyEngine = new Microsoft.VisualStudio.VCProjectEngine.DummyProjectEngine();
+            var dummyEngine = new DummyProjectEngine();
 
             string suppliedPropertyName = null;
             dummyEngine.TestOp = pn =>
@@ -168,7 +169,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             };
 
             // Act
-            var result = CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1", "default xxx");
+            var result =
+                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1",
+                    "default xxx");
 
             // Assert
             result.Should().Be("propertyValue");
@@ -179,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void GetEvalutedPropertyValue_Exception_ReturnsDefault()
         {
             // Arrange
-            var dummyEngine = new Microsoft.VisualStudio.VCProjectEngine.DummyProjectEngine();
+            var dummyEngine = new DummyProjectEngine();
 
             bool delegateCalled = false;
             dummyEngine.TestOp = pn =>
@@ -189,7 +192,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             };
 
             // Act - exception should be handled
-            var result = CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1", "default xxx");
+            var result =
+                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1",
+                    "default xxx");
 
             // Assert
             result.Should().Be("default xxx");
@@ -200,16 +205,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void GetEvalutedPropertyValue_CriticalException_IsNotSuppressed()
         {
             // Arrange
-            var dummyEngine = new Microsoft.VisualStudio.VCProjectEngine.DummyProjectEngine();
+            var dummyEngine = new DummyProjectEngine();
 
-            dummyEngine.TestOp = _ =>
-            {
-                throw new StackOverflowException("foo");
-            };
+            dummyEngine.TestOp = _ => { throw new StackOverflowException("foo"); };
 
             // Act and Assert
-            Action act = () => CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1", "default xxx");
-            
+            Action act = () =>
+                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1",
+                    "default xxx");
+
             act.Should().ThrowExactly<System.Reflection.TargetInvocationException>()
                 .WithInnerException<StackOverflowException>().And.Message.Should().Be("foo");
         }
@@ -221,7 +225,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.IsPlatformX64("x64").Should().Be(true);
 
             Action action = () => CFamilyHelper.FileConfig.IsPlatformX64("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformName: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported PlatformName: foo");
         }
 
         [TestMethod]
@@ -246,10 +251,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
 
             Action action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v142", "2132");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported VCToolsVersion: 2132");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported VCToolsVersion: 2132");
 
             action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v143", "14.30.0000");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PlatformToolset: v143");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported PlatformToolset: v143");
 
             action = () => CFamilyHelper.FileConfig.GetCompilerVersion("", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
@@ -263,21 +270,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
             CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("", FileName, out cfamilyLanguage).Should().Be("");
             cfamilyLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", FileName, out cfamilyLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", FileName, out cfamilyLanguage).Should()
+                .Be("");
             cfamilyLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.cc", out cfamilyLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.cc", out cfamilyLanguage)
+                .Should().Be("");
             cfamilyLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.cxx", out cfamilyLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.cxx", out cfamilyLanguage)
+                .Should().Be("");
             cfamilyLanguage.Should().Be("cpp");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.c", out cfamilyLanguage).Should().Be("");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("Default", @"c:\Foo.c", out cfamilyLanguage)
+                .Should().Be("");
             cfamilyLanguage.Should().Be("c");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("CompileAsC", FileName, out cfamilyLanguage).Should().Be("/TC");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("CompileAsC", FileName, out cfamilyLanguage)
+                .Should().Be("/TC");
             cfamilyLanguage.Should().Be("c");
-            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("CompileAsCpp", FileName, out cfamilyLanguage).Should().Be("/TP");
+            CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("CompileAsCpp", FileName, out cfamilyLanguage)
+                .Should().Be("/TP");
             cfamilyLanguage.Should().Be("cpp");
 
-            Action action = () => CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("foo", FileName, out cfamilyLanguage);
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAs: foo");
+            Action action = () =>
+                CFamilyHelper.FileConfig.ConvertCompileAsAndGetLanguage("foo", FileName, out cfamilyLanguage);
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported CompileAs: foo");
         }
 
         [TestMethod]
@@ -290,7 +305,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.ConvertCompileAsManaged("Safe").Should().Be("/clr:safe");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertCompileAsManaged("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported CompileAsManaged: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported CompileAsManaged: foo");
         }
 
         [TestMethod]
@@ -310,7 +326,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.ConvertRuntimeLibrary("MultiThreadedDebugDll").Should().Be("/MDd");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertRuntimeLibrary("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported RuntimeLibrary: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported RuntimeLibrary: foo");
         }
 
         [TestMethod]
@@ -324,7 +341,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.ConvertExceptionHandling("SyncCThrow").Should().Be("/EHs");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertExceptionHandling("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported ExceptionHandling: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported ExceptionHandling: foo");
         }
 
         [TestMethod]
@@ -333,14 +351,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
             CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("").Should().Be("");
             CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("NotSet").Should().Be("");
-            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions").Should().Be("/arch:AVX");
-            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions2").Should().Be("/arch:AVX2");
-            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions").Should().Be("/arch:SSE");
-            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions2").Should().Be("/arch:SSE2");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions").Should()
+                .Be("/arch:AVX");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions2").Should()
+                .Be("/arch:AVX2");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions").Should()
+                .Be("/arch:SSE");
+            CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions2").Should()
+                .Be("/arch:SSE2");
             CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("NoExtensions").Should().Be("/arch:IA32");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertEnableEnhancedInstructionSet("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported EnableEnhancedInstructionSet: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported EnableEnhancedInstructionSet: foo");
         }
 
         [TestMethod]
@@ -354,7 +377,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("EnableFastChecks").Should().Be("/RTC1");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertBasicRuntimeChecks("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported BasicRuntimeChecks: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported BasicRuntimeChecks: foo");
         }
 
         [TestMethod]
@@ -369,7 +393,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.ConvertPrecompiledHeader("NotUsing", "XXX").Should().Be("");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertPrecompiledHeader("foo", "");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported PrecompiledHeader: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported PrecompiledHeader: foo");
         }
 
         [TestMethod]
@@ -383,7 +408,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileConfig.ConvertLanguageStandard("stdcpp14").Should().Be("/std:c++14");
 
             Action action = () => CFamilyHelper.FileConfig.ConvertLanguageStandard("foo");
-            action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith("Unsupported LanguageStandard: foo");
+            action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
+                .StartWith("Unsupported LanguageStandard: foo");
         }
 
         [TestMethod]
@@ -396,7 +422,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h", rulesConfigProviderMock.Object, null);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h",
+                rulesConfigProviderMock.Object, null);
 
             // Assert
             AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
@@ -413,7 +440,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object, null);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp",
+                rulesConfigProviderMock.Object, null);
 
             // Assert
             AssertMessageLogged(loggerMock,
@@ -434,7 +462,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp", rulesConfigProviderMock.Object, null);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp",
+                rulesConfigProviderMock.Object, null);
 
             // Assert
             AssertPartialMessageLogged(loggerMock,
@@ -463,7 +492,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions{RunReproducer = true});
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {RunReproducer = true});
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().NotBe(0);
@@ -472,7 +501,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { RunReproducer = false });
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {RunReproducer = false});
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
@@ -566,7 +595,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CheckHasOption("S1142.max=3");
             CheckHasOption("S1578.format=^[A-Za-z_-][A-Za-z0-9_-]+\\.(c|m|cpp|cc|cxx)$");
 
-            options.Count().Should().BeGreaterOrEqualTo(39); // basic sanity check: v6.6 has 39 - not expecting options to be removed
+            options.Count().Should()
+                .BeGreaterOrEqualTo(39); // basic sanity check: v6.6 has 39 - not expecting options to be removed
 
             string CheckHasOption(string optionName)
             {
@@ -679,7 +709,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.Convert(IssueSeverity.Major).Should().Be(Severity.Major);
             CFamilyHelper.Convert(IssueSeverity.Minor).Should().Be(Severity.Minor);
 
-            Action act = () => CFamilyHelper.Convert((IssueSeverity)(-1));
+            Action act = () => CFamilyHelper.Convert((IssueSeverity) (-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
@@ -690,7 +720,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.Convert(IssueType.CodeSmell).Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
             CFamilyHelper.Convert(IssueType.Vulnerability).Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
 
-            Action act = () => CFamilyHelper.Convert((IssueType)(-1));
+            Action act = () => CFamilyHelper.Convert((IssueType) (-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
 
@@ -724,11 +754,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var config = new DummyCFamilyRulesConfig("any")
                 .AddRule("rule1", IssueSeverity.Blocker, isActive: false,
-                    parameters: new Dictionary<string, string> { { "rule1 Param1", "rule1 Value1" }, { "rule1 Param2", "rule1 Value2" } })
+                    parameters: new Dictionary<string, string>
+                        {{"rule1 Param1", "rule1 Value1"}, {"rule1 Param2", "rule1 Value2"}})
                 .AddRule("rule2", IssueSeverity.Info, isActive: true,
-                    parameters: new Dictionary<string, string> { { "rule2 Param1", "rule2 Value1" }, { "rule2 Param2", "rule2 Value2" } })
+                    parameters: new Dictionary<string, string>
+                        {{"rule2 Param1", "rule2 Value1"}, {"rule2 Param2", "rule2 Value2"}})
                 .AddRule("rule3", IssueSeverity.Critical, isActive: true,
-                    parameters: new Dictionary<string, string> { { "rule3 Param1", "rule3 Value1" }, { "rule3 Param2", "rule3 Value2" } });
+                    parameters: new Dictionary<string, string>
+                        {{"rule3 Param1", "rule3 Value1"}, {"rule3 Param2", "rule3 Value2"}});
 
             config.RulesMetadata["rule1"].Type = IssueType.Bug;
             config.RulesMetadata["rule2"].Type = IssueType.CodeSmell;
@@ -771,10 +804,70 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Equals(message))), Times.Once);
         }
+
         private static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Contains(message))), Times.Once);
+        }
+
+        private class DummyProjectEngine : IVCRulePropertyStorage
+        {
+            public Func<string, string> TestOp { get; set; }
+
+            string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
+            {
+                return TestOp(propertyName);
+            }
+        }
+
+        public class VCProjectMock
+        {
+            public VCConfigurationMock Configurations { get; set; } = new VCConfigurationMock();
+            public VCConfigurationMock FileConfigurations { get; set; } = new VCConfigurationMock();
+            public VCConfigurationMock ActiveConfiguration { get; set; } = new VCConfigurationMock();
+            public VCProjectMock Object => this;
+        }
+
+        public class VCConfigurationMock : IVCRulePropertyStorage
+        {
+            private IDictionary<string, string> properties { get; } = new Dictionary<string, string>();
+
+            public VCConfigurationMock Rules => this;
+            public VCConfigurationMock Tool => this;
+
+            public VCConfigurationMock()
+            {
+                MockMandatoryProperties();
+            }
+
+            public VCConfigurationMock Item(string name)
+            {
+                return this;
+            }
+
+            string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
+            {
+                return GetEvaluatedPropertyValue(propertyName);
+            }
+
+            public string GetEvaluatedPropertyValue(string propertyName)
+            {
+                return properties.ContainsKey(propertyName) ? properties[propertyName] : "dummy property value";
+            }
+
+            private void MockMandatoryProperties()
+            {
+                properties["PlatformToolset"] = "v140_xp";
+                properties["PrecompiledHeader"] = "NotUsing";
+                properties["CompileAs"] = "CompileAsCpp";
+                properties["CompileAsManaged"] = "false";
+                properties["EnableEnhancedInstructionSet"] = "";
+                properties["RuntimeLibrary"] = "";
+                properties["LanguageStandard"] = "";
+                properties["ExceptionHandling"] = "Sync";
+                properties["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck";
+            }
         }
     }
 }
@@ -787,58 +880,5 @@ namespace Microsoft.VisualStudio.VCProjectEngine
     internal interface IVCRulePropertyStorage
     {
         string GetEvaluatedPropertyValue(string propertyName);
-    }
-
-    public class DummyProjectEngine : IVCRulePropertyStorage
-    {
-        public Func<string, string> TestOp { get; set; }
-
-        string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
-        {
-            return TestOp(propertyName);
-        }
-    }
-
-    public class VCProjectMock
-    {
-        public VCConfigurationMock Configurations { get; set; } = new VCConfigurationMock();
-        public VCConfigurationMock FileConfigurations { get; set; } = new VCConfigurationMock();
-        public VCConfigurationMock ActiveConfiguration { get; set; } = new VCConfigurationMock();
-        public VCProjectMock Object => this;
-    }
-
-    public class VCConfigurationMock : IVCRulePropertyStorage
-    {
-        public VCConfigurationMock Rules => this;
-        public VCConfigurationMock Tool => this;
-        public string PlatformToolset => "v140_xp";
-        public string PrecompiledHeader => "NotUsing";
-        public string CompileAs => "CompileAsCpp";
-        public string CompileAsManaged => "false";
-        public string BasicRuntimeChecks => "UninitializedLocalUsageCheck";
-        public string ExceptionHandling => "Sync";
-        public string EnableEnhancedInstructionSet => "";
-        public string RuntimeLibrary => "";
-        public string LanguageStandard => "";
-
-        string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
-        {
-            return GetEvaluatedPropertyValue(propertyName);
-        }
-
-        public string GetEvaluatedPropertyValue(string propertyName)
-        {
-            var propertyInfo = GetType().GetProperty(propertyName);
-            if (propertyInfo != null)
-            {
-                return (string)propertyInfo.GetValue(this);
-            }
-            return "dummy property value";
-        }
-
-        public dynamic Item(string name)
-        {
-            return this;
-        }
     }
 }
