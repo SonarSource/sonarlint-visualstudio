@@ -240,9 +240,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
             {
-                CmdLineArgs = new[] {fileName},
+                CmdLineArgs = new[] {fileName },
                 TimeoutInMilliseconds = GetTimeoutInMs(),
-                CancellationToken = cancellationToken
+                CancellationToken = cancellationToken,
+                WorkingDirectory = Path.GetTempPath()
             };
 
             var success = runner.Execute(args);
