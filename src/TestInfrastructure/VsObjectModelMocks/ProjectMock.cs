@@ -37,6 +37,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public DTE DTE { get; set; }
 
+        public object Project { get; set; }
+
         public ProjectMock(string projectFile)
             : base(projectFile, (uint)VSConstants.VSITEMID.Root)
         {
@@ -151,13 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        dynamic Project.Object
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
+        dynamic Project.Object => Project;
 
         dynamic Project.ExtenderNames
         {
@@ -195,6 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 throw new NotImplementedException();
             }
         }
+
 
         ConfigurationManager Project.ConfigurationManager
         {

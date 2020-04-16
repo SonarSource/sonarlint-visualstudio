@@ -19,7 +19,6 @@
  */
 
 using Grpc.Core;
-using Microsoft.VisualStudio;
 using Sonarlint;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
@@ -30,6 +29,8 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Process = System.Diagnostics.Process;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -427,8 +428,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return isSupported;
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer,
-            ProjectItem projectItem, CancellationToken cancellationToken)
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer,
+            ProjectItem projectItem, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             if (!settings.IsActivateMoreEnabled)
             {

@@ -179,13 +179,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion
 
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions)
         {
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
                 scheduler.Schedule(path, cancellationToken =>
-                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, cancellationToken));
+                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, analyzerOptions, cancellationToken));
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
