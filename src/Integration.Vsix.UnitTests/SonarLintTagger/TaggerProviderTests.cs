@@ -265,6 +265,83 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.Should().NotThrow();
         }
 
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow(new string[] { })]
+        public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
+        {
+            var trackers = CreateMockedIssueTrackers("any", "any2");
+
+            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
+            
+            actual.Should().BeEquivalentTo(trackers);
+        }
+
+        [TestMethod]
+        public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
+        {
+            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
+
+            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+                new string[] { "no matches", "file1.wrongextension" });
+
+            actual.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
+        {
+            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
+
+            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+                new string[] { "file1.txt" });
+
+            actual.Should().BeEquivalentTo(trackers[0]);
+        }
+
+        [TestMethod]
+        public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
+        {
+            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
+
+            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+                new string[]
+                {
+                    "file1.txt",
+                    "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
+                });
+
+            actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
+        }
+
+        [TestMethod]
+        public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
+        {
+            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
+
+            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
+                new string[]
+                {
+                    "unmatchedFile1.cs",
+                    "file1.txt",
+                    "c:\\aaa\\file2.cpp",
+                    "unmatchedfile2.cpp",
+                    "d:\\bbb\\file3.xxx"
+                });
+
+            actual.Should().BeEquivalentTo(trackers);
+        }
+
+        private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
+            filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
+
+        private IIssueTracker CreateMockedIssueTracker(string filePath)
+        {
+            var mock = new Mock<IIssueTracker>();
+            mock.Setup(x => x.FilePath).Returns(filePath);
+            return mock.Object;
+        }
+
         private IssueTagger CreateTagger(IContentType bufferContentType = null)
         {
             var doc = CreateMockedDocument("anyname", bufferContentType);
