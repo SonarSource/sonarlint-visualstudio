@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         internal readonly DTE dte;
 
         private readonly ISet<SinkManager> managers = new HashSet<SinkManager>();
-        private readonly ISet<TextBufferIssueTracker> issueTrackers = new HashSet<TextBufferIssueTracker>();
+        private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
         private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 reanalysisProgressHandler?.Dispose();
 
                 var operations = this.issueTrackers
-                    .Select<TextBufferIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
+                    .Select<IIssueTracker, Action>(it => () => it.RequestAnalysis(args.Options))
                     .ToArray(); // create a fixed list - the user could close a file before the reanalysis completes which would cause the enumeration to change
 
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        internal IEnumerable<TextBufferIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
+        internal IEnumerable<IIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
 
         #region IViewTaggerProvider members
 
@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
                 // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
-                var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(TextBufferIssueTracker),
+                var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
                     () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, logger, issuesFilter));
 
                 // Always create a new tagger for each request
@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddIssueTracker(TextBufferIssueTracker bufferHandler)
+        public void AddIssueTracker(IIssueTracker bufferHandler)
         {
             lock (managers)
             {
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveIssueTracker(TextBufferIssueTracker bufferHandler)
+        public void RemoveIssueTracker(IIssueTracker bufferHandler)
         {
             lock (managers)
             {
