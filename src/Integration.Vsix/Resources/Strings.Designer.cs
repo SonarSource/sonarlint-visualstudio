@@ -376,11 +376,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to re-analyze open documents.
+        ///   Looks up a localized string similar to re-analyzing {0} document(s)....
         /// </summary>
-        internal static string JobRunner_JobDescription_ReaanalyzeOpenDocs {
+        internal static string JobRunner_JobDescription_ReaanalyzeDocs {
             get {
-                return ResourceManager.GetString("JobRunner_JobDescription_ReaanalyzeOpenDocs", resourceCulture);
+                return ResourceManager.GetString("JobRunner_JobDescription_ReaanalyzeDocs", resourceCulture);
             }
         }
         
