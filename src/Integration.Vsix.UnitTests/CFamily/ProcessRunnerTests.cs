@@ -434,6 +434,7 @@ xxx yyy
             logger.AssertOutputStringDoesNotExist("Hello world"); 
         }
 
+        [Ignore] // Flaky https://github.com/SonarSource/sonarlint-visualstudio/issues/1330
         [TestMethod]
         public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
