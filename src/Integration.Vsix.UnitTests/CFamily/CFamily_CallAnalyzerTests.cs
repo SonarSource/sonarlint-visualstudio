@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -67,15 +66,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void CallAnalyzer_BadResponse_Fails()
+        public void CallAnalyzer_RequestWithReproducer_ReturnsNull()
         {
             // Arrange
+            var request = new Request {Flags = Request.CreateReproducer};
             var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse(), true);
-            Action act = () => CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), CancellationToken.None);
+            var result = CFamilyHelper.CallClangAnalyzer(request, dummyProcessRunner, new TestLogger(), CancellationToken.None);
 
             // Act and Assert
-            act.Should().ThrowExactly<InvalidDataException>();
+            result.Should().BeNull();
+            dummyProcessRunner.ExecuteCalled.Should().BeTrue();
+            File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
+        }
 
+        [TestMethod]
+        public void CallAnalyzer_BadResponse_FailsSilentlyAndReturnsNull()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse(), true);
+            var result = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, logger, CancellationToken.None);
+
+            // Act and Assert
+            result.Should().BeNull();
+            logger.AssertPartialOutputStrings("Failed to execute analysis");
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
             File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
         }
