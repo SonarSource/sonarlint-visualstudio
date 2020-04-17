@@ -446,12 +446,12 @@ echo test > ""{signalFileName}""
 waitfor /t 10 {Guid.NewGuid():N}
 @echo Done!
 ");
-            using var cancellationTokenSource = new CancellationTokenSource(); 
+            using var processCancellationTokenSource = new CancellationTokenSource(); 
             var logger = new TestLogger(true, true);
             var args = new ProcessRunnerArguments(exeName, true)
             {
                 TimeoutInMilliseconds = 12000,
-                CancellationToken = cancellationTokenSource.Token
+                CancellationToken = processCancellationTokenSource.Token
             };
 
             var runner = CreateProcessRunner(logger);
@@ -459,21 +459,22 @@ waitfor /t 10 {Guid.NewGuid():N}
             bool? result = null;
             var processTask = Task.Run(() => { result = runner.Execute(args); });
 
+            var taskCancellationTokenSource = new CancellationTokenSource();
             var cancellationTask = Task.Run(() =>
             {
-                while (!File.Exists(signalFileName))
+                while (!taskCancellationTokenSource.IsCancellationRequested && !File.Exists(signalFileName))
                 {
-                    Thread.Sleep(10);
+                    Thread.Sleep(millisecondsTimeout:10);
                 }
-
-                cancellationTokenSource.Cancel();
-            });
+                processCancellationTokenSource.Cancel();
+            }, taskCancellationTokenSource.Token);
 
             Task.WaitAll(new[] {processTask, cancellationTask}, TimeSpan.FromSeconds(15));
+            taskCancellationTokenSource.Cancel();
 
             result.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
-            cancellationTokenSource.IsCancellationRequested.Should().BeTrue();
+            processCancellationTokenSource.IsCancellationRequested.Should().BeTrue();
             logger.AssertPartialOutputStringDoesNotExist("Done!");
         }
 
