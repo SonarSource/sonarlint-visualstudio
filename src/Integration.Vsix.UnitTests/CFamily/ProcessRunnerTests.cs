@@ -435,40 +435,46 @@ xxx yyy
         }
 
         [TestMethod]
-        [Description("This test checks that a process can be cancelled midway. It's timing-dependent, so could be flaky.")]
-        public async Task Execute_CancellationTokenCancelledMidway_ProcessKilled()
+        public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
+            var testFolder = CreateTestSpecificFolder(TestContext);
+            var signalFileName = $"{testFolder}\\signal-{Guid.NewGuid():N}.txt";
+
             var exeName = WriteBatchFileForTest(TestContext,
-$@"
-@echo Hello world
-waitfor /t 4 { Guid.NewGuid():N}
+                $@"
+echo test > ""{signalFileName}"" 
+waitfor /t 10 {Guid.NewGuid():N}
 @echo Done!
 ");
-
-            var logger = new TestLogger();
-            var cancellationTokenSource = new CancellationTokenSource();
+            using var processCancellationTokenSource = new CancellationTokenSource(); 
+            var logger = new TestLogger(true, true);
             var args = new ProcessRunnerArguments(exeName, true)
             {
-                TimeoutInMilliseconds = 4000,
-                CancellationToken = cancellationTokenSource.Token
+                TimeoutInMilliseconds = 12000,
+                CancellationToken = processCancellationTokenSource.Token
             };
 
             var runner = CreateProcessRunner(logger);
 
             bool? result = null;
+            var processTask = Task.Run(() => { result = runner.Execute(args); });
 
-            var runProcess = Task.Run(() =>
+            var taskCancellationTokenSource = new CancellationTokenSource();
+            var cancellationTask = Task.Run(() =>
             {
-                result = runner.Execute(args);
-            });
+                while (!taskCancellationTokenSource.IsCancellationRequested && !File.Exists(signalFileName))
+                {
+                    Thread.Sleep(millisecondsTimeout:10);
+                }
+                processCancellationTokenSource.Cancel();
+            }, taskCancellationTokenSource.Token);
 
-            cancellationTokenSource.CancelAfter(100);
-
-            await runProcess;
+            Task.WaitAll(new[] {processTask, cancellationTask}, TimeSpan.FromSeconds(15));
+            taskCancellationTokenSource.Cancel();
 
             result.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
-            logger.AssertOutputStringExists("Hello world");
+            processCancellationTokenSource.IsCancellationRequested.Should().BeTrue();
             logger.AssertPartialOutputStringDoesNotExist("Done!");
         }
 
@@ -528,7 +534,6 @@ xxx yyy
         private static string WriteBatchFileForTest(TestContext context, string content)
         {
             var testPath = CreateTestSpecificFolder(context);
-
             var fileName = Path.Combine(testPath, context.TestName + ".bat");
             File.Exists(fileName).Should().BeFalse("Not expecting a batch file to already exist: {0}", fileName);
             File.WriteAllText(fileName, content);
@@ -538,7 +543,11 @@ xxx yyy
         private static string CreateTestSpecificFolder(TestContext testContext)
         {
             var testPath = Path.Combine(testContext.DeploymentDirectory, testContext.TestName);
-            Directory.CreateDirectory(testPath);
+
+            if (!Directory.Exists(testPath))
+            {
+                Directory.CreateDirectory(testPath);
+            }
             return testPath;
         }
 
