@@ -139,21 +139,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 var workingDirectory = Path.GetTempPath();
                 var success = ExecuteAnalysis(runner, tempFileName, workingDirectory, logger, cancellationToken);
 
+                if ((request.Flags & Request.CreateReproducer) != 0)
+                {
+                    logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved,
+                        Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+
+                    // When running with reproducer flag, we don't want to show analysis results.
+                    return null;
+                }
+
                 if (success)
                 {
-                    if ((request.Flags & Request.CreateReproducer) != 0)
-                    {
-                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved,
-                            Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
-                    }
-
                     using (var readStream = new FileStream(tempFileName, FileMode.Open))
                     {
-                        Response response = Protocol.Read(new BinaryReader(readStream), request.File);
+                        var response = Protocol.Read(new BinaryReader(readStream), request.File);
                         return response;
                     }
                 }
 
+                return null;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, ex.ToString());
                 return null;
             }
             finally
