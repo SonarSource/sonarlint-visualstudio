@@ -327,8 +327,8 @@
     <value>Error running job "{0}" started at {1}. Error message: {2}</value>
     <comment>Output window message</comment>
   </data>
-  <data name="JobRunner_JobDescription_ReaanalyzeOpenDocs" xml:space="preserve">
-    <value>re-analyze open documents</value>
+  <data name="JobRunner_JobDescription_ReaanalyzeDocs" xml:space="preserve">
+    <value>re-analyzing {0} document(s)...</value>
     <comment>Output window message</comment>
   </data>
   <data name="ToolsOptions_ErrorOpeningSettingsFile" xml:space="preserve">

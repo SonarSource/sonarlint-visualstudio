@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Globalization;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
@@ -124,7 +125,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 reanalysisProgressHandler = new StatusBarReanalysisProgressHandler(vsStatusBar, logger);
 
-                reanalysisJob = CancellableJobRunner.Start(Strings.JobRunner_JobDescription_ReaanalyzeOpenDocs, operations,
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.JobRunner_JobDescription_ReaanalyzeDocs, operations.Length);
+                reanalysisJob = CancellableJobRunner.Start(message, operations,
                     reanalysisProgressHandler, logger);
             }
         }
