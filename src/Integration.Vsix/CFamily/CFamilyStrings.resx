@@ -123,6 +123,9 @@
   <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
+  <data name="ERROR_ProcessRunner_Failed" xml:space="preserve">
+    <value>Process failed, error code: {0}</value>
+  </data>
   <data name="MSG_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
     <value>&lt;sensitive data removed&gt;</value>
   </data>

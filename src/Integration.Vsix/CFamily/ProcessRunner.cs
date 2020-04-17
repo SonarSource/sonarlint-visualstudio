@@ -150,8 +150,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // true: we might still have timed out, but the process ended when we asked it to
             if (succeeded)
             {
-                LogMessage(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
+                LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
                 ExitCode = process.ExitCode;
+
+                if (process.ExitCode != 0)
+                {
+                    LogError(CFamilyStrings.ERROR_ProcessRunner_Failed, process.ExitCode);
+                }
             }
             else
             {
