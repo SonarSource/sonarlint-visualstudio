@@ -163,7 +163,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Assert
             logger.AssertOutputStringExists(CFamilyStrings.ReproCmd_ExecutingReproducer);
             actualOptions.Should().BeOfType<CFamilyAnalyzerOptions>();
-            ((CFamilyAnalyzerOptions)actualOptions).RunReproducer.Should().BeTrue();
+            ((CFamilyAnalyzerOptions)actualOptions).CreateReproducer.Should().BeTrue();
             actualFilePaths.Should().BeEquivalentTo(ValidTextDocument.FilePath);
         }
 

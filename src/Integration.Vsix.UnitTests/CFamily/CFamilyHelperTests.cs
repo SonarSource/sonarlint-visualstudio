@@ -492,7 +492,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {RunReproducer = true});
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {CreateReproducer = true});
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().NotBe(0);
@@ -501,7 +501,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {RunReproducer = false});
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {CreateReproducer = false});
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
