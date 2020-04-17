@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process failed, error code: {0}.
+        ///   Looks up a localized string similar to Process failed. Exit code: {0}.
         /// </summary>
         internal static string ERROR_ProcessRunner_Failed {
             get {
