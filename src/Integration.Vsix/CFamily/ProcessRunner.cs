@@ -152,6 +152,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
                 ExitCode = process.ExitCode;
+
+                if (process.ExitCode != 0)
+                {
+                    LogError(CFamilyStrings.ERROR_ProcessRunner_Failed, process.ExitCode);
+                }
             }
             else
             {
