@@ -22,6 +22,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
 {
     public class CFamilyAnalyzerOptions : IAnalyzerOptions
     {
-        public bool RunReproducer { get; set; }
+        public bool CreateReproducer { get; set; }
     }
 }

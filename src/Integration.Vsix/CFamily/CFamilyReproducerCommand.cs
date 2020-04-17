@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 var options = new CFamilyAnalyzerOptions
                 {
-                    RunReproducer = true
+                    CreateReproducer = true
                 };
 
                 logger.WriteLine(CFamilyStrings.ReproCmd_ExecutingReproducer);
