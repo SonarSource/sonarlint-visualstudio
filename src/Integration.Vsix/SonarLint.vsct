@@ -16,8 +16,6 @@
   <Extern href="stdidcmd.h"/>
   <!--This header contains the command ids for the menus provided by the shell. -->
   <Extern href="vsshlids.h"/>
-  <!-- The include file is generated from T4 -->
-  <Include href="Telemetry\GeneratedCode\SqmVsCommands.vsct"/>
   <!-- Include all package commands -->
   <Include href="Commands\PackageCommands.vsct"/>
   <Include href="SonarLintDaemon\DaemonCommands.vsct"/>
