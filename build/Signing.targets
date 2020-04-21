@@ -45,7 +45,7 @@
     <Error Condition="@(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
     
     <!-- For info on timestamping see https://knowledge.digicert.com/generalinformation/INFO190.html -->
-    <Exec Command="$(VsixSignToolPath) sign /debug /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v &quot;%(VSIXesToSign.Identity)&quot;" />
+    <Exec Command="$(VsixSignToolPath) sign  /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v &quot;%(VSIXesToSign.Identity)&quot; /debug" />
   </Target>
 
   <Target Name="SignAssemblies">
