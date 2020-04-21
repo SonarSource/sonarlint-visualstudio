@@ -66,7 +66,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
             IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
                 new []
                 {
-                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger()),
                     MefTestHelpers.CreateExport<ISonarLintSettings>(settings)
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);

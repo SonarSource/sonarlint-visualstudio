@@ -107,8 +107,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.OnBindStatus(args));
 
-            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BindCommandCommandCalled);
-
             this.workflowExecutor.BindProject(args);
         }
 

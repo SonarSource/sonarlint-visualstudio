@@ -240,8 +240,6 @@ namespace SonarLint.VisualStudio.Integration
             }
             else
             {
-                host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ErrorListInfoBarShow);
-
                 this.currentErrorWindowInfoBar.Closed += this.CurrentErrorWindowInfoBar_Closed;
                 this.currentErrorWindowInfoBar.ButtonClick += this.CurrentErrorWindowInfoBar_ButtonClick;
 
@@ -265,9 +263,6 @@ namespace SonarLint.VisualStudio.Integration
                 // on the button multiple times and get multiple binds
                 return;
             }
-
-            // Don't log unprocessed events
-            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ErrorListInfoBarUpdateCalled);
 
             BindingConfiguration binding = configProvider.GetConfiguration();
             if (binding == null

@@ -228,42 +228,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Strings.resx</DependentUpon>
     </Compile>
-    <Compile Update="Telemetry\GeneratedCode\SqmCommandFacade.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SqmCommandFacade.tt</DependentUpon>
-    </Compile>
-    <Compile Update="Telemetry\GeneratedCode\SqmOleCommandTarget.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SqmOleCommandTarget.tt</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup Label="Legacy SQM - generated code">
-    <None Update="Telemetry\GeneratedCode\SqmCommandFacade.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmCommandFacade.cs</LastGenOutput>
-    </None>
-    <None Update="Telemetry\GeneratedCode\SqmOleCommandTarget.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmOleCommandTarget.cs</LastGenOutput>
-    </None>
-    <None Update="Telemetry\GeneratedCode\SqmVsCommands.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>SqmVsCommands.vsct</LastGenOutput>
-    </None>
-    <None Update="Telemetry\GeneratedCode\SqmVsCommands.vsct">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>SqmVsCommands.tt</DependentUpon>
-    </None>
-    <Content Include="Telemetry\GeneratedCode\SqmVsCommands.vsct">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>SqmVsCommands.tt</DependentUpon>
-    </Content>
-    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
 
   <ItemGroup Label="Daemon dependencies - Grpc">
