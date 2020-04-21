@@ -44,8 +44,8 @@
     <CallTarget Targets="ValidateCommonSigningInputs" />
     <Error Condition="@(VSIXesToSign) == '' " Text="The list of VSIXes to sign is empty." />
     
-    <!-- For info on timestamping see https://knowledge.digicert.com/generalinformation/INFO190.html -->
-    <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp /v &quot;%(VSIXesToSign.Identity)&quot;" />
+    <!-- For info on timestamping see https://www.digicert.com/kb/code-signing/signcode-signtool-command-line.htm -->
+    <Exec Command="$(VsixSignToolPath) sign /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /sha1 $(pfxSha1) /tr http://timestamp.digicert.com?alg=sha256 /v &quot;%(VSIXesToSign.Identity)&quot;" />
   </Target>
 
   <Target Name="SignAssemblies">
@@ -55,7 +55,7 @@
     <Error Condition=" $(SIGNTOOL_PATH) == '' " Text="The location of the signtool.exe has not been set ('SIGNTOOL_PATH')" />
     <Error Condition=" !Exists($(SIGNTOOL_PATH)) " Text="Signing tool exe does not exist at the specified location: $(SIGNTOOL_PATH)" />
 
-    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /sha1 $(pfxSha1) /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /tr http://sha256timestamp.ws.symantec.com/sha256/timestamp &quot;%(AssembliesToSign.FullPath)&quot;" />
+    <Exec Command="&quot;$(SIGNTOOL_PATH)&quot; sign /fd SHA256 /sha1 $(pfxSha1) /f &quot;$(pfxCertificatePath)&quot; /p $(pfxPassword) /tr http://timestamp.digicert.com?alg=sha256 &quot;%(AssembliesToSign.FullPath)&quot;" />
   </Target>
 
   <Target Name="ValidateCommonSigningInputs">
