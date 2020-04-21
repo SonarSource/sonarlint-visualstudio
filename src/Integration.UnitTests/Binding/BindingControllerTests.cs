@@ -91,13 +91,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             {
                 SonarQubeService = sonarQubeService.Object
             };
-            
-            IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
-                new []
-                {
-                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
-                });
-            this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
         }
 
         #region Tests

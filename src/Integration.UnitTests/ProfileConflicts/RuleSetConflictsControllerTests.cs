@@ -63,13 +63,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.rsSerializer = null;
             this.conflictsManager = new ConfigurableConflictsManager();
 
-            IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
-                new Export[]
-                {
-                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
-                });
-            this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
-
             fileSystem = new MockFileSystem();
         }
 

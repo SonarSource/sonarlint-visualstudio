@@ -321,8 +321,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         {
             Debug.Assert(this.CanDisconnect());
 
-            ServiceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.DisconnectCommandCommandCalled);
-
             // Disconnect all (all being one)
             this.Host.VisualStateManager.GetConnectedServers().ToList().ForEach(c => this.Host.VisualStateManager.SetProjects(c, null));
             this.Host.SonarQubeService.Disconnect();
@@ -335,8 +333,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
 
         private void ToggleShowAllProjects(ServerViewModel server)
         {
-            ServiceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ToggleShowAllProjectsCommandCommandCalled);
-
             server.ShowAllProjects = !server.ShowAllProjects;
         }
 
@@ -348,8 +344,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void ExecBrowseToUrl(string url)
         {
             Debug.Assert(this.CanExecBrowseToUrl(url), "Should not be able to execute!");
-
-            ServiceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BrowseToUrlCommandCommandCalled);
 
             this.webBrowser.NavigateTo(url);
         }
@@ -368,8 +362,6 @@ namespace SonarLint.VisualStudio.Integration.TeamExplorer
         private void ExecBrowseToProjectDashboard(ProjectViewModel project)
         {
             Debug.Assert(this.CanExecBrowseToProjectDashboard(project), $"Shouldn't be able to execute {nameof(this.BrowseToProjectDashboardCommand)}");
-
-            ServiceProvider.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.BrowseToProjectDashboardCommandCommandCalled);
 
             var url = this.Host.SonarQubeService.GetProjectDashboardUrl(project.Project.Key);
             this.webBrowser.NavigateTo(url.ToString());

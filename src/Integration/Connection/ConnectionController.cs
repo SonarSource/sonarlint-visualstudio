@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -118,8 +118,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
             Debug.Assert(this.CanConnect());
             Debug.Assert(!this.host.VisualStateManager.IsBusy, "Service is in a connecting state");
 
-            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.ConnectCommandCommandCalled);
-
             var connectionInfo = this.connectionProvider.GetConnectionInformation(this.LastAttemptedConnection);
             if (connectionInfo != null)
             {
@@ -139,8 +137,6 @@ namespace SonarLint.VisualStudio.Integration.Connection
         private void OnRefresh(ConnectionInformation useConnection)
         {
             Debug.Assert(this.CanRefresh(useConnection));
-
-            host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.RefreshCommandCommandCalled);
 
             // We're currently only connected to one server. when this will change we will need to refresh all the connected servers
             ConnectionInformation connectionToRefresh = useConnection

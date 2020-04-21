@@ -53,14 +53,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider(assertOnUnexpectedServiceRequest: false);
 
-            IComponentModel componentModel = ConfigurableComponentModel.CreateWithExports(
-                new Export[]
-                {
-                    MefTestHelpers.CreateExport<ITelemetryLogger>(new ConfigurableTelemetryLogger())
-                });
-            this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
-
-
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
             {

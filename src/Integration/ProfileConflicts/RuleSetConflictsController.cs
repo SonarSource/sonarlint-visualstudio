@@ -57,8 +57,6 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 this.WriteConflictsSummaryToOutputWindow(conflicts);
 
-                host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.FixConflictShow);
-
                 // Let the user know that they have conflicts
                 this.host.ActiveSection?.UserNotifications?.ShowNotificationWarning(
                     Strings.RuleSetConflictsDetected,
@@ -96,8 +94,6 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         {
             if (this.OnFixConflictsStatus(conflicts))
             {
-                host.GetMefService<ITelemetryLogger>()?.ReportEvent(TelemetryEvent.FixConflictsCommandCalled);
-
                 IRuleSetInspector inspector = this.host.GetService<IRuleSetInspector>();
                 inspector.AssertLocalServiceIsNotNull();
 

@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     // Register this class as a VS package.
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(CommonGuids.Package)]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideBindingPath]
     // Specify when to load the extension (GUID can be found in Microsoft.VisualStudio.VSConstants.UICONTEXT)
     [ProvideAutoLoad(CommonGuids.PackageActivation, PackageAutoLoadFlags.BackgroundLoad)]
@@ -57,9 +58,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         Scope = "type",
         Target = "~T:SonarLint.VisualStudio.Integration.Vsix.SonarLintIntegrationPackage")]
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public partial class SonarLintIntegrationPackage : AsyncPackage
+    public class SonarLintIntegrationPackage : AsyncPackage
     {
-        private BoundSolutionAnalyzer usageAnalyzer;
         private PackageCommandManager commandManager;
         private SonarAnalyzerManager sonarAnalyzerManager;
         private DeprecationManager deprecationManager;
@@ -83,8 +83,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 Debug.Assert(logger != null, "MEF composition error - failed to retrieve a logger");
                 logger.WriteLine(Resources.Strings.SL_Initializing);
 
-                this.InitializeSqm();
-
                 IServiceProvider serviceProvider = this;
 
                 var activeSolutionBoundTracker = await this.GetMefServiceAsync<IActiveSolutionBoundTracker>();
@@ -93,8 +91,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 var vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
                 this.sonarAnalyzerManager = new SonarAnalyzerManager(activeSolutionBoundTracker, workspace, vsSolution, logger, sonarQubeIssuesProvider);
-
-                this.usageAnalyzer = new BoundSolutionAnalyzer(serviceProvider);
 
                 this.commandManager = new PackageCommandManager(serviceProvider.GetService<IMenuCommandService>());
                 this.commandManager.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
@@ -118,9 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 this.sonarAnalyzerManager?.Dispose();
                 this.sonarAnalyzerManager = null;
-
-                this.usageAnalyzer?.Dispose();
-                this.usageAnalyzer = null;
 
                 this.deprecationManager?.Dispose();
                 this.deprecationManager = null;
