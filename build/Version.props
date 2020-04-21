@@ -3,7 +3,7 @@
     <!-- Manually set the three-part main version and check in the changed file.
          The other required build properties (e.g. Sha1) will be set by the CI build when
          it builds ChangeVersion.proj. -->
-    <MainVersion>4.21.0</MainVersion>
+    <MainVersion>4.22.0</MainVersion>
     <!-- Properties set by the CI build pipeline -->
     <BuildNumber>0</BuildNumber>
     <Sha1>not-set</Sha1>
