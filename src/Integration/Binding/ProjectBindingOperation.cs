@@ -51,7 +51,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, IFileSystem fileSystem)
+        internal ProjectBindingOperation(IServiceProvider serviceProvider, 
+            Project project, 
+            ISolutionBindingConfigFileStore configFileStore,
+            IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
@@ -76,9 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region IBindingOperation
         public void Initialize()
         {
-            Debug.Assert(BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(this.initializedProject),
-                $"Not expecting project binding operation to be called for project '{this.initializedProject.FullName}'");
-
             this.CaptureProject();
             this.CalculateRuleSetInformation();
         }

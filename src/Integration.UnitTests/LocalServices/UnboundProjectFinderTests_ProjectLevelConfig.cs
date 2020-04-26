@@ -28,6 +28,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -74,11 +75,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ArgCheck()
         {
-            // Arrange
-            Action action = () => new UnboundProjectFinder(null);
-
-            // Act & Assert
+            Action action = () => new UnboundProjectFinder(null, new ConfigProjectBinderFactory());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+
+            action = () => new UnboundProjectFinder(serviceProvider,  null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configProjectBinderFactory");
+
+            action = () => new UnboundProjectFinder(serviceProvider, new ConfigProjectBinderFactory(), null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
@@ -226,7 +230,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
 
         private UnboundProjectFinder CreateTestSubject() =>
-            new UnboundProjectFinder(this.serviceProvider, this.fileMock.Object);
+            new UnboundProjectFinder(this.serviceProvider, new ConfigProjectBinderFactory(), this.fileMock.Object);
 
         private IEnumerable<Project> SetValidFilteredProjects()
         {

@@ -34,26 +34,22 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
+        private readonly IConfigProjectBinderFactory configProjectBinderFactory;
         private readonly IFileSystem fileSystem;
 
-        public UnboundProjectFinder(IServiceProvider serviceProvider)
-            : this(serviceProvider, new FileSystem())
+        public UnboundProjectFinder(IServiceProvider serviceProvider, IConfigProjectBinderFactory configProjectBinderFactory)
+            : this(serviceProvider, configProjectBinderFactory, new FileSystem())
         {
         }
 
-        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IConfigProjectBinderFactory configProjectBinderFactory, IFileSystem fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.configProjectBinderFactory = configProjectBinderFactory ?? throw new ArgumentNullException(nameof(configProjectBinderFactory));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
-            
-            this.fileSystem = fileSystem;
         }
 
         #region IUnboundProjectFinder implementation
@@ -124,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            if (!BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
+            if (configProjectBinderFactory.Get(project) == null)
             {
                 return true; // nothing else to check
             }
