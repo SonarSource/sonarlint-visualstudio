@@ -33,6 +33,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -94,15 +95,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, "name", SonarLintMode.LegacyConnected, logger));
+            var legacySonarQubeFolderModifier = Mock.Of<Persistence.ILegacySonarQubeFolderModifier>();
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger, legacySonarQubeFolderModifier));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected, logger, legacySonarQubeFolderModifier));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger, legacySonarQubeFolderModifier));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, "name", SonarLintMode.LegacyConnected, logger, legacySonarQubeFolderModifier));
 
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger, legacySonarQubeFolderModifier));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null, legacySonarQubeFolderModifier));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, logger, null));
 
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger);
+            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger, legacySonarQubeFolderModifier);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
         }
 
@@ -440,6 +443,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 bindingMode,
                 logger ?? new TestLogger(),
+                new LegacySonarQubeFolderModifier(serviceProvider, fileSystem),
                 fileSystem);
         }
 

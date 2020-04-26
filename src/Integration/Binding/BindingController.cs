@@ -156,13 +156,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 nugetBindingOp = new NoOpNuGetBindingOperation(host.Logger);
             }
 
+            var folderModifier = new Persistence.LegacySonarQubeFolderModifier(host);
+
             var solutionBindingOp = new SolutionBindingOperation(
                 host,
                 bindingArgs.Connection,
                 bindingArgs.ProjectKey,
                 bindingArgs.ProjectName,
                 modeToBind,
-                host.Logger);
+                host.Logger,
+                folderModifier);
 
             var unboundProjectFinder = new UnboundProjectFinder(host);
 

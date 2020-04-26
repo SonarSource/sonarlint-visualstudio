@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration
                 var solution = this.GetService<SVsSolution, IVsSolution>();
                 var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
                 var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
-                var legacyPostSaveOperation = new LegacySolutionBindingPostSaveOperation(this);
+                var legacyPostSaveOperation = new LegacySonarQubeFolderModifier(this);
 
                 var store = this.GetService<ICredentialStoreService>();
                 var credentialsLoader = new SolutionBindingCredentialsLoader(store);

@@ -30,12 +30,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
         private readonly ISolutionBindingSerializer solutionBindingSerializer;
-        private readonly ISolutionBindingPostSaveOperation legacyPostSaveOperation;
+        private readonly ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier;
 
         public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ISolutionBindingSerializer solutionBindingSerializer,
-            ISolutionBindingPostSaveOperation legacyPostSaveOperation)
+            ILegacySonarQubeFolderModifier legacyPostSaveOperation)
         {
             this.legacyPathProvider = legacyPathProvider ??
                                       throw new ArgumentNullException(nameof(legacyPathProvider));
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.solutionBindingSerializer = solutionBindingSerializer ??
                                              throw new ArgumentNullException(nameof(solutionBindingSerializer));
 
-            this.legacyPostSaveOperation = legacyPostSaveOperation ??
+            this.legacySonarQubeFolderModifier = legacyPostSaveOperation ??
                                            throw new ArgumentNullException(nameof(legacyPostSaveOperation));
         }
 
@@ -95,13 +95,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 case SonarLintMode.LegacyConnected:
                 {
                     writeSettings.ConfigPath = legacyPathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = legacyPostSaveOperation.OnSuccessfulSave;
+                    writeSettings.OnSuccessfulFileWrite = legacySonarQubeFolderModifier.Add;
                     break;
                 }
                 case SonarLintMode.Connected:
                 {
                     writeSettings.ConfigPath = connectedModePathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = s => true;
                     break;
                 }
                 case SonarLintMode.Standalone:
@@ -120,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         private struct WriteSettings
         {
-            public Predicate<string> OnSuccessfulFileWrite { get; set; }
+            public Action<string> OnSuccessfulFileWrite { get; set; }
             public string ConfigPath { get; set; }
         }
     }

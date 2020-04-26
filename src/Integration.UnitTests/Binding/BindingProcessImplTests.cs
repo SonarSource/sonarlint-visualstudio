@@ -684,7 +684,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
             var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
+            var slnBindOperation = new SolutionBindingOperation(this.host,
+                bindingArgs.Connection,
+                projectKey,
+                "projectName",
+                SonarLintMode.LegacyConnected,
+                this.host.Logger,
+                Mock.Of<Persistence.ILegacySonarQubeFolderModifier>());
+
             var finder = new ConfigurableUnboundProjectFinder();
 
             return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider);
