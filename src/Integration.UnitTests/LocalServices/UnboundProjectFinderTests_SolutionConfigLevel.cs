@@ -138,7 +138,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             // Assert
             projects.Should().BeEmpty();
-            testConfig.AssertExistenceOfFileWasChecked("c:\\existingConfig.cpp");
             testConfig.AssertNoAttemptToLoadRulesetFile("c:\\existingConfig.cpp");
         }
 
@@ -204,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, new ConfigProjectBinderFactory(), fileSystemMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, new ConfigProjectBinderFactory(sp, fileSystemMock.Object));
                 return testSubject;
             }
 

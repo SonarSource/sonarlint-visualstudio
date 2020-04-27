@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 
@@ -25,12 +27,26 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class ConfigProjectBinderFactory : IConfigProjectBinderFactory
     {
+        private readonly IServiceProvider serviceProvider;
+        private readonly IFileSystem fileSystem;
+
+        public ConfigProjectBinderFactory(IServiceProvider serviceProvider)
+            : this(serviceProvider, new FileSystem())
+        {
+        }
+
+        internal ConfigProjectBinderFactory(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        {
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        }
+
         public IConfigProjectBinder Get(Project project)
         {
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
             var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
-            return isRoslynProject ? new RoslynConfigProjectBinder() : null;
+            return isRoslynProject ? new RoslynConfigProjectBinder(serviceProvider, fileSystem) : null;
         }
     }
 }

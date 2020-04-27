@@ -19,21 +19,53 @@
  */
 
 using System;
+using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     public class ConfigProjectBinderFactoryTests
     {
+        private Mock<IServiceProvider> serviceProviderMock;
+        private Mock<IFileSystem> fileSystemMock;
+
+        private ConfigProjectBinderFactory testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            serviceProviderMock = new Mock<IServiceProvider>();
+            fileSystemMock = new Mock<IFileSystem>();
+
+            testSubject = new ConfigProjectBinderFactory(serviceProviderMock.Object, fileSystemMock.Object);
+        }
+
+        [TestMethod]
+        public void Ctor_NullServiceProvider_ArgumentNullException()
+        {
+            Action act = () => new ConfigProjectBinderFactory(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+        }
+
+        [TestMethod]
+        public void Ctor_NullFileSystem_ArgumentNullException()
+        {
+            Action act = () => new ConfigProjectBinderFactory(serviceProviderMock.Object, null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+        }
+
         [TestMethod]
         public void Get_CSharpProject_RoslynProjectBinderReturned()
         {
             var project = new ProjectMock("c:\\foo.proj");
             project.SetCSProjectKind();
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
+            var configProjectBinder = testSubject.Get(project);
             configProjectBinder.Should().BeOfType<RoslynConfigProjectBinder>();
         }
 
@@ -43,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.SetVBProjectKind();
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
+            var configProjectBinder = testSubject.Get(project);
             configProjectBinder.Should().BeOfType<RoslynConfigProjectBinder>();
         }
 
@@ -53,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = ProjectSystemHelper.CppProjectKind;
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
+            var configProjectBinder = testSubject.Get(project);
             configProjectBinder.Should().BeNull();
         }
 
@@ -63,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = "{" + Guid.NewGuid() + "}";
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
+            var configProjectBinder = testSubject.Get(project);
             configProjectBinder.Should().BeNull();
         }
     }
