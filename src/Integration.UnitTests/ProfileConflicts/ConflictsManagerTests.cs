@@ -79,16 +79,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
 
-            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ConfigProjectBinderFactory(), fileSystem);
+            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(), fileSystem);
         }
 
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, new ConfigProjectBinderFactory(), fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, new ConfigProjectBinderFactory(), fileSystem));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, new ProjectBinderFactory(), fileSystem));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, new ProjectBinderFactory(), fileSystem));
             Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,null, fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,new ConfigProjectBinderFactory(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,new ProjectBinderFactory(), null));
 
             testSubject.Should().NotBeNull("Avoid code analysis warning when testSubject is unused");
         }

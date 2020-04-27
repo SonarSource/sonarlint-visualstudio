@@ -163,9 +163,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingArgs.ProjectName,
                 modeToBind,
                 host.Logger,
-                new ConfigProjectBinderFactory());
+                new ProjectBinderFactory());
 
-            var unboundProjectFinder = new UnboundProjectFinder(host, new ConfigProjectBinderFactory());
+            var unboundProjectFinder = new UnboundProjectFinder(host, new ProjectBinderFactory());
 
             var dotNetConfigProvider = new DotNetBindingConfigProvider(host.SonarQubeService, nugetBindingOp,
                 bindingArgs.Connection.ServerUri.ToString(), bindingArgs.ProjectName,

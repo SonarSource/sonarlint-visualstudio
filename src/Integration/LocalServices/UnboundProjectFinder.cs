@@ -34,18 +34,18 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
-        private readonly IConfigProjectBinderFactory configProjectBinderFactory;
+        private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
 
-        public UnboundProjectFinder(IServiceProvider serviceProvider, IConfigProjectBinderFactory configProjectBinderFactory)
-            : this(serviceProvider, configProjectBinderFactory, new FileSystem())
+        public UnboundProjectFinder(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory)
+            : this(serviceProvider, projectBinderFactory, new FileSystem())
         {
         }
 
-        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IConfigProjectBinderFactory configProjectBinderFactory, IFileSystem fileSystem)
+        internal /* for testing */ UnboundProjectFinder(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this.configProjectBinderFactory = configProjectBinderFactory ?? throw new ArgumentNullException(nameof(configProjectBinderFactory));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             ruleSetInfoProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration
                 return false;
             }
 
-            if (configProjectBinderFactory.Get(project) == null)
+            if (projectBinderFactory.Get(project) == null)
             {
                 return true; // nothing else to check
             }

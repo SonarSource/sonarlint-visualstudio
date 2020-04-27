@@ -33,8 +33,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.SetCSProjectKind();
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
-            configProjectBinder.Should().BeOfType<RoslynConfigProjectBinder>();
+            var configProjectBinder = new ProjectBinderFactory().Get(project);
+            configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
         }
 
         [TestMethod]
@@ -43,8 +43,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.SetVBProjectKind();
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
-            configProjectBinder.Should().BeOfType<RoslynConfigProjectBinder>();
+            var configProjectBinder = new ProjectBinderFactory().Get(project);
+            configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
         }
 
         [TestMethod]
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = ProjectSystemHelper.CppProjectKind;
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
+            var configProjectBinder = new ProjectBinderFactory().Get(project);
             configProjectBinder.Should().BeNull();
         }
 
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = "{" + Guid.NewGuid() + "}";
 
-            var configProjectBinder = new ConfigProjectBinderFactory().Get(project);
+            var configProjectBinder = new ProjectBinderFactory().Get(project);
             configProjectBinder.Should().BeNull();
         }
     }

@@ -204,7 +204,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, new ConfigProjectBinderFactory(), fileSystemMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, new ProjectBinderFactory(), fileSystemMock.Object);
                 return testSubject;
             }
 

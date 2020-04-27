@@ -18,19 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using EnvDTE;
-
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class ConfigProjectBinderFactory : IConfigProjectBinderFactory
+    internal class RoslynProjectBinder : IProjectBinder
     {
-        public IConfigProjectBinder Get(Project project)
-        {
-            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
-            var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
-
-            return isRoslynProject ? new RoslynConfigProjectBinder() : null;
-        }
     }
 }
