@@ -44,9 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider,
-            Project project,
-            ISolutionBindingConfigFileStore configFileStore)
+        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore)
             : this(serviceProvider, project, configFileStore, new FileSystem())
         {
         }
@@ -76,9 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region IBindingOperation
         public void Initialize()
         {
-            Debug.Assert(BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(this.initializedProject),
-                $"Not expecting project binding operation to be called for project '{this.initializedProject.FullName}'");
-
             this.CaptureProject();
             this.CalculateRuleSetInformation();
         }

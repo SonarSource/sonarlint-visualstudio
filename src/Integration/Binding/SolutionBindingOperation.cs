@@ -54,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly ILogger logger;
+        private readonly IProjectBinderFactory projectBinderFactory;
         private readonly ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier;
         private readonly IFileSystem fileSystem;
 
@@ -62,9 +63,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectKey,
             string projectName,
             SonarLintMode bindingMode,
-            ILogger logger,
-            ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, legacySonarQubeFolderModifier, new FileSystem())
+            IProjectBinderFactory projectBinderFactory,
+            ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier,
+            ILogger logger)
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode, projectBinderFactory, legacySonarQubeFolderModifier, logger, new FileSystem())
         {
         }
 
@@ -73,8 +75,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectKey,
             string projectName,
             SonarLintMode bindingMode,
-            ILogger logger,
+            IProjectBinderFactory projectBinderFactory,
             ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier,
+            ILogger logger,
             IFileSystem fileSystem)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -89,6 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.legacySonarQubeFolderModifier = legacySonarQubeFolderModifier ?? throw new ArgumentNullException(nameof(legacySonarQubeFolderModifier));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
             this.projectKey = projectKey;
             this.projectName = projectName;
@@ -175,9 +179,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
 
-            foreach (Project project in projects)
+            foreach (var project in projects)
             {
-                if (BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
+                if (projectBinderFactory.Get(project) != null)
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();

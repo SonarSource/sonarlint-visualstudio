@@ -689,8 +689,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 projectKey,
                 "projectName",
                 SonarLintMode.LegacyConnected,
-                this.host.Logger,
-                Mock.Of<Persistence.ILegacySonarQubeFolderModifier>());
+                new ProjectBinderFactory(),
+                Mock.Of<Persistence.ILegacySonarQubeFolderModifier>(),
+                this.host.Logger);
 
             var finder = new ConfigurableUnboundProjectFinder();
 

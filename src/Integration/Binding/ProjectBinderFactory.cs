@@ -23,19 +23,14 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    /// <summary>
-    /// This class was created when refactoring binding to add support for C++ projects.
-    /// It contains shared logic that doesn't currently have a proper home. It shouldn't
-    /// exist (hence the name). It should be removed in the future if/when further
-    /// refactoring is done and a more appropriate location for the responsibilities is
-    /// created.
-    /// </summary>
-    internal static class BindingRefactoringDumpingGround
+    internal class ProjectBinderFactory : IProjectBinderFactory
     {
-        internal /* for testing */ static bool IsProjectLevelBindingRequired(Project project)
+        public IProjectBinder Get(Project project)
         {
-            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
-            return languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
+            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
+            var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
+
+            return isRoslynProject ? new RoslynProjectBinder() : null;
         }
     }
 }
