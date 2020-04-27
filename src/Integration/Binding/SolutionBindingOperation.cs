@@ -54,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly ILogger logger;
+        private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -61,8 +62,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectKey,
             string projectName,
             SonarLintMode bindingMode,
-            ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, new FileSystem())
+            ILogger logger,
+            IProjectBinderFactory projectBinderFactory)
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, projectBinderFactory,new FileSystem())
         {
         }
 
@@ -72,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName, 
             SonarLintMode bindingMode,
             ILogger logger,
+            IProjectBinderFactory projectBinderFactory,
             IFileSystem fileSystem)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -85,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
             this.projectKey = projectKey;
             this.projectName = projectName;
@@ -171,9 +175,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
 
-            foreach (Project project in projects)
+            foreach (var project in projects)
             {
-                if (BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
+                if (projectBinderFactory.Get(project) != null)
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();

@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 
@@ -203,7 +204,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, fileSystemMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, new ProjectBinderFactory(), fileSystemMock.Object);
                 return testSubject;
             }
 
