@@ -73,6 +73,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         private static List<SonarLintKeyValuePair> GetSettingsForLanguage(string language, IDictionary<string, string> sonarProperties) =>
             sonarProperties.Where(kvp => IsSettingForLanguage(language, kvp.Key) && !IsSecuredServerProperty(kvp.Key))
                 .Select(ToSonarLintKeyValue)
+                .OrderBy(s => s.Key)
                 .ToList();
 
         private static bool IsSettingForLanguage (string language, string propertyKey)
@@ -87,16 +88,23 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             s.EndsWith(SecuredPropertySuffix, StringComparison.OrdinalIgnoreCase);
 
         private static List<SonarLintRule> GetRulesForRepo(string sonarRepoKey, IEnumerable<SonarQubeRule> sqRules) =>
-            sqRules.Where(ar => sonarRepoKey.Equals(ar.RepositoryKey))
+            sqRules.Where(ar => sonarRepoKey.Equals(ar.RepositoryKey) && HasParameters(ar))
                 .Select(ToSonarLintRule)
+                .OrderBy(slr => slr.Key)
                 .ToList();
+
+        private static bool HasParameters(SonarQubeRule sqRule) =>
+            sqRule.Parameters.Count > 0;
 
         private static SonarLintRule ToSonarLintRule(SonarQubeRule sqRule)
         {
             List<SonarLintKeyValuePair> slvsParameters = null;
             if (sqRule.Parameters != null && sqRule.Parameters.Count > 0 )
             {
-                slvsParameters = sqRule.Parameters.Select(ToSonarLintKeyValue).ToList();
+                slvsParameters = sqRule.Parameters
+                    .Select(ToSonarLintKeyValue)
+                    .OrderBy(p => p.Key)
+                    .ToList();
             }
 
             return new SonarLintRule()
