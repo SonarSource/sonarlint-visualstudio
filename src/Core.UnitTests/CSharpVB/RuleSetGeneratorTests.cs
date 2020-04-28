@@ -235,6 +235,61 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
+        public void RoslynRuleSet_Rules_AreGroupAndSorted()
+        {
+            // Arrange
+            var generator = new RuleSetGenerator(new Dictionary<string, string>
+            {
+                // The rules should be grouped by the analyzer id
+                { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
+                { "wintellect.analyzerId", "AAA" },
+                { "myanalyzer.analyzerId", "ZZZ" },
+
+                // The namespace properties are required but shouldn't be used for sorting
+                { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
+                { "wintellect.ruleNamespace", "XXX" },
+                { "myanalyzer.ruleNamespace", "BBB" },
+            });
+
+            var activeRules = new[]
+            {
+                CreateRule("roslyn.myanalyzer", "my 1", true),
+
+                CreateRule("roslyn.wintellect", "win2", true),
+                CreateRule("roslyn.wintellect", "win1", true),
+
+                CreateRule("csharpsquid", "S999", true),
+            };
+
+            var inactiveRules = new[]
+            {
+                CreateRule("roslyn.wintellect", "win0", false),
+                CreateRule("csharpsquid", "S111", false),
+            };
+
+            // Act
+            var ruleSet = generator.Generate("cs", activeRules, inactiveRules);
+
+            // Assert
+            ruleSet.Rules.Should().HaveCount(3);
+
+            // Expecting groups to be sorted alphabetically by analyzer id (not namespace)...
+            ruleSet.Rules[0].AnalyzerId.Should().Be("AAA");
+            ruleSet.Rules[1].AnalyzerId.Should().Be("SonarAnalyzer.CSharp");
+            ruleSet.Rules[2].AnalyzerId.Should().Be("ZZZ");
+
+            // ... and rules in groups to be sorted by rule key
+            ruleSet.Rules[0].RuleList[0].Id.Should().Be("win0");
+            ruleSet.Rules[0].RuleList[1].Id.Should().Be("win1");
+            ruleSet.Rules[0].RuleList[2].Id.Should().Be("win2");
+
+            ruleSet.Rules[1].RuleList[0].Id.Should().Be("S111");
+            ruleSet.Rules[1].RuleList[1].Id.Should().Be("S999");
+
+            ruleSet.Rules[2].RuleList[0].Id.Should().Be("my 1");
+        }
+
+        [TestMethod]
         public void RoslynRuleSet_Common_Parameters()
         {
             // Arrange
@@ -312,7 +367,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 .Message.Should().StartWith(
                     "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
         }
-
 
         [TestMethod]
         [DataRow(RuleAction.Info, "Info")]
