@@ -23,8 +23,14 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarQube.Client.Models;
 
-// Copied from the SonarScanner for MSBuild.
-// See https://github.com/SonarSource/sonar-scanner-msbuild/blob/9ccfdb648a0411014b29c7aee8e347aeab87ea71/src/SonarScanner.MSBuild.PreProcessor/Roslyn/RoslynRuleSetGenerator.cs#L28
+// Copied from the SonarScanner for MSBuild with a few tweaks.
+// S4MSB version: https://github.com/SonarSource/sonar-scanner-msbuild/blob/9ccfdb648a0411014b29c7aee8e347aeab87ea71/src/SonarScanner.MSBuild.PreProcessor/Roslyn/RoslynRuleSetGenerator.cs#L28
+//
+// Modifications:
+// * the SLVS version groups and sort rules alphabetically.
+//      Rationale: S4MSB generates a new file for each run so the order doesn't really matter. However,
+//      the SLVS version is checked in, and will be updated as the QP changes. Ordering the ruleset
+//      reduces the churn when comparing old/new files.
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
@@ -68,7 +74,8 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                     rule => GetPartialRepoKey(rule, language),
                     rule => rule)
                 .Where(IsSupportedRuleRepo)
-                .Select(CreateRulesElement);
+                .Select(CreateRulesElement)
+                .OrderBy(group => group.AnalyzerId);
 
             var ruleSet = new RuleSet
             {
@@ -95,7 +102,10 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             {
                 AnalyzerId = GetRequiredPropertyValue($"{partialRepoKey}.analyzerId"),
                 RuleNamespace = GetRequiredPropertyValue($"{partialRepoKey}.ruleNamespace"),
-                RuleList = analyzerRules.Select(CreateRuleElement).ToList()
+                RuleList = analyzerRules
+                    .OrderBy(r => r.Key)
+                    .Select(CreateRuleElement)
+                    .ToList()
             };
         }
 
