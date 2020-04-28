@@ -75,7 +75,8 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                     rule => rule)
                 .Where(IsSupportedRuleRepo)
                 .Select(CreateRulesElement)
-                .OrderBy(group => group.AnalyzerId);
+                .OrderBy(group => group.AnalyzerId)
+                .ToList();
 
             var ruleSet = new RuleSet
             {
@@ -103,8 +104,8 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                 AnalyzerId = GetRequiredPropertyValue($"{partialRepoKey}.analyzerId"),
                 RuleNamespace = GetRequiredPropertyValue($"{partialRepoKey}.ruleNamespace"),
                 RuleList = analyzerRules
-                    .OrderBy(r => r.Key)
                     .Select(CreateRuleElement)
+                    .OrderBy(r => r.Id)
                     .ToList()
             };
         }
