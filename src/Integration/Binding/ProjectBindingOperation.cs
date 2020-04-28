@@ -49,10 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal ProjectBindingOperation(IServiceProvider serviceProvider, 
-            Project project, 
-            ISolutionBindingConfigFileStore configFileStore,
-            IFileSystem fileSystem)
+        internal ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));

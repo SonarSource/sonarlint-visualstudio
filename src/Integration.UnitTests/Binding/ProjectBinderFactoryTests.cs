@@ -60,8 +60,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.SetCSProjectKind();
 
-            var configProjectBinder = testSubject.Get(project);
-            configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
+            using (new AssertIgnoreScope())
+            {
+                var configProjectBinder = testSubject.Get(project);
+                configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
+            }
         }
 
         [TestMethod]
@@ -70,8 +73,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.SetVBProjectKind();
 
-            var configProjectBinder = testSubject.Get(project);
-            configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
+            using (new AssertIgnoreScope())
+            {
+                var configProjectBinder = testSubject.Get(project);
+                configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
+            }
         }
 
         [TestMethod]
@@ -80,8 +86,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = ProjectSystemHelper.CppProjectKind;
 
-            var configProjectBinder = testSubject.Get(project);
-            configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
+            using (new AssertIgnoreScope())
+            {
+                var configProjectBinder = testSubject.Get(project);
+                configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
+            }
         }
 
         [TestMethod]
@@ -90,8 +99,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = "{" + Guid.NewGuid() + "}";
 
-            var configProjectBinder = testSubject.Get(project);
-            configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
+            using (new AssertIgnoreScope())
+            {
+                var configProjectBinder = testSubject.Get(project);
+                configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
+            }
         }
     }
 }

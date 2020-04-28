@@ -138,6 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             // Assert
             projects.Should().BeEmpty();
+            testConfig.AssertExistenceOfFileWasChecked("c:\\existingConfig.cpp");
             testConfig.AssertNoAttemptToLoadRulesetFile("c:\\existingConfig.cpp");
         }
 
