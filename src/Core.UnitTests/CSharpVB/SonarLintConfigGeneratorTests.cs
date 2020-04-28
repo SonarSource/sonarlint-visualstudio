@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             // Assert
             actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
             {
-                { "sonar.cs.property1", "valid setting"}
+                { "sonar.cs.property2", "valid setting"}
             });
         }
 
