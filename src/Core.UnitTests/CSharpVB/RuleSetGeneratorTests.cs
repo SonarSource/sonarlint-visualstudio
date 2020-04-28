@@ -193,6 +193,39 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
+        public void RoslynRuleSet_SonarSecurity_Rules_AreIncludedAndCanBeActive()
+        {
+            // Arrange
+            var generator = new RuleSetGenerator(new Dictionary<string, string>
+            {
+                ["sonaranalyzer.security.cs.analyzerId"] = "SonarAnalyzer.Security",
+                ["sonaranalyzer.security.cs.ruleNamespace"] = "SonarAnalyzer.Security",
+
+            });
+
+            var activeRules = new[]
+            {
+                CreateRule("roslyn.sonaranalyzer.security.cs", "S2083", true),
+            };
+            var inactiveRules = new[]
+            {
+                CreateRule("roslyn.sonaranalyzer.security.cs", "S5131", false),
+            };
+
+            // Act
+            var ruleSet = generator.Generate("cs", activeRules, inactiveRules);
+
+            // Assert
+            ruleSet.Rules.Count().Should().Be(1);
+            ruleSet.Rules[0].AnalyzerId.Should().Be("SonarAnalyzer.Security");
+            ruleSet.Rules[0].RuleNamespace.Should().Be("SonarAnalyzer.Security");
+            ruleSet.Rules[0].RuleList[0].Id.Should().Be("S2083");
+            ruleSet.Rules[0].RuleList[0].Action.Should().Be("Warning");
+            ruleSet.Rules[0].RuleList[1].Id.Should().Be("S5131");
+            ruleSet.Rules[0].RuleList[1].Action.Should().Be("None");
+        }
+
+        [TestMethod]
         public void RoslynRuleSet_Sonar_Rules_Added()
         {
             // Arrange
