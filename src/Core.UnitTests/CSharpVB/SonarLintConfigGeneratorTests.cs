@@ -98,6 +98,27 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
+        public void Generate_ValidSettings_SecuredSettingsAreNotReturned()
+        {
+            // Arrange
+            var properties = new Dictionary<string, string>
+            {
+                { "sonar.cs.property1.secured", "secure - should not be returned"},
+                { "sonar.cs.property2", "valid setting"},
+                { "sonar.cs.property3.SECURED", "secure - should not be returned2"},
+            };
+
+            // Act
+            var actual = SonarLintConfigGenerator.Generate(EmptyRules, properties, "cs");
+
+            // Assert
+            actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
+            {
+                { "sonar.cs.property2", "valid setting"}
+            });
+        }
+
+        [TestMethod]
         [DataRow("cs", "csharpsquid")]
         [DataRow("vbnet", "vbnet")]
         public void Generate_ValidRules_OnlyRulesFromKnownRepositoryReturned(string knownLanguage, string knownRepoKey)
