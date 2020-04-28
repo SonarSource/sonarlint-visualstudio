@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
     {
         private const string CSharpRepoKey = "csharpsquid";
         private const string VBRepoKey = "vbnet";
+        private const string SecuredPropertySuffix = ".secured";
 
         public static SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties,
             string language)
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         }
 
         private static List<SonarLintKeyValuePair> GetSettingsForLanguage(string language, IDictionary<string, string> sonarProperties) =>
-            sonarProperties.Where(kvp => IsSettingForLanguage(language, kvp.Key))
+            sonarProperties.Where(kvp => IsSettingForLanguage(language, kvp.Key) && !IsSecuredServerProperty(kvp.Key))
                 .Select(ToSonarLintKeyValue)
                 .ToList();
 
@@ -81,6 +82,9 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             return propertyKey.StartsWith(prefix) &&
                 propertyKey.Length > prefix.Length;
         }
+
+        private static bool IsSecuredServerProperty(string s) =>
+            s.EndsWith(SecuredPropertySuffix, StringComparison.OrdinalIgnoreCase);
 
         private static List<SonarLintRule> GetRulesForRepo(string sonarRepoKey, IEnumerable<SonarQubeRule> sqRules) =>
             sqRules.Where(ar => sonarRepoKey.Equals(ar.RepositoryKey))
