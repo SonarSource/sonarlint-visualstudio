@@ -22,8 +22,8 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal interface IConfigProjectBinderFactory
+    internal interface IProjectBinderFactory
     {
-        IConfigProjectBinder Get(Project project);
+        IProjectBinder Get(Project project);
     }
 }

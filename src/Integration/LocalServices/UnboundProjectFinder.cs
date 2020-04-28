@@ -31,12 +31,12 @@ namespace SonarLint.VisualStudio.Integration
     internal class UnboundProjectFinder : IUnboundProjectFinder
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly IConfigProjectBinderFactory configProjectBinderFactory;
+        private readonly IProjectBinderFactory projectBinderFactory;
 
-        public UnboundProjectFinder(IServiceProvider serviceProvider, IConfigProjectBinderFactory configProjectBinderFactory)
+        public UnboundProjectFinder(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this.configProjectBinderFactory = configProjectBinderFactory ?? throw new ArgumentNullException(nameof(configProjectBinderFactory));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
         }
 
         public IEnumerable<Project> GetUnboundProjects()
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration
             return projectSystem.GetFilteredSolutionProjects()
                 .Where(project =>
                 {
-                    var configProjectBinder = configProjectBinderFactory.Get(project);
+                    var configProjectBinder = projectBinderFactory.Get(project);
 
                     return configProjectBinder == null || !configProjectBinder.IsBound(binding, project);
                 })

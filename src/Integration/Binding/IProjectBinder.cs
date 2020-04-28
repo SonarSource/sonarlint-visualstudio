@@ -23,7 +23,10 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal interface IConfigProjectBinder
+    /// <summary>
+    /// Performs binding operations on a given project
+    /// </summary>
+    internal interface IProjectBinder
     {
         bool IsBound(BindingConfiguration binding, Project project);
     }

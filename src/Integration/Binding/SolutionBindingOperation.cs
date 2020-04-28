@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly ILogger logger;
-        private readonly IConfigProjectBinderFactory configProjectBinderFactory;
+        private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -63,8 +63,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             ILogger logger,
-            IConfigProjectBinderFactory configProjectBinderFactory)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, configProjectBinderFactory,new FileSystem())
+            IProjectBinderFactory projectBinderFactory)
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, projectBinderFactory,new FileSystem())
         {
         }
 
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName, 
             SonarLintMode bindingMode,
             ILogger logger,
-            IConfigProjectBinderFactory configProjectBinderFactory,
+            IProjectBinderFactory projectBinderFactory,
             IFileSystem fileSystem)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.configProjectBinderFactory = configProjectBinderFactory ?? throw new ArgumentNullException(nameof(configProjectBinderFactory));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
             this.projectKey = projectKey;
             this.projectName = projectName;
@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var project in projects)
             {
-                if (configProjectBinderFactory.Get(project) != null)
+                if (projectBinderFactory.Get(project) != null)
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();

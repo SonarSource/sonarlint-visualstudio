@@ -44,9 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider,
-            Project project,
-            ISolutionBindingConfigFileStore configFileStore)
+        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore)
             : this(serviceProvider, project, configFileStore, new FileSystem())
         {
         }

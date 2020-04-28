@@ -45,20 +45,20 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
-        private readonly IConfigProjectBinderFactory configProjectBinderFactory;
+        private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
 
-        public ConflictsManager(IServiceProvider serviceProvider, IConfigProjectBinderFactory configProjectBinderFactory, ILogger logger)
-            : this(serviceProvider, logger, configProjectBinderFactory, new FileSystem())
+        public ConflictsManager(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory, ILogger logger)
+            : this(serviceProvider, logger, projectBinderFactory, new FileSystem())
         {
         }
 
-        internal ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IConfigProjectBinderFactory configProjectBinderFactory, IFileSystem fileSystem)
+        internal ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IProjectBinderFactory projectBinderFactory, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.configProjectBinderFactory = configProjectBinderFactory ?? throw new ArgumentNullException(nameof(configProjectBinderFactory));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
         }
 
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     continue;
                 }
 
-                if (configProjectBinderFactory.Get(project) == null)
+                if (projectBinderFactory.Get(project) == null)
                 {
                     continue;
                 }

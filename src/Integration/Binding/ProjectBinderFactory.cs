@@ -25,28 +25,28 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class ConfigProjectBinderFactory : IConfigProjectBinderFactory
+    internal class ProjectBinderFactory : IProjectBinderFactory
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IFileSystem fileSystem;
 
-        public ConfigProjectBinderFactory(IServiceProvider serviceProvider)
+        public ProjectBinderFactory(IServiceProvider serviceProvider)
             : this(serviceProvider, new FileSystem())
         {
         }
 
-        internal ConfigProjectBinderFactory(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal ProjectBinderFactory(IServiceProvider serviceProvider, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public IConfigProjectBinder Get(Project project)
+        public IProjectBinder Get(Project project)
         {
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
             var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
-            return isRoslynProject ? new RoslynConfigProjectBinder(serviceProvider, fileSystem) : null;
+            return isRoslynProject ? new RoslynProjectBinder(serviceProvider, fileSystem) : null;
         }
     }
 }

@@ -28,13 +28,13 @@ using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class RoslynConfigProjectBinder : IConfigProjectBinder
+    internal class RoslynProjectBinder : IProjectBinder
     {
         private readonly IFileSystem fileSystem;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
 
-        public RoslynConfigProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
         {
             if (serviceProvider == null)
             {
