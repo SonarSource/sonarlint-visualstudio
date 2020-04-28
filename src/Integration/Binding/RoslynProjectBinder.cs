@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
 

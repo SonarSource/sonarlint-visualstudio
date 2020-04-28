@@ -140,7 +140,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
-            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
         [TestMethod]
@@ -164,7 +163,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
-            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
         [TestMethod]

@@ -46,7 +46,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
             var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
-            return isRoslynProject ? new RoslynProjectBinder(serviceProvider, fileSystem) : null;
+            return isRoslynProject
+                ? (IProjectBinder) new RoslynProjectBinder(serviceProvider, fileSystem)
+                : new CFamilyProjectBinder(serviceProvider, fileSystem);
         }
     }
 }

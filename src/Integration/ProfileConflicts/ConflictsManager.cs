@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     continue;
                 }
 
-                if (projectBinderFactory.Get(project) == null)
+                if (projectBinderFactory.Get(project) is CFamilyProjectBinder)
                 {
                     continue;
                 }

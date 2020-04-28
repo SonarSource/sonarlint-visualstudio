@@ -177,15 +177,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var project in projects)
             {
-                if (projectBinderFactory.Get(project) != null)
+                if (projectBinderFactory.Get(project) is CFamilyProjectBinder)
+                {
+                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
+                }
+                else
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();
                     this.childBinder.Add(binder);
-                }
-                else
-                {
-                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
                 }
             }
         }

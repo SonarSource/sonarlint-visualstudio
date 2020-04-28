@@ -75,23 +75,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void Get_CppProject_NullReturned()
+        public void Get_CppProject_CFamilyProjectBinderReturned()
         {
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = ProjectSystemHelper.CppProjectKind;
 
             var configProjectBinder = testSubject.Get(project);
-            configProjectBinder.Should().BeNull();
+            configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
         }
 
         [TestMethod]
-        public void Get_NonRoslynProject_NullReturned()
+        public void Get_NonRoslynProject_CFamilyProjectBinderReturned()
         {
             var project = new ProjectMock("c:\\foo.proj");
             project.ProjectKind = "{" + Guid.NewGuid() + "}";
 
             var configProjectBinder = testSubject.Get(project);
-            configProjectBinder.Should().BeNull();
+            configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
         }
     }
 }

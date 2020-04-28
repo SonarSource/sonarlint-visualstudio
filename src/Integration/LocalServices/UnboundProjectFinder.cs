@@ -58,12 +58,14 @@ namespace SonarLint.VisualStudio.Integration
             var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
-            return projectSystem.GetFilteredSolutionProjects()
+            var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects();
+
+            return filteredSolutionProjects
                 .Where(project =>
                 {
                     var configProjectBinder = projectBinderFactory.Get(project);
 
-                    return configProjectBinder == null || !configProjectBinder.IsBound(binding, project);
+                    return !configProjectBinder.IsBound(binding, project);
                 })
                 .ToArray();
         }

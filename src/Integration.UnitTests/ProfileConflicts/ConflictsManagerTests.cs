@@ -64,6 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
+            this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), Mock.Of<IRuleSetSerializer>());
+
             this.fileSystem = new MockFileSystem();
 
             this.configProvider = new ConfigurableConfigurationProvider();
