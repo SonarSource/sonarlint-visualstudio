@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.Integration.Persistence;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class LegacySonarQubeFolderModifierTests
+    public class LegacyConfigFolderItemAdderTests
     {
         private const string FilePath = "c:\\test";
 
