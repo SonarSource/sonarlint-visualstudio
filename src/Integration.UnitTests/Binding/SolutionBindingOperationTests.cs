@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
             var logger = new TestLogger();
             var projectBinderFactory = Mock.Of<IProjectBinderFactory>();
-            var folderModifier = Mock.Of<ILegacySonarQubeFolderModifier>();
+            var folderModifier = Mock.Of<ILegacyConfigFolderItemAdder>();
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
@@ -446,7 +446,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 bindingMode,
                 new ProjectBinderFactory(serviceProvider, fileSystem),
-                new LegacySonarQubeFolderModifier(serviceProvider, fileSystem),
+                new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
                 logger ?? new TestLogger(),
                 fileSystem);
         }

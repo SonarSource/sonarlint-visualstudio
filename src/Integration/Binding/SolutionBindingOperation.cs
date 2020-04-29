@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly SonarLintMode bindingMode;
         private readonly ILogger logger;
         private readonly IProjectBinderFactory projectBinderFactory;
-        private readonly ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier;
+        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider), new LegacySonarQubeFolderModifier(serviceProvider), logger, new FileSystem())
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider), new LegacyConfigFolderItemAdder(serviceProvider), logger, new FileSystem())
         {
         }
 
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             IProjectBinderFactory projectBinderFactory,
-            ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier,
+            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
             ILogger logger,
             IFileSystem fileSystem)
         {
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.legacySonarQubeFolderModifier = legacySonarQubeFolderModifier ?? throw new ArgumentNullException(nameof(legacySonarQubeFolderModifier));
+            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
@@ -293,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (ConfigFileInformation info in bindingConfigInformationMap.Values)
             {
                 Debug.Assert(fileSystem.File.Exists(info.NewFilePath), "File not written " + info.NewFilePath);
-                legacySonarQubeFolderModifier.AddToFolder(info.NewFilePath);
+                legacyConfigFolderItemAdder.AddToFolder(info.NewFilePath);
             }
         }
 

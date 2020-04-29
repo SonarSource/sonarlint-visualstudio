@@ -25,17 +25,17 @@ using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class LegacySonarQubeFolderModifier : ILegacySonarQubeFolderModifier
+    internal class LegacyConfigFolderItemAdder : ILegacyConfigFolderItemAdder
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IFileSystem fileSystem;
 
-        public LegacySonarQubeFolderModifier(IServiceProvider serviceProvider)
+        public LegacyConfigFolderItemAdder(IServiceProvider serviceProvider)
             : this(serviceProvider, new FileSystem())
         {
         }
 
-        internal LegacySonarQubeFolderModifier(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal LegacyConfigFolderItemAdder(IServiceProvider serviceProvider, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));

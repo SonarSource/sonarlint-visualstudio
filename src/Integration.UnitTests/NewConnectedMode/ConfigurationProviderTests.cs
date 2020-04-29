@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISolutionBindingPathProvider> legacyPathProvider;
         private Mock<ISolutionBindingPathProvider> newPathProvider;
         private Mock<ISolutionBindingSerializer> solutionBindingSerializer;
-        private Mock<ILegacySonarQubeFolderModifier> legacySonarQubeFolderModifier;
+        private Mock<ILegacyConfigFolderItemAdder> legacySonarQubeFolderModifier;
         private ConfigurationProvider testSubject;
 
         [TestInitialize]
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             legacyPathProvider = new Mock<ISolutionBindingPathProvider>();
             newPathProvider = new Mock<ISolutionBindingPathProvider>();
             solutionBindingSerializer = new Mock<ISolutionBindingSerializer>();
-            legacySonarQubeFolderModifier = new Mock<ILegacySonarQubeFolderModifier>();
+            legacySonarQubeFolderModifier = new Mock<ILegacyConfigFolderItemAdder>();
 
             testSubject = new ConfigurationProvider(legacyPathProvider.Object,
                 newPathProvider.Object,
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, solutionBindingSerializer.Object, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacySonarQubeFolderModifier");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyConfigFolderItemAdder");
         }
 
         [TestMethod]

@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ILegacySonarQubeFolderModifier
+    internal interface ILegacyConfigFolderItemAdder
     {
         void AddToFolder(string filePath);
     }

@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private Mock<IProjectSystemHelper> projectSystemHelperMock;
         private Mock<IServiceProvider> serviceProviderMock;
-        private LegacySonarQubeFolderModifier testSubject;
+        private LegacyConfigFolderItemAdder testSubject;
 
         [TestInitialize]
         public void TestInitialize()
@@ -50,12 +50,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var fileSystemMock = new Mock<IFileSystem>();
             fileSystemMock.Setup(x => x.File.Exists(FilePath)).Returns(true);
 
-            testSubject = new LegacySonarQubeFolderModifier(serviceProviderMock.Object, fileSystemMock.Object);
+            testSubject = new LegacyConfigFolderItemAdder(serviceProviderMock.Object, fileSystemMock.Object);
         }
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
-            Action act = () => new LegacySonarQubeFolderModifier(null, Mock.Of<IFileSystem>());
+            Action act = () => new LegacyConfigFolderItemAdder(null, Mock.Of<IFileSystem>());
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new LegacySonarQubeFolderModifier(Mock.Of<IServiceProvider>(), null);
+            Action act = () => new LegacyConfigFolderItemAdder(Mock.Of<IServiceProvider>(), null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
