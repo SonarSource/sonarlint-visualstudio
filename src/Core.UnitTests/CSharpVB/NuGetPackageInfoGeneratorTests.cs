@@ -76,7 +76,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         }
 
         [TestMethod]
-        public void Get_MissingPluginVerionProperty_NoPackageInfo()
+        public void Get_MissingPluginVersionProperty_NoPackageInfo()
         {
             var properties = new Dictionary<string, string> { { "sonaranalyzer-cs.pluginVersion", "1.2.3" } };
 
@@ -86,44 +86,25 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         }
 
         [TestMethod]
-        public void Get_CSharp_WithPropertiesAndMatchingRules_ExpectedPackageReturned()
+        [DataRow("cs", "csharpsquid")]
+        [DataRow("vbnet", "vbnet")]
+        public void Get_SonarAnalyzer_WithPropertiesAndMatchingRules_ExpectedPackageReturned(string language, string repositoryKey)
         {
             var properties = new Dictionary<string, string>
             {
-                { "sonaranalyzer-cs.analyzerId", "my.analyzer" },
-                { "sonaranalyzer-cs.pluginVersion", "3.2.1" }
+                { $"sonaranalyzer-{language}.analyzerId", "AAA" },
+                { $"sonaranalyzer-{language}.pluginVersion", "1.2" }
             };
 
             var rules = new SonarQubeRule[]
             {
-                CreateRule("csharpsquid", "rule2")
+                CreateRule(repositoryKey, "rule1")
             };
 
             var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(rules, properties);
 
             actual.Count().Should().Be(1);
-            actual.First().Id.Should().Be("my.analyzer");
-            actual.First().Version.Should().Be("3.2.1");
-        }
-
-        [TestMethod]
-        public void Get_VBNet_WithPropertiesAndMatchingRules_ExpectedPackageReturned()
-        {
-            var properties = new Dictionary<string, string>
-            {
-                { "sonaranalyzer-vbnet.analyzerId", "sonarVB" },
-                { "sonaranalyzer-vbnet.pluginVersion", "1.2" }
-            };
-
-            var rules = new SonarQubeRule[]
-            {
-                CreateRule("vbnet", "rule1")
-            };
-
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(rules, properties);
-
-            actual.Count().Should().Be(1);
-            actual.First().Id.Should().Be("sonarVB");
+            actual.First().Id.Should().Be("AAA");
             actual.First().Version.Should().Be("1.2");
         }
 
@@ -175,7 +156,6 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
             packages[2].Id.Should().Be("analyzer.myanalyzer1");
             packages[2].Version.Should().Be("version.myanalyzer1");
         }
-
 
         private static SonarQubeRule CreateRule(string repoKey, string ruleKey) =>
             new SonarQubeRule(ruleKey, repoKey, true, SonarQubeIssueSeverity.Critical, null);
