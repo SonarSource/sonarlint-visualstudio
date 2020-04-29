@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         private static readonly IEnumerable<SonarQubeRule> EmptyRules = Array.Empty<SonarQubeRule>();
         private static readonly IDictionary<string, string> EmptyProperties = new Dictionary<string, string>();
         private const string ValidLanguage = "cs";
+        private static readonly IDictionary<string, string> ValidParams = new Dictionary<string, string> { { "any", "any value" } };
 
         [TestMethod]
         public void Generate_NullArguments_Throws()
@@ -98,6 +99,31 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
+        public void Generate_ValidSettings_AreSorted()
+        {
+            // Arrange
+            var properties = new Dictionary<string, string>
+            {
+                { "sonar.cs.property3", "aaa"},
+                { "sonar.cs.property1", "bbb"},
+                { "sonar.cs.property2", "ccc"},
+            };
+
+            // Act
+            var actual = SonarLintConfigGenerator.Generate(EmptyRules, properties, "cs");
+
+            // Assert
+            actual.Settings[0].Key.Should().Be("sonar.cs.property1");
+            actual.Settings[0].Value.Should().Be("bbb");
+
+            actual.Settings[1].Key.Should().Be("sonar.cs.property2");
+            actual.Settings[1].Value.Should().Be("ccc");
+
+            actual.Settings[2].Key.Should().Be("sonar.cs.property3");
+            actual.Settings[2].Value.Should().Be("aaa");
+        }
+
+        [TestMethod]
         public void Generate_ValidSettings_SecuredSettingsAreNotReturned()
         {
             // Arrange
@@ -125,11 +151,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             var rules = new List<SonarQubeRule>()
             {
-                CreateRule("valid1", knownRepoKey),
-                CreateRule("unknown1", "unknown.repo.key"),
-                CreateRule("valid2", knownRepoKey),
-                CreateRule("invalid2", "another.unknown.repo.key"),
-                CreateRule("valid3", knownRepoKey)
+                CreateRuleWithValidParams("valid1", knownRepoKey),
+                CreateRuleWithValidParams("unknown1", "unknown.repo.key"),
+                CreateRuleWithValidParams("valid2", knownRepoKey),
+                CreateRuleWithValidParams("invalid2", "another.unknown.repo.key"),
+                CreateRuleWithValidParams("valid3", knownRepoKey)
             };
 
             // Act
@@ -140,15 +166,16 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
-        public void Generate_RulesWithParameters_ExpectedConfigReturned()
+        public void Generate_ValidRules_OnlyRulesWithParametersReturned()
         {
             var rule1Params = new Dictionary<string, string> { { "param1", "value1" }, { "param2", "value2" } };
-            var rule2Params = new Dictionary<string, string> { { "param3", "value4" } };
+            var rule3Params = new Dictionary<string, string> { { "param3", "value4" } };
 
             var rules = new List<SonarQubeRule>()
             {
                 CreateRule("s111", "csharpsquid", rule1Params ),
-                CreateRule("s222", "csharpsquid", rule2Params ),
+                CreateRule("s222", "csharpsquid" /* no params */),
+                CreateRule("s333", "csharpsquid", rule3Params )
             };
 
             // Act
@@ -159,7 +186,41 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             actual.Rules[0].Key.Should().Be("s111");
             actual.Rules[0].Parameters.Should().BeEquivalentTo(rule1Params);
-            actual.Rules[1].Parameters.Should().BeEquivalentTo(rule2Params);
+            actual.Rules[1].Key.Should().Be("s333");
+            actual.Rules[1].Parameters.Should().BeEquivalentTo(rule3Params);
+        }
+
+        [TestMethod]
+        public void Generate_ValidRules_AreSorted()
+        {
+            var rules = new List<SonarQubeRule>()
+            {
+                CreateRule("s222", "csharpsquid",
+                    new Dictionary<string, string> { { "any", "any" } }),
+                CreateRule("s111", "csharpsquid",
+                    new Dictionary<string, string> { { "CCC", "value 1" }, { "BBB", "value 2" }, { "AAA", "value 3" } }),
+                CreateRule("s333", "csharpsquid",
+                    new Dictionary<string, string> { { "any", "any" } })
+            };
+
+            // Act
+            var actual = SonarLintConfigGenerator.Generate(rules, EmptyProperties, "cs");
+
+            // Assert
+            actual.Rules.Count.Should().Be(3);
+
+            actual.Rules[0].Key.Should().Be("s111");
+            actual.Rules[1].Key.Should().Be("s222");
+            actual.Rules[2].Key.Should().Be("s333");
+            
+            actual.Rules[0].Parameters[0].Key.Should().Be("AAA");
+            actual.Rules[0].Parameters[0].Value.Should().Be("value 3");
+
+            actual.Rules[0].Parameters[1].Key.Should().Be("BBB");
+            actual.Rules[0].Parameters[1].Value.Should().Be("value 2");
+
+            actual.Rules[0].Parameters[2].Key.Should().Be("CCC");
+            actual.Rules[0].Parameters[2].Value.Should().Be("value 1");
         }
 
         [TestMethod]
@@ -173,9 +234,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             var rules = new List<SonarQubeRule>()
             {
-                CreateRule("s111", "csharpsquid"),
+                CreateRule("s555", "csharpsquid",
+                    new Dictionary<string, string> { { "x", "y y" } }),
+                CreateRule("s444", "csharpsquid"),
+                CreateRule("s333", "csharpsquid"),
                 CreateRule("s222", "csharpsquid",
-                    new Dictionary<string, string> { { "param1", "param value1" }, { "param2", "param value2" } }),
+                    new Dictionary<string, string> { { "ZZZ", "param value1" }, { "AAA", "param value2" } }),
+                CreateRule("s111", "csharpsquid"),
             };
 
             // Act
@@ -197,24 +262,33 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
   </Settings>
   <Rules>
     <Rule>
-      <Key>s111</Key>
-    </Rule>
-    <Rule>
       <Key>s222</Key>
       <Parameters>
         <Parameter>
-          <Key>param1</Key>
-          <Value>param value1</Value>
+          <Key>AAA</Key>
+          <Value>param value2</Value>
         </Parameter>
         <Parameter>
-          <Key>param2</Key>
-          <Value>param value2</Value>
+          <Key>ZZZ</Key>
+          <Value>param value1</Value>
+        </Parameter>
+      </Parameters>
+    </Rule>
+    <Rule>
+      <Key>s555</Key>
+      <Parameters>
+        <Parameter>
+          <Key>x</Key>
+          <Value>y y</Value>
         </Parameter>
       </Parameters>
     </Rule>
   </Rules>
 </AnalysisInput>");
         }
+
+        private static SonarQubeRule CreateRuleWithValidParams(string ruleKey, string repoKey) =>
+            CreateRule(ruleKey, repoKey, ValidParams);
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, IDictionary<string, string> parameters = null) =>
             new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, parameters);
