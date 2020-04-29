@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         private static IEnumerable<string> GetPluginPropertyPrefixes(IEnumerable<SonarQubeRule> rules) =>
             rules.Select(r => r.TryGetRoslynPluginPropertyPrefix())
                 .Distinct()
-                .Where(r => !string.IsNullOrEmpty(r))
+                .Where(r => !string.IsNullOrEmpty(r) && !RoslynPluginRuleKeyExtensions.IsExcludedRuleRepository(r))
                 .ToArray();
     }
 }
