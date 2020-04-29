@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly SonarLintMode bindingMode;
         private readonly ILogger logger;
         private readonly IProjectBinderFactory projectBinderFactory;
+        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -63,17 +64,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, new ProjectBinderFactory(serviceProvider), new FileSystem())
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider), new LegacyConfigFolderItemAdder(serviceProvider), logger, new FileSystem())
         {
         }
 
-        internal SolutionBindingOperation(IServiceProvider serviceProvider, 
-            ConnectionInformation connection, 
-            string projectKey, 
-            string projectName, 
+        internal SolutionBindingOperation(IServiceProvider serviceProvider,
+            ConnectionInformation connection,
+            string projectKey,
+            string projectName,
             SonarLintMode bindingMode,
-            ILogger logger,
             IProjectBinderFactory projectBinderFactory,
+            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
+            ILogger logger,
             IFileSystem fileSystem)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -86,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
@@ -290,40 +293,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (ConfigFileInformation info in bindingConfigInformationMap.Values)
             {
                 Debug.Assert(fileSystem.File.Exists(info.NewFilePath), "File not written " + info.NewFilePath);
-                this.AddFileToSolutionItems(info.NewFilePath);
-                this.RemoveFileFromSolutionItems(info.NewFilePath);
-            }
-        }
-
-        private void AddFileToSolutionItems(string fullFilePath)
-        {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && fileSystem.File.Exists(fullFilePath), "Expecting a rooted path to existing file");
-
-            Project solutionItemsProject = this.projectSystem.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
-            if (solutionItemsProject == null)
-            {
-                Debug.Fail("Could not find the solution items project");
-            }
-            else
-            {
-                if (!this.projectSystem.IsFileInProject(solutionItemsProject, fullFilePath))
-                {
-                    this.projectSystem.AddFileToProject(solutionItemsProject, fullFilePath);
-                }
-            }
-        }
-
-        private void RemoveFileFromSolutionItems(string fullFilePath)
-        {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && fileSystem.File.Exists(fullFilePath), "Expecting a rooted path to existing file");
-
-            Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject(false);
-            if (solutionItemsProject != null)
-            {
-                // Remove file from project and if project is empty, remove project from solution
-                var fileName = Path.GetFileName(fullFilePath);
-                this.projectSystem.RemoveFileFromProject(solutionItemsProject, fileName);
-
+                legacyConfigFolderItemAdder.AddToFolder(info.NewFilePath);
             }
         }
 

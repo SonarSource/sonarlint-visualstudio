@@ -20,8 +20,8 @@
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ISolutionBindingPostSaveOperation
+    internal interface ILegacyConfigFolderItemAdder
     {
-        bool OnSuccessfulSave(string filePath);
+        void AddToFolder(string filePath);
     }
 }

@@ -34,6 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         /// Writes the binding information
         /// </summary>
         /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite);
+        bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite);
     }
 }
