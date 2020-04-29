@@ -166,6 +166,24 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
+        [DataRow("cs")]
+        [DataRow("vbnet")]
+        public void Generate_SonarSecurityRules_AreNotReturned(string language)
+        {
+            var rules = new List<SonarQubeRule>()
+            {
+                CreateRuleWithValidParams("valid1", $"roslyn.sonaranalyzer.security.{language}"),
+                CreateRuleWithValidParams("valid2", $"roslyn.sonaranalyzer.security.{language}")
+            };
+
+            // Act
+            var actual = SonarLintConfigGenerator.Generate(rules, EmptyProperties, language);
+
+            // Assert
+            actual.Rules.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void Generate_ValidRules_OnlyRulesWithParametersReturned()
         {
             var rule1Params = new Dictionary<string, string> { { "param1", "value1" }, { "param2", "value2" } };

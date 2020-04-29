@@ -31,6 +31,7 @@ using SonarQube.Client.Models;
 //      Rationale: S4MSB generates a new file for each run so the order doesn't really matter. However,
 //      the SLVS version is checked in, and will be updated as the QP changes. Ordering the ruleset
 //      reduces the churn when comparing old/new files.
+// * the SLVS version doesn't include taint-analysis rules
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
@@ -93,8 +94,11 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         private static bool IsSupportedRuleRepo(IGrouping<string, SonarQubeRule> analyzerRules)
         {
             var partialRepoKey = analyzerRules.Key;
-            return !string.IsNullOrEmpty(partialRepoKey);
+            return !string.IsNullOrEmpty(partialRepoKey) && !IsExcludedRuleRepo(partialRepoKey);
         }
+
+        private static bool IsExcludedRuleRepo(string partialRepoKey) =>
+            partialRepoKey.IndexOf("sonaranalyzer.security", StringComparison.OrdinalIgnoreCase) >= 0;
 
         private Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules)
         {
