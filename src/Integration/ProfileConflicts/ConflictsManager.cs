@@ -48,8 +48,8 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
 
-        public ConflictsManager(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory, ILogger logger)
-            : this(serviceProvider, logger, projectBinderFactory, new FileSystem())
+        public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
+            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider), new FileSystem())
         {
         }
 
@@ -150,16 +150,16 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     continue;
                 }
 
-                if (projectBinderFactory.Get(project) == null)
+                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
                 {
-                    continue;
-                }
+                    foreach (var declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
+                    {
+                        string projectRuleSet =
+                            CalculateProjectRuleSetFullPath(ruleSetInfoProvider, project, declaration);
 
-                foreach (RuleSetDeclaration declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
-                {
-                    string projectRuleSet = CalculateProjectRuleSetFullPath(ruleSetInfoProvider, project, declaration);
-
-                    this.AddOrUpdateAggregatedRuleSetInformation(projectRuleSetAggregation, baselineRuleSet, declaration, projectRuleSet);
+                        this.AddOrUpdateAggregatedRuleSetInformation(projectRuleSetAggregation, baselineRuleSet,
+                            declaration, projectRuleSet);
+                    }
                 }
             }
 
