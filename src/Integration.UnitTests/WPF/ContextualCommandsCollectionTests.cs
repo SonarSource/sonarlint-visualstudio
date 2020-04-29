@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                   }
               };
 
-            // Case 1: AddToFolder command
+            // Case 1: Add command
             var cmd1 = new ContextualCommandViewModel(this, new RelayCommand(() => { }));
             var cmd2 = new ContextualCommandViewModel(this, new RelayCommand(() => { }));
             // Act

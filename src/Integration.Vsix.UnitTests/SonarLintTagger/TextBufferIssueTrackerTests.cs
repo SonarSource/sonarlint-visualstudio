@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 1. No tagger -> analysis not requested
             CheckAnalysisWasNotRequested();
 
-            // 2. AddToFolder a tagger -> analysis requested
+            // 2. Add a tagger -> analysis requested
             using (var tagger = new IssueTagger(testSubject))
             {
                 mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<ProjectItem>(),
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             CheckAnalysisWasNotRequested();
 
-            // 2. AddToFolder a tagger and raise -> analysis requested
+            // 2. Add a tagger and raise -> analysis requested
             var tagger = new IssueTagger(testSubject);
             mockAnalyzerController.Invocations.Clear();
 
@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var issues = new[] { new Issue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
 
-            // AddToFolder a couple of error list listeners
+            // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
             var errorListSinkMock2 = RegisterNewErrorListSink();
 
@@ -224,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup up the filter to return whatever was supplied
             SetupIssuesFilter(out var _);
 
-            // AddToFolder a couple of error list listeners
+            // Add a couple of error list listeners
             var errorListSinkMock1 = RegisterNewErrorListSink();
             var errorListSinkMock2 = RegisterNewErrorListSink();
 

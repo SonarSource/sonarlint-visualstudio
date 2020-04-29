@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration
             string solutionRuleSetRoot = PathHelper.ForceDirectoryEnding(Path.GetDirectoryName(solutionRuleSetPath));
             RuleSetUpdater.RemoveAllIncludesUnderRoot(ruleSet, solutionRuleSetRoot);
 
-            // AddToFolder correct inclusion
+            // Add correct inclusion
             string expectedIncludePath = PathHelper.CalculateRelativePath(projectRuleSetPath, solutionRuleSetPath);
             ruleSet.RuleSetIncludes.Add(new RuleSetInclude(expectedIncludePath, RuleAction.Default));
         }

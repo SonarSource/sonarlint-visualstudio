@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISolutionBindingPathProvider> legacyPathProvider;
         private Mock<ISolutionBindingPathProvider> newPathProvider;
         private Mock<ISolutionBindingSerializer> solutionBindingSerializer;
-        private Mock<ILegacySonarQubeFolderModifier> legacyPostSaveOperation;
+        private Mock<ILegacySonarQubeFolderModifier> legacySonarQubeFolderModifier;
         private ConfigurationProvider testSubject;
 
         [TestInitialize]
@@ -42,12 +42,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             legacyPathProvider = new Mock<ISolutionBindingPathProvider>();
             newPathProvider = new Mock<ISolutionBindingPathProvider>();
             solutionBindingSerializer = new Mock<ISolutionBindingSerializer>();
-            legacyPostSaveOperation = new Mock<ILegacySonarQubeFolderModifier>();
+            legacySonarQubeFolderModifier = new Mock<ILegacySonarQubeFolderModifier>();
 
             testSubject = new ConfigurationProvider(legacyPathProvider.Object,
                 newPathProvider.Object,
                 solutionBindingSerializer.Object,
-                legacyPostSaveOperation.Object);
+                legacySonarQubeFolderModifier.Object);
         }
 
         [TestMethod]
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             legacyPathProvider.Setup(x => x.Get()).Returns("old.txt");
 
             solutionBindingSerializer
-                .Setup(x => x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.AddToFolder))
+                .Setup(x => x.Write("old.txt", config.Project, legacySonarQubeFolderModifier.Object.AddToFolder))
                 .Returns(true);
 
             // Act
@@ -245,7 +245,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().BeTrue();
 
             solutionBindingSerializer.Verify(x =>
-                    x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.AddToFolder),
+                    x.Write("old.txt", config.Project, legacySonarQubeFolderModifier.Object.AddToFolder),
                 Times.Once);
         }
 
