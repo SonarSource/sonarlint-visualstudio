@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, solutionBindingSerializer.Object, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyPostSaveOperation");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacySonarQubeFolderModifier");
         }
 
         [TestMethod]
