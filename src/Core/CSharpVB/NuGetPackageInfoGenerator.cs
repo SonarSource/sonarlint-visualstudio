@@ -20,18 +20,17 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
     public static class NuGetPackageInfoGenerator
     {
-        public static IEnumerable<NuGetPackageInfoResponse> GetNuGetPackageInfos(IEnumerable<SonarQubeRule> activeRules,
+        public static IEnumerable<NuGetPackageInfo> GetNuGetPackageInfos(IEnumerable<SonarQubeRule> activeRules,
             IDictionary<string, string> sonarProperties)
         {
             var propertyPrefixes = GetPluginPropertyPrefixes(activeRules);
-            var packages = new List<NuGetPackageInfoResponse>();
+            var packages = new List<NuGetPackageInfo>();
 
             foreach (var partialRepoKey in propertyPrefixes)
             {
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                     continue;
                 }
 
-                packages.Add(new NuGetPackageInfoResponse { Id = analyzerId, Version = pluginVersion });
+                packages.Add(new NuGetPackageInfo(analyzerId, pluginVersion));
             }
 
             return packages;

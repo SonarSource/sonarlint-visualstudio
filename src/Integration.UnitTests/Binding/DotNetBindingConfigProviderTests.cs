@@ -29,13 +29,13 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
+using NuGetPackageInfo = SonarLint.VisualStudio.Core.CSharpVB.NuGetPackageInfo;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -60,10 +60,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string ProjectName = "SQProjectName";
 
             // Record all of the calls to NuGetBindingOperation.ProcessExport
-            var actualProfiles = new List<Tuple<Language, RoslynExportProfileResponse>>();
+            var actualProfiles = new List<Tuple<Language, IEnumerable<NuGetPackageInfo>>>();
             Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
-            nuGetOpMock.Setup(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<RoslynExportProfileResponse>()))
-                .Callback<Language, RoslynExportProfileResponse>((l, r) => actualProfiles.Add(new Tuple<Language, RoslynExportProfileResponse>(l, r)))
+            nuGetOpMock.Setup(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>> ()))
+                .Callback<Language, IEnumerable<NuGetPackageInfo>>((l, r) => actualProfiles.Add(new Tuple<Language, IEnumerable<NuGetPackageInfo>>(l, r)))
                 .Returns(true);
 
             var testSubject = this.CreateTestSubject(ProjectName, "http://connected/", nuGetOpMock.Object);
@@ -269,11 +269,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static void VerifyNuGetPackgesDownloaded(IEnumerable<PackageName> expectedPackages,
             Language language,
-            IList<Tuple<Language, RoslynExportProfileResponse>> actualProfiles)
+            IList<Tuple<Language, IEnumerable<NuGetPackageInfo>>> actualPackageInfos)
         {
-            actualProfiles.All(p => p.Item1 == language).Should().BeTrue();
+            actualPackageInfos.All(p => p.Item1 == language).Should().BeTrue();
 
-            var actualPackages = actualProfiles.SelectMany(p => p.Item2?.Deployment?.NuGetPackages.Select(
+            var actualPackages = actualPackageInfos.SelectMany(p => p.Item2.Select(
                 ngp => new PackageName(ngp.Id, new SemanticVersion(ngp.Version))));
 
             actualPackages.Should().BeEquivalentTo(expectedPackages);
