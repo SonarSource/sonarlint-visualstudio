@@ -1,0 +1,7 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="LocalCustomRules" Description="Local customised ruleset to enable additional rules" ToolsVersion="16.0">
+  <Include Path=".\sonarlint-visualstudioCSharp.ruleset" Action="Default" />
+  <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
+    <Rule Id="S1451" Action="Warning" />
+  </Rules>
+</RuleSet>
