@@ -5,7 +5,7 @@
        Applies to every project in the repo, including those in the sonarqube-webclient submodule
        and the utility projects under "build" directory. -->
   <PropertyGroup>
-    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory).sonarlint\sonarlint-visualstudioCsharp.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory).sonarlint\LocalCustomisedCsharpRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup Label="Common items">
