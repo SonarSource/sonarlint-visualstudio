@@ -42,5 +42,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             rule.TryGetRoslynPluginPropertyPrefix().Should().Be(expectedPrefix);
         }
+
+        [TestMethod]
+        [DataRow("roslyn.sonaranalyzer.security.cs", true)]
+        [DataRow("roslyn.sonaranalyzer.security.vb", true)]
+        [DataRow("sonaranalyzer.security", true)]
+        [DataRow("SONARANALYZER.SECURITY", true)]
+        [DataRow("roslyn.wintellect", false)]
+        [DataRow("sonaranalyzer-cs", false)]
+        [DataRow("sonaranalyzer-vbnet", false)]
+        public void IsExcludedRuleRepository(string partialRepoKey, bool expected)
+        {
+            RoslynPluginRuleKeyExtensions.IsExcludedRuleRepository(partialRepoKey).Should().Be(expected);
+        }
     }
 }
