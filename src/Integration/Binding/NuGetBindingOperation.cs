@@ -26,8 +26,8 @@ using System.Linq;
 using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Messages;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -53,10 +53,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.logger = logger;
         }
 
-        internal /*for testing*/ Dictionary<Language, List<NuGetPackageInfoResponse>> NuGetPackages
+        internal /*for testing*/ Dictionary<Language, List<NuGetPackageInfo>> NuGetPackages
         {
             get;
-        } = new Dictionary<Language, List<NuGetPackageInfoResponse>>();
+        } = new Dictionary<Language, List<NuGetPackageInfo>>();
 
 
         public void PrepareOnUIThread()
@@ -90,12 +90,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     var projectLanguage = ProjectToLanguageMapper.GetLanguageForProject(bindingProject);
 
-                    List<NuGetPackageInfoResponse> nugetPackages;
+                    List<NuGetPackageInfo> nugetPackages;
                     if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))
                     {
                         var message = string.Format(Strings.BindingProjectLanguageNotMatchingAnyQualityProfileLanguage, bindingProject.Name);
                         this.logger.WriteLine(Strings.SubTextPaddingFormat, message);
-                        nugetPackages = new List<NuGetPackageInfoResponse>();
+                        nugetPackages = new List<NuGetPackageInfo>();
                     }
 
                     return nugetPackages.Select(nugetPackage => new { Project = bindingProject, NugetPackage = nugetPackage });
@@ -132,16 +132,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return overallSuccess;
         }
 
-        public bool ProcessExport(Language language, RoslynExportProfileResponse exportProfileResponse)
+        public bool ProcessExport(Language language, IEnumerable<NuGetPackageInfo> nugetPackages)
         {
-            if (exportProfileResponse.Deployment.NuGetPackages.Count == 0)
+            if (!nugetPackages.Any())
             {
                 this.logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.NoNuGetPackageForQualityProfile, language.Name)));
                 return false;
             }
 
-            this.NuGetPackages.Add(language, exportProfileResponse.Deployment.NuGetPackages);
+            this.NuGetPackages.Add(language, nugetPackages.ToList());
             return true;
         }
     }

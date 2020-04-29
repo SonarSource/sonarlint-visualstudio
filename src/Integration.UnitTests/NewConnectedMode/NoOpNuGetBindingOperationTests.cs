@@ -21,6 +21,7 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -45,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act & Assert
             testSubject.ProcessExport(null, null).Should().BeTrue();
-            testSubject.ProcessExport(Language.CSharp, new SonarQube.Client.Messages.RoslynExportProfileResponse()).Should().BeTrue();
+            testSubject.ProcessExport(Language.CSharp, Array.Empty<NuGetPackageInfo>()).Should().BeTrue();
         }
     }
 }

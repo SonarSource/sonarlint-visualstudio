@@ -96,8 +96,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return null;
             }
 
+            // duncanp - WIP - next line will be removed when the RoslynProfileExporter is removed
+            var nugetPackages = roslynProfileExporter.Deployment.NuGetPackages.Select(x => new Core.CSharpVB.NuGetPackageInfo(x.Id, x.Version));
+
             // Add the NuGet reference, if appropriate (only in legacy connected mode, and only C#/VB)
-            if (!this.nuGetBindingOperation.ProcessExport(language, roslynProfileExporter))
+            if (!this.nuGetBindingOperation.ProcessExport(language, nugetPackages))
             {
                 return null;
             }
