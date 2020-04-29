@@ -19,30 +19,32 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using EnvDTE;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 {
-    /// <summary>
-    /// Encapsulate the workflow steps to install NuGet packages during binding
-    /// </summary>
-    internal interface INuGetBindingOperation
+    [TestClass]
+    public class NuGetPackageInfoTests
     {
-        void PrepareOnUIThread();
+        [TestMethod]
+        public void Ctor_InvalidArguments_Throws()
+        {
+            Action act = () => new NuGetPackageInfo(null, "123");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("id");
 
-        /// <summary>
-        /// Returns true if the operation completed succcessfully, otherwise false
-        /// </summary>
-        bool InstallPackages(ISet<Project> projectsToBind, IProgress<FixedStepsProgress> progress, CancellationToken token);
+            act = () => new NuGetPackageInfo("my.package", null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("version");
+        }
 
-        /// <summary>
-        /// Extracts any required information from the supplied Roslyn export profile
-        /// </summary>
-        /// <returns>True if processing was successful, otherwise false</returns>
-        bool ProcessExport(Language language, IEnumerable<NuGetPackageInfo> nugetPackages);
+        [TestMethod]
+        public void Ctor_ValidArguments_PropertiesSet()
+        {
+            var testSubject = new NuGetPackageInfo("my id", "my version");
+
+            testSubject.Id.Should().Be("my id");
+            testSubject.Version.Should().Be("my version");
+        }
     }
 }
