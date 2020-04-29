@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return null;
             }
 
-            // Add the NuGet reference, if appropriate (only in legacy connected mode, and only C#/VB)
+            // AddToFolder the NuGet reference, if appropriate (only in legacy connected mode, and only C#/VB)
             if (!this.nuGetBindingOperation.ProcessExport(language, roslynProfileExporter))
             {
                 return null;

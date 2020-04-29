@@ -124,11 +124,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().Be(expectedNumberOfTimes, "RuleSet {0} was loaded unexpected number of times", ruleSet);
         }
 
-        public void AssertAllRegisteredRuleSetsLoadedExactlyOnce()
-        {
-            this.RegisteredRuleSets.ToList().ForEach(rs => this.AssertRuleSetLoaded(rs, 1));
-        }
-
         #endregion Test Helpers
     }
 }

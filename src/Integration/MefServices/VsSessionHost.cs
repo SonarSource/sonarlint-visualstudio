@@ -289,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration
                 var solution = this.GetService<SVsSolution, IVsSolution>();
                 var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
                 var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
-                var legacyPostSaveOperation = new LegacySonarQubeFolderModifier(this);
+                var folderModifier = new LegacySonarQubeFolderModifier(this);
 
                 var store = this.GetService<ICredentialStoreService>();
                 var credentialsLoader = new SolutionBindingCredentialsLoader(store);
@@ -299,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
 
-                return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer, legacyPostSaveOperation);
+                return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer, folderModifier);
             }));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
@@ -307,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration
 
             this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
-            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, new ProjectBinderFactory(), Logger))));
+            this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>
             {
                 var testProjectIndicators = new List<ITestProjectIndicator>
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 return new ProjectSystemFilter(this, testProjectIndicator);
             }));
-            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new UnboundProjectFinder(this, new ProjectBinderFactory()))));
+            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new UnboundProjectFinder(this))));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));

@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             notifications.GetNotificationData().LastNotificationDate.Should().Be(olderEventDate);
             sonarQubeServiceMock.Verify(x => x.GetNotificationEventsAsync("anykey", It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
 
-            // 3. Add newer events and simulate the timer firing
+            // 3. AddToFolder newer events and simulate the timer firing
             serverNotifications.Add(event2);
             serverNotifications.Add(event3);
 

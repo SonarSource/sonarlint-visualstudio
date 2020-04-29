@@ -63,10 +63,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectKey,
             string projectName,
             SonarLintMode bindingMode,
-            IProjectBinderFactory projectBinderFactory,
-            ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, projectBinderFactory, legacySonarQubeFolderModifier, logger, new FileSystem())
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider), new LegacySonarQubeFolderModifier(serviceProvider), logger, new FileSystem())
         {
         }
 
@@ -181,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var project in projects)
             {
-                if (projectBinderFactory.Get(project) != null)
+                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();
@@ -295,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             foreach (ConfigFileInformation info in bindingConfigInformationMap.Values)
             {
                 Debug.Assert(fileSystem.File.Exists(info.NewFilePath), "File not written " + info.NewFilePath);
-                legacySonarQubeFolderModifier.Add(info.NewFilePath);
+                legacySonarQubeFolderModifier.AddToFolder(info.NewFilePath);
             }
         }
 

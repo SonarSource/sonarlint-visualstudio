@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.State
                 }
                 else if (matchingServers.Count == 0)
                 {
-                    // Add new server
+                    // AddToFolder new server
                     serverViewModel = new ServerViewModel(connection);
                     this.SetServerVMCommands(serverViewModel);
                     this.ManagedState.ConnectedServers.Add(serverViewModel);

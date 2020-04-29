@@ -20,6 +20,7 @@
 
 using System;
 using System.IO.Abstractions;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -30,6 +31,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class LegacySonarQubeFolderModifierTests
     {
+        private const string FilePath = "c:\\test";
+
+        private Mock<IProjectSystemHelper> projectSystemHelperMock;
+        private Mock<IServiceProvider> serviceProviderMock;
+        private LegacySonarQubeFolderModifier testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            projectSystemHelperMock = new Mock<IProjectSystemHelper>();
+            serviceProviderMock = new Mock<IServiceProvider>();
+
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(IProjectSystemHelper)))
+                .Returns(projectSystemHelperMock.Object);
+
+            var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.File.Exists(FilePath)).Returns(true);
+
+            testSubject = new LegacySonarQubeFolderModifier(serviceProviderMock.Object, fileSystemMock.Object);
+        }
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
@@ -47,27 +69,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Add_AddsFileToSolutionFolder()
+        public void Add_FolderDoesNotExist_ItemNotAdded()
         {
-            var projectMock = Mock.Of<EnvDTE.Project>();
-            var projectSystemHelperMock = new Mock<IProjectSystemHelper>();
-            var serviceProviderMock = new Mock<IServiceProvider>();
+            projectSystemHelperMock
+                .Setup(x => x.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true))
+                .Returns((Project) null);
 
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IProjectSystemHelper)))
-                .Returns(projectSystemHelperMock.Object);
+            using (new AssertIgnoreScope())
+            {
+                testSubject.AddToFolder(FilePath);
+            }
+
+            projectSystemHelperMock
+                .Verify(x => x.AddFileToProject(It.IsAny<Project>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()),
+                    Times.Never);
+        }
+
+        [TestMethod]
+        public void Add_FolderExists_ItemAdded()
+        {
+            var projectMock = Mock.Of<Project>();
 
             projectSystemHelperMock
                 .Setup(x => x.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true))
                 .Returns(projectMock);
 
-            var fileSystemMock = new Mock<IFileSystem>();
-            fileSystemMock.Setup(x => x.File.Exists("c:\\test")).Returns(true);
+            testSubject.AddToFolder(FilePath);
 
-            var testSubject = new LegacySonarQubeFolderModifier(serviceProviderMock.Object, fileSystemMock.Object);
-            testSubject.Add("c:\\test");
-
-            projectSystemHelperMock.Verify(x=> x.AddFileToProject(projectMock, "c:\\test"), Times.Once);
+            projectSystemHelperMock.Verify(x=> x.AddFileToProject(projectMock, FilePath), Times.Once);
         }
     }
 }

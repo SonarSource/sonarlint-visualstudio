@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public void Add(string filePath)
+        public void AddToFolder(string filePath)
         {
             Debug.Assert(Path.IsPathRooted(filePath) && fileSystem.File.Exists(filePath), "Expecting a rooted path to existing file");
 

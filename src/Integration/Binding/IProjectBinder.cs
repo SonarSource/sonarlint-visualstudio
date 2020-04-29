@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using EnvDTE;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
+
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     /// <summary>
@@ -25,5 +28,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal interface IProjectBinder
     {
+        bool IsBound(BindingConfiguration binding, Project project);
     }
 }

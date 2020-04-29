@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ISolutionBindingSerializer solutionBindingSerializer,
-            ILegacySonarQubeFolderModifier legacyPostSaveOperation)
+            ILegacySonarQubeFolderModifier legacySonarQubeFolderModifier)
         {
             this.legacyPathProvider = legacyPathProvider ??
                                       throw new ArgumentNullException(nameof(legacyPathProvider));
@@ -46,8 +46,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.solutionBindingSerializer = solutionBindingSerializer ??
                                              throw new ArgumentNullException(nameof(solutionBindingSerializer));
 
-            this.legacySonarQubeFolderModifier = legacyPostSaveOperation ??
-                                           throw new ArgumentNullException(nameof(legacyPostSaveOperation));
+            this.legacySonarQubeFolderModifier = legacySonarQubeFolderModifier ??
+                                           throw new ArgumentNullException(nameof(legacySonarQubeFolderModifier));
         }
 
         public BindingConfiguration GetConfiguration()
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 case SonarLintMode.LegacyConnected:
                 {
                     writeSettings.ConfigPath = legacyPathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = legacySonarQubeFolderModifier.Add;
+                    writeSettings.OnSuccessfulFileWrite = legacySonarQubeFolderModifier.AddToFolder;
                     break;
                 }
                 case SonarLintMode.Connected:

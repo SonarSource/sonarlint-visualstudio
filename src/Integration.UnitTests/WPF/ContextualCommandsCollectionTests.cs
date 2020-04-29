@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
                   }
               };
 
-            // Case 1: Add command
+            // Case 1: AddToFolder command
             var cmd1 = new ContextualCommandViewModel(this, new RelayCommand(() => { }));
             var cmd2 = new ContextualCommandViewModel(this, new RelayCommand(() => { }));
             // Act

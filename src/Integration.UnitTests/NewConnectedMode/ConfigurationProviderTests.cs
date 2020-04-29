@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             legacyPathProvider.Setup(x => x.Get()).Returns("old.txt");
 
             solutionBindingSerializer
-                .Setup(x => x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.Add))
+                .Setup(x => x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.AddToFolder))
                 .Returns(true);
 
             // Act
@@ -245,7 +245,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().BeTrue();
 
             solutionBindingSerializer.Verify(x =>
-                    x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.Add),
+                    x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.AddToFolder),
                 Times.Once);
         }
 

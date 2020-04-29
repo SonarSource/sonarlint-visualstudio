@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public static Export CreateExport<T>(object exportInstance, IDictionary<string, object> metadata)
         {
-            // Add the required export ID so that MEF knows which contract it exports.
+            // AddToFolder the required export ID so that MEF knows which contract it exports.
             metadata.Add("ExportTypeIdentity", AttributedModelServices.GetTypeIdentity(typeof(T)));
 
             string contractName = AttributedModelServices.GetContractName(typeof(T));
