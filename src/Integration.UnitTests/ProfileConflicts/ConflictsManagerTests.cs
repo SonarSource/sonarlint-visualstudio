@@ -87,10 +87,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, new ProjectBinderFactory(serviceProvider), fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, new ProjectBinderFactory(serviceProvider), fileSystem));
+            var projectBinderFactory = new ProjectBinderFactory(serviceProvider);
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, projectBinderFactory, fileSystem));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, projectBinderFactory, fileSystem));
             Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,null, fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,new ProjectBinderFactory(serviceProvider), null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,projectBinderFactory, null));
 
             testSubject.Should().NotBeNull("Avoid code analysis warning when testSubject is unused");
         }

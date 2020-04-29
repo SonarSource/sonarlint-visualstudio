@@ -33,7 +33,12 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IServiceProvider serviceProvider;
         private readonly IProjectBinderFactory projectBinderFactory;
 
-        public UnboundProjectFinder(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory)
+        public UnboundProjectFinder(IServiceProvider serviceProvider)
+            : this(serviceProvider, new ProjectBinderFactory(serviceProvider))
+        {
+        }
+
+        internal UnboundProjectFinder(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
@@ -47,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration
             // Only applicable in connected mode (legacy or new)
             var bindingConfig = configProvider.GetConfiguration();
 
-            return !bindingConfig.Mode.IsInAConnectedMode() ? Enumerable.Empty<Project>() : GetUnboundProjects(bindingConfig);
+            return bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Enumerable.Empty<Project>();
         }
 
         private IEnumerable<Project> GetUnboundProjects(BindingConfiguration binding)

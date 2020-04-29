@@ -62,9 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectKey,
             string projectName,
             SonarLintMode bindingMode,
-            ILogger logger,
-            IProjectBinderFactory projectBinderFactory)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, projectBinderFactory,new FileSystem())
+            ILogger logger)
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, new ProjectBinderFactory(serviceProvider), new FileSystem())
         {
         }
 
@@ -177,15 +176,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (var project in projects)
             {
-                if (projectBinderFactory.Get(project) is CFamilyProjectBinder)
-                {
-                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
-                }
-                else
+                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
                 {
                     var binder = new ProjectBindingOperation(serviceProvider, project, this);
                     binder.Initialize();
                     this.childBinder.Add(binder);
+                }
+                else
+                {
+                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
                 }
             }
         }
