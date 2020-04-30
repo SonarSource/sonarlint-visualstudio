@@ -19,29 +19,12 @@
  */
 
 using System;
+using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    public enum SonarLintMode
+    public interface ICredentials
     {
-        Standalone,
-        LegacyConnected,
-        Connected
-    }
-
-    internal static class SonarLintModeExtensions
-    {
-        public static void ThrowIfNotConnected(this SonarLintMode bindingMode)
-        {
-            if (!bindingMode.IsInAConnectedMode())
-            {
-                throw new ArgumentOutOfRangeException(nameof(bindingMode));
-            }
-        }
-
-        public static bool IsInAConnectedMode(this SonarLintMode bindingMode)
-        {
-            return (bindingMode == SonarLintMode.Connected || bindingMode == SonarLintMode.LegacyConnected);
-        }
+        ConnectionInformation CreateConnectionInformation(Uri serverUri);
     }
 }

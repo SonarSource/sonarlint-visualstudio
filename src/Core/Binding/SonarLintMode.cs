@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -19,12 +19,29 @@
  */
 
 using System;
-using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal interface ICredentials
+    public enum SonarLintMode
     {
-        ConnectionInformation CreateConnectionInformation(Uri serverUri);
+        Standalone,
+        LegacyConnected,
+        Connected
+    }
+
+    public static class SonarLintModeExtensions
+    {
+        public static void ThrowIfNotConnected(this SonarLintMode bindingMode)
+        {
+            if (!bindingMode.IsInAConnectedMode())
+            {
+                throw new ArgumentOutOfRangeException(nameof(bindingMode));
+            }
+        }
+
+        public static bool IsInAConnectedMode(this SonarLintMode bindingMode)
+        {
+            return (bindingMode == SonarLintMode.Connected || bindingMode == SonarLintMode.LegacyConnected);
+        }
     }
 }

@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
         }
 
-        internal BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
+        public BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
             ICredentials credentials = null, SonarQubeOrganization organization = null)
             : this()
         {
@@ -61,6 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
-        internal ICredentials Credentials { get; set; }
+        public ICredentials Credentials { get; set; }
     }
 }
