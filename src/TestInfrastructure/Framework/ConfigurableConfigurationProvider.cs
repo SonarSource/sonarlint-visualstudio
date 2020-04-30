@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Configurable service provider used for testing
     /// </summary>
-    internal class ConfigurableConfigurationProvider : IConfigurationProvider
+    internal class ConfigurableConfigurationProvider : IConfigurationProvider, IConfigurationPersister
     {
         public BindingConfiguration GetConfiguration()
         {
@@ -39,11 +39,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn);
         }
 
-        public bool WriteConfiguration(BindingConfiguration configuration)
+        public bool Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
         {
-            configuration.Should().NotBeNull();
-            this.SavedConfiguration = configuration;
-            return this.WriteResultToReturn;
+            project.Should().NotBeNull();
+            SavedProject = project;
+            SavedMode = bindingMode;
+            return WriteResultToReturn;
         }
 
         #region Test helpers
@@ -53,9 +54,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public Action GetConfigurationAction { get; set; }
 
         public bool WriteResultToReturn { get; set; }
-        public BindingConfiguration SavedConfiguration { get; set; }
+        public BoundSonarQubeProject SavedProject { get; set; }
+        public SonarLintMode SavedMode { get; set; }
 
         #endregion Test helpers
-
     }
 }
