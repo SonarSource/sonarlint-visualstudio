@@ -24,9 +24,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core.Helpers
 {
     public static class PathHelper
     {

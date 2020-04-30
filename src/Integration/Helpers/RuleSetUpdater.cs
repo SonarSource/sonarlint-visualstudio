@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
 {
