@@ -19,9 +19,8 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Integration.Persistence;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
     {

@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public enum SonarLintMode
     {

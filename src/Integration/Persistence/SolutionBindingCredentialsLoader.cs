@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.Core;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Persistence

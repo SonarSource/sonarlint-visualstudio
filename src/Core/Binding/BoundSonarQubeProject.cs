@@ -22,9 +22,8 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public class BoundSonarQubeProject
     {

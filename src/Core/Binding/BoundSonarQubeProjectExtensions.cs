@@ -21,7 +21,7 @@
 using System;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public static class BoundSonarQubeProjectExtensions
     {

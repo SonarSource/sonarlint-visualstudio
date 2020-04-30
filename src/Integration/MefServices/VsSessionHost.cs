@@ -28,6 +28,7 @@ using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;

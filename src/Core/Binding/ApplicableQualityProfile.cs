@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public class ApplicableQualityProfile
     {
