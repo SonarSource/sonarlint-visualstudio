@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -242,8 +243,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = new ProjectMock("project.proj");
             project.SetCSProjectKind();
             projectSystem.FilteredProjects = new[] { project };
-            this.configProvider.ProjectToReturn.Profiles = new Dictionary<Language, Persistence.ApplicableQualityProfile>();
-            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new Persistence.ApplicableQualityProfile
+            this.configProvider.ProjectToReturn.Profiles = new Dictionary<Language, ApplicableQualityProfile>();
+            this.configProvider.ProjectToReturn.Profiles[Language.CSharp] = new ApplicableQualityProfile
             {
                 ProfileKey = "Profile",
                 ProfileTimestamp = DateTime.Now
@@ -349,7 +350,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyInfoBar(infoBar);
 
             // Change binding
-            this.configProvider.ProjectToReturn = new Persistence.BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey", "projectName");
+            this.configProvider.ProjectToReturn = new BoundSonarQubeProject(new Uri("http://server"), "SomeOtherProjectKey", "projectName");
 
             // Act
             infoBar.SimulateButtonClickEvent();
@@ -893,7 +894,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private void SetBindingMode(SonarLintMode mode)
         {
             this.configProvider.ModeToReturn = mode;
-            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null : new Persistence.BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey", "projectName");
+            this.configProvider.ProjectToReturn = mode == SonarLintMode.Standalone ? null : new BoundSonarQubeProject(new Uri("http://Server"), "boundProjectKey", "projectName");
         }
 
         /// <summary>

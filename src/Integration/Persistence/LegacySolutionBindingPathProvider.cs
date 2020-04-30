@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public string Get()
         {
             var solutionRuleSetsInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            var rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder(NewConnectedMode.SonarLintMode.LegacyConnected);
+            var rootFolder = solutionRuleSetsInfoProvider.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected);
 
             // When the solution is closed return null
             return rootFolder == null ? null : Path.Combine(rootFolder, LegacyBindingConfigurationFileName);

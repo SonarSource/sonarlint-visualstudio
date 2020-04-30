@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private void OnUserSettingsChanged(object sender, EventArgs e)
         {
             // NB assumes exception handling is done by the AnalysisRequester
-            if (activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Standalone)
+            if (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone)
             {
                 logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
                 analysisRequester.RequestAnalysis();

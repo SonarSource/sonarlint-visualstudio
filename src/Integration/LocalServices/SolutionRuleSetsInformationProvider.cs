@@ -25,7 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using Language = SonarLint.VisualStudio.Core.Language;
 

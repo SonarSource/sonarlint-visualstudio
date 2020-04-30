@@ -20,12 +20,28 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    public class ApplicableQualityProfile
+    public enum SonarLintMode
     {
-        public string ProfileKey { get; set; }
+        Standalone,
+        LegacyConnected,
+        Connected
+    }
 
-        public DateTime? ProfileTimestamp { get; set; }
+    public static class SonarLintModeExtensions
+    {
+        public static void ThrowIfNotConnected(this SonarLintMode bindingMode)
+        {
+            if (!bindingMode.IsInAConnectedMode())
+            {
+                throw new ArgumentOutOfRangeException(nameof(bindingMode));
+            }
+        }
+
+        public static bool IsInAConnectedMode(this SonarLintMode bindingMode)
+        {
+            return (bindingMode == SonarLintMode.Connected || bindingMode == SonarLintMode.LegacyConnected);
+        }
     }
 }
