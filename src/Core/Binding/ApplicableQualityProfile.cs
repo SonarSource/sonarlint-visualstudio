@@ -19,25 +19,13 @@
  */
 
 using System;
-using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    internal static class BoundSonarQubeProjectExtensions
+    public class ApplicableQualityProfile
     {
-        public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
-        {
-            if (binding == null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
+        public string ProfileKey { get; set; }
 
-            var connection = binding.Credentials == null ?
-               new ConnectionInformation(binding.ServerUri)
-               : binding.Credentials.CreateConnectionInformation(binding.ServerUri);
-
-            connection.Organization = binding.Organization;
-            return connection;
-        }
+        public DateTime? ProfileTimestamp { get; set; }
     }
 }

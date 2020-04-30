@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 

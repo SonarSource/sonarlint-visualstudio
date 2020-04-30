@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -21,10 +21,23 @@
 using System;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    internal interface ICredentials
+    public static class BoundSonarQubeProjectExtensions
     {
-        ConnectionInformation CreateConnectionInformation(Uri serverUri);
+        public static ConnectionInformation CreateConnectionInformation(this BoundSonarQubeProject binding)
+        {
+            if (binding == null)
+            {
+                throw new ArgumentNullException(nameof(binding));
+            }
+
+            var connection = binding.Credentials == null ?
+               new ConnectionInformation(binding.ServerUri)
+               : binding.Credentials.CreateConnectionInformation(binding.ServerUri);
+
+            connection.Organization = binding.Organization;
+            return connection;
+        }
     }
 }

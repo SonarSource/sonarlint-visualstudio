@@ -25,9 +25,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.CFamily;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -217,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             public CFamilyRuleConfigProvider CreateTestSubject()
             {
                 // Data: set up the binding configuration
-                var projectToReturn = new Persistence.BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
+                var projectToReturn = new BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
                     "sqProjectKey", "sqProjectName");
                 activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode);
 

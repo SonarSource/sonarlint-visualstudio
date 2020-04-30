@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -20,6 +20,7 @@
 
 using System;
 using System.Security;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Persistence

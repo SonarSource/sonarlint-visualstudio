@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {

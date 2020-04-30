@@ -29,8 +29,8 @@ using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Notifications;
 using SonarQube.Client;
 
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(ThreadHelper.CheckAccess());
 
-            if (bindingConfiguration.Mode != NewConnectedMode.SonarLintMode.Standalone)
+            if (bindingConfiguration.Mode != SonarLintMode.Standalone)
             {
                 logger.WriteLine(Resources.Strings.Notifications_Connected);
                 VisualStudioStatusBarHelper.AddStatusBarIcon(notificationIcon);
