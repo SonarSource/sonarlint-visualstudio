@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.CurrentBinding;
         }
 
-        bool ISolutionBindingSerializer.Write(string configPath, BoundSonarQubeProject binding, Predicate<string> onSaveOperation)
+        bool ISolutionBindingSerializer.Write(string configPath, BoundSonarQubeProject binding, Action<string> onSaveOperation)
         {
             binding.Should().NotBeNull("Required argument");
 

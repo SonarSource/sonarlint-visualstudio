@@ -33,6 +33,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -95,6 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
             var logger = new TestLogger();
             var projectBinderFactory = Mock.Of<IProjectBinderFactory>();
+            var folderModifier = Mock.Of<ILegacyConfigFolderItemAdder>();
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
@@ -102,8 +104,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger, null, new MockFileSystem()));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger, projectBinderFactory, null));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, null, folderModifier, logger, new MockFileSystem()));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, null, logger, new MockFileSystem()));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, folderModifier, logger,null));
 
             var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
@@ -430,13 +433,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             SonarLintMode bindingMode = SonarLintMode.LegacyConnected,
             ILogger logger = null)
         {
-            return new SolutionBindingOperation(this.serviceProvider,
+            return new SolutionBindingOperation(serviceProvider,
                 connection ?? new ConnectionInformation(new Uri("http://host")),
                 projectKey,
                 projectKey,
                 bindingMode,
-                logger ?? new TestLogger(),
                 new ProjectBinderFactory(serviceProvider, fileSystem),
+                new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
+                logger ?? new TestLogger(),
                 fileSystem);
         }
 
