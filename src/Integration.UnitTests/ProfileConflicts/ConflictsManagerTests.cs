@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
@@ -63,6 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfoProvider);
 
+            this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), Mock.Of<IRuleSetSerializer>());
+
             this.fileSystem = new MockFileSystem();
 
             this.configProvider = new ConfigurableConfigurationProvider();
@@ -78,13 +81,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
 
-            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem);
+            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(serviceProvider, fileSystem), fileSystem);
         }
 
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, fileSystem));
+            var projectBinderFactory = new ProjectBinderFactory(serviceProvider);
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, projectBinderFactory, fileSystem));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, projectBinderFactory, fileSystem));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,null, fileSystem));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,projectBinderFactory, null));
 
             testSubject.Should().NotBeNull("Avoid code analysis warning when testSubject is unused");
         }

@@ -326,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration
             var solution = this.GetService<SVsSolution, IVsSolution>();
             var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
             var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
-            var legacyPostSaveOperation = new LegacySolutionBindingPostSaveOperation(this);
+            var legacyConfigFolderItemAdder = new LegacyConfigFolderItemAdder(this);
 
             var store = this.GetService<ICredentialStoreService>();
             var credentialsLoader = new SolutionBindingCredentialsLoader(store);
@@ -337,7 +337,7 @@ namespace SonarLint.VisualStudio.Integration
             var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
 
             return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer,
-                legacyPostSaveOperation);
+                legacyConfigFolderItemAdder);
         }
 
         public object GetService(Type serviceType)

@@ -18,23 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Core.Binding;
-
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal interface ISolutionBindingSerializer
+    internal interface ILegacyConfigFolderItemAdder
     {
-        /// <summary>
-        /// Retrieves solution binding information
-        /// </summary>
-        /// <returns>Can be null if not bound</returns>
-        BoundSonarQubeProject Read(string configFilePath);
-
-        /// <summary>
-        /// Writes the binding information
-        /// </summary>
-        /// <returns>Has file been saved</returns>
-        bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite);
+        void AddToFolder(string filePath);
     }
 }

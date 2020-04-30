@@ -18,10 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+using EnvDTE;
+using SonarLint.VisualStudio.Core.Binding;
+
+namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal interface ISolutionBindingPostSaveOperation
+    /// <summary>
+    /// Performs binding operations on a given project
+    /// </summary>
+    internal interface IProjectBinder
     {
-        bool OnSuccessfulSave(string filePath);
+        bool IsBound(BindingConfiguration binding, Project project);
     }
 }

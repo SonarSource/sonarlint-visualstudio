@@ -21,29 +21,29 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    internal class LegacySolutionBindingPostSaveOperation : ISolutionBindingPostSaveOperation
+    internal class LegacyConfigFolderItemAdder : ILegacyConfigFolderItemAdder
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly IFileSystem fileSystem;
 
-        public LegacySolutionBindingPostSaveOperation(IServiceProvider serviceProvider)
+        public LegacyConfigFolderItemAdder(IServiceProvider serviceProvider)
+            : this(serviceProvider, new FileSystem())
+        {
+        }
+
+        internal LegacyConfigFolderItemAdder(IServiceProvider serviceProvider, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public bool OnSuccessfulSave(string filePath)
+        public void AddToFolder(string filePath)
         {
-            AddSolutionItemFile(filePath);
-            RemoveSolutionItemFile(filePath);
-
-            return true;
-        }
-
-        private void AddSolutionItemFile(string configFile)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
+            Debug.Assert(Path.IsPathRooted(filePath) && fileSystem.File.Exists(filePath), "Expecting a rooted path to existing file");
 
             var projectSystemHelper = serviceProvider.GetService<IProjectSystemHelper>();
             projectSystemHelper.AssertLocalServiceIsNotNull();
@@ -56,24 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             }
             else
             {
-                projectSystemHelper.AddFileToProject(solutionItemsProject, configFile);
-            }
-        }
-
-        private void RemoveSolutionItemFile(string configFile)
-        {
-            Debug.Assert(!string.IsNullOrWhiteSpace(configFile), "Invalid configuration file");
-
-            var projectSystemHelper = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
-
-            var solutionItemsProject = projectSystemHelper.GetSolutionItemsProject(false);
-
-            if (solutionItemsProject != null)
-            {
-                // Remove file from project and if project is empty, remove project from solution
-                var fileName = Path.GetFileName(configFile);
-                projectSystemHelper.RemoveFileFromProject(solutionItemsProject, fileName);
+                projectSystemHelper.AddFileToProject(solutionItemsProject, filePath);
             }
         }
     }

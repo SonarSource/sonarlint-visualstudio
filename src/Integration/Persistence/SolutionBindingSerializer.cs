@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             return bound;
         }
 
-        public bool Write(string configFilePath, BoundSonarQubeProject binding, Predicate<string> onSuccessfulFileWrite)
+        public bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite)
         {
             if (binding == null)
             {
@@ -79,14 +79,15 @@ namespace SonarLint.VisualStudio.Integration.Persistence
 
             sccFileSystem.QueueFileWrite(configFilePath, () =>
             {
-                if (solutionBindingFileLoader.Save(configFilePath, binding))
+                if (!solutionBindingFileLoader.Save(configFilePath, binding))
                 {
-                    credentialsLoader.Save(binding.Credentials, binding.ServerUri);
-
-                    return onSuccessfulFileWrite(configFilePath);
+                    return false;
                 }
 
-                return false;
+                credentialsLoader.Save(binding.Credentials, binding.ServerUri);
+                onSuccessfulFileWrite?.Invoke(configFilePath);
+
+                return true;
             });
 
             return true;
