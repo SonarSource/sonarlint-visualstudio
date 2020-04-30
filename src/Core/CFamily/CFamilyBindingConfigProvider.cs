@@ -33,11 +33,13 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public class CFamilyBindingConfigProvider : IBindingConfigProvider
     {
         private readonly ISonarQubeService sonarQubeService;
+        private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
 
-        public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+        public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, BindingConfiguration bindingConfiguration, ILogger logger)
         {
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
+            this.bindingConfiguration = bindingConfiguration ?? throw new ArgumentNullException(nameof(bindingConfiguration));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -48,8 +50,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             return Language.Cpp.Equals(language) || Language.C.Equals(language);
         }
 
-        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
-            Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {

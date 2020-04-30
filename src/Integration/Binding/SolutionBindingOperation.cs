@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -131,15 +132,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(languageToFileMap));
             }
 
+            bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>(languageToFileMap);
+
             var ruleSetInfo = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfo.AssertLocalServiceIsNotNull();
 
             foreach (var keyValue in languageToFileMap)
             {
-                Debug.Assert(!this.bindingConfigInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
-
-                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.projectKey, keyValue.Key, this.bindingMode);
-                this.bindingConfigInformationMap[keyValue.Key].FilePath = solutionRuleSet;
+                var solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(projectKey, keyValue.Key, bindingMode);
+                bindingConfigInformationMap[keyValue.Key].FilePath = solutionRuleSet;
             }
         }
 

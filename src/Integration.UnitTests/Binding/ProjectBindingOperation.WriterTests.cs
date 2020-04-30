@@ -236,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 includes: new[] { newSolutionRuleSetInclude }
             );
             var dotNetRuleSet = new DotNetBindingConfigFile(expectedRuleSet);
-            dotNetRuleSet.FilePath = solutionRuleSetPath;
+            dotNetRuleSet.FilePath = newSolutionRuleSetPath;
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));

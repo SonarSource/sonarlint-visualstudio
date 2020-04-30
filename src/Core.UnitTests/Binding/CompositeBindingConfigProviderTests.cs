@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var testSubject = new CompositeBindingConfigProvider(otherProvider, cppProvider1, cppProvider2);
 
             // Act. Multiple matching providers -> config from the first matching provider returned
-            var actualConfig = await testSubject.GetConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None);
+            var actualConfig = await testSubject.GetConfigurationAsync(qp, Language.Cpp, CancellationToken.None);
             actualConfig.Should().Be(cppProvider1.ConfigToReturn);
         }
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var testSubject = new CompositeBindingConfigProvider(otherProvider);
 
             // 1. Multiple matching providers -> config from the first matching provider returned
-            Action act = () => testSubject.GetConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(qp, Language.Cpp, CancellationToken.None).Wait();
 
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
         }
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             #region IBindingConfigProvider implementation
 
-            public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
+            public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
             {
                 return Task.FromResult<IBindingConfigFile>(ConfigToReturn);
             }

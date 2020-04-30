@@ -455,12 +455,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             rulesetConfig.Setup(x => x.RuleSet)
                 .Returns(new RuleSet(displayName));
 
+            rulesetConfig.SetupSet(x => x.FilePath = "1");
+
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).
             rulesetConfig.Setup(x => x.Save())
-                .Callback<string>(s =>
+                .Callback(() =>
                 {
-                    fileSystem.AddFile(s, new MockFileData(""));
+                    fileSystem.AddFile(rulesetConfig.Object.FilePath, new MockFileData(""));
                 });
 
             return rulesetConfig;
