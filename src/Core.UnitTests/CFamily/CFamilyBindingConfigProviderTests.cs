@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client;
 using SonarQube.Client.Models;
@@ -37,6 +38,31 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
     [TestClass]
     public class CFamilyBindingConfigProviderTests
     {
+        [TestMethod]
+        public void Ctor_NullService_ArgumentNullException()
+        {
+            Action act = () => new CFamilyBindingConfigProvider(null, BindingConfiguration.Standalone, Mock.Of<ILogger>());
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
+        }
+
+
+        [TestMethod]
+        public void Ctor_NullBindingConfiguration_ArgumentNullException()
+        {
+            Action act = () => new CFamilyBindingConfigProvider(Mock.Of<ISonarQubeService>(), null, Mock.Of<ILogger>());
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
+        }
+
+        [TestMethod]
+        public void Ctor_NullLogger_ArgumentNullException()
+        {
+            Action act = () => new CFamilyBindingConfigProvider(Mock.Of<ISonarQubeService>(), BindingConfiguration.Standalone, null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
         [TestMethod]
         [DataRow(SonarQubeIssueSeverity.Blocker, IssueSeverity.Blocker)]
         [DataRow(SonarQubeIssueSeverity.Critical, IssueSeverity.Critical)]

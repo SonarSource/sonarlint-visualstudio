@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
             var qualityProfile = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
 
-            var testSubject = this.CreateTestSubject("key", "anyProject", nuGetOpMock.Object);
+            var testSubject = this.CreateTestSubject("anyProject", "http://localhost", nuGetOpMock.Object);
 
             // Act
             Action act = () => testSubject.GetConfigurationAsync(qualityProfile, Language.Cpp, cts.Token).Wait();
@@ -247,8 +247,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private DotNetBindingConfigProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost",
-            INuGetBindingOperation nuGetBindingOperation = null)
+        private DotNetBindingConfigProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost", INuGetBindingOperation nuGetBindingOperation = null)
         {
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.logger);
             var bindingConfiguration = new BindingConfiguration(
@@ -256,7 +255,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new SonarQubeOrganization("key", "name")),
                 SonarLintMode.Connected);
 
-            return new DotNetBindingConfigProvider(this.sonarQubeServiceMock.Object, nuGetBindingOperation, bindingConfiguration, this.logger);
+            return new DotNetBindingConfigProvider(sonarQubeServiceMock.Object, nuGetBindingOperation, bindingConfiguration, logger);
         }
 
         private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)

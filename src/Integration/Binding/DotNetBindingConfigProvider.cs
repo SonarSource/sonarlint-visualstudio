@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
 
-
         public DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, BindingConfiguration bindingConfiguration, ILogger logger)
         {
             this.sonarQubeService = sonarQubeService;

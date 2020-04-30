@@ -32,50 +32,40 @@ using SonarQube.Client.Models;
 //      the SLVS version is checked in, and will be updated as the QP changes. Ordering the ruleset
 //      reduces the churn when comparing old/new files.
 // * the SLVS version doesn't include taint-analysis rules
+// * changed to implement an interface for testability
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    public class RuleSetGenerator
+    public class RuleSetGenerator : IRuleSetGenerator
     {
         private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
         private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
 
-        private readonly IDictionary<string, string> sonarProperties;
         private readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
 
         private readonly string activeRuleActionText = GetActionText(RuleAction.Warning);
 
-        public RuleSetGenerator(IDictionary<string, string> sonarProperties)
+        public RuleSet Generate(string language, IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties)
         {
-            this.sonarProperties = sonarProperties ?? throw new ArgumentNullException(nameof(sonarProperties));
-        }
-
-        /// <summary>
-        /// Generates a RuleSet that is serializable (XML).
-        /// The ruleset can be empty if there are no active rules belonging to the repo keys "vbnet", "csharpsquid" or "roslyn.*".
-        /// </summary>
-        /// <exception cref="InvalidOperationException">if required properties that should be associated with the repo key are missing.</exception>
-        public RuleSet Generate(string language, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules)
-        {
-            if (activeRules == null)
-            {
-                throw new ArgumentNullException(nameof(activeRules));
-            }
-            if (inactiveRules == null)
-            {
-                throw new ArgumentNullException(nameof(inactiveRules));
-            }
             if (language == null)
             {
                 throw new ArgumentNullException(nameof(language));
             }
+            if (rules == null)
+            {
+                throw new ArgumentNullException(nameof(rules));
+            }
+            if (sonarProperties == null)
+            {
+                throw new ArgumentNullException(nameof(sonarProperties));
+            }
 
-            var rulesElements = activeRules.Concat(inactiveRules)
+            var rulesElements = rules
                 .GroupBy(
                     rule => GetPartialRepoKey(rule, language),
                     rule => rule)
                 .Where(IsSupportedRuleRepo)
-                .Select(CreateRulesElement)
+                .Select(group => CreateRulesElement(group, sonarProperties))
                 .OrderBy(group => group.AnalyzerId)
                 .ToList();
 
@@ -97,13 +87,13 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             return !string.IsNullOrEmpty(partialRepoKey) && !RoslynPluginRuleKeyExtensions.IsExcludedRuleRepository(partialRepoKey);
         }
 
-        private Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules)
+        private Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules, IDictionary<string, string> sonarProperties)
         {
             var partialRepoKey = analyzerRules.Key;
             return new Rules
             {
-                AnalyzerId = GetRequiredPropertyValue($"{partialRepoKey}.analyzerId"),
-                RuleNamespace = GetRequiredPropertyValue($"{partialRepoKey}.ruleNamespace"),
+                AnalyzerId = GetRequiredPropertyValue(sonarProperties, $"{partialRepoKey}.analyzerId"),
+                RuleNamespace = GetRequiredPropertyValue(sonarProperties, $"{partialRepoKey}.ruleNamespace"),
                 RuleList = analyzerRules
                     .Select(CreateRuleElement)
                     .OrderBy(r => r.Id)
@@ -149,9 +139,9 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             }
         }
 
-        private string GetRequiredPropertyValue(string propertyKey)
+        private string GetRequiredPropertyValue(IDictionary<string, string> sonarProperties, string propertyKey)
         {
-            if (!this.sonarProperties.TryGetValue(propertyKey, out var propertyValue))
+            if (!sonarProperties.TryGetValue(propertyKey, out var propertyValue))
             {
                 var message = $"Property does not exist: {propertyKey}. This property should be set by the plugin in SonarQube.";
 

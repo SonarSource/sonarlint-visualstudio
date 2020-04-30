@@ -40,13 +40,14 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [TestMethod]
         public void Get_NoActiveRules_NoPackageInfo()
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             var properties = new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.analyzerId", "my.analyzer" },
                 { "sonaranalyzer-cs.pluginVersion", "1.2.3" }
             };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(Array.Empty<SonarQubeRule>(), properties);
+            var actual = testSubject.GetNuGetPackageInfos(Array.Empty<SonarQubeRule>(), properties);
 
             actual.Should().BeEmpty();
         }
@@ -54,13 +55,14 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [TestMethod]
         public void Get_NoSonarProperties_NoPackageInfo()
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             var rules = new SonarQubeRule[]
             {
                 CreateRule("csharpsquid", "rule1"),
                 CreateRule("csharpsquid", "rule2")
             };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(rules, new Dictionary<string, string>());
+            var actual = testSubject.GetNuGetPackageInfos(rules, new Dictionary<string, string>());
 
             actual.Should().BeEmpty();
         }
@@ -68,9 +70,10 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [TestMethod]
         public void Get_MissingVersionProperty_NoPackageInfo()
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             var properties = new Dictionary<string, string> { { "sonaranalyzer-cs.analyzerId", "my.analyzer" } };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(ValidCSharpRules, properties);
+            var actual = testSubject.GetNuGetPackageInfos(ValidCSharpRules, properties);
 
             actual.Should().BeEmpty();
         }
@@ -78,9 +81,10 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [TestMethod]
         public void Get_MissingPluginVersionProperty_NoPackageInfo()
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             var properties = new Dictionary<string, string> { { "sonaranalyzer-cs.pluginVersion", "1.2.3" } };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(ValidCSharpRules, properties);
+            var actual = testSubject.GetNuGetPackageInfos(ValidCSharpRules, properties);
 
             actual.Should().BeEmpty();
         }
@@ -90,6 +94,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [DataRow("vbnet", "vbnet")]
         public void Get_SonarAnalyzer_WithPropertiesAndMatchingRules_ExpectedPackageReturned(string language, string repositoryKey)
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             var properties = new Dictionary<string, string>
             {
                 { $"sonaranalyzer-{language}.analyzerId", "AAA" },
@@ -101,7 +106,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
                 CreateRule(repositoryKey, "rule1")
             };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(rules, properties);
+            var actual = testSubject.GetNuGetPackageInfos(rules, properties);
 
             actual.Count().Should().Be(1);
             actual.First().Id.Should().Be("AAA");
@@ -113,6 +118,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [DataRow("vbnet")]
         public void Get_SonarSecurityAnalyzer_WithPropertiesAndMatchingRules_SecurityPackageAreNotReturned(string language)
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             string propertyPrefix = $"sonaranalyzer.security.{language}";
             string repoKey = $"roslyn.{propertyPrefix}";
 
@@ -127,7 +133,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
                 CreateRule($"{repoKey}", "rule1")
             };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(rules, properties);
+            var actual = testSubject.GetNuGetPackageInfos(rules, properties);
 
             actual.Should().BeEmpty();
         }
@@ -135,6 +141,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         [TestMethod]
         public void Get_MultiplePlugins_WithPropertiesAndMatchingRules_ExpectedPackageReturned()
         {
+            var testSubject = new NuGetPackageInfoGenerator();
             var properties = new Dictionary<string, string>
             {
                 // Valid CSharp properties
@@ -166,7 +173,7 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
                 CreateRule("roslyn.invalid", "rule3"),
             };
 
-            var actual = NuGetPackageInfoGenerator.GetNuGetPackageInfos(rules, properties);
+            var actual = testSubject.GetNuGetPackageInfos(rules, properties);
 
             actual.Count().Should().Be(3);
             var packages = actual.ToArray();
