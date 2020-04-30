@@ -66,18 +66,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var settings = new RulesSettings();
 
             // Act
-            var testSubject = new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
+            using (new AssertIgnoreScope())
+            {
+                var testSubject =
+                    new DynamicCFamilyRulesConfig(defaultConfig, settings, new TestLogger(), NoExcludedRules);
 
-            // Assert
-            testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3");
-            testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2");
+                // Assert
+                testSubject.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3");
+                testSubject.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2");
 
-            testSubject.LanguageKey.Should().Be("123");
+                testSubject.LanguageKey.Should().Be("123");
 
-            // Other properties should be pass-throughs
-            testSubject.AllPartialRuleKeys.Should().BeEquivalentTo(defaultConfig.AllPartialRuleKeys);
-            testSubject.RulesParameters.Should().BeEquivalentTo(defaultConfig.RulesParameters);
-            testSubject.RulesMetadata.Should().BeEquivalentTo(defaultConfig.RulesMetadata);
+                // Other properties should be pass-throughs
+                testSubject.AllPartialRuleKeys.Should().BeEquivalentTo(defaultConfig.AllPartialRuleKeys);
+                testSubject.RulesParameters.Should().BeEquivalentTo(defaultConfig.RulesParameters);
+                testSubject.RulesMetadata.Should().BeEquivalentTo(defaultConfig.RulesMetadata);
+            }
         }
 
         [TestMethod]

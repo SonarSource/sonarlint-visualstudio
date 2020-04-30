@@ -24,12 +24,11 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    public static class NuGetPackageInfoGenerator
+    public class NuGetPackageInfoGenerator : INuGetPackageInfoGenerator
     {
-        public static IEnumerable<NuGetPackageInfo> GetNuGetPackageInfos(IEnumerable<SonarQubeRule> activeRules,
-            IDictionary<string, string> sonarProperties)
+        public IEnumerable<NuGetPackageInfo> GetNuGetPackageInfos(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties)
         {
-            var propertyPrefixes = GetPluginPropertyPrefixes(activeRules);
+            var propertyPrefixes = GetPluginPropertyPrefixes(rules);
             var packages = new List<NuGetPackageInfo>();
 
             foreach (var partialRepoKey in propertyPrefixes)
