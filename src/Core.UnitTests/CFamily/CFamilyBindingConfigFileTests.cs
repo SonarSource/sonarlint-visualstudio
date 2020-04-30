@@ -75,9 +75,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
             var testSubject = new CFamilyBindingConfigFile(settings, fileSystemMock.Object);
+            testSubject.FilePath = "c:\\full\\path\\file.txt";
 
             // Act
-            testSubject.Save("c:\\full\\path\\file.txt");
+            testSubject.Save();
 
             // Assert
             actualPath.Should().Be("c:\\full\\path\\file.txt");

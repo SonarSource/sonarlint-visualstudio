@@ -136,8 +136,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             CollectionAssert.AreEquivalent(languageToFileMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
-            testSubject.RuleSetsInformationMap[Language.CSharp].BindingConfigFile.Should().Be(languageToFileMap[Language.CSharp]);
-            testSubject.RuleSetsInformationMap[Language.VBNET].BindingConfigFile.Should().Be(languageToFileMap[Language.VBNET]);
+            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(languageToFileMap[Language.CSharp]);
+            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(languageToFileMap[Language.VBNET]);
         }
 
         [TestMethod]
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Act + Assert
             using (new AssertIgnoreScope())
             {
-                testSubject.GetConfigFileInformation(Language.CSharp).Should().BeNull();
+                testSubject.GetBindingConfig(Language.CSharp).Should().BeNull();
             }
 
             // Test case 2: known ruleset map
@@ -164,11 +164,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Act
-            string filePath = testSubject.GetConfigFileInformation(Language.CSharp).NewFilePath;
+            string filePath = testSubject.GetBindingConfig(Language.CSharp).FilePath;
 
             // Assert
             string.IsNullOrWhiteSpace(filePath).Should().BeFalse();
-            filePath.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp].NewFilePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
+            filePath.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp].FilePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
         }
 
         [TestMethod]
@@ -249,8 +249,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Sanity
             fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
-            testSubject.RuleSetsInformationMap[Language.CSharp].NewFilePath.Should().Be(csharpRulesetPath);
-            testSubject.RuleSetsInformationMap[Language.VBNET].NewFilePath.Should().Be(vbRulesetPath);
+            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be(csharpRulesetPath);
+            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be(vbRulesetPath);
 
             // Act
             testSubject.Prepare(CancellationToken.None);
@@ -303,8 +303,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             string expectedSolutionFolder = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
-            testSubject.RuleSetsInformationMap[Language.CSharp].NewFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keycsharp.ruleset"));
-            testSubject.RuleSetsInformationMap[Language.VBNET].NewFilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyvb.ruleset"));
+            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keycsharp.ruleset"));
+            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be(Path.Combine(expectedSolutionFolder, "keyvb.ruleset"));
             prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. after the first binder");
 
             CheckSaveWasNotCalled(csConfigFile);
@@ -343,8 +343,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Assert
-            testSubject.RuleSetsInformationMap[Language.CSharp].NewFilePath.Should().NotBeNull("Expected to be set before Prepare is called");
-            testSubject.RuleSetsInformationMap[Language.VBNET].NewFilePath.Should().NotBeNull("Expected to be set before Prepare is called");
+            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().NotBeNull("Expected to be set before Prepare is called");
+            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().NotBeNull("Expected to be set before Prepare is called");
             prepareCalledForBinder.Should().BeFalse("Expected to be canceled as soon as possible i.e. before the first binder");
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
@@ -421,13 +421,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             savedProject.Profiles[Language.CSharp].ProfileTimestamp.Should().Be(expectedTimeStamp);
         }
 
-        [TestMethod]
-        public void SolutionBindingOperation_ConfigFileInformation_Ctor_ArgChecks()
-        {
-            Action act = () => new ConfigFileInformation(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigFile");
-        }
-
         #endregion Tests
 
         #region Helpers
@@ -460,7 +453,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).
-            rulesetConfig.Setup(x => x.Save(It.IsAny<string>()))
+            rulesetConfig.Setup(x => x.Save())
                 .Callback<string>(s =>
                 {
                     fileSystem.AddFile(s, new MockFileData(""));
@@ -470,10 +463,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         private static void CheckRuleSetFileWasSaved(Mock<IBindingConfigFileWithRuleset> mock, string expectedFileName)
-            => mock.Verify(x => x.Save(expectedFileName), Times.Once);
+        {
+            mock.VerifySet(x => x.FilePath = expectedFileName, Times.Once);
+            mock.Verify(x => x.Save(), Times.Once);
+        }
 
         private static void CheckSaveWasNotCalled(Mock<IBindingConfigFileWithRuleset> mock)
-            => mock.Verify(x => x.Save(It.IsAny<string>()), Times.Never);
+            => mock.Verify(x => x.Save(), Times.Never);
 
 
 
