@@ -115,6 +115,15 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An absolute file path was expected..
+        /// </summary>
+        public static string PathHelperAbsolutePathExpected {
+            get {
+                return ResourceManager.GetString("PathHelperAbsolutePathExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error loading settings from &quot;{0}&quot;.
         ///  Error message: {1}.
         /// </summary>
