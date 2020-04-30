@@ -22,9 +22,8 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public class BoundSonarQubeProject
     {
@@ -32,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         {
         }
 
-        internal BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
+        public BoundSonarQubeProject(Uri serverUri, string projectKey, string projectName,
             ICredentials credentials = null, SonarQubeOrganization organization = null)
             : this()
         {
@@ -61,6 +60,6 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         public Dictionary<Language, ApplicableQualityProfile> Profiles { get; set; }
 
         [JsonIgnore]
-        internal ICredentials Credentials { get; set; }
+        public ICredentials Credentials { get; set; }
     }
 }

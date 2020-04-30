@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using EnvDTE;
 using FluentAssertions;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

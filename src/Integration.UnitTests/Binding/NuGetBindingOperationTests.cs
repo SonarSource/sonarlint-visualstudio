@@ -27,9 +27,9 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NuGet;
 using NuGet.VisualStudio;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Messages;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -256,18 +256,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ConfigurablePackageInstaller PrepareInstallPackagesTest(NuGetBindingOperation testSubject, Dictionary<Language, IEnumerable<PackageName>> nugetPackagesByLanguage)
         {
-            var exportResponse = new RoslynExportProfileResponse
-            {
-                Deployment = new DeploymentResponse
-                {
-                    NuGetPackages = new List<NuGetPackageInfoResponse>()
-                }
-            };
-
             foreach (var nugetPackagesForLanguage in nugetPackagesByLanguage)
             {
                 testSubject.NuGetPackages.Add(nugetPackagesForLanguage.Key,
-                    nugetPackagesForLanguage.Value.Select(x => new NuGetPackageInfoResponse { Id = x.Id, Version = x.Version.ToNormalizedString() }).ToList());
+                    nugetPackagesForLanguage.Value.Select(x => new NuGetPackageInfo(x.Id, x.Version.ToNormalizedString())).ToList());
             }
 
 

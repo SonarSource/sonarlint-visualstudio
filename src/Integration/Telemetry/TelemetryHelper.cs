@@ -20,7 +20,7 @@
 
 using System;
 using System.Diagnostics;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(bindingConfiguration));
             }
 
-            var isConnected = bindingConfiguration?.Mode != NewConnectedMode.SonarLintMode.Standalone;
+            var isConnected = bindingConfiguration?.Mode != SonarLintMode.Standalone;
             var isSonarCloud = IsSonarCloud(bindingConfiguration?.Project?.ServerUri);
 
             return new TelemetryPayload

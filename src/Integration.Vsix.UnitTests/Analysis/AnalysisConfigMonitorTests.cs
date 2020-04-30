@@ -23,8 +23,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
                 var solutionBoundTracker = new ConfigurableActiveSolutionBoundTracker
                 {
-                    CurrentConfiguration = new BindingConfiguration(new Persistence.BoundSonarQubeProject(), bindingMode)
+                    CurrentConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode)
                 };
 
                 Logger = new TestLogger();

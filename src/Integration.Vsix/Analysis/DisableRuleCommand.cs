@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
 using Task = System.Threading.Tasks.Task;
 
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 // Show the menu item for Sonar errors...
                 bool isVisible = TryGetErrorCodeSync(errorList, out _);
                 // ... but only enable it in standalone mode
-                bool isEnabled = isVisible && (activeSolutionBoundTracker.CurrentConfiguration.Mode == NewConnectedMode.SonarLintMode.Standalone);
+                bool isEnabled = isVisible && (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone);
 
                 menuItem.Visible = isVisible;
                 menuItem.Enabled = isEnabled;

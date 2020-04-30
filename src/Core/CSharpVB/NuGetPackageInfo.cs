@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -19,12 +19,18 @@
  */
 
 using System;
-using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Integration.Persistence
+namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    internal interface ICredentials
+    public class NuGetPackageInfo
     {
-        ConnectionInformation CreateConnectionInformation(Uri serverUri);
+        public NuGetPackageInfo(string id, string version)
+        {
+            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Version = version ?? throw new ArgumentNullException(nameof(version));
+        }
+
+        public string Id { get; }
+        public string Version { get; }
     }
 }

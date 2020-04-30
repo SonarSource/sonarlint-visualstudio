@@ -19,7 +19,7 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
