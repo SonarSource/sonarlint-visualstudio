@@ -24,7 +24,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

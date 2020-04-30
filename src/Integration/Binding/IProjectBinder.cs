@@ -19,7 +19,7 @@
  */
 
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
