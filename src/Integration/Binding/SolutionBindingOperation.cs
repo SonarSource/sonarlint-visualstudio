@@ -258,8 +258,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             Debug.Assert(this.qualityProfileMap != null, "Initialize was expected to be called first");
 
-            var bindingSerializer = this.serviceProvider.GetService<IConfigurationProvider>();
-            bindingSerializer.AssertLocalServiceIsNotNull();
+            var configurationPersister = this.serviceProvider.GetService<IConfigurationPersister>();
+            configurationPersister.AssertLocalServiceIsNotNull();
 
             BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
 
@@ -278,8 +278,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 credentials, connInfo.Organization);
             bound.Profiles = map;
 
-            var config = new BindingConfiguration(bound, this.bindingMode);
-            bindingSerializer.WriteConfiguration(config);
+            configurationPersister.Persist(bound, bindingMode);
         }
 
         private void UpdateSolutionFile()

@@ -209,66 +209,65 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void WriteConfig_InvalidArg_Throws()
+        public void Persist_NullProject_Throws()
         {
             // Act
-            Action act = () => testSubject.WriteConfiguration(null);
+            Action act = () => testSubject.Persist(null, SonarLintMode.Connected);
 
             // Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("configuration");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
         [TestMethod]
-        public void WriteConfig_StandaloneConfig_Throws()
+        public void Persist_StandaloneMode_Throws()
         {
             // Act
-            Action act = () => testSubject.WriteConfiguration(BindingConfiguration.Standalone);
+            Action act = () => testSubject.Persist(new BoundSonarQubeProject(), SonarLintMode.Standalone);
 
             // Assert
             act.Should().ThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
-        public void WriteConfig_LegacyConfig_SavesLegacyConfig()
+        public void Persist_LegacyConfig_SavesLegacyConfig()
         {
             // Arrange
-            var config = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected);
+            var project = new BoundSonarQubeProject();
             legacyPathProvider.Setup(x => x.Get()).Returns("old.txt");
 
             solutionBindingSerializer
-                .Setup(x => x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.OnSuccessfulSave))
+                .Setup(x => x.Write("old.txt", project, legacyPostSaveOperation.Object.OnSuccessfulSave))
                 .Returns(true);
 
             // Act
-            var actual = testSubject.WriteConfiguration(config);
+            var actual = testSubject.Persist(project, SonarLintMode.LegacyConnected);
 
             // Assert
             actual.Should().BeTrue();
 
             solutionBindingSerializer.Verify(x =>
-                    x.Write("old.txt", config.Project, legacyPostSaveOperation.Object.OnSuccessfulSave),
+                    x.Write("old.txt", project, legacyPostSaveOperation.Object.OnSuccessfulSave),
                 Times.Once);
         }
 
         [TestMethod]
-        public void WriteConfig_NewConnectedModeConfig_SaveNewConfig()
+        public void Persist_NewConnectedModeConfig_SaveNewConfig()
         {
             var projectToWrite = new BoundSonarQubeProject();
-            var config = BindingConfiguration.CreateBoundConfiguration(projectToWrite, SonarLintMode.Connected);
             newPathProvider.Setup(x => x.Get()).Returns("new.txt");
 
             solutionBindingSerializer
-                .Setup(x => x.Write("new.txt", config.Project, It.Is<Predicate<string>>(s => true)))
+                .Setup(x => x.Write("new.txt", projectToWrite, It.Is<Predicate<string>>(s => true)))
                 .Returns(true);
 
             // Act
-            var actual = testSubject.WriteConfiguration(config);
+            var actual = testSubject.Persist(projectToWrite, SonarLintMode.Connected);
 
             // Assert
             actual.Should().BeTrue();
 
             solutionBindingSerializer.Verify(x =>
-                    x.Write("new.txt", config.Project, It.Is<Predicate<string>>(s => true)),
+                    x.Write("new.txt", projectToWrite, It.Is<Predicate<string>>(s => true)),
                 Times.Once);
         }
     }
