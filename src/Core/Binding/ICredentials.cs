@@ -21,7 +21,7 @@
 using System;
 using SonarQube.Client.Models;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.Binding
 {
     public interface ICredentials
     {
