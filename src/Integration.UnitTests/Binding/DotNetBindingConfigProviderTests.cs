@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -82,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarQubeQualityProfile profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(profile, "TODO", language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(null, language, "");
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -124,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
-            var testSubject = this.CreateTestSubject("key", ProjectName);
+            var testSubject = this.CreateTestSubject(ProjectName);
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(Enumerable.Empty<string>());
             var nugetPackages = new[] { new PackageName("myPackageId", new SemanticVersion("1.0.0")) };
@@ -135,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -168,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -187,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
             var legacyNuGetBinding = new NuGetBindingOperation(new ConfigurableHost(), this.logger);
-            var testSubject = this.CreateTestSubject("key", ProjectName, legacyNuGetBinding);
+            var testSubject = this.CreateTestSubject(ProjectName, "http://localhost", legacyNuGetBinding);
 
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
             var additionalFiles = new[] { new AdditionalFileResponse { FileName = "abc.xml", Content = new byte[] { 1, 2, 3 } } };
@@ -197,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var profile = this.ConfigureProfileExport(export, language, QualityProfileName);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(profile, null, language, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(profile, language, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -217,10 +218,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
             var qualityProfile = new SonarQubeQualityProfile("key", "name", "language", false, DateTime.UtcNow);
 
-            var testSubject = this.CreateTestSubject("key", "anyProject", nuGetOpMock.Object);
+            var testSubject = this.CreateTestSubject("anyProject", "http://localhost", nuGetOpMock.Object);
 
             // Act
-            Action act = () => testSubject.GetConfigurationAsync(qualityProfile, null, Language.Cpp, cts.Token).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(qualityProfile, Language.Cpp, cts.Token).Wait();
 
             // Assert
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
@@ -246,12 +247,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private DotNetBindingConfigProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost",
-            INuGetBindingOperation nuGetBindingOperation = null)
+        private DotNetBindingConfigProvider CreateTestSubject(string projectName = "anyProjectName", string serverUrl = "http://localhost", INuGetBindingOperation nuGetBindingOperation = null)
         {
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.logger);
+            var bindingConfiguration = new BindingConfiguration(
+                new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName, null,
+                    new SonarQubeOrganization("key", "name")),
+                SonarLintMode.Connected);
 
-            return new DotNetBindingConfigProvider(this.sonarQubeServiceMock.Object, nuGetBindingOperation, serverUrl, projectName, this.logger);
+            return new DotNetBindingConfigProvider(sonarQubeServiceMock.Object, nuGetBindingOperation, bindingConfiguration, logger);
         }
 
         private SonarQubeQualityProfile ConfigureProfileExport(RoslynExportProfileResponse export, Language language, string profileName)
