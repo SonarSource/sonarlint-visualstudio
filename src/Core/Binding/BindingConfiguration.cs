@@ -29,12 +29,17 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode)
         {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
             return new BindingConfiguration(project, sonarLintMode);
         }
 
         public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
         {
-            this.Project = project ?? throw new ArgumentNullException(nameof(project));
+            this.Project = project;
             this.Mode = mode;
         }
 
