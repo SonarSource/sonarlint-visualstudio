@@ -18,30 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    public enum SonarLintMode
+    // Copied from the SonarScanner for MSBuild.
+    // See https://github.com/SonarSource/sonar-scanner-msbuild/blob/9ccfdb648a0411014b29c7aee8e347aeab87ea71/src/SonarScanner.MSBuild.PreProcessor/Roslyn/RuleAction.cs#L21
+    public enum RuleAction
     {
-        Standalone,
-        LegacyConnected,
-        Connected
-    }
-
-    internal static class SonarLintModeExtensions
-    {
-        public static void ThrowIfNotConnected(this SonarLintMode bindingMode)
-        {
-            if (!bindingMode.IsInAConnectedMode())
-            {
-                throw new ArgumentOutOfRangeException(nameof(bindingMode));
-            }
-        }
-
-        public static bool IsInAConnectedMode(this SonarLintMode bindingMode)
-        {
-            return (bindingMode == SonarLintMode.Connected || bindingMode == SonarLintMode.LegacyConnected);
-        }
+        None,
+        Hidden,
+        Info,
+        Warning,
+        Error,
     }
 }

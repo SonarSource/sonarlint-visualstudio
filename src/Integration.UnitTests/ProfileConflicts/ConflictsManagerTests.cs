@@ -28,9 +28,8 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests

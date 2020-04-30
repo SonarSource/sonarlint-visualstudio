@@ -29,7 +29,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 
@@ -402,7 +402,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
         private static IActiveSolutionBoundTracker CreateSolutionTracker(SonarLintMode bindingMode)
         {
-            var bindingConfiguration = new BindingConfiguration(new Persistence.BoundSonarQubeProject(), bindingMode);
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode);
             var tracker = new Mock<IActiveSolutionBoundTracker>();
             tracker.Setup(x => x.CurrentConfiguration).Returns(bindingConfiguration);
             return tracker.Object;

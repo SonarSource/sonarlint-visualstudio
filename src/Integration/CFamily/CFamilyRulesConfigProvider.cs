@@ -22,8 +22,8 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 // Note: currently this class needs to be in the the Integration assembly because it
 //   references IHost and other internal interfaces.

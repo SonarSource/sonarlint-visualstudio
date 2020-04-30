@@ -22,9 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using EnvDTE;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Messages;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return true;
         }
 
-        public bool ProcessExport(Language language, RoslynExportProfileResponse exportProfileResponse)
+        public bool ProcessExport(Language language, IEnumerable<NuGetPackageInfo> nugetPackages)
         {
             // Nothing to do - just return success
             return true;

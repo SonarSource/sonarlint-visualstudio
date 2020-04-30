@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using EnvDTE;
-using SonarQube.Client.Messages;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -43,6 +43,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// Extracts any required information from the supplied Roslyn export profile
         /// </summary>
         /// <returns>True if processing was successful, otherwise false</returns>
-        bool ProcessExport(Language language, RoslynExportProfileResponse exportProfileResponse);
+        bool ProcessExport(Language language, IEnumerable<NuGetPackageInfo> nugetPackages);
     }
 }

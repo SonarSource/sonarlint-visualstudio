@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 using EnvDTE;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Core.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration

@@ -26,9 +26,9 @@ using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.ProfileConflicts
