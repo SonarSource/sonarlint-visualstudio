@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
-            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, null, language, CancellationToken.None))
+            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, CancellationToken.None))
                 .ReturnsAsync(configFile);
 
             var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, configProviderMock.Object);

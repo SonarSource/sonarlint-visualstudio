@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
                 // Create the binding configuration for the language
-                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
+                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, cancellationToken);
                 if (bindingConfig == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
