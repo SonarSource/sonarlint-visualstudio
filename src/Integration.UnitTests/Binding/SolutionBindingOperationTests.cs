@@ -378,8 +378,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private void ExecuteCommitSolutionBindingTest(SonarLintMode bindingMode)
         {
             // Arrange
-            var configProvider = new ConfigurableConfigurationProvider();
-            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), configProvider);
+            var configPersister = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
             var csProject = this.solutionMock.AddOrGetProject("CS.csproj");
             csProject.SetCSProjectKind();
             var projects = new[] { csProject };
@@ -405,7 +405,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Sanity
-            configProvider.SavedConfiguration.Should().BeNull();
+            configPersister.SavedProject.Should().BeNull();
 
             // Act
             var commitResult = testSubject.CommitSolutionBinding();
@@ -414,10 +414,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             commitResult.Should().BeTrue();
             commitCalledForBinder.Should().BeTrue();
 
-            configProvider.SavedConfiguration.Should().NotBeNull();
-            configProvider.SavedConfiguration.Mode.Should().Be(bindingMode);
+            configPersister.SavedProject.Should().NotBeNull();
+            configPersister.SavedMode.Should().Be(bindingMode);
 
-            var savedProject = configProvider.SavedConfiguration.Project;
+            var savedProject = configPersister.SavedProject;
             savedProject.ServerUri.Should().Be(connectionInformation.ServerUri);
             savedProject.Profiles.Should().HaveCount(1);
             savedProject.Profiles[Language.CSharp].ProfileKey.Should().Be("expected profile Key");
