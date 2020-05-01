@@ -40,6 +40,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             act = () => new CFamilyBindingConfigFile(new RulesSettings(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
+            act = () => new CFamilyBindingConfigFile(new RulesSettings(), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
             act = () => new CFamilyBindingConfigFile(new RulesSettings(), "c:\\test", null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }

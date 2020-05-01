@@ -36,11 +36,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs()
         {
             Action act = () => new DotNetBindingConfigFile(null, "dummy");
-
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
 
              act = () => new DotNetBindingConfigFile(new RuleSet("dummy"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
+            act = () => new DotNetBindingConfigFile(new RuleSet("dummy"), "");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
 

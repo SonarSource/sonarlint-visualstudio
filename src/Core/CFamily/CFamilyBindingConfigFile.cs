@@ -38,19 +38,20 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public CFamilyBindingConfigFile(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
         {
             RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
-            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            FilePath = filePath;
         }
 
         internal /* for testing */ RulesSettings RuleSettings { get; }
 
         public void Save()
         {
-            if (string.IsNullOrEmpty(FilePath))
-            {
-                throw new ArgumentNullException(nameof(FilePath));
-            }
-
             var dataAsText = JsonConvert.SerializeObject(RuleSettings, Formatting.Indented);
             fileSystem.File.WriteAllText(FilePath, dataAsText);
         }

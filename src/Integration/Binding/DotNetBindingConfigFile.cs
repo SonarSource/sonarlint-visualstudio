@@ -31,7 +31,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public DotNetBindingConfigFile(RuleSet ruleSet, string filePath)
         {
             RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
-            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            FilePath = filePath;
         }
 
         public void Save()
