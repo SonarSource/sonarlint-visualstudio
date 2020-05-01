@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return new BindingConfiguration(project, sonarLintMode);
+            return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
         }
 
         public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
