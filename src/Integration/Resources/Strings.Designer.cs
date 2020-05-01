@@ -883,15 +883,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An absolute file path was expected..
-        /// </summary>
-        public static string PathHelperAbsolutePathExpected {
-            get {
-                return ResourceManager.GetString("PathHelperAbsolutePathExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarSource and Microsoft.
         /// </summary>
         public static string ProductAuthors {
