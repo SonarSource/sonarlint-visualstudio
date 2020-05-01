@@ -61,6 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
 
         private const string SolutionRoot = @"c:\solution";
+        private const string ProjectKey = "key";
 
         [TestInitialize]
         public void TestInitialize()
@@ -97,8 +98,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var logger = new TestLogger();
             var projectBinderFactory = Mock.Of<IProjectBinderFactory>();
             var folderModifier = Mock.Of<ILegacyConfigFolderItemAdder>();
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, "key", "name", SonarLintMode.LegacyConnected, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, ProjectKey, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, "name", SonarLintMode.LegacyConnected, logger));
 
@@ -108,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, null, logger, new MockFileSystem()));
             Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, folderModifier, logger,null));
 
-            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, "key", "name", SonarLintMode.LegacyConnected, logger);
+            var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
         }
 
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_RegisterKnownRuleSets_ArgChecks()
         {
             // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
             // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.RegisterKnownConfigFiles(null));
@@ -126,10 +127,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_RegisterKnownRuleSets()
         {
             // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
             var languageToFileMap = new Dictionary<Language, IBindingConfigFile>();
-            languageToFileMap[Language.CSharp] = CreateMockRuleSetConfigFile("cs").Object;
-            languageToFileMap[Language.VBNET] = CreateMockRuleSetConfigFile("vb").Object;
+            languageToFileMap[Language.CSharp] = CreateMockRuleSetConfigFile(SonarLintMode.Connected,Language.CSharp).Object;
+            languageToFileMap[Language.VBNET] = CreateMockRuleSetConfigFile(SonarLintMode.Connected, Language.VBNET).Object;
 
             // Sanity
             testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
@@ -147,9 +148,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_GetRuleSetInformation()
         {
             // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
             // Test case 1: unknown ruleset map
+            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
+            testSubject.RegisterKnownConfigFiles(ruleSetMap);
+
             // Act + Assert
             using (new AssertIgnoreScope())
             {
@@ -158,9 +162,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Test case 2: known ruleset map
             // Arrange
-            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
-            ruleSetMap[Language.CSharp] = CreateMockRuleSetConfigFile("cs").Object;
-            ruleSetMap[Language.VBNET] = CreateMockRuleSetConfigFile("vb").Object;
+            ruleSetMap[Language.CSharp] = CreateMockRuleSetConfigFile(SonarLintMode.Connected, Language.CSharp).Object;
+            ruleSetMap[Language.VBNET] = CreateMockRuleSetConfigFile(SonarLintMode.Connected, Language.VBNET).Object;
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
             testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
@@ -178,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_Initialization_ArgChecks()
         {
             // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
             // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.Initialize(null, GetQualityProfiles()));
@@ -200,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var logger = new TestLogger();
 
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key", logger: logger);
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey, logger: logger);
             var projects = new[] { cs1Project, vbProject, cs2Project, otherProjectType };
 
             // Sanity
@@ -230,10 +233,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             vbProject.SetVBProjectKind();
             var projects = new[] { csProject, vbProject };
 
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
-            var csConfigFile = CreateMockRuleSetConfigFile("cs");
-            var vbConfigFile = CreateMockRuleSetConfigFile("vb");
+            var csConfigFile = CreateMockRuleSetConfigFile(SonarLintMode.LegacyConnected, Language.CSharp);
+            var vbConfigFile = CreateMockRuleSetConfigFile(SonarLintMode.LegacyConnected, Language.VBNET);
             var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
             ruleSetMap[Language.CSharp] = csConfigFile.Object;
             ruleSetMap[Language.VBNET] = vbConfigFile.Object;
@@ -283,10 +286,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             vbProject.SetVBProjectKind();
             var projects = new[] { csProject, vbProject };
 
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
-            var csConfigFile = CreateMockRuleSetConfigFile("cs");
-            var vbConfigFile = CreateMockRuleSetConfigFile("vb");
+            var csConfigFile = CreateMockRuleSetConfigFile(SonarLintMode.LegacyConnected, Language.CSharp);
+            var vbConfigFile = CreateMockRuleSetConfigFile(SonarLintMode.LegacyConnected, Language.VBNET);
             var languageToFileMap = new Dictionary<Language, IBindingConfigFile>();
             languageToFileMap[Language.CSharp] = csConfigFile.Object;
             languageToFileMap[Language.VBNET] = vbConfigFile.Object;
@@ -324,10 +327,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             vbProject.SetVBProjectKind();
             var projects = new[] { csProject, vbProject };
 
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key");
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
-            var csConfigFile = CreateMockRuleSetConfigFile("cs");
-            var vbConfigFile = CreateMockRuleSetConfigFile("vb");
+            var csConfigFile = CreateMockRuleSetConfigFile(SonarLintMode.LegacyConnected, Language.CSharp);
+            var vbConfigFile = CreateMockRuleSetConfigFile(SonarLintMode.LegacyConnected, Language.VBNET);
             var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
             ruleSetMap[Language.CSharp] = csConfigFile.Object;
             ruleSetMap[Language.VBNET] = vbConfigFile.Object;
@@ -385,9 +388,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projects = new[] { csProject };
 
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
-            SolutionBindingOperation testSubject = this.CreateTestSubject("key", connectionInformation, bindingMode);
+            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey, connectionInformation, bindingMode);
 
-            var configFileMock = CreateMockRuleSetConfigFile("cs");
+            var configFileMock = CreateMockRuleSetConfigFile(bindingMode, Language.CSharp);
             var languageToFileMap = new Dictionary<Language, IBindingConfigFile>()
             {
                 { Language.CSharp, configFileMock.Object }
@@ -449,18 +452,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new Dictionary<Language, SonarQubeQualityProfile>();
         }
 
-        private Mock<IBindingConfigFileWithRuleset> CreateMockRuleSetConfigFile(string displayName)
+        private Mock<IBindingConfigFileWithRuleset> CreateMockRuleSetConfigFile(SonarLintMode mode, Language language)
         {
             var rulesetConfig = new Mock<IBindingConfigFileWithRuleset>();
             rulesetConfig.Setup(x => x.RuleSet)
-                .Returns(new RuleSet(displayName));
+                .Returns(new RuleSet(language.Name));
+
+            var folder = mode == SonarLintMode.Connected
+                ? ConfigurableSolutionRuleSetsInformationProvider.DummyConnectedModeFolderName
+                : ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName;
+
+            var filePath = Path.Combine(SolutionRoot, folder, ProjectKey + language.FileSuffixAndExtension);
+
+            rulesetConfig.SetupGet(x => x.FilePath)
+                .Returns(filePath);
 
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).
             rulesetConfig.Setup(x => x.Save())
                 .Callback(() =>
                 {
-                    fileSystem.AddFile(rulesetConfig.Object.FilePath, new MockFileData(""));
+                    fileSystem.AddFile(filePath, new MockFileData(""));
                 });
 
             return rulesetConfig;

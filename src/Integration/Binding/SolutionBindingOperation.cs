@@ -26,11 +26,13 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
 using EnvDTE;
+using NuGet;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
+using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -48,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private IDictionary<Language, IBindingConfigFile> bindingConfigInformationMap;
+        private IDictionary<Language, IBindingConfigFile> bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>();
         private IDictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string projectKey;
@@ -131,7 +133,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 throw new ArgumentNullException(nameof(languageToFileMap));
             }
 
-            bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>(languageToFileMap);
+            bindingConfigInformationMap.Clear();
+            bindingConfigInformationMap.AddRange(languageToFileMap);
         }
 
         public IBindingConfigFile GetBindingConfig(Language language)
