@@ -33,6 +33,11 @@ namespace SonarLint.VisualStudio.Core.Binding
                 throw new ArgumentNullException(nameof(project));
             }
 
+            if (string.IsNullOrEmpty(bindingConfigDirectory))
+            {
+                throw new ArgumentNullException(nameof(bindingConfigDirectory));
+            }
+
             return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
         }
 
