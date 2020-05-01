@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), null, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, null, Mock.Of<ISolutionBindingFilePathGenerator>()));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, new MockFileSystem(), null));
         }
 
         [TestMethod]
