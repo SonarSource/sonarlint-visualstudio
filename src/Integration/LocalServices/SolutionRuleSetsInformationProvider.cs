@@ -39,17 +39,19 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new FileSystem())
+            : this(serviceProvider, logger, new FileSystem(), new SolutionBindingFilePathGenerator())
         {
         }
 
-        internal SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
+        internal SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)
@@ -148,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration
                 throw new InvalidOperationException(Strings.SolutionIsClosed);
             }
 
-            return GenerateSolutionRuleSetPath(ruleSetDirectoryRoot, ProjectKey, language.FileSuffixAndExtension);
+            return solutionBindingFilePathGenerator.Generate(ruleSetDirectoryRoot, ProjectKey, language.FileSuffixAndExtension);
         }
 
         public bool TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
@@ -169,21 +171,6 @@ namespace SonarLint.VisualStudio.Integration
             Configuration configuration = property.Collection.Parent as Configuration; // Could be null if the one used is the Project level one.
             Debug.Assert(configuration != null || property.Collection.Parent is Project, $"Unexpected property parent type: {property.Collection.Parent.GetType().FullName}");
             return configuration;
-        }
-
-        /// <summary>
-        /// Generate a solution level rule set file path base on <paramref name="ProjectKey"/> and <see cref="fileNameSuffix"/>
-        /// </summary>
-        /// <param name="ruleSetRootPath">Root directory to generate the full file path under</param>
-        /// <param name="ProjectKey">SonarQube project key to generate a rule set file name path for</param>
-        /// <param name="fileNameSuffixAndExtension">Fixed file name suffix and extension (language-specific)</param>
-        private static string GenerateSolutionRuleSetPath(string ruleSetRootPath, string ProjectKey, string fileNameSuffixAndExtension)
-        {
-            // Cannot use Path.ChangeExtension here because if the sonar project name contains
-            // a dot (.) then everything after this will be replaced with .ruleset
-            string fileName = PathHelper.EscapeFileName(ProjectKey + fileNameSuffixAndExtension)
-                .ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068
-            return Path.Combine(ruleSetRootPath, fileName);
         }
     }
 }
