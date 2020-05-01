@@ -22,6 +22,12 @@ namespace SonarLint.VisualStudio.Core.Binding
 {
     public interface ISolutionBindingFilePathGenerator
     {
+        /// <summary>
+        /// Generate a solution level file-path based on <paramref name="projectKey"/> and <see cref="fileNameSuffixAndExtension"/>
+        /// </summary>
+        /// <param name="rootDirectoryPath">Root directory to generate the full file path under</param>
+        /// <param name="projectKey">SonarQube project key to generate a file name path for</param>
+        /// <param name="fileNameSuffixAndExtension">Fixed file name suffix and extension (language-specific)</param>
         string Generate(string rootDirectoryPath, string projectKey, string fileNameSuffixAndExtension);
     }
 }
