@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -25,9 +25,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core.Helpers
 {
-    internal static class PathHelper
+    public static class PathHelper
     {
         /// <summary>
         /// Replace all invalid file path characters with the underscore ("_").
@@ -87,12 +87,12 @@ namespace SonarLint.VisualStudio.Integration
 
             if (!Uri.TryCreate(toFullPath, UriKind.Absolute, out absoluteUri))
             {
-                throw new ArgumentException(Resources.Strings.PathHelperAbsolutePathExpected, nameof(toFullPath));
+                throw new ArgumentException(CoreStrings.PathHelperAbsolutePathExpected, nameof(toFullPath));
             }
 
             if (!Uri.TryCreate(fromFullPath, UriKind.Absolute, out relativeToUri))
             {
-                throw new ArgumentException(Resources.Strings.PathHelperAbsolutePathExpected, nameof(fromFullPath));
+                throw new ArgumentException(CoreStrings.PathHelperAbsolutePathExpected, nameof(fromFullPath));
             }
 
 
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration
 
             if (!Uri.TryCreate(resolutionRootFullPath, UriKind.Absolute, out rootUri))
             {
-                throw new ArgumentException(Resources.Strings.PathHelperAbsolutePathExpected, nameof(resolutionRootFullPath));
+                throw new ArgumentException(CoreStrings.PathHelperAbsolutePathExpected, nameof(resolutionRootFullPath));
             }
 
             Uri expandedUri = new Uri(rootUri, relativePath);

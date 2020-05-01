@@ -215,10 +215,7 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Rule set generated from SonarQube</value>
     <comment>Generated rule set description.</comment>
   </data>
-  <data name="PathHelperAbsolutePathExpected" xml:space="preserve">
-    <value>An absolute file path was expected.</value>
-    <comment>Exception message indicating the provided path should be an absolute path.</comment>
-  </data>
+
   <data name="UnexpectedWorkflowError" xml:space="preserve">
     <value>Unexpected error during workflow execution: {0}.</value>
     <comment>Error message in case of an unexpected exception during workflow execution. {0} exception message.</comment>

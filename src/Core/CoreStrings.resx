@@ -128,6 +128,10 @@
     <value>C++</value>
     <comment>C++ language name</comment>
   </data>
+  <data name="PathHelperAbsolutePathExpected" xml:space="preserve">
+    <value>An absolute file path was expected.</value>
+    <comment>Exception message indicating the provided path should be an absolute path.</comment>
+  </data>
   <data name="CSharpLanguageName" xml:space="preserve">
     <value>C#</value>
     <comment>C# language name</comment>
