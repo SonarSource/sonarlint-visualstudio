@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => testSubject.GetConfigurationAsync(ValidQualityProfile, null, Language.Cpp, CancellationToken.None).Wait();
 
             // Assert
-            act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
 
         [TestMethod]
@@ -311,24 +311,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     Times.Never);
             }
 
-            internal void AssertNuGetGeneratorNotCalled()
+            public void AssertNuGetGeneratorNotCalled()
             {
                 nugetGenMock.Verify(x => x.GetNuGetPackageInfos(It.IsAny<IEnumerable<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()),
                     Times.Never);
             }
 
-            internal void AssertNuGetGeneratorWasCalled()
+            public void AssertNuGetGeneratorWasCalled()
             {
                 nugetGenMock.Verify(x => x.GetNuGetPackageInfos(It.IsAny<IEnumerable<SonarQubeRule>>(), It.IsAny<IDictionary<string, string>>()),
                     Times.Once);
             }
 
-            internal void AssertNuGetBindingWasNotCalled()
+            public void AssertNuGetBindingWasNotCalled()
             {
                 nugetBindingMock.Verify(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>>()),
                     Times.Never);
             }
-            internal void AssertNuGetBindingOpWasCalled()
+            public void AssertNuGetBindingOpWasCalled()
             {
                 nugetBindingMock.Verify(x => x.ProcessExport(It.IsAny<Language>(), It.IsAny<IEnumerable<NuGetPackageInfo>>()),
                     Times.Once);

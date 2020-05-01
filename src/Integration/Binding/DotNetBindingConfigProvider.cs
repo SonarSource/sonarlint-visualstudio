@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                   new RuleSetGenerator(), new NuGetPackageInfoGenerator())
         {
         }
+
         internal /* for testing */ DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, string serverUrl, string projectName, ILogger logger,
             IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator)
         {
@@ -65,18 +66,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.ruleSetGenerator = ruleSetGenerator;
             this.nuGetPackageInfoGenerator = nuGetPackageInfoGenerator;
         }
+
         public bool IsLanguageSupported(Language language)
         {
             return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
         }
 
-        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string UNUSED_organizationKey_TODO_REMOVE, Language language, CancellationToken cancellationToken)
+        public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string UNUSED_organizationKey_TODO_REMOVE, Language language, CancellationToken cancellationToken)
         {
-            if(!IsLanguageSupported(language))
+            if (!IsLanguageSupported(language))
             {
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
+            return DoGetConfigurationAsync(qualityProfile, language, cancellationToken);
+        }
+
+        private async Task<IBindingConfigFile> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        {
             var serverLanguage = language.ServerLanguage;
             Debug.Assert(serverLanguage != null,
                 $"Server language should not be null for supported language: {language.Id}");
