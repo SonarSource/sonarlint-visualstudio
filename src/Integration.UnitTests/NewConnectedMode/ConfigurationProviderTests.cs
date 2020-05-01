@@ -113,10 +113,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             legacyPathProvider.Setup(x => x.Get()).Returns(null as string);
-            newPathProvider.Setup(x => x.Get()).Returns("new");
+            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingSerializer.Setup(x => x.Read("new")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -132,10 +132,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetConfig_LegacyConfigOnly_ReturnsLegacy()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("old");
+            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\old");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingSerializer.Setup(x => x.Read("old")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("c:\\old")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -151,11 +151,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetConfig_NoLegacyProjectAtFileLocation_NoConnectedProjectAtFileLocation_ReturnsStandalone()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("legacy");
-            solutionBindingSerializer.Setup(x => x.Read("legacy")).Returns(null as BoundSonarQubeProject);
+            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
+            solutionBindingSerializer.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
 
-            newPathProvider.Setup(x => x.Get()).Returns("new");
-            solutionBindingSerializer.Setup(x => x.Read("new")).Returns(null as BoundSonarQubeProject);
+            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
+            solutionBindingSerializer.Setup(x => x.Read("c:\\new")).Returns(null as BoundSonarQubeProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -170,12 +170,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetConfig_NoLegacyProjectAtFileLocation_ConnectedProjectAtFileLocation_ReturnsConnected()
         {
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("legacy");
-            solutionBindingSerializer.Setup(x => x.Read("legacy")).Returns(null as BoundSonarQubeProject);
+            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
+            solutionBindingSerializer.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
 
             var expectedProject = new BoundSonarQubeProject();
-            newPathProvider.Setup(x => x.Get()).Returns("new");
-            solutionBindingSerializer.Setup(x => x.Read("new")).Returns(expectedProject);
+            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
+            solutionBindingSerializer.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -193,11 +193,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // or new bindings to present. However, the legacy should take priority.
 
             // Arrange
-            legacyPathProvider.Setup(x => x.Get()).Returns("legacy");
-            newPathProvider.Setup(x => x.Get()).Returns("new");
+            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
+            newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingSerializer.Setup(x => x.Read("legacy")).Returns(expectedProject);
+            solutionBindingSerializer.Setup(x => x.Read("c:\\legacy")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();

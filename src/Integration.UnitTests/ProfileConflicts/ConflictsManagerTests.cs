@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.fileSystem = new MockFileSystem();
 
-            this.configProvider = new ConfigurableConfigurationProvider();
+            this.configProvider = new ConfigurableConfigurationProvider {FolderPathToReturn = "c:\\test"};
             this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
 
             this.inspector = new ConfigurableRuleSetInspector();

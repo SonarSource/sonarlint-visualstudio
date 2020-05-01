@@ -26,14 +26,19 @@ namespace SonarLint.VisualStudio.Core.Binding
     {
         public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone, null);
 
-        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string BindingConfigDirectory)
+        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string bindingConfigDirectory)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return new BindingConfiguration(project, sonarLintMode, BindingConfigDirectory);
+            if (string.IsNullOrEmpty(bindingConfigDirectory))
+            {
+                throw new ArgumentNullException(nameof(bindingConfigDirectory));
+            }
+
+            return new BindingConfiguration(project, sonarLintMode, bindingConfigDirectory);
         }
 
         public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
