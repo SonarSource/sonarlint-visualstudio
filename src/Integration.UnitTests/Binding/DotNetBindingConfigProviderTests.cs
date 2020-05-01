@@ -253,7 +253,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingConfiguration = new BindingConfiguration(
                 new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName, null,
                     new SonarQubeOrganization("key", "name")),
-                SonarLintMode.Connected);
+                SonarLintMode.Connected,
+                null);
 
             return new DotNetBindingConfigProvider(sonarQubeServiceMock.Object, nuGetBindingOperation, bindingConfiguration, logger);
         }

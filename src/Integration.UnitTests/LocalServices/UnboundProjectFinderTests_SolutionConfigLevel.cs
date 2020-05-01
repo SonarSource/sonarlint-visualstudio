@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 var configProviderMock = new Mock<IConfigurationProvider>();
                 configProviderMock.Setup(x => x.GetConfiguration())
                     .Returns(new BindingConfiguration(
-                        new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), mode));
+                        new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), mode, null));
 
                 var sp = new ConfigurableServiceProvider();
                 sp.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInfoProvider.Object);

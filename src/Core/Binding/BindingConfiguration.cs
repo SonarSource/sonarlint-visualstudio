@@ -24,27 +24,30 @@ namespace SonarLint.VisualStudio.Core.Binding
 {
     public sealed class BindingConfiguration : IEquatable<BindingConfiguration>
     {
-        public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone);
+        public static readonly BindingConfiguration Standalone = new BindingConfiguration(null, SonarLintMode.Standalone, null);
 
-        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode)
+        public static BindingConfiguration CreateBoundConfiguration(BoundSonarQubeProject project, SonarLintMode sonarLintMode, string BindingConfigDirectory)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            return new BindingConfiguration(project, sonarLintMode);
+            return new BindingConfiguration(project, sonarLintMode, BindingConfigDirectory);
         }
 
-        public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode)
+        public BindingConfiguration(BoundSonarQubeProject project, SonarLintMode mode, string bindingConfigDirectory)
         {
-            this.Project = project;
-            this.Mode = mode;
+            Project = project;
+            Mode = mode;
+            BindingConfigDirectory = bindingConfigDirectory;
         }
 
         public BoundSonarQubeProject Project { get; }
 
         public SonarLintMode Mode { get; }
+
+        public string BindingConfigDirectory { get; }
 
         #region IEquatable<BindingConfiguration> and Equals
 
