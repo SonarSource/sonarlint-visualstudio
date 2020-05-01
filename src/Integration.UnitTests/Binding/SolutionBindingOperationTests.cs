@@ -455,8 +455,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             rulesetConfig.Setup(x => x.RuleSet)
                 .Returns(new RuleSet(displayName));
 
-            rulesetConfig.SetupSet(x => x.FilePath = "1");
-
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).
             rulesetConfig.Setup(x => x.Save())
@@ -470,7 +468,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private static void CheckRuleSetFileWasSaved(Mock<IBindingConfigFileWithRuleset> mock, string expectedFileName)
         {
-            mock.VerifySet(x => x.FilePath = expectedFileName, Times.Once);
             mock.Verify(x => x.Save(), Times.Once);
         }
 

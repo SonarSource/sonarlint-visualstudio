@@ -28,16 +28,17 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public class CFamilyBindingConfigFile : IBindingConfigFile
     {
         private readonly IFileSystem fileSystem;
-        public string FilePath { get; set; }
+        public string FilePath { get; }
 
-        public CFamilyBindingConfigFile(RulesSettings ruleSettings)
-            : this (ruleSettings, new FileSystem())
+        public CFamilyBindingConfigFile(RulesSettings ruleSettings, string filePath)
+            : this (ruleSettings, filePath, new FileSystem())
         {
         }
 
-        public CFamilyBindingConfigFile(RulesSettings rulesSettings, IFileSystem fileSystem)
+        public CFamilyBindingConfigFile(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
         {
-            this.RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
+            RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
+            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 

@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -133,15 +132,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>(languageToFileMap);
-
-            var ruleSetInfo = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfo.AssertLocalServiceIsNotNull();
-
-            foreach (var keyValue in languageToFileMap)
-            {
-                var solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(projectKey, keyValue.Key, bindingMode);
-                bindingConfigInformationMap[keyValue.Key].FilePath = solutionRuleSet;
-            }
         }
 
         public IBindingConfigFile GetBindingConfig(Language language)

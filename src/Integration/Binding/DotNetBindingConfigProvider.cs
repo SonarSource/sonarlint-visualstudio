@@ -41,13 +41,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly INuGetBindingOperation nuGetBindingOperation;
         private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, BindingConfiguration bindingConfiguration, ILogger logger)
+        : this(sonarQubeService, nuGetBindingOperation, bindingConfiguration, logger, new SolutionBindingFilePathGenerator())
+        {
+        }
+
+        internal DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, BindingConfiguration bindingConfiguration, ILogger logger, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.sonarQubeService = sonarQubeService;
             this.nuGetBindingOperation = nuGetBindingOperation;
             this.bindingConfiguration = bindingConfiguration;
             this.logger = logger;
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator;
         }
 
         public bool IsLanguageSupported(Language language)
@@ -105,7 +112,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Remove/Move/Refactor code when XML ruleset file is no longer downloaded but the proper API is used to retrieve rules
             UpdateDownloadedSonarQubeQualityProfile(ruleSet, qualityProfile, bindingConfiguration.Project.ProjectName, bindingConfiguration.Project.ServerUri.ToString());
 
-            return new DotNetBindingConfigFile(ruleSet);
+            var ruleSetFilePath = solutionBindingFilePathGenerator.Generate(
+                bindingConfiguration.BindingConfigDirectory,
+                bindingConfiguration.Project.ProjectKey,
+                language.FileSuffixAndExtension);
+
+            return new DotNetBindingConfigFile(ruleSet, ruleSetFilePath);
         }
 
         private void UpdateDownloadedSonarQubeQualityProfile(RuleSet ruleSet, SonarQubeQualityProfile qualityProfile, string projectName, string serverUrl)

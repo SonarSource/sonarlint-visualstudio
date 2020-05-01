@@ -25,21 +25,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class DotNetBindingConfigFile : IBindingConfigFileWithRuleset
     {
-        public string FilePath { get; set; }
+        public string FilePath { get; }
         public RuleSet RuleSet { get; }
 
-        public DotNetBindingConfigFile(RuleSet ruleSet)
+        public DotNetBindingConfigFile(RuleSet ruleSet, string filePath)
         {
             RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
+            FilePath = filePath ?? throw new ArgumentNullException(nameof(filePath));
         }
 
         public void Save()
         {
-            if (string.IsNullOrWhiteSpace(FilePath))
-            {
-                throw new ArgumentNullException(nameof(FilePath));
-            }
-
             RuleSet.WriteToFile(FilePath);
         }
     }

@@ -59,11 +59,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             if (!this.availableFiles.ContainsKey(language))
             {
-                bindingConfig = bindingConfig ?? new DotNetBindingConfigFile(new RuleSet("SonarQube"));
+                bindingConfig = bindingConfig ?? new DotNetBindingConfigFile(new RuleSet("SonarQube"), path);
                 this.availableFiles[language] = bindingConfig;
             }
-
-            this.availableFiles[language].FilePath = path;
         }
 
         #endregion Test helpers
