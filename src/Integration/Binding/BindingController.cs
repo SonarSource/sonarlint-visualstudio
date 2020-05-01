@@ -167,6 +167,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var unboundProjectFinder = new UnboundProjectFinder(host);
 
             var dotNetConfigProvider = new DotNetBindingConfigProvider(host.SonarQubeService, nugetBindingOp, currentConfiguration, host.Logger);
+            
             var cppConfigProvider = new CFamilyBindingConfigProvider(host.SonarQubeService, currentConfiguration, host.Logger);
             var ruleConfigProvider = new CompositeBindingConfigProvider(dotNetConfigProvider, cppConfigProvider);
 
