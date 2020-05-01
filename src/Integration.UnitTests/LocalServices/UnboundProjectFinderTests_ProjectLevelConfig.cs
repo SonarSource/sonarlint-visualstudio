@@ -279,8 +279,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding(SonarLintMode bindingMode)
         {
-            this.configProvider.ModeToReturn = bindingMode;
-            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
+            configProvider.ModeToReturn = bindingMode;
+            configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
+            configProvider.FolderPathToReturn = "c:\\test";
         }
 
         private void SetValidCSharpSolutionRuleSet(RuleSet ruleSet, SonarLintMode bindingMode)

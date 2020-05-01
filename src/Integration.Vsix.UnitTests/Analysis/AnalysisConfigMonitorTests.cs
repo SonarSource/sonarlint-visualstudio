@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
                 var solutionBoundTracker = new ConfigurableActiveSolutionBoundTracker
                 {
-                    CurrentConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode)
+                    CurrentConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode, null)
                 };
 
                 Logger = new TestLogger();

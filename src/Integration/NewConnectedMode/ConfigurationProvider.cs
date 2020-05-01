@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -82,9 +83,14 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             var boundProject = solutionBindingSerializer.Read(bindingPath);
 
-            return boundProject == null
-                ? null
-                : BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode);
+            if (boundProject == null)
+            {
+                return null;
+            }
+
+            var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
+
+            return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
         }
 
         private WriteSettings? GetWriteSettings(SonarLintMode bindingMode)

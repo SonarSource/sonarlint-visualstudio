@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             return ModeToReturn == SonarLintMode.Standalone
                 ? BindingConfiguration.Standalone
-                : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn);
+                : BindingConfiguration.CreateBoundConfiguration(ProjectToReturn, ModeToReturn, FolderPathToReturn);
         }
 
         public bool Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public BoundSonarQubeProject ProjectToReturn { get; set; }
         public SonarLintMode ModeToReturn { get; set; }
+        public string FolderPathToReturn { get; set; }
+
         public Action GetConfigurationAction { get; set; }
 
         public bool WriteResultToReturn { get; set; }

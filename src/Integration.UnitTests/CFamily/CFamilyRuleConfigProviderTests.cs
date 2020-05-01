@@ -219,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 // Data: set up the binding configuration
                 var projectToReturn = new BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
                     "sqProjectKey", "sqProjectName");
-                activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode);
+                activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode, null);
 
                 // Data: user-configured settings
                 standaloneSettingsProviderMock.Setup(x => x.UserSettings).Returns(StandaloneModeSettings);
