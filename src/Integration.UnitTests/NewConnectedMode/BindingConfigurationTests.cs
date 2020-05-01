@@ -46,6 +46,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
         }
 
+        [DataTestMethod]
+        [DataRow("")]
+        [DataRow(null)]
+        public void StaticCreator_InvalidArgs_NullDirectoryPath_Throws(string directoryPath)
+        {
+            // Arrange
+            Action act = () => BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, directoryPath);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigDirectory");
+        }
+
         [TestMethod]
         public void StaticCreator_LegacyProject_ModeIsLegacy()
         {
