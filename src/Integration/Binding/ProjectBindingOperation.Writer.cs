@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -21,8 +21,10 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
 {
     [TestClass]
     public class PathHelperTests
