@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
 
-            this.testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem);
+            this.testSubject = new SolutionRuleSetsInformationProvider(serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem, new SolutionBindingFilePathGenerator());
         }
 
         #region Tests
@@ -70,15 +70,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object, new MockFileSystem()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), null, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, null, Mock.Of<ISolutionBindingFilePathGenerator>()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, new MockFileSystem(), null));
         }
 
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ArgChecks()
         {
-            // Arrange
-            var testSubject = new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object, new MockFileSystem());
-
             // Act + Assert
             Exceptions.Expect<ArgumentNullException>(() => testSubject.GetProjectRuleSetsDeclarations(null).ToArray());
         }
