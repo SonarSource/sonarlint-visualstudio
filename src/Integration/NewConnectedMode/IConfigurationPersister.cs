@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -22,8 +22,8 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    public interface IConfigurationProvider : ILocalService
+    public interface IConfigurationPersister : ILocalService
     {
-        BindingConfiguration GetConfiguration();
+        bool Persist(BoundSonarQubeProject project, SonarLintMode bindingMode);
     }
 }

@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal class ConfigurationProvider : IConfigurationProvider
+    internal class ConfigurationProvider : IConfigurationProvider, IConfigurationPersister
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
@@ -60,17 +60,17 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return bindingConfiguration ?? BindingConfiguration.Standalone;
         }
 
-        public bool WriteConfiguration(BindingConfiguration configuration)
+        public bool Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
         {
-            if (configuration == null)
+            if (project == null)
             {
-                throw new ArgumentNullException(nameof(configuration));
+                throw new ArgumentNullException(nameof(project));
             }
 
-            var writeSettings = GetWriteSettings(configuration);
+            var writeSettings = GetWriteSettings(bindingMode);
 
             return writeSettings.HasValue && 
-                   solutionBindingSerializer.Write(writeSettings?.ConfigPath, configuration.Project, writeSettings?.OnSuccessfulFileWrite);
+                   solutionBindingSerializer.Write(writeSettings?.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
         }
 
         private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
@@ -87,11 +87,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 : BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode);
         }
 
-        private WriteSettings? GetWriteSettings(BindingConfiguration configuration)
+        private WriteSettings? GetWriteSettings(SonarLintMode bindingMode)
         {
             var writeSettings = new WriteSettings();
 
-            switch (configuration.Mode)
+            switch (bindingMode)
             {
                 case SonarLintMode.LegacyConnected:
                 {
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 }
                 default:
                 {
-                    Debug.Fail("Unrecognized write mode " + configuration.Mode);
+                    Debug.Fail("Unrecognized write mode " + bindingMode);
                     return null;
                 }
             }
