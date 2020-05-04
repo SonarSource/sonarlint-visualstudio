@@ -44,6 +44,11 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
 
         [XmlElement]
         public List<Rules> Rules { get; set; } = new List<Rules>();
+
+        public string ToXml()
+        {
+            return Serializer.ToString(this);
+        }
     }
 
     public class Include
