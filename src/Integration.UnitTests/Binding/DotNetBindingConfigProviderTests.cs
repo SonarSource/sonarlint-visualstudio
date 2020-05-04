@@ -261,6 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.serverUrl = serverUrl;
 
                 Logger = new TestLogger();
+                FilePathResponse = "test";
             }
 
             public string FilePathResponse { get; set; }
