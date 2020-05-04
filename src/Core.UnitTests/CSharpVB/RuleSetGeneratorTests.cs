@@ -24,6 +24,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client.Models;
 
 // Based on the SonarScanner for MSBuild code
@@ -85,15 +86,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
-        public void Generate_ActiveRules_Always_Warning()
+        public void Generate_ActiveRules_VsSeverity_IsCorrectlyMapped()
         {
             // Arrange
             var generator = new RuleSetGenerator();
             
             var activeRules = new List<SonarQubeRule>
             {
-                CreateSonarCSharpRule("rule1", isActive: true),
-                CreateSonarCSharpRule("rule2", isActive: true),
+                CreateSonarCSharpRule("rule1", isActive: true, sqSeverity: SonarQubeIssueSeverity.Info),
+                CreateSonarCSharpRule("rule2", isActive: true, sqSeverity: SonarQubeIssueSeverity.Critical)
             };
 
             // Act
@@ -101,19 +102,19 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             // Assert
             ruleSet.Rules.Should().HaveCount(1);
-            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "Warning");
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Info", "Warning");
         }
 
         [TestMethod]
-        public void Generate_InactiveRules_Always_None()
+        public void Generate_InactiveRules_VSseverity_IsAlwaysNone()
         {
             // Arrange
             var generator = new RuleSetGenerator();
           
             var inactiveRules = new List<SonarQubeRule>
             {
-                CreateSonarCSharpRule("rule1", isActive: false),
-                CreateSonarCSharpRule("rule2", isActive: false),
+                CreateSonarCSharpRule("rule1", isActive: false, sqSeverity: SonarQubeIssueSeverity.Major),
+                CreateSonarCSharpRule("rule2", isActive: false, sqSeverity: SonarQubeIssueSeverity.Info),
             };
 
             // Act
@@ -159,8 +160,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
             var rules = new[]
             {
-                CreateRule("roslyn.custom1", "active1", true),
-                CreateRule("roslyn.custom2", "active2", true),
+                CreateRule("roslyn.custom1", "active1", true, SonarQubeIssueSeverity.Info),
+                CreateRule("roslyn.custom2", "active2", true, SonarQubeIssueSeverity.Critical),
                 CreateRule("roslyn.custom1", "inactive1", false),
                 CreateRule("roslyn.custom2", "inactive2", false),
             };
@@ -175,7 +176,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             ruleSet.Rules[0].AnalyzerId.Should().Be("CustomAnalyzer1");
             ruleSet.Rules[0].RuleList.Should().HaveCount(2);
             ruleSet.Rules[0].RuleList.Select(r => r.Id).Should().BeEquivalentTo("active1", "inactive1");
-            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Warning", "None");
+            ruleSet.Rules[0].RuleList.Select(r => r.Action).Should().BeEquivalentTo("Info", "None");
 
             ruleSet.Rules[1].RuleNamespace.Should().Be("CustomNamespace2");
             ruleSet.Rules[1].AnalyzerId.Should().Be("CustomAnalyzer2");
@@ -192,9 +193,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             
             var rules = new[]
             {
-                CreateRule("csharpsquid", "active1", true),
+                CreateRule("csharpsquid", "active1", true, SonarQubeIssueSeverity.Major),
                 // Even though this rule is for VB it will be added as C#, see NOTE below
-                CreateRule("vbnet", "active2", true),
+                CreateRule("vbnet", "active2", true, SonarQubeIssueSeverity.Major),
 
                 CreateRule("csharpsquid", "inactive1", false),
                 // Even though this rule is for VB it will be added as C#, see NOTE below
@@ -389,10 +390,47 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             act.Should().Throw<NotSupportedException>();
         }
 
-        private static SonarQubeRule CreateSonarCSharpRule(string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Unknown) =>
+        [TestMethod]
+        [DataRow(SonarQubeIssueSeverity.Info, RuleAction.Info)]
+        [DataRow(SonarQubeIssueSeverity.Minor, RuleAction.Info)]
+        [DataRow(SonarQubeIssueSeverity.Major, RuleAction.Warning)]
+        [DataRow(SonarQubeIssueSeverity.Critical, RuleAction.Warning)]
+        public void GetVSSeverity_NotBlocker_CorrectlyMapped(SonarQubeIssueSeverity sqSeverity, RuleAction expectedVsSeverity)
+        {
+            RuleSetGenerator.GetVsSeverity(sqSeverity).Should().Be(expectedVsSeverity);
+        }
+
+        [TestMethod]
+        [DataRow(null, RuleAction.Warning)]
+        [DataRow("true", RuleAction.Error)]
+        [DataRow("TRUE", RuleAction.Error)]
+        [DataRow("false", RuleAction.Warning)]
+        [DataRow("FALSE", RuleAction.Warning)]
+        [DataRow("1", RuleAction.Warning)]
+        [DataRow("0", RuleAction.Warning)]
+        [DataRow("not a boolean", RuleAction.Warning)]
+        public void GetVSSeverity_Blocker_CorrectlyMapped(string envVarValue, RuleAction expectedVsSeverity)
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(RuleSetGenerator.TreatBlockerAsErrorEnvVar, envVarValue);
+                RuleSetGenerator.GetVsSeverity(SonarQubeIssueSeverity.Blocker).Should().Be(expectedVsSeverity);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(SonarQubeIssueSeverity.Unknown)]
+        [DataRow((SonarQubeIssueSeverity)(-1))]
+        public void GetVSSeverity_Invalid_Throws(SonarQubeIssueSeverity sqSeverity)
+        {
+            Action act = () => RuleSetGenerator.GetVsSeverity(sqSeverity);
+            act.Should().Throw<NotSupportedException>();
+        }
+
+        private static SonarQubeRule CreateSonarCSharpRule(string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Info) =>
             CreateRule("csharpsquid", ruleKey, isActive, sqSeverity);
 
-        private static SonarQubeRule CreateRule(string repoKey, string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Unknown) =>
+        private static SonarQubeRule CreateRule(string repoKey, string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Info) =>
             new SonarQubeRule(ruleKey, repoKey, isActive, sqSeverity, new Dictionary<string, string>());
     }
 }
