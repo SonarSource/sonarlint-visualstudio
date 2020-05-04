@@ -29,20 +29,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CFamilyProjectBinder : IProjectBinder
     {
-        private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IFileSystem fileSystem;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
-        public CFamilyProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        public CFamilyProjectBinder(IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-
-            ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
 
         public bool IsBound(BindingConfiguration binding, Project project)
@@ -54,7 +47,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             return languages.All(language =>
             {
-                var slnLevelBindingConfigFilepath = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
+                var slnLevelBindingConfigFilepath = solutionBindingFilePathGenerator.Generate(
+                    binding.BindingConfigDirectory, binding.Project.ProjectKey, language.FileSuffixAndExtension);
 
                 return fileSystem.File.Exists(slnLevelBindingConfigFilepath);
             });

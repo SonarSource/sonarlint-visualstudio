@@ -41,31 +41,29 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
         // Settable in constructor for testing
         private readonly ICFamilyRulesConfigProvider sonarWayProvider;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         // Local services
-        private readonly ISolutionRuleSetsInformationProvider solutionInfoProvider;
-
         private readonly RulesSettingsSerializer serializer;
 
         [ImportingConstructor]
-        public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
-            : this(host, activeSolutionBoundTracker, userSettingsProvider, logger,
+        public CFamilyRuleConfigProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
+            : this(activeSolutionBoundTracker, userSettingsProvider, logger,
                  new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
-                 new FileSystem())
+                 new FileSystem(),
+                 new SolutionBindingFilePathGenerator())
         {
         }
 
-        public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
-            ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFileSystem fileSystem)
+        public CFamilyRuleConfigProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
+            ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.userSettingsProvider = userSettingsProvider;
             this.logger = logger;
 
-            solutionInfoProvider = host.GetService<ISolutionRuleSetsInformationProvider>();
-            solutionInfoProvider.AssertLocalServiceIsNotNull();
-
             this.sonarWayProvider = sonarWayProvider;
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator;
             this.serializer = new RulesSettingsSerializer(fileSystem, logger);
 
             this.effectiveConfigCalculator = new EffectiveRulesConfigCalculator(logger);
@@ -107,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
             if (language != null)
             {
-                var filePath = solutionInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
+                var filePath = solutionBindingFilePathGenerator.Generate(binding.BindingConfigDirectory, binding.Project.ProjectKey, language.FileSuffixAndExtension);
                 var settings = serializer.SafeLoad(filePath);
                 return settings;
             }

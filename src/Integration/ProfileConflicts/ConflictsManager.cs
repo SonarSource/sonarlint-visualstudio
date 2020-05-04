@@ -47,17 +47,19 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private readonly ILogger logger;
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider), new FileSystem())
+            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider), new FileSystem(), new SolutionBindingFilePathGenerator())
         {
         }
 
-        internal ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IProjectBinderFactory projectBinderFactory, IFileSystem fileSystem)
+        internal ConflictsManager(IServiceProvider serviceProvider, ILogger logger, IProjectBinderFactory projectBinderFactory, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
         }
 
@@ -78,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             // in other cases assuming that the rule set are indeed on disk is not possible, and in fact re-syncing
             // would be required when we have missing rule-sets, otherwise finding conflicts will not be possible.
 
-            RuleSetInformation[] aggregatedRuleSets = CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(bindingConfig.Project);
+            RuleSetInformation[] aggregatedRuleSets = CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(bindingConfig);
 
             if (aggregatedRuleSets.Length > 0)
             {
@@ -125,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         // ISSUE : this method is doing too many things
         private RuleSetInformation[] CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(
-            BoundSonarQubeProject bindingInfo)
+            BindingConfiguration bindingConfiguration)
         {
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
@@ -139,10 +141,10 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 // Solution-level checks (done here because the expected solution-level config
                 // depends on the languages supported by the project that exist)
-                string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                    bindingInfo.ProjectKey,
-                    ProjectToLanguageMapper.GetLanguageForProject(project),
-                    SonarLintMode.LegacyConnected);
+                string baselineRuleSet = solutionBindingFilePathGenerator.Generate(
+                    bindingConfiguration.BindingConfigDirectory,
+                    bindingConfiguration.Project.ProjectKey,
+                    ProjectToLanguageMapper.GetLanguageForProject(project).FileSuffixAndExtension);
 
                 if (!fileSystem.File.Exists(baselineRuleSet))
                 {

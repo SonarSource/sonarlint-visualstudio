@@ -163,7 +163,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             private readonly Mock<IFileSystem> fileSystemMock = new Mock<IFileSystem>();
             private readonly List<ProjectMock> projects = new List<ProjectMock>();
-            private readonly Mock<ISolutionRuleSetsInformationProvider> ruleSetsInfoProvider = new Mock<ISolutionRuleSetsInformationProvider>();
+            private readonly Mock<ISolutionBindingFilePathGenerator> solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
             private readonly Mock<IRuleSetSerializer> ruleSetSerializerMock = new Mock<IRuleSetSerializer>();
 
             public TestConfigurationBuilder(SonarLintMode bindingMode, string sqProjectKey)
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             public void SetSolutionLevelFilePathForLanguage(Language language, string filePathToReturn, bool fileExists)
             {
-                ruleSetsInfoProvider.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath(sqProjectKey, language, mode))
+                solutionBindingFilePathGeneratorMock.Setup(x => x.Generate(It.IsAny<string>(), sqProjectKey, language.FileSuffixAndExtension))
                     .Returns(filePathToReturn);
 
                 fileSystemMock.Setup(x => x.File.Exists(filePathToReturn)).Returns(fileExists);
@@ -199,12 +199,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                         new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), mode, null));
 
                 var sp = new ConfigurableServiceProvider();
-                sp.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInfoProvider.Object);
+                sp.RegisterService(typeof(ISolutionRuleSetsInformationProvider), solutionBindingFilePathGeneratorMock.Object);
                 sp.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper.Object);
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, new ProjectBinderFactory(sp, fileSystemMock.Object));
+                var testSubject = new UnboundProjectFinder(sp, new ProjectBinderFactory(sp, fileSystemMock.Object, solutionBindingFilePathGeneratorMock.Object));
                 return testSubject;
             }
 

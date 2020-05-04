@@ -22,6 +22,7 @@ using System;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -29,16 +30,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IFileSystem fileSystem;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public ProjectBinderFactory(IServiceProvider serviceProvider)
-            : this(serviceProvider, new FileSystem())
+            : this(serviceProvider, new FileSystem(), new SolutionBindingFilePathGenerator())
         {
         }
 
-        internal ProjectBinderFactory(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal ProjectBinderFactory(IServiceProvider serviceProvider, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
 
         public IProjectBinder Get(Project project)
@@ -47,8 +50,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
             return isRoslynProject
-                ? (IProjectBinder) new RoslynProjectBinder(serviceProvider, fileSystem)
-                : new CFamilyProjectBinder(serviceProvider, fileSystem);
+                ? (IProjectBinder) new RoslynProjectBinder(serviceProvider, fileSystem, solutionBindingFilePathGenerator)
+                : new CFamilyProjectBinder(fileSystem, solutionBindingFilePathGenerator);
         }
     }
 }

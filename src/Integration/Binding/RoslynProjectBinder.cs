@@ -31,10 +31,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class RoslynProjectBinder : IProjectBinder
     {
         private readonly IFileSystem fileSystem;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
 
-        public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             if (serviceProvider == null)
             {
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
@@ -63,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
         {
             // If solution is not bound/is missing a rules configuration file, no need to go further
-            var slnLevelBindingConfigFilepath = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
+            var slnLevelBindingConfigFilepath = solutionBindingFilePathGenerator.Generate(
+                binding.BindingConfigDirectory, binding.Project.ProjectKey, language.FileSuffixAndExtension);
 
             if (!fileSystem.File.Exists(slnLevelBindingConfigFilepath))
             {
@@ -84,7 +87,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return declarations.Length > 0 // Need at least one
                    && declarations.All(declaration => IsRuleSetBound(project, declaration, sonarQubeRuleSet));
         }
-
 
         private bool IsRuleSetBound(Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
         {

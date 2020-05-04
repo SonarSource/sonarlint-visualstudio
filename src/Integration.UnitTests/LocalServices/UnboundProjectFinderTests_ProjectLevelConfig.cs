@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expected = this.SetValidFilteredProjects();
 
             this.SetValidSolutionBinding(mode);
-            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"), mode);
+            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"));
 
             // Act
             var projects = testSubject.GetUnboundProjects();
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidProjectRuleSets((project, filePath) => new RuleSet("ProjectRuleSet") { FilePath = filePath });
 
             this.SetValidSolutionBinding(mode);
-            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"), mode);
+            this.SetValidCSharpSolutionRuleSet(new RuleSet("SolutionRuleSet"));
 
             // Act
             var projects = testSubject.GetUnboundProjects();
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var allProjects = this.SetValidFilteredProjects();
 
             this.SetValidSolutionBinding(mode);
-            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(mode);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
 
             IEnumerable<Project> projects;
 
@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             allProjects.OfType<ProjectMock>().ToList().ForEach(p => this.SetValidProjectConfiguration(p, "AnotherConfiguration"));
 
             this.SetValidSolutionBinding(mode);
-            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(mode);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
 
             IEnumerable<Project> projects;
 
@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SetValidFilteredProjects();
 
             this.SetValidSolutionBinding(mode);
-            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets(mode);
+            ProjectMock boundProject = SetValidSolutionAndProjectRuleSets();
 
             ProjectMock unboundProject = this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().Except(new[] { boundProject }).SingleOrDefault();
             IEnumerable<Project> projects;
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
 
         private UnboundProjectFinder CreateTestSubject() =>
-            new UnboundProjectFinder(this.serviceProvider, new ProjectBinderFactory(serviceProvider, fileMock.Object));
+            new UnboundProjectFinder(this.serviceProvider, new ProjectBinderFactory(serviceProvider, fileMock.Object, new SolutionBindingFilePathGenerator()));
 
         private IEnumerable<Project> SetValidFilteredProjects()
         {
@@ -284,18 +284,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             configProvider.FolderPathToReturn = "c:\\test";
         }
 
-        private void SetValidCSharpSolutionRuleSet(RuleSet ruleSet, SonarLintMode bindingMode)
+        private void SetValidCSharpSolutionRuleSet(RuleSet ruleSet)
         {
-            string expectedSolutionRuleSet = SetValidSolutionRulesFile("projectKey", Language.CSharp, bindingMode);
+            string expectedSolutionRuleSet = SetValidSolutionRulesFile("projectKey", Language.CSharp);
 
             ruleSet.FilePath = expectedSolutionRuleSet;
             this.ruleSetSerializer.RegisterRuleSet(ruleSet);
         }
 
-        private string SetValidSolutionRulesFile(string projectKey, Language language, SonarLintMode bindingMode)
+        private string SetValidSolutionRulesFile(string projectKey, Language language)
         {
-            string expectedSolutionRulesFile = ((ISolutionRuleSetsInformationProvider)this.ruleSetInfoProvider)
-                .CalculateSolutionSonarQubeRuleSetFilePath(projectKey, language, bindingMode);
+            var expectedSolutionRulesFile = new SolutionBindingFilePathGenerator().Generate(configProvider.FolderPathToReturn, projectKey, language.FileSuffixAndExtension);
 
             fileMock.Setup(x => x.File.Exists(expectedSolutionRulesFile)).Returns(true);
             return expectedSolutionRulesFile;
@@ -306,12 +305,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         /// one rule set that will be considered as a rule set for a bound project
         /// </summary>
         /// <returns>The bound project for which the rule set was set</returns>
-        private ProjectMock SetValidSolutionAndProjectRuleSets(SonarLintMode bindingMode)
+        private ProjectMock SetValidSolutionAndProjectRuleSets()
         {
             var solutionRuleSet = new RuleSet("SolutionRuleSet");
             ProjectMock boundProject = this.projectSystemHelper.FilteredProjects.OfType<ProjectMock>().First();
 
-            this.SetValidCSharpSolutionRuleSet(solutionRuleSet, bindingMode);
+            this.SetValidCSharpSolutionRuleSet(solutionRuleSet);
             this.SetValidProjectRuleSets((project, filePath) =>
             {
                 var ruleSet = new RuleSet("ProjectRuleSet") { FilePath = filePath };
