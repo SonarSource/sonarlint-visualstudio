@@ -37,6 +37,17 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         private static readonly IEnumerable<SonarQubeRule> EmptyRules = Array.Empty<SonarQubeRule>();
         private static readonly IDictionary<string, string> EmptyProperties = new Dictionary<string, string>();
 
+        private static readonly IDictionary<string, string> ValidSonarCSharpProperties = new Dictionary<string, string>
+        {
+            ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
+            ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
+        };
+
+        private static readonly IList<SonarQubeRule> ValidSonarCSharpRules = new List<SonarQubeRule>
+        {
+            CreateSonarCSharpRule("any-1"), CreateSonarCSharpRule("any-2")
+        };
+
         [TestMethod]
         public void Generate_ArgumentChecks()
         {
@@ -60,7 +71,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var generator = new RuleSetGenerator();
             var rules = new List<SonarQubeRule>
             {
-                CreateRule("repo", "key", false),
+                CreateRule("repo", "key"),
             };
 
             // Act
@@ -79,20 +90,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             // Arrange
             var generator = new RuleSetGenerator();
             
-            var properties = new Dictionary<string, string>
-            {
-                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
-                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            };
-
             var activeRules = new List<SonarQubeRule>
             {
-                CreateRule("csharpsquid", "rule1", isActive: true),
-                CreateRule("csharpsquid", "rule2", isActive: true),
+                CreateSonarCSharpRule("rule1", isActive: true),
+                CreateSonarCSharpRule("rule2", isActive: true),
             };
 
             // Act
-            var ruleSet = generator.Generate("cs", activeRules, properties);
+            var ruleSet = generator.Generate("cs", activeRules, ValidSonarCSharpProperties);
 
             // Assert
             ruleSet.Rules.Should().HaveCount(1);
@@ -104,21 +109,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
-            var properties = new Dictionary<string, string>
-            {
-                ["sonaranalyzer-cs.analyzerId"] = "SonarAnalyzer.CSharp",
-                ["sonaranalyzer-cs.ruleNamespace"] = "SonarAnalyzer.CSharp",
-            };
-
+          
             var inactiveRules = new List<SonarQubeRule>
             {
-                CreateRule("csharpsquid", "rule1", isActive: false),
-                CreateRule("csharpsquid", "rule2", isActive: false),
+                CreateSonarCSharpRule("rule1", isActive: false),
+                CreateSonarCSharpRule("rule2", isActive: false),
             };
 
             // Act
-            var ruleSet = generator.Generate("cs", inactiveRules, properties);
+            var ruleSet = generator.Generate("cs", inactiveRules, ValidSonarCSharpProperties);
 
             // Assert
             ruleSet.Rules.Should().HaveCount(1);
@@ -158,7 +157,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 ["custom2.ruleNamespace"] = "CustomNamespace2",
             };
 
-            var activeRules = new[]
+            var rules = new[]
             {
                 CreateRule("roslyn.custom1", "active1", true),
                 CreateRule("roslyn.custom2", "active2", true),
@@ -167,7 +166,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var ruleSet = generator.Generate("cs", activeRules, properties);
+            var ruleSet = generator.Generate("cs", rules, properties);
 
             // Assert
             ruleSet.Rules.Should().HaveCount(2);
@@ -191,12 +190,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             // Arrange
             var generator = new RuleSetGenerator();
             
-            var properties = new Dictionary<string, string>
-            {
-                { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
-                { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
-            };
-
             var rules = new[]
             {
                 CreateRule("csharpsquid", "active1", true),
@@ -209,7 +202,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var ruleSet = generator.Generate("cs", rules, properties);
+            var ruleSet = generator.Generate("cs", rules, ValidSonarCSharpProperties);
 
             // Assert
             ruleSet.Rules.Should().HaveCount(1);
@@ -241,14 +234,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 [$"sonaranalyzer.security.{language}.ruleNamespace"] = "SonarAnalyzer.Security"
             };
 
-            var activeRules = new[]
+            var rules = new[]
             {
                 CreateRule($"roslyn.sonaranalyzer.security.{language}", "S2083", true),
                 CreateRule($"roslyn.sonaranalyzer.security.{language}", "S5131", false),
             };
 
             // Act
-            var ruleSet = generator.Generate(language, activeRules, properties);
+            var ruleSet = generator.Generate(language, rules, properties);
 
             // Assert
             ruleSet.Rules.Should().BeEmpty();
@@ -334,13 +327,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
             };
 
-            var rules = new[]
-            {
-                CreateRule("csharpsquid", "active1", true),
-            };
-
             // Act & Assert
-            var action = new Action(() => generator.Generate("cs", rules, properties));
+            var action = new Action(() => generator.Generate("cs", ValidSonarCSharpRules, properties));
             action.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().StartWith(
                     "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
@@ -357,13 +345,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
             };
 
-            var rules = new[]
-            {
-                CreateRule("csharpsquid", "active1", true),
-            };
-
             // Act & Assert
-            var action = new Action(() => generator.Generate("cs", rules, properties));
+            var action = new Action(() => generator.Generate("cs", ValidSonarCSharpRules, properties));
             action.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().StartWith(
                     "Property does not exist: sonaranalyzer-cs.ruleNamespace. This property should be set by the plugin in SonarQube.");
@@ -381,13 +364,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
             };
 
-            var rules = new[]
-            {
-                CreateRule("csharpsquid", "active1", true),
-            };
-
             // Act & Assert
-            var action = new Action(() => generator.Generate("cs", rules, properties));
+            var action = new Action(() => generator.Generate("cs", ValidSonarCSharpRules, properties));
             action.Should().ThrowExactly<InvalidOperationException>().And
                 .Message.Should().StartWith(
                     "Property does not exist: sonaranalyzer-cs.analyzerId. This property should be set by the plugin in SonarQube.");
@@ -411,7 +389,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             act.Should().Throw<NotSupportedException>();
         }
 
-        private SonarQubeRule CreateRule(string repoKey, string ruleKey, bool isActive) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Unknown, new Dictionary<string, string>());
+        private static SonarQubeRule CreateSonarCSharpRule(string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Unknown) =>
+            CreateRule("csharpsquid", ruleKey, isActive, sqSeverity);
+
+        private static SonarQubeRule CreateRule(string repoKey, string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Unknown) =>
+            new SonarQubeRule(ruleKey, repoKey, isActive, sqSeverity, new Dictionary<string, string>());
     }
 }
