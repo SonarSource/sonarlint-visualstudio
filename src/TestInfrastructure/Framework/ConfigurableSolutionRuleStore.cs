@@ -29,13 +29,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableSolutionRuleStore : ISolutionBindingConfigFileStore
     {
-        private readonly Dictionary<Language, ConfigFileInformation> availableFiles = new Dictionary<Language, ConfigFileInformation>();
+        private readonly Dictionary<Language, IBindingConfigFile> availableFiles = new Dictionary<Language, IBindingConfigFile>();
 
         #region ISolutionRuleStore
 
-        ConfigFileInformation ISolutionBindingConfigFileStore.GetConfigFileInformation(Language language)
+        IBindingConfigFile ISolutionBindingConfigFileStore.GetBindingConfig(Language language)
         {
-            ConfigFileInformation ruleSet;
+            IBindingConfigFile ruleSet;
             this.availableFiles.TryGetValue(language, out ruleSet);
 
             return ruleSet;
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             foreach (var rule in languageToFileMap)
             {
-                availableFiles.Add(rule.Key, new ConfigFileInformation(rule.Value));
+                availableFiles.Add(rule.Key, rule.Value);
             }
         }
 
@@ -59,11 +59,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             if (!this.availableFiles.ContainsKey(language))
             {
-                bindingConfig = bindingConfig ?? new DotNetBindingConfigFile(new RuleSet("SonarQube"));
-                this.availableFiles[language] = new ConfigFileInformation(bindingConfig);
+                bindingConfig = bindingConfig ?? new DotNetBindingConfigFile(new RuleSet("SonarQube"), path);
+                this.availableFiles[language] = bindingConfig;
             }
-
-            this.availableFiles[language].NewFilePath = path;
         }
 
         #endregion Test helpers

@@ -34,16 +34,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new CFamilyBindingConfigFile(null);
+            Action act = () => new CFamilyBindingConfigFile(null, "c:\\test");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesSettings");
+
+            act = () => new CFamilyBindingConfigFile(new RulesSettings(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
+            act = () => new CFamilyBindingConfigFile(new RulesSettings(), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
+            act = () => new CFamilyBindingConfigFile(new RulesSettings(), "c:\\test", null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
         public void Ctor_ValidArgs()
         {
             var settings = new RulesSettings();
-            var testSubject = new CFamilyBindingConfigFile(settings);
+            var testSubject = new CFamilyBindingConfigFile(settings, "c:\\test");
             testSubject.RuleSettings.Equals(settings);
+            testSubject.FilePath.Equals("c:\\test");
         }
 
         [TestMethod]
@@ -74,10 +84,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             fileSystemMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
-            var testSubject = new CFamilyBindingConfigFile(settings, fileSystemMock.Object);
+            var testSubject = new CFamilyBindingConfigFile(settings, "c:\\full\\path\\file.txt", fileSystemMock.Object);
 
             // Act
-            testSubject.Save("c:\\full\\path\\file.txt");
+            testSubject.Save();
 
             // Assert
             actualPath.Should().Be("c:\\full\\path\\file.txt");

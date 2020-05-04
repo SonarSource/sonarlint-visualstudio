@@ -35,23 +35,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new DotNetBindingConfigFile(null);
-
+            Action act = () => new DotNetBindingConfigFile(null, "dummy");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
-        }
 
-        [TestMethod]
-        public void Save_InvalidArgs()
-        {
-            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"));
+             act = () => new DotNetBindingConfigFile(new RuleSet("dummy"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
-            // 1. Null -> throw
-            Action act = () => testSubject.Save(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fullFilePath");
-
-            // 2. Empty -> throw
-            act = () => testSubject.Save("");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fullFilePath");
+            act = () => new DotNetBindingConfigFile(new RuleSet("dummy"), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
 
         [TestMethod]
@@ -64,10 +55,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(testDir);
             var fullPath = Path.Combine(testDir, "savedRuleSet.txt");
 
-            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"));
+            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"), fullPath);
 
             // Act
-            testSubject.Save(fullPath);
+            testSubject.Save();
 
             // Assert
             File.Exists(fullPath).Should().BeTrue();

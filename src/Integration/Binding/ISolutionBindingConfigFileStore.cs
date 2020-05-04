@@ -38,6 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Retrieves the solution-level configuration mapped to the <see cref="Language"/>.
         /// </summary>
-        ConfigFileInformation GetConfigFileInformation(Language language);
+        IBindingConfigFile GetBindingConfig(Language language);
     }
 }

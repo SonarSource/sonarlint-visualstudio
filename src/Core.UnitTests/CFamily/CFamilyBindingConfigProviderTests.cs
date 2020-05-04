@@ -140,7 +140,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(true, It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => rules);
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, BindingConfiguration.Standalone, testLogger);
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = "test" }, SonarLintMode.Connected, "c:\\");
+
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, bindingConfiguration, testLogger);
 
             // Act
             var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, CancellationToken.None);
@@ -185,7 +187,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() => new List<SonarQubeRule>());
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, BindingConfiguration.Standalone, testLogger);
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject {ProjectKey = "test"}, SonarLintMode.Connected, "c:\\");
+
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, bindingConfiguration, testLogger);
 
             // Act
             var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, CancellationToken.None);

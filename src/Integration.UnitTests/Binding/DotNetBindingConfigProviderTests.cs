@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInitialize()
         {
-            this.logger = new TestLogger();
+            this.logger = new TestLogger(true);
             this.sonarQubeServiceMock = new Mock<ISonarQubeService>();
         }
 
@@ -254,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName, null,
                     new SonarQubeOrganization("key", "name")),
                 SonarLintMode.Connected,
-                null);
+                "c:\\test");
 
             return new DotNetBindingConfigProvider(sonarQubeServiceMock.Object, nuGetBindingOperation, bindingConfiguration, logger);
         }
