@@ -81,17 +81,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
 
-            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(serviceProvider, fileSystem), fileSystem);
+            var solutionBindingFilePathGenerator = new Mock<ISolutionBindingFilePathGenerator>();
+
+            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(serviceProvider, fileSystem, solutionBindingFilePathGenerator.Object), fileSystem, solutionBindingFilePathGenerator.Object);
         }
 
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
+            var solutionBindingFilePathGenerator = new Mock<ISolutionBindingFilePathGenerator>();
             var projectBinderFactory = new ProjectBinderFactory(serviceProvider);
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, projectBinderFactory, fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, projectBinderFactory, fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,null, fileSystem));
-            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,projectBinderFactory, null));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, projectBinderFactory, fileSystem, solutionBindingFilePathGenerator.Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, projectBinderFactory, fileSystem, solutionBindingFilePathGenerator.Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,null, fileSystem, solutionBindingFilePathGenerator.Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,projectBinderFactory, null, solutionBindingFilePathGenerator.Object));
+            Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,projectBinderFactory, fileSystem, null));
 
             testSubject.Should().NotBeNull("Avoid code analysis warning when testSubject is unused");
         }
@@ -315,11 +319,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ISolutionRuleSetsInformationProvider rsInfoProvider = this.ruleSetInfoProvider;
             foreach (var project in this.projectHelper.FilteredProjects)
             {
-                string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                    this.configProvider.ProjectToReturn.ProjectKey,
-                    ProjectToLanguageMapper.GetLanguageForProject(project),
-                    SonarLintMode.LegacyConnected);
-                this.fileSystem.AddFile(solutionRuleSet, new MockFileData(""));
+                //string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
+                //    this.configProvider.ProjectToReturn.ProjectKey,
+                //    ProjectToLanguageMapper.GetLanguageForProject(project),
+                //    SonarLintMode.LegacyConnected);
+                //this.fileSystem.AddFile(solutionRuleSet, new MockFileData(""));
             }
         }
 

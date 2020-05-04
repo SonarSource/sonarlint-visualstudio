@@ -182,10 +182,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             private readonly Mock<ICFamilyRulesConfigProvider> sonarWayProviderMock;
 
             private readonly Mock<IFileSystem> fileSystemMock;
+            private readonly Mock<ISolutionBindingFilePathGenerator> solutionBindingFilePathGeneratorMock;
 
-            private readonly Mock<IHost> host;
             private readonly ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
-            private readonly Mock<ISolutionRuleSetsInformationProvider> rulesetInfoProviderMock;
 
             private readonly SonarLintMode bindingMode;
 
@@ -205,11 +204,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
                 sonarWayProviderMock = new Mock<ICFamilyRulesConfigProvider>();
                 activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
-                rulesetInfoProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
 
-                // Register the local services
-                host = new Mock<IHost>();
-                host.Setup(x => x.GetService(typeof(ISolutionRuleSetsInformationProvider))).Returns(rulesetInfoProviderMock.Object);
+                solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
 
                 bindingMode = mode;
             }
@@ -228,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 const string connectedSettingsFilesPath = "zzz\\foo.bar";
                 var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings?.RulesSettings, Formatting.Indented);
 
-                rulesetInfoProviderMock.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath("sqProjectKey", It.IsAny<Language>(), bindingMode))
+                solutionBindingFilePathGeneratorMock.Setup(x => x.Generate(null, "sqProjectKey", It.IsAny<string>()))
                     .Returns(connectedSettingsFilesPath);
 
                 fileSystemMock.Setup(x => x.File.Exists(connectedSettingsFilesPath)).Returns(ConnectedSettingsFileExists);
@@ -239,16 +235,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                     .Returns(SonarWayConfig);
 
-                var testSubject = new CFamilyRuleConfigProvider(host.Object, activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
-                    sonarWayProviderMock.Object, fileSystemMock.Object);
+                var testSubject = new CFamilyRuleConfigProvider(activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
+                    sonarWayProviderMock.Object, fileSystemMock.Object, solutionBindingFilePathGeneratorMock.Object);
 
                 return testSubject;
             }
 
             public void AssertConnectedSettingsNotAccessed()
             {
-                rulesetInfoProviderMock.Verify(x => x.CalculateSolutionSonarQubeRuleSetFilePath(It.IsAny<string>(),
-                    It.IsAny<Language>(), It.IsAny<SonarLintMode>()), Times.Never);
+                solutionBindingFilePathGeneratorMock.Verify(x => x.Generate(It.IsAny<string>(),
+                    It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+
                 fileSystemMock.Verify(x => x.File.Exists(It.IsAny<string>()), Times.Never);
                 fileSystemMock.Verify(x => x.File.ReadAllText(It.IsAny<string>()), Times.Never);
             }

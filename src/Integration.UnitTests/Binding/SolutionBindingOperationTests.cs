@@ -58,8 +58,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         // then the tests can be simplified.
         private ConfigurableRuleSetSerializer ruleFS;
 
-        private ConfigurableSolutionRuleSetsInformationProvider ruleSetInfo;
-
         private const string SolutionRoot = @"c:\solution";
         private const string ProjectKey = "key";
 
@@ -78,15 +76,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.fileSystem = new MockFileSystem();
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
             this.ruleFS = new ConfigurableRuleSetSerializer(fileSystem);
-            this.ruleSetInfo = new ConfigurableSolutionRuleSetsInformationProvider
-            {
-                SolutionRootFolder = SolutionRoot
-            };
 
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleFS);
-            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetInfo);
         }
 
         #region Tests
@@ -435,7 +428,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 projectKey,
                 bindingMode,
-                new ProjectBinderFactory(serviceProvider, fileSystem),
+                new ProjectBinderFactory(serviceProvider, fileSystem, new SolutionBindingFilePathGenerator()),
                 new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
                 logger ?? new TestLogger(),
                 fileSystem);

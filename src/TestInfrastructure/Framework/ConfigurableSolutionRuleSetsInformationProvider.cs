@@ -23,7 +23,6 @@ using System.IO;
 using EnvDTE;
 using FluentAssertions;
 using SonarLint.VisualStudio.Core.Binding;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -62,13 +61,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     throw new System.ArgumentOutOfRangeException($"Invalid bindingMode supplied: {bindingMode}");
             }
         }
-
-        string ISolutionRuleSetsInformationProvider.CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode)
-        {
-            string fileName = $"{ProjectKey}{language.FileSuffixAndExtension}";
-            return Path.Combine(((ISolutionRuleSetsInformationProvider)this).GetSolutionSonarQubeRulesFolder(bindingMode), fileName);
-        }
-
         bool ISolutionRuleSetsInformationProvider.TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
         {
             fullFilePath = declaration.RuleSetPath;

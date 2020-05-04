@@ -23,6 +23,7 @@ using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
@@ -35,13 +36,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<IFileSystem>());
+            testSubject = new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<IFileSystem>(), Mock.Of<ISolutionBindingFilePathGenerator>());
         }
 
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
-            Action act = () => new ProjectBinderFactory(null, Mock.Of<IFileSystem>());
+            Action act = () => new ProjectBinderFactory(null, Mock.Of<IFileSystem>(), Mock.Of<ISolutionBindingFilePathGenerator>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
@@ -49,9 +50,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new ProjectBinderFactory(Mock.Of<IServiceProvider>(),null);
+            Action act = () => new ProjectBinderFactory(Mock.Of<IServiceProvider>(),null, Mock.Of<ISolutionBindingFilePathGenerator>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+        }
+
+        [TestMethod]
+        public void Ctor_NullSolutionBindingFilePathGenerator_ArgumentNullException()
+        {
+            Action act = () => new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<IFileSystem>(), null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFilePathGenerator");
         }
 
         [TestMethod]
