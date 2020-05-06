@@ -18,14 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using Sonarlint;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
+using DaemonSeverity = Sonarlint.Issue.Types.Severity;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -158,6 +162,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
         }
 
+        [TestMethod]
+        [DataRow(DaemonSeverity.Info, __VSERRORCATEGORY.EC_MESSAGE)]
+        [DataRow(DaemonSeverity.Minor, __VSERRORCATEGORY.EC_MESSAGE)]
+        [DataRow(DaemonSeverity.Major, __VSERRORCATEGORY.EC_WARNING)]
+        [DataRow(DaemonSeverity.Critical, __VSERRORCATEGORY.EC_WARNING)]
+        public void ToVsErrorCategory_NotBlocker_CorrectlyMapped(DaemonSeverity daemonSeverity, __VSERRORCATEGORY expectedVsErrorCategory)
+        {
+            snapshot.ToVsErrorCategory(daemonSeverity).Should().Be(expectedVsErrorCategory);
+        }
+
+        [TestMethod]
+        [DataRow(true, __VSERRORCATEGORY.EC_ERROR)]
+        [DataRow(false, __VSERRORCATEGORY.EC_WARNING)]
+        public void ToVsErrorCategory_Blocker_CorrectlyMapped(bool shouldTreatBlockerAsError, __VSERRORCATEGORY expectedVsErrorCategory)
+        {
+            var envSettingsMock = new Mock<IEnvironmentSettings>();
+            envSettingsMock.Setup(x => x.TreatBlockerSeverityAsError()).Returns(shouldTreatBlockerAsError);
+
+            var testSubject = new IssuesSnapshot("any", "any", 0, Array.Empty<IssueMarker>(), envSettingsMock.Object);
+
+            testSubject.ToVsErrorCategory(DaemonSeverity.Blocker).Should().Be(expectedVsErrorCategory);
+        }
+
+        [TestMethod]
+        public void ToVsErrorCategory_InvalidDaemonSeverity_DoesNotThrow()
+        {
+            snapshot.ToVsErrorCategory((DaemonSeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
+        }
 
         private object GetValue(string columnName)
         {
