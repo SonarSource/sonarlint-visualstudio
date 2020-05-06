@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return languages.All(l => IsFullyBoundProject(binding, project, l));
         }
 
-        public Action GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
+        public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
         {
             var binder = new ProjectBindingOperation(serviceProvider, project, configFile as IBindingConfigFileWithRuleset);
             binder.Initialize();

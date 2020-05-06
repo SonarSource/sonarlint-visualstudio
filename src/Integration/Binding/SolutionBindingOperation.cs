@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly List<Action> childBinder = new List<Action>();
+        private readonly List<BindProject> projectBinders = new List<BindProject>();
         private readonly IDictionary<Language, IBindingConfigFile> bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>();
         private IDictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
@@ -105,10 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region State
-        internal /*for testing purposes*/ IList<Action> Binders
-        {
-            get { return this.childBinder; }
-        }
+        internal /*for testing purposes*/ IList<BindProject> Binders => projectBinders;
 
         internal /*for testing purposes*/ string SolutionFullPath
         {
@@ -201,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var projectBinder = projectBinderFactory.Get(project);
                 var bindAction = projectBinder.GetBindAction(bindingConfigFile, project, token);
 
-                childBinder.Add(bindAction);
+                projectBinders.Add(bindAction);
             }
         }
 
@@ -212,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
             {
                 // No reason to modify VS state if could not write files
-                this.childBinder.ForEach(b => b());
+                this.projectBinders.ForEach(b => b());
 
                 /* only show the files in the Solution Explorer in legacy mode */
                 if (this.bindingMode == SonarLintMode.LegacyConnected)
