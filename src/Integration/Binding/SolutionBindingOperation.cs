@@ -60,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
+        private IEnumerable<Project> projects;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
             ConnectionInformation connection,
@@ -152,33 +153,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region Public API
         public void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap)
         {
-            if (projects == null)
-            {
-                throw new ArgumentNullException(nameof(projects));
-            }
-
             if (profilesMap == null)
             {
                 throw new ArgumentNullException(nameof(profilesMap));
             }
 
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
-
             this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
-
-            foreach (var project in projects)
-            {
-                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
-                {
-                    var binder = new ProjectBindingOperation(serviceProvider, project, this);
-                    binder.Initialize();
-                    this.childBinder.Add(binder);
-                }
-                else
-                {
-                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
-                }
-            }
+            this.projects = projects ?? throw new ArgumentNullException(nameof(projects));
         }
 
         public void Prepare(CancellationToken token)
@@ -210,14 +192,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.FilePath), "Expected a rule set to pend pended");
             }
 
-            foreach (var binder in this.childBinder)
+            foreach (var project in projects)
             {
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
-
-                binder.Prepare(token);
+                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
+                {
+                    var languageForProject = ProjectToLanguageMapper.GetLanguageForProject(project);
+                    var bindingConfigFile = GetBindingConfig(languageForProject) as IBindingConfigFileWithRuleset;
+                    var binder = new ProjectBindingOperation(serviceProvider, project, bindingConfigFile);
+                    binder.Initialize();
+                    binder.Prepare(token);
+                    childBinder.Add(binder);
+                }
+                else
+                {
+                    logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
+                }
             }
         }
 
