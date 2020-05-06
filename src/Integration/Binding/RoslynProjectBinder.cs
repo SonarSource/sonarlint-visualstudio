@@ -31,21 +31,37 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class RoslynProjectBinder : IProjectBinder
     {
-        private readonly IServiceProvider serviceProvider;
+        public delegate IBindingOperation CreateBindingOperationFunc(Project project, IBindingConfigFile bindingConfigFile);
+
         private readonly IFileSystem fileSystem;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
+        private readonly CreateBindingOperationFunc createBindingOperationFunc;
 
         public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+            :  this(serviceProvider, fileSystem, GetCreateBindingOperationFunc(serviceProvider))
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        }
+
+        internal RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
+        {
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.createBindingOperationFunc = createBindingOperationFunc ?? throw new ArgumentNullException(nameof(createBindingOperationFunc));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
 
             ruleSetSerializer = serviceProvider.GetService<IRuleSetSerializer>();
             ruleSetSerializer.AssertLocalServiceIsNotNull();
+        }
+
+        private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
+        {
+            return (project, configFile) => new ProjectBindingOperation(serviceProvider, project, configFile as IBindingConfigFileWithRuleset);
         }
 
         public bool IsBound(BindingConfiguration binding, Project project)
@@ -60,11 +76,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
         {
-            var binder = new ProjectBindingOperation(serviceProvider, project, configFile as IBindingConfigFileWithRuleset);
-            binder.Initialize();
-            binder.Prepare(cancellationToken);
+            var bindingOperation = createBindingOperationFunc(project, configFile);
+            bindingOperation.Initialize();
+            bindingOperation.Prepare(cancellationToken);
 
-            return binder.Commit;
+            return bindingOperation.Commit;
         }
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
@@ -91,7 +107,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return declarations.Length > 0 // Need at least one
                    && declarations.All(declaration => IsRuleSetBound(project, declaration, sonarQubeRuleSet));
         }
-
 
         private bool IsRuleSetBound(Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
         {

@@ -36,17 +36,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IServiceProvider> serviceProviderMock;
         private Mock<ISolutionRuleSetsInformationProvider> solutionRuleSetsInformationProviderMock;
         private Mock<IFileSystem> fileSystemMock;
-        private Mock<IProjectSystemHelper> projectSystemMock;
 
         private RoslynProjectBinder testSubject;
-        private ConfigurableSourceControlledFileSystem configurableSourceControlledFileSystem;
+        private Mock<RoslynProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
             fileSystemMock = new Mock<IFileSystem>();
-            projectSystemMock = new Mock<IProjectSystemHelper>();
             solutionRuleSetsInformationProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
+            createBindingOperationFuncMock = new Mock<RoslynProjectBinder.CreateBindingOperationFunc>();
 
             serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock
@@ -54,20 +53,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Returns(solutionRuleSetsInformationProviderMock.Object);
 
             serviceProviderMock
-                .Setup(x => x.GetService(typeof(IProjectSystemHelper)))
-                .Returns(projectSystemMock.Object);
-
-            serviceProviderMock
                 .Setup(x => x.GetService(typeof(IRuleSetSerializer)))
                 .Returns(Mock.Of<IRuleSetSerializer>());
 
-            configurableSourceControlledFileSystem = new ConfigurableSourceControlledFileSystem(fileSystemMock.Object);
-
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(ISourceControlledFileSystem)))
-                .Returns(configurableSourceControlledFileSystem);
-
-            testSubject = new RoslynProjectBinder(serviceProviderMock.Object, fileSystemMock.Object);
+            testSubject = new RoslynProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, createBindingOperationFuncMock.Object);
         }
 
         [TestMethod]
@@ -88,24 +77,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void GetBindAction_QueuesRulesetFileToBeWritten()
+        public void GetBindAction_CallsInitializeAndPrepare_ReturnsCommitAction()
         {
-            var bindingConfig = new DotNetBindingConfigFile(new RuleSet("test"), "c:\\test.ruleset");
             var projectMock = new ProjectMock("c:\\test.csproj");
-            var ruleSetValue = "test";
+            var bindingConfig = new DotNetBindingConfigFile(new RuleSet("test"), "c:\\test.ruleset");
+            
+            var bindingOperationMock = new Mock<IBindingOperation>();
+            
+            createBindingOperationFuncMock
+                .Setup(x => x(projectMock, bindingConfig))
+                .Returns(bindingOperationMock.Object);
 
-            fileSystemMock.Setup(x => x.File.Exists("c:\\test.ruleset")).Returns(false);
+            var bindAction = testSubject.GetBindAction(bindingConfig, projectMock, CancellationToken.None);
 
-            solutionRuleSetsInformationProviderMock
-                .Setup(x => x.GetProjectRuleSetsDeclarations(projectMock))
-                .Returns(new List<RuleSetDeclaration>
-                {
-                    new RuleSetDeclaration(projectMock, new PropertyMock("never mind", null), ruleSetValue, "Configuration")
-                });
+            bindingOperationMock.Verify(x=> x.Initialize(), Times.Once);
+            bindingOperationMock.Verify(x=> x.Prepare(CancellationToken.None), Times.Once);
+            bindingOperationMock.Verify(x=> x.Commit(), Times.Never);
 
-            testSubject.GetBindAction(bindingConfig, projectMock, CancellationToken.None);
+            bindAction();
 
-            configurableSourceControlledFileSystem.AssertQueuedOperationCount(1);
+            bindingOperationMock.Verify(x => x.Commit(), Times.Once);
         }
     }
 }
