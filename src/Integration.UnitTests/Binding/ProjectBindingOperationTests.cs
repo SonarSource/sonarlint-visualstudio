@@ -24,6 +24,7 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
         private const string SolutionRoot = @"c:\solution";
-        private ConfigurableSolutionRuleStore ruleStore;
+        private DotNetBindingConfigFile bindingConfigFile;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleSetFS;
         private MockFileSystem fileSystem;
@@ -60,7 +61,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.outputPane = new ConfigurableVsOutputWindowPane();
             this.serviceProvider.RegisterService(typeof(SVsGeneralOutputWindowPane), this.outputPane);
             this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.ruleStore = new ConfigurableSolutionRuleStore();
             this.sccFileSystem = new ConfigurableSourceControlledFileSystem(fileSystem);
             this.ruleSetFS = new ConfigurableRuleSetSerializer(fileSystem);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
@@ -68,6 +68,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider),
                 new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem(), new SolutionBindingFilePathGenerator()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+
+            bindingConfigFile = new DotNetBindingConfigFile(new RuleSet("SonarQube"), @"c:\Solution\sln.ruleset");
         }
 
         #region Tests
@@ -76,8 +78,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_ArgChecks()
         {
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.bindingConfigFile));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.bindingConfigFile));
             Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null));
 
             ProjectBindingOperation testSubject = this.CreateTestSubject();
@@ -183,7 +185,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_VariousRuleSetsInProjects()
         {
             // Arrange
-            this.ruleStore.RegisterConfigFilePath(Language.VBNET, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
@@ -222,7 +223,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_SameNonDefaultRuleSetsInProject()
         {
             // Arrange
-            this.ruleStore.RegisterConfigFilePath(Language.VBNET, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
@@ -249,7 +249,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_SameDefaultRuleSetsInProject()
         {
             // Arrange
-            this.ruleStore.RegisterConfigFilePath(Language.VBNET, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
             PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
@@ -277,7 +276,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_Prepare_Cancellation()
         {
             // Arrange
-            this.ruleStore.RegisterConfigFilePath(Language.CSharp, @"c:\Solution\sln.ruleset");
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
             PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
@@ -304,7 +302,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            this.ruleStore.RegisterConfigFilePath(Language.CSharp, @"c:\Solution\sln.ruleset");
             PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
@@ -329,7 +326,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             ProjectBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            this.ruleStore.RegisterConfigFilePath(Language.CSharp, @"c:\Solution\sln.ruleset");
             PropertyMock prop = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
@@ -368,7 +364,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private ProjectBindingOperation CreateTestSubject()
         {
-            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore);
+            return new ProjectBindingOperation(serviceProvider, projectMock, bindingConfigFile);
         }
 
         #endregion Helpers

@@ -201,9 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var otherProjectType = this.solutionMock.AddOrGetProject("xxx.proj");
             otherProjectType.ProjectKind = "{" + Guid.NewGuid().ToString() + "}";
 
-            var logger = new TestLogger();
-
-            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey, logger: logger);
+            var testSubject = CreateTestSubject(ProjectKey);
             var projects = new[] { cs1Project, vbProject, cs2Project, otherProjectType };
 
             // Sanity
@@ -214,13 +212,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             testSubject.SolutionFullPath.Should().Be(Path.Combine(SolutionRoot, "xxx.sln"));
-            testSubject.Binders.Should().HaveCount(3, "Should be one per managed project");
-
-            testSubject.Binders.Select(x => ((ProjectBindingOperation)x).ProjectFullPath)
-                .Should().BeEquivalentTo("CS1.csproj", "CS2.csproj", "VB.vbproj");
-
-            logger.AssertPartialOutputStringExists("xxx.proj"); // expecting a message about the project that won't be bound, but not the others
-            logger.AssertPartialOutputStringDoesNotExist("CS1.csproj");
         }
 
         [TestMethod]
@@ -231,24 +222,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
-            var projects = new[] { csProject, vbProject };
+            var unknownProject = this.solutionMock.AddOrGetProject("xxx.proj");
+            unknownProject.SetProjectKind(Guid.NewGuid());
 
-            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
+            var projects = new[] { csProject, vbProject, unknownProject };
+
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(ProjectKey, logger:logger);
 
             var csConfigFile = CreateMockRuleSetConfigFile(Language.CSharp, "c:\\csharp.txt");
             var vbConfigFile = CreateMockRuleSetConfigFile(Language.VBNET, "c:\\vb.txt");
-            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
-            ruleSetMap[Language.CSharp] = csConfigFile.Object;
-            ruleSetMap[Language.VBNET] = vbConfigFile.Object;
+            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>
+            {
+                [Language.CSharp] = csConfigFile.Object,
+                [Language.VBNET] = vbConfigFile.Object
+            };
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
-            testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
-            var binder = new ConfigurableBindingOperation();
-            testSubject.Binders.Add(binder);
-            bool prepareCalledForBinder = false;
-            binder.PrepareAction = (ct) => prepareCalledForBinder = true;
-            string sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
+            var sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
 
             // Sanity
             fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
@@ -259,12 +251,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Assert
-            prepareCalledForBinder.Should().BeTrue("Expected to propagate the prepare call to binders");
+            testSubject.Binders.Should().HaveCount(2, "Should be one per managed project");
+
+            testSubject.Binders
+                .Select(x=> ((ProjectBindingOperation)x).ProjectFullPath)
+                .Should().BeEquivalentTo("CS.csproj", "VB.vbproj");
+
+            logger.AssertPartialOutputStringExists("xxx.proj"); // expecting a message about the project that won't be bound, but not the others
+            logger.AssertPartialOutputStringDoesNotExist("CS.csproj");
+            logger.AssertPartialOutputStringDoesNotExist("VB.csproj");
+
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
 
             // Act (write pending)
-            this.sccFileSystem.WritePendingNoErrorsExpected();
+            sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
             CheckRuleSetFileWasSaved(csConfigFile, "c:\\csharp.txt");

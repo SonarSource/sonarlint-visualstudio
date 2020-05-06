@@ -34,10 +34,5 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         /// <param name="languageToFileMap">Required</param>
         void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap);
-
-        /// <summary>
-        /// Retrieves the solution-level configuration mapped to the <see cref="Language"/>.
-        /// </summary>
-        IBindingConfigFile GetBindingConfig(Language language);
     }
 }
