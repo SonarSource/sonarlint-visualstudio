@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client.Models;
 
 // Based on the SonarScanner for MSBuild code
@@ -397,25 +397,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow(SonarQubeIssueSeverity.Critical, RuleAction.Warning)]
         public void GetVSSeverity_NotBlocker_CorrectlyMapped(SonarQubeIssueSeverity sqSeverity, RuleAction expectedVsSeverity)
         {
-            RuleSetGenerator.GetVsSeverity(sqSeverity).Should().Be(expectedVsSeverity);
+            new RuleSetGenerator().GetVsSeverity(sqSeverity).Should().Be(expectedVsSeverity);
         }
 
         [TestMethod]
-        [DataRow(null, RuleAction.Warning)]
-        [DataRow("true", RuleAction.Error)]
-        [DataRow("TRUE", RuleAction.Error)]
-        [DataRow("false", RuleAction.Warning)]
-        [DataRow("FALSE", RuleAction.Warning)]
-        [DataRow("1", RuleAction.Warning)]
-        [DataRow("0", RuleAction.Warning)]
-        [DataRow("not a boolean", RuleAction.Warning)]
-        public void GetVSSeverity_Blocker_CorrectlyMapped(string envVarValue, RuleAction expectedVsSeverity)
+        [DataRow(true, RuleAction.Error)]
+        [DataRow(false, RuleAction.Warning)]
+        public void GetVSSeverity_Blocker_CorrectlyMapped(bool shouldTreatBlockerAsError, RuleAction expectedVsSeverity)
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(RuleSetGenerator.TreatBlockerAsErrorEnvVar, envVarValue);
-                RuleSetGenerator.GetVsSeverity(SonarQubeIssueSeverity.Blocker).Should().Be(expectedVsSeverity);
-            }
+            var envSettingsMock = new Mock<IEnvironmentSettings>();
+            envSettingsMock.Setup(x => x.TreatBlockerSeverityAsError()).Returns(shouldTreatBlockerAsError);
+
+            new RuleSetGenerator().GetVsSeverity(SonarQubeIssueSeverity.Blocker).Should().Be(expectedVsSeverity);
         }
 
         [TestMethod]
@@ -423,7 +416,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow((SonarQubeIssueSeverity)(-1))]
         public void GetVSSeverity_Invalid_Throws(SonarQubeIssueSeverity sqSeverity)
         {
-            Action act = () => RuleSetGenerator.GetVsSeverity(sqSeverity);
+            Action act = () => new RuleSetGenerator().GetVsSeverity(sqSeverity);
             act.Should().Throw<NotSupportedException>();
         }
 
