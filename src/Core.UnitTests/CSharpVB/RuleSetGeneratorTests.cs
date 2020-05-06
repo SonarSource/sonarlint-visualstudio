@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarQube.Client.Models;
 
 // Based on the SonarScanner for MSBuild code
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var activeRules = new List<SonarQubeRule>
             {
                 CreateSonarCSharpRule("rule1", isActive: true, sqSeverity: SonarQubeIssueSeverity.Info),
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-          
+
             var inactiveRules = new List<SonarQubeRule>
             {
                 CreateSonarCSharpRule("rule1", isActive: false, sqSeverity: SonarQubeIssueSeverity.Major),
@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var rules = new[]
             {
                 CreateRule("csharpsquid", "active1", true, SonarQubeIssueSeverity.Major),
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var properties = new Dictionary<string, string>
             {
                 [$"sonaranalyzer.security.{language}.analyzerId"] = "SonarAnalyzer.Security",
@@ -253,7 +253,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var properties = new Dictionary<string, string>
             {
                 // The rules should be grouped by the analyzer id
@@ -274,7 +274,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
                 CreateRule("roslyn.wintellect", "win2", true),
                 CreateRule("roslyn.wintellect", "win1", true),
                 CreateRule("roslyn.wintellect", "win0", false),
-
 
                 CreateRule("csharpsquid", "S999", true),
                 CreateRule("csharpsquid", "S111", false),
@@ -322,7 +321,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var properties = new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.ruleNamespace", "SonarAnalyzer.CSharp" },
@@ -340,7 +339,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var properties = new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.analyzerId", "SonarAnalyzer.CSharp" },
@@ -358,7 +357,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         {
             // Arrange
             var generator = new RuleSetGenerator();
-            
+
             var properties = new Dictionary<string, string>
             {
                 { "sonaranalyzer-cs.ANALYZERId", "SonarAnalyzer.CSharp" },
@@ -397,25 +396,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow(SonarQubeIssueSeverity.Critical, RuleAction.Warning)]
         public void GetVSSeverity_NotBlocker_CorrectlyMapped(SonarQubeIssueSeverity sqSeverity, RuleAction expectedVsSeverity)
         {
-            RuleSetGenerator.GetVsSeverity(sqSeverity).Should().Be(expectedVsSeverity);
+            var testSubject = new RuleSetGenerator();
+
+            testSubject.GetVsSeverity(sqSeverity).Should().Be(expectedVsSeverity);
         }
 
         [TestMethod]
-        [DataRow(null, RuleAction.Warning)]
-        [DataRow("true", RuleAction.Error)]
-        [DataRow("TRUE", RuleAction.Error)]
-        [DataRow("false", RuleAction.Warning)]
-        [DataRow("FALSE", RuleAction.Warning)]
-        [DataRow("1", RuleAction.Warning)]
-        [DataRow("0", RuleAction.Warning)]
-        [DataRow("not a boolean", RuleAction.Warning)]
-        public void GetVSSeverity_Blocker_CorrectlyMapped(string envVarValue, RuleAction expectedVsSeverity)
+        [DataRow(true, RuleAction.Error)]
+        [DataRow(false, RuleAction.Warning)]
+        public void GetVSSeverity_Blocker_CorrectlyMapped(bool shouldTreatBlockerAsError, RuleAction expectedVsSeverity)
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(RuleSetGenerator.TreatBlockerAsErrorEnvVar, envVarValue);
-                RuleSetGenerator.GetVsSeverity(SonarQubeIssueSeverity.Blocker).Should().Be(expectedVsSeverity);
-            }
+            var envSettingsMock = new Mock<IEnvironmentSettings>();
+            envSettingsMock.Setup(x => x.TreatBlockerSeverityAsError()).Returns(shouldTreatBlockerAsError);
+
+            var testSubject = new RuleSetGenerator(envSettingsMock.Object);
+
+            testSubject.GetVsSeverity(SonarQubeIssueSeverity.Blocker).Should().Be(expectedVsSeverity);
         }
 
         [TestMethod]
@@ -423,7 +419,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow((SonarQubeIssueSeverity)(-1))]
         public void GetVSSeverity_Invalid_Throws(SonarQubeIssueSeverity sqSeverity)
         {
-            Action act = () => RuleSetGenerator.GetVsSeverity(sqSeverity);
+            Action act = () => new RuleSetGenerator().GetVsSeverity(sqSeverity);
             act.Should().Throw<NotSupportedException>();
         }
 
