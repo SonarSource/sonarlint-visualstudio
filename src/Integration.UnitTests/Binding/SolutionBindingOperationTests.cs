@@ -225,13 +225,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
             var csBinder = new Mock<IProjectBinder>();
-            var csCommitAction = new Mock<Action>();
+            var csCommitAction = new Mock<BindProject>();
 
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
             vbProject.SetVBProjectKind();
             var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
             var vbBinder = new Mock<IProjectBinder>();
-            var vbCommitAction = new Mock<Action>();
+            var vbCommitAction = new Mock<BindProject>();
 
             projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
             projectBinderFactoryMock.Setup(x => x.Get(vbProject)).Returns(vbBinder.Object);
@@ -365,7 +365,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csProject.SetCSProjectKind();
             var csConfigFile = CreateMockConfigFile(expectedFilePath);
             var csBinder = new Mock<IProjectBinder>();
-            var csBinderCommitAction = new Mock<Action>();
+            var csBinderCommitAction = new Mock<BindProject>();
 
             projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
 
