@@ -105,9 +105,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, null, folderModifier, logger, new MockFileSystem()));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, null, logger, new MockFileSystem()));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, folderModifier, logger,null));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, null, folderModifier, new MockFileSystem()));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, null, new MockFileSystem()));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, folderModifier, null));
 
             var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
@@ -145,39 +145,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_GetRuleSetInformation()
-        {
-            // Arrange
-            SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
-
-            // Test case 1: unknown ruleset map
-            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
-            testSubject.RegisterKnownConfigFiles(ruleSetMap);
-
-            // Act + Assert
-            using (new AssertIgnoreScope())
-            {
-                testSubject.GetBindingConfig(Language.CSharp).Should().BeNull();
-            }
-
-            // Test case 2: known ruleset map
-            // Arrange
-            ruleSetMap[Language.CSharp] = CreateMockRuleSetConfigFile(Language.CSharp, "c:\\csharp.txt").Object;
-            ruleSetMap[Language.VBNET] = CreateMockRuleSetConfigFile(Language.VBNET, "c:\\vb.txt").Object;
-
-            testSubject.RegisterKnownConfigFiles(ruleSetMap);
-            testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
-            testSubject.Prepare(CancellationToken.None);
-
-            // Act
-            string filePath = testSubject.GetBindingConfig(Language.CSharp).FilePath;
-
-            // Assert
-            string.IsNullOrWhiteSpace(filePath).Should().BeFalse();
-            filePath.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp].FilePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
-        }
-
-        [TestMethod]
         public void SolutionBindingOperation_Initialization_ArgChecks()
         {
             // Arrange
@@ -206,18 +173,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey, logger: logger);
             var projects = new[] { cs1Project, vbProject, cs2Project, otherProjectType };
 
-            // Sanity
-            testSubject.Binders.Should().BeEmpty("Not expecting any project binders");
-
             // Act
             testSubject.Initialize(projects, GetQualityProfiles());
 
             // Assert
             testSubject.SolutionFullPath.Should().Be(Path.Combine(SolutionRoot, "xxx.sln"));
-            testSubject.Binders.Should().HaveCount(3, "Should be one per managed project");
-
-            testSubject.Binders.Select(x => ((ProjectBindingOperation)x).ProjectFullPath)
-                .Should().BeEquivalentTo("CS1.csproj", "CS2.csproj", "VB.vbproj");
 
             logger.AssertPartialOutputStringExists("xxx.proj"); // expecting a message about the project that won't be bound, but not the others
             logger.AssertPartialOutputStringDoesNotExist("CS1.csproj");
@@ -243,11 +203,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
-            testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
-            var binder = new ConfigurableBindingOperation();
-            testSubject.Binders.Add(binder);
-            bool prepareCalledForBinder = false;
-            binder.PrepareAction = (ct) => prepareCalledForBinder = true;
             string sonarQubeRulesDirectory = Path.Combine(SolutionRoot, ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName);
 
             // Sanity
@@ -259,7 +214,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Assert
-            prepareCalledForBinder.Should().BeTrue("Expected to propagate the prepare call to binders");
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
 
@@ -291,13 +245,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             testSubject.RegisterKnownConfigFiles(languageToFileMap);
             testSubject.Initialize(projects, GetQualityProfiles());
-            testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool prepareCalledForBinder = false;
             using (CancellationTokenSource src = new CancellationTokenSource())
             {
-                testSubject.Binders.Add(new ConfigurableBindingOperation { PrepareAction = (t) => src.Cancel() });
-                testSubject.Binders.Add(new ConfigurableBindingOperation { PrepareAction = (t) => prepareCalledForBinder = true });
-
                 // Act
                 testSubject.Prepare(src.Token);
             }
@@ -331,14 +281,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
             testSubject.Initialize(projects, GetQualityProfiles());
-            testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
             bool prepareCalledForBinder = false;
             using (CancellationTokenSource src = new CancellationTokenSource())
             {
-                testSubject.Binders.Add(new ConfigurableBindingOperation { PrepareAction = (t) => prepareCalledForBinder = true });
-                src.Cancel();
-
-                // Act
                 testSubject.Prepare(src.Token);
             }
 
@@ -354,7 +299,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void SolutionBindingOperation_CommitSolutionBinding_LegacyConnectedMode()
         {
             // Act & Assert
-            var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt"; 
+            var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt";
             ExecuteCommitSolutionBindingTest(SonarLintMode.LegacyConnected, expectedFilePath);
 
             this.solutionItemsProject.Files.ContainsKey(expectedFilePath).Should().BeTrue("Ruleset was expected to be added to solution items when in legacy mode");
@@ -396,9 +341,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             DateTime expectedTimeStamp = DateTime.Now;
             profiles[Language.CSharp] = new SonarQubeQualityProfile("expected profile Key", "", "", false, expectedTimeStamp);
             testSubject.Initialize(projects, profiles);
-            testSubject.Binders.Clear(); // Ignore the real binders, not part of this test scope
-            bool commitCalledForBinder = false;
-            testSubject.Binders.Add(new ConfigurableBindingOperation { CommitAction = () => commitCalledForBinder = true });
             testSubject.Prepare(CancellationToken.None);
 
             // Sanity
@@ -409,7 +351,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             commitResult.Should().BeTrue();
-            commitCalledForBinder.Should().BeTrue();
 
             configPersister.SavedProject.Should().NotBeNull();
             configPersister.SavedMode.Should().Be(bindingMode);
@@ -435,9 +376,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 projectKey,
                 bindingMode,
-                new ProjectBinderFactory(serviceProvider, fileSystem),
+                new ProjectBinderFactory(serviceProvider, logger ?? new TestLogger(), fileSystem),
                 new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
-                logger ?? new TestLogger(),
                 fileSystem);
         }
 

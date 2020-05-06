@@ -33,14 +33,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISolutionRuleStore
 
-        IBindingConfigFile ISolutionBindingConfigFileStore.GetBindingConfig(Language language)
-        {
-            IBindingConfigFile ruleSet;
-            this.availableFiles.TryGetValue(language, out ruleSet);
-
-            return ruleSet;
-        }
-
         void ISolutionBindingConfigFileStore.RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap)
         {
             languageToFileMap.Should().NotBeNull("Not expecting nulls");

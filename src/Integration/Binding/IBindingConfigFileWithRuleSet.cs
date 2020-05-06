@@ -37,13 +37,4 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         RuleSet RuleSet { get; }
     }
-
-    internal static class BindingConfigurFileExtensions
-    {
-        public static bool TryGetRuleSet(this IBindingConfigFile bindingConfigFile, out RuleSet ruleSet)
-        {
-            ruleSet = (bindingConfigFile as IBindingConfigFileWithRuleset)?.RuleSet;
-            return ruleSet != null;
-        }
-    }
 }

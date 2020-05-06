@@ -44,24 +44,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         /// <param name="projectFullPath">The absolute full path to the project</param>
         /// <param name="ruleSetFileName">The rule set file name</param>
-        /// <param name="solutionRuleSet\">Full path of the parent solution-level SonarQube rule set</param>
+        /// <param name="bindingConfigFile">Binding config that contains full path of the solution-level rule set</param>
         /// <returns>Full file path of the file that we expect to write to</returns>
-        internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, IBindingConfigFile solutionRuleSet, string currentRuleSetPath)
+        internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, IBindingConfigFileWithRuleset bindingConfigFile, string currentRuleSetPath)
         {
             Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath));
             Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFileName));
-            Debug.Assert(solutionRuleSet != null);
-
-            // TODO: clean up to remove down-cast to check for RuleSet
-            solutionRuleSet.TryGetRuleSet(out var dotNetRuleSet);
-            Debug.Assert(dotNetRuleSet != null, "Only expecting this method to be called for projects that have a VS RuleSet");
+            Debug.Assert(bindingConfigFile != null);
 
             string projectRoot = Path.GetDirectoryName(projectFullPath);
             string ruleSetRoot = PathHelper.ForceDirectoryEnding(projectRoot);
 
             string existingRuleSetPath;
             RuleSet existingRuleSet;
-            if (this.TryUpdateExistingProjectRuleSet(solutionRuleSet.FilePath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath, out existingRuleSet))
+            if (this.TryUpdateExistingProjectRuleSet(bindingConfigFile.FilePath, ruleSetRoot, currentRuleSetPath, out existingRuleSetPath, out existingRuleSet))
             {
                 Debug.Assert(existingRuleSetPath != null);
                 Debug.Assert(existingRuleSet != null);
@@ -77,9 +73,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             // Create a new project level rule set
-            string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, solutionRuleSet.FilePath);
+            string solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, bindingConfigFile.FilePath);
             
-            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, dotNetRuleSet.DisplayName);
+            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, bindingConfigFile.RuleSet.DisplayName);
             string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
 
             // Pend new

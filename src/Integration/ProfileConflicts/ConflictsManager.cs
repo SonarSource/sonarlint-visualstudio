@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private readonly IFileSystem fileSystem;
 
         public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider), new FileSystem())
+            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger), new FileSystem())
         {
         }
 

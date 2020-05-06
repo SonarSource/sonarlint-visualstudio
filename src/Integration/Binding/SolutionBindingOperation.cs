@@ -30,7 +30,6 @@ using NuGet;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -49,17 +48,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
+        private readonly List<Action> childBinder = new List<Action>();
         private readonly IDictionary<Language, IBindingConfigFile> bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>();
         private IDictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string projectKey;
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
-        private readonly ILogger logger;
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
+        private IEnumerable<Project> projects;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
             ConnectionInformation connection,
@@ -67,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider), new LegacyConfigFolderItemAdder(serviceProvider), logger, new FileSystem())
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
         {
         }
 
@@ -78,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             SonarLintMode bindingMode,
             IProjectBinderFactory projectBinderFactory,
             ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
-            ILogger logger,
             IFileSystem fileSystem)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -90,7 +88,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
@@ -108,11 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #region State
-        internal /*for testing purposes*/ IList<IBindingOperation> Binders
-        {
-            get { return this.childBinder; }
-        }
-
+        
         internal /*for testing purposes*/ string SolutionFullPath
         {
             get;
@@ -137,48 +130,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
             bindingConfigInformationMap.AddRange(languageToFileMap);
         }
 
-        public IBindingConfigFile GetBindingConfig(Language language)
-        {
-            if (!bindingConfigInformationMap.TryGetValue(language, out var info) || info == null)
-            {
-                Debug.Fail("Expected to be called by the ProjectBinder after the known rulesets were registered");
-                return null;
-            }
-            return info;
-        }
-
         #endregion
 
         #region Public API
         public void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap)
         {
-            if (projects == null)
-            {
-                throw new ArgumentNullException(nameof(projects));
-            }
-
             if (profilesMap == null)
             {
                 throw new ArgumentNullException(nameof(profilesMap));
             }
 
-            this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
-
-            this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
-
-            foreach (var project in projects)
-            {
-                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
-                {
-                    var binder = new ProjectBindingOperation(serviceProvider, project, this);
-                    binder.Initialize();
-                    this.childBinder.Add(binder);
-                }
-                else
-                {
-                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
-                }
-            }
+            this.projects = projects ?? throw new ArgumentNullException(nameof(projects));
+            SolutionFullPath = projectSystem.GetCurrentActiveSolution().FullName;
+            qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
         }
 
         public void Prepare(CancellationToken token)
@@ -210,14 +174,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.FilePath), "Expected a rule set to pend pended");
             }
 
-            foreach (var binder in this.childBinder)
+            foreach (var project in projects)
             {
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
 
-                binder.Prepare(token);
+                var projectBinder = projectBinderFactory.Get(project);
+                var languageForProject = ProjectToLanguageMapper.GetLanguageForProject(project);
+                var bindingConfigFile = bindingConfigInformationMap[languageForProject];
+                var bindAction = projectBinder.GetBindAction(bindingConfigFile, project, token);
+
+                childBinder.Add(bindAction);
             }
         }
 
@@ -228,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
             {
                 // No reason to modify VS state if could not write files
-                this.childBinder.ForEach(b => b.Commit());
+                this.childBinder.ForEach(b => b());
 
                 /* only show the files in the Solution Explorer in legacy mode */
                 if (this.bindingMode == SonarLintMode.LegacyConnected)

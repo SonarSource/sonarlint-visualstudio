@@ -81,13 +81,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
 
-            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(serviceProvider, fileSystem), fileSystem);
+            this.testSubject = new ConflictsManager(serviceProvider, new SonarLintOutputLogger(serviceProvider), new ProjectBinderFactory(serviceProvider, new TestLogger(), fileSystem), fileSystem);
         }
 
         [TestMethod]
         public void ConflictsManager_Ctor()
         {
-            var projectBinderFactory = new ProjectBinderFactory(serviceProvider);
+            var projectBinderFactory = new ProjectBinderFactory(serviceProvider, new TestLogger());
             Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(null, new Mock<ILogger>().Object, projectBinderFactory, fileSystem));
             Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, null, projectBinderFactory, fileSystem));
             Exceptions.Expect<ArgumentNullException>(() => new ConflictsManager(serviceProvider, new Mock<ILogger>().Object,null, fileSystem));

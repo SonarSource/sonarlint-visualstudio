@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
@@ -30,17 +31,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class RoslynProjectBinder : IProjectBinder
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly IFileSystem fileSystem;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
 
         public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
@@ -58,6 +56,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
 
             return languages.All(l => IsFullyBoundProject(binding, project, l));
+        }
+
+        public Action GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
+        {
+            var bindingConfigFileWithRuleset = configFile as IBindingConfigFileWithRuleset;
+            Debug.Assert(bindingConfigFileWithRuleset != null, "Only expecting this method to be called for projects that have a VS RuleSet");
+
+            var binder = new ProjectBindingOperation(serviceProvider, project, bindingConfigFileWithRuleset);
+            binder.Initialize();
+            binder.Prepare(cancellationToken);
+
+            return binder.Commit;
         }
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
@@ -102,6 +112,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+        }
+
+        public void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Prepare(CancellationToken token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Commit()
+        {
+            throw new NotImplementedException();
         }
     }
 }

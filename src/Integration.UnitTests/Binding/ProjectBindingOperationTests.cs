@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleSetFS);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider),
-                new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem(), new SolutionBindingFilePathGenerator()));
+                new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object, new MockFileSystem(), new SolutionBindingFilePathGenerator()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
         }
 
@@ -76,8 +76,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_ArgChecks()
         {
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.ruleStore));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.ruleStore));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, Mock.Of<IBindingConfigFileWithRuleset>()));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, Mock.Of<IBindingConfigFileWithRuleset>()));
             Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null));
 
             ProjectBindingOperation testSubject = this.CreateTestSubject();
@@ -368,7 +368,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private ProjectBindingOperation CreateTestSubject()
         {
-            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, this.ruleStore);
+            return new ProjectBindingOperation(this.serviceProvider, this.projectMock, Mock.Of<IBindingConfigFileWithRuleset>());
         }
 
         #endregion Helpers

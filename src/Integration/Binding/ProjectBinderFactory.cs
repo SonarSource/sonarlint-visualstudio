@@ -29,15 +29,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IFileSystem fileSystem;
+        private ILogger logger;
 
-        public ProjectBinderFactory(IServiceProvider serviceProvider)
-            : this(serviceProvider, new FileSystem())
+        public ProjectBinderFactory(IServiceProvider serviceProvider, ILogger logger)
+            : this(serviceProvider, logger, new FileSystem())
         {
         }
 
-        internal ProjectBinderFactory(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal ProjectBinderFactory(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
@@ -48,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             return isRoslynProject
                 ? (IProjectBinder) new RoslynProjectBinder(serviceProvider, fileSystem)
-                : new CFamilyProjectBinder(serviceProvider, fileSystem);
+                : new CFamilyProjectBinder(serviceProvider, logger, fileSystem);
         }
     }
 }

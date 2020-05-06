@@ -35,21 +35,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<IFileSystem>());
+            testSubject = new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>(), Mock.Of<IFileSystem>());
         }
 
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
-            Action act = () => new ProjectBinderFactory(null, Mock.Of<IFileSystem>());
+            Action act = () => new ProjectBinderFactory(null, Mock.Of<ILogger>(), Mock.Of<IFileSystem>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]
+        public void Ctor_NullLogger_ArgumentNullException()
+        {
+            Action act = () => new ProjectBinderFactory(Mock.Of<IServiceProvider>(), null, Mock.Of<IFileSystem>());
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new ProjectBinderFactory(Mock.Of<IServiceProvider>(),null);
+            Action act = () => new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>(), null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }

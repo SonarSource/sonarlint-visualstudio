@@ -75,10 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ArgCheck()
         {
-            Action action = () => new UnboundProjectFinder(null, new ProjectBinderFactory(serviceProvider));
+            var logger = Mock.Of<ILogger>();
+            Action action = () => new UnboundProjectFinder(null, new ProjectBinderFactory(serviceProvider, logger));
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
 
-            action = () => new UnboundProjectFinder(serviceProvider,  null);
+            action = () => new UnboundProjectFinder(serviceProvider,  null as IProjectBinderFactory);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectBinderFactory");
         }
 
@@ -225,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
 
         private UnboundProjectFinder CreateTestSubject() =>
-            new UnboundProjectFinder(this.serviceProvider, new ProjectBinderFactory(serviceProvider, fileMock.Object));
+            new UnboundProjectFinder(this.serviceProvider, new ProjectBinderFactory(serviceProvider, new TestLogger(), fileMock.Object));
 
         private IEnumerable<Project> SetValidFilteredProjects()
         {
