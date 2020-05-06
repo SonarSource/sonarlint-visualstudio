@@ -41,8 +41,19 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         private const string SonarAnalyzerRepositoryPrefix = "sonaranalyzer-{0}";
         private const string RoslynRepositoryPrefix = "roslyn.";
 
-        internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         private static readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
+
+        private readonly IEnvironmentSettings environmentSettings;
+        
+        public RuleSetGenerator()
+            : this(new EnvironmentSettings())
+        {
+        }
+
+        internal /* for testing */ RuleSetGenerator(IEnvironmentSettings environmentSettings)
+        {
+            this.environmentSettings = environmentSettings;
+        }
 
         public RuleSet Generate(string language, IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties)
         {
@@ -86,7 +97,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             return !string.IsNullOrEmpty(partialRepoKey) && !RoslynPluginRuleKeyExtensions.IsExcludedRuleRepository(partialRepoKey);
         }
 
-        private static Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules, IDictionary<string, string> sonarProperties)
+        private Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules, IDictionary<string, string> sonarProperties)
         {
             var partialRepoKey = analyzerRules.Key;
             return new Rules
@@ -100,7 +111,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             };
         }
 
-        private static Rule CreateRuleElement(SonarQubeRule sonarRule)
+        private Rule CreateRuleElement(SonarQubeRule sonarRule)
         {
             var actionText = (sonarRule.IsActive) ? GetActionText(GetVsSeverity(sonarRule.Severity))
                                                   : inactiveRuleActionText;
@@ -127,7 +138,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             }
         }
 
-        internal /* for testing */ static RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity)
+        internal /* for testing */ RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity)
         {
             switch(sqSeverity)
             {
@@ -140,19 +151,10 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                     return RuleAction.Warning;
 
                 case SonarQubeIssueSeverity.Blocker:
-                    return TreatBlockerSeverityAsError() ? RuleAction.Error : RuleAction.Warning;
+                    return environmentSettings.TreatBlockerSeverityAsError() ? RuleAction.Error : RuleAction.Warning;
                 default:
                     throw new NotSupportedException($"Unsupported SonarQube issue severity: {sqSeverity}");
             }
-        }
-
-        private static bool TreatBlockerSeverityAsError()
-        {
-            if (bool.TryParse(Environment.GetEnvironmentVariable(TreatBlockerAsErrorEnvVar), out var result))
-            {
-                return result;
-            }
-            return false;
         }
 
         private static string GetPartialRepoKey(SonarQubeRule rule, string language)
