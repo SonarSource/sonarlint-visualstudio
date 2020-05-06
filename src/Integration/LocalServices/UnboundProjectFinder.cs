@@ -34,8 +34,8 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IServiceProvider serviceProvider;
         private readonly IProjectBinderFactory projectBinderFactory;
 
-        public UnboundProjectFinder(IServiceProvider serviceProvider)
-            : this(serviceProvider, new ProjectBinderFactory(serviceProvider))
+        public UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger)
+            : this(serviceProvider, new ProjectBinderFactory(serviceProvider, logger))
         {
         }
 
