@@ -31,12 +31,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow(null, false)]
         [DataRow("true", true)]
         [DataRow("TRUE", true)]
-        [DataRow("false", true)]
-        [DataRow("FALSE", true)]
-        [DataRow("1", true)]
-        [DataRow("0", true)]
+        [DataRow("false", false)]
+        [DataRow("FALSE", false)]
+        [DataRow("1", false)]
+        [DataRow("0", false)]
         [DataRow("not a boolean", false)]
-        public void GetVSSeverity_Blocker_CorrectlyMapped(string envVarValue, bool expected)
+        public void TreatBlockerSeverityAsError_CorrectlyMapped(string envVarValue, bool expected)
         {
             using (var scope = new EnvironmentVariableScope())
             {
