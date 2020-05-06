@@ -26,6 +26,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
@@ -36,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IServiceProvider> serviceProviderMock;
         private Mock<ISolutionRuleSetsInformationProvider> solutionRuleSetsInformationProviderMock;
         private Mock<IFileSystem> fileSystemMock;
+        private Mock<IRuleSetSerializer> ruleSetSerializerMock;
 
         private RoslynProjectBinder testSubject;
         private Mock<RoslynProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
@@ -45,16 +48,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             fileSystemMock = new Mock<IFileSystem>();
             solutionRuleSetsInformationProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
+            ruleSetSerializerMock = new Mock<IRuleSetSerializer>();
             createBindingOperationFuncMock = new Mock<RoslynProjectBinder.CreateBindingOperationFunc>();
 
             serviceProviderMock = new Mock<IServiceProvider>();
+
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(ISolutionRuleSetsInformationProvider)))
                 .Returns(solutionRuleSetsInformationProviderMock.Object);
 
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(IRuleSetSerializer)))
-                .Returns(Mock.Of<IRuleSetSerializer>());
+                .Returns(ruleSetSerializerMock.Object);
 
             testSubject = new RoslynProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, createBindingOperationFuncMock.Object);
         }
@@ -66,7 +71,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
-
 
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
@@ -97,6 +101,113 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             bindAction();
 
             bindingOperationMock.Verify(x => x.Commit(), Times.Once);
+        }
+
+        [TestMethod]
+        public void IsBound_RulesetFileDoesNotExist_False()
+        {
+            var bindingConfiguration = GetBindingConfiguration();
+            var projectMock = GetCSharpProject();
+            var mockRulesetPath = SetupRulesetPath();
+
+            fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(false);
+
+            var result = testSubject.IsBound(bindingConfiguration, projectMock);
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsBound_RulesetFileExistsButFailsToLoad_False()
+        {
+            var bindingConfiguration = GetBindingConfiguration();
+            var projectMock = GetCSharpProject();
+            var mockRulesetPath = SetupRulesetPath();
+
+            fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(true);
+            ruleSetSerializerMock.Setup(x => x.LoadRuleSet(mockRulesetPath)).Returns(null as RuleSet);
+
+            var result = testSubject.IsBound(bindingConfiguration, projectMock);
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsBound_RulesetFileHasNoDeclarations_False()
+        {
+            var bindingConfiguration = GetBindingConfiguration();
+            var projectMock = GetCSharpProject();
+            var mockRulesetPath = SetupRulesetPath();
+
+            fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(true);
+            
+            ruleSetSerializerMock.Setup(x => x.LoadRuleSet(mockRulesetPath)).Returns(new RuleSet("test"));
+
+            solutionRuleSetsInformationProviderMock
+                .Setup(x => x.GetProjectRuleSetsDeclarations(projectMock))
+                .Returns(Array.Empty<RuleSetDeclaration>());
+
+            var result = testSubject.IsBound(bindingConfiguration, projectMock);
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsBound_RulesetFileHasOneDeclaration_CantLoadProjectRulesetFile_False()
+        {
+            var bindingConfiguration = GetBindingConfiguration();
+            var projectMock = GetCSharpProject();
+            var mockRulesetPath = SetupRulesetPath();
+
+            fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(true);
+
+            ruleSetSerializerMock.Setup(x => x.LoadRuleSet(mockRulesetPath)).Returns(new RuleSet("test"));
+
+            var ruleSetDeclaration = GetRuleSetDeclaration(projectMock);
+
+            solutionRuleSetsInformationProviderMock
+                .Setup(x => x.GetProjectRuleSetsDeclarations(projectMock))
+                .Returns(new List<RuleSetDeclaration> {ruleSetDeclaration});
+
+            var filePath = "";
+            solutionRuleSetsInformationProviderMock
+                .Setup(x => x.TryGetProjectRuleSetFilePath(projectMock, ruleSetDeclaration, out filePath))
+                .Returns(false);
+
+            var result = testSubject.IsBound(bindingConfiguration, projectMock);
+            result.Should().BeFalse();
+        }
+
+        private RuleSetDeclaration GetRuleSetDeclaration(ProjectMock projectMock)
+        {
+            var mockDeclaration =
+                new RuleSetDeclaration(projectMock, new PropertyMock("name", null), "test path", null);
+            
+            return mockDeclaration;
+        }
+
+        private string SetupRulesetPath()
+        {
+            var mockRulesetPath = "c:\\test.ruleset";
+
+            solutionRuleSetsInformationProviderMock
+                .Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath("key", Language.CSharp, SonarLintMode.Connected))
+                .Returns(mockRulesetPath);
+
+            return mockRulesetPath;
+        }
+
+        private static BindingConfiguration GetBindingConfiguration()
+        {
+            var bindingConfiguration =
+                new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://a.com"), "key", "name"),
+                    SonarLintMode.Connected, "dummy directory");
+
+            return bindingConfiguration;
+        }
+
+        private static ProjectMock GetCSharpProject()
+        {
+            var projectMock = new ProjectMock("c:\\test.csproj");
+            projectMock.SetCSProjectKind();
+            return projectMock;
         }
     }
 }

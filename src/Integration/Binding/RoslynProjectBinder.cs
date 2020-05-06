@@ -64,6 +64,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return (project, configFile) => new ProjectBindingOperation(serviceProvider, project, configFile as IBindingConfigFileWithRuleset);
         }
 
+        public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
+        {
+            var bindingOperation = createBindingOperationFunc(project, configFile);
+            bindingOperation.Initialize();
+            bindingOperation.Prepare(cancellationToken);
+
+            return bindingOperation.Commit;
+        }
+
         public bool IsBound(BindingConfiguration binding, Project project)
         {
             Debug.Assert(binding != null);
@@ -72,15 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
 
             return languages.All(l => IsFullyBoundProject(binding, project, l));
-        }
-
-        public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
-        {
-            var bindingOperation = createBindingOperationFunc(project, configFile);
-            bindingOperation.Initialize();
-            bindingOperation.Prepare(cancellationToken);
-
-            return bindingOperation.Commit;
         }
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
