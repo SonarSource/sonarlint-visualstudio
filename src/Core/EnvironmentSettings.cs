@@ -25,14 +25,36 @@ namespace SonarLint.VisualStudio.Core
     public class EnvironmentSettings : IEnvironmentSettings
     {
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
+        internal const string CFamilyAnalysisTimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
+        public const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
 
-        public  bool TreatBlockerSeverityAsError()
+        public bool TreatBlockerSeverityAsError()
         {
             if (bool.TryParse(Environment.GetEnvironmentVariable(TreatBlockerAsErrorEnvVar), out var result))
             {
                 return result;
             }
             return false;
+        }
+
+        public int CFamilyAnalysisTimeoutInMs()
+        {
+            var setting = Environment.GetEnvironmentVariable(CFamilyAnalysisTimeoutEnvVar);
+
+            if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo, out int userSuppliedTimeout)
+                && userSuppliedTimeout > 0)
+            {
+                return userSuppliedTimeout;
+            }
+
+            return 0;
+        }
+
+        public string SonarLintDaemonDownloadUrl()
+        {
+            // The URL validation and logging is being done by the daemon installer, so
+            // this is just a passthrough
+            return Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
         }
     }
 }

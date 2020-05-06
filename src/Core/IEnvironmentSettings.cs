@@ -25,6 +25,21 @@ namespace SonarLint.VisualStudio.Core
     /// </summary>
     public interface IEnvironmentSettings
     {
+        /// <summary>
+        /// Returns true if the user has specified that Blocker issues should map to VS Errors,
+        /// otherwise false
+        /// </summary>
+        /// <returns></returns>
         bool TreatBlockerSeverityAsError();
+
+        /// <summary>
+        /// Returns the user-specific timeout, or zero if one has not been specified
+        /// </summary>
+        int CFamilyAnalysisTimeoutInMs();
+
+        /// <summary>
+        /// Download location for the SonarLint daemon additional zip file
+        /// </summary>
+        string SonarLintDaemonDownloadUrl();
     }
 }
