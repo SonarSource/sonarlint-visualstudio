@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
 using System.ComponentModel;
@@ -33,8 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(IDaemonInstaller))]
     internal class DaemonInstaller : IDaemonInstaller
     {
-        internal /* for testing */ const string DefaultDaemonVersion = "4.3.2.2521";
-        internal /* for testing */ const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
+        internal /* for testing */ const string DefaultDaemonVersion = "4.3.2.2521"; 
         internal /* for testing */ static readonly string DefaultDownloadUrl = string.Format("https://binaries.sonarsource.com/Distribution/sonarlint-daemon/sonarlint-daemon-{0}-windows.zip",
             DefaultDaemonVersion);
 
@@ -55,17 +55,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public DaemonInstaller(ILogger logger)
             : this(logger,
               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarLint for Visual Studio"),
-              Path.GetTempPath())
+              Path.GetTempPath(),
+              new EnvironmentSettings())
         {
         }
 
-        internal /* for testing */ DaemonInstaller(ILogger logger, string storagePath, string tmpPath)
+        internal /* for testing */ DaemonInstaller(ILogger logger, string storagePath, string tmpPath, IEnvironmentSettings environmentSettings)
         {
             this.logger = logger;
             this.tmpPath = tmpPath;
             this.storagePath = storagePath;
 
-            this.DownloadUrl = GetDownloadUrl();
+            this.DownloadUrl = GetDownloadUrl(environmentSettings);
             this.DaemonVersion = ExtractVersionStringFromUrl(this.DownloadUrl);
             Debug.Assert(this.DaemonVersion != null, "Daemon version should not be null - check the hard-coded download URL is valid");
 
@@ -100,9 +101,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return null;
         }
 
-        private string GetDownloadUrl()
+        private string GetDownloadUrl(IEnvironmentSettings environmentSettings)
         {
-            var actualUrl = System.Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
+            var actualUrl = environmentSettings.SonarLintDaemonDownloadUrl();
 
             if (string.IsNullOrWhiteSpace(actualUrl))
             {
@@ -113,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 if (IsValidUrl(actualUrl))
                 {
-                    logger.WriteLine(Strings.Daemon_UsingDownloadUrlFromEnvVar, SonarLintDownloadUrlEnvVar);
+                    logger.WriteLine(Strings.Daemon_UsingDownloadUrlFromEnvVar, EnvironmentSettings.SonarLintDownloadUrlEnvVar);
                 }
                 else
                 {
@@ -128,13 +129,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out _))
             {
-                logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
+                logger.WriteLine(Strings.Daemon_InvalidUrlInDownloadEnvVar, EnvironmentSettings.SonarLintDownloadUrlEnvVar, url);
                 return false;
             }
 
             if (ExtractVersionStringFromUrl(url) == null)
             {
-                logger.WriteLine(Strings.Daemon_InvalidFileNameInDownloadEnvVar, SonarLintDownloadUrlEnvVar, url);
+                logger.WriteLine(Strings.Daemon_InvalidFileNameInDownloadEnvVar, EnvironmentSettings.SonarLintDownloadUrlEnvVar, url);
                 return false;
             }
 
@@ -184,6 +185,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         internal /* for testing */string ZipFilePath => Path.Combine(tmpPath, $"sonarlint-daemon-{DaemonVersion}-windows.zip");
-
     }
 }

@@ -42,8 +42,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private static readonly string analyzerExeFilePath = Path.Combine(
             CFamilyFilesDirectory, "subprocess.exe");
 
-        private const int DefaultAnalysisTimeoutMs = 20 * 1000;
-        private const string TimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
+        private static readonly IEnvironmentSettings SharedEnvSettings = new EnvironmentSettings();
+        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 20 * 1000;
 
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
@@ -266,17 +266,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return success;
         }
 
-        internal /* for testing*/ static int GetTimeoutInMs()
+        internal /* for testing*/ static int GetTimeoutInMs(IEnvironmentSettings environmentSettings = null)
         {
-            var setting = Environment.GetEnvironmentVariable(TimeoutEnvVar);
+            environmentSettings = environmentSettings ?? SharedEnvSettings;
+            var userSuppliedTimeout = environmentSettings.CFamilyAnalysisTimeoutInMs();
 
-            if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo,  out int userSuppliedTimeout)
-                && userSuppliedTimeout > 0)
-            {
-                return userSuppliedTimeout;
-            }
-
-            return DefaultAnalysisTimeoutMs;
+            return userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
         }
 
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)

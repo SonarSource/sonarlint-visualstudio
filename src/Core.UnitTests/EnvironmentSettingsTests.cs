@@ -44,5 +44,40 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                 new EnvironmentSettings().TreatBlockerSeverityAsError().Should().Be(expected);
             }
         }
+
+        [TestMethod]
+        [DataRow(null, 0)]
+        [DataRow("", 0)]
+        [DataRow(" ", 0)]
+        [DataRow("abc", 0)]
+        [DataRow("1.23", 0)]
+        [DataRow("2,000", 0)]
+        [DataRow("2.001", 0)]
+        [DataRow("-999", 0)]
+        [DataRow("-1", 0)]
+        [DataRow("0", 0)]
+        [DataRow("1", 1)]
+        [DataRow("9876", 9876)]
+        public void CFamilyAnalysisTimeoutInMs_ReturnsExpectedValue(string envVarValue, int expected)
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvironmentSettings.CFamilyAnalysisTimeoutEnvVar, envVarValue);
+                new EnvironmentSettings().CFamilyAnalysisTimeoutInMs().Should().Be(expected);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(null, null)]
+        [DataRow("", null)]
+        [DataRow("does not validate urls", "does not validate urls")]
+        public void SonarLintDaemonDownloadUrl_ReturnsExpectedValue(string envVarValue, string expected)
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvironmentSettings.SonarLintDownloadUrlEnvVar, envVarValue);
+                new EnvironmentSettings().SonarLintDaemonDownloadUrl().Should().Be(expected);
+            }
+        }
     }
 }
