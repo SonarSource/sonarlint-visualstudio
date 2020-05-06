@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     // * make binding changes to a single project i.e. writes the ruleset files
     // and updates the project file
 
-    internal partial class ProjectBindingOperation
+    internal partial class ProjectBindingOperation : IBindingOperation
     {
         private readonly IBindingConfigFileWithRuleset bindingConfigFileWithRuleset;
         private readonly IServiceProvider serviceProvider;
@@ -54,8 +54,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
+            this.bindingConfigFileWithRuleset = bindingConfigFileWithRuleset ?? throw new ArgumentNullException(nameof(bindingConfigFileWithRuleset));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.bindingConfigFileWithRuleset = bindingConfigFileWithRuleset;
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
