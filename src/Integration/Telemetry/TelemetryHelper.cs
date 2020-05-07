@@ -58,7 +58,12 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(bindingConfiguration));
             }
 
+            // Note: we are capturing the data about the connected mode at the point
+            // the data is about to be sent. This seems weird, as it depends entirely
+            // on the solution the user happens to have open at the time, if any.
+            // However, this is what was spec-ed in the MMF.
             var isConnected = bindingConfiguration?.Mode != SonarLintMode.Standalone;
+            var isLegacyConnected = bindingConfiguration?.Mode == SonarLintMode.LegacyConnected;
             var isSonarCloud = IsSonarCloud(bindingConfiguration?.Project?.ServerUri);
 
             return new TelemetryPayload
@@ -69,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
+                IsUsingLegacyConnectedMode = isLegacyConnected,
                 IsUsingSonarCloud = isSonarCloud,
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
