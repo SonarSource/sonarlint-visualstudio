@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 NumberOfDaysSinceInstallation = 234,
                 NumberOfDaysOfUse = 123,
                 IsUsingConnectedMode = true,
+                IsUsingLegacyConnectedMode = true,
                 IsUsingSonarCloud = true,
 
                 // Adding some ticks to ensure that we send just the milliseconds in the serialized payload
@@ -63,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""days_since_installation"": 234,
   ""days_of_use"": 123,
   ""connected_mode_used"": true,
+  ""legacy_connected_mode_used"": true,
   ""connected_mode_sonarcloud"": true,
   ""install_time"": ""2017-12-23T08:25:35.456+01:00"",
   ""system_time"": ""2018-03-15T18:55:10.123+01:00"",
