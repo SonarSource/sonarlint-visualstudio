@@ -49,6 +49,9 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("connected_mode_used")]
         public bool IsUsingConnectedMode { get; set; }
 
+        [JsonProperty("legacy_connected_mode_used")]
+        public bool IsUsingLegacyConnectedMode { get; set; }
+
         [JsonProperty("connected_mode_sonarcloud")]
         public bool IsUsingSonarCloud { get; set; }
 
