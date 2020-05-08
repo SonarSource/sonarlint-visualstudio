@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             return Language.Cpp.Equals(language) || Language.C.Equals(language);
         }
 
-        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
                 bindingConfiguration.Project.ProjectKey,
                 language.FileSuffixAndExtension);
 
-            var configFile = new CFamilyBindingConfigFile(settings, settingsFilePath);
+            var configFile = new CFamilyBindingConfig(settings, settingsFilePath);
 
             return configFile;
         }

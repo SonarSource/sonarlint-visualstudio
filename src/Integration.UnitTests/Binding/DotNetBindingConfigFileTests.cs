@@ -35,13 +35,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new DotNetBindingConfigFile(null, "dummy");
+            Action act = () => new DotNetBindingConfig(null, "dummy");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
 
-             act = () => new DotNetBindingConfigFile(new RuleSet("dummy"), null);
+             act = () => new DotNetBindingConfig(new RuleSet("dummy"), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
-            act = () => new DotNetBindingConfigFile(new RuleSet("dummy"), "");
+            act = () => new DotNetBindingConfig(new RuleSet("dummy"), "");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
 
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(testDir);
             var fullPath = Path.Combine(testDir, "savedRuleSet.txt");
 
-            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"), fullPath);
+            var testSubject = new DotNetBindingConfig(new RuleSet("dummy"), fullPath);
 
             // Act
             testSubject.Save();

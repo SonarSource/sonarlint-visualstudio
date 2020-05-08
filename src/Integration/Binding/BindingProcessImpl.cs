@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return false;
                 }
 
-                this.InternalState.BindingConfigFiles[language] = bindingConfig;
+                this.InternalState.BindingConfigs[language] = bindingConfig;
 
                 currentLanguage++;
                 progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void InitializeSolutionBindingOnUIThread()
         {
-            this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigFiles);
+            this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
 
             var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
                 this.unboundProjectFinder, this.host.Logger);
@@ -288,10 +288,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 get;
             } = new HashSet<Project>();
 
-            public Dictionary<Language, IBindingConfigFile> BindingConfigFiles
+            public Dictionary<Language, IBindingConfig> BindingConfigs
             {
                 get;
-            } = new Dictionary<Language, IBindingConfigFile>();
+            } = new Dictionary<Language, IBindingConfig>();
 
             public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
             {

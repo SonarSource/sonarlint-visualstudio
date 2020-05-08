@@ -25,17 +25,17 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public class CFamilyBindingConfigFile : IBindingConfigFile
+    public class CFamilyBindingConfig : IBindingConfig
     {
         private readonly IFileSystem fileSystem;
         public string FilePath { get; }
 
-        public CFamilyBindingConfigFile(RulesSettings ruleSettings, string filePath)
+        public CFamilyBindingConfig(RulesSettings ruleSettings, string filePath)
             : this (ruleSettings, filePath, new FileSystem())
         {
         }
 
-        public CFamilyBindingConfigFile(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
+        public CFamilyBindingConfig(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
         {
             RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));

@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private SolutionMock solutionMock;
         private ProjectMock projectMock;
         private const string SolutionRoot = @"c:\solution";
-        private DotNetBindingConfigFile bindingConfigFile;
+        private DotNetBindingConfig bindingConfig;
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleSetFS;
         private MockFileSystem fileSystem;
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem(), new SolutionBindingFilePathGenerator()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
-            bindingConfigFile = new DotNetBindingConfigFile(new RuleSet("SonarQube"), @"c:\Solution\sln.ruleset");
+            bindingConfig = new DotNetBindingConfig(new RuleSet("SonarQube"), @"c:\Solution\sln.ruleset");
         }
 
         #region Tests
@@ -78,8 +78,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_ArgChecks()
         {
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.bindingConfigFile));
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.bindingConfigFile));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(null, this.projectMock, this.bindingConfig));
+            Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, null, this.bindingConfig));
             Exceptions.Expect<ArgumentNullException>(() => new ProjectBindingOperation(this.serviceProvider, this.projectMock, null));
 
             ProjectBindingOperation testSubject = this.CreateTestSubject();
@@ -364,7 +364,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private ProjectBindingOperation CreateTestSubject()
         {
-            return new ProjectBindingOperation(serviceProvider, projectMock, bindingConfigFile);
+            return new ProjectBindingOperation(serviceProvider, projectMock, bindingConfig);
         }
 
         #endregion Helpers

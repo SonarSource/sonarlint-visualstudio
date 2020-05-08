@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// Extends the base binding configuration interface for C#/VB projects where
     /// the config is expected to have a ruleset
     /// </summary>
-    public interface IBindingConfigFileWithRuleset : IBindingConfigFile
+    public interface IBindingConfigFileWithRuleset : IBindingConfig
     {
         RuleSet RuleSet { get; }
     }

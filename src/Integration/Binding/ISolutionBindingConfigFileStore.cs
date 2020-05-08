@@ -30,9 +30,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
     public interface ISolutionBindingConfigFileStore
     {
         /// <summary>
-        /// Registers a mapping of <see cref="Language"/> to <see cref="IBindingConfigFile"/>/>.
+        /// Registers a mapping of <see cref="Language"/> to <see cref="IBindingConfig"/>/>.
         /// </summary>
         /// <param name="languageToFileMap">Required</param>
-        void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap);
+        void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfig> languageToFileMap);
     }
 }

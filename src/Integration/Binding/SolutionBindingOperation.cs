@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<BindProject> projectBinders = new List<BindProject>();
-        private readonly IDictionary<Language, IBindingConfigFile> bindingConfigInformationMap = new Dictionary<Language, IBindingConfigFile>();
+        private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private IDictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
         private readonly ConnectionInformation connection;
         private readonly string projectKey;
@@ -113,14 +113,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfigFile> RuleSetsInformationMap => 
-            new ReadOnlyDictionary<Language, IBindingConfigFile>(bindingConfigInformationMap);
+        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap => 
+            new ReadOnlyDictionary<Language, IBindingConfig>(bindingConfigInformationMap);
 
         #endregion
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap)
+        public void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfig> languageToFileMap)
         {
             if (languageToFileMap == null)
             {
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             bindingConfigInformationMap.AddRange(languageToFileMap);
         }
 
-        public IBindingConfigFile GetBindingConfig(Language language)
+        public IBindingConfig GetBindingConfig(Language language)
         {
             if (!bindingConfigInformationMap.TryGetValue(language, out var info) || info == null)
             {

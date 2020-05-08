@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             });
         }
 
-        public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
+        public BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken)
         {
             logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
 

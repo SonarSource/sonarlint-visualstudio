@@ -128,15 +128,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var notifications = new ConfigurableProgressStepExecutionEvents();
             var progressAdapter = new FixedStepsProgressAdapter(notifications);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSetWithRuleIds(new[] { "Key1", "Key2" });
-            var configFile = new Mock<IBindingConfigFile>().Object;
+            var bindingConfig = new Mock<IBindingConfig>().Object;
 
             var language = Language.VBNET;
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
             configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, CancellationToken.None))
-                .ReturnsAsync(configFile);
+                .ReturnsAsync(bindingConfig);
 
             var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, configProviderMock.Object);
 
@@ -147,9 +146,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeTrue();
-            testSubject.InternalState.BindingConfigFiles.Should().ContainKey(language);
-            testSubject.InternalState.BindingConfigFiles[language].Should().Be(configFile);
-            testSubject.InternalState.BindingConfigFiles.Count().Should().Be(1);
+            testSubject.InternalState.BindingConfigs.Should().ContainKey(language);
+            testSubject.InternalState.BindingConfigs[language].Should().Be(bindingConfig);
+            testSubject.InternalState.BindingConfigs.Count().Should().Be(1);
 
             testSubject.InternalState.QualityProfiles[language].Should().Be(profile);
 
@@ -179,8 +178,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().BeFalse();
-            testSubject.InternalState.BindingConfigFiles.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
-            testSubject.InternalState.BindingConfigFiles.Should().NotContainKey(language, "Not expecting any rules");
+            testSubject.InternalState.BindingConfigs.Should().NotContainKey(Language.VBNET, "Not expecting any rules for this language");
+            testSubject.InternalState.BindingConfigs.Should().NotContainKey(language, "Not expecting any rules");
 
             notifications.AssertProgressMessages(Strings.DownloadingQualityProfileProgressMessage);
 

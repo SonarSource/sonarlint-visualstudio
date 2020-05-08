@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
         }
 
-        public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return DoGetConfigurationAsync(qualityProfile, language, cancellationToken);
         }
 
-        private async Task<IBindingConfigFile> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        private async Task<IBindingConfig> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
         {
             var serverLanguage = language.ServerLanguage;
             Debug.Assert(serverLanguage != null,
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingConfiguration.Project.ProjectKey,
                 language.FileSuffixAndExtension);
 
-            return new DotNetBindingConfigFile(ToVsRuleset(coreRuleset), ruleSetFilePath);
+            return new DotNetBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
         }
 
         private async Task<Dictionary<string, string>> FetchPropertiesAsync(string projectKey, CancellationToken cancellationToken)

@@ -119,11 +119,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
         private class DummyProvider : IBindingConfigProvider
         {
             public DummyProvider(params Language[] supportedLanguages)
-                : this(new Mock<IBindingConfigFile>().Object, supportedLanguages)
+                : this(new Mock<IBindingConfig>().Object, supportedLanguages)
             {
             }
 
-            public DummyProvider(IBindingConfigFile configToReturn = null, params Language[] supportedLanguages)
+            public DummyProvider(IBindingConfig configToReturn = null, params Language[] supportedLanguages)
             {
                 SupportedLanguages = new List<Language>(supportedLanguages);
                 this.ConfigToReturn = configToReturn;
@@ -131,13 +131,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             public IList<Language> SupportedLanguages { get; }
 
-            public IBindingConfigFile ConfigToReturn { get; set; }
+            public IBindingConfig ConfigToReturn { get; set; }
 
             #region IBindingConfigProvider implementation
 
-            public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+            public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
             {
-                return Task.FromResult<IBindingConfigFile>(ConfigToReturn);
+                return Task.FromResult(ConfigToReturn);
             }
 
             public bool IsLanguageSupported(Language language)

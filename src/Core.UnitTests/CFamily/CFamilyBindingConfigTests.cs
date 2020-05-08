@@ -29,21 +29,21 @@ using SonarLint.VisualStudio.Core.CFamily;
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyBindingConfigFileTests
+    public class CFamilyBindingConfigTests
     {
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new CFamilyBindingConfigFile(null, "c:\\test");
+            Action act = () => new CFamilyBindingConfig(null, "c:\\test");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesSettings");
 
-            act = () => new CFamilyBindingConfigFile(new RulesSettings(), null);
+            act = () => new CFamilyBindingConfig(new RulesSettings(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
-            act = () => new CFamilyBindingConfigFile(new RulesSettings(), "");
+            act = () => new CFamilyBindingConfig(new RulesSettings(), "");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
 
-            act = () => new CFamilyBindingConfigFile(new RulesSettings(), "c:\\test", null);
+            act = () => new CFamilyBindingConfig(new RulesSettings(), "c:\\test", null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         public void Ctor_ValidArgs()
         {
             var settings = new RulesSettings();
-            var testSubject = new CFamilyBindingConfigFile(settings, "c:\\test");
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
             testSubject.RuleSettings.Equals(settings);
             testSubject.FilePath.Equals("c:\\test");
         }
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             fileSystemMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
-            var testSubject = new CFamilyBindingConfigFile(settings, "c:\\full\\path\\file.txt", fileSystemMock.Object);
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\full\\path\\file.txt", fileSystemMock.Object);
 
             // Act
             testSubject.Save();
