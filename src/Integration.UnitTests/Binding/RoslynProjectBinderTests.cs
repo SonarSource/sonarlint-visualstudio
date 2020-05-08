@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsBound_RulesetFileDoesNotExist_False()
+        public void IsBound_SolutionRulesetFileDoesNotExist_False()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsBound_RulesetFileExistsButFailsToLoad_False()
+        public void IsBound_SolutionRulesetFileExistsButFailsToLoad_False()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsBound_RulesetFileHasNoDeclarations_False()
+        public void IsBound_ProjectHasNoRulesets_False()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsBound_RulesetFileHasOneDeclaration_CantLoadProjectRulesetFile_False()
+        public void IsBound_ProjectHasOneRuleset_CantLoadProjectRulesetFile_False()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -173,6 +173,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var result = testSubject.IsBound(bindingConfiguration, projectMock);
             result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void IsBound_ProjectHasOneRuleset_ReturnIfReferencesSolutionRuleset(bool referencesSolutionRuleset)
+        {
+            Assert.Inconclusive("TBD");
+        }
+
+        [TestMethod]
+        [DataRow(true, true, true)]
+        [DataRow(true, false, false)]
+        [DataRow(false, true, false)]
+        [DataRow(false, false, false)]
+        public void IsBound_ProjectHasTwoRulesets_ReturnIfAllReferenceSolutionRuleset(bool firstReferencesSolutionRuleset, bool secondReferencesSolutionRuleset, bool expectedResult)
+        {
+            Assert.Inconclusive("TBD");
         }
 
         private RuleSetDeclaration GetRuleSetDeclaration(ProjectMock projectMock)
