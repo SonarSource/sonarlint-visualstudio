@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal partial class ProjectBindingOperation
+    internal partial class CSharpVBBindingOperation
     {
         internal const string DefaultProjectRuleSet = "MinimumRecommendedRules.ruleset";
         private readonly IRuleSetSerializer ruleSetSerializer;

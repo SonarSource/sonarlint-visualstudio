@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     // * co-ordinates writing project-level changes
 
     /// <summary>
-    /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
+    /// Solution level binding by delegating some of the work to <see cref="IProjectBinder"/>
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {

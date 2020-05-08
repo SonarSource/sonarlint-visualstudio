@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class RoslynProjectBinder : IProjectBinder
     {
-        public delegate IBindingOperation CreateBindingOperationFunc(Project project, IBindingConfig bindingConfig);
+        public delegate ICSharpVBBindingOperation CreateBindingOperationFunc(Project project, IBindingConfig bindingConfig);
 
         private readonly IFileSystem fileSystem;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
         {
-            return (project, configFile) => new ProjectBindingOperation(serviceProvider, project, configFile as ICSharpVBBindingConfig);
+            return (project, configFile) => new CSharpVBBindingOperation(serviceProvider, project, configFile as ICSharpVBBindingConfig);
         }
 
         public BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken)

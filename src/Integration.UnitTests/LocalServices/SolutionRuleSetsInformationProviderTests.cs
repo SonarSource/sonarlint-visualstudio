@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SolutionRuleSetsInformationProvider_GetProjectRuleSetsDeclarations_ConfigurationPropertyWithDefaultValue()
         {
             // Arrange
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", ProjectBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
 
             // Act
             RuleSetDeclaration[] info = testSubject.GetProjectRuleSetsDeclarations(this.projectMock).ToArray();

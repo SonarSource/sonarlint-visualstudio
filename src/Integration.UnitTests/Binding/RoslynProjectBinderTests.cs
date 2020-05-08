@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectMock = new ProjectMock("c:\\test.csproj");
             var bindingConfig = new CSharpVBBindingConfig(new RuleSet("test"), "c:\\test.ruleset");
             
-            var bindingOperationMock = new Mock<IBindingOperation>();
+            var bindingOperationMock = new Mock<ICSharpVBBindingOperation>();
             
             createBindingOperationFuncMock
                 .Setup(x => x(projectMock, bindingConfig))

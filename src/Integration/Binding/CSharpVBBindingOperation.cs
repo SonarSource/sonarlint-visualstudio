@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     // * make binding changes to a single project i.e. writes the ruleset files
     // and updates the project file
 
-    internal partial class ProjectBindingOperation : IBindingOperation
+    internal partial class CSharpVBBindingOperation : ICSharpVBBindingOperation
     {
         private readonly IServiceProvider serviceProvider;
         private readonly ICSharpVBBindingConfig cSharpVBBindingConfig;
@@ -45,12 +45,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
+        public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
             : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem())
         {
         }
 
-        internal ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, IFileSystem fileSystem)
+        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
@@ -72,7 +72,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing purposes*/ IReadOnlyDictionary<Property, PropertyInformation> PropertyInformationMap { get { return this.propertyInformationMap; } }
         #endregion
 
-        #region IBindingOperation
         public void Initialize()
         {
             this.CaptureProject();
@@ -119,7 +118,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.AddFileToProject(this.initializedProject, ruleSetFullFilePath);
             }
         }
-        #endregion
 
         #region Helpers
 
