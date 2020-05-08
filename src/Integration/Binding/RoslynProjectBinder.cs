@@ -26,6 +26,7 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -85,19 +86,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
         {
-            // If solution is not bound/is missing a rules configuration file, no need to go further
-            var slnLevelBindingConfigFilepath = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
+            var solutionRuleset = GetSolutionRuleset(binding, language);
 
-            if (!fileSystem.File.Exists(slnLevelBindingConfigFilepath))
-            {
-                return false;
-            }
-
-            // Projects that required project-level binding should be using RuleSets for configuration,
-            // so we assume that the solution-level config file is a ruleset.
-            var sonarQubeRuleSet = ruleSetSerializer.LoadRuleSet(slnLevelBindingConfigFilepath);
-
-            if (sonarQubeRuleSet == null)
+            if (solutionRuleset == null)
             {
                 return false;
             }
@@ -105,7 +96,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
             return declarations.Length > 0 // Need at least one
-                   && declarations.All(declaration => IsRuleSetBound(project, declaration, sonarQubeRuleSet));
+                   && declarations.All(declaration => IsRuleSetBound(project, declaration, solutionRuleset));
+        }
+
+        private RuleSet GetSolutionRuleset(BindingConfiguration binding, Language language)
+        {
+            // If solution is not bound/is missing a rules configuration file, no need to go further
+            var slnLevelBindingConfigFilepath =
+                ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language,
+                    binding.Mode);
+
+            // Projects that required project-level binding should be using RuleSets for configuration,
+            // so we assume that the solution-level config file is a ruleset.
+            return fileSystem.File.Exists(slnLevelBindingConfigFilepath)
+                ? ruleSetSerializer.LoadRuleSet(slnLevelBindingConfigFilepath)
+                : null;
         }
 
         private bool IsRuleSetBound(Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
