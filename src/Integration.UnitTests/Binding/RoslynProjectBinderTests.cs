@@ -22,13 +22,14 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using System.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -115,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var result = testSubject.IsBound(bindingConfiguration, projectMock);
             result.Should().BeFalse();
 
-            solutionRuleSetsInformationProviderMock.VerifyNoOtherCalls();
+            VerifyProjectRulesetsNotFetched();
         }
 
         [TestMethod]
@@ -131,7 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var result = testSubject.IsBound(bindingConfiguration, projectMock);
             result.Should().BeFalse();
 
-            solutionRuleSetsInformationProviderMock.VerifyNoOtherCalls();
+            VerifyProjectRulesetsNotFetched();
         }
 
         [TestMethod]
@@ -229,6 +230,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetCSProjectKind();
             return projectMock;
+        }
+
+        private void VerifyProjectRulesetsNotFetched()
+        {
+            solutionRuleSetsInformationProviderMock
+                .Verify(x => x.GetProjectRuleSetsDeclarations(It.IsAny<Project>()),
+                    Times.Never());
         }
     }
 }
