@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 
@@ -29,5 +30,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal interface IProjectBinder
     {
         bool IsBound(BindingConfiguration binding, Project project);
+        BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken);
     }
+
+    public delegate void BindProject();
 }

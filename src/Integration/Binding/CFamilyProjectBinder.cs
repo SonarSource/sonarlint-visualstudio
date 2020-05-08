@@ -22,23 +22,27 @@ using System;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CFamilyProjectBinder : IProjectBinder
     {
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
+        private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public CFamilyProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        public CFamilyProjectBinder(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
 
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
@@ -58,6 +62,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 return fileSystem.File.Exists(slnLevelBindingConfigFilepath);
             });
+        }
+
+        public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
+        {
+            logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
+
+            return () => { };
         }
     }
 }
