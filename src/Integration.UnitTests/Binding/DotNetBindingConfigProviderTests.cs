@@ -213,8 +213,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<DotNetBindingConfig>();
-            var dotNetResult = (DotNetBindingConfig)result;
+            result.Should().BeOfType<CSharpVBBindingConfig>();
+            var dotNetResult = (CSharpVBBindingConfig)result;
             dotNetResult.RuleSet.Should().NotBeNull();
             dotNetResult.RuleSet.ToolsVersion.Should().Be(new Version(validRuleSet.ToolsVersion));
 

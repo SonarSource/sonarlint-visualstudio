@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingConfiguration.Project.ProjectKey,
                 language.FileSuffixAndExtension);
 
-            return new DotNetBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
+            return new CSharpVBBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
         }
 
         private async Task<Dictionary<string, string>> FetchPropertiesAsync(string projectKey, CancellationToken cancellationToken)

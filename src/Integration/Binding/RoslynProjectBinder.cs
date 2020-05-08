@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
         {
-            return (project, configFile) => new ProjectBindingOperation(serviceProvider, project, configFile as IBindingConfigFileWithRuleset);
+            return (project, configFile) => new ProjectBindingOperation(serviceProvider, project, configFile as ICSharpVBBindingConfig);
         }
 
         public BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken)

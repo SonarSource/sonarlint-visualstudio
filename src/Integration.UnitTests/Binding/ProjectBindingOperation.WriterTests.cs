@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var dotNetConfig = new DotNetBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
+            var dotNetConfig = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetConfig, existingProjectRuleSetPath);
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new DotNetBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var dotNetRuleSet = new DotNetBindingConfig(expectedRuleSet, solutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, existingProjectRuleSetPath);
@@ -311,7 +311,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var dotNetRuleSet = new DotNetBindingConfig(expectedRuleSet, solutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, relativePathToExistingProjectRuleSet);
@@ -349,7 +349,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { currentNonExistingRuleSet, newSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new DotNetBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, dotNetRuleSet, currentNonExistingRuleSet);
@@ -381,7 +381,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { expectedSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new DotNetBindingConfig(expectedRuleSet, solutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
 
             List<string> filesPending = new List<string>();
             foreach (var currentRuleSet in new[] { null, string.Empty, ProjectBindingOperation.DefaultProjectRuleSet })
