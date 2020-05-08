@@ -37,7 +37,7 @@ using NuGetPackageInfo = SonarLint.VisualStudio.Core.CSharpVB.NuGetPackageInfo;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class DotNetBindingConfigProviderTests
+    public class CSharpVBBindingConfigProviderTests
     {
         private const string OriginalValidRuleSetDescription = "my ruleset";
 
@@ -295,7 +295,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             public IEnumerable<SonarQubeRule> CapturedRulesPassedToRuleSetGenerator { get; private set; }
             public IDictionary<string, string> CapturedPropertiesPassedToRuleSetGenerator { get; private set; }
 
-            public DotNetBindingConfigProvider CreateTestSubject()
+            public CSharpVBBindingConfigProvider CreateTestSubject()
             {
                 // Note: where possible, the mocked methods are set up with the expected
                 // parameter values i.e. they will only be called if the correct values
@@ -342,7 +342,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Setup(x => x.Generate(bindingRootFolder, projectName, language.FileSuffixAndExtension))
                     .Returns(FilePathResponse);
 
-                return new DotNetBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object,
+                return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object,
                     bindingConfiguration, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,

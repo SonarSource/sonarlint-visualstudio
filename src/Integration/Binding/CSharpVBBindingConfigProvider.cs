@@ -37,7 +37,7 @@ using VsRuleset = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class DotNetBindingConfigProvider : IBindingConfigProvider
+    internal class CSharpVBBindingConfigProvider : IBindingConfigProvider
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly INuGetBindingOperation nuGetBindingOperation;
@@ -47,13 +47,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly INuGetPackageInfoGenerator nuGetPackageInfoGenerator;
         private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
-        public DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, BindingConfiguration bindingConfiguration, ILogger logger)
+        public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, BindingConfiguration bindingConfiguration, ILogger logger)
             : this(sonarQubeService, nuGetBindingOperation, bindingConfiguration, logger,
                   new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SolutionBindingFilePathGenerator())
         {
         }
 
-        internal /* for testing */ DotNetBindingConfigProvider(ISonarQubeService sonarQubeService,
+        internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
             INuGetBindingOperation nuGetBindingOperation, BindingConfiguration bindingConfiguration, ILogger logger,
             IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator,
             ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)

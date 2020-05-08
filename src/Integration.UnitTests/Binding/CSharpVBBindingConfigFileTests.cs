@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class DotNetBindingConfigFileTests
+    public class CSharpVBBindingConfigFileTests
     {
         public TestContext TestContext { get; set; }
 
