@@ -46,10 +46,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public IProjectBinder Get(Project project)
         {
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
-            var isRoslynProject = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
+            var isCSharpVBLanguage = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
-            return isRoslynProject
-                ? (IProjectBinder) new RoslynProjectBinder(serviceProvider, fileSystem)
+            return isCSharpVBLanguage
+                ? (IProjectBinder) new CSharpVBProjectBinder(serviceProvider, fileSystem)
                 : new CFamilyProjectBinder(serviceProvider, logger, fileSystem);
         }
     }

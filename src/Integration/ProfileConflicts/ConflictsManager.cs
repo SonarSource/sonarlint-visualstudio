@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     continue;
                 }
 
-                if (projectBinderFactory.Get(project) is RoslynProjectBinder)
+                if (projectBinderFactory.Get(project) is CSharpVBProjectBinder)
                 {
                     foreach (var declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
                     {

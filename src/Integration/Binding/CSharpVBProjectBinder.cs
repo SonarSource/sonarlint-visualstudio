@@ -30,7 +30,7 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class RoslynProjectBinder : IProjectBinder
+    internal class CSharpVBProjectBinder : IProjectBinder
     {
         public delegate ICSharpVBBindingOperation CreateBindingOperationFunc(Project project, IBindingConfig bindingConfig);
 
@@ -39,12 +39,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
 
-        public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
             :  this(serviceProvider, fileSystem, GetCreateBindingOperationFunc(serviceProvider))
         {
         }
 
-        internal RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
         {
             if (serviceProvider == null)
             {
