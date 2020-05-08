@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     /// <remarks>
     /// * writes the binding info files and shared rulesets to disk
-    /// * co-ordinates writing project-level changes (delegating to to <see cref="ProjectBindingOperation"/>)
+    /// * co-ordinates writing project-level changes (delegating to to <see cref="IProjectBinder"/>)
     /// For legacy connected mode, the solution-level items are added to the solution file
     /// </remarks>
     public interface ISolutionBindingOperation : ISolutionBindingConfigFileStore

@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Core.Binding
         /// <summary>
         /// Returns a configuration file for the specified language
         /// </summary>
-        Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken);
+        Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.Core.Binding
     /// </summary>
     /// <remarks>e.g. for C# and VB.NET the configuration will be in a ruleset file.
     /// For C++ it will be in a json file in a Sonar-specific format</remarks>
-    public interface IBindingConfigFile
+    public interface IBindingConfig
     {
         string FilePath { get; }
 

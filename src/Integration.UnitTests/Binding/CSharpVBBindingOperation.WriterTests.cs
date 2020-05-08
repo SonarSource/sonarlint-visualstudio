@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
-    public partial class ProjectBindingOperationTests
+    public partial class CSharpVBBindingOperationTests
     {
         #region Tests
 
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             const string ruleSetRootPath = @"X:\";
             const string fileName = "My.File.With.Dots";
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             string expected = $"X:\\My.File.With.Dots.ruleset";
 
             // Act
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // General setup
             const string ruleSetRootPath = @"X:\";
             const string fileName = "NameTaken";
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             // Test case 1: desired name exists
             // Arrange
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             const string fileName = "fileTaken";
             const string ruleSetRootPath = @"X:\";
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             string[] existingFiles = Enumerable.Range(0, 10).Select(i => $@"X:\{fileName}-{i}.ruleset").ToArray();
 
             fileSystem.AddFile($@"X:\{fileName}.ruleset", new MockFileData(""));
@@ -138,16 +138,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_ShouldIgnoreConfigureRuleSetValue()
         {
             // Test case 1: not ignored
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset").Should().BeFalse();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset").Should().BeFalse();
 
             // Test case 2: ignored
             // Act
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(null).Should().BeTrue();
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(" ").Should().BeTrue();
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue("\t").Should().BeTrue();
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
-            ProjectBindingOperation.ShouldIgnoreConfigureRuleSetValue(ProjectBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(null).Should().BeTrue();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(" ").Should().BeTrue();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue("\t").Should().BeTrue();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(CSharpVBBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(CSharpVBBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
+            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(CSharpVBBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
         }
 
         [TestMethod]
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
 
             // Act
-            RuleSet actualRuleSet = ProjectBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, Constants.RuleSetName);
+            RuleSet actualRuleSet = CSharpVBBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, Constants.RuleSetName);
 
             // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_UnderTheProject()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             const string ruleSetName = "Happy";
             const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var dotNetConfig = new DotNetBindingConfigFile(expectedRuleSet, newSolutionRuleSetPath);
+            var dotNetConfig = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetConfig, existingProjectRuleSetPath);
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_UnderTheProject()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             const string ruleSetName = "Happy";
             const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new DotNetBindingConfigFile(expectedRuleSet, newSolutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
@@ -249,7 +249,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_AbsolutePathRuleSetIsFound_ButNotUnderTheProject()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             const string ruleSetName = "Happy";
 
@@ -269,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var dotNetRuleSet = new DotNetBindingConfigFile(expectedRuleSet, solutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, existingProjectRuleSetPath);
@@ -289,7 +289,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RelativePathRuleSetIsFound_ButNotUnderTheSProject()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             const string ruleSetName = "Happy";
 
@@ -311,7 +311,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var dotNetRuleSet = new DotNetBindingConfigFile(expectedRuleSet, solutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, relativePathToExistingProjectRuleSet);
@@ -331,7 +331,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_ProjectHasExistingRuleSet_RuleSetIsNotFound()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             const string projectName = "My Project";
             const string ruleSetFileName = "Happy";
@@ -349,7 +349,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { currentNonExistingRuleSet, newSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new DotNetBindingConfigFile(expectedRuleSet, newSolutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, dotNetRuleSet, currentNonExistingRuleSet);
@@ -369,7 +369,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_NewBinding()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             const string ruleSetFileName = "Happy";
             const string projectFullPath = @"X:\SolutionDir\ProjectDir\My Project.proj";
@@ -381,10 +381,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { expectedSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new DotNetBindingConfigFile(expectedRuleSet, solutionRuleSetPath);
+            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
 
             List<string> filesPending = new List<string>();
-            foreach (var currentRuleSet in new[] { null, string.Empty, ProjectBindingOperation.DefaultProjectRuleSet })
+            foreach (var currentRuleSet in new[] { null, string.Empty, CSharpVBBindingOperation.DefaultProjectRuleSet })
             {
                 // Act
                 string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, dotNetRuleSet, currentRuleSet);
@@ -412,7 +412,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_RuleSetSaved(bool doesAlreadyExist)
         {
             // Arrange
-            ProjectBindingOperation testSubject = CreateTestSubject();
+            CSharpVBBindingOperation testSubject = CreateTestSubject();
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
             string projectRuleSetRoot = @"X:\SolutionDir\Project\";
@@ -443,7 +443,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_TryUpdateExistingProjectRuleSet_ExistingRuleSetIsNotAtTheProjectLevel()
         {
             // Arrange
-            ProjectBindingOperation testSubject = this.CreateTestSubject();
+            CSharpVBBindingOperation testSubject = this.CreateTestSubject();
 
             string solutionRuleSetPath = @"X:\SolutionDir\Sonar\Sonar1.ruleset";
             string projectRuleSetRoot = @"X:\SolutionDir\Project\";
@@ -454,7 +454,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 @"..\..\relativeSolutionLevel.ruleset",
                 @"X:\SolutionDir\Sonar\absolutionSolutionRooted.ruleset",
                 @"c:\OtherPlaceEntirey\rules.ruleset",
-                ProjectBindingOperation.DefaultProjectRuleSet,
+                CSharpVBBindingOperation.DefaultProjectRuleSet,
                 null,
                 string.Empty
             };

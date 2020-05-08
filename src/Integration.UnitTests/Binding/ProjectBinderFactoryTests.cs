@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void Get_CSharpProject_RoslynProjectBinderReturned()
+        public void Get_CSharpProject_CSharpVBProjectBinderReturned()
         {
             var project = new ProjectMock("c:\\foo.proj");
             project.SetCSProjectKind();
@@ -71,12 +71,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             using (new AssertIgnoreScope())
             {
                 var configProjectBinder = testSubject.Get(project);
-                configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
+                configProjectBinder.Should().BeOfType<CSharpVBProjectBinder>();
             }
         }
 
         [TestMethod]
-        public void Get_VbNetProject_RoslynProjectBinderReturned()
+        public void Get_VbNetProject_CSharpVBProjectBinderReturned()
         {
             var project = new ProjectMock("c:\\foo.proj");
             project.SetVBProjectKind();
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             using (new AssertIgnoreScope())
             {
                 var configProjectBinder = testSubject.Get(project);
-                configProjectBinder.Should().BeOfType<RoslynProjectBinder>();
+                configProjectBinder.Should().BeOfType<CSharpVBProjectBinder>();
             }
         }
 

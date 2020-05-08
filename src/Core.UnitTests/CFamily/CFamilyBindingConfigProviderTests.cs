@@ -149,9 +149,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<CFamilyBindingConfigFile>();
+            result.Should().BeOfType<CFamilyBindingConfig>();
 
-            var cfamilyConfigFile = (CFamilyBindingConfigFile)result;
+            var cfamilyConfigFile = (CFamilyBindingConfig)result;
             cfamilyConfigFile.RuleSettings.Should().NotBeNull();
 
             var slvsRules = cfamilyConfigFile.RuleSettings.Rules;
@@ -196,9 +196,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
             // Assert
             result.Should().NotBeNull();
-            result.Should().BeOfType<CFamilyBindingConfigFile>();
+            result.Should().BeOfType<CFamilyBindingConfig>();
 
-            var cfamilyConfigFile = (CFamilyBindingConfigFile)result;
+            var cfamilyConfigFile = (CFamilyBindingConfig)result;
             cfamilyConfigFile.RuleSettings.Should().NotBeNull();
             cfamilyConfigFile.RuleSettings.Rules.Should().NotBeNull();
             cfamilyConfigFile.RuleSettings.Rules.Count.Should().Be(0);

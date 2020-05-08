@@ -30,21 +30,21 @@ using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class RoslynProjectBinder : IProjectBinder
+    internal class CSharpVBProjectBinder : IProjectBinder
     {
-        public delegate IBindingOperation CreateBindingOperationFunc(Project project, IBindingConfigFile bindingConfigFile);
+        public delegate ICSharpVBBindingOperation CreateBindingOperationFunc(Project project, IBindingConfig bindingConfig);
 
         private readonly IFileSystem fileSystem;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
 
-        public RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
             :  this(serviceProvider, fileSystem, GetCreateBindingOperationFunc(serviceProvider))
         {
         }
 
-        internal RoslynProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
         {
             if (serviceProvider == null)
             {
@@ -62,12 +62,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
         {
-            return (project, configFile) => new ProjectBindingOperation(serviceProvider, project, configFile as IBindingConfigFileWithRuleset);
+            return (project, configFile) => new CSharpVBBindingOperation(serviceProvider, project, configFile as ICSharpVBBindingConfig);
         }
 
-        public BindProject GetBindAction(IBindingConfigFile configFile, Project project, CancellationToken cancellationToken)
+        public BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken)
         {
-            var bindingOperation = createBindingOperationFunc(project, configFile);
+            var bindingOperation = createBindingOperationFunc(project, config);
             bindingOperation.Initialize();
             bindingOperation.Prepare(cancellationToken);
 

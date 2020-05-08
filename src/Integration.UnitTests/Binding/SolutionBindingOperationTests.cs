@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
-            var languageToFileMap = new Dictionary<Language, IBindingConfigFile>();
+            var languageToFileMap = new Dictionary<Language, IBindingConfig>();
             languageToFileMap[Language.CSharp] = CreateMockConfigFile("c:\\csharp.txt").Object;
             languageToFileMap[Language.VBNET] = CreateMockConfigFile("c:\\vbnet.txt").Object;
 
@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey);
 
             // Test case 1: unknown ruleset map
-            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>();
+            var ruleSetMap = new Dictionary<Language, IBindingConfig>();
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
 
             // Act + Assert
@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var testSubject = CreateTestSubject(ProjectKey);
 
-            var ruleSetMap = new Dictionary<Language, IBindingConfigFile>
+            var ruleSetMap = new Dictionary<Language, IBindingConfig>
             {
                 [Language.CSharp] = csConfigFile.Object,
                 [Language.VBNET] = vbConfigFile.Object
@@ -307,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var testSubject = CreateTestSubject(ProjectKey);
 
-            var languageToFileMap = new Dictionary<Language, IBindingConfigFile>();
+            var languageToFileMap = new Dictionary<Language, IBindingConfig>();
             languageToFileMap[Language.CSharp] = csConfigFile.Object;
             languageToFileMap[Language.VBNET] = vbConfigFile.Object;
 
@@ -378,7 +378,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://xyz"));
             SolutionBindingOperation testSubject = this.CreateTestSubject(ProjectKey, connectionInformation, bindingMode);
 
-            var languageToFileMap = new Dictionary<Language, IBindingConfigFile>()
+            var languageToFileMap = new Dictionary<Language, IBindingConfig>()
             {
                 { Language.CSharp, csConfigFile.Object }
             };
@@ -434,9 +434,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new Dictionary<Language, SonarQubeQualityProfile>();
         }
 
-        private Mock<IBindingConfigFile> CreateMockConfigFile(string expectedFilePath)
+        private Mock<IBindingConfig> CreateMockConfigFile(string expectedFilePath)
         {
-            var configFile = new Mock<IBindingConfigFile>();
+            var configFile = new Mock<IBindingConfig>();
             
             configFile.SetupGet(x => x.FilePath)
                 .Returns(expectedFilePath);
@@ -452,12 +452,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return configFile;
         }
 
-        private static void CheckRuleSetFileWasSaved(Mock<IBindingConfigFile> mock)
+        private static void CheckRuleSetFileWasSaved(Mock<IBindingConfig> mock)
         {
             mock.Verify(x => x.Save(), Times.Once);
         }
 
-        private static void CheckSaveWasNotCalled(Mock<IBindingConfigFile> mock)
+        private static void CheckSaveWasNotCalled(Mock<IBindingConfig> mock)
             => mock.Verify(x => x.Save(), Times.Never);
 
 

@@ -18,41 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Threading;
-using SonarLint.VisualStudio.Integration.Binding;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class ConfigurableBindingOperation : IBindingOperation
+    /// <summary>
+    /// Three-step binding operation
+    /// </summary>
+    internal interface ICSharpVBBindingOperation
     {
-        #region IBindingOperation
+        /// <summary>
+        /// Initializes the initial state. Called on the foreground thread.
+        /// </summary>
+        void Initialize();
 
-        void IBindingOperation.Initialize()
-        {
-            this.InitializeAction?.Invoke();
-        }
+        /// <summary>
+        /// Prepares for binding. Called on the background thread.
+        /// </summary>
+        void Prepare(CancellationToken token);
 
-        void IBindingOperation.Commit()
-        {
-            this.CommitAction?.Invoke();
-        }
-
-        void IBindingOperation.Prepare(CancellationToken token)
-        {
-            this.PrepareAction?.Invoke(token);
-        }
-
-        #endregion IBindingOperation
-
-        #region Test helpers
-
-        public Action InitializeAction { get; set; }
-
-        public Action<CancellationToken> PrepareAction { get; set; }
-
-        public Action CommitAction { get; set; }
-
-        #endregion Test helpers
+        /// <summary>
+        /// Binds. Called on the foreground thread.
+        /// </summary>
+        void Commit();
     }
 }

@@ -34,15 +34,15 @@ using Language = SonarLint.VisualStudio.Core.Language;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public class RoslynProjectBinderTests
+    public class CSharpVBProjectBinderTests
     {
         private Mock<IServiceProvider> serviceProviderMock;
         private Mock<ISolutionRuleSetsInformationProvider> solutionRuleSetsInformationProviderMock;
         private Mock<IFileSystem> fileSystemMock;
         private Mock<IRuleSetSerializer> ruleSetSerializerMock;
 
-        private RoslynProjectBinder testSubject;
-        private Mock<RoslynProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
+        private CSharpVBProjectBinder testSubject;
+        private Mock<CSharpVBProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
 
         [TestInitialize]
         public void TestInitialize()
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             fileSystemMock = new Mock<IFileSystem>();
             solutionRuleSetsInformationProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
             ruleSetSerializerMock = new Mock<IRuleSetSerializer>();
-            createBindingOperationFuncMock = new Mock<RoslynProjectBinder.CreateBindingOperationFunc>();
+            createBindingOperationFuncMock = new Mock<CSharpVBProjectBinder.CreateBindingOperationFunc>();
 
             serviceProviderMock = new Mock<IServiceProvider>();
 
@@ -62,13 +62,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.GetService(typeof(IRuleSetSerializer)))
                 .Returns(ruleSetSerializerMock.Object);
 
-            testSubject = new RoslynProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, createBindingOperationFuncMock.Object);
+            testSubject = new CSharpVBProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, createBindingOperationFuncMock.Object);
         }
 
         [TestMethod]
         public void Ctor_NullServiceProvider_ArgumentNullException()
         {
-            Action act = () => new RoslynProjectBinder(null, Mock.Of<IFileSystem>());
+            Action act = () => new CSharpVBProjectBinder(null, Mock.Of<IFileSystem>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new RoslynProjectBinder(serviceProviderMock.Object, null);
+            Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
@@ -85,9 +85,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void GetBindAction_CallsInitializeAndPrepare_ReturnsCommitAction()
         {
             var projectMock = new ProjectMock("c:\\test.csproj");
-            var bindingConfig = new DotNetBindingConfigFile(new RuleSet("test"), "c:\\test.ruleset");
+            var bindingConfig = new CSharpVBBindingConfig(new RuleSet("test"), "c:\\test.ruleset");
             
-            var bindingOperationMock = new Mock<IBindingOperation>();
+            var bindingOperationMock = new Mock<ICSharpVBBindingOperation>();
             
             createBindingOperationFuncMock
                 .Setup(x => x(projectMock, bindingConfig))

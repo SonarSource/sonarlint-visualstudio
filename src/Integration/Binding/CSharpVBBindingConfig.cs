@@ -23,12 +23,12 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class DotNetBindingConfigFile : IBindingConfigFileWithRuleset
+    internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {
         public string FilePath { get; }
         public RuleSet RuleSet { get; }
 
-        public DotNetBindingConfigFile(RuleSet ruleSet, string filePath)
+        public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
         {
             RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
 
