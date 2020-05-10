@@ -26,7 +26,6 @@ using System.Linq;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -34,7 +33,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
-using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -101,7 +99,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
             var logger = new TestLogger();
             var projectBinderFactory = Mock.Of<IProjectBinderFactory>();
-            var folderModifier = Mock.Of<ILegacyConfigFolderItemAdder>();
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, ProjectKey, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
@@ -109,9 +106,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, null, folderModifier, new MockFileSystem()));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, null, new MockFileSystem()));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, projectBinderFactory, folderModifier,null));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation((IServiceProvider) this.serviceProvider, connectionInformation, (string) "123", (string) "name", (SonarLintMode) SonarLintMode.Standalone, (IProjectBinderFactory) null, fileSystem));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
 
             var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
@@ -335,24 +332,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding_LegacyConnectedMode()
+        [DataRow(SonarLintMode.LegacyConnected)]
+        [DataRow(SonarLintMode.Connected)]
+        public void SolutionBindingOperation_CommitSolutionBinding(SonarLintMode mode)
         {
             // Act & Assert
             var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt"; 
-            ExecuteCommitSolutionBindingTest(SonarLintMode.LegacyConnected, expectedFilePath);
+            ExecuteCommitSolutionBindingTest(mode, expectedFilePath);
 
-            this.solutionItemsProject.Files.ContainsKey(expectedFilePath).Should().BeTrue("Ruleset was expected to be added to solution items when in legacy mode");
-            fileSystem.GetFile(expectedFilePath).Should().NotBe(null); // check the file was saved
-        }
-
-        [TestMethod]
-        public void SolutionBindingOperation_CommitSolutionBinding_ConnectedMode()
-        {
-            // Act & Assert
-            var expectedFilePath = $"c:\\{Guid.NewGuid()}.txt";
-            ExecuteCommitSolutionBindingTest(SonarLintMode.Connected, expectedFilePath);
-
-            this.solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution in new connected mode");
+            solutionItemsProject.Files.Count.Should().Be(0, "Not expecting any items to be added to the solution folder");
             fileSystem.GetFile(expectedFilePath).Should().NotBe(null); // check the file was saved
         }
 
@@ -426,7 +414,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 bindingMode,
                 projectBinderFactoryMock.Object,
-                new LegacyConfigFolderItemAdder(serviceProvider, fileSystem),
                 fileSystem);
         }
 

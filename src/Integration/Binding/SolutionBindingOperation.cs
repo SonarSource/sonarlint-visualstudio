@@ -57,7 +57,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly IProjectBinderFactory projectBinderFactory;
-        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
         private IEnumerable<Project> projects;
 
@@ -67,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new FileSystem())
         {
         }
 
@@ -77,7 +76,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             IProjectBinderFactory projectBinderFactory,
-            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
             IFileSystem fileSystem)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
@@ -89,7 +87,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
@@ -212,12 +209,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 // No reason to modify VS state if could not write files
                 this.projectBinders.ForEach(b => b());
 
-                /* only show the files in the Solution Explorer in legacy mode */
-                if (this.bindingMode == SonarLintMode.LegacyConnected)
-                {
-                    UpdateSolutionFile();
-                }
-
                 return true;
             }
 
@@ -225,8 +216,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         #endregion
-
-        #region Helpers
 
         /// <summary>
         /// Will bend add/edit the binding information for next time usage
@@ -257,16 +246,5 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             configurationPersister.Persist(bound, bindingMode);
         }
-
-        private void UpdateSolutionFile()
-        {
-            foreach (var info in bindingConfigInformationMap.Values)
-            {
-                Debug.Assert(fileSystem.File.Exists(info.FilePath), "File not written " + info.FilePath);
-                legacyConfigFolderItemAdder.AddToFolder(info.FilePath);
-            }
-        }
-
-        #endregion
     }
 }
