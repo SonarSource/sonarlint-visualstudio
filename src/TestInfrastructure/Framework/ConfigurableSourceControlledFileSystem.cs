@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
 using FluentAssertions;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {

@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.ComponentModelHost;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration
 {

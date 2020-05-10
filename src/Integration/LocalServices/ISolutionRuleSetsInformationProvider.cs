@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 

@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
     /// Provides abstraction over the SCC file management. The files are queued up using <see cref="QueueFileWrite(string, Func{bool})"/>

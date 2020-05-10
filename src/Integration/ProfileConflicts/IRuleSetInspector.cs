@@ -19,6 +19,8 @@
  */
 
 
+using SonarLint.VisualStudio.Core;
+
 namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {
     /// <summary>

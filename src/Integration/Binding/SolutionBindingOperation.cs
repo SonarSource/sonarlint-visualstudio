@@ -27,6 +27,7 @@ using System.IO.Abstractions;
 using System.Threading;
 using EnvDTE;
 using NuGet;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;

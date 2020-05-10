@@ -19,6 +19,7 @@
  */
 
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration
 {
