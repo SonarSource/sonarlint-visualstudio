@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
@@ -50,10 +52,18 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         internal /* for testing */ RulesSettings RuleSettings { get; }
 
-        public void Save()
+        public void Save(ISourceControlledFileSystem sourceControlledFileSystem)
         {
-            var dataAsText = JsonConvert.SerializeObject(RuleSettings, Formatting.Indented);
-            fileSystem.File.WriteAllText(FilePath, dataAsText);
+            sourceControlledFileSystem.QueueFileWrite(FilePath, () =>
+            {
+                var bindingDirectoryPath = Path.GetDirectoryName(FilePath);
+                fileSystem.Directory.CreateDirectory(bindingDirectoryPath); // will no-op if exists
+
+                var dataAsText = JsonConvert.SerializeObject(RuleSettings, Formatting.Indented);
+                fileSystem.File.WriteAllText(FilePath, dataAsText);
+
+                return true;
+            });
         }
     }
 }

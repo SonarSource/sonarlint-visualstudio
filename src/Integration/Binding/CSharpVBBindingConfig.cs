@@ -19,17 +19,29 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Abstractions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {
+        private readonly IFileSystem fileSystem;
+
         public string FilePath { get; }
         public RuleSet RuleSet { get; }
 
         public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
+            : this(ruleSet, filePath, new FileSystem())
         {
+        }
+
+        public CSharpVBBindingConfig(RuleSet ruleSet, string filePath, IFileSystem fileSystem)
+        {
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
 
             if (string.IsNullOrWhiteSpace(filePath))
@@ -40,9 +52,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             FilePath = filePath;
         }
 
-        public void Save()
+        public void Save(ISourceControlledFileSystem sourceControlledFileSystem)
         {
-            RuleSet.WriteToFile(FilePath);
+            sourceControlledFileSystem.QueueFileWrite(FilePath, () =>
+            {
+                var bindingDirectoryPath = Path.GetDirectoryName(FilePath);
+                fileSystem.Directory.CreateDirectory(bindingDirectoryPath); // will no-op if exists
+
+                RuleSet.WriteToFile(FilePath);
+
+                return true;
+            });
         }
     }
 }

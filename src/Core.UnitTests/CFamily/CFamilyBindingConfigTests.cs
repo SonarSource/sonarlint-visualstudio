@@ -81,13 +81,19 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             string actualText = null;
 
             var fileSystemMock = new Mock<IFileSystem>();
+            fileSystemMock.Setup(x => x.Directory.CreateDirectory("c:\\full\\path\\"));
             fileSystemMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
             var testSubject = new CFamilyBindingConfig(settings, "c:\\full\\path\\file.txt", fileSystemMock.Object);
 
             // Act
-            testSubject.Save();
+            var sourceControlledFileSystem = new Mock<ISourceControlledFileSystem>();
+            sourceControlledFileSystem
+                .Setup(x => x.QueueFileWrite("c:\\full\\path\\file.txt", It.IsAny<Func<bool>>()))
+                .Callback((string file, Func<bool> callback) => callback());
+            
+            testSubject.Save(sourceControlledFileSystem.Object);
 
             // Assert
             actualPath.Should().Be("c:\\full\\path\\file.txt");

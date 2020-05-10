@@ -44,11 +44,9 @@ namespace SonarLint.VisualStudio.Core.Binding
     /// For C++ it will be in a json file in a Sonar-specific format</remarks>
     public interface IBindingConfig
     {
-        string FilePath { get; }
-
         /// <summary>
         /// Saves the file, replacing any existing file
         /// </summary>
-        void Save();
+        void Save(ISourceControlledFileSystem sourceControlledFileSystem);
     }
 }

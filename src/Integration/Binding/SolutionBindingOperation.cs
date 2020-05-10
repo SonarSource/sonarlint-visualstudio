@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Abstractions;
 using System.Threading;
 using EnvDTE;
 using NuGet;
@@ -32,7 +31,6 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
-using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -57,7 +55,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly IProjectBinderFactory projectBinderFactory;
-        private readonly IFileSystem fileSystem;
         private IEnumerable<Project> projects;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -66,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new FileSystem())
+            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider, logger))
         {
         }
 
@@ -75,8 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string projectKey,
             string projectName,
             SonarLintMode bindingMode,
-            IProjectBinderFactory projectBinderFactory,
-            IFileSystem fileSystem)
+            IProjectBinderFactory projectBinderFactory)
         {
             if (string.IsNullOrWhiteSpace(projectKey))
             {
@@ -87,7 +83,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
             this.projectKey = projectKey;
@@ -110,9 +105,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             get;
             private set;
         }
-
-        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap => 
-            new ReadOnlyDictionary<Language, IBindingConfig>(bindingConfigInformationMap);
 
         #endregion
 
@@ -166,21 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 var info = keyValue.Value;
-                Debug.Assert(!string.IsNullOrWhiteSpace(info.FilePath), "Expected to be set during registration time");
-
-                sourceControlledFileSystem.QueueFileWrite(info.FilePath, () =>
-                {
-                    var ruleSetDirectoryPath = Path.GetDirectoryName(info.FilePath);
-
-                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
-
-                    // Create or overwrite existing rule set
-                    info.Save();
-
-                    return true;
-                });
-
-                Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.FilePath), "Expected a rule set to pend pended");
+                info.Save(sourceControlledFileSystem);
             }
 
             foreach (var project in projects)

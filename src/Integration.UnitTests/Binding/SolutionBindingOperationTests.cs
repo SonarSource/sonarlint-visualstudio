@@ -98,17 +98,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             var connectionInformation = new ConnectionInformation(new Uri("http://valid"));
             var logger = new TestLogger();
-            var projectBinderFactory = Mock.Of<IProjectBinderFactory>();
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(null, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, null, ProjectKey, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, null, "name", SonarLintMode.LegacyConnected, logger));
             Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, string.Empty, "name", SonarLintMode.LegacyConnected, logger));
 
             Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.LegacyConnected, null));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation((IServiceProvider) this.serviceProvider, connectionInformation, (string) "123", (string) "name", (SonarLintMode) SonarLintMode.Standalone, (IProjectBinderFactory) null, fileSystem));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation(this.serviceProvider, connectionInformation, "123", "name", SonarLintMode.Standalone, logger));
+            Exceptions.Expect<ArgumentOutOfRangeException>(() => new SolutionBindingOperation((IServiceProvider) this.serviceProvider, connectionInformation, (string) "123", (string) "name", (SonarLintMode) SonarLintMode.Standalone, (IProjectBinderFactory) null));
 
             var testSubject = new SolutionBindingOperation(this.serviceProvider, connectionInformation, ProjectKey, "name", SonarLintMode.LegacyConnected, logger);
             testSubject.Should().NotBeNull("Avoid 'testSubject' not used analysis warning");
@@ -134,15 +130,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             languageToFileMap[Language.VBNET] = CreateMockConfigFile("c:\\vbnet.txt").Object;
 
             // Sanity
-            testSubject.RuleSetsInformationMap.Should().BeEmpty("Not expecting any registered rulesets");
+            using (new AssertIgnoreScope())
+            {
+                testSubject.GetBindingConfig(Language.CSharp).Should().BeNull("Not expecting any registered rulesets");
+                testSubject.GetBindingConfig(Language.VBNET).Should().BeNull("Not expecting any registered rulesets");
+            }
 
             // Act
             testSubject.RegisterKnownConfigFiles(languageToFileMap);
 
             // Assert
-            CollectionAssert.AreEquivalent(languageToFileMap.Keys.ToArray(), testSubject.RuleSetsInformationMap.Keys.ToArray());
-            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(languageToFileMap[Language.CSharp]);
-            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(languageToFileMap[Language.VBNET]);
+            testSubject.GetBindingConfig(Language.CSharp).Should().Be(languageToFileMap[Language.CSharp]);
+            testSubject.GetBindingConfig(Language.VBNET).Should().Be(languageToFileMap[Language.VBNET]);
         }
 
         [TestMethod]
@@ -167,15 +166,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ruleSetMap[Language.VBNET] = CreateMockConfigFile("c:\\vb.txt").Object;
 
             testSubject.RegisterKnownConfigFiles(ruleSetMap);
-            testSubject.Initialize(new ProjectMock[0], GetQualityProfiles());
-            testSubject.Prepare(CancellationToken.None);
 
             // Act
-            string filePath = testSubject.GetBindingConfig(Language.CSharp).FilePath;
+            var config = testSubject.GetBindingConfig(Language.CSharp);
 
             // Assert
-            string.IsNullOrWhiteSpace(filePath).Should().BeFalse();
-            filePath.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp].FilePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
+            config.Should().Be(ruleSetMap[Language.CSharp]);
         }
 
         [TestMethod]
@@ -257,8 +253,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Sanity
             fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
-            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
-            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
+            testSubject.GetBindingConfig(Language.CSharp).Should().Be(csConfigFile.Object);
+            testSubject.GetBindingConfig(Language.VBNET).Should().Be(vbConfigFile.Object);
 
             // Act
             testSubject.Prepare(CancellationToken.None);
@@ -275,15 +271,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Binders.First().Should().BeSameAs(csCommitAction.Object);
             testSubject.Binders.Last().Should().BeSameAs(vbCommitAction.Object);
 
-            CheckSaveWasNotCalled(csConfigFile);
-            CheckSaveWasNotCalled(vbConfigFile);
-
-            // Act (write pending)
-            sccFileSystem.WritePendingNoErrorsExpected();
-
-            // Assert
-            CheckRuleSetFileWasSaved(csConfigFile);
-            CheckRuleSetFileWasSaved(vbConfigFile);
+            CheckRuleSetFileWasQueued(csConfigFile);
+            CheckRuleSetFileWasQueued(vbConfigFile);
         }
 
         [TestMethod]
@@ -324,8 +313,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csBinder.VerifyNoOtherCalls();
             vbBinder.VerifyNoOtherCalls();
 
-            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
-            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
+            testSubject.GetBindingConfig(Language.CSharp).Should().Be(csConfigFile.Object);
+            testSubject.GetBindingConfig(Language.VBNET).Should().Be(vbConfigFile.Object);
 
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
@@ -403,7 +392,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         #endregion Tests
 
         #region Helpers
-
         private SolutionBindingOperation CreateTestSubject(string projectKey,
             ConnectionInformation connection = null,
             SonarLintMode bindingMode = SonarLintMode.LegacyConnected)
@@ -413,8 +401,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 projectKey,
                 projectKey,
                 bindingMode,
-                projectBinderFactoryMock.Object,
-                fileSystem);
+                projectBinderFactoryMock.Object);
         }
 
         private static Dictionary<Language, SonarQubeQualityProfile> GetQualityProfiles()
@@ -426,12 +413,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             var configFile = new Mock<IBindingConfig>();
             
-            configFile.SetupGet(x => x.FilePath)
-                .Returns(expectedFilePath);
-
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).
-            configFile.Setup(x => x.Save())
+            configFile.Setup(x => x.Save(sccFileSystem))
                 .Callback(() =>
                 {
                     fileSystem.AddFile(expectedFilePath, new MockFileData(""));
@@ -440,16 +424,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return configFile;
         }
 
-        private static void CheckRuleSetFileWasSaved(Mock<IBindingConfig> mock)
+        private void CheckRuleSetFileWasQueued(Mock<IBindingConfig> mock)
         {
-            mock.Verify(x => x.Save(), Times.Once);
+            mock.Verify(x => x.Save(sccFileSystem), Times.Once);
         }
 
-        private static void CheckSaveWasNotCalled(Mock<IBindingConfig> mock)
-            => mock.Verify(x => x.Save(), Times.Never);
-
-
+        private void CheckSaveWasNotCalled(Mock<IBindingConfig> mock)
+            => mock.Verify(x => x.Save(sccFileSystem), Times.Never);
 
         #endregion Helpers
-    }
+  }
 }

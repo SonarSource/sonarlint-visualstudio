@@ -23,6 +23,8 @@ using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -52,13 +54,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // writing to disk.
             // Arrange
             var testDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
-            Directory.CreateDirectory(testDir);
             var fullPath = Path.Combine(testDir, "savedRuleSet.txt");
 
             var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), fullPath);
 
+            var sourceControlledFileSystem = new Mock<ISourceControlledFileSystem>();
+            sourceControlledFileSystem
+                .Setup(x => x.QueueFileWrite(fullPath, It.IsAny<Func<bool>>()))
+                .Callback((string file, Func<bool> callback) => callback());
+
             // Act
-            testSubject.Save();
+            testSubject.Save(sourceControlledFileSystem.Object);
 
             // Assert
             File.Exists(fullPath).Should().BeTrue();
