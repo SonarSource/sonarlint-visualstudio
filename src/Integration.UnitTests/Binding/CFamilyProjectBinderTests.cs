@@ -79,31 +79,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void IsBound_ProjectHasOneLanguage(bool configFileExists)
+        public void IsBindingRequired_ProjectLanguageIsNotSupported_False()
         {
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetCSProjectKind();
 
-            solutionRuleSetsInformationProviderMock
-                .Setup(x => 
-                    x.CalculateSolutionSonarQubeRuleSetFilePath("key", Language.CSharp, SonarLintMode.Connected))
-                .Returns("c:\\config-file.txt");
-
-            fileSystemMock
-                .Setup(x => x.File.Exists("c:\\config-file.txt"))
-                .Returns(configFileExists);
-
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");
 
-            var result = testSubject.IsBound(bindingConfiguration, projectMock);
-            result.Should().Be(configFileExists);
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().Be(false);
+
+            solutionRuleSetsInformationProviderMock.VerifyNoOtherCalls();
+            fileSystemMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void IsBound_ProjectHasTwoLanguages_OneLanguageHasNoConfigFile_False()
+        public void IsBindingRequired_ProjectHasTwoLanguages_OneLanguageHasNoConfigFile_True()
         {
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetProjectKind(new Guid(ProjectSystemHelper.CppProjectKind));
@@ -129,8 +121,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");
 
-            var result = testSubject.IsBound(bindingConfiguration, projectMock);
-            result.Should().Be(false);
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().Be(true);
         }
 
         [TestMethod]

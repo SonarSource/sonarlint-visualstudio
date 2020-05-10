@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal interface IProjectBinder
     {
-        bool IsBound(BindingConfiguration binding, Project project);
+        bool IsBindingRequired(BindingConfiguration binding, Project project);
         BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken);
     }
 

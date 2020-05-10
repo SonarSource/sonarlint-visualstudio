@@ -26,6 +26,7 @@ using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -49,18 +50,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
         }
 
-        public bool IsBound(BindingConfiguration binding, Project project)
+        public bool IsBindingRequired(BindingConfiguration binding, Project project)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+            languages = languages.Where(x => x.Equals(Language.C) || x.Equals(Language.Cpp));
 
-            return languages.All(language =>
+            return languages.Any(language =>
             {
                 var slnLevelBindingConfigFilepath = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
 
-                return fileSystem.File.Exists(slnLevelBindingConfigFilepath);
+                return !fileSystem.File.Exists(slnLevelBindingConfigFilepath);
             });
         }
 
