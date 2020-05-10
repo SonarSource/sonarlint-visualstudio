@@ -38,12 +38,22 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
 {
     public class RuleSetGenerator : IRuleSetGenerator
     {
-        private const string SONARANALYZER_PARTIAL_REPO_KEY = "sonaranalyzer-{0}";
-        private const string ROSLYN_REPOSITORY_PREFIX = "roslyn.";
+        private const string SonarAnalyzerRepositoryPrefix = "sonaranalyzer-{0}";
+        private const string RoslynRepositoryPrefix = "roslyn.";
 
-        private readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
+        private static readonly string inactiveRuleActionText = GetActionText(RuleAction.None);
 
-        private readonly string activeRuleActionText = GetActionText(RuleAction.Warning);
+        private readonly IEnvironmentSettings environmentSettings;
+        
+        public RuleSetGenerator()
+            : this(new EnvironmentSettings())
+        {
+        }
+
+        internal /* for testing */ RuleSetGenerator(IEnvironmentSettings environmentSettings)
+        {
+            this.environmentSettings = environmentSettings;
+        }
 
         public RuleSet Generate(string language, IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties)
         {
@@ -101,8 +111,13 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             };
         }
 
-        private Rule CreateRuleElement(SonarQubeRule sonarRule) =>
-            new Rule(sonarRule.Key, sonarRule.IsActive ? activeRuleActionText : inactiveRuleActionText);
+        private Rule CreateRuleElement(SonarQubeRule sonarRule)
+        {
+            var actionText = (sonarRule.IsActive) ? GetActionText(GetVsSeverity(sonarRule.Severity))
+                                                  : inactiveRuleActionText;
+
+            return new Rule(sonarRule.Key, actionText);
+        }
 
         internal /* for testing */ static string GetActionText(RuleAction ruleAction)
         {
@@ -123,15 +138,34 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             }
         }
 
+        internal /* for testing */ RuleAction GetVsSeverity(SonarQubeIssueSeverity sqSeverity)
+        {
+            switch(sqSeverity)
+            {
+                case SonarQubeIssueSeverity.Info:
+                case SonarQubeIssueSeverity.Minor:
+                    return RuleAction.Info;
+
+                case SonarQubeIssueSeverity.Major:
+                case SonarQubeIssueSeverity.Critical:
+                    return RuleAction.Warning;
+
+                case SonarQubeIssueSeverity.Blocker:
+                    return environmentSettings.TreatBlockerSeverityAsError() ? RuleAction.Error : RuleAction.Warning;
+                default:
+                    throw new NotSupportedException($"Unsupported SonarQube issue severity: {sqSeverity}");
+            }
+        }
+
         private static string GetPartialRepoKey(SonarQubeRule rule, string language)
         {
-            if (rule.RepositoryKey.StartsWith(ROSLYN_REPOSITORY_PREFIX))
+            if (rule.RepositoryKey.StartsWith(RoslynRepositoryPrefix))
             {
-                return rule.RepositoryKey.Substring(ROSLYN_REPOSITORY_PREFIX.Length);
+                return rule.RepositoryKey.Substring(RoslynRepositoryPrefix.Length);
             }
             else if ("csharpsquid".Equals(rule.RepositoryKey) || "vbnet".Equals(rule.RepositoryKey))
             {
-                return string.Format(SONARANALYZER_PARTIAL_REPO_KEY, language);
+                return string.Format(SonarAnalyzerRepositoryPrefix, language);
             }
             else
             {
@@ -139,13 +173,13 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             }
         }
 
-        private string GetRequiredPropertyValue(IDictionary<string, string> sonarProperties, string propertyKey)
+        private static string GetRequiredPropertyValue(IDictionary<string, string> sonarProperties, string propertyKey)
         {
             if (!sonarProperties.TryGetValue(propertyKey, out var propertyValue))
             {
                 var message = $"Property does not exist: {propertyKey}. This property should be set by the plugin in SonarQube.";
 
-                if (propertyKey.StartsWith(string.Format(SONARANALYZER_PARTIAL_REPO_KEY, "vbnet")))
+                if (propertyKey.StartsWith(string.Format(SonarAnalyzerRepositoryPrefix, "vbnet")))
                 {
                     message += " Possible cause: this Scanner is not compatible with SonarVB 2.X. If necessary, upgrade SonarVB latest in SonarQube.";
                 }
