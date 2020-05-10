@@ -24,9 +24,9 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Threading;
 using EnvDTE;
-using NuGet;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
@@ -128,7 +128,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             bindingConfigInformationMap.Clear();
-            bindingConfigInformationMap.AddRange(languageToFileMap);
+
+            foreach (var bindingConfig in languageToFileMap)
+            {
+                bindingConfigInformationMap.Add(bindingConfig);
+            }
         }
 
         public IBindingConfig GetBindingConfig(Language language)
