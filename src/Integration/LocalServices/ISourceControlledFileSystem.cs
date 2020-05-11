@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -36,9 +37,19 @@ namespace SonarLint.VisualStudio.Integration
         void QueueFileWrite(string filePath, Func<bool> fileWriteOperation);
 
         /// <summary>
+        /// Queues a write operation for given file paths. New or edit is determined internally at the time of this method execution.
+        /// </summary>
+        void QueueFileWrites(IList<string> filePaths, Func<bool> fileWriteOperation);
+
+        /// <summary>
         /// Returns whether the file exists on disk or in a queue to be written. <seealso cref="QueueFileWrite(string, Func{bool})"/>
         /// </summary>
         bool FileExistOrQueuedToBeWritten(string filePath);
+
+        /// <summary>
+        /// Returns whether all given files exist on disk or in a queue to be written. <seealso cref="QueueFileWrites(IList{string}, Func{bool})"/>
+        /// </summary>
+        bool FilesExistOrQueuedToBeWritten(IList<string> filePaths);
 
         /// <summary>
         /// Checks out the file if the solution is under source control, and then executes all the queued file writes.  <seealso cref="QueueFileWrite(string, Func{bool})"/>

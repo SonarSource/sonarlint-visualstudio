@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using System.Linq;
 using FluentAssertions;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -38,17 +39,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISourceControlledFileSystem
 
-        bool ISourceControlledFileSystem.FileExistOrQueuedToBeWritten(string filePath)
+        public bool FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.fileWriteOperations.ContainsKey(filePath) || fileSystem.File.Exists(filePath);
+            return fileWriteOperations.ContainsKey(filePath) || fileSystem.File.Exists(filePath);
         }
 
-        void ISourceControlledFileSystem.QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
+        public bool FilesExistOrQueuedToBeWritten(IList<string> filePaths)
         {
-            this.fileWriteOperations.Should().NotContainKey(filePath, "Not expected to modify the same file during execution");
+            return filePaths.All(FileExistOrQueuedToBeWritten);
+        }
+
+        public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
+        {
+            fileWriteOperations.Should().NotContainKey(filePath, "Not expected to modify the same file during execution");
             fileWriteOperation.Should().NotBeNull("Not expecting the operation to be null");
 
             fileWriteOperations[filePath] = fileWriteOperation;
+        }
+
+        public void QueueFileWrites(IList<string> filePaths, Func<bool> fileWriteOperation)
+        {
+            foreach (var filePath in filePaths)
+            {
+                QueueFileWrite(filePath, fileWriteOperation);
+            }
         }
 
         bool ISourceControlledFileSystem.WriteQueuedFiles()

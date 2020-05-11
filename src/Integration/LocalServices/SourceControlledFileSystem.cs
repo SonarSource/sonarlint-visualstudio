@@ -73,21 +73,34 @@ namespace SonarLint.VisualStudio.Integration
 
         public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
         {
-            if (this.fileSystem.File.Exists(filePath))
+            QueueFileWrites(new List<string> {filePath}, fileWriteOperation);
+        }
+
+        public void QueueFileWrites(IList<string> filePaths, Func<bool> fileWriteOperation)
+        {
+            foreach (var filePath in filePaths)
             {
-                this.filesEdit.Add(filePath);
-            }
-            else
-            {
-                this.filesCreate.Add(filePath);
+                if (fileSystem.File.Exists(filePath))
+                {
+                    filesEdit.Add(filePath);
+                }
+                else
+                {
+                    filesCreate.Add(filePath);
+                }
             }
 
-            this.fileWriteOperations.Enqueue(fileWriteOperation);
+            fileWriteOperations.Enqueue(fileWriteOperation);
         }
 
         public bool FileExistOrQueuedToBeWritten(string filePath)
         {
-            return this.filesCreate.Contains(filePath) || this.fileSystem.File.Exists(filePath);
+            return filesCreate.Contains(filePath) || fileSystem.File.Exists(filePath);
+        }
+
+        public bool FilesExistOrQueuedToBeWritten(IList<string> filePaths)
+        {
+            return filePaths.All(FileExistOrQueuedToBeWritten);
         }
 
         public bool WriteQueuedFiles()

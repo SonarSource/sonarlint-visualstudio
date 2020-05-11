@@ -145,24 +145,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 var info = keyValue.Value;
 
-                foreach (var solutionItem in info.SolutionItems)
+                sourceControlledFileSystem.QueueFileWrites(info.SolutionItems, () =>
                 {
-                    Debug.Assert(!string.IsNullOrWhiteSpace(solutionItem), "Expected to be set during registration time");
-
-                    sourceControlledFileSystem.QueueFileWrite(solutionItem, () =>
+                    foreach (var solutionItem in info.SolutionItems)
                     {
                         var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
-
                         fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
+                    }
 
-                        info.Save();
+                    info.Save();
 
-                        return true;
-                    });
+                    return true;
+                });
 
-                    Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(solutionItem),
-                        "Expected a rule set to pend pended");
-                }
+                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionItems), "Expected a rule set to pend pended");
             }
 
             foreach (var project in projects)
