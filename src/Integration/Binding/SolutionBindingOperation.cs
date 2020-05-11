@@ -20,12 +20,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using EnvDTE;
-using NuGet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -36,9 +33,8 @@ using Language = SonarLint.VisualStudio.Core.Language;
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     // Legacy connected mode:
-    // * writes the binding info files to disk and adds them as solution items.
+    // * writes the binding info files to disk
     // * co-ordinates writing project-level changes
-
     /// <summary>
     /// Solution level binding by delegating some of the work to <see cref="IProjectBinder"/>
     /// </summary>
@@ -118,7 +114,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             bindingConfigInformationMap.Clear();
-            bindingConfigInformationMap.AddRange(languageToFileMap);
+
+            foreach (var bindingConfig in languageToFileMap)
+            {
+                bindingConfigInformationMap.Add(bindingConfig);
+            }
         }
 
         public IBindingConfig GetBindingConfig(Language language)

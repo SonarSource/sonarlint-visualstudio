@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreatePayload_Creates_Payload_Using_SonarCloud()
+        public void CreatePayload_Creates_Payload_ReturnsCorrectProductAndDates()
         {
             // Arrange
             var now = new DateTime(2017, 7, 25, 0, 0, 0, DateTimeKind.Local).AddHours(2);
@@ -64,8 +64,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 binding);
 
             // Assert
-            result.IsUsingConnectedMode.Should().BeTrue();
-            result.IsUsingSonarCloud.Should().BeTrue();
             result.NumberOfDaysOfUse.Should().Be(5);
             result.NumberOfDaysSinceInstallation.Should().Be(10);
             result.SonarLintProduct.Should().Be("SonarLint Visual Studio");
@@ -77,43 +75,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreatePayload_Connected_But_Not_Using_SonarCloud()
+        [DataRow(SonarLintMode.Standalone, null, false, false, false)]
+        [DataRow(SonarLintMode.Connected, "http://localhost", true, false, false)]
+        [DataRow(SonarLintMode.Connected, "https://sonarcloud.io/", true, false, true)]
+        [DataRow(SonarLintMode.LegacyConnected, "http://anotherlocalhost", true, true, false)]
+        [DataRow(SonarLintMode.LegacyConnected, "https://sonarcloud.io/", true, true, true)]
+        public void CreatePayload_ReturnsCorrectConnectionData(SonarLintMode mode, string serverUrl,
+            bool expectedIsConnected, bool expectedIsLegacyConnected, bool expectedIsSonarCloud)
         {
             // Arrange
             var now = new DateTime(2017, 7, 25);
-
             var telemetryData = new TelemetryData
             {
                 InstallationDate = now.Subtract(new TimeSpan(10, 0, 0))
             };
 
-            var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
+            var binding = CreateConfiguration(mode, serverUrl);
 
             // Act
             var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
 
             // Assert
-            result.IsUsingConnectedMode.Should().BeTrue();
-            result.IsUsingSonarCloud.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void CreatePayload_NotConnected()
-        {
-            // Arrange
-            var now = new DateTime(2017, 7, 25);
-
-            var telemetryData = new TelemetryData
-            {
-                InstallationDate = now.Subtract(new TimeSpan(10, 0, 0))
-            };
-
-            // Act
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, BindingConfiguration.Standalone);
-
-            // Assert
-            result.IsUsingConnectedMode.Should().BeFalse();
-            result.IsUsingSonarCloud.Should().BeFalse();
+            result.IsUsingConnectedMode.Should().Be(expectedIsConnected);
+            result.IsUsingLegacyConnectedMode.Should().Be(expectedIsLegacyConnected);
+            result.IsUsingSonarCloud.Should().Be(expectedIsSonarCloud);
         }
 
         [TestMethod]
@@ -214,6 +199,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
         {
+            if (mode == SonarLintMode.Standalone)
+            {
+                if (serverUri != null)
+                {
+                    Assert.Fail("Test setup error: should pass a null serverUri for standalone mode");
+                }
+                return BindingConfiguration.Standalone;
+            }
+
             var project = new BoundSonarQubeProject(new Uri(serverUri), "dummy.project.key", "dummy.projectName");
             return BindingConfiguration.CreateBoundConfiguration(project, mode, "c:\\test");
         }

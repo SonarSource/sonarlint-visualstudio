@@ -725,29 +725,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void SubProcessTimeout()
+        [DataRow(-1, CFamilyHelper.DefaultAnalysisTimeoutMs)]
+        [DataRow(0, CFamilyHelper.DefaultAnalysisTimeoutMs)]
+        [DataRow(1, 1)]
+        [DataRow(999, 999)]
+        public void SubProcessTimeout(int envSettingsResponse, int expectedTimeout)
         {
-            const int defaultExpectedTimeout = 20000;
-            SetTimeoutAndCheckCalculatedTimeout("", defaultExpectedTimeout); // not set -> default
+            var envSettingsMock = new Mock<IEnvironmentSettings>();
+            envSettingsMock.Setup(x => x.CFamilyAnalysisTimeoutInMs()).Returns(envSettingsResponse);
 
-            SetTimeoutAndCheckCalculatedTimeout("222", 222); // valid -> used
-            SetTimeoutAndCheckCalculatedTimeout("200000", 200000); // valid -> used
+            CFamilyHelper.GetTimeoutInMs(envSettingsMock.Object).Should().Be(expectedTimeout);
+        }
 
-            SetTimeoutAndCheckCalculatedTimeout("-111", defaultExpectedTimeout); // invalid -> default
-            SetTimeoutAndCheckCalculatedTimeout("not an integer", defaultExpectedTimeout);
-            SetTimeoutAndCheckCalculatedTimeout("1.23", defaultExpectedTimeout);
-            SetTimeoutAndCheckCalculatedTimeout("2,000", defaultExpectedTimeout);
-            SetTimeoutAndCheckCalculatedTimeout("2.001", defaultExpectedTimeout);
-
-            void SetTimeoutAndCheckCalculatedTimeout(string valueToSet, int expectedTimeout)
-            {
-                using (new EnvironmentVariableScope())
-                {
-                    Environment.SetEnvironmentVariable("SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS", valueToSet);
-
-                    CFamilyHelper.GetTimeoutInMs().Should().Be(expectedTimeout);
-                }
-            }
+        [TestMethod]
+        public void SubProcessTimeout_NoSettingsSupplied_NoError()
+        {
+            CFamilyHelper.GetTimeoutInMs().Should().BeGreaterThan(0);
         }
 
         private static ICFamilyRulesConfig GetDummyRulesConfiguration()

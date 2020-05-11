@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Sonarlint;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -43,15 +44,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
+        private readonly IEnvironmentSettings environmentSettings;
+
         public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
 
         internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
+            : this(projectName, filePath, versionNumber, issueMarkers, new EnvironmentSettings())
+        {
+        }
+
+        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers,
+            IEnvironmentSettings environmentSettings)
         {
             this.projectName = projectName;
             this.filePath = filePath;
             this.versionNumber = versionNumber;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
+
+            this.environmentSettings = environmentSettings;
         }
 
         public override int Count => this.issueMarkers.Count;
@@ -87,8 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    // TODO use correct icon type depending on severity
-                    content = __VSERRORCATEGORY.EC_WARNING;
+                    content = ToVsErrorCategory(this.issueMarkers[index].Issue.Severity);
                     return true;
 
                 case StandardTableKeyNames.BuildTool:
@@ -122,6 +132,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 default:
                     content = null;
                     return false;
+            }
+        }
+
+        internal /* for testing */ __VSERRORCATEGORY ToVsErrorCategory(Sonarlint.Issue.Types.Severity daemonSeverity)
+        {
+            switch (daemonSeverity)
+            {
+                case Issue.Types.Severity.Info:
+                case Issue.Types.Severity.Minor:
+                    return __VSERRORCATEGORY.EC_MESSAGE;
+
+                case Issue.Types.Severity.Major:
+                case Issue.Types.Severity.Critical:
+                    return __VSERRORCATEGORY.EC_WARNING;
+
+                case Issue.Types.Severity.Blocker:
+                    return environmentSettings.TreatBlockerSeverityAsError() ? __VSERRORCATEGORY.EC_ERROR : __VSERRORCATEGORY.EC_WARNING;
+
+                default:
+                    // We don't want to throw here - we're being called by VS to populate
+                    // the columns in the error list, and if we're on a UI thread then
+                    // we'll crash VS
+                    return __VSERRORCATEGORY.EC_MESSAGE;
             }
         }
 

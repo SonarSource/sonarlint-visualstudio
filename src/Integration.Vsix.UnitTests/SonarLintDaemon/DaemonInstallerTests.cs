@@ -20,6 +20,8 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using System.IO;
 using VSIX = SonarLint.VisualStudio.Integration.Vsix;
@@ -29,10 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
     [TestClass]
     public class DaemonInstallerTests
     {
-        private string tempPath;
-        private string storagePath;
         private TestLogger logger;
-        private DaemonInstaller installer;
+        private Mock<IEnvironmentSettings> envSettingsMock = new Mock<IEnvironmentSettings>();
 
         public TestContext TestContext { get; set; }
 
@@ -40,87 +40,68 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void SetUp()
         {
             logger = new TestLogger(logToConsole: true);
-
-            tempPath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
-            storagePath = Path.Combine(TestContext.DeploymentDirectory, Path.GetRandomFileName());
-            Directory.CreateDirectory(tempPath);
-            Directory.CreateDirectory(storagePath);
-            installer = new DaemonInstaller(logger, storagePath, tempPath);
-
-            logger.Reset(); // clear any messages logged during construction
+            envSettingsMock = new Mock<IEnvironmentSettings>();
         }
 
         [TestMethod]
         public void DownloadUrlInEnvironmentVar_NotSet_DefaultUsed()
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange - make sure the variable is not set
-                scope.SetVariable(VSIX.DaemonInstaller.SonarLintDownloadUrlEnvVar, "");
+            // Arrange - make sure the variable is not set
+            SetUrlEnvironmentVariable(null);
 
-                // Act
-                var installer = new DaemonInstaller(logger, "c:\\storage", "d:\\temp");
+            // Act
+            var installer = new DaemonInstaller(logger, "c:\\storage", "d:\\temp", envSettingsMock.Object);
 
-                // Assert
-                installer.DownloadUrl.Should().Be(VSIX.DaemonInstaller.DefaultDownloadUrl);
-                installer.DaemonVersion.Should().Be(VSIX.DaemonInstaller.DefaultDaemonVersion);
-                installer.InstallationPath.Should().Be($"c:\\storage\\sonarlint-daemon-{VSIX.DaemonInstaller.DefaultDaemonVersion}-windows");
-                installer.ZipFilePath.Should().Be($"d:\\temp\\sonarlint-daemon-{VSIX.DaemonInstaller.DefaultDaemonVersion}-windows.zip");
-            }
+            // Assert
+            installer.DownloadUrl.Should().Be(VSIX.DaemonInstaller.DefaultDownloadUrl);
+            installer.DaemonVersion.Should().Be(VSIX.DaemonInstaller.DefaultDaemonVersion);
+            installer.InstallationPath.Should().Be($"c:\\storage\\sonarlint-daemon-{VSIX.DaemonInstaller.DefaultDaemonVersion}-windows");
+            installer.ZipFilePath.Should().Be($"d:\\temp\\sonarlint-daemon-{VSIX.DaemonInstaller.DefaultDaemonVersion}-windows.zip");
         }
 
         [TestMethod]
         public void DownloadUrlInEnvironmentVar_InvalidUrl_UseDefault()
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange
-                scope.SetVariable(VSIX.DaemonInstaller.SonarLintDownloadUrlEnvVar, "invalid uri");
+            // Arrange
+            SetUrlEnvironmentVariable("invalid uri");
 
-                // Act
-                var installer = new VSIX.DaemonInstaller(logger);
+            // Act
+            var installer = new VSIX.DaemonInstaller(logger, "any", "any", envSettingsMock.Object);
 
-                // Assert
-                installer.DownloadUrl.Should().Be(VSIX.DaemonInstaller.DefaultDownloadUrl);
-                installer.DaemonVersion.Should().Be(VSIX.DaemonInstaller.DefaultDaemonVersion);
-            }
+            // Assert
+            installer.DownloadUrl.Should().Be(VSIX.DaemonInstaller.DefaultDownloadUrl);
+            installer.DaemonVersion.Should().Be(VSIX.DaemonInstaller.DefaultDaemonVersion);
         }
 
         [TestMethod]
         public void DownloadUrlInEnvironmentVar_InvalidVersion_UseDefault()
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange
-                scope.SetVariable(VSIX.DaemonInstaller.SonarLintDownloadUrlEnvVar, "http://somewhere/sonarlint-daemon.zip");
+            // Arrange
+            SetUrlEnvironmentVariable("http://somewhere/sonarlint-daemon.zip");
 
-                // Act
-                var installer = new VSIX.DaemonInstaller(logger);
+            // Act
+            var installer = new VSIX.DaemonInstaller(logger, "any", "any", envSettingsMock.Object);
 
-                // Assert
-                installer.DownloadUrl.Should().Be(VSIX.DaemonInstaller.DefaultDownloadUrl);
-                installer.DaemonVersion.Should().Be(VSIX.DaemonInstaller.DefaultDaemonVersion);
-            }
+            // Assert
+            installer.DownloadUrl.Should().Be(VSIX.DaemonInstaller.DefaultDownloadUrl);
+            installer.DaemonVersion.Should().Be(VSIX.DaemonInstaller.DefaultDaemonVersion);
         }
 
         [TestMethod]
         public void DownloadUrlInEnvironmentVar_Valid_UseSupplied()
         {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                // Arrange
-                scope.SetVariable(VSIX.DaemonInstaller.SonarLintDownloadUrlEnvVar,
-                    "https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
+            // Arrange
+            SetUrlEnvironmentVariable(
+                "https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
 
-                // Act
-                var installer = new DaemonInstaller(logger, "c:\\storagePath\\", "d:\\tempPath\\");
+            // Act
+            var installer = new DaemonInstaller(logger, "c:\\storagePath\\", "d:\\tempPath\\", envSettingsMock.Object);
 
-                // Assert
-                installer.DownloadUrl.Should().Be("https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
-                installer.DaemonVersion.Should().Be("4.3.0.2450");
-                installer.InstallationPath.Should().Be("c:\\storagePath\\sonarlint-daemon-4.3.0.2450-windows");
-                installer.ZipFilePath.Should().Be("d:\\tempPath\\sonarlint-daemon-4.3.0.2450-windows.zip");
-            }
+            // Assert
+            installer.DownloadUrl.Should().Be("https://repox.jfrog.io/repox/sonarsource/org/sonarsource/sonarlint/core/sonarlint-daemon/4.3.0.2450/sonarlint-daemon-4.3.0.2450-windows.zip");
+            installer.DaemonVersion.Should().Be("4.3.0.2450");
+            installer.InstallationPath.Should().Be("c:\\storagePath\\sonarlint-daemon-4.3.0.2450-windows");
+            installer.ZipFilePath.Should().Be("d:\\tempPath\\sonarlint-daemon-4.3.0.2450-windows.zip");
         }
 
         [TestMethod]
@@ -130,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var installationBaseDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
             Directory.Exists(installationBaseDir).Should().BeFalse();
 
-            installer = new DaemonInstaller(logger, installationBaseDir, "c:\\dummy");
+            var installer = new DaemonInstaller(logger, installationBaseDir, "c:\\dummy", envSettingsMock.Object);
 
             // 1. No directory or file -> false
             installer.IsInstalled().Should().BeFalse();
@@ -145,6 +126,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             var javaExePath = Path.Combine(subDir, "java.exe");
             File.WriteAllText(javaExePath, "junk");
             installer.IsInstalled().Should().BeTrue();
+        }
+
+        private void SetUrlEnvironmentVariable(string val)
+        {
+            envSettingsMock.Setup(x => x.SonarLintDaemonDownloadUrl()).Returns(val);
         }
     }
 }
