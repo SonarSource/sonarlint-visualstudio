@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return true;
                 });
 
-                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionItems), "Expected a rule set to pend pended");
+                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionItems), "Expected solution items to be queued for writing");
             }
 
             foreach (var project in projects)

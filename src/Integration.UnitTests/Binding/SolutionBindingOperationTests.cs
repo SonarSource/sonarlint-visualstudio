@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var config = testSubject.GetBindingConfig(Language.CSharp);
 
             // Assert
-            config.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp], "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
+            config.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp]);
         }
 
         [TestMethod]
