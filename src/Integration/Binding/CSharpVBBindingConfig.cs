@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -27,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         public string FilePath { get; }
         public RuleSet RuleSet { get; }
+        public IList<string> SolutionItems => new List<string> { FilePath };
 
         public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
         {

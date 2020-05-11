@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            response.FilePath.Should().Be("expected file path");
+            (response as ICSharpVBBindingConfig).FilePath.Should().Be("expected file path");
         }
 
         [TestMethod]

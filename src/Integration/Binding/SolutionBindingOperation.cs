@@ -144,21 +144,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 var info = keyValue.Value;
-                Debug.Assert(!string.IsNullOrWhiteSpace(info.FilePath), "Expected to be set during registration time");
 
-                sourceControlledFileSystem.QueueFileWrite(info.FilePath, () =>
+                foreach (var solutionItem in info.SolutionItems)
                 {
-                    var ruleSetDirectoryPath = Path.GetDirectoryName(info.FilePath);
+                    Debug.Assert(!string.IsNullOrWhiteSpace(solutionItem), "Expected to be set during registration time");
 
-                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
+                    sourceControlledFileSystem.QueueFileWrite(solutionItem, () =>
+                    {
+                        var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
 
-                    // Create or overwrite existing rule set
-                    info.Save();
+                        fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
 
-                    return true;
-                });
+                        info.Save();
 
-                Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.FilePath), "Expected a rule set to pend pended");
+                        return true;
+                    });
+
+                    Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(solutionItem),
+                        "Expected a rule set to pend pended");
+                }
             }
 
             foreach (var project in projects)
@@ -205,8 +209,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             foreach (var info in bindingConfigInformationMap.Values)
             {
-                Debug.Assert(fileSystem.File.Exists(info.FilePath), "File not written " + info.FilePath);
-                legacyConfigFolderItemAdder.AddToFolder(info.FilePath);
+                foreach (var solutionItem in info.SolutionItems)
+                {
+                    Debug.Assert(fileSystem.File.Exists(solutionItem), "File not written " + solutionItem);
+                    legacyConfigFolderItemAdder.AddToFolder(solutionItem);
+                }
             }
         }
 

@@ -35,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     public interface ICSharpVBBindingConfig : IBindingConfig
     {
+        string FilePath { get; }
         RuleSet RuleSet { get; }
     }
 }

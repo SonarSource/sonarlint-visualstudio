@@ -158,11 +158,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Act
-            string filePath = testSubject.GetBindingConfig(Language.CSharp).FilePath;
+            var config = testSubject.GetBindingConfig(Language.CSharp);
 
             // Assert
-            string.IsNullOrWhiteSpace(filePath).Should().BeFalse();
-            filePath.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp].FilePath, "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
+            config.Should().Be(testSubject.RuleSetsInformationMap[Language.CSharp], "NewRuleSetFilePath is expected to be updated during Prepare and returned now");
         }
 
         [TestMethod]
@@ -243,8 +242,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Sanity
             fileSystem.AllDirectories.Should().NotContain(sonarQubeRulesDirectory);
-            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
-            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
+            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
+            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
 
             // Act
             testSubject.Prepare(CancellationToken.None);
@@ -312,8 +311,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             csBinder.VerifyNoOtherCalls();
             vbBinder.VerifyNoOtherCalls();
 
-            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
-            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
+            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
+            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
 
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
@@ -366,8 +365,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 vbBinder.VerifyNoOtherCalls();
             }
 
-            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
-            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
+            testSubject.RuleSetsInformationMap[Language.CSharp].Should().Be(csConfigFile.Object);
+            testSubject.RuleSetsInformationMap[Language.VBNET].Should().Be(vbConfigFile.Object);
 
             CheckSaveWasNotCalled(csConfigFile);
             CheckSaveWasNotCalled(vbConfigFile);
@@ -450,9 +449,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IBindingConfig> CreateMockConfigFile(string expectedFilePath)
         {
             var configFile = new Mock<IBindingConfig>();
-            
-            configFile.SetupGet(x => x.FilePath)
-                .Returns(expectedFilePath);
+            configFile.SetupGet(x => x.SolutionItems).Returns(new List<string> {expectedFilePath});
 
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).

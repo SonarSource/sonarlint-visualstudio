@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
@@ -28,7 +29,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public class CFamilyBindingConfig : IBindingConfig
     {
         private readonly IFileSystem fileSystem;
-        public string FilePath { get; }
 
         public CFamilyBindingConfig(RulesSettings ruleSettings, string filePath)
             : this (ruleSettings, filePath, new FileSystem())
@@ -49,6 +49,9 @@ namespace SonarLint.VisualStudio.Core.CFamily
         }
 
         internal /* for testing */ RulesSettings RuleSettings { get; }
+        internal /* for testing */ string FilePath { get; }
+
+        public IList<string> SolutionItems => new List<string> { FilePath };
 
         public void Save()
         {
