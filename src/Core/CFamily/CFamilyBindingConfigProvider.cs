@@ -33,19 +33,17 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public class CFamilyBindingConfigProvider : IBindingConfigProvider
     {
         private readonly ISonarQubeService sonarQubeService;
-        private readonly BindingConfiguration bindingConfiguration;
         private readonly ILogger logger;
         private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
-        public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, BindingConfiguration bindingConfiguration, ILogger logger)
-        :this(sonarQubeService, bindingConfiguration, logger, new SolutionBindingFilePathGenerator())
+        public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+            : this(sonarQubeService, logger, new SolutionBindingFilePathGenerator())
         {
         }
 
-        internal CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, BindingConfiguration bindingConfiguration, ILogger logger, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
+        internal CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
-            this.bindingConfiguration = bindingConfiguration ?? throw new ArgumentNullException(nameof(bindingConfiguration));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
@@ -57,7 +55,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             return Language.Cpp.Equals(language) || Language.C.Equals(language);
         }
 
-        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {

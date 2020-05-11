@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = testSubject.Persist(project, SonarLintMode.LegacyConnected);
 
             // Assert
-            actual.Should().BeTrue();
+            actual.Should().NotBe(null);
 
             solutionBindingSerializer.Verify(x =>
                     x.Write("old.txt", project, legacyItemAdderMock.Object.AddToFolder),
@@ -264,7 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = testSubject.Persist(projectToWrite, SonarLintMode.Connected);
 
             // Assert
-            actual.Should().BeTrue();
+            actual.Should().NotBe(null);
 
             solutionBindingSerializer.Verify(x =>
                     x.Write("new.txt", projectToWrite, null),

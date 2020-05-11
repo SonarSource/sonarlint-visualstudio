@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, CancellationToken.None).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(validQualityProfile, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
 
             // Assert
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, CancellationToken.None);
+            var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             response.FilePath.Should().Be("expected file path");
         }
 
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = builder.CreateTestSubject();
 
-            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None)
                 .ConfigureAwait(false);
 
             result.Should().BeNull();
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.CSharp, CancellationToken.None)
+            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.CSharp, builder.BindingConfiguration, CancellationToken.None)
                 .ConfigureAwait(false);
 
             // Assert
@@ -277,6 +277,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             public string FilePathResponse { get; set; }
+            public BindingConfiguration BindingConfiguration { get; set; }
 
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
 
@@ -334,7 +335,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 var bindingRootFolder = "c:\\test\\";
 
-                var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName),
+                BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName),
                     SonarLintMode.Connected, bindingRootFolder);
 
                 var solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
@@ -342,8 +343,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Setup(x => x.Generate(bindingRootFolder, projectName, language.FileSuffixAndExtension))
                     .Returns(FilePathResponse);
 
-                return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object,
-                    bindingConfiguration, Logger,
+                return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
                     nugetGenMock.Object,

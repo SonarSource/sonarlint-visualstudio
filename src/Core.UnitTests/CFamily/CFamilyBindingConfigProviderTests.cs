@@ -41,24 +41,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [TestMethod]
         public void Ctor_NullService_ArgumentNullException()
         {
-            Action act = () => new CFamilyBindingConfigProvider(null, BindingConfiguration.Standalone, Mock.Of<ILogger>());
+            Action act = () => new CFamilyBindingConfigProvider(null, Mock.Of<ILogger>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("sonarQubeService");
-        }
-
-
-        [TestMethod]
-        public void Ctor_NullBindingConfiguration_ArgumentNullException()
-        {
-            Action act = () => new CFamilyBindingConfigProvider(Mock.Of<ISonarQubeService>(), null, Mock.Of<ILogger>());
-
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
         }
 
         [TestMethod]
         public void Ctor_NullLogger_ArgumentNullException()
         {
-            Action act = () => new CFamilyBindingConfigProvider(Mock.Of<ISonarQubeService>(), BindingConfiguration.Standalone, null);
+            Action act = () => new CFamilyBindingConfigProvider(Mock.Of<ISonarQubeService>(), null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -142,10 +133,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = "test" }, SonarLintMode.Connected, "c:\\");
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, bindingConfiguration, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, bindingConfiguration, CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
@@ -189,10 +180,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject {ProjectKey = "test"}, SonarLintMode.Connected, "c:\\");
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, bindingConfiguration, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, bindingConfiguration, CancellationToken.None);
 
             // Assert
             result.Should().NotBeNull();
@@ -216,10 +207,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             serviceMock.Setup(x => x.GetRulesAsync(It.IsAny<bool>(), It.IsAny<string>(), CancellationToken.None))
                 .ThrowsAsync(new InvalidOperationException("invalid op"));
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, BindingConfiguration.Standalone, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, CancellationToken.None);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None);
 
             // Assert
             result.Should().BeNull();
@@ -242,10 +233,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
                         return new List<SonarQubeRule>();
                     }) ;
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, BindingConfiguration.Standalone, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, cts.Token);
+            var result = await testSubject.GetConfigurationAsync(CreateQp(), Language.Cpp, BindingConfiguration.Standalone, cts.Token);
 
             // Assert
             result.Should().BeNull();
@@ -261,10 +252,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             CancellationTokenSource cts = new CancellationTokenSource();
             var serviceMock = new Mock<ISonarQubeService>();
 
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, BindingConfiguration.Standalone, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // Act
-            Action act = () => testSubject.GetConfigurationAsync(CreateQp(), Language.VBNET, cts.Token).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(CreateQp(), Language.VBNET, BindingConfiguration.Standalone, cts.Token).Wait();
 
             // Assert
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
@@ -276,7 +267,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             // Arrange
             var testLogger = new TestLogger();
             var serviceMock = new Mock<ISonarQubeService>();
-            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, BindingConfiguration.Standalone, testLogger);
+            var testSubject = new CFamilyBindingConfigProvider(serviceMock.Object, testLogger);
 
             // 1. Supported languages
             testSubject.IsLanguageSupported(Language.C).Should().BeTrue();

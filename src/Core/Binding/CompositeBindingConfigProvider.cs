@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Core.Binding
 
         #region IBindingConfigProvider methods
 
-        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             var provider = Providers.FirstOrDefault(p => p.IsLanguageSupported(language));
 
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Core.Binding
             IBindingConfig config = null;
             if (provider != null)
             {
-                config = await provider?.GetConfigurationAsync(qualityProfile, language, cancellationToken);
+                config = await provider?.GetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
             }
 
             return config;

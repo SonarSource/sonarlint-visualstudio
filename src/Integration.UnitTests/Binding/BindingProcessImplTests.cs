@@ -29,7 +29,6 @@ using System.Windows.Threading;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -92,33 +91,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var bindingConfigProvider = new Mock<IBindingConfigProvider>().Object;
 
             // 1. Null host
-            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, finder, bindingConfigProvider);
+            Action act = () => new BindingProcessImpl(null, bindingArgs, slnBindOp, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("host");
 
             // 2. Null binding args
-            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, finder, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, null, slnBindOp, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingArgs");
 
             // 3. Null solution binding operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, finder, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, null, nuGetOp, finder, bindingConfigProvider, SonarLintMode.Connected);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingOperation");
 
             // 4. Null NuGet operation
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, finder, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, null, finder, bindingConfigProvider, SonarLintMode.Connected);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("nugetBindingOperation");
 
             // 5. Null binding info provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, bindingConfigProvider);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, null, bindingConfigProvider, SonarLintMode.Connected);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("unboundProjectFinder");
 
             // 6. Null rules configuration provider
-            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, finder, null);
+            act = () => new BindingProcessImpl(validHost, bindingArgs, slnBindOp, nuGetOp, finder, null, SonarLintMode.Connected);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigProvider");
         }
 
         [TestMethod]
         public async Task DownloadQualityProfile_Success()
         {
+            var configPersister = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
+
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
@@ -134,10 +136,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
-            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, CancellationToken.None))
+            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, BindingConfiguration.Standalone, CancellationToken.None))
                 .ReturnsAsync(bindingConfig);
 
-            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, configProviderMock.Object);
+            var bindingArgs = new BindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
+            var testSubject = this.CreateTestSubject(bindingArgs, nuGetOpMock.Object, configProviderMock.Object);
 
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
 
@@ -159,6 +162,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expectedOutput = string.Format(Strings.SubTextPaddingFormat,
                 string.Format(Strings.QualityProfileDownloadSuccessfulMessageFormat, QualityProfileName, string.Empty, language.Name));
             this.outputWindowPane.AssertOutputStrings(expectedOutput);
+        }
+
+        [TestMethod]
+        public async Task DownloadQualityProfile_SavesConfiguration()
+        {
+            var configPersister = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
+
+            // Arrange
+            const string QualityProfileName = "SQQualityProfileName";
+            const string ProjectName = "SQProjectName";
+
+            Mock<INuGetBindingOperation> nuGetOpMock = new Mock<INuGetBindingOperation>();
+
+            var notifications = new ConfigurableProgressStepExecutionEvents();
+            var progressAdapter = new FixedStepsProgressAdapter(notifications);
+
+            var bindingConfig = new Mock<IBindingConfig>().Object;
+
+            var language = Language.VBNET;
+            SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
+
+            var configProviderMock = new Mock<IBindingConfigProvider>();
+            configProviderMock.Setup(x => x.GetConfigurationAsync(profile, language, It.IsAny<BindingConfiguration>(), CancellationToken.None))
+                .ReturnsAsync(bindingConfig);
+
+            var bindingArgs = new BindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
+            var testSubject = this.CreateTestSubject(bindingArgs, nuGetOpMock.Object, configProviderMock.Object);
+
+            ConfigureSupportedBindingProject(testSubject.InternalState, language);
+
+            // Act
+            await testSubject.DownloadQualityProfileAsync(progressAdapter, CancellationToken.None);
+
+            // Assert
+            configPersister.SavedProject.Should().NotBeNull();
+            configPersister.SavedMode.Should().Be(SonarLintMode.Connected);
+
+            var savedProject = configPersister.SavedProject;
+            savedProject.ServerUri.Should().Be(bindingArgs.Connection.ServerUri);
+            savedProject.Profiles.Should().HaveCount(1);
+            savedProject.Profiles[Language.VBNET].ProfileKey.Should().Be(profile.Key);
+            savedProject.Profiles[Language.VBNET].ProfileTimestamp.Should().Be(profile.TimeStamp);
         }
 
         [TestMethod]
@@ -192,6 +238,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public async Task DownloadQualityProfile_WhenBindingConfigIsNull_Fails()
         {
+            var configPersister = new ConfigurableConfigurationProvider();
+            this.serviceProvider.RegisterService(typeof(IConfigurationPersister), configPersister);
+
             // Arrange
             const string QualityProfileName = "SQQualityProfileName";
             const string ProjectName = "SQProjectName";
@@ -205,7 +254,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SonarQubeQualityProfile profile = this.ConfigureQualityProfile(language, QualityProfileName);
 
             var configProviderMock = new Mock<IBindingConfigProvider>();
-            var testSubject = this.CreateTestSubject("key", ProjectName, nuGetOpMock.Object, configProviderMock.Object);
+            var bindingArgs = new BindCommandArgs("key", ProjectName, new ConnectionInformation(new Uri("http://connected")));
+            var testSubject = this.CreateTestSubject(bindingArgs, nuGetOpMock.Object, configProviderMock.Object);
 
             ConfigureSupportedBindingProject(testSubject.InternalState, language);
 
@@ -336,7 +386,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -369,7 +419,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var finder = new ConfigurableUnboundProjectFinder();
             var configProvider = new Mock<IBindingConfigProvider>();
 
-            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object);
+            var testSubject = new BindingProcessImpl(this.host, bindingArgs, slnBindOpMock.Object, nugetMock.Object, finder, configProvider.Object, SonarLintMode.Connected);
 
             ProjectMock project1 = new ProjectMock("project1") { ProjectKind = ProjectSystemHelper.CSharpProjectKind };
             testSubject.InternalState.BindingProjects.Clear();
@@ -673,20 +723,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Helpers
 
-        private BindingProcessImpl CreateTestSubject(string projectKey = "anykey", string projectName = "anyname",
+        private BindingProcessImpl CreateTestSubject(BindCommandArgs bindingArgs = null,
             INuGetBindingOperation nuGetBindingOperation = null,
-            IBindingConfigProvider configProvider = null)
+            IBindingConfigProvider configProvider = null,
+            SonarLintMode mode = SonarLintMode.Connected)
         {
+            bindingArgs = bindingArgs ?? new BindCommandArgs("key", "name", new ConnectionInformation(new Uri("http://connected")));
             nuGetBindingOperation = nuGetBindingOperation ?? new NoOpNuGetBindingOperation(this.host.Logger);
             configProvider = configProvider ?? new Mock<IBindingConfigProvider>().Object;
 
             this.host.SonarQubeService = this.sonarQubeServiceMock.Object;
-            var bindingArgs = new BindCommandArgs(projectKey, projectName, new ConnectionInformation(new Uri("http://connected")));
 
-            var slnBindOperation = new SolutionBindingOperation(this.host, bindingArgs.Connection, projectKey, "projectName", SonarLintMode.LegacyConnected, this.host.Logger);
+            var slnBindOperation = new SolutionBindingOperation(this.host, SonarLintMode.LegacyConnected, this.host.Logger);
             var finder = new ConfigurableUnboundProjectFinder();
 
-            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider);
+            return new BindingProcessImpl(this.host, bindingArgs, slnBindOperation, nuGetBindingOperation, finder, configProvider, mode);
         }
 
         private void ConfigureSupportedBindingProject(BindingProcessImpl.BindingProcessState internalState, Language language)
