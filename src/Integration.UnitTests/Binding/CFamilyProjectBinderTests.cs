@@ -95,7 +95,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsBindingRequired_ProjectHasTwoLanguages_OneLanguageHasNoConfigFile_True()
+        [DataRow(true, false, true)]
+        [DataRow(false, true, true)]
+        [DataRow(false, false, true)]
+        [DataRow(true, true, false)]
+        public void IsBindingRequired_ProjectHasTwoLanguages_ReturnsIfAllLanguagesHaveConfigFiles(bool isFirstLanguageBound, bool isSecondLanguageBound, bool expectedResult)
         {
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetProjectKind(new Guid(ProjectSystemHelper.CppProjectKind));
@@ -112,17 +116,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             fileSystemMock
                 .Setup(x => x.File.Exists("c:\\config-file-cpp.txt"))
-                .Returns(true);
+                .Returns(isFirstLanguageBound);
 
-            fileSystemMock
-                .Setup(x => x.File.Exists("c:\\config-file-c.txt"))
-                .Returns(false);
+            if (isFirstLanguageBound)
+            {
+                fileSystemMock
+                    .Setup(x => x.File.Exists("c:\\config-file-c.txt"))
+                    .Returns(isSecondLanguageBound);
+            }
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");
 
             var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
-            result.Should().Be(true);
+            result.Should().Be(expectedResult);
+
+            fileSystemMock.VerifyAll();
         }
 
         [TestMethod]
