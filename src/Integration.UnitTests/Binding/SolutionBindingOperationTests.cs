@@ -24,15 +24,12 @@ using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
-using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -341,14 +338,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var projects = new[] { csProject, vbProject };
 
-            var testSubject = CreateTestSubject(ProjectKey);
+            var testSubject = CreateTestSubject();
 
             var languageToFileMap = new Dictionary<Language, IBindingConfig>();
             languageToFileMap[Language.CSharp] = csConfigFile.Object;
             languageToFileMap[Language.VBNET] = vbConfigFile.Object;
 
             testSubject.RegisterKnownConfigFiles(languageToFileMap);
-            testSubject.Initialize(projects, GetQualityProfiles());
+            testSubject.Initialize(projects);
 
             using (CancellationTokenSource src = new CancellationTokenSource())
             {
