@@ -46,6 +46,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void GetSolutionItems_ReturnPathToRulesetFile()
+        {
+            var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), "c:\\test.txt");
+            testSubject.SolutionItems.Count.Should().Be(1);
+            testSubject.SolutionItems[0].Should().Be(testSubject.FilePath);
+        }
+
+        [TestMethod]
         public void Save_ValidFilePath_SaveCalled()
         {
             // We can't mock the RuleSet class so we're testing Save by actually

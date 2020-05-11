@@ -57,6 +57,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void GetSolutionItems_ReturnPathToSettingsFile()
+        {
+            var settings = new RulesSettings();
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
+            testSubject.SolutionItems.Count.Should().Be(1);
+            testSubject.SolutionItems[0].Should().Be(testSubject.FilePath);
+        }
+
+        [TestMethod]
         public void Save_SettingsAreSerializedAndSaved()
         {
             // Arrange
