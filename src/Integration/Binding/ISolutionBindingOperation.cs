@@ -21,8 +21,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using EnvDTE;
-using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -36,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </remarks>
     public interface ISolutionBindingOperation : ISolutionBindingConfigFileStore
     {
-        void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap);
+        void Initialize(IEnumerable<Project> projects);
 
         void Prepare(CancellationToken token);
 

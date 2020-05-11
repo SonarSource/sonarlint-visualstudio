@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return bindingConfiguration ?? BindingConfiguration.Standalone;
         }
 
-        public bool Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
+        public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
         {
             if (project == null)
             {
@@ -70,8 +70,10 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             var writeSettings = GetWriteSettings(bindingMode);
 
-            return writeSettings.HasValue && 
+            var success = writeSettings.HasValue && 
                    solutionBindingSerializer.Write(writeSettings?.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
+
+            return success ? CreateBindingConfiguration(writeSettings?.ConfigPath, project, bindingMode) : null;
         }
 
         private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
@@ -82,7 +84,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             }
 
             var boundProject = solutionBindingSerializer.Read(bindingPath);
+            
+            return CreateBindingConfiguration(bindingPath, boundProject, sonarLintMode);
+        }
 
+        private BindingConfiguration CreateBindingConfiguration(string bindingPath, BoundSonarQubeProject boundProject, SonarLintMode sonarLintMode)
+        {
             if (boundProject == null)
             {
                 return null;

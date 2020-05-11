@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
     public interface IConfigurationPersister : ILocalService
     {
-        bool Persist(BoundSonarQubeProject project, SonarLintMode bindingMode);
+        BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode);
     }
 }

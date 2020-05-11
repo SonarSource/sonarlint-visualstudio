@@ -233,20 +233,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var project = new BoundSonarQubeProject();
-            legacyPathProvider.Setup(x => x.Get()).Returns("old.txt");
+            legacyPathProvider.Setup(x => x.Get()).Returns("c:\\old.txt");
 
             solutionBindingSerializer
-                .Setup(x => x.Write("old.txt", project, legacyItemAdderMock.Object.AddToFolder))
+                .Setup(x => x.Write("c:\\old.txt", project, legacyItemAdderMock.Object.AddToFolder))
                 .Returns(true);
 
             // Act
             var actual = testSubject.Persist(project, SonarLintMode.LegacyConnected);
 
             // Assert
-            actual.Should().BeTrue();
+            actual.Should().NotBe(null);
 
             solutionBindingSerializer.Verify(x =>
-                    x.Write("old.txt", project, legacyItemAdderMock.Object.AddToFolder),
+                    x.Write("c:\\old.txt", project, legacyItemAdderMock.Object.AddToFolder),
                 Times.Once);
         }
 
@@ -254,20 +254,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Persist_NewConnectedModeConfig_SaveNewConfig()
         {
             var projectToWrite = new BoundSonarQubeProject();
-            newPathProvider.Setup(x => x.Get()).Returns("new.txt");
+            newPathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
 
             solutionBindingSerializer
-                .Setup(x => x.Write("new.txt", projectToWrite, null))
+                .Setup(x => x.Write("c:\\new.txt", projectToWrite, null))
                 .Returns(true);
 
             // Act
             var actual = testSubject.Persist(projectToWrite, SonarLintMode.Connected);
 
             // Assert
-            actual.Should().BeTrue();
+            actual.Should().NotBe(null);
 
             solutionBindingSerializer.Verify(x =>
-                    x.Write("new.txt", projectToWrite, null),
+                    x.Write("c:\\new.txt", projectToWrite, null),
                 Times.Once);
         }
     }

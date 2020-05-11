@@ -24,13 +24,10 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
 using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarQube.Client.Models;
 using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -45,15 +42,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
         private readonly List<BindProject> projectBinders = new List<BindProject>();
         private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
-        private IDictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
-        private readonly ConnectionInformation connection;
-        private readonly string projectKey;
-        private readonly string projectName;
         private readonly SonarLintMode bindingMode;
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
@@ -61,45 +53,31 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private IEnumerable<Project> projects;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
-            ConnectionInformation connection,
-            string projectKey,
-            string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
+            : this(serviceProvider, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
         {
         }
 
         internal SolutionBindingOperation(IServiceProvider serviceProvider,
-            ConnectionInformation connection,
-            string projectKey,
-            string projectName,
             SonarLintMode bindingMode,
             IProjectBinderFactory projectBinderFactory,
             ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
             IFileSystem fileSystem)
         {
-            if (string.IsNullOrWhiteSpace(projectKey))
-            {
-                throw new ArgumentNullException(nameof(projectKey));
-            }
-
             bindingMode.ThrowIfNotConnected();
 
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
-            this.projectKey = projectKey;
-            this.projectName = projectName;
             this.bindingMode = bindingMode;
 
-            this.projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            this.projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
-            this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
+            this.sourceControlledFileSystem = serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
 
         }
@@ -148,15 +126,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap)
+        public void Initialize(IEnumerable<Project> projects)
         {
-            if (profilesMap == null)
-            {
-                throw new ArgumentNullException(nameof(profilesMap));
-            }
-
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
-            this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
             this.projects = projects ?? throw new ArgumentNullException(nameof(projects));
         }
 
@@ -208,8 +180,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool CommitSolutionBinding()
         {
-            this.PendBindingInformation(this.connection); // This is the last pend, so will be executed last
-
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
             {
                 // No reason to modify VS state if could not write files
@@ -230,36 +200,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #endregion
 
         #region Helpers
-
-        /// <summary>
-        /// Will bend add/edit the binding information for next time usage
-        /// </summary>
-        private void PendBindingInformation(ConnectionInformation connInfo)
-        {
-            Debug.Assert(this.qualityProfileMap != null, "Initialize was expected to be called first");
-
-            var configurationPersister = this.serviceProvider.GetService<IConfigurationPersister>();
-            configurationPersister.AssertLocalServiceIsNotNull();
-
-            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
-
-            Dictionary<Language, ApplicableQualityProfile> map = new Dictionary<Language, ApplicableQualityProfile>();
-
-            foreach (var keyValue in this.qualityProfileMap)
-            {
-                map[keyValue.Key] = new ApplicableQualityProfile
-                {
-                    ProfileKey = keyValue.Value.Key,
-                    ProfileTimestamp = keyValue.Value.TimeStamp
-                };
-            }
-
-            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.projectKey, this.projectName,
-                credentials, connInfo.Organization);
-            bound.Profiles = map;
-
-            configurationPersister.Persist(bound, bindingMode);
-        }
 
         private void UpdateSolutionFile()
         {
