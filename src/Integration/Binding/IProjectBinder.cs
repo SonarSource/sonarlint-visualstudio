@@ -29,7 +29,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     internal interface IProjectBinder
     {
-        bool IsBound(BindingConfiguration binding, Project project);
+        /// <summary>
+        /// Returns true if the project is supported by the binder and if the project is unbound/partially-bound.
+        /// Returns false if the project is not supported by the binder, or if the project is already bound.
+        /// </summary>
+        bool IsBindingRequired(BindingConfiguration binding, Project project);
+
         BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken);
     }
 

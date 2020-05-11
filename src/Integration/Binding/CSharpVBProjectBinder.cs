@@ -74,14 +74,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return bindingOperation.Commit;
         }
 
-        public bool IsBound(BindingConfiguration binding, Project project)
+        public bool IsBindingRequired(BindingConfiguration binding, Project project)
         {
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
             var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+            languages = languages.Where(x => x.Equals(Language.VBNET) || x.Equals(Language.CSharp));
 
-            return languages.All(l => IsFullyBoundProject(binding, project, l));
+            return languages.Any(l => !IsFullyBoundProject(binding, project, l));
         }
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
