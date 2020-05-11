@@ -105,7 +105,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsBound_SolutionRulesetFileDoesNotExist_False()
+        public void IsBindingRequired_ProjectLanguageIsNotSupported_False()
+        {
+            var projectMock = new ProjectMock("c:\\test.csproj");
+            projectMock.SetProjectKind(new Guid(ProjectSystemHelper.CppProjectKind));
+
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
+                SonarLintMode.Connected, "c:\\");
+
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().Be(false);
+
+            solutionRuleSetsInformationProviderMock.VerifyNoOtherCalls();
+            fileSystemMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void IsBindingRequired_SolutionRulesetFileDoesNotExist_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -113,14 +129,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(false);
 
-            var result = testSubject.IsBound(bindingConfiguration, projectMock);
-            result.Should().BeFalse();
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().BeTrue();
 
             VerifyProjectRulesetsNotFetched();
         }
 
         [TestMethod]
-        public void IsBound_SolutionRulesetFileExistsButFailsToLoad_False()
+        public void IsBindingRequired_SolutionRulesetFileExistsButFailsToLoad_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -129,14 +145,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(true);
             ruleSetSerializerMock.Setup(x => x.LoadRuleSet(mockRulesetPath)).Returns(null as RuleSet);
 
-            var result = testSubject.IsBound(bindingConfiguration, projectMock);
-            result.Should().BeFalse();
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().BeTrue();
 
             VerifyProjectRulesetsNotFetched();
         }
 
         [TestMethod]
-        public void IsBound_ProjectHasNoRulesets_False()
+        public void IsBindingRequired_ProjectHasNoRulesets_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -149,12 +165,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.GetProjectRuleSetsDeclarations(projectMock))
                 .Returns(Array.Empty<RuleSetDeclaration>());
 
-            var result = testSubject.IsBound(bindingConfiguration, projectMock);
-            result.Should().BeFalse();
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().BeTrue();
         }
 
         [TestMethod]
-        public void IsBound_ProjectHasOneRuleset_CantLoadProjectRulesetFile_False()
+        public void IsBindingRequired_ProjectHasOneRuleset_CantLoadProjectRulesetFile_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
             var projectMock = GetCSharpProject();
@@ -175,14 +191,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.TryGetProjectRuleSetFilePath(projectMock, ruleSetDeclaration, out filePath))
                 .Returns(false);
 
-            var result = testSubject.IsBound(bindingConfiguration, projectMock);
-            result.Should().BeFalse();
+            var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
+            result.Should().BeTrue();
         }
 
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void IsBound_ProjectHasOneRuleset_ReturnIfReferencesSolutionRuleset(bool referencesSolutionRuleset)
+        public void IsBindingRequired_ProjectHasOneRuleset_ReturnIfReferencesSolutionRuleset(bool referencesSolutionRuleset)
         {
             Assert.Inconclusive("TBD");
         }
@@ -192,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [DataRow(true, false, false)]
         [DataRow(false, true, false)]
         [DataRow(false, false, false)]
-        public void IsBound_ProjectHasTwoRulesets_ReturnIfAllReferenceSolutionRuleset(bool firstReferencesSolutionRuleset, bool secondReferencesSolutionRuleset, bool expectedResult)
+        public void IsBindingRequired_ProjectHasTwoRulesets_ReturnIfAllReferenceSolutionRuleset(bool firstReferencesSolutionRuleset, bool secondReferencesSolutionRuleset, bool expectedResult)
         {
             Assert.Inconclusive("TBD");
         }

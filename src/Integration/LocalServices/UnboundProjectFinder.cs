@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration
                 {
                     var configProjectBinder = projectBinderFactory.Get(project);
 
-                    return !configProjectBinder.IsBound(binding, project);
+                    return configProjectBinder.IsBindingRequired(binding, project);
                 })
                 .ToArray();
         }

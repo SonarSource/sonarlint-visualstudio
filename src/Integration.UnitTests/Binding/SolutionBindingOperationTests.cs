@@ -276,14 +276,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void SolutionBindingOperation_Prepare_Cancellation_ProjectBindersAreNotCalled()
+        public void SolutionBindingOperation_Prepare_Cancellation_BeforeBindersPrepare_AllProjectBindersAreNotCalled()
         {
             // Arrange
             var csProject = solutionMock.AddOrGetProject("CS.csproj");
+            csProject.SetCSProjectKind();
             var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
             var csBinder = new Mock<IProjectBinder>();
 
             var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
+            csProject.SetVBProjectKind();
             var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
             var vbBinder = new Mock<IProjectBinder>();
 
@@ -312,6 +314,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Binders.Count.Should().Be(0);
             csBinder.VerifyNoOtherCalls();
             vbBinder.VerifyNoOtherCalls();
+
+            testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
+            testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
+
+            CheckSaveWasNotCalled(csConfigFile);
+            CheckSaveWasNotCalled(vbConfigFile);
+        }
+
+        [TestMethod]
+        public void SolutionBindingOperation_Prepare_Cancellation_DuringBindersPrepare_SomeProjectBindersAreNotCalled()
+        {
+            // Arrange
+            var csProject = solutionMock.AddOrGetProject("CS.csproj");
+            csProject.SetCSProjectKind();
+            var csConfigFile = CreateMockConfigFile("c:\\csharp.txt");
+            var csBinder = new Mock<IProjectBinder>();
+
+            var vbProject = this.solutionMock.AddOrGetProject("VB.vbproj");
+            vbProject.SetVBProjectKind();
+            var vbConfigFile = CreateMockConfigFile("c:\\vb.txt");
+            var vbBinder = new Mock<IProjectBinder>();
+
+            projectBinderFactoryMock.Setup(x => x.Get(csProject)).Returns(csBinder.Object);
+            projectBinderFactoryMock.Setup(x => x.Get(vbProject)).Returns(vbBinder.Object);
+
+            var projects = new[] { csProject, vbProject };
+
+            var testSubject = CreateTestSubject(ProjectKey);
+
+            var languageToFileMap = new Dictionary<Language, IBindingConfig>();
+            languageToFileMap[Language.CSharp] = csConfigFile.Object;
+            languageToFileMap[Language.VBNET] = vbConfigFile.Object;
+
+            testSubject.RegisterKnownConfigFiles(languageToFileMap);
+            testSubject.Initialize(projects, GetQualityProfiles());
+
+            using (CancellationTokenSource src = new CancellationTokenSource())
+            {
+                var csBindAction = new Mock<BindProject>();
+
+                csBinder
+                    .Setup(x => x.GetBindAction(csConfigFile.Object, csProject, src.Token))
+                    .Callback(() => src.Cancel())
+                    .Returns(csBindAction.Object);
+
+                // Act
+                testSubject.Prepare(src.Token);
+
+                // Assert
+                testSubject.Binders.Count.Should().Be(1);
+                testSubject.Binders.First().Should().Be(csBindAction.Object);
+                csBinder.Verify(x => x.GetBindAction(csConfigFile.Object, csProject, src.Token), Times.Once);
+                vbBinder.VerifyNoOtherCalls();
+            }
 
             testSubject.RuleSetsInformationMap[Language.CSharp].FilePath.Should().Be("c:\\csharp.txt");
             testSubject.RuleSetsInformationMap[Language.VBNET].FilePath.Should().Be("c:\\vb.txt");
