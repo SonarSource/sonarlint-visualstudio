@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
-                var bindingConfiguration = WriteBindingInformation();
+                var bindingConfiguration = QueueWriteBindingInformation();
 
                 // Create the binding configuration for the language
                 var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Will add/edit the binding information for next time usage
         /// </summary>
-        private BindingConfiguration WriteBindingInformation()
+        private BindingConfiguration QueueWriteBindingInformation()
         {
             Debug.Assert(InternalState.QualityProfiles != null, "Initialize was expected to be called first");
 
