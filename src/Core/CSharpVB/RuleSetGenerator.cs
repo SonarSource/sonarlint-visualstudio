@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
         private static bool IsSupportedRuleRepo(IGrouping<string, SonarQubeRule> analyzerRules)
         {
             var partialRepoKey = analyzerRules.Key;
-            return !string.IsNullOrEmpty(partialRepoKey) && !RoslynPluginRuleKeyExtensions.IsExcludedRuleRepository(partialRepoKey);
+            return !string.IsNullOrEmpty(partialRepoKey);
         }
 
         private Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules, IDictionary<string, string> sonarProperties)

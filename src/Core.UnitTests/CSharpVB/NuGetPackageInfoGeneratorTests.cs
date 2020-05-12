@@ -114,31 +114,6 @@ namespace SonarQube.Client.Tests.RoslynExporterAdapter
         }
 
         [TestMethod]
-        [DataRow("cs")]
-        [DataRow("vbnet")]
-        public void Get_SonarSecurityAnalyzer_WithPropertiesAndMatchingRules_SecurityPackageAreNotReturned(string language)
-        {
-            var testSubject = new NuGetPackageInfoGenerator();
-            string propertyPrefix = $"sonaranalyzer.security.{language}";
-            string repoKey = $"roslyn.{propertyPrefix}";
-
-            var properties = new Dictionary<string, string>
-            {
-                { $"{propertyPrefix}.analyzerId", "AAA" },
-                { $"{propertyPrefix}.pluginVersion", "1.2" }
-            };
-
-            var rules = new SonarQubeRule[]
-            {
-                CreateRule($"{repoKey}", "rule1")
-            };
-
-            var actual = testSubject.GetNuGetPackageInfos(rules, properties);
-
-            actual.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void Get_MultiplePlugins_WithPropertiesAndMatchingRules_ExpectedPackageReturned()
         {
             var testSubject = new NuGetPackageInfoGenerator();
