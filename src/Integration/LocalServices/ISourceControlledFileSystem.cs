@@ -24,7 +24,7 @@ using System.Collections.Generic;
 namespace SonarLint.VisualStudio.Integration
 {
     /// <summary>
-    /// Provides abstraction over the SCC file management. The files are queued up using <see cref="QueueFileWrite(string, Func{bool})"/>
+    /// Provides abstraction over the SCC file management. The files are queued up using <see cref="QueueFileWrites(IEnumerable{string}, Func{bool})"/>
     /// until <see cref="WriteQueuedFiles"/> which will call the SCC to check out the file and will run the queued up write operations.
     /// </summary>
     internal interface ISourceControlledFileSystem : ILocalService
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration
         bool FilesExistOrQueuedToBeWritten(IEnumerable<string> filePaths);
 
         /// <summary>
-        /// Checks out the file if the solution is under source control, and then executes all the queued file writes.  <seealso cref="QueueFileWrite(string, Func{bool})"/>
+        /// Checks out the file if the solution is under source control, and then executes all the queued file writes.  <seealso cref="QueueFileWrites(IEnumerable{string}, Func{bool})"/>
         /// </summary>
         /// <returns>Whether was able to checkout (if applicable) and write to all the files</returns>
         bool WriteQueuedFiles();
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         /// <summary>
-        /// Returns whether the file exists on disk or in a queue to be written. <seealso cref="QueueFileWrite(string, Func{bool})"/>
+        /// Returns whether the file exists on disk or in a queue to be written. <seealso cref="QueueFileWrite(ISourceControlledFileSystem,string,Func{bool})"/>
         /// </summary>
         public static bool FileExistOrQueuedToBeWritten(this ISourceControlledFileSystem sourceControlledFile, string filePath)
         {
