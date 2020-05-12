@@ -28,13 +28,13 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    internal static class SonarLintConfigGenerator
+    public class SonarLintConfigGenerator : ISonarLintConfigGenerator
     {
         private const string CSharpRepoKey = "csharpsquid";
         private const string VBRepoKey = "vbnet";
         private const string SecuredPropertySuffix = ".secured";
 
-        public static SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties,
+        public SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties,
             string language)
         {
             if (rules == null) { throw new ArgumentNullException(nameof(rules)); }
