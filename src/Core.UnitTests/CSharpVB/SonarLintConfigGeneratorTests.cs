@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
     {
         private static readonly IEnumerable<SonarQubeRule> EmptyRules = Array.Empty<SonarQubeRule>();
         private static readonly IDictionary<string, string> EmptyProperties = new Dictionary<string, string>();
-        private const string ValidLanguage = "cs";
+        private static readonly Language ValidLanguage = Language.CSharp;
         private static readonly IDictionary<string, string> ValidParams = new Dictionary<string, string> { { "any", "any value" } };
 
         [TestMethod]
@@ -50,23 +50,22 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
-        [DataRow("")]
         [DataRow("xxx")]
         [DataRow("CS")] // should be case-sensitive
         [DataRow("vb")] // VB language key is "vbnet"
-        public void Generate_UnrecognisedLanguage_Throws(string language)
+        public void Generate_UnrecognisedLanguage_Throws(string languageKey)
         {
-            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, language);
+            Action act = () => new SonarLintConfigGenerator().Generate(EmptyRules, EmptyProperties, new Language(languageKey, "languageX", ".any", new SonarQubeLanguage(languageKey, "languageX")));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("language");
         }
 
         [TestMethod]
         [DataRow("cs")]
         [DataRow("vbnet")]
-        public void Generate_NoActiveRulesOrSettings_ValidLanguage_ReturnsValidConfig(string validLanguage)
+        public void Generate_NoActiveRulesOrSettings_ValidLanguage_ReturnsValidConfig(string languageKey)
         {
             var testSubject = new SonarLintConfigGenerator();
-            var actual = testSubject.Generate(EmptyRules, EmptyProperties, validLanguage);
+            var actual = testSubject.Generate(EmptyRules, EmptyProperties, ToLanguage(languageKey));
 
             actual.Should().NotBeNull();
             actual.Rules.Should().BeEmpty();
@@ -91,7 +90,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             var testSubject = new SonarLintConfigGenerator();
 
             // Act
-            var actual = testSubject.Generate(EmptyRules, properties, "cs");
+            var actual = testSubject.Generate(EmptyRules, properties, Language.CSharp);
 
             // Assert
             actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
@@ -114,7 +113,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(EmptyRules, properties, "cs");
+            var actual = testSubject.Generate(EmptyRules, properties, Language.CSharp);
 
             // Assert
             actual.Settings[0].Key.Should().Be("sonar.cs.property1");
@@ -140,7 +139,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(EmptyRules, properties, "cs");
+            var actual = testSubject.Generate(EmptyRules, properties, Language.CSharp);
 
             // Assert
             actual.Settings.Should().BeEquivalentTo(new Dictionary<string, string>
@@ -152,7 +151,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [TestMethod]
         [DataRow("cs", "csharpsquid")]
         [DataRow("vbnet", "vbnet")]
-        public void Generate_ValidRules_OnlyRulesFromKnownRepositoryReturned(string knownLanguage, string knownRepoKey)
+        public void Generate_ValidRules_OnlyRulesFromKnownRepositoryReturned(string knownLanguageKey, string knownRepoKey)
         {
             // Arrange
             var testSubject = new SonarLintConfigGenerator();
@@ -166,7 +165,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, knownLanguage);
+            var actual = testSubject.Generate(rules, EmptyProperties, ToLanguage(knownLanguageKey));
 
             // Assert
             actual.Rules.Select(r => r.Key).Should().BeEquivalentTo(new string[] { "valid1", "valid2", "valid3" });
@@ -175,18 +174,18 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [TestMethod]
         [DataRow("cs")]
         [DataRow("vbnet")]
-        public void Generate_SonarSecurityRules_AreNotReturned(string language)
+        public void Generate_SonarSecurityRules_AreNotReturned(string languageKey)
         {
             // Arrange
             var testSubject = new SonarLintConfigGenerator();
             var rules = new List<SonarQubeRule>()
             {
-                CreateRuleWithValidParams("valid1", $"roslyn.sonaranalyzer.security.{language}"),
-                CreateRuleWithValidParams("valid2", $"roslyn.sonaranalyzer.security.{language}")
+                CreateRuleWithValidParams("valid1", $"roslyn.sonaranalyzer.security.{languageKey}"),
+                CreateRuleWithValidParams("valid2", $"roslyn.sonaranalyzer.security.{languageKey}")
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, language);
+            var actual = testSubject.Generate(rules, EmptyProperties, ToLanguage(languageKey));
 
             // Assert
             actual.Rules.Should().BeEmpty();
@@ -209,7 +208,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, "cs");
+            var actual = testSubject.Generate(rules, EmptyProperties, Language.CSharp);
 
             // Assert
             actual.Rules.Count.Should().Be(2);
@@ -237,7 +236,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, EmptyProperties, "cs");
+            var actual = testSubject.Generate(rules, EmptyProperties, Language.CSharp);
 
             // Assert
             actual.Rules.Count.Should().Be(3);
@@ -280,7 +279,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             };
 
             // Act
-            var actual = testSubject.Generate(rules, properties, "cs");
+            var actual = testSubject.Generate(rules, properties, Language.CSharp);
             var actualXml = Serializer.ToString(actual);
 
             // Assert
@@ -328,5 +327,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, IDictionary<string, string> parameters = null) =>
             new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, parameters);
+
+        private Language ToLanguage(string sqLanguageKey) => Language.GetLanguageFromLanguageKey(sqLanguageKey);
     }
 }
