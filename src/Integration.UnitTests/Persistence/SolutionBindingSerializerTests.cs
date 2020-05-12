@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -63,8 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 mockCredentials);
 
             sourceControlledFileSystem
-                .Setup(x => x.QueueFileWrite(MockFilePath, It.IsAny<Func<bool>>()))
-                .Callback((string filePath, Func<bool> method) => method());
+                .Setup(x => x.QueueFileWrites(new List<string>{MockFilePath}, It.IsAny<Func<bool>>()))
+                .Callback((IEnumerable<string> filePath, Func<bool> method) => method());
         }
 
         [TestMethod]
