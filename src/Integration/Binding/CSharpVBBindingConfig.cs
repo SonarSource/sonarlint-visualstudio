@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         public string FilePath { get; }
         public RuleSet RuleSet { get; }
-        public IList<string> SolutionItems => new List<string> { FilePath };
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
 
         public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
         {

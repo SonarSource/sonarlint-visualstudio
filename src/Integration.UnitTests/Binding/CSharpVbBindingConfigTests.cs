@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -46,11 +47,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetSolutionItems_ReturnPathToRulesetFile()
+        public void GetSolutionLevelFilePaths_ReturnPathToRulesetFile()
         {
             var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), "c:\\test.txt");
-            testSubject.SolutionItems.Count.Should().Be(1);
-            testSubject.SolutionItems[0].Should().Be(testSubject.FilePath);
+            testSubject.SolutionLevelFilePaths.Count().Should().Be(1);
+            testSubject.SolutionLevelFilePaths.First().Should().Be(testSubject.FilePath);
         }
 
         [TestMethod]

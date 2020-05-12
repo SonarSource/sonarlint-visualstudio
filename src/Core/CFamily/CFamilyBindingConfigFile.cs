@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
         internal /* for testing */ RulesSettings RuleSettings { get; }
         internal /* for testing */ string FilePath { get; }
 
-        public IList<string> SolutionItems => new List<string> { FilePath };
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
 
         public void Save()
         {

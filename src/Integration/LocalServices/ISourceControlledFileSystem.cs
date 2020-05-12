@@ -30,31 +30,40 @@ namespace SonarLint.VisualStudio.Integration
     internal interface ISourceControlledFileSystem : ILocalService
     {
         /// <summary>
-        /// Queues a write operation for a file path. New or edit is determined internally at the time of this method execution.
+        /// Queues a write operation for given file paths. New or edit is evaluated at the time of this method execution.
         /// </summary>
-        /// <param name="filePath">File path that want to write to</param>
-        /// <param name="fileWriteOperation">The actual write operation, return false if failed</param>
-        void QueueFileWrite(string filePath, Func<bool> fileWriteOperation);
+        void QueueFileWrites(IEnumerable<string> filePaths, Func<bool> fileWriteOperation);
 
         /// <summary>
-        /// Queues a write operation for given file paths. New or edit is determined internally at the time of this method execution.
+        /// Returns whether all given files exist on disk or in a queue to be written. <seealso cref="QueueFileWrites(IEnumerable{string}, Func{bool})"/>
         /// </summary>
-        void QueueFileWrites(IList<string> filePaths, Func<bool> fileWriteOperation);
-
-        /// <summary>
-        /// Returns whether the file exists on disk or in a queue to be written. <seealso cref="QueueFileWrite(string, Func{bool})"/>
-        /// </summary>
-        bool FileExistOrQueuedToBeWritten(string filePath);
-
-        /// <summary>
-        /// Returns whether all given files exist on disk or in a queue to be written. <seealso cref="QueueFileWrites(IList{string}, Func{bool})"/>
-        /// </summary>
-        bool FilesExistOrQueuedToBeWritten(IList<string> filePaths);
+        bool FilesExistOrQueuedToBeWritten(IEnumerable<string> filePaths);
 
         /// <summary>
         /// Checks out the file if the solution is under source control, and then executes all the queued file writes.  <seealso cref="QueueFileWrite(string, Func{bool})"/>
         /// </summary>
         /// <returns>Whether was able to checkout (if applicable) and write to all the files</returns>
         bool WriteQueuedFiles();
+    }
+
+    internal static class SourceControlledFileSystemExtensions
+    {
+        /// <summary>
+        /// Queues a write operation for a file path. New or edit is evaluated at the time of this method execution.
+        /// </summary>
+        /// <param name="filePath">File path that want to write to</param>
+        /// <param name="fileWriteOperation">The actual write operation, return false if failed</param>
+        public static void QueueFileWrite(this ISourceControlledFileSystem sourceControlledFile, string filePath, Func<bool> fileWriteOperation)
+        {
+            sourceControlledFile.QueueFileWrites(new List<string>{filePath}, fileWriteOperation);
+        }
+
+        /// <summary>
+        /// Returns whether the file exists on disk or in a queue to be written. <seealso cref="QueueFileWrite(string, Func{bool})"/>
+        /// </summary>
+        public static bool FileExistOrQueuedToBeWritten(this ISourceControlledFileSystem sourceControlledFile, string filePath)
+        {
+            return sourceControlledFile.FilesExistOrQueuedToBeWritten(new List<string> { filePath });
+        }
     }
 }

@@ -39,29 +39,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region ISourceControlledFileSystem
 
-        public bool FileExistOrQueuedToBeWritten(string filePath)
+        public bool FilesExistOrQueuedToBeWritten(IEnumerable<string> filePaths)
         {
-            return fileWriteOperations.ContainsKey(filePath) || fileSystem.File.Exists(filePath);
+            return filePaths.All(filePath => fileWriteOperations.ContainsKey(filePath) || fileSystem.File.Exists(filePath));
         }
 
-        public bool FilesExistOrQueuedToBeWritten(IList<string> filePaths)
-        {
-            return filePaths.All(FileExistOrQueuedToBeWritten);
-        }
-
-        public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
-        {
-            fileWriteOperations.Should().NotContainKey(filePath, "Not expected to modify the same file during execution");
-            fileWriteOperation.Should().NotBeNull("Not expecting the operation to be null");
-
-            fileWriteOperations[filePath] = fileWriteOperation;
-        }
-
-        public void QueueFileWrites(IList<string> filePaths, Func<bool> fileWriteOperation)
+        public void QueueFileWrites(IEnumerable<string> filePaths, Func<bool> fileWriteOperation)
         {
             foreach (var filePath in filePaths)
             {
-                QueueFileWrite(filePath, fileWriteOperation);
+                fileWriteOperations.Should().NotContainKey(filePath, "Not expected to modify the same file during execution");
+                fileWriteOperation.Should().NotBeNull("Not expecting the operation to be null");
+
+                fileWriteOperations[filePath] = fileWriteOperation;
             }
         }
 

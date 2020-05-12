@@ -449,7 +449,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IBindingConfig> CreateMockConfigFile(string expectedFilePath)
         {
             var configFile = new Mock<IBindingConfig>();
-            configFile.SetupGet(x => x.SolutionItems).Returns(new List<string> {expectedFilePath});
+            configFile.SetupGet(x => x.SolutionLevelFilePaths).Returns(new List<string> {expectedFilePath});
 
             // Simulate an update to the scc file system on Save (prevents an assertion
             // in the product code).

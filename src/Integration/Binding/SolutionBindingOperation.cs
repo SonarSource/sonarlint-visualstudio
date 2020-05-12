@@ -145,9 +145,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 var info = keyValue.Value;
 
-                sourceControlledFileSystem.QueueFileWrites(info.SolutionItems, () =>
+                sourceControlledFileSystem.QueueFileWrites(info.SolutionLevelFilePaths, () =>
                 {
-                    foreach (var solutionItem in info.SolutionItems)
+                    foreach (var solutionItem in info.SolutionLevelFilePaths)
                     {
                         var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
                         fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return true;
                 });
 
-                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionItems), "Expected solution items to be queued for writing");
+                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionLevelFilePaths), "Expected solution items to be queued for writing");
             }
 
             foreach (var project in projects)
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             foreach (var info in bindingConfigInformationMap.Values)
             {
-                foreach (var solutionItem in info.SolutionItems)
+                foreach (var solutionItem in info.SolutionLevelFilePaths)
                 {
                     Debug.Assert(fileSystem.File.Exists(solutionItem), "File not written " + solutionItem);
                     legacyConfigFolderItemAdder.AddToFolder(solutionItem);

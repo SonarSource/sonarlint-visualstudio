@@ -93,16 +93,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(true, false, false)]
         [DataRow(false, true, false)]
         [DataRow(false, false, false)]
-        public void SourceControlledFileSystem_FilesExistOrQueuedToBeWritten_ReturnsIfAllFilesAreQueuedOrWritten(bool isFirstFileWritten, bool isSecondFileWritten, bool expectedResult)
+        public void SourceControlledFileSystem_FilesExistOrQueuedToBeWritten_ReturnsIfAllFilesAreQueuedOrWritten(bool firstFileExists, bool secondFileExists, bool expectedResult)
         {
             var testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
             var files = new List<string> {@"Z:\Y\XXX\first.txt", @"Z:\Y\XXX\second.txt"};
 
-            if (isFirstFileWritten)
+            if (firstFileExists)
             {
                 fileSystem.AddFile(files.First(), new MockFileData(""));
             }
-            if (isSecondFileWritten)
+            if (secondFileExists)
             {
                 fileSystem.AddFile(files.Last(), new MockFileData(""));
             }

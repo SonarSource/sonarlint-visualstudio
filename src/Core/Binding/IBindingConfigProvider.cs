@@ -45,7 +45,10 @@ namespace SonarLint.VisualStudio.Core.Binding
     /// For C++ it will be in a json file in a Sonar-specific format</remarks>
     public interface IBindingConfig
     {
-        IList<string> SolutionItems { get; }
+        /// <summary>
+        /// Returns a list of all of the solution-level files that should exist if the solution is correctly bound. The files might not exist on disk. List cannot be null or empty.
+        /// </summary>
+        IEnumerable<string> SolutionLevelFilePaths { get; }
 
         /// <summary>
         /// Saves the file, replacing any existing file
