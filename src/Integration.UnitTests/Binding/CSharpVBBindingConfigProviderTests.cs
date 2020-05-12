@@ -346,7 +346,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Returns(FilePathResponse);
 
                 solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, projectName, "params_" + language.FileSuffixAndExtension))
+                    .Setup(x => x.Generate(bindingRootFolder, projectName, language.FileSuffixAndExtension + "_params.xml"))
                     .Returns(AdditionalFilePathResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,

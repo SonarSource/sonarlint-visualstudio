@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var additionalFilePath = solutionBindingFilePathGenerator.Generate(
                 bindingConfiguration.BindingConfigDirectory,
                 bindingConfiguration.Project.ProjectKey,
-                "params_" + language.FileSuffixAndExtension);
+                language.FileSuffixAndExtension + "_params.xml");
 
             var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
             var additionalFile = new FilePathAndContent<string>(additionalFilePath, "todo");
