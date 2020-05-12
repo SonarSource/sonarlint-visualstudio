@@ -24,6 +24,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -36,41 +37,54 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new CSharpVBBindingConfig(null, "dummy");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
+            var ruleSet = new FilePathAndContent<RuleSet>("dummy", new RuleSet("dummy"));
+            var additionalFile = new FilePathAndContent<string>("dummy", "dummy");
 
-             act = () => new CSharpVBBindingConfig(new RuleSet("dummy"), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+            Action act = () => new CSharpVBBindingConfig(null, additionalFile);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleset");
 
-            act = () => new CSharpVBBindingConfig(new RuleSet("dummy"), "");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+             act = () => new CSharpVBBindingConfig(ruleSet, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("additionalFile");
+
+            act = () => new CSharpVBBindingConfig(ruleSet, additionalFile, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
-        public void GetSolutionLevelFilePaths_ReturnPathToRulesetFile()
+        public void GetSolutionLevelFilePaths_ReturnFilePaths()
         {
-            var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), "c:\\test.txt");
-            testSubject.SolutionLevelFilePaths.Count().Should().Be(1);
-            testSubject.SolutionLevelFilePaths.First().Should().Be(testSubject.FilePath);
+            var ruleSet = new FilePathAndContent<RuleSet>("ruleset dummy", new RuleSet("dummy"));
+            var additionalFile = new FilePathAndContent<string>("additional file dummy", "dummy");
+
+            var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
+            testSubject.SolutionLevelFilePaths.Count().Should().Be(2);
+            testSubject.SolutionLevelFilePaths.First().Should().Be(ruleSet.Path);
+            testSubject.SolutionLevelFilePaths.Last().Should().Be(additionalFile.Path);
         }
 
         [TestMethod]
-        public void Save_ValidFilePath_SaveCalled()
+        public void Save_FilesSaved()
         {
             // We can't mock the RuleSet class so we're testing Save by actually
             // writing to disk.
             // Arrange
             var testDir = Path.Combine(TestContext.DeploymentDirectory, TestContext.TestName);
             Directory.CreateDirectory(testDir);
-            var fullPath = Path.Combine(testDir, "savedRuleSet.txt");
 
-            var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), fullPath);
+            var rulesetFullPath = Path.Combine(testDir, "savedRuleSet.txt");
+            var additionalFileFullPath = Path.Combine(testDir, "additionalFile.txt");
+
+            var ruleSet = new FilePathAndContent<RuleSet>(rulesetFullPath, new RuleSet("dummy"));
+            var additionalFile = new FilePathAndContent<string>(additionalFileFullPath, "dummy");
+
+            var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
 
             // Act
             testSubject.Save();
 
             // Assert
-            File.Exists(fullPath).Should().BeTrue();
+            File.Exists(rulesetFullPath).Should().BeTrue();
+            File.Exists(additionalFileFullPath).Should().BeTrue();
         }
     }
 }

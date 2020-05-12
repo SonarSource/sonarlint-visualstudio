@@ -20,31 +20,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {
-        public string FilePath { get; }
-        public RuleSet RuleSet { get; }
-        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
+        private readonly IFileSystem fileSystem;
 
-        public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
+        public FilePathAndContent<string> AdditionalFile { get; }
+
+        public FilePathAndContent<RuleSet> RuleSet { get; }
+
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { RuleSet.Path, AdditionalFile.Path };
+
+        public CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<string> additionalFile)
+            : this(ruleset, additionalFile, new FileSystem())
         {
-            RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
+        }
 
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            FilePath = filePath;
+        internal CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<string> additionalFile, IFileSystem fileSystem)
+        {
+            RuleSet = ruleset ?? throw new ArgumentNullException(nameof(ruleset));
+            AdditionalFile = additionalFile ?? throw new ArgumentNullException(nameof(additionalFile));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public void Save()
         {
-            RuleSet.WriteToFile(FilePath);
+            RuleSet.Content.WriteToFile(RuleSet.Path);
+            fileSystem.File.WriteAllText(AdditionalFile.Path, AdditionalFile.Content);
         }
     }
 }
