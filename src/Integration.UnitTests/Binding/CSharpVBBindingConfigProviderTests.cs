@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).FilePath.Should().Be("expected file path");
+            (response as ICSharpVBBindingConfig).RuleSet.Path.Should().Be("expected file path");
         }
 
         [TestMethod]
@@ -225,13 +225,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeOfType<CSharpVBBindingConfig>();
             var dotNetResult = (CSharpVBBindingConfig)result;
             dotNetResult.RuleSet.Should().NotBeNull();
-            dotNetResult.RuleSet.ToolsVersion.Should().Be(new Version(validRuleSet.ToolsVersion));
+            dotNetResult.RuleSet.Content.ToolsVersion.Should().Be(new Version(validRuleSet.ToolsVersion));
 
             var expectedName = string.Format(Strings.SonarQubeRuleSetNameFormat, expectedProjectName, validQualityProfile.Name);
-            dotNetResult.RuleSet.DisplayName.Should().Be(expectedName);
+            dotNetResult.RuleSet.Content.DisplayName.Should().Be(expectedName);
 
             var expectedDescription = $"{OriginalValidRuleSetDescription} {string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, expectedServerUrl, validQualityProfile.Key)}";
-            dotNetResult.RuleSet.Description.Should().Be(expectedDescription);
+            dotNetResult.RuleSet.Content.Description.Should().Be(expectedDescription);
 
             // Check properties passed to the ruleset generator
             builder.CapturedPropertiesPassedToRuleSetGenerator.Should().NotBeNull();
@@ -298,8 +298,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 Logger = new TestLogger();
                 FilePathResponse = "test";
+                AdditionalFilePathResponse = "additional file";
             }
 
+            public string AdditionalFilePathResponse { get; set; }
             public string FilePathResponse { get; set; }
             public BindingConfiguration BindingConfiguration { get; set; }
 
@@ -366,6 +368,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 solutionBindingFilePathGeneratorMock
                     .Setup(x => x.Generate(bindingRootFolder, projectName, language.FileSuffixAndExtension))
                     .Returns(FilePathResponse);
+
+                solutionBindingFilePathGeneratorMock
+                    .Setup(x => x.Generate(bindingRootFolder, projectName, "params_" + language.FileSuffixAndExtension))
+                    .Returns(AdditionalFilePathResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks

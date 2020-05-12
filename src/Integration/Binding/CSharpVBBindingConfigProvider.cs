@@ -119,7 +119,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingConfiguration.Project.ProjectKey,
                 language.FileSuffixAndExtension);
 
-            return new CSharpVBBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
+            var additionalFilePath = solutionBindingFilePathGenerator.Generate(
+                bindingConfiguration.BindingConfigDirectory,
+                bindingConfiguration.Project.ProjectKey,
+                "params_" + language.FileSuffixAndExtension);
+
+            var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
+            var additionalFile = new FilePathAndContent<string>(additionalFilePath, "todo");
+
+            return new CSharpVBBindingConfig(ruleset, additionalFile);
         }
 
         private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)
