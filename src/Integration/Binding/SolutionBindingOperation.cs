@@ -144,21 +144,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
 
                 var info = keyValue.Value;
-                Debug.Assert(!string.IsNullOrWhiteSpace(info.FilePath), "Expected to be set during registration time");
 
-                sourceControlledFileSystem.QueueFileWrite(info.FilePath, () =>
+                sourceControlledFileSystem.QueueFileWrites(info.SolutionLevelFilePaths, () =>
                 {
-                    var ruleSetDirectoryPath = Path.GetDirectoryName(info.FilePath);
+                    foreach (var solutionItem in info.SolutionLevelFilePaths)
+                    {
+                        var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
+                        fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
+                    }
 
-                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
-
-                    // Create or overwrite existing rule set
                     info.Save();
 
                     return true;
                 });
 
-                Debug.Assert(sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.FilePath), "Expected a rule set to pend pended");
+                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionLevelFilePaths), "Expected solution items to be queued for writing");
             }
 
             foreach (var project in projects)
@@ -205,8 +205,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             foreach (var info in bindingConfigInformationMap.Values)
             {
-                Debug.Assert(fileSystem.File.Exists(info.FilePath), "File not written " + info.FilePath);
-                legacyConfigFolderItemAdder.AddToFolder(info.FilePath);
+                foreach (var solutionItem in info.SolutionLevelFilePaths)
+                {
+                    Debug.Assert(fileSystem.File.Exists(solutionItem), "File not written " + solutionItem);
+                    legacyConfigFolderItemAdder.AddToFolder(solutionItem);
+                }
             }
         }
 

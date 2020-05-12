@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -54,6 +55,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
             testSubject.RuleSettings.Equals(settings);
             testSubject.FilePath.Equals("c:\\test");
+        }
+
+        [TestMethod]
+        public void GetSolutionLevelFilePaths_ReturnPathToSettingsFile()
+        {
+            var settings = new RulesSettings();
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
+            testSubject.SolutionLevelFilePaths.Count().Should().Be(1);
+            testSubject.SolutionLevelFilePaths.First().Should().Be(testSubject.FilePath);
         }
 
         [TestMethod]

@@ -21,11 +21,13 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions.TestingHelpers;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -84,6 +86,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             testSubject.FileExistOrQueuedToBeWritten(file).Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(true, true, true)]
+        [DataRow(true, false, false)]
+        [DataRow(false, true, false)]
+        [DataRow(false, false, false)]
+        public void SourceControlledFileSystem_FilesExistOrQueuedToBeWritten_ReturnsIfAllFilesAreQueuedOrWritten(bool firstFileExists, bool secondFileExists, bool expectedResult)
+        {
+            var testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var files = new List<string> {@"Z:\Y\XXX\first.txt", @"Z:\Y\XXX\second.txt"};
+
+            if (firstFileExists)
+            {
+                fileSystem.AddFile(files.First(), new MockFileData(""));
+            }
+            if (secondFileExists)
+            {
+                fileSystem.AddFile(files.Last(), new MockFileData(""));
+            }
+
+            var result = testSubject.FilesExistOrQueuedToBeWritten(files);
+            result.Should().Be(expectedResult);
+        }
+
+        [TestMethod]
+        public void SourceControlledFileSystem_QueueFileWrites_OneCallbackForAllFiles()
+        {
+            // Arrange
+            var testSubject = new SourceControlledFileSystem(this.serviceProvider, this.logger, this.fileSystem);
+            var files = new List<string> { @"Z:\Y\XXX\first.txt", @"Z:\Y\XXX\second.txt" };
+            var callback = new Mock<Func<bool>>();
+
+            // Act
+            testSubject.QueueFileWrites(files, callback.Object);
+            testSubject.WriteQueuedFiles();
+
+            // Assert
+            callback.Verify(x=> x(), Times.Once);
         }
 
         [TestMethod]
