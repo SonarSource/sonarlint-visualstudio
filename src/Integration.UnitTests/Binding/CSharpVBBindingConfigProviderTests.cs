@@ -161,7 +161,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             (response as ICSharpVBBindingConfig).RuleSet.Content.ToolsVersion.ToString().Should().Be(validRuleSet.ToolsVersion);
         }
 
-
         [TestMethod]
         public async Task GetConfig_ReturnsCorrectAdditionalFile()
         {
@@ -313,7 +312,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class TestEnvironmentBuilder
         {
-            public Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock;
+            private Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock;
             private Mock<ISonarQubeService> sonarQubeServiceMock;
             private Mock<Core.CSharpVB.IRuleSetGenerator> ruleGenMock;
             private Mock<Core.CSharpVB.INuGetPackageInfoGenerator> nugetGenMock;
@@ -343,23 +342,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             public string AdditionalFilePathResponse { get; set; }
             public string FilePathResponse { get; set; }
             public BindingConfiguration BindingConfiguration { get; set; }
-
             public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
-
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
-
             public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
-
             public IList<SonarQubeProperty> PropertiesResponse { get; set; }
-
             public IList<NuGetPackageInfo> NuGetGeneratorResponse { get; set; }
-
             public bool NuGetBindingOperationResponse { get; set; }
-
             public Core.CSharpVB.RuleSet RuleSetGeneratorResponse { get; set; }
-
             public TestLogger Logger { get; private set; }
-
             public IEnumerable<SonarQubeRule> CapturedRulesPassedToRuleSetGenerator { get; private set; }
             public IDictionary<string, string> CapturedPropertiesPassedToRuleSetGenerator { get; private set; }
 
