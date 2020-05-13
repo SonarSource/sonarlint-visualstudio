@@ -22,10 +22,11 @@ using System;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_InvalidArgs()
         {
             var ruleSet = new FilePathAndContent<RuleSet>("dummy", new RuleSet("dummy"));
-            var additionalFile = new FilePathAndContent<string>("dummy", "dummy");
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>("dummy", new SonarLintConfiguration());
 
             Action act = () => new CSharpVBBindingConfig(null, additionalFile);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleset");
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetSolutionLevelFilePaths_ReturnFilePaths()
         {
             var ruleSet = new FilePathAndContent<RuleSet>("ruleset dummy", new RuleSet("dummy"));
-            var additionalFile = new FilePathAndContent<string>("additional file dummy", "dummy");
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>("additional file dummy", new SonarLintConfiguration());
 
             var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
             testSubject.SolutionLevelFilePaths.Count().Should().Be(2);
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var additionalFileFullPath = Path.Combine(testDir, "additionalFile.txt");
 
             var ruleSet = new FilePathAndContent<RuleSet>(rulesetFullPath, new RuleSet("dummy"));
-            var additionalFile = new FilePathAndContent<string>(additionalFileFullPath, "dummy");
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFileFullPath, new SonarLintConfiguration());
 
             var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
 
@@ -85,6 +86,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             File.Exists(rulesetFullPath).Should().BeTrue();
             File.Exists(additionalFileFullPath).Should().BeTrue();
+
+            var savedAdditionalFile = File.ReadAllText(additionalFileFullPath);
+            savedAdditionalFile.Should().Be(@"{
+  ""Settings"": [],
+  ""Rules"": []
+}");
         }
     }
 }

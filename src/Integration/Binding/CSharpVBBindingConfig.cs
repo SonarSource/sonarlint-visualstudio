@@ -21,8 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -30,18 +32,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
     {
         private readonly IFileSystem fileSystem;
 
-        public FilePathAndContent<string> AdditionalFile { get; }
+        public FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
 
         public FilePathAndContent<RuleSet> RuleSet { get; }
 
         public IEnumerable<string> SolutionLevelFilePaths => new List<string> { RuleSet.Path, AdditionalFile.Path };
 
-        public CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<string> additionalFile)
+        public CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<SonarLintConfiguration> additionalFile)
             : this(ruleset, additionalFile, new FileSystem())
         {
         }
 
-        internal CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<string> additionalFile, IFileSystem fileSystem)
+        internal CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<SonarLintConfiguration> additionalFile, IFileSystem fileSystem)
         {
             RuleSet = ruleset ?? throw new ArgumentNullException(nameof(ruleset));
             AdditionalFile = additionalFile ?? throw new ArgumentNullException(nameof(additionalFile));
@@ -51,7 +53,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public void Save()
         {
             RuleSet.Content.WriteToFile(RuleSet.Path);
-            fileSystem.File.WriteAllText(AdditionalFile.Path, AdditionalFile.Content);
+
+            var serializedContent = JsonConvert.SerializeObject(AdditionalFile.Content, Formatting.Indented);
+            fileSystem.File.WriteAllText(AdditionalFile.Path, serializedContent);
         }
     }
 }

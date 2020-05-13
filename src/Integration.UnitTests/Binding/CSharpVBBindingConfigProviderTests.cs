@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
@@ -139,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetConfig_ReturnsCorrectFilePath()
+        public async Task GetConfig_ReturnsCorrectRuleset()
         {
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
@@ -148,12 +150,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PropertiesResponse = anyProperties,
                 NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
-                FilePathResponse = "expected file path"
+                FilePathResponse = "expected file path",
             };
             var testSubject = builder.CreateTestSubject();
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).RuleSet.Path.Should().Be("expected file path");
+            (response as ICSharpVBBindingConfig).RuleSet.Content.Description.Should().Be(validRuleSet.Description);
+            (response as ICSharpVBBindingConfig).RuleSet.Content.Rules.Should().AllBeEquivalentTo(validRuleSet.Rules);
+            (response as ICSharpVBBindingConfig).RuleSet.Content.ToolsVersion.ToString().Should().Be(validRuleSet.ToolsVersion);
+        }
+
+
+        [TestMethod]
+        public async Task GetConfig_ReturnsCorrectAdditionalFile()
+        {
+            var expectedConfiguration = new SonarLintConfiguration
+            {
+                Rules = new List<SonarLintRule>
+                {
+                    new SonarLintRule
+                    {
+                        Key = "test",
+                        Parameters = new List<SonarLintKeyValuePair> {new SonarLintKeyValuePair {Key = "ruleid", Value = "value"}}
+                    }
+                }
+            };
+
+            var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
+            {
+                ActiveRulesResponse = validRules,
+                InactiveRulesResponse = emptyRules,
+                PropertiesResponse = anyProperties,
+                NuGetBindingOperationResponse = true,
+                RuleSetGeneratorResponse = validRuleSet,
+                AdditionalFilePathResponse = "expected additional file path",
+                SonarLintConfigurationResponse = expectedConfiguration
+            };
+            var testSubject = builder.CreateTestSubject();
+
+            var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
+            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected additional file path");
+            (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
         }
 
         [TestMethod]
@@ -275,11 +313,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class TestEnvironmentBuilder
         {
+            public Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock;
             private Mock<ISonarQubeService> sonarQubeServiceMock;
-
             private Mock<Core.CSharpVB.IRuleSetGenerator> ruleGenMock;
             private Mock<Core.CSharpVB.INuGetPackageInfoGenerator> nugetGenMock;
-
             private Mock<INuGetBindingOperation> nugetBindingMock;
 
             private readonly SonarQubeQualityProfile profile;
@@ -299,11 +336,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 Logger = new TestLogger();
                 FilePathResponse = "test";
                 AdditionalFilePathResponse = "additional file";
+                SonarLintConfigurationResponse = new SonarLintConfiguration();
+                PropertiesResponse = new List<SonarQubeProperty>();
             }
 
             public string AdditionalFilePathResponse { get; set; }
             public string FilePathResponse { get; set; }
             public BindingConfiguration BindingConfiguration { get; set; }
+
+            public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
 
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
 
@@ -370,14 +411,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Returns(FilePathResponse);
 
                 solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, projectName, "params_" + language.FileSuffixAndExtension))
+                    .Setup(x => x.Generate(bindingRootFolder, projectName, Path.Combine(language.Id, "SonarLint.xml")))
                     .Returns(AdditionalFilePathResponse);
+
+                var sonarProperties = PropertiesResponse.ToDictionary(p => p.Key, y => y.Value);
+
+                sonarLintConfigGeneratorMock = new Mock<ISonarLintConfigGenerator>();
+                sonarLintConfigGeneratorMock
+                    .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, language))
+                    .Returns(SonarLintConfigurationResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
                     nugetGenMock.Object,
-                    solutionBindingFilePathGeneratorMock.Object);
+                    solutionBindingFilePathGeneratorMock.Object,
+                    sonarLintConfigGeneratorMock.Object);
             }
 
             public void AssertRuleSetGeneratorNotCalled()

@@ -47,17 +47,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IRuleSetGenerator ruleSetGenerator;
         private readonly INuGetPackageInfoGenerator nuGetPackageInfoGenerator;
         private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
+        private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
         public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, ILogger logger)
             : this(sonarQubeService, nuGetBindingOperation, logger,
-                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SolutionBindingFilePathGenerator())
+                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SolutionBindingFilePathGenerator(), new SonarLintConfigGenerator())
         {
         }
 
         internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
             INuGetBindingOperation nuGetBindingOperation, ILogger logger,
             IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator,
-            ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
+            ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator, ISonarLintConfigGenerator sonarLintConfigGenerator)
         {
             this.sonarQubeService = sonarQubeService;
             this.nuGetBindingOperation = nuGetBindingOperation;
@@ -65,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.ruleSetGenerator = ruleSetGenerator;
             this.nuGetPackageInfoGenerator = nuGetPackageInfoGenerator;
             this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator;
+            this.sonarLintConfigGenerator = sonarLintConfigGenerator;
         }
 
         public bool IsLanguageSupported(Language language)
@@ -112,6 +114,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Finally, fetch the remaining data needed to build the ruleset
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
 
+            var ruleset = GetRulesetFile(qualityProfile, language, bindingConfiguration, activeRules, inactiveRules, sonarProperties);
+            var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties);
+
+            return new CSharpVBBindingConfig(ruleset, additionalFile);
+        }
+
+        private FilePathAndContent<VsRuleset> GetRulesetFile(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, Dictionary<string, string> sonarProperties)
+        {
             var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
             var ruleSetFilePath = solutionBindingFilePathGenerator.Generate(
@@ -119,15 +129,23 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingConfiguration.Project.ProjectKey,
                 language.FileSuffixAndExtension);
 
+            var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
+
+            return ruleset;
+        }
+
+        private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, Dictionary<string, string> sonarProperties)
+        {
             var additionalFilePath = solutionBindingFilePathGenerator.Generate(
                 bindingConfiguration.BindingConfigDirectory,
                 bindingConfiguration.Project.ProjectKey,
-                "params_" + language.FileSuffixAndExtension);
+                Path.Combine(language.Id, "SonarLint.xml"));
 
-            var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
-            var additionalFile = new FilePathAndContent<string>(additionalFilePath, "todo");
+            var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, language);
 
-            return new CSharpVBBindingConfig(ruleset, additionalFile);
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFilePath, additionalFileContent);
+
+            return additionalFile;
         }
 
         private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)

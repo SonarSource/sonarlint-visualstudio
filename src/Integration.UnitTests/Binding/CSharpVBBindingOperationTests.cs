@@ -24,13 +24,14 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             var ruleset = new FilePathAndContent<RuleSet>(@"c:\Solution\sln.ruleset", new RuleSet("SonarQube"));
-            var additionalFile = new FilePathAndContent<string>(@"c:\Solution\additionalFile.txt", "dummy");
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>(@"c:\Solution\additionalFile.txt", new SonarLintConfiguration());
             cSharpVBBindingConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
         }
 

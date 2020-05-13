@@ -27,8 +27,11 @@ using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Binding;
+using RuleAction = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleAction;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -211,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private static CSharpVBBindingConfig CreateCSharpVbBindingConfig(string newSolutionRuleSetPath, RuleSet expectedRuleSet)
         {
             var ruleset = new FilePathAndContent<RuleSet>(newSolutionRuleSetPath, expectedRuleSet);
-            var additionalFile = new FilePathAndContent<string>("dummy.txt", "dummy");
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>("dummy.txt", new SonarLintConfiguration());
             var dotNetConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
             return dotNetConfig;
         }
