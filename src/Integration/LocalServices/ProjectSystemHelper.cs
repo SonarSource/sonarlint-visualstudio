@@ -19,9 +19,14 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
@@ -56,17 +61,18 @@ namespace SonarLint.VisualStudio.Integration
         internal const uint SolutionItemResourceId = 13450;
 
         private readonly IServiceProvider serviceProvider;
+        private readonly IFileSystem fileSystem;
 
-        public ProjectSystemHelper(IServiceProvider serviceProvider)
+        public ProjectSystemHelper(IServiceProvider serviceProvider) 
+            : this(serviceProvider, new FileSystem())
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.serviceProvider = serviceProvider;
         }
 
+        internal ProjectSystemHelper(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        {
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+        }
 
         public IEnumerable<Project> GetSolutionProjects()
         {
@@ -473,6 +479,19 @@ namespace SonarLint.VisualStudio.Integration
             var hierarchy = GetIVsHierarchy(dteProject);
 
             return hierarchy != null && hierarchy is IVsAggregatableProjectCorrected;
+        }
+
+        public bool DoesExistInItemGroup(Project project, string itemGroupName, string itemGroupValue)
+        {
+            var projectXml = fileSystem.File.ReadAllText(project.FullName);
+            var xDocument = XDocument.Load(new StringReader(projectXml));
+            var xPathEvaluate = xDocument.XPathEvaluate($"//Project//ItemGroup//{itemGroupName}/@Include") as IEnumerable;
+
+            var hasItem = xPathEvaluate
+                .Cast<XAttribute>()
+                .Any(x => string.Equals(x.Value, itemGroupValue, StringComparison.OrdinalIgnoreCase));
+
+            return hasItem;
         }
     }
 }
