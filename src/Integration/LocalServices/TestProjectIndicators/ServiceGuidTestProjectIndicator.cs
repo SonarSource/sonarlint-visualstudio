@@ -19,12 +19,6 @@
  */
 
 using System;
-using System.Collections;
-using System.IO;
-using System.IO.Abstractions;
-using System.Linq;
-using System.Xml.Linq;
-using System.Xml.XPath;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Resources;
@@ -33,26 +27,21 @@ namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
 {
     public class ServiceGuidTestProjectIndicator : ITestProjectIndicator
     {
+        private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
-        private readonly IFileSystem fileSystem;
-        private const string TestServiceGuid = "{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}";
+        internal const string TestServiceGuid = "{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}";
 
-        public ServiceGuidTestProjectIndicator(ILogger logger)
-            : this(logger, new FileSystem())
+        public ServiceGuidTestProjectIndicator(IServiceProvider serviceProvider, ILogger logger)
         {
-        }
-
-        internal ServiceGuidTestProjectIndicator(ILogger logger, IFileSystem fileSystem)
-        {
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public bool? IsTestProject(Project project)
         {
             try
             {
-                var hasTestGuid = HasTestGuid(project.FullName);
+                var hasTestGuid = HasTestGuid(project);
 
                 return hasTestGuid ? true : (bool?) null;
             }
@@ -64,17 +53,12 @@ namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
             }
         }
 
-        private bool HasTestGuid(string projectPath)
+        private bool HasTestGuid(Project project)
         {
-            var projectXml = fileSystem.File.ReadAllText(projectPath);
-            var xDocument = XDocument.Load(new StringReader(projectXml));
-            var xPathEvaluate = xDocument.XPathEvaluate("//Project//ItemGroup//Service/@Include") as IEnumerable;
+            var projectSystemHelper = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystemHelper.AssertLocalServiceIsNotNull();
 
-            var hasTestGuid = xPathEvaluate
-                .Cast<XAttribute>()
-                .Any(x => string.Equals(x.Value, TestServiceGuid, StringComparison.OrdinalIgnoreCase));
-
-            return hasTestGuid;
+            return projectSystemHelper.DoesExistInItemGroup(project, "Service", TestServiceGuid);
         }
     }
 }
