@@ -28,14 +28,14 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
 {
-    internal static class SonarLintConfigGenerator
+    public class SonarLintConfigGenerator : ISonarLintConfigGenerator
     {
         private const string CSharpRepoKey = "csharpsquid";
         private const string VBRepoKey = "vbnet";
         private const string SecuredPropertySuffix = ".secured";
 
-        public static SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties,
-            string language)
+        public SonarLintConfiguration Generate(IEnumerable<SonarQubeRule> rules, IDictionary<string, string> sonarProperties,
+            Language language)
         {
             if (rules == null) { throw new ArgumentNullException(nameof(rules)); }
             if (sonarProperties == null) { throw new ArgumentNullException(nameof(sonarProperties)); }
@@ -55,14 +55,14 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             };
         }
 
-        private static string GetSonarRepoKey(string language)
+        private static string GetSonarRepoKey(Language language)
         {
-            if (language == SonarQubeLanguage.CSharp.Key)
+            if (language.ServerLanguage.Key == SonarQubeLanguage.CSharp.Key)
             {
                 return CSharpRepoKey;
             }
 
-            if (language == SonarQubeLanguage.VbNet.Key)
+            if (language.ServerLanguage.Key == SonarQubeLanguage.VbNet.Key)
             {
                 return VBRepoKey;
             }
@@ -70,8 +70,8 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             throw new ArgumentOutOfRangeException(nameof(language));
         }
 
-        private static List<SonarLintKeyValuePair> GetSettingsForLanguage(string language, IDictionary<string, string> sonarProperties) =>
-            sonarProperties.Where(kvp => IsSettingForLanguage(language, kvp.Key) && !IsSecuredServerProperty(kvp.Key))
+        private static List<SonarLintKeyValuePair> GetSettingsForLanguage(Language language, IDictionary<string, string> sonarProperties) =>
+            sonarProperties.Where(kvp => IsSettingForLanguage(language.ServerLanguage.Key, kvp.Key) && !IsSecuredServerProperty(kvp.Key))
                 .Select(ToSonarLintKeyValue)
                 .OrderBy(s => s.Key)
                 .ToList();
