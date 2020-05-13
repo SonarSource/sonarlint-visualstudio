@@ -19,10 +19,14 @@
  */
 
 using System;
+using System.Collections;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
@@ -38,19 +42,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
-            :  this(serviceProvider, fileSystem, GetCreateBindingOperationFunc(serviceProvider))
+            :  this(serviceProvider, fileSystem, new SolutionBindingFilePathGenerator(),  GetCreateBindingOperationFunc(serviceProvider))
         {
         }
 
-        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator, CreateBindingOperationFunc createBindingOperationFunc)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
             this.createBindingOperationFunc = createBindingOperationFunc ?? throw new ArgumentNullException(nameof(createBindingOperationFunc));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
@@ -87,25 +93,53 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
         {
-            var solutionRuleset = GetSolutionRuleset(binding, language);
+            if (!IsSolutionBound(binding, language, out var solutionRuleset, out var additionalFilePath))
+            {
+                return false;
+            }
 
-            if (solutionRuleset == null)
+            var isAdditionalFileBound = ProjectHasAdditionalFile(project, additionalFilePath);
+
+            if (!isAdditionalFileBound)
             {
                 return false;
             }
 
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
-            return declarations.Length > 0 // Need at least one
-                   && declarations.All(declaration => IsRuleSetBound(project, declaration, solutionRuleset));
+            var isRuleSetBound = declarations.Length > 0 && declarations.All(declaration => IsRuleSetBound(project, declaration, solutionRuleset));
+
+            return isRuleSetBound;
+        }
+
+        private bool IsSolutionBound(BindingConfiguration binding, Language language, out RuleSet solutionRuleset, out string additionalFilePath)
+        {
+            solutionRuleset = null;
+            additionalFilePath = GetSolutionAdditionalFile(binding, language);
+
+            if (fileSystem.File.Exists(additionalFilePath))
+            {
+                return false;
+            }
+
+            solutionRuleset = GetSolutionRuleset(binding, language);
+
+            return solutionRuleset != null;
+        }
+
+        private string GetSolutionAdditionalFile(BindingConfiguration binding, Language language)
+        {
+            var additionalFilePath = solutionBindingFilePathGenerator.Generate(
+                binding.BindingConfigDirectory, binding.Project.ProjectKey, Path.Combine(language.Id, "SonarLint.xml"));
+
+            return additionalFilePath;
         }
 
         private RuleSet GetSolutionRuleset(BindingConfiguration binding, Language language)
         {
             // If solution is not bound/is missing a rules configuration file, no need to go further
-            var slnLevelBindingConfigFilepath =
-                ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language,
-                    binding.Mode);
+            var slnLevelBindingConfigFilepath = solutionBindingFilePathGenerator.Generate(
+                binding.BindingConfigDirectory, binding.Project.ProjectKey, language.FileSuffixAndExtension);
 
             // Projects that required project-level binding should be using RuleSets for configuration,
             // so we assume that the solution-level config file is a ruleset.
@@ -130,6 +164,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+        }
+
+        private bool ProjectHasAdditionalFile(Project project, string additionalFilePath)
+        {
+            var projectXml = fileSystem.File.ReadAllText(project.FullName);
+            var xDocument = XDocument.Load(new StringReader(projectXml));
+            var xPathEvaluate = xDocument.XPathEvaluate("//Project//ItemGroup//AdditionalFiles/@Include") as IEnumerable;
+
+            var hasAdditionalFile = xPathEvaluate
+                .Cast<XAttribute>()
+                .Any(x => string.Equals(x.Value, additionalFilePath, StringComparison.OrdinalIgnoreCase));
+
+            return hasAdditionalFile;
         }
     }
 }
