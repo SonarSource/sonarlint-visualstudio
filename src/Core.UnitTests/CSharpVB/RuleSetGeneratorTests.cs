@@ -222,33 +222,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         }
 
         [TestMethod]
-        [DataRow("cs")]
-        [DataRow("vbnet")]
-        public void Generate_SonarSecurity_Rules_AreExcluded(string language)
-        {
-            // Arrange
-            var generator = new RuleSetGenerator();
-
-            var properties = new Dictionary<string, string>
-            {
-                [$"sonaranalyzer.security.{language}.analyzerId"] = "SonarAnalyzer.Security",
-                [$"sonaranalyzer.security.{language}.ruleNamespace"] = "SonarAnalyzer.Security"
-            };
-
-            var rules = new[]
-            {
-                CreateRule($"roslyn.sonaranalyzer.security.{language}", "S2083", true),
-                CreateRule($"roslyn.sonaranalyzer.security.{language}", "S5131", false),
-            };
-
-            // Act
-            var ruleSet = generator.Generate(language, rules, properties);
-
-            // Assert
-            ruleSet.Rules.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void Generate_Rules_AreGroupAndSorted()
         {
             // Arrange

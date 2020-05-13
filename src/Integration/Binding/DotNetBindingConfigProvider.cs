@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class DotNetBindingConfigProvider : IBindingConfigProvider
     {
+        private const string TaintAnalyisRepoPrefix = "roslyn.sonaranalyzer.security.";
+
         private readonly ISonarQubeService sonarQubeService;
         private readonly INuGetBindingOperation nuGetBindingOperation;
         private readonly ILogger logger;
@@ -94,10 +96,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 $"Server language should not be null for supported language: {language.Id}");
 
             // First, fetch the active rules
-            var activeRules = await WebServiceHelper.SafeServiceCallAsync(
-                () => sonarQubeService.GetRulesAsync(true, qualityProfile.Key, cancellationToken), logger);
+            var activeRules = await FetchSupportedRulesAsync(true, qualityProfile.Key, cancellationToken);
 
-            // Give up if the quality profile is empty - not point in fetching anything else
+            // Give up if the quality profile is empty - no point in fetching anything else
             if (!activeRules.Any())
             {
                 this.logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
@@ -116,12 +117,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             // Finally, fetch the remaining data needed to build the ruleset
-            var inactiveRules = await WebServiceHelper.SafeServiceCallAsync(
-                () => sonarQubeService.GetRulesAsync(false, qualityProfile.Key, cancellationToken), logger);
+            var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
 
             var coreRuleset = CreateRuleset(qualityProfile, language, activeRules.Union(inactiveRules), sonarProperties);
 
             return new DotNetBindingConfigFile(ToVsRuleset(coreRuleset));
+        }
+
+        private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)
+        {
+            var rules = await WebServiceHelper.SafeServiceCallAsync(
+                () => sonarQubeService.GetRulesAsync(active, qpKey, cancellationToken), logger);
+            return rules.Where(IsSupportedRule).ToArray();
         }
 
         private async Task<Dictionary<string, string>> FetchPropertiesAsync(string projectKey, CancellationToken cancellationToken)
@@ -132,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return serverProperties.ToDictionary(x => x.Key, x => x.Value);
         }
 
-        private RuleSet CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
+        private CoreRuleset CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
         {
             var coreRuleset = ruleSetGenerator.Generate(language.ServerLanguage.Key, rules, sonarProperties);
 
@@ -153,6 +160,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var ruleSet = VsRuleset.LoadFromFile(tempRuleSetFilePath);
             
             return ruleSet;
+        }
+
+        internal static  /* for testing */ bool IsSupportedRule(SonarQubeRule rule)
+        {
+            // We don't want to generate configuration for taint-analysis rules or hotspots.
+            // * taint-analysis rules: these are in a separate analyzer that doesn't ship in SLVS so there is no point in generating config
+            // * hotspots: these are noisy so we don't want to run them in the IDE. There is special code in the Sonar hotspot analyzers to 
+            //              control when they run; we are responsible for not generating configuration for them.
+
+            // duncanp: TODO - exclude hotspots. The SonarQubeRule doesn't currently contain sufficient data for us to do this.
+            return !rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
