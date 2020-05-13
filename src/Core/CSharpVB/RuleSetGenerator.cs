@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
                 .GroupBy(
                     rule => GetPartialRepoKey(rule, language),
                     rule => rule)
-                .Where(IsSupportedRuleRepo)
+                .Where(HasPartialRepoKey)
                 .Select(group => CreateRulesElement(group, sonarProperties))
                 .OrderBy(group => group.AnalyzerId)
                 .ToList();
@@ -91,11 +91,8 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
             return ruleSet;
         }
 
-        private static bool IsSupportedRuleRepo(IGrouping<string, SonarQubeRule> analyzerRules)
-        {
-            var partialRepoKey = analyzerRules.Key;
-            return !string.IsNullOrEmpty(partialRepoKey) && !RoslynPluginRuleKeyExtensions.IsExcludedRuleRepository(partialRepoKey);
-        }
+        private static bool HasPartialRepoKey(IGrouping<string, SonarQubeRule> analyzerRules) =>
+            !string.IsNullOrEmpty(analyzerRules.Key);
 
         private Rules CreateRulesElement(IGrouping<string, SonarQubeRule> analyzerRules, IDictionary<string, string> sonarProperties)
         {

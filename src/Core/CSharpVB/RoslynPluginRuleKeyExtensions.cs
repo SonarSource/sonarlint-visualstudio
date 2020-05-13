@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Core.CSharpVB
@@ -60,8 +59,5 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
 
             return null; // not a Roslyn-based rule
         }
-
-        public static bool IsExcludedRuleRepository(string partialRepoKey) =>
-            partialRepoKey.IndexOf("sonaranalyzer.security", StringComparison.OrdinalIgnoreCase) >= 0;
     }
 }
