@@ -18,32 +18,33 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
-using SonarLint.VisualStudio.Core.Binding;
-
-// Note: this interface was added as part of the refactoring that was done when
-// the support for configuration of C++ files in Connected Mode was added.
-// It minimised the changes required to the existing binding code that is
-// ruleset-specific, at the cost of downcasts in a couple of places (done by
-// the TryGetRuleSet extension method).
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    /// <summary>
-    /// Extends the base binding configuration interface for C#/VB projects where
-    /// the config is expected to have a ruleset
-    /// </summary>
-    public interface IBindingConfigFileWithRuleset : IBindingConfigFile
+    internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {
-        RuleSet RuleSet { get; }
-    }
+        public string FilePath { get; }
+        public RuleSet RuleSet { get; }
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
 
-    internal static class BindingConfigurFileExtensions
-    {
-        public static bool TryGetRuleSet(this IBindingConfigFile bindingConfigFile, out RuleSet ruleSet)
+        public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
         {
-            ruleSet = (bindingConfigFile as IBindingConfigFileWithRuleset)?.RuleSet;
-            return ruleSet != null;
+            RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            FilePath = filePath;
+        }
+
+        public void Save()
+        {
+            RuleSet.WriteToFile(FilePath);
         }
     }
 }

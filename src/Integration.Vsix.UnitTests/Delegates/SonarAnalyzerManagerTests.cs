@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
-                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected);
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected, null);
 
             // Act
             var testSubject = CreateTestSubject();
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
-                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.LegacyConnected);
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.LegacyConnected, null);
 
             // Act
             var testSubject = CreateTestSubject();
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Ctor_WhenCurrentModeIsUndefined_DoesNothing()
         {
             // Arrange
-            this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(null, (SonarLintMode)42);
+            this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(null, (SonarLintMode)42, null);
 
             // Act
             var testSubject = CreateTestSubject();
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             this.activeSolutionBoundTracker.SimulateSolutionBindingChanged(new ActiveSolutionBindingEventArgs(
-                new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected)));
+                new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected, null)));
 
             // Assert
             testSubject.currentWorklow.Should().BeOfType<SonarAnalyzerConnectedWorkflow>();
@@ -181,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
-                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected);
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.Connected, null);
             var testSubject = CreateTestSubject();
             var workflow = testSubject.currentWorklow;
 
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             this.activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(
-                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.LegacyConnected);
+                new BoundSonarQubeProject { ProjectKey = "ProjectKey" }, SonarLintMode.LegacyConnected, null);
             var testSubject = CreateTestSubject();
             var workflow = testSubject.currentWorklow;
 

@@ -18,24 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
-using EnvDTE;
+using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    /// <summary>
-    /// This class was created when refactoring binding to add support for C++ projects.
-    /// It contains shared logic that doesn't currently have a proper home. It shouldn't
-    /// exist (hence the name). It should be removed in the future if/when further
-    /// refactoring is done and a more appropriate location for the responsibilities is
-    /// created.
-    /// </summary>
-    internal static class BindingRefactoringDumpingGround
+    public interface IConfigurationPersister : ILocalService
     {
-        internal /* for testing */ static bool IsProjectLevelBindingRequired(Project project)
-        {
-            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
-            return languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
-        }
+        BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode);
     }
 }

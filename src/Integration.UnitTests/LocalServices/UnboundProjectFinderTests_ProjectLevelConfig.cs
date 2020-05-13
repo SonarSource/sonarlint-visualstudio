@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -74,11 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ArgCheck()
         {
-            // Arrange
-            Action action = () => new UnboundProjectFinder(null);
-
-            // Act & Assert
+            Action action = () => new UnboundProjectFinder(null, new ProjectBinderFactory(serviceProvider, Mock.Of<ILogger>()));
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+
+            action = () => new UnboundProjectFinder(serviceProvider, projectBinderFactory: null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectBinderFactory");
         }
 
         [TestMethod]
@@ -139,7 +140,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
-            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
         [TestMethod]
@@ -163,7 +163,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             AssertExpectedProjects(allProjects.Except(new Project[] { boundProject }), projects);
-            this.ruleSetSerializer.AssertAllRegisteredRuleSetsLoadedExactlyOnce();
         }
 
         [TestMethod]
@@ -226,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Helpers
 
         private UnboundProjectFinder CreateTestSubject() =>
-            new UnboundProjectFinder(this.serviceProvider, this.fileMock.Object);
+            new UnboundProjectFinder(this.serviceProvider, new ProjectBinderFactory(serviceProvider, Mock.Of<ILogger>(), fileMock.Object));
 
         private IEnumerable<Project> SetValidFilteredProjects()
         {
@@ -280,8 +279,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionBinding(SonarLintMode bindingMode)
         {
-            this.configProvider.ModeToReturn = bindingMode;
-            this.configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
+            configProvider.ModeToReturn = bindingMode;
+            configProvider.ProjectToReturn = new BoundSonarQubeProject { ProjectKey = "projectKey" };
+            configProvider.FolderPathToReturn = "c:\\test";
         }
 
         private void SetValidCSharpSolutionRuleSet(RuleSet ruleSet, SonarLintMode bindingMode)

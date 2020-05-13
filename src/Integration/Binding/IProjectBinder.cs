@@ -18,24 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Threading;
+using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     /// <summary>
-    /// Data class that exposes simple data that can be accessed from any thread.
-    /// The class itself is not thread safe and assumes only one thread accessing it at any given time.
+    /// Performs binding operations on a given project
     /// </summary>
-    public class ConfigFileInformation
+    internal interface IProjectBinder
     {
-        public ConfigFileInformation(IBindingConfigFile bindingConfigFile)
-        {
-            BindingConfigFile = bindingConfigFile ?? throw new ArgumentNullException(nameof(bindingConfigFile));
-        }
+        /// <summary>
+        /// Returns true if the project is supported by the binder and if the project is unbound/partially-bound.
+        /// Returns false if the project is not supported by the binder, or if the project is already bound.
+        /// </summary>
+        bool IsBindingRequired(BindingConfiguration binding, Project project);
 
-        public IBindingConfigFile BindingConfigFile { get; }
-
-        public string NewFilePath { get; set; }
+        BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken);
     }
+
+    public delegate void BindProject();
 }

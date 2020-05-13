@@ -18,32 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using System.IO;
+using SonarLint.VisualStudio.Core.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Binding
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    internal class DotNetBindingConfigFile : IBindingConfigFileWithRuleset
+    public class SolutionBindingFilePathGenerator : ISolutionBindingFilePathGenerator
     {
-        public DotNetBindingConfigFile(RuleSet ruleSet)
+        public string Generate(string rootDirectoryPath, string projectKey, string fileNameSuffixAndExtension)
         {
-            this.RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
+            // Cannot use Path.ChangeExtension here because if the sonar project name contains
+            // a dot (.) then everything after this will be replaced with .ruleset
+            var fileName = PathHelper.EscapeFileName(projectKey + fileNameSuffixAndExtension)
+                .ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068
+
+            return Path.Combine(rootDirectoryPath, fileName);
         }
-
-        #region IBindingConfigFileWithRuleset methods
-
-        public RuleSet RuleSet { get; }
-
-        public void Save(string fullFilePath)
-        {
-            if (string.IsNullOrWhiteSpace(fullFilePath))
-            {
-                throw new ArgumentNullException(nameof(fullFilePath));
-            }
-
-            this.RuleSet.WriteToFile(fullFilePath);
-        }
-
-        #endregion
     }
 }

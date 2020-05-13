@@ -209,7 +209,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             var project = new BoundSonarQubeProject(new Uri(serverUri), "dummy.project.key", "dummy.projectName");
-            return BindingConfiguration.CreateBoundConfiguration(project, mode);
+            return BindingConfiguration.CreateBoundConfiguration(project, mode, "c:\\test");
         }
 
         private static void CheckIsNotSonarCloud(string uri)

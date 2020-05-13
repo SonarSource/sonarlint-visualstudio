@@ -20,23 +20,24 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal class ConfigurationProvider : IConfigurationProvider
+    internal class ConfigurationProvider : IConfigurationProvider, IConfigurationPersister
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
         private readonly ISolutionBindingSerializer solutionBindingSerializer;
-        private readonly ISolutionBindingPostSaveOperation legacyPostSaveOperation;
+        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
 
         public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ISolutionBindingSerializer solutionBindingSerializer,
-            ISolutionBindingPostSaveOperation legacyPostSaveOperation)
+            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder)
         {
             this.legacyPathProvider = legacyPathProvider ??
                                       throw new ArgumentNullException(nameof(legacyPathProvider));
@@ -47,8 +48,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.solutionBindingSerializer = solutionBindingSerializer ??
                                              throw new ArgumentNullException(nameof(solutionBindingSerializer));
 
-            this.legacyPostSaveOperation = legacyPostSaveOperation ??
-                                           throw new ArgumentNullException(nameof(legacyPostSaveOperation));
+            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ??
+                                           throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
         }
 
         public BindingConfiguration GetConfiguration()
@@ -60,17 +61,19 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return bindingConfiguration ?? BindingConfiguration.Standalone;
         }
 
-        public bool WriteConfiguration(BindingConfiguration configuration)
+        public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
         {
-            if (configuration == null)
+            if (project == null)
             {
-                throw new ArgumentNullException(nameof(configuration));
+                throw new ArgumentNullException(nameof(project));
             }
 
-            var writeSettings = GetWriteSettings(configuration);
+            var writeSettings = GetWriteSettings(bindingMode);
 
-            return writeSettings.HasValue && 
-                   solutionBindingSerializer.Write(writeSettings?.ConfigPath, configuration.Project, writeSettings?.OnSuccessfulFileWrite);
+            var success = writeSettings.HasValue && 
+                   solutionBindingSerializer.Write(writeSettings?.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
+
+            return success ? CreateBindingConfiguration(writeSettings?.ConfigPath, project, bindingMode) : null;
         }
 
         private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
@@ -81,28 +84,37 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             }
 
             var boundProject = solutionBindingSerializer.Read(bindingPath);
-
-            return boundProject == null
-                ? null
-                : BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode);
+            
+            return CreateBindingConfiguration(bindingPath, boundProject, sonarLintMode);
         }
 
-        private WriteSettings? GetWriteSettings(BindingConfiguration configuration)
+        private BindingConfiguration CreateBindingConfiguration(string bindingPath, BoundSonarQubeProject boundProject, SonarLintMode sonarLintMode)
+        {
+            if (boundProject == null)
+            {
+                return null;
+            }
+
+            var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
+
+            return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
+        }
+
+        private WriteSettings? GetWriteSettings(SonarLintMode bindingMode)
         {
             var writeSettings = new WriteSettings();
 
-            switch (configuration.Mode)
+            switch (bindingMode)
             {
                 case SonarLintMode.LegacyConnected:
                 {
                     writeSettings.ConfigPath = legacyPathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = legacyPostSaveOperation.OnSuccessfulSave;
+                    writeSettings.OnSuccessfulFileWrite = legacyConfigFolderItemAdder.AddToFolder;
                     break;
                 }
                 case SonarLintMode.Connected:
                 {
                     writeSettings.ConfigPath = connectedModePathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = s => true;
                     break;
                 }
                 case SonarLintMode.Standalone:
@@ -111,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 }
                 default:
                 {
-                    Debug.Fail("Unrecognized write mode " + configuration.Mode);
+                    Debug.Fail("Unrecognized write mode " + bindingMode);
                     return null;
                 }
             }
@@ -121,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
         private struct WriteSettings
         {
-            public Predicate<string> OnSuccessfulFileWrite { get; set; }
+            public Action<string> OnSuccessfulFileWrite { get; set; }
             public string ConfigPath { get; set; }
         }
     }

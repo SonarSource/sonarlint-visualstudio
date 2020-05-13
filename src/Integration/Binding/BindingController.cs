@@ -158,26 +158,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var solutionBindingOp = new SolutionBindingOperation(
                 host,
-                bindingArgs.Connection,
-                bindingArgs.ProjectKey,
-                bindingArgs.ProjectName,
                 modeToBind,
                 host.Logger);
 
-            var unboundProjectFinder = new UnboundProjectFinder(host);
+            var unboundProjectFinder = new UnboundProjectFinder(host, host.Logger);
 
-            var dotNetConfigProvider = new DotNetBindingConfigProvider(host.SonarQubeService, nugetBindingOp,
-                bindingArgs.Connection.ServerUri.ToString(), bindingArgs.ProjectName,
-                host.Logger);
-
+            var cSharpVBBindingConfigProvider = new CSharpVBBindingConfigProvider(host.SonarQubeService, nugetBindingOp, host.Logger);
             var cppConfigProvider = new CFamilyBindingConfigProvider(host.SonarQubeService, host.Logger);
-            var ruleConfigProvider = new CompositeBindingConfigProvider(dotNetConfigProvider, cppConfigProvider);
-
-            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, isFirstBinding);
+           
+            var ruleConfigProvider = new CompositeBindingConfigProvider(cSharpVBBindingConfigProvider, cppConfigProvider);
+            var bindingProcess = new BindingProcessImpl(host, bindingArgs, solutionBindingOp, nugetBindingOp, unboundProjectFinder, ruleConfigProvider, modeToBind, isFirstBinding);
 
             return bindingProcess;
         }
-
+        
         internal /*for testing purposes*/ void SetBindingInProgress(IProgressEvents progressEvents, BindCommandArgs bindingArgs)
         {
             this.OnBindingStarted();

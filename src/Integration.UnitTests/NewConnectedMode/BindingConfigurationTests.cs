@@ -40,17 +40,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void StaticCreator_InvalidArgs_NullProject_Throws()
         {
             // Arrange
-            Action act = () => BindingConfiguration.CreateBoundConfiguration(null, SonarLintMode.Connected);
+            Action act = () => BindingConfiguration.CreateBoundConfiguration(null, SonarLintMode.Connected, "c:\\");
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+        }
+
+        [DataTestMethod]
+        [DataRow("")]
+        [DataRow(null)]
+        public void StaticCreator_InvalidArgs_NullDirectoryPath_Throws(string directoryPath)
+        {
+            // Arrange
+            Action act = () => BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, directoryPath);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfigDirectory");
         }
 
         [TestMethod]
         public void StaticCreator_LegacyProject_ModeIsLegacy()
         {
             // Arrange & Act
-            var actual = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected);
+            var actual = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.LegacyConnected, "c:\\");
 
             // Assert
             actual.Should().NotBeNull();
@@ -62,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void StaticCreator_LegacyProject_ModeIsNotLegacy()
         {
             // Arrange & Act
-            var actual = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected);
+            var actual = BindingConfiguration.CreateBoundConfiguration(new BoundSonarQubeProject(), SonarLintMode.Connected, "c:\\");
 
             // Assert
             actual.Should().NotBeNull();
@@ -80,9 +92,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectAAA2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
             var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
 
-            var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, SonarLintMode.LegacyConnected);
-            var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, SonarLintMode.LegacyConnected);
-            var config3 = BindingConfiguration.CreateBoundConfiguration(projectAAA3, SonarLintMode.LegacyConnected);
+            var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, SonarLintMode.LegacyConnected, "c:\\");
+            var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, SonarLintMode.LegacyConnected, "c:\\");
+            var config3 = BindingConfiguration.CreateBoundConfiguration(projectAAA3, SonarLintMode.LegacyConnected, "c:\\");
 
             // Action & Assert
             // Reflexive
@@ -110,9 +122,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectAAA3 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "333333333333333333"));
 
-            var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, SonarLintMode.Connected);
-            var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, SonarLintMode.Connected);
-            var config3 = BindingConfiguration.CreateBoundConfiguration(projectAAA3, SonarLintMode.Connected);
+            var config1 = BindingConfiguration.CreateBoundConfiguration(projectAAA1, SonarLintMode.Connected, "c:\\");
+            var config2 = BindingConfiguration.CreateBoundConfiguration(projectAAA2, SonarLintMode.Connected, "c:\\");
+            var config3 = BindingConfiguration.CreateBoundConfiguration(projectAAA3, SonarLintMode.Connected, "c:\\");
 
             // Act & Assert
             // Reflexive
@@ -137,8 +149,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectBBB", "projectName", organization: null);
 
             var standalone = BindingConfiguration.Standalone;
-            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected);
-            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, SonarLintMode.LegacyConnected);
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected, "c:\\");
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, SonarLintMode.LegacyConnected, "c:\\");
 
             // Act & Assert
             CheckAreNotEqual(config1, config2);
@@ -155,8 +167,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project1 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName", organization: null);
 
             var standalone = BindingConfiguration.Standalone;
-            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected);
-            var config2 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.Connected);
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected, "c:\\");
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.Connected, "c:\\");
 
             // Act & Assert
             CheckAreNotEqual(config1, config2);
@@ -175,8 +187,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project2 = new BoundSonarQubeProject(new Uri("http://localhost"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("ORG1", "any")); // different in case only
 
-            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected);
-            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, SonarLintMode.LegacyConnected);
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected, "c:\\");
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, SonarLintMode.LegacyConnected, "c:\\");
 
             // Act & Assert
             CheckAreNotEqual(config1, config2);
@@ -192,8 +204,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project2 = new BoundSonarQubeProject(new Uri("http://localhost2"), "projectAAA", "projectName",
                 organization: new SonarQubeOrganization("org1", "any"));
 
-            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected);
-            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, SonarLintMode.LegacyConnected);
+            var config1 = BindingConfiguration.CreateBoundConfiguration(project1, SonarLintMode.LegacyConnected, "c:\\");
+            var config2 = BindingConfiguration.CreateBoundConfiguration(project2, SonarLintMode.LegacyConnected, "c:\\");
 
             // Act & Assert
             CheckAreNotEqual(config1, config2);

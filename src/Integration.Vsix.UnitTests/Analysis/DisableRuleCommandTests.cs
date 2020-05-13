@@ -402,7 +402,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
         private static IActiveSolutionBoundTracker CreateSolutionTracker(SonarLintMode bindingMode)
         {
-            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode);
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(), bindingMode, null);
             var tracker = new Mock<IActiveSolutionBoundTracker>();
             tracker.Setup(x => x.CurrentConfiguration).Returns(bindingConfiguration);
             return tracker.Object;

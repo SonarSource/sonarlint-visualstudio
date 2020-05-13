@@ -18,28 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading;
+using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    /// <summary>
-    /// Three-step binding operation
-    /// </summary>
-    internal interface IBindingOperation
+    internal interface IProjectBinderFactory
     {
-        /// <summary>
-        /// Initializes the initial state. Called on the foreground thread.
-        /// </summary>
-        void Initialize();
-
-        /// <summary>
-        /// Prepares for binding. Called on the background thread.
-        /// </summary>
-        void Prepare(CancellationToken token);
-
-        /// <summary>
-        /// Binds. Called on the foreground thread.
-        /// </summary>
-        void Commit();
+        IProjectBinder Get(Project project);
     }
 }

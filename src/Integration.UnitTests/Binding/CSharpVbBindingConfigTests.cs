@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,30 +29,29 @@ using SonarLint.VisualStudio.Integration.Binding;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class DotNetBindingConfigFileTests
+    public class CSharpVbBindingConfigTests
     {
         public TestContext TestContext { get; set; }
 
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new DotNetBindingConfigFile(null);
-
+            Action act = () => new CSharpVBBindingConfig(null, "dummy");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
+
+             act = () => new CSharpVBBindingConfig(new RuleSet("dummy"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
+            act = () => new CSharpVBBindingConfig(new RuleSet("dummy"), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
 
         [TestMethod]
-        public void Save_InvalidArgs()
+        public void GetSolutionLevelFilePaths_ReturnPathToRulesetFile()
         {
-            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"));
-
-            // 1. Null -> throw
-            Action act = () => testSubject.Save(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fullFilePath");
-
-            // 2. Empty -> throw
-            act = () => testSubject.Save("");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fullFilePath");
+            var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), "c:\\test.txt");
+            testSubject.SolutionLevelFilePaths.Count().Should().Be(1);
+            testSubject.SolutionLevelFilePaths.First().Should().Be(testSubject.FilePath);
         }
 
         [TestMethod]
@@ -64,10 +64,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Directory.CreateDirectory(testDir);
             var fullPath = Path.Combine(testDir, "savedRuleSet.txt");
 
-            var testSubject = new DotNetBindingConfigFile(new RuleSet("dummy"));
+            var testSubject = new CSharpVBBindingConfig(new RuleSet("dummy"), fullPath);
 
             // Act
-            testSubject.Save(fullPath);
+            testSubject.Save();
 
             // Assert
             File.Exists(fullPath).Should().BeTrue();

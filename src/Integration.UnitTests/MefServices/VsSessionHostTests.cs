@@ -418,6 +418,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             this.configProvider.ProjectToReturn = project;
             this.configProvider.ModeToReturn = mode;
+            this.configProvider.FolderPathToReturn = "c:\\test\\";
         }
 
         #endregion Helpers
