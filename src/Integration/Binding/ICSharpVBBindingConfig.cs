@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -18,12 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+// Note: this interface was added as part of the refactoring that was done when
+// the support for configuration of C++ files in Connected Mode was added.
+// It minimised the changes required to the existing binding code that is
+// ruleset-specific, at the cost of downcasts in a couple of places (done by
+// the TryGetRuleSet extension method).
+
+namespace SonarLint.VisualStudio.Integration.Binding
 {
-    public interface IConfigurationProvider : ILocalService
+    /// <summary>
+    /// Extends the base binding configuration interface for C#/VB projects where
+    /// the config is expected to have a ruleset
+    /// </summary>
+    public interface ICSharpVBBindingConfig : IBindingConfig
     {
-        BindingConfiguration GetConfiguration();
+        string FilePath { get; }
+        RuleSet RuleSet { get; }
     }
 }

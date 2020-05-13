@@ -34,11 +34,18 @@ namespace SonarLint.VisualStudio.Core.CFamily
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
+            : this(sonarQubeService, logger, new SolutionBindingFilePathGenerator())
+        {
+        }
+
+        internal CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
 
         #region IBindingConfigProvider implementation
@@ -48,8 +55,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             return Language.Cpp.Equals(language) || Language.C.Equals(language);
         }
 
-        public async Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey,
-            Language language, CancellationToken cancellationToken)
+        public async Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
@@ -67,7 +73,12 @@ namespace SonarLint.VisualStudio.Core.CFamily
             cancellationToken.ThrowIfCancellationRequested();
 
             var settings = CreateRulesSettingsFromQPRules(result);
-            var configFile = new CFamilyBindingConfigFile(settings);
+            var settingsFilePath = solutionBindingFilePathGenerator.Generate(
+                bindingConfiguration.BindingConfigDirectory, 
+                bindingConfiguration.Project.ProjectKey,
+                language.FileSuffixAndExtension);
+
+            var configFile = new CFamilyBindingConfig(settings, settingsFilePath);
 
             return configFile;
         }

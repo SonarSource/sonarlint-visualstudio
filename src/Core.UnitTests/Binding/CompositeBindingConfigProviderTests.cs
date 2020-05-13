@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var testSubject = new CompositeBindingConfigProvider(otherProvider, cppProvider1, cppProvider2);
 
             // Act. Multiple matching providers -> config from the first matching provider returned
-            var actualConfig = await testSubject.GetConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None);
+            var actualConfig = await testSubject.GetConfigurationAsync(qp, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None);
             actualConfig.Should().Be(cppProvider1.ConfigToReturn);
         }
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             var testSubject = new CompositeBindingConfigProvider(otherProvider);
 
             // 1. Multiple matching providers -> config from the first matching provider returned
-            Action act = () => testSubject.GetConfigurationAsync(qp, "org", Language.Cpp, CancellationToken.None).Wait();
+            Action act = () => testSubject.GetConfigurationAsync(qp, Language.Cpp, BindingConfiguration.Standalone, CancellationToken.None).Wait();
 
             act.Should().ThrowExactly<AggregateException>().And.InnerException.Should().BeOfType<ArgumentOutOfRangeException>();
         }
@@ -119,11 +119,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
         private class DummyProvider : IBindingConfigProvider
         {
             public DummyProvider(params Language[] supportedLanguages)
-                : this(new Mock<IBindingConfigFile>().Object, supportedLanguages)
+                : this(new Mock<IBindingConfig>().Object, supportedLanguages)
             {
             }
 
-            public DummyProvider(IBindingConfigFile configToReturn = null, params Language[] supportedLanguages)
+            public DummyProvider(IBindingConfig configToReturn = null, params Language[] supportedLanguages)
             {
                 SupportedLanguages = new List<Language>(supportedLanguages);
                 this.ConfigToReturn = configToReturn;
@@ -131,13 +131,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             public IList<Language> SupportedLanguages { get; }
 
-            public IBindingConfigFile ConfigToReturn { get; set; }
+            public IBindingConfig ConfigToReturn { get; set; }
 
             #region IBindingConfigProvider implementation
 
-            public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken)
+            public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
             {
-                return Task.FromResult<IBindingConfigFile>(ConfigToReturn);
+                return Task.FromResult(ConfigToReturn);
             }
 
             public bool IsLanguageSupported(Language language)

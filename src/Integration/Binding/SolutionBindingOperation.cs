@@ -20,16 +20,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
-using SonarQube.Client.Models;
+using IFileSystem = System.IO.Abstractions.IFileSystem;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -39,70 +38,52 @@ namespace SonarLint.VisualStudio.Integration.Binding
     // * co-ordinates writing project-level changes
 
     /// <summary>
-    /// Solution level binding by delegating some of the work to <see cref="ProjectBindingOperation"/>
+    /// Solution level binding by delegating some of the work to <see cref="IProjectBinder"/>
     /// </summary>
     internal class SolutionBindingOperation : ISolutionBindingOperation
     {
-        private readonly IServiceProvider serviceProvider;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
         private readonly IProjectSystemHelper projectSystem;
-        private readonly List<IBindingOperation> childBinder = new List<IBindingOperation>();
-        private readonly Dictionary<Language, ConfigFileInformation> bindingConfigInformationMap = new Dictionary<Language, ConfigFileInformation>();
-        private Dictionary<Language, SonarQubeQualityProfile> qualityProfileMap;
-        private readonly ConnectionInformation connection;
-        private readonly string projectKey;
-        private readonly string projectName;
+        private readonly List<BindProject> projectBinders = new List<BindProject>();
+        private readonly IDictionary<Language, IBindingConfig> bindingConfigInformationMap = new Dictionary<Language, IBindingConfig>();
         private readonly SonarLintMode bindingMode;
-        private readonly ILogger logger;
+        private readonly IProjectBinderFactory projectBinderFactory;
+        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
+        private IEnumerable<Project> projects;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
-            ConnectionInformation connection,
-            string projectKey,
-            string projectName,
             SonarLintMode bindingMode,
             ILogger logger)
-            : this(serviceProvider, connection, projectKey, projectName, bindingMode, logger, new FileSystem())
+            : this(serviceProvider, bindingMode,  new ProjectBinderFactory(serviceProvider, logger), new LegacyConfigFolderItemAdder(serviceProvider), new FileSystem())
         {
         }
 
-        internal SolutionBindingOperation(IServiceProvider serviceProvider, 
-            ConnectionInformation connection, 
-            string projectKey, 
-            string projectName, 
+        internal SolutionBindingOperation(IServiceProvider serviceProvider,
             SonarLintMode bindingMode,
-            ILogger logger,
+            IProjectBinderFactory projectBinderFactory,
+            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder,
             IFileSystem fileSystem)
         {
-            if (string.IsNullOrWhiteSpace(projectKey))
-            {
-                throw new ArgumentNullException(nameof(projectKey));
-            }
-
             bindingMode.ThrowIfNotConnected();
 
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            this.connection = connection ?? throw new ArgumentNullException(nameof(connection));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ?? throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
 
-            this.projectKey = projectKey;
-            this.projectName = projectName;
             this.bindingMode = bindingMode;
 
-            this.projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
+            this.projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             this.projectSystem.AssertLocalServiceIsNotNull();
 
-            this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
+            this.sourceControlledFileSystem = serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
 
         }
 
         #region State
-        internal /*for testing purposes*/ IList<IBindingOperation> Binders
-        {
-            get { return this.childBinder; }
-        }
+        internal /*for testing purposes*/ IList<BindProject> Binders => projectBinders;
 
         internal /*for testing purposes*/ string SolutionFullPath
         {
@@ -110,80 +91,45 @@ namespace SonarLint.VisualStudio.Integration.Binding
             private set;
         }
 
-        internal /*for testing purposes*/ IReadOnlyDictionary<Language, ConfigFileInformation> RuleSetsInformationMap
-        {
-            get { return this.bindingConfigInformationMap; }
-        }
+        internal /*for testing purposes*/ IReadOnlyDictionary<Language, IBindingConfig> RuleSetsInformationMap => 
+            new ReadOnlyDictionary<Language, IBindingConfig>(bindingConfigInformationMap);
+
         #endregion
 
         #region ISolutionRuleStore
 
-        public void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfigFile> languageToFileMap)
+        public void RegisterKnownConfigFiles(IDictionary<Language, IBindingConfig> languageToFileMap)
         {
             if (languageToFileMap == null)
             {
                 throw new ArgumentNullException(nameof(languageToFileMap));
             }
 
-            var ruleSetInfo = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfo.AssertLocalServiceIsNotNull();
+            bindingConfigInformationMap.Clear();
 
-            foreach (var keyValue in languageToFileMap)
+            foreach (var bindingConfig in languageToFileMap)
             {
-                Debug.Assert(!this.bindingConfigInformationMap.ContainsKey(keyValue.Key), "Attempted to register an already registered rule set. Group:" + keyValue.Key);
-
-                string solutionRuleSet = ruleSetInfo.CalculateSolutionSonarQubeRuleSetFilePath(this.projectKey, keyValue.Key, this.bindingMode);
-                this.bindingConfigInformationMap[keyValue.Key] = new ConfigFileInformation(keyValue.Value) { NewFilePath = solutionRuleSet };
+                bindingConfigInformationMap.Add(bindingConfig);
             }
         }
 
-        public ConfigFileInformation GetConfigFileInformation(Language language)
+        public IBindingConfig GetBindingConfig(Language language)
         {
-            ConfigFileInformation info;
-
-            if (!this.bindingConfigInformationMap.TryGetValue(language, out info) || info == null)
+            if (!bindingConfigInformationMap.TryGetValue(language, out var info) || info == null)
             {
                 Debug.Fail("Expected to be called by the ProjectBinder after the known rulesets were registered");
                 return null;
             }
-
-            Debug.Assert(info.NewFilePath != null, "Expected to be called after Prepare");
-
             return info;
         }
 
         #endregion
 
         #region Public API
-        public void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap)
+        public void Initialize(IEnumerable<Project> projects)
         {
-            if (projects == null)
-            {
-                throw new ArgumentNullException(nameof(projects));
-            }
-
-            if (profilesMap == null)
-            {
-                throw new ArgumentNullException(nameof(profilesMap));
-            }
-
             this.SolutionFullPath = this.projectSystem.GetCurrentActiveSolution().FullName;
-
-            this.qualityProfileMap = new Dictionary<Language, SonarQubeQualityProfile>(profilesMap);
-
-            foreach (Project project in projects)
-            {
-                if (BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(project))
-                {
-                    var binder = new ProjectBindingOperation(serviceProvider, project, this);
-                    binder.Initialize();
-                    this.childBinder.Add(binder);
-                }
-                else
-                {
-                    this.logger.WriteLine(Strings.Bind_Project_NotRequired, project.FullName);
-                }
-            }
+            this.projects = projects ?? throw new ArgumentNullException(nameof(projects));
         }
 
         public void Prepare(CancellationToken token)
@@ -197,43 +143,47 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                ConfigFileInformation info = keyValue.Value;
-                Debug.Assert(!string.IsNullOrWhiteSpace(info.NewFilePath), "Expected to be set during registration time");
-                
-                this.sourceControlledFileSystem.QueueFileWrite(info.NewFilePath, () =>
+                var info = keyValue.Value;
+
+                sourceControlledFileSystem.QueueFileWrites(info.SolutionLevelFilePaths, () =>
                 {
-                    var ruleSetDirectoryPath = Path.GetDirectoryName(info.NewFilePath);
+                    foreach (var solutionItem in info.SolutionLevelFilePaths)
+                    {
+                        var ruleSetDirectoryPath = Path.GetDirectoryName(solutionItem);
+                        fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
+                    }
 
-                    fileSystem.Directory.CreateDirectory(ruleSetDirectoryPath); // will no-op if exists
-
-                    // Create or overwrite existing rule set
-                    info.BindingConfigFile.Save(info.NewFilePath);
+                    info.Save();
 
                     return true;
                 });
 
-                Debug.Assert(this.sourceControlledFileSystem.FileExistOrQueuedToBeWritten(info.NewFilePath), "Expected a rule set to pend pended");
+                Debug.Assert(sourceControlledFileSystem.FilesExistOrQueuedToBeWritten(info.SolutionLevelFilePaths), "Expected solution items to be queued for writing");
             }
 
-            foreach (IBindingOperation binder in this.childBinder)
+            foreach (var project in projects)
             {
                 if (token.IsCancellationRequested)
                 {
                     return;
                 }
 
-                binder.Prepare(token);
+                var languageForProject = ProjectToLanguageMapper.GetLanguageForProject(project);
+                var bindingConfigFile = GetBindingConfig(languageForProject);
+
+                var projectBinder = projectBinderFactory.Get(project);
+                var bindAction = projectBinder.GetBindAction(bindingConfigFile, project, token);
+
+                projectBinders.Add(bindAction);
             }
         }
 
         public bool CommitSolutionBinding()
         {
-            this.PendBindingInformation(this.connection); // This is the last pend, so will be executed last
-
             if (this.sourceControlledFileSystem.WriteQueuedFiles())
             {
                 // No reason to modify VS state if could not write files
-                this.childBinder.ForEach(b => b.Commit());
+                this.projectBinders.ForEach(b => b());
 
                 /* only show the files in the Solution Explorer in legacy mode */
                 if (this.bindingMode == SonarLintMode.LegacyConnected)
@@ -251,76 +201,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         #region Helpers
 
-        /// <summary>
-        /// Will bend add/edit the binding information for next time usage
-        /// </summary>
-        private void PendBindingInformation(ConnectionInformation connInfo)
-        {
-            Debug.Assert(this.qualityProfileMap != null, "Initialize was expected to be called first");
-
-            var bindingSerializer = this.serviceProvider.GetService<IConfigurationProvider>();
-            bindingSerializer.AssertLocalServiceIsNotNull();
-
-            BasicAuthCredentials credentials = connection.UserName == null ? null : new BasicAuthCredentials(connInfo.UserName, connInfo.Password);
-
-            Dictionary<Language, ApplicableQualityProfile> map = new Dictionary<Language, ApplicableQualityProfile>();
-
-            foreach (var keyValue in this.qualityProfileMap)
-            {
-                map[keyValue.Key] = new ApplicableQualityProfile
-                {
-                    ProfileKey = keyValue.Value.Key,
-                    ProfileTimestamp = keyValue.Value.TimeStamp
-                };
-            }
-
-            var bound = new BoundSonarQubeProject(connInfo.ServerUri, this.projectKey, this.projectName,
-                credentials, connInfo.Organization);
-            bound.Profiles = map;
-
-            var config = new BindingConfiguration(bound, this.bindingMode);
-            bindingSerializer.WriteConfiguration(config);
-        }
-
         private void UpdateSolutionFile()
         {
-            foreach (ConfigFileInformation info in bindingConfigInformationMap.Values)
+            foreach (var info in bindingConfigInformationMap.Values)
             {
-                Debug.Assert(fileSystem.File.Exists(info.NewFilePath), "File not written " + info.NewFilePath);
-                this.AddFileToSolutionItems(info.NewFilePath);
-                this.RemoveFileFromSolutionItems(info.NewFilePath);
-            }
-        }
-
-        private void AddFileToSolutionItems(string fullFilePath)
-        {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && fileSystem.File.Exists(fullFilePath), "Expecting a rooted path to existing file");
-
-            Project solutionItemsProject = this.projectSystem.GetSolutionFolderProject(Constants.LegacySonarQubeManagedFolderName, true);
-            if (solutionItemsProject == null)
-            {
-                Debug.Fail("Could not find the solution items project");
-            }
-            else
-            {
-                if (!this.projectSystem.IsFileInProject(solutionItemsProject, fullFilePath))
+                foreach (var solutionItem in info.SolutionLevelFilePaths)
                 {
-                    this.projectSystem.AddFileToProject(solutionItemsProject, fullFilePath);
+                    Debug.Assert(fileSystem.File.Exists(solutionItem), "File not written " + solutionItem);
+                    legacyConfigFolderItemAdder.AddToFolder(solutionItem);
                 }
-            }
-        }
-
-        private void RemoveFileFromSolutionItems(string fullFilePath)
-        {
-            Debug.Assert(Path.IsPathRooted(fullFilePath) && fileSystem.File.Exists(fullFilePath), "Expecting a rooted path to existing file");
-
-            Project solutionItemsProject = this.projectSystem.GetSolutionItemsProject(false);
-            if (solutionItemsProject != null)
-            {
-                // Remove file from project and if project is empty, remove project from solution
-                var fileName = Path.GetFileName(fullFilePath);
-                this.projectSystem.RemoveFileFromProject(solutionItemsProject, fileName);
-
             }
         }
 

@@ -91,6 +91,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             {
                 SonarQubeService = sonarQubeService.Object
             };
+
+            configProvider.FolderPathToReturn = "c:\\test";
         }
 
         #region Tests

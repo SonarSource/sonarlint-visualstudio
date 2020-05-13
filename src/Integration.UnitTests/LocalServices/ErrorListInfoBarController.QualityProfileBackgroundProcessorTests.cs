@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.configProvider = new ConfigurableConfigurationProvider();
+            this.configProvider = new ConfigurableConfigurationProvider {FolderPathToReturn = "c:\\test"};
             this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
         }
 

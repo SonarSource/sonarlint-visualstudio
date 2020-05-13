@@ -27,6 +27,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using SonarLint.VisualStudio.Integration.Persistence;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -41,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISolutionBindingOperation solutionBindingOperation;
         private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly IBindingConfigProvider bindingConfigProvider;
+        private readonly SonarLintMode bindingMode;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -50,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             INuGetBindingOperation nugetBindingOperation,
             IUnboundProjectFinder unboundProjectFinder,
             IBindingConfigProvider bindingConfigProvider,
+            SonarLintMode bindingMode,
             bool isFirstBinding = false)
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
@@ -58,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.NuGetBindingOperation = nugetBindingOperation ?? throw new ArgumentNullException(nameof(nugetBindingOperation));
             this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
+            this.bindingMode = bindingMode;
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -122,8 +127,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
                 this.InternalState.QualityProfiles[language] = qualityProfileInfo;
 
+                var bindingConfiguration = QueueWriteBindingInformation();
+
                 // Create the binding configuration for the language
-                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, this.bindingArgs.Connection.Organization?.Key, language, cancellationToken);
+                var bindingConfig = await this.bindingConfigProvider.GetConfigurationAsync(qualityProfileInfo, language, bindingConfiguration, cancellationToken);
                 if (bindingConfig == null)
                 {
                     this.host.Logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
@@ -131,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return false;
                 }
 
-                this.InternalState.BindingConfigFiles[language] = bindingConfig;
+                this.InternalState.BindingConfigs[language] = bindingConfig;
 
                 currentLanguage++;
                 progress?.Report(new FixedStepsProgress(string.Empty, currentLanguage, languageCount));
@@ -141,6 +148,40 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Will add/edit the binding information for next time usage
+        /// </summary>
+        private BindingConfiguration QueueWriteBindingInformation()
+        {
+            Debug.Assert(InternalState.QualityProfiles != null, "Initialize was expected to be called first");
+
+            var configurationPersister = host.GetService<IConfigurationPersister>();
+            configurationPersister.AssertLocalServiceIsNotNull();
+
+            BasicAuthCredentials credentials = bindingArgs.Connection.UserName == null ? null : new BasicAuthCredentials(bindingArgs.Connection.UserName, bindingArgs.Connection.Password);
+
+            Dictionary<Language, ApplicableQualityProfile> map = new Dictionary<Language, ApplicableQualityProfile>();
+
+            foreach (var keyValue in InternalState.QualityProfiles)
+            {
+                map[keyValue.Key] = new ApplicableQualityProfile
+                {
+                    ProfileKey = keyValue.Value.Key,
+                    ProfileTimestamp = keyValue.Value.TimeStamp
+                };
+            }
+
+            var bound = new BoundSonarQubeProject(bindingArgs.Connection.ServerUri,
+                bindingArgs.ProjectKey,
+                bindingArgs.ProjectName,
+                credentials,
+                bindingArgs.Connection.Organization);
+
+            bound.Profiles = map;
+
+            return configurationPersister.Persist(bound, bindingMode);
         }
 
         public void PrepareToInstallPackages()
@@ -155,12 +196,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void InitializeSolutionBindingOnUIThread()
         {
-            this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigFiles);
+            this.solutionBindingOperation.RegisterKnownConfigFiles(this.InternalState.BindingConfigs);
 
             var projectsToUpdate = GetProjectsForRulesetBinding(this.InternalState.IsFirstBinding, this.InternalState.BindingProjects.ToArray(),
                 this.unboundProjectFinder, this.host.Logger);
 
-            this.solutionBindingOperation.Initialize(projectsToUpdate, this.InternalState.QualityProfiles);
+            this.solutionBindingOperation.Initialize(projectsToUpdate);
         }
 
         public void PrepareSolutionBinding(CancellationToken cancellationToken)
@@ -288,10 +329,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 get;
             } = new HashSet<Project>();
 
-            public Dictionary<Language, IBindingConfigFile> BindingConfigFiles
+            public Dictionary<Language, IBindingConfig> BindingConfigs
             {
                 get;
-            } = new Dictionary<Language, IBindingConfigFile>();
+            } = new Dictionary<Language, IBindingConfig>();
 
             public Dictionary<Language, SonarQubeQualityProfile> QualityProfiles
             {

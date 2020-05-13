@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -29,21 +30,40 @@ using SonarLint.VisualStudio.Core.CFamily;
 namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyBindingConfigFileTests
+    public class CFamilyBindingConfigTests
     {
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            Action act = () => new CFamilyBindingConfigFile(null);
+            Action act = () => new CFamilyBindingConfig(null, "c:\\test");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rulesSettings");
+
+            act = () => new CFamilyBindingConfig(new RulesSettings(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
+            act = () => new CFamilyBindingConfig(new RulesSettings(), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("filePath");
+
+            act = () => new CFamilyBindingConfig(new RulesSettings(), "c:\\test", null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
         public void Ctor_ValidArgs()
         {
             var settings = new RulesSettings();
-            var testSubject = new CFamilyBindingConfigFile(settings);
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
             testSubject.RuleSettings.Equals(settings);
+            testSubject.FilePath.Equals("c:\\test");
+        }
+
+        [TestMethod]
+        public void GetSolutionLevelFilePaths_ReturnPathToSettingsFile()
+        {
+            var settings = new RulesSettings();
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\test");
+            testSubject.SolutionLevelFilePaths.Count().Should().Be(1);
+            testSubject.SolutionLevelFilePaths.First().Should().Be(testSubject.FilePath);
         }
 
         [TestMethod]
@@ -74,10 +94,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             fileSystemMock.Setup(x => x.File.WriteAllText(It.IsAny<string>(), It.IsAny<string>()))
                 .Callback<string, string>((p, t) => { actualPath = p; actualText = t; });
 
-            var testSubject = new CFamilyBindingConfigFile(settings, fileSystemMock.Object);
+            var testSubject = new CFamilyBindingConfig(settings, "c:\\full\\path\\file.txt", fileSystemMock.Object);
 
             // Act
-            testSubject.Save("c:\\full\\path\\file.txt");
+            testSubject.Save();
 
             // Assert
             actualPath.Should().Be("c:\\full\\path\\file.txt");

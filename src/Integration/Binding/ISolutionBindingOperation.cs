@@ -21,8 +21,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using EnvDTE;
-using SonarQube.Client.Models;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -31,12 +29,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     /// <remarks>
     /// * writes the binding info files and shared rulesets to disk
-    /// * co-ordinates writing project-level changes (delegating to to <see cref="ProjectBindingOperation"/>)
+    /// * co-ordinates writing project-level changes (delegating to to <see cref="IProjectBinder"/>)
     /// For legacy connected mode, the solution-level items are added to the solution file
     /// </remarks>
     public interface ISolutionBindingOperation : ISolutionBindingConfigFileStore
     {
-        void Initialize(IEnumerable<Project> projects, IDictionary<Language, SonarQubeQualityProfile> profilesMap);
+        void Initialize(IEnumerable<Project> projects);
 
         void Prepare(CancellationToken token);
 

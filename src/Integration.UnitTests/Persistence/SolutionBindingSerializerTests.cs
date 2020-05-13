@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISourceControlledFileSystem> sourceControlledFileSystem;
         private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
         private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
-        private Mock<Predicate<string>> onSaveCallback;
+        private Mock<Action<string>> onSaveCallback;
         private BoundSonarQubeProject boundSonarQubeProject;
         private SolutionBindingSerializer testSubject;
 
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             sourceControlledFileSystem = new Mock<ISourceControlledFileSystem>();
             credentialsLoader = new Mock<ISolutionBindingCredentialsLoader>();
             solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
-            onSaveCallback = new Mock<Predicate<string>>();
+            onSaveCallback = new Mock<Action<string>>();
 
             testSubject = new SolutionBindingSerializer(sourceControlledFileSystem.Object,
                 solutionBindingFileLoader.Object,
@@ -63,8 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 mockCredentials);
 
             sourceControlledFileSystem
-                .Setup(x => x.QueueFileWrite(MockFilePath, It.IsAny<Func<bool>>()))
-                .Callback((string filePath, Func<bool> method) => method());
+                .Setup(x => x.QueueFileWrites(new List<string>{MockFilePath}, It.IsAny<Func<bool>>()))
+                .Callback((IEnumerable<string> filePath, Func<bool> method) => method());
         }
 
         [TestMethod]
@@ -225,10 +226,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Write_FileWritten_NoOnSaveCallback_NoException()
+        {
+            solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
+
+            Action act = () => testSubject.Write(MockFilePath, boundSonarQubeProject,null);
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
         public void Write_FileWritten_OnSaveCallbackIsInvoked()
         {
             solutionBindingFileLoader.Setup(x => x.Save(MockFilePath, boundSonarQubeProject)).Returns(true);
-            onSaveCallback.Setup(x => x(MockFilePath)).Returns(true);
+            onSaveCallback.Setup(x => x(MockFilePath));
 
             testSubject.Write(MockFilePath, boundSonarQubeProject, onSaveCallback.Object);
 

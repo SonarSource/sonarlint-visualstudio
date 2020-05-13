@@ -70,24 +70,26 @@ namespace SonarLint.VisualStudio.Integration
 
         #region ISourceControlledFileSystem
 
-
-        public void QueueFileWrite(string filePath, Func<bool> fileWriteOperation)
+        public void QueueFileWrites(IEnumerable<string> filePaths, Func<bool> fileWriteOperation)
         {
-            if (this.fileSystem.File.Exists(filePath))
+            foreach (var filePath in filePaths)
             {
-                this.filesEdit.Add(filePath);
-            }
-            else
-            {
-                this.filesCreate.Add(filePath);
+                if (fileSystem.File.Exists(filePath))
+                {
+                    filesEdit.Add(filePath);
+                }
+                else
+                {
+                    filesCreate.Add(filePath);
+                }
             }
 
-            this.fileWriteOperations.Enqueue(fileWriteOperation);
+            fileWriteOperations.Enqueue(fileWriteOperation);
         }
 
-        public bool FileExistOrQueuedToBeWritten(string filePath)
+        public bool FilesExistOrQueuedToBeWritten(IEnumerable<string> filePaths)
         {
-            return this.filesCreate.Contains(filePath) || this.fileSystem.File.Exists(filePath);
+            return filePaths.All(filePath => filesCreate.Contains(filePath) || fileSystem.File.Exists(filePath));
         }
 
         public bool WriteQueuedFiles()

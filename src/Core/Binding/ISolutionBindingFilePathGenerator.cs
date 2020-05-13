@@ -18,41 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
-using SonarLint.VisualStudio.Integration.Binding;
-
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    internal class ConfigurableBindingOperation : IBindingOperation
+    public interface ISolutionBindingFilePathGenerator
     {
-        #region IBindingOperation
-
-        void IBindingOperation.Initialize()
-        {
-            this.InitializeAction?.Invoke();
-        }
-
-        void IBindingOperation.Commit()
-        {
-            this.CommitAction?.Invoke();
-        }
-
-        void IBindingOperation.Prepare(CancellationToken token)
-        {
-            this.PrepareAction?.Invoke(token);
-        }
-
-        #endregion IBindingOperation
-
-        #region Test helpers
-
-        public Action InitializeAction { get; set; }
-
-        public Action<CancellationToken> PrepareAction { get; set; }
-
-        public Action CommitAction { get; set; }
-
-        #endregion Test helpers
+        /// <summary>
+        /// Generate a solution level file-path based on <paramref name="projectKey"/> and <see cref="fileNameSuffixAndExtension"/>
+        /// </summary>
+        /// <param name="rootDirectoryPath">Root directory to generate the full file path under</param>
+        /// <param name="projectKey">SonarQube project key to generate a file name path for</param>
+        /// <param name="fileNameSuffixAndExtension">Fixed file name suffix and extension (language-specific)</param>
+        string Generate(string rootDirectoryPath, string projectKey, string fileNameSuffixAndExtension);
     }
 }

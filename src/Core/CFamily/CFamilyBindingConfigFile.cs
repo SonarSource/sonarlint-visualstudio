@@ -19,37 +19,44 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO.Abstractions;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public class CFamilyBindingConfigFile : IBindingConfigFile
+    public class CFamilyBindingConfig : IBindingConfig
     {
         private readonly IFileSystem fileSystem;
 
-        public CFamilyBindingConfigFile(RulesSettings ruleSettings)
-            : this (ruleSettings, new FileSystem())
+        public CFamilyBindingConfig(RulesSettings ruleSettings, string filePath)
+            : this (ruleSettings, filePath, new FileSystem())
         {
         }
 
-        public CFamilyBindingConfigFile(RulesSettings rulesSettings, IFileSystem fileSystem)
+        public CFamilyBindingConfig(RulesSettings rulesSettings, string filePath, IFileSystem fileSystem)
         {
-            this.RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
-            this.fileSystem = fileSystem;
+            RuleSettings = rulesSettings ?? throw new ArgumentNullException(nameof(rulesSettings));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            FilePath = filePath;
         }
 
         internal /* for testing */ RulesSettings RuleSettings { get; }
+        internal /* for testing */ string FilePath { get; }
 
-        #region IBindingConfigFile implementation
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
 
-        public void Save(string fullFilePath)
+        public void Save()
         {
-            string dataAsText = JsonConvert.SerializeObject(this.RuleSettings, Formatting.Indented);
-            fileSystem.File.WriteAllText(fullFilePath, dataAsText);
+            var dataAsText = JsonConvert.SerializeObject(RuleSettings, Formatting.Indented);
+            fileSystem.File.WriteAllText(FilePath, dataAsText);
         }
-
-        #endregion IBindingConfigFile implementation
     }
 }

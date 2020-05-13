@@ -35,28 +35,26 @@ namespace SonarLint.VisualStudio.Integration.Binding
     // * make binding changes to a single project i.e. writes the ruleset files
     // and updates the project file
 
-    internal partial class ProjectBindingOperation : IBindingOperation
+    internal partial class CSharpVBBindingOperation : ICSharpVBBindingOperation
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly ISolutionBindingConfigFileStore configFileStore;
+        private readonly ICSharpVBBindingConfig cSharpVBBindingConfig;
         private readonly IFileSystem fileSystem;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
-        public ProjectBindingOperation(IServiceProvider serviceProvider,
-            Project project,
-            ISolutionBindingConfigFileStore configFileStore)
-            : this(serviceProvider, project, configFileStore, new FileSystem())
+        public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
+            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem())
         {
         }
 
-        internal ProjectBindingOperation(IServiceProvider serviceProvider, Project project, ISolutionBindingConfigFileStore configFileStore, IFileSystem fileSystem)
+        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
-            this.configFileStore = configFileStore ?? throw new ArgumentNullException(nameof(configFileStore));
+            this.cSharpVBBindingConfig = cSharpVBBindingConfig ?? throw new ArgumentNullException(nameof(cSharpVBBindingConfig));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
@@ -74,20 +72,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing purposes*/ IReadOnlyDictionary<Property, PropertyInformation> PropertyInformationMap { get { return this.propertyInformationMap; } }
         #endregion
 
-        #region IBindingOperation
         public void Initialize()
         {
-            Debug.Assert(BindingRefactoringDumpingGround.IsProjectLevelBindingRequired(this.initializedProject),
-                $"Not expecting project binding operation to be called for project '{this.initializedProject.FullName}'");
-
             this.CaptureProject();
             this.CalculateRuleSetInformation();
         }
 
         public void Prepare(CancellationToken token)
         {
-            var solutionRuleSet = this.configFileStore.GetConfigFileInformation(this.ProjectLanguage);
-
             // We want to limit the number of rulesets so for this we use the previously calculated TargetRuleSetFileName
             // and group by it. This handles the special case of all the properties having the same ruleset and also the case
             // in which the user didn't configure anything and we're getting only default value from the properties.
@@ -101,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 string targetRuleSetFileName = group.Key;
                 string currentRuleSetFilePath = group.First().CurrentRuleSetFilePath;
                 Debug.Assert(group.All(i => StringComparer.OrdinalIgnoreCase.Equals(currentRuleSetFilePath, currentRuleSetFilePath)), "Expected all the rulesets to be the same when the target rule set name is the same");
-                string newRuleSetFilePath = this.QueueWriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, solutionRuleSet, currentRuleSetFilePath);
+                string newRuleSetFilePath = this.QueueWriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, cSharpVBBindingConfig, currentRuleSetFilePath);
 
                 foreach (PropertyInformation info in group)
                 {
@@ -126,7 +118,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 this.AddFileToProject(this.initializedProject, ruleSetFullFilePath);
             }
         }
-        #endregion
 
         #region Helpers
 

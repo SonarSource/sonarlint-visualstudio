@@ -37,37 +37,34 @@ using VsRuleset = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class DotNetBindingConfigProvider : IBindingConfigProvider
+    internal class CSharpVBBindingConfigProvider : IBindingConfigProvider
     {
         private const string TaintAnalyisRepoPrefix = "roslyn.sonaranalyzer.security.";
 
         private readonly ISonarQubeService sonarQubeService;
         private readonly INuGetBindingOperation nuGetBindingOperation;
         private readonly ILogger logger;
-
-        private readonly string serverUrl;
-        private readonly string projectName;
-
         private readonly IRuleSetGenerator ruleSetGenerator;
         private readonly INuGetPackageInfoGenerator nuGetPackageInfoGenerator;
+        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
-        public DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, string serverUrl, string projectName, ILogger logger)
-            : this(sonarQubeService, nuGetBindingOperation, serverUrl, projectName, logger,
-                  new RuleSetGenerator(), new NuGetPackageInfoGenerator())
+        public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, ILogger logger)
+            : this(sonarQubeService, nuGetBindingOperation, logger,
+                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SolutionBindingFilePathGenerator())
         {
         }
 
-        internal /* for testing */ DotNetBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, string serverUrl, string projectName, ILogger logger,
-            IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator)
+        internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
+            INuGetBindingOperation nuGetBindingOperation, ILogger logger,
+            IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator,
+            ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.sonarQubeService = sonarQubeService;
             this.nuGetBindingOperation = nuGetBindingOperation;
-            this.serverUrl = serverUrl;
-            this.projectName = projectName;
             this.logger = logger;
-
             this.ruleSetGenerator = ruleSetGenerator;
             this.nuGetPackageInfoGenerator = nuGetPackageInfoGenerator;
+            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator;
         }
 
         public bool IsLanguageSupported(Language language)
@@ -75,22 +72,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return Language.CSharp.Equals(language) || Language.VBNET.Equals(language);
         }
 
-        public Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string UNUSED_organizationKey_TODO_REMOVE, Language language, CancellationToken cancellationToken)
+        public Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
             if (!IsLanguageSupported(language))
             {
                 throw new ArgumentOutOfRangeException(nameof(language));
             }
 
-            return DoGetConfigurationAsync(qualityProfile, language, cancellationToken);
+            return DoGetConfigurationAsync(qualityProfile, language, bindingConfiguration, cancellationToken);
         }
 
-        private async Task<IBindingConfigFile> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, CancellationToken cancellationToken)
+        private async Task<IBindingConfig> DoGetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken)
         {
-            // duncanp - need to change the constructor to pass the project key.
-            // To be done after the binding refactoring has been merged to avoid extensive merge conflicts.
-            const string TODO_NEED_PROJECT_KEY = null;
-
             var serverLanguage = language.ServerLanguage;
             Debug.Assert(serverLanguage != null,
                 $"Server language should not be null for supported language: {language.Id}");
@@ -101,17 +94,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Give up if the quality profile is empty - no point in fetching anything else
             if (!activeRules.Any())
             {
-                this.logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
+                logger.WriteLine(string.Format(Strings.SubTextPaddingFormat,
                     string.Format(Strings.NoSonarAnalyzerActiveRulesForQualityProfile, qualityProfile.Name, language.Name)));
                 return null;
             }
 
             // Now fetch the data required for the NuGet configuration
-            var sonarProperties = await FetchPropertiesAsync(TODO_NEED_PROJECT_KEY, cancellationToken);
+            var sonarProperties = await FetchPropertiesAsync(bindingConfiguration.Project.ProjectKey, cancellationToken);
 
             // Get the NuGet package info and process it if appropriate (only in legacy connected mode, and only C#/VB)
             var nugetInfo = nuGetPackageInfoGenerator.GetNuGetPackageInfos(activeRules, sonarProperties);
-            if (!this.nuGetBindingOperation.ProcessExport(language, nugetInfo))
+            if (!nuGetBindingOperation.ProcessExport(language, nugetInfo))
             {
                 return null;
             }
@@ -119,9 +112,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Finally, fetch the remaining data needed to build the ruleset
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
 
-            var coreRuleset = CreateRuleset(qualityProfile, language, activeRules.Union(inactiveRules), sonarProperties);
+            var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
-            return new DotNetBindingConfigFile(ToVsRuleset(coreRuleset));
+            var ruleSetFilePath = solutionBindingFilePathGenerator.Generate(
+                bindingConfiguration.BindingConfigDirectory,
+                bindingConfiguration.Project.ProjectKey,
+                language.FileSuffixAndExtension);
+
+            return new CSharpVBBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
         }
 
         private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)
@@ -139,13 +137,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return serverProperties.ToDictionary(x => x.Key, x => x.Value);
         }
 
-        private CoreRuleset CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
+        private CoreRuleset CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
         {
             var coreRuleset = ruleSetGenerator.Generate(language.ServerLanguage.Key, rules, sonarProperties);
 
             // Set the name and description
-            coreRuleset.Name = string.Format(Strings.SonarQubeRuleSetNameFormat, projectName, qualityProfile.Name);
-            var descriptionSuffix = string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, serverUrl, qualityProfile.Key);
+            coreRuleset.Name = string.Format(Strings.SonarQubeRuleSetNameFormat, bindingConfiguration.Project.ProjectName, qualityProfile.Name);
+            var descriptionSuffix = string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, bindingConfiguration.Project.ServerUri, qualityProfile.Key);
             coreRuleset.Description = $"{coreRuleset.Description} {descriptionSuffix}";
             return coreRuleset;
         }

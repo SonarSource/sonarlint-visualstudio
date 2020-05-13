@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Models;
@@ -34,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.Binding
         /// <summary>
         /// Returns a configuration file for the specified language
         /// </summary>
-        Task<IBindingConfigFile> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, string organizationKey, Language language, CancellationToken cancellationToken);
+        Task<IBindingConfig> GetConfigurationAsync(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -42,11 +43,16 @@ namespace SonarLint.VisualStudio.Core.Binding
     /// </summary>
     /// <remarks>e.g. for C# and VB.NET the configuration will be in a ruleset file.
     /// For C++ it will be in a json file in a Sonar-specific format</remarks>
-    public interface IBindingConfigFile
+    public interface IBindingConfig
     {
+        /// <summary>
+        /// Returns a list of all of the solution-level files that should exist if the solution is correctly bound. The files might not exist on disk. List cannot be null or empty.
+        /// </summary>
+        IEnumerable<string> SolutionLevelFilePaths { get; }
+
         /// <summary>
         /// Saves the file, replacing any existing file
         /// </summary>
-        void Save(string fullFilePath);
+        void Save();
     }
 }

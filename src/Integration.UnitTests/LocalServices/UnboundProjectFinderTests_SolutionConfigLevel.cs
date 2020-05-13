@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 // This file contains tests for UnboundProjectFinder that relate to
@@ -195,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 var configProviderMock = new Mock<IConfigurationProvider>();
                 configProviderMock.Setup(x => x.GetConfiguration())
                     .Returns(new BindingConfiguration(
-                        new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), mode));
+                        new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), mode, null));
 
                 var sp = new ConfigurableServiceProvider();
                 sp.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInfoProvider.Object);
@@ -203,7 +204,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, fileSystemMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, new ProjectBinderFactory(sp, Mock.Of<ILogger>(), fileSystemMock.Object));
                 return testSubject;
             }
 
