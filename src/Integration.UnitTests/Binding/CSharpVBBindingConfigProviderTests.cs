@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IsSupported()
+        public void IsLanguageSupported()
         {
             // Arrange
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.Cpp);
@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetConfig_HasActiveAndInactiveRules_ReturnsValidBindingConfig()
+        public async Task GetConfig_HasActiveInactiveAndUnsupportedRules_ReturnsValidBindingConfig()
         {
             // Arrange
             const string expectedProjectName = "my project";
@@ -193,8 +193,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new SonarQubeProperty("propertyAAA", "111"), new SonarQubeProperty("propertyBBB", "222")
             };
 
-            var activeRules = new SonarQubeRule[] { CreateRule("activeRuleKey", "repoKey1", true) };
-            var inactiveRules = new SonarQubeRule[] { CreateRule("inactiveRuleKey", "repoKey2", false) };
+            var activeRules = new SonarQubeRule[]
+                {
+                    CreateRule("activeRuleKey", "repoKey1", true),
+                    CreateRule("activeUnsupported", "roslyn.sonaranalyzer.security.foo", true)
+                };
+
+            var inactiveRules = new SonarQubeRule[]
+                {
+                    CreateRule("inactiveRuleKey", "repoKey2", false),
+                    CreateRule("inactiveUnsupported", "roslyn.sonaranalyzer.security.bar", false)
+                };
 
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.CSharp, expectedProjectName, expectedServerUrl)
             {
@@ -233,7 +242,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             capturedProperties[1].Key.Should().Be("propertyBBB");
             capturedProperties[1].Value.Should().Be("222");
 
-            // Check both active and inactive rules were passed to the ruleset generator
+            // Check both active and inactive rules were passed to the ruleset generator.
+            // The unsupported rules should have been removed.
             builder.CapturedRulesPassedToRuleSetGenerator.Should().NotBeNull();
             var capturedRules = builder.CapturedRulesPassedToRuleSetGenerator.ToList();
             capturedRules.Count.Should().Be(2);
@@ -244,6 +254,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             builder.AssertNuGetBindingOpWasCalled();
             builder.Logger.AssertOutputStrings(0); // not expecting anything in the case of success
+        }
+
+        [TestMethod]
+        [DataRow("roslyn.sonaranalyzer.security.cs", false)]
+        [DataRow("roslyn.sonaranalyzer.security.vb", false)]
+        [DataRow("ROSLYN.SONARANALYZER.SECURITY.X", false)]
+        [DataRow("roslyn.wintellect", true)]
+        [DataRow("sonaranalyzer-cs", true)]
+        [DataRow("sonaranalyzer-vbnet", true)]
+        public void IsSupportedRule(string repositoryKey, bool expected)
+        {
+            var rule = CreateRule("any", repositoryKey, true);
+
+            CSharpVBBindingConfigProvider.IsSupportedRule(rule).Should().Be(expected);
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive) =>
@@ -379,6 +403,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     Times.Once);
             }
         }
-
     }
 }
