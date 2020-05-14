@@ -136,10 +136,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, Dictionary<string, string> sonarProperties)
         {
-            var additionalFilePath = solutionBindingFilePathGenerator.Generate(
+            var additionalFilePathDirectory = solutionBindingFilePathGenerator.Generate(
                 bindingConfiguration.BindingConfigDirectory,
                 bindingConfiguration.Project.ProjectKey,
-                Path.Combine(language.Id, "SonarLint.xml"));
+                language.Id);
+
+            var additionalFilePath = Path.Combine(additionalFilePathDirectory, "SonarLint.xml");
 
             var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, language);
 

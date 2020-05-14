@@ -133,8 +133,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private string GetSolutionAdditionalFile(BindingConfiguration binding, Language language)
         {
-            var additionalFilePath = solutionBindingFilePathGenerator.Generate(
-                binding.BindingConfigDirectory, binding.Project.ProjectKey, Path.Combine(language.Id, "SonarLint.xml"));
+            var additionalFilePathDirectory = solutionBindingFilePathGenerator.Generate(
+                binding.BindingConfigDirectory, binding.Project.ProjectKey, language.Id);
+
+            var additionalFilePath = Path.Combine(additionalFilePathDirectory, "SonarLint.xml");
 
             return additionalFilePath;
         }
