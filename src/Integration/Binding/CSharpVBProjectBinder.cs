@@ -19,14 +19,11 @@
  */
 
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
-using System.Xml.Linq;
-using System.Xml.XPath;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
@@ -121,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             solutionRuleset = null;
             additionalFilePath = GetSolutionAdditionalFile(binding, language);
 
-            if (fileSystem.File.Exists(additionalFilePath))
+            if (!fileSystem.File.Exists(additionalFilePath))
             {
                 return false;
             }

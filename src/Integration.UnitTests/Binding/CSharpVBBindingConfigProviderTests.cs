@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -183,13 +182,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PropertiesResponse = anyProperties,
                 NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
-                AdditionalFilePathResponse = "expected additional file path",
+                AdditionalFilePathResponse = "expected_additional_file_directory",
                 SonarLintConfigurationResponse = expectedConfiguration
             };
             var testSubject = builder.CreateTestSubject();
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected additional file path");
+            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected_additional_file_directory\\SonarLint.xml");
             (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
         }
 
