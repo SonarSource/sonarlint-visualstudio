@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Binding;
+using CoreCSharpVB = SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -191,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            CoreCSharpVB.RuleSet expectedRuleSet = CreateCoreRuleSet
             (
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
@@ -230,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            CoreCSharpVB.RuleSet expectedRuleSet = CreateCoreRuleSet
             (
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
@@ -260,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.ruleSetFS.RegisterRuleSet(new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
             this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            CoreCSharpVB.RuleSet expectedRuleSet = CreateCoreRuleSet
             (
                 numRules: 0,
                 includes: new[]
@@ -302,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             string relativePathToExistingProjectRuleSet = PathHelper.CalculateRelativePath(existingProjectRuleSetPath, projectFullPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            CoreCSharpVB.RuleSet expectedRuleSet = CreateCoreRuleSet
             (
                 numRules: 0,
                 includes: new[]
@@ -344,7 +345,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             string newSolutionRuleSetPath = Path.Combine(solutionRoot, "RuleSets", "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            CoreCSharpVB.RuleSet expectedRuleSet = CreateCoreRuleSet
             (
                 numRules: 0,
                 includes: new[] { currentNonExistingRuleSet, newSolutionRuleSetInclude }
@@ -376,7 +377,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
 
             string expectedSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath);
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            CoreCSharpVB.RuleSet expectedRuleSet = CreateCoreRuleSet
             (
                 numRules: 0,
                 includes: new[] { expectedSolutionRuleSetInclude }
@@ -475,5 +476,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         #endregion Tests
+
+        private static CoreCSharpVB.RuleSet CreateCoreRuleSet(int numRules, IEnumerable<string> includes = null)
+        {
+            var ruleSet = new CoreCSharpVB.RuleSet
+            {
+                Name = Constants.RuleSetName,
+                ToolsVersion = "12.0",
+                Rules = new List<CoreCSharpVB.Rules>(),
+                Includes = new List<CoreCSharpVB.Include>()
+            };
+
+            var ruleGroup = new CoreCSharpVB.Rules
+            {
+                AnalyzerId = "MyAnalyzerId",
+                RuleNamespace = "MyNamespace",
+                RuleList = new List<CoreCSharpVB.Rule>()
+            };
+            ruleSet.Rules.Add(ruleGroup);
+
+            for (int i = 0; i < numRules; i++)
+            {
+                ruleGroup.RuleList.Add(new CoreCSharpVB.Rule("AWESOME" + i, "Warning"));
+            }
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    ruleSet.Includes.Add(new CoreCSharpVB.Include
+                    {
+                        Path = include,
+                        Action = "Default"
+                    });
+                }
+            }
+
+            return ruleSet;
+        }
     }
 }

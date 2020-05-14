@@ -20,17 +20,24 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using System.IO.Abstractions;
+using SonarLint.VisualStudio.Core.CSharpVB;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {
+        private readonly IFileSystem fileSystem;
+
         public string FilePath { get; }
         public RuleSet RuleSet { get; }
         public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
 
         public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
+            : this(ruleSet, filePath, new FileSystem())
+        {}
+
+        internal /* for testing */ CSharpVBBindingConfig(RuleSet ruleSet, string filePath, IFileSystem fileSystem)
         {
             RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
 
@@ -40,11 +47,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             FilePath = filePath;
+            this.fileSystem = fileSystem;
         }
 
         public void Save()
         {
-            RuleSet.WriteToFile(FilePath);
+            fileSystem.File.WriteAllText(FilePath, RuleSet.ToXml());
         }
     }
 }

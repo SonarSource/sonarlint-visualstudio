@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 bindingConfiguration.Project.ProjectKey,
                 language.FileSuffixAndExtension);
 
-            return new CSharpVBBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
+            return new CSharpVBBindingConfig(coreRuleset, ruleSetFilePath);
         }
 
         private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)
@@ -148,18 +148,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return coreRuleset;
         }
 
-        private static VsRuleset ToVsRuleset(CoreRuleset coreRuleset)
-        {
-            // duncanp - refactor so IBindingConfigFileWithRuleset the VS RuleSet is not used
-            // (looks like only the ruleset DisplayName used by consumers of IBindingConfigFileWithRuleset
-            // so we don't actually need a ruleset)
-            var tempRuleSetFilePath = Path.GetTempFileName();
-            File.WriteAllText(tempRuleSetFilePath, coreRuleset.ToXml());
-            var ruleSet = VsRuleset.LoadFromFile(tempRuleSetFilePath);
-            
-            return ruleSet;
-        }
-
         internal static  /* for testing */ bool IsSupportedRule(SonarQubeRule rule)
         {
             // We don't want to generate configuration for taint-analysis rules or hotspots.
@@ -168,7 +156,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             //              control when they run; we are responsible for not generating configuration for them.
             return IsSupportedIssueType(rule.IssueType) && !IsTaintAnalysisRule(rule);
         }
-
 
         private static bool IsTaintAnalysisRule(SonarQubeRule rule) =>
             rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);

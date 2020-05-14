@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
@@ -100,14 +101,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.GetFile(path).Should().Be(null);
         }
 
-        public void AssertRuleSetsAreEqual(string ruleSetPath, RuleSet expectedRuleSet)
+        public void AssertRuleSetsAreEqual(string ruleSetPath, Core.CSharpVB.RuleSet expectedCoreRuleSet)
         {
             this.AssertRuleSetExists(ruleSetPath);
-
             RuleSet actualRuleSet = this.savedRuleSets[ruleSetPath];
 
             actualRuleSet.Should().NotBeNull("Expected rule set to be written");
-            RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
+
+            var expectedVsRuleSet = ToVsRuleSet(expectedCoreRuleSet);
+            RuleSetAssert.AreEqual(expectedVsRuleSet, actualRuleSet);
+        }
+
+        private static RuleSet ToVsRuleSet(Core.CSharpVB.RuleSet coreRuleset)
+        {
+            var tempRuleSetFilePath = Path.GetTempFileName();
+            File.WriteAllText(tempRuleSetFilePath, coreRuleset.ToXml());
+            var ruleSet = RuleSet.LoadFromFile(tempRuleSetFilePath);
+
+            return ruleSet;
         }
 
         public void AssertRuleSetsAreSame(string ruleSetPath, RuleSet expectedRuleSet)

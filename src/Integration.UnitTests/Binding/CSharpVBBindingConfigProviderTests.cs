@@ -239,11 +239,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().NotBeNull();
             result.Should().BeOfType<CSharpVBBindingConfig>();
             var dotNetResult = (CSharpVBBindingConfig)result;
-            dotNetResult.RuleSet.Should().NotBeNull();
-            dotNetResult.RuleSet.ToolsVersion.Should().Be(new Version(validRuleSet.ToolsVersion));
+            dotNetResult.RuleSet.Should().BeSameAs(validRuleSet);
 
             var expectedName = string.Format(Strings.SonarQubeRuleSetNameFormat, expectedProjectName, validQualityProfile.Name);
-            dotNetResult.RuleSet.DisplayName.Should().Be(expectedName);
+            dotNetResult.RuleSet.Name.Should().Be(expectedName);
 
             var expectedDescription = $"{OriginalValidRuleSetDescription} {string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, expectedServerUrl, validQualityProfile.Key)}";
             dotNetResult.RuleSet.Description.Should().Be(expectedDescription);
