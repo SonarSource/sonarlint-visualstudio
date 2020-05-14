@@ -86,7 +86,9 @@ namespace SonarQube.Client.Api.V5_50
                 parameters = null;
             }
 
-            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters);
+            var issueType = SonarQubeIssueTypeConverter.Convert(response.Type);
+
+            return new SonarQubeRule(GetRuleKey(response.Key), response.RepositoryKey, isActive, severity, parameters, issueType);
         }
 
         private static string GetRuleKey(string compositeKey) =>
@@ -99,6 +101,9 @@ namespace SonarQube.Client.Api.V5_50
 
             [JsonProperty("repo")]
             public string RepositoryKey { get; set; }
+
+            [JsonProperty("type")]
+            public string Type { get; set; }
         }
 
         private class QualityProfileResponse

@@ -135,6 +135,7 @@ namespace SonarQube.Client.Tests
             result.Select(r => r.RepositoryKey).Should().Contain(new[] { "csharpsquid", "csharpsquid", "csharpsquid" });
             result.Select(r => r.IsActive).Should().Contain(new[] { true, true, true });
             result.Select(r => r.Severity).Should().ContainInOrder(new[] { SonarQubeIssueSeverity.Major, SonarQubeIssueSeverity.Critical, SonarQubeIssueSeverity.Minor });
+            result.Select(r => r.IssueType).Should().ContainInOrder(new[] { SonarQubeIssueType.Bug, SonarQubeIssueType.Vulnerability, SonarQubeIssueType.CodeSmell });
 
             result.Select(r => r.Parameters.Count).Should().Contain(new[] { 0, 2, 0 });
             result.SelectMany(r => r.Parameters.Select(p => p.Key)).Should().ContainInOrder(new[] { "format", "flagsAttributeFormat" });
@@ -205,6 +206,7 @@ namespace SonarQube.Client.Tests
             result.Select(r => r.RepositoryKey).Should().ContainInOrder(new[] { "csharpsquid", "csharpsquid", "csharpsquid" });
             result.Select(r => r.IsActive).Should().ContainInOrder(new[] { false, false, false });
             result.Select(r => r.Severity).Should().ContainInOrder(new[] { SonarQubeIssueSeverity.Unknown, SonarQubeIssueSeverity.Unknown, SonarQubeIssueSeverity.Unknown });
+            result.Select(r => r.IssueType).Should().ContainInOrder(new[] { SonarQubeIssueType.Bug, SonarQubeIssueType.Vulnerability, SonarQubeIssueType.CodeSmell });
 
             // The response contains parameter "definitions", the Parameters property contains parameter values
             result.Select(r => r.Parameters.Count).Should().ContainInOrder(new[] { 0, 0, 0 });
