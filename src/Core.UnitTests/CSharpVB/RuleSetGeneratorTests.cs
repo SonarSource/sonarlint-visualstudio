@@ -400,6 +400,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             CreateRule("csharpsquid", ruleKey, isActive, sqSeverity);
 
         private static SonarQubeRule CreateRule(string repoKey, string ruleKey, bool isActive = true, SonarQubeIssueSeverity sqSeverity = SonarQubeIssueSeverity.Info) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, sqSeverity, new Dictionary<string, string>());
+            new SonarQubeRule(ruleKey, repoKey, isActive, sqSeverity, new Dictionary<string, string>(), SonarQubeIssueType.Unknown);
     }
 }

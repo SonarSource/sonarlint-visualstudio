@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             validRules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null)
+                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.Unknown)
             };
 
             anyProperties = Array.Empty<SonarQubeProperty>();
@@ -271,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null);
+            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.Unknown);
 
         private class TestEnvironmentBuilder
         {

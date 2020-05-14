@@ -326,7 +326,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
             CreateRule(ruleKey, repoKey, ValidParams);
 
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, IDictionary<string, string> parameters = null) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, parameters);
+            new SonarQubeRule(ruleKey, repoKey, isActive: false, SonarQubeIssueSeverity.Blocker, parameters, SonarQubeIssueType.Unknown);
 
         private Language ToLanguage(string sqLanguageKey) => Language.GetLanguageFromLanguageKey(sqLanguageKey);
     }
