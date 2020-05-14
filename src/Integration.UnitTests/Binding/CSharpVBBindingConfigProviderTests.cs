@@ -287,6 +287,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             private readonly string projectName;
             private readonly string serverUrl;
 
+            private const string ExpectedProjectKey = "fixed.project.key";
 
             public TestEnvironmentBuilder(SonarQubeQualityProfile profile, Language language,
                 string projectName = "any", string serverUrl = "http://any")
@@ -337,7 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .ReturnsAsync(InactiveRulesResponse);
 
                 sonarQubeServiceMock
-                    .Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.GetAllPropertiesAsync(ExpectedProjectKey, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(PropertiesResponse);
 
                 ruleGenMock = new Mock<Core.CSharpVB.IRuleSetGenerator>();
@@ -359,12 +360,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 var bindingRootFolder = "c:\\test\\";
 
-                BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName),
+                BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
                     SonarLintMode.Connected, bindingRootFolder);
 
                 var solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
                 solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, projectName, language.FileSuffixAndExtension))
+                    .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, language.FileSuffixAndExtension))
                     .Returns(FilePathResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
