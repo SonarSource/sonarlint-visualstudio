@@ -166,9 +166,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // * taint-analysis rules: these are in a separate analyzer that doesn't ship in SLVS so there is no point in generating config
             // * hotspots: these are noisy so we don't want to run them in the IDE. There is special code in the Sonar hotspot analyzers to 
             //              control when they run; we are responsible for not generating configuration for them.
-
-            // duncanp: TODO - exclude hotspots. The SonarQubeRule doesn't currently contain sufficient data for us to do this.
-            return !rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);
+            return IsSupportedIssueType(rule.IssueType) && !IsTaintAnalysisRule(rule);
         }
+
+
+        private static bool IsTaintAnalysisRule(SonarQubeRule rule) =>
+            rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsSupportedIssueType(SonarQubeIssueType issueType) =>
+            issueType == SonarQubeIssueType.CodeSmell ||
+            issueType == SonarQubeIssueType.Bug ||
+            issueType == SonarQubeIssueType.Vulnerability;
     }
 }
