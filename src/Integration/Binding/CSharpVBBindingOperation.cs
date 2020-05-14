@@ -117,6 +117,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 this.AddFileToProject(this.initializedProject, ruleSetFullFilePath);
             }
+
+            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+            projectSystem.RemoveFileFromProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path);
+            projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
         }
 
         #region Helpers
