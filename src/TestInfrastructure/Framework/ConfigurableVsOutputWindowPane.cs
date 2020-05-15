@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -112,6 +112,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void AssertOutputStrings(int expectedOutputMessages)
         {
             this.outputStrings.Should().HaveCount(expectedOutputMessages);
+        }
+
+        public void AssertPartialOutputStrings(params string[] expectedOutputMessages)
+        {
+            string.Join(Environment.NewLine, outputStrings).Should().ContainAll(expectedOutputMessages);
         }
 
         public void AssertOutputStrings(params string[] orderedOutputMessages)
