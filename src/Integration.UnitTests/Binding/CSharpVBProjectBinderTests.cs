@@ -284,13 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private string SetupRulesetPath(BindingConfiguration bindingConfiguration)
         {
-            var mockRulesetPath = "c:\\test.ruleset";
-
-            solutionBindingFilePathGeneratorMock
-                .Setup(x => x.Generate(bindingConfiguration.BindingConfigDirectory, bindingConfiguration.Project.ProjectKey, Language.CSharp.FileSuffixAndExtension))
-                .Returns(mockRulesetPath);
-
-            return mockRulesetPath;
+            return bindingConfiguration.BuildPathUnderConfigDirectory(Language.CSharp.FileSuffixAndExtension);
         }
 
         private string SetupAdditionalFilePath(BindingConfiguration bindingConfiguration)

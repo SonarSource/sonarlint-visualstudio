@@ -162,12 +162,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PropertiesResponse = anyProperties,
                 NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
-                FilePathResponse = "expected file path",
             };
             var testSubject = builder.CreateTestSubject();
 
+            var expectedRulesetFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.FileSuffixAndExtension);
+
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).RuleSet.Path.Should().Be("expected file path");
+            (response as ICSharpVBBindingConfig).RuleSet.Path.Should().Be(expectedRulesetFilePath);
             (response as ICSharpVBBindingConfig).RuleSet.Content.Description.Should().Be(validRuleSet.Description);
             (response as ICSharpVBBindingConfig).RuleSet.Content.Rules.Should().AllBeEquivalentTo(validRuleSet.Rules);
             (response as ICSharpVBBindingConfig).RuleSet.Content.ToolsVersion.ToString().Should().Be(validRuleSet.ToolsVersion);
@@ -195,7 +196,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PropertiesResponse = anyProperties,
                 NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
-                AdditionalFilePathResponse = "expected_additional_file_directory",
                 SonarLintConfigurationResponse = expectedConfiguration
             };
             var testSubject = builder.CreateTestSubject();
@@ -362,12 +362,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 Logger = new TestLogger();
                 FilePathResponse = "test";
-                AdditionalFilePathResponse = "additional file";
-                SonarLintConfigurationResponse = new SonarLintConfiguration();
-                PropertiesResponse = new List<SonarQubeProperty>();
             }
 
-            public string AdditionalFilePathResponse { get; set; }
             public string FilePathResponse { get; set; }
             public BindingConfiguration BindingConfiguration { get; set; }
             public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
@@ -428,23 +424,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, language.FileSuffixAndExtension))
                     .Returns(FilePathResponse);
 
-                solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, string.Empty))
-                    .Returns(AdditionalFilePathResponse);
-
-                var sonarProperties = PropertiesResponse.ToDictionary(p => p.Key, y => y.Value);
-
-                sonarLintConfigGeneratorMock = new Mock<ISonarLintConfigGenerator>();
-                sonarLintConfigGeneratorMock
-                    .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, language))
-                    .Returns(SonarLintConfigurationResponse);
-
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
                     nugetGenMock.Object,
-                    solutionBindingFilePathGeneratorMock.Object,
-                    sonarLintConfigGeneratorMock.Object);
+                    solutionBindingFilePathGeneratorMock.Object);
             }
 
             public void AssertRuleSetGeneratorNotCalled()

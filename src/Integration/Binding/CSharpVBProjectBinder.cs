@@ -141,8 +141,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private RuleSet GetSolutionRuleset(BindingConfiguration binding, Language language)
         {
             // If solution is not bound/is missing a rules configuration file, no need to go further
-            var slnLevelBindingConfigFilepath = solutionBindingFilePathGenerator.Generate(
-                binding.BindingConfigDirectory, binding.Project.ProjectKey, language.FileSuffixAndExtension);
+            var slnLevelBindingConfigFilepath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
             // Projects that required project-level binding should be using RuleSets for configuration,
             // so we assume that the solution-level config file is a ruleset.

@@ -46,26 +46,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ILogger logger;
         private readonly IRuleSetGenerator ruleSetGenerator;
         private readonly INuGetPackageInfoGenerator nuGetPackageInfoGenerator;
-        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
         private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
         public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, ILogger logger)
             : this(sonarQubeService, nuGetBindingOperation, logger,
-                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SolutionBindingFilePathGenerator(), new SonarLintConfigGenerator())
+                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SonarLintConfigGenerator())
         {
         }
 
         internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
             INuGetBindingOperation nuGetBindingOperation, ILogger logger,
             IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator,
-            ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator, ISonarLintConfigGenerator sonarLintConfigGenerator)
+            ISonarLintConfigGenerator sonarLintConfigGenerator)
         {
             this.sonarQubeService = sonarQubeService;
             this.nuGetBindingOperation = nuGetBindingOperation;
             this.logger = logger;
             this.ruleSetGenerator = ruleSetGenerator;
             this.nuGetPackageInfoGenerator = nuGetPackageInfoGenerator;
-            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator;
             this.sonarLintConfigGenerator = sonarLintConfigGenerator;
         }
 
@@ -124,10 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
-            var ruleSetFilePath = solutionBindingFilePathGenerator.Generate(
-                bindingConfiguration.BindingConfigDirectory,
-                bindingConfiguration.Project.ProjectKey,
-                language.FileSuffixAndExtension);
+            var ruleSetFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
             var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
 
