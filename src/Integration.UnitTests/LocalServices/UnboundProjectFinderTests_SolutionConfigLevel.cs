@@ -68,9 +68,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var project2 = testConfig.AddFilteredProject(ProjectSystemHelper.VbCoreProjectKind);
             var project3 = testConfig.AddFilteredProject(ProjectSystemHelper.CppProjectKind);
 
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.CSharp, "c:\\slnConfig.csharp", false);
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.VBNET, "c:\\slnConfig.vb", false);
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, "c:\\slnConfig.cpp", false);
+            var csharpFilePath = testConfig.SetSolutionLevelFilePathForLanguage(Language.CSharp, false);
+            var vbFilePath = testConfig.SetSolutionLevelFilePathForLanguage(Language.VBNET, false);
+            var cppFilePath = testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, false);
 
             var testSubject = testConfig.CreateTestSubject();
 
@@ -79,9 +79,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             // Assert
             result.Should().BeEquivalentTo(project1, project2, project3);
-            testConfig.AssertExistenceOfFileWasChecked("c:\\slnConfig.csharp");
-            testConfig.AssertExistenceOfFileWasChecked("c:\\slnConfig.vb");
-            testConfig.AssertExistenceOfFileWasChecked("c:\\slnConfig.cpp");
+            testConfig.AssertExistenceOfFileWasChecked(csharpFilePath);
+            testConfig.AssertExistenceOfFileWasChecked(vbFilePath);
+            testConfig.AssertExistenceOfFileWasChecked(cppFilePath);
         }
 
         [TestMethod]
@@ -103,8 +103,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             var testConfig = new TestConfigurationBuilder(mode, "sqKey1");
             var projectCpp = testConfig.AddFilteredProject(ProjectSystemHelper.CppProjectKind);
 
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, "c:\\slnConfig.cpp", cppConfigExists);
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.C, "c:\\slnConfig.c", cConfigExists);
+            testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, cppConfigExists);
+            testConfig.SetSolutionLevelFilePathForLanguage(Language.C, cConfigExists);
 
             var testSubject = testConfig.CreateTestSubject();
 
@@ -127,8 +127,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         {
             // Arrange
             var testConfig = new TestConfigurationBuilder(SonarLintMode.Connected, "xxx_key");
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, "c:\\existingConfig.cpp", true);
-            testConfig.SetSolutionLevelFilePathForLanguage(Language.C, "c:\\existingConfig.c", true);
+            var cppFilePath = testConfig.SetSolutionLevelFilePathForLanguage(Language.Cpp, true);
+            var cFilePath = testConfig.SetSolutionLevelFilePathForLanguage(Language.C, true);
             testConfig.AddFilteredProject(ProjectSystemHelper.CppProjectKind);
 
             var testSubject = testConfig.CreateTestSubject();
@@ -138,8 +138,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             // Assert
             projects.Should().BeEmpty();
-            testConfig.AssertExistenceOfFileWasChecked("c:\\existingConfig.cpp");
-            testConfig.AssertNoAttemptToLoadRulesetFile("c:\\existingConfig.cpp");
+            testConfig.AssertExistenceOfFileWasChecked(cppFilePath);
+            testConfig.AssertNoAttemptToLoadRulesetFile(cppFilePath);
+
+            testConfig.AssertExistenceOfFileWasChecked(cFilePath);
+            testConfig.AssertNoAttemptToLoadRulesetFile(cFilePath);
         }
 
         private static void AssertEmptyResult(IEnumerable<EnvDTE.Project> projects)
@@ -158,26 +161,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         /// </summary>
         private class TestConfigurationBuilder
         {
-            private readonly SonarLintMode mode;
-            private readonly string sqProjectKey;
-
             private readonly Mock<IFileSystem> fileSystemMock = new Mock<IFileSystem>();
             private readonly List<ProjectMock> projects = new List<ProjectMock>();
-            private readonly Mock<ISolutionRuleSetsInformationProvider> ruleSetsInfoProvider = new Mock<ISolutionRuleSetsInformationProvider>();
             private readonly Mock<IRuleSetSerializer> ruleSetSerializerMock = new Mock<IRuleSetSerializer>();
+            private readonly BindingConfiguration bindingConfiguration;
 
             public TestConfigurationBuilder(SonarLintMode bindingMode, string sqProjectKey)
             {
-                mode = bindingMode;
-                this.sqProjectKey = sqProjectKey;
+                bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), bindingMode, "c:\\");
             }
 
-            public void SetSolutionLevelFilePathForLanguage(Language language, string filePathToReturn, bool fileExists)
+            public string SetSolutionLevelFilePathForLanguage(Language language, bool fileExists)
             {
-                ruleSetsInfoProvider.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath(sqProjectKey, language, mode))
-                    .Returns(filePathToReturn);
+                var filePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
-                fileSystemMock.Setup(x => x.File.Exists(filePathToReturn)).Returns(fileExists);
+                fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(fileExists);
+
+                return filePath;
             }
 
             public ProjectMock AddFilteredProject(string projectKind)
@@ -195,11 +195,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
                 var configProviderMock = new Mock<IConfigurationProvider>();
                 configProviderMock.Setup(x => x.GetConfiguration())
-                    .Returns(new BindingConfiguration(
-                        new BoundSonarQubeProject(new Uri("http://localhost:8888"), sqProjectKey, "anySQProjectName"), mode, null));
+                    .Returns(bindingConfiguration);
 
                 var sp = new ConfigurableServiceProvider();
-                sp.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInfoProvider.Object);
+                sp.RegisterService(typeof(ISolutionRuleSetsInformationProvider), Mock.Of<ISolutionRuleSetsInformationProvider>);
                 sp.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper.Object);
                 sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
                 sp.RegisterService(typeof(IRuleSetSerializer), ruleSetSerializerMock.Object);

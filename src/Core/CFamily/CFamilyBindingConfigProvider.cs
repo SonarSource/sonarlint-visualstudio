@@ -34,18 +34,11 @@ namespace SonarLint.VisualStudio.Core.CFamily
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly ILogger logger;
-        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger)
-            : this(sonarQubeService, logger, new SolutionBindingFilePathGenerator())
-        {
-        }
-
-        internal CFamilyBindingConfigProvider(ISonarQubeService sonarQubeService, ILogger logger, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
         {
             this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
 
         #region IBindingConfigProvider implementation
@@ -73,10 +66,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             cancellationToken.ThrowIfCancellationRequested();
 
             var settings = CreateRulesSettingsFromQPRules(result);
-            var settingsFilePath = solutionBindingFilePathGenerator.Generate(
-                bindingConfiguration.BindingConfigDirectory, 
-                bindingConfiguration.Project.ProjectKey,
-                language.FileSuffixAndExtension);
+            var settingsFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
             var configFile = new CFamilyBindingConfig(settings, settingsFilePath);
 
