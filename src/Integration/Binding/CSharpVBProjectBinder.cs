@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
@@ -114,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private bool IsSolutionBound(BindingConfiguration binding, Language language, out RuleSet solutionRuleset, out string additionalFilePath)
         {
             solutionRuleset = null;
-            additionalFilePath = GetSolutionAdditionalFile(binding, language);
+            additionalFilePath = CSharpVBBindingConfigProvider.GetSolutionAdditionalFilePath(language, binding);
 
             if (!fileSystem.File.Exists(additionalFilePath))
             {
@@ -126,18 +125,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return solutionRuleset != null;
         }
 
-        private string GetSolutionAdditionalFile(BindingConfiguration binding, Language language)
-        {
-            var additionalFilePathDirectory = binding.BuildPathUnderConfigDirectory();
-            var additionalFilePath = Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
-
-            return additionalFilePath;
-        }
 
         private RuleSet GetSolutionRuleset(BindingConfiguration binding, Language language)
         {
             // If solution is not bound/is missing a rules configuration file, no need to go further
-            var slnLevelBindingConfigFilepath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
+            var slnLevelBindingConfigFilepath = CSharpVBBindingConfigProvider.GetSolutionRuleSetFilePath(language, binding)
 
             // Projects that required project-level binding should be using RuleSets for configuration,
             // so we assume that the solution-level config file is a ruleset.

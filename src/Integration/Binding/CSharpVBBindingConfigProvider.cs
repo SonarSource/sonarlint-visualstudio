@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
-            var ruleSetFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
+            var ruleSetFilePath = GetSolutionRuleSetFilePath(language, bindingConfiguration);
 
             var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
 
@@ -131,8 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, Dictionary<string, string> sonarProperties)
         {
-            var additionalFilePathDirectory = bindingConfiguration.BuildPathUnderConfigDirectory("");
-            var additionalFilePath = Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
+            var additionalFilePath = GetSolutionAdditionalFilePath(language, bindingConfiguration);
             var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, language);
 
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFilePath, additionalFileContent);
@@ -194,5 +193,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             issueType == SonarQubeIssueType.CodeSmell ||
             issueType == SonarQubeIssueType.Bug ||
             issueType == SonarQubeIssueType.Vulnerability;
+
+        internal static string GetSolutionRuleSetFilePath(Language language, BindingConfiguration bindingConfiguration)
+        {
+            return bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
+        }
+
+        internal static string GetSolutionAdditionalFilePath(Language language, BindingConfiguration bindingConfiguration)
+        {
+            var additionalFilePathDirectory = bindingConfiguration.BuildPathUnderConfigDirectory();
+
+            return Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
+        }
     }
 }
