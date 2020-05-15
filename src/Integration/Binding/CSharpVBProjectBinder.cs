@@ -39,22 +39,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
-        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
         private readonly IProjectSystemHelper projectSystemHelper;
 
         public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
-            :  this(serviceProvider, fileSystem, new SolutionBindingFilePathGenerator(),  GetCreateBindingOperationFunc(serviceProvider))
+            :  this(serviceProvider, fileSystem, GetCreateBindingOperationFunc(serviceProvider))
         {
         }
 
-        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator, CreateBindingOperationFunc createBindingOperationFunc)
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
             this.createBindingOperationFunc = createBindingOperationFunc ?? throw new ArgumentNullException(nameof(createBindingOperationFunc));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
@@ -130,9 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private string GetSolutionAdditionalFile(BindingConfiguration binding, Language language)
         {
-            var additionalFilePathDirectory = solutionBindingFilePathGenerator.Generate(
-                binding.BindingConfigDirectory, binding.Project.ProjectKey, string.Empty);
-
+            var additionalFilePathDirectory = binding.BuildPathUnderConfigDirectory();
             var additionalFilePath = Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
 
             return additionalFilePath;

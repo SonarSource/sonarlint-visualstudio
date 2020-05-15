@@ -361,10 +361,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.serverUrl = serverUrl;
 
                 Logger = new TestLogger();
-                FilePathResponse = "test";
+                SonarLintConfigurationResponse = new SonarLintConfiguration();
+                PropertiesResponse = new List<SonarQubeProperty>();
             }
 
-            public string FilePathResponse { get; set; }
             public BindingConfiguration BindingConfiguration { get; set; }
             public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
@@ -419,16 +419,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
                     SonarLintMode.Connected, bindingRootFolder);
 
-                var solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
-                solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, language.FileSuffixAndExtension))
-                    .Returns(FilePathResponse);
+                var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
+                sonarLintConfigGeneratorMock
+                    .Setup(x => x.Generate(ActiveRulesResponse, sonarProperties, language))
+                    .Returns(SonarLintConfigurationResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
                     nugetGenMock.Object,
-                    solutionBindingFilePathGeneratorMock.Object);
+                    sonarLintConfigGeneratorMock.Object);
             }
 
             public void AssertRuleSetGeneratorNotCalled()
