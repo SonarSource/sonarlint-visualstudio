@@ -72,9 +72,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             // Arrange
             var qpRules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key1", "repo1", false, SonarQubeIssueSeverity.Blocker, new Dictionary<string, string>()),
-                new SonarQubeRule("key2", "repo1", true, SonarQubeIssueSeverity.Critical, new Dictionary<string, string>()),
-                new SonarQubeRule("key3", "repo1", false, SonarQubeIssueSeverity.Unknown,
+                CreateRule("key1", "repo1", false, SonarQubeIssueSeverity.Blocker),
+                CreateRule("key2", "repo1", true, SonarQubeIssueSeverity.Critical),
+                CreateRule("key3", "repo1", false, SonarQubeIssueSeverity.Unknown,
                   new Dictionary<string, string>
                   {
                       { "paramKey1", "paramValue1" },
@@ -118,8 +118,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             var testLogger = new TestLogger();
             var rules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key1", "repo1", true, SonarQubeIssueSeverity.Major, new Dictionary<string, string>()),
-                new SonarQubeRule("key2", "repo2", false,SonarQubeIssueSeverity.Info,
+                CreateRule("key1", "repo1", true, SonarQubeIssueSeverity.Major),
+                CreateRule("key2", "repo2", false,SonarQubeIssueSeverity.Info,
                     new Dictionary<string, string>
                     {
                         {  "p1", "v1" },
@@ -279,5 +279,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             testSubject.IsLanguageSupported(Language.CSharp).Should().BeFalse();
             testSubject.IsLanguageSupported(Language.VBNET).Should().BeFalse();
         }
+
+        private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive,
+            SonarQubeIssueSeverity severity, IDictionary<string, string> parameters = null) =>
+            new SonarQubeRule(ruleKey, repoKey, isActive, severity, parameters, SonarQubeIssueType.Unknown);
     }
 }

@@ -48,6 +48,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IList<NuGetPackageInfo> validNugetPackages;
         private Core.CSharpVB.RuleSet validRuleSet;
 
+        private static readonly SonarQubeRule ActiveRuleWithUnsupportedSeverity = new SonarQubeRule("activeHotspot", "any1",
+            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot);
+
+        private static readonly SonarQubeRule InactiveRuleWithUnsupportedSeverity = new SonarQubeRule("inactiveHotspot", "any2",
+            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.SecurityHotspot);
+
+        private static readonly SonarQubeRule ActiveTaintAnalysisRule = new SonarQubeRule("activeTaint", "roslyn.sonaranalyzer.security.foo",
+            true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell);
+
+        private static readonly SonarQubeRule InactiveTaintAnalysisRule = new SonarQubeRule("inactiveTaint", "roslyn.sonaranalyzer.security.bar",
+            false, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell);
+
+
         [TestInitialize]
         public void TestInitialize()
         {
@@ -55,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             validRules = new List<SonarQubeRule>
             {
-                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null)
+                new SonarQubeRule("key", "repoKey", true, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.Bug)
             };
 
             anyProperties = Array.Empty<SonarQubeProperty>();
@@ -110,12 +123,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetConfig_NoActiveRules_ReturnsNull()
+        public void GetConfig_NoSupportedActiveRules_ReturnsNull()
         {
             // Arrange
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
-                ActiveRulesResponse = emptyRules,
+                ActiveRulesResponse = new List<SonarQubeRule> { ActiveRuleWithUnsupportedSeverity },
                 InactiveRulesResponse = validRules,
                 PropertiesResponse = anyProperties
             };
@@ -229,13 +242,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var activeRules = new SonarQubeRule[]
                 {
                     CreateRule("activeRuleKey", "repoKey1", true),
-                    CreateRule("activeUnsupported", "roslyn.sonaranalyzer.security.foo", true)
+                    ActiveTaintAnalysisRule,
+                    ActiveRuleWithUnsupportedSeverity
                 };
 
             var inactiveRules = new SonarQubeRule[]
                 {
                     CreateRule("inactiveRuleKey", "repoKey2", false),
-                    CreateRule("inactiveUnsupported", "roslyn.sonaranalyzer.security.bar", false)
+                    InactiveTaintAnalysisRule,
+                    InactiveRuleWithUnsupportedSeverity
                 };
 
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.CSharp, expectedProjectName, expectedServerUrl)
@@ -295,15 +310,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow("roslyn.wintellect", true)]
         [DataRow("sonaranalyzer-cs", true)]
         [DataRow("sonaranalyzer-vbnet", true)]
-        public void IsSupportedRule(string repositoryKey, bool expected)
+        public void IsSupportedRule_TaintRules(string repositoryKey, bool expected)
         {
             var rule = CreateRule("any", repositoryKey, true);
 
             CSharpVBBindingConfigProvider.IsSupportedRule(rule).Should().Be(expected);
         }
 
+        [TestMethod]
+        [DataRow(SonarQubeIssueType.Unknown, false)]
+        [DataRow(SonarQubeIssueType.SecurityHotspot, false)]
+        [DataRow(SonarQubeIssueType.CodeSmell, true)]
+        [DataRow(SonarQubeIssueType.Bug, true)]
+        [DataRow(SonarQubeIssueType.Vulnerability, true)]
+        public void IsSupportedRule_Severity(SonarQubeIssueType issueType, bool expected)
+        {
+            var rule = new SonarQubeRule("any", "any", true, SonarQubeIssueSeverity.Blocker, null, issueType);
+
+            CSharpVBBindingConfigProvider.IsSupportedRule(rule).Should().Be(expected);
+        }
+
         private static SonarQubeRule CreateRule(string ruleKey, string repoKey, bool isActive) =>
-            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null);
+            new SonarQubeRule(ruleKey, repoKey, isActive, SonarQubeIssueSeverity.Blocker, null, SonarQubeIssueType.CodeSmell);
 
         private class TestEnvironmentBuilder
         {
@@ -318,6 +346,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             private readonly string projectName;
             private readonly string serverUrl;
 
+            private const string ExpectedProjectKey = "fixed.project.key";
 
             public TestEnvironmentBuilder(SonarQubeQualityProfile profile, Language language,
                 string projectName = "any", string serverUrl = "http://any")
@@ -365,7 +394,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .ReturnsAsync(InactiveRulesResponse);
 
                 sonarQubeServiceMock
-                    .Setup(x => x.GetAllPropertiesAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.GetAllPropertiesAsync(ExpectedProjectKey, It.IsAny<CancellationToken>()))
                     .ReturnsAsync(PropertiesResponse);
 
                 ruleGenMock = new Mock<Core.CSharpVB.IRuleSetGenerator>();
@@ -387,12 +416,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 var bindingRootFolder = "c:\\test\\";
 
-                BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), projectName, projectName),
+                BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
                     SonarLintMode.Connected, bindingRootFolder);
 
                 var solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
                 solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, projectName, language.FileSuffixAndExtension))
+                    .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, language.FileSuffixAndExtension))
                     .Returns(FilePathResponse);
 
                 solutionBindingFilePathGeneratorMock

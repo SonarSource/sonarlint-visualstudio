@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CSharpVB
         [DataRow("vbnet", "sonaranalyzer-vbnet")] // special case for SonarVBNet
         public void TryGetPrefix(string ruleKey, string expectedPrefix)
         {
-            var rule = new SonarQubeRule("any", ruleKey, false, SonarQubeIssueSeverity.Unknown, null);
+            var rule = new SonarQubeRule("any", ruleKey, false, SonarQubeIssueSeverity.Unknown, null, SonarQubeIssueType.Unknown);
 
             rule.TryGetRoslynPluginPropertyPrefix().Should().Be(expectedPrefix);
         }
