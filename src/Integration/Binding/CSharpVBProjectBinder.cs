@@ -40,7 +40,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
         private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
-        private readonly IProjectSystemHelper projectSystemHelper;
 
         public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
             :  this(serviceProvider, fileSystem, new SolutionBindingFilePathGenerator(),  GetCreateBindingOperationFunc(serviceProvider))
@@ -62,9 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             ruleSetSerializer = serviceProvider.GetService<IRuleSetSerializer>();
             ruleSetSerializer.AssertLocalServiceIsNotNull();
-
-            projectSystemHelper = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
         private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
@@ -171,7 +167,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool ProjectHasAdditionalFile(Project project, string additionalFilePath)
         {
-            return projectSystemHelper.DoesExistInItemGroup(project, "AdditionalFiles", additionalFilePath);
+            var projectXml = fileSystem.File.ReadAllText(project.FullName);
+            var xDocument = XDocument.Load(new StringReader(projectXml));
+            var xPathEvaluate = xDocument.XPathEvaluate("//Project//ItemGroup//AdditionalFiles/@Include") as IEnumerable;
+
+            var hasAdditionalFile = xPathEvaluate
+                .Cast<XAttribute>()
+                .Any(x => string.Equals(x.Value, additionalFilePath, StringComparison.OrdinalIgnoreCase));
+
+            return hasAdditionalFile;
         }
     }
 }

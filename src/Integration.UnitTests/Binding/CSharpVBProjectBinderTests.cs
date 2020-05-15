@@ -40,7 +40,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<ISolutionRuleSetsInformationProvider> solutionRuleSetsInformationProviderMock;
         private Mock<IFileSystem> fileSystemMock;
         private Mock<IRuleSetSerializer> ruleSetSerializerMock;
-        private Mock<IProjectSystemHelper> projectSystemHelperMock;
 
         private CSharpVBProjectBinder testSubject;
         private Mock<CSharpVBProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
@@ -51,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             fileSystemMock = new Mock<IFileSystem>();
             solutionRuleSetsInformationProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
             ruleSetSerializerMock = new Mock<IRuleSetSerializer>();
-            projectSystemHelperMock = new Mock<IProjectSystemHelper>();
             createBindingOperationFuncMock = new Mock<CSharpVBProjectBinder.CreateBindingOperationFunc>();
 
             serviceProviderMock = new Mock<IServiceProvider>();
@@ -63,10 +61,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProviderMock
                 .Setup(x => x.GetService(typeof(IRuleSetSerializer)))
                 .Returns(ruleSetSerializerMock.Object);
-
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IProjectSystemHelper)))
-                .Returns(projectSystemHelperMock.Object);
 
             solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
 
@@ -318,9 +312,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetCSProjectKind();
 
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(projectMock, "AdditionalFiles", additionalFileName))
-                .Returns(hasAdditionalFile);
+            var additionalFileContent = hasAdditionalFile ? $@"<AdditionalFiles Include=""{additionalFileName}"" />" : string.Empty;
+            var projectXml = $@"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+{additionalFileContent}
+  </ItemGroup>
+</Project>";
+
+            fileSystemMock
+                .Setup(x => x.File.ReadAllText(projectMock.FilePath))
+                .Returns(projectXml);
 
             return projectMock;
         }

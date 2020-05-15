@@ -19,14 +19,12 @@
  */
 
 using System;
-using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -37,21 +35,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private SolutionMock solutionMock;
         private ProjectSystemHelper testSubject;
         private ConfigurableProjectSystemFilter projectFilter;
-        private Mock<IFileSystem> fileSystem;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            fileSystem = new Mock<IFileSystem>();
-            solutionMock = new SolutionMock();
+            this.solutionMock = new SolutionMock();
+            this.serviceProvider = new ConfigurableServiceProvider();
+            this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
+            this.testSubject = new ProjectSystemHelper(this.serviceProvider);
 
-            serviceProvider = new ConfigurableServiceProvider();
-            serviceProvider.RegisterService(typeof(SVsSolution), solutionMock);
-
-            projectFilter = new ConfigurableProjectSystemFilter();
-            serviceProvider.RegisterService(typeof(IProjectSystemFilter), projectFilter);
-
-            testSubject = new ProjectSystemHelper(serviceProvider, fileSystem.Object);
+            this.projectFilter = new ConfigurableProjectSystemFilter();
+            this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.projectFilter);
         }
 
         #region Tests
@@ -59,11 +53,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ProjectSystemHelper_ArgCheck()
         {
-            Action act = () => new ProjectSystemHelper(null, fileSystem.Object);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            // Arrange
+            Action act = () => new ProjectSystemHelper(null);
 
-            act = () => new ProjectSystemHelper(serviceProvider, null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]
@@ -736,177 +730,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #endregion Helpers
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasNoItemGroups_False()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectItemGroupHasNoIncludes_False()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectItemGroupHasIncorrectInclude_False()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-   <SomeOtherGroup Include=""MyValue"" />
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasOneCorrectInclude_IncorrectValue_False()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <MyGroup Include=""some other value"" />
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasMultipleCorrectIncludes_IncorrectValues_False()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <MyGroup Include=""MyValue1"" />
-    <MyGroup Include=""MyValue2"" />
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasOneCorrectIncludeThatIsCommentedOut_False()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <!--<MyGroup Include=""MyValue"" />-->
-</ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasOneCorrectInclude_CorrectValue_True()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <MyGroup Include=""MyValue"" />
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasMultipleCorrectIncludes_HasCorrectValue_True()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <MyGroup Include=""MyValue"" />
-    <MyGroup Include=""MyValue2"" />
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void DoesExistInItemGroup_ProjectHasMultipleCorrectIncludesInDifferentItemGroups_HasCorrectValue_True()
-        {
-            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <MyGroup Include=""MyValue1"" />
-  </ItemGroup>
-  <ItemGroup>
-    <MyGroup Include=""MyValue"" />
-  </ItemGroup>
-</Project>";
-
-            var project = new ProjectMock("test.csproj");
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            var actual = testSubject.DoesExistInItemGroup(project, "MyGroup", "MyValue");
-            actual.Should().BeTrue();
-        }
     }
 }

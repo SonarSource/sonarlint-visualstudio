@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -30,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     public class ServiceGuidTestProjectIndicatorTests
     {
         private Mock<ILogger> logger;
-        private Mock<IProjectSystemHelper> projectSystemHelperMock;
+        private Mock<IFileSystem> fileSystem;
         private ProjectMock project;
         private ServiceGuidTestProjectIndicator testSubject;
 
@@ -38,21 +39,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void TestInitialize()
         {
             logger = new Mock<ILogger>();
-            projectSystemHelperMock = new Mock<IProjectSystemHelper>();
+            fileSystem = new Mock<IFileSystem>();
             project = new ProjectMock("test.csproj");
 
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(IProjectSystemHelper)))
-                .Returns(projectSystemHelperMock.Object);
-
-            testSubject = new ServiceGuidTestProjectIndicator(serviceProviderMock.Object, logger.Object);
+            testSubject = new ServiceGuidTestProjectIndicator(logger.Object, fileSystem.Object);
         }
 
         [TestMethod]
         public void Ctor_NullLogger_ArgumentNullException()
         {
-            Action act = () => new ServiceGuidTestProjectIndicator(Mock.Of<IServiceProvider>(), null);
+            Action act = () => new ServiceGuidTestProjectIndicator(null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -60,39 +56,160 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new ServiceGuidTestProjectIndicator(null, logger.Object);
+            Action act = () => new ServiceGuidTestProjectIndicator(logger.Object, null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
-        public void IsTestProject_HasCorrectServiceInclude_True()
+        public void IsTestProject_ProjectHasNoItemGroups_Null()
         {
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(project, "Service", ServiceGuidTestProjectIndicator.TestServiceGuid))
-                .Returns(true);
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+</Project>";
 
-            var actual = testSubject.IsTestProject(project);
-            actual.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void IsTestProject_NoCorrectServiceInclude_Null()
-        {
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(project, "Service", ServiceGuidTestProjectIndicator.TestServiceGuid))
-                .Returns(false);
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
 
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeNull();
         }
 
         [TestMethod]
+        public void IsTestProject_ProjectHasNoServiceIncludes_Null()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+  </ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasOneServiceInclude_NotTestServiceInclude_Null()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include=""{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}"" />
+  </ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasOneServiceInclude_TestServiceInclude_True()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include=""{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}"" />
+  </ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasOneServiceIncludeThatIsCommentedOut_Null()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--<Service Include=""{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}"" />-->
+</ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasMultipleServiceIncludes_NotTestServiceInclude_Null()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include=""{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}"" />
+    <Service Include=""{fd512ce6-bcff-444b-bbc8-1c9eaf5e2c1b}"" />
+  </ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasMultipleServiceIncludes_TestServiceInclude_True()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include=""{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}"" />
+    <Service Include=""{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}"" />
+  </ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsTestProject_ProjectHasMultipleServiceIncludesInDifferentItemGroups_TestServiceInclude_True()
+        {
+            var projectXml = @"<Project Sdk=""Microsoft.NET.Sdk"">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Service Include=""{B4F97281-0DBD-4835-9ED8-7DFB966E87FF}"" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include=""{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}"" />
+  </ItemGroup>
+</Project>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
+
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void IsTestProject_ExceptionOccurs_Null()
         {
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(project, "Service", ServiceGuidTestProjectIndicator.TestServiceGuid))
-                .Throws<ArgumentException>();
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws<ArgumentException>();
 
             var actual = testSubject.IsTestProject(project);
             actual.Should().BeNull();
@@ -101,39 +218,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestMethod]
         public void IsTestProject_ExceptionOccurs_ErrorIsWrittenToLog()
         {
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(project, "Service", ServiceGuidTestProjectIndicator.TestServiceGuid))
-                .Throws<ArgumentException>();
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws<ArgumentException>();
 
             testSubject.IsTestProject(project);
 
-            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Once);
+            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
+                Times.Once);
         }
 
         [TestMethod]
         public void IsTestProject_CriticalExceptionOccurs_NotSuppressedOrLogged()
         {
             var critialException = new StackOverflowException("BANG!");
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(project, "Service", ServiceGuidTestProjectIndicator.TestServiceGuid))
-                .Throws(critialException);
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws(critialException);
 
             Action act = () => testSubject.IsTestProject(project);
 
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("BANG!");
-            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
+                Times.Never);
         }
 
         [TestMethod]
         public void IsTestProject_NoException_NoErrorIsWrittenToLog()
         {
-            projectSystemHelperMock
-                .Setup(x => x.DoesExistInItemGroup(project, "Service", ServiceGuidTestProjectIndicator.TestServiceGuid))
-                .Returns(false);
+            var projectXml = @"<?xml version=""1.0"" ?><metadata></metadata>";
+
+            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
 
             testSubject.IsTestProject(project);
 
-            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()), Times.Never);
+            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
+                Times.Never);
         }
     }
 }

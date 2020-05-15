@@ -303,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration
                     new BuildPropertyTestProjectIndicator(this),
                     new ProjectKindTestProjectIndicator(this),
                     new ProjectCapabilityTestProjectIndicator(this),
-                    new ServiceGuidTestProjectIndicator(this, Logger),
+                    new ServiceGuidTestProjectIndicator(Logger),
                     projectNameTestProjectIndicator.Value as ITestProjectIndicator,
                 };
 

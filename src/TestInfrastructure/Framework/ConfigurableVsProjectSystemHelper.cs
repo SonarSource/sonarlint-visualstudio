@@ -191,11 +191,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.isLegacyProjectSystem;
         }
 
-        public bool DoesExistInItemGroup(Project project, string itemGroupName, string itemGroupValue)
-        {
-            return false;
-        }
-
         #endregion IVsProjectSystemHelper
 
         #region Test helpers

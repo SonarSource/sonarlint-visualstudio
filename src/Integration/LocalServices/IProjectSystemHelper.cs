@@ -141,7 +141,5 @@ namespace SonarLint.VisualStudio.Integration
         /// that handles MSBuild SDK-style projects; the legacy project system is the closed-source one that
         /// preceeded it that only handles old-style MSBuild projects.</returns>
         bool IsLegacyProjectSystem(Project dteProject);
-
-        bool DoesExistInItemGroup(Project project, string itemGroupName, string itemGroupValue);
     }
 }
