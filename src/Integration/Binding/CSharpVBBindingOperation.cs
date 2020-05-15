@@ -131,6 +131,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
                 projectSystem.AssertLocalServiceIsNotNull();
+                // It's possible that the additional file is set property, but the ruleset is out of date, which will trigger the binding. So we need to remove the file first, otherwise we get an error that the file already exists.
+                // It's possible that the additional file exists but has a wrong type, e.g. Compile/Content, and not AdditionalFiles. In which case removing and re-adding it solves the problem.
                 projectSystem.RemoveFileFromProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path);
                 projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
             }
