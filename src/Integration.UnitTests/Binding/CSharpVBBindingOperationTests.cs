@@ -347,11 +347,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.projectMock.Files.ContainsKey(projectFile).Should().BeTrue("Should add the file to the project for the legacy project system");
         }
 
+        [TestMethod]
+        public void ProjectBindingOperation_Commit_AddsAdditionalFile()
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            projectMock.SetCSProjectKind();
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            // Act
+            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
+            {
+                testSubject.Commit();
+            }
+
+            // Assert
+            projectMock.Files.ContainsKey(cSharpVBBindingConfig.AdditionalFile.Path).Should().BeTrue("Should add AdditionalFile to the project");
+        }
+
         #endregion Tests
 
-        #region Helpers
+            #region Helpers
 
-        private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue)
+            private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue)
         {
             ConfigurationMock config = project.ConfigurationManager.Configurations.SingleOrDefault(c => c.ConfigurationName == configurationName);
             if (config == null)
