@@ -298,7 +298,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var mockAdditionalFileDirectory = "c:\\test";
 
             solutionBindingFilePathGeneratorMock
-                .Setup(x => x.Generate(bindingConfiguration.BindingConfigDirectory, bindingConfiguration.Project.ProjectKey, ""))
+                .Setup(x => x.Generate(bindingConfiguration.BindingConfigDirectory, bindingConfiguration.Project.ProjectKey, string.Empty))
                 .Returns(mockAdditionalFileDirectory);
 
             return mockAdditionalFileDirectory + "\\CSharp\\SonarLint.xml";

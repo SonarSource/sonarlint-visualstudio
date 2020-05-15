@@ -425,7 +425,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Returns(FilePathResponse);
 
                 solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, projectName, ""))
+                    .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, string.Empty))
                     .Returns(AdditionalFilePathResponse);
 
                 var sonarProperties = PropertiesResponse.ToDictionary(p => p.Key, y => y.Value);
