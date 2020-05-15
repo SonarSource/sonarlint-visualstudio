@@ -156,9 +156,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Act + Assert
             testSubject.GetCurrentConflicts().Should().BeEmpty("Not expecting any conflicts since the solution baseline is missing");
             this.outputWindowPane.AssertOutputStrings(1);
-            this.outputWindowPane.AssertMessageContainsAllWordsCaseSensitive(0,
-                words: new[] { ConfigurableSolutionRuleSetsInformationProvider.DummyLegacyModeFolderName },
-                splitter: new[] { Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar });
+
+            var expectedBaselineLocation = configProvider.GetConfiguration()
+                .BuildEscapedPathUnderProjectDirectory(ProjectToLanguageMapper
+                    .GetLanguageForProject(projectHelper.FilteredProjects.First()).FileSuffixAndExtension);
+
+            outputWindowPane.AssertOutputStrings(1);
+            this.outputWindowPane.AssertPartialOutputStrings(expectedBaselineLocation);
         }
 
         [TestMethod]
@@ -313,14 +317,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void SetValidSolutionRuleSetPerProjectKind()
         {
-            ISolutionRuleSetsInformationProvider rsInfoProvider = this.ruleSetInfoProvider;
             foreach (var project in this.projectHelper.FilteredProjects)
             {
-                string solutionRuleSet = rsInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                    this.configProvider.ProjectToReturn.ProjectKey,
-                    ProjectToLanguageMapper.GetLanguageForProject(project),
-                    SonarLintMode.LegacyConnected);
-                this.fileSystem.AddFile(solutionRuleSet, new MockFileData(""));
+                var bindingConfiguration = configProvider.GetConfiguration();
+
+                var solutionRuleSet =
+                    bindingConfiguration.BuildEscapedPathUnderProjectDirectory(ProjectToLanguageMapper
+                        .GetLanguageForProject(project).FileSuffixAndExtension);
+
+                fileSystem.AddFile(solutionRuleSet, new MockFileData(""));
             }
         }
 

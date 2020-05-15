@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), this.sccFileSystem);
             this.serviceProvider.RegisterService(typeof(IRuleSetSerializer), this.ruleSetFS);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider),
-                new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem(), new SolutionBindingFilePathGenerator()));
+                new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
             cSharpVBBindingConfig = new CSharpVBBindingConfig(new RuleSet("SonarQube"), @"c:\Solution\sln.ruleset");

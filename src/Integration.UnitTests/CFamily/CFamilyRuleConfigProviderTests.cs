@@ -219,17 +219,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 // Data: set up the binding configuration
                 var projectToReturn = new BoundSonarQubeProject(new System.Uri("http://localhost:9000"),
                     "sqProjectKey", "sqProjectName");
-                activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode, null);
+                activeSolutionBoundTracker.CurrentConfiguration = new BindingConfiguration(projectToReturn, bindingMode, "c:\\test\\");
 
                 // Data: user-configured settings
                 standaloneSettingsProviderMock.Setup(x => x.UserSettings).Returns(StandaloneModeSettings);
 
                 // Data: connected mode settings
-                const string connectedSettingsFilesPath = "zzz\\foo.bar";
+                var connectedSettingsFilesPath = activeSolutionBoundTracker.CurrentConfiguration.BuildEscapedPathUnderProjectDirectory(Language.Cpp.FileSuffixAndExtension);
                 var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings?.RulesSettings, Formatting.Indented);
-
-                rulesetInfoProviderMock.Setup(x => x.CalculateSolutionSonarQubeRuleSetFilePath("sqProjectKey", It.IsAny<Language>(), bindingMode))
-                    .Returns(connectedSettingsFilesPath);
 
                 fileSystemMock.Setup(x => x.File.Exists(connectedSettingsFilesPath)).Returns(ConnectedSettingsFileExists);
                 fileSystemMock.Setup(x => x.File.ReadAllText(connectedSettingsFilesPath))
@@ -247,8 +244,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             public void AssertConnectedSettingsNotAccessed()
             {
-                rulesetInfoProviderMock.Verify(x => x.CalculateSolutionSonarQubeRuleSetFilePath(It.IsAny<string>(),
-                    It.IsAny<Language>(), It.IsAny<SonarLintMode>()), Times.Never);
                 fileSystemMock.Verify(x => x.File.Exists(It.IsAny<string>()), Times.Never);
                 fileSystemMock.Verify(x => x.File.ReadAllText(It.IsAny<string>()), Times.Never);
             }

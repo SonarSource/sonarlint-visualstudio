@@ -104,29 +104,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetProjectKind(new Guid(ProjectSystemHelper.CppProjectKind));
 
-            solutionRuleSetsInformationProviderMock
-                .Setup(x =>
-                    x.CalculateSolutionSonarQubeRuleSetFilePath("key", Language.Cpp, SonarLintMode.Connected))
-                .Returns("c:\\config-file-cpp.txt");
+            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
+                SonarLintMode.Connected, "c:\\");
 
-            solutionRuleSetsInformationProviderMock
-                .Setup(x =>
-                    x.CalculateSolutionSonarQubeRuleSetFilePath("key", Language.C, SonarLintMode.Connected))
-                .Returns("c:\\config-file-c.txt");
+            var cppFilePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.Cpp.FileSuffixAndExtension);
+            var cFilePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.C.FileSuffixAndExtension);
 
             fileSystemMock
-                .Setup(x => x.File.Exists("c:\\config-file-cpp.txt"))
+                .Setup(x => x.File.Exists(cppFilePath))
                 .Returns(isFirstLanguageBound);
 
             if (isFirstLanguageBound)
             {
                 fileSystemMock
-                    .Setup(x => x.File.Exists("c:\\config-file-c.txt"))
+                    .Setup(x => x.File.Exists(cFilePath))
                     .Returns(isSecondLanguageBound);
             }
-
-            var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
-                SonarLintMode.Connected, "c:\\");
 
             var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
             result.Should().Be(expectedResult);

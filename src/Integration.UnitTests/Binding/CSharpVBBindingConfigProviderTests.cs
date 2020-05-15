@@ -161,12 +161,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PropertiesResponse = anyProperties,
                 NuGetBindingOperationResponse = true,
                 RuleSetGeneratorResponse = validRuleSet,
-                FilePathResponse = "expected file path"
             };
             var testSubject = builder.CreateTestSubject();
 
+            var expectedRulesetFilePath = builder.BindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.VBNET.FileSuffixAndExtension);
+
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).FilePath.Should().Be("expected file path");
+            (response as ICSharpVBBindingConfig).FilePath.Should().Be(expectedRulesetFilePath);
         }
 
         [TestMethod]
@@ -326,10 +327,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.serverUrl = serverUrl;
 
                 Logger = new TestLogger();
-                FilePathResponse = "test";
             }
 
-            public string FilePathResponse { get; set; }
             public BindingConfiguration BindingConfiguration { get; set; }
 
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
@@ -391,16 +390,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
                     SonarLintMode.Connected, bindingRootFolder);
 
-                var solutionBindingFilePathGeneratorMock = new Mock<ISolutionBindingFilePathGenerator>();
-                solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, ExpectedProjectKey, language.FileSuffixAndExtension))
-                    .Returns(FilePathResponse);
-
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
-                    nugetGenMock.Object,
-                    solutionBindingFilePathGeneratorMock.Object);
+                    nugetGenMock.Object);
             }
 
             public void AssertRuleSetGeneratorNotCalled()

@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             // in other cases assuming that the rule set are indeed on disk is not possible, and in fact re-syncing
             // would be required when we have missing rule-sets, otherwise finding conflicts will not be possible.
 
-            RuleSetInformation[] aggregatedRuleSets = CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(bindingConfig.Project);
+            RuleSetInformation[] aggregatedRuleSets = CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(bindingConfig);
 
             if (aggregatedRuleSets.Length > 0)
             {
@@ -124,8 +124,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         }
 
         // ISSUE : this method is doing too many things
-        private RuleSetInformation[] CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(
-            BoundSonarQubeProject bindingInfo)
+        private RuleSetInformation[] CheckSlnLevelConfigExistsAndReturnAllProjectRuleSetsForAllConfigurations(BindingConfiguration bindingConfiguration)
         {
             var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
@@ -139,10 +138,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 // Solution-level checks (done here because the expected solution-level config
                 // depends on the languages supported by the project that exist)
-                string baselineRuleSet = ruleSetInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(
-                    bindingInfo.ProjectKey,
-                    ProjectToLanguageMapper.GetLanguageForProject(project),
-                    SonarLintMode.LegacyConnected);
+                string baselineRuleSet = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(ProjectToLanguageMapper.GetLanguageForProject(project).FileSuffixAndExtension);
 
                 if (!fileSystem.File.Exists(baselineRuleSet))
                 {
