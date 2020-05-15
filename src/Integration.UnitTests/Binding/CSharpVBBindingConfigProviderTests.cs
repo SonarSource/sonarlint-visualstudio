@@ -200,8 +200,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
+            var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "\\VB\\SonarLint.xml";
+
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected_additional_file_directory\\VB\\SonarLint.xml");
+            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
             (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
         }
 
@@ -339,7 +341,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class TestEnvironmentBuilder
         {
-            private Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock;
+            private Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock = new Mock<ISonarLintConfigGenerator>();
             private Mock<ISonarQubeService> sonarQubeServiceMock;
             private Mock<Core.CSharpVB.IRuleSetGenerator> ruleGenMock;
             private Mock<Core.CSharpVB.INuGetPackageInfoGenerator> nugetGenMock;
@@ -365,7 +367,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 PropertiesResponse = new List<SonarQubeProperty>();
             }
 
-            public BindingConfiguration BindingConfiguration { get; set; }
+            public BindingConfiguration BindingConfiguration { get; private set; }
             public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
             public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
@@ -414,14 +416,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 nugetBindingMock.Setup(x => x.ProcessExport(language, NuGetGeneratorResponse))
                     .Returns(NuGetBindingOperationResponse);
 
-                var bindingRootFolder = "c:\\test\\";
-
                 BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
-                    SonarLintMode.Connected, bindingRootFolder);
+                    SonarLintMode.Connected, "c:\\test\\");
 
                 var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
                 sonarLintConfigGeneratorMock
-                    .Setup(x => x.Generate(ActiveRulesResponse, sonarProperties, language))
+                    .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, language))
                     .Returns(SonarLintConfigurationResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
