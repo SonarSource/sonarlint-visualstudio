@@ -88,10 +88,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             File.Exists(additionalFileFullPath).Should().BeTrue();
 
             var savedAdditionalFile = File.ReadAllText(additionalFileFullPath);
-            savedAdditionalFile.Should().Be(@"{
-  ""Settings"": [],
-  ""Rules"": []
-}");
+            savedAdditionalFile.Should().Be(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<AnalysisInput xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
+  <Settings />
+  <Rules />
+</AnalysisInput>");
         }
     }
 }
