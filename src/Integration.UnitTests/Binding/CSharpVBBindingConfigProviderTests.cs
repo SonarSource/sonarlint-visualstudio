@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected_additional_file_directory\\SonarLint.xml");
+            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected_additional_file_directory\\VB\\SonarLint.xml");
             (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
         }
 
@@ -400,7 +400,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     .Returns(FilePathResponse);
 
                 solutionBindingFilePathGeneratorMock
-                    .Setup(x => x.Generate(bindingRootFolder, projectName, language.Id))
+                    .Setup(x => x.Generate(bindingRootFolder, projectName, ""))
                     .Returns(AdditionalFilePathResponse);
 
                 var sonarProperties = PropertiesResponse.ToDictionary(p => p.Key, y => y.Value);

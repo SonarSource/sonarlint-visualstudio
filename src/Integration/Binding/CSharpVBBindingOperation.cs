@@ -104,6 +104,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void Commit()
         {
+            AddRuleset();
+            AddAdditionalFile();
+        }
+
+        private void AddRuleset()
+        {
             foreach (var keyValue in this.propertyInformationMap)
             {
                 Property property = keyValue.Key;
@@ -117,11 +123,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 this.AddFileToProject(this.initializedProject, ruleSetFullFilePath);
             }
+        }
 
-            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
-            projectSystem.RemoveFileFromProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path);
-            projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
+        private void AddAdditionalFile()
+        {
+            try
+            {
+                var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+                projectSystem.AssertLocalServiceIsNotNull();
+                projectSystem.RemoveFileFromProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path);
+                projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to bind project {initializedProject.FullName}, exception details: {ex}");
+            }
         }
 
         #region Helpers

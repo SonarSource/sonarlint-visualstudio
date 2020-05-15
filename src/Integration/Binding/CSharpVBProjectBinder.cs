@@ -131,9 +131,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private string GetSolutionAdditionalFile(BindingConfiguration binding, Language language)
         {
             var additionalFilePathDirectory = solutionBindingFilePathGenerator.Generate(
-                binding.BindingConfigDirectory, binding.Project.ProjectKey, language.Id);
+                binding.BindingConfigDirectory, binding.Project.ProjectKey, string.Empty);
 
-            var additionalFilePath = Path.Combine(additionalFilePathDirectory, "SonarLint.xml");
+            var additionalFilePath = Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
 
             return additionalFilePath;
         }
@@ -171,6 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool ProjectHasAdditionalFile(Project project, string additionalFilePath)
         {
+            // ritag todo: 1. Check if there is another SonarLint.xml, 2. Check if the property is AdditionalFiles
             return projectSystemHelper.IsFileInProject(project, additionalFilePath);
         }
     }
