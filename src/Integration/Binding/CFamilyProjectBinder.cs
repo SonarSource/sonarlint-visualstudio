@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             return languages.Any(language =>
             {
-                var slnLevelBindingConfigFilepath = binding.BuildEscapedPathUnderProjectDirectory(language.FileSuffixAndExtension);
+                var slnLevelBindingConfigFilepath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
                 return !fileSystem.File.Exists(slnLevelBindingConfigFilepath);
             });

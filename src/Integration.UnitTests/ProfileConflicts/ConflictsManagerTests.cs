@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(1);
 
             var expectedBaselineLocation = configProvider.GetConfiguration()
-                .BuildEscapedPathUnderProjectDirectory(ProjectToLanguageMapper
+                .BuildPathUnderConfigDirectory(ProjectToLanguageMapper
                     .GetLanguageForProject(projectHelper.FilteredProjects.First()).FileSuffixAndExtension);
 
             outputWindowPane.AssertOutputStrings(1);
@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var bindingConfiguration = configProvider.GetConfiguration();
 
                 var solutionRuleSet =
-                    bindingConfiguration.BuildEscapedPathUnderProjectDirectory(ProjectToLanguageMapper
+                    bindingConfiguration.BuildPathUnderConfigDirectory(ProjectToLanguageMapper
                         .GetLanguageForProject(project).FileSuffixAndExtension);
 
                 fileSystem.AddFile(solutionRuleSet, new MockFileData(""));

@@ -250,12 +250,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow("c:\\MY Directory", "mykey>>", "file.SUFFIX", "c:\\MY Directory\\mykey__file.suffix")]
         [DataRow("c:\\", "MY_KEY", "NAME.txt", "c:\\my_keyname.txt")]
         [DataRow("c:\\", "My<Key>", "N|a<m>e.txt", "c:\\my_key_n_a_m_e.txt")]
-        public void BuildEscapedPathUnderProjectDirectory_GeneratesCorrectFilePath(string rootDirectory, string projectKey, string fileNameSuffixAndExtension, string expectedPath)
+        public void BuildPathUnderConfigDirectory_GeneratesCorrectFilePath(string rootDirectory, string projectKey, string fileNameSuffixAndExtension, string expectedPath)
         {
             var project = new BoundSonarQubeProject(new Uri("http://localhost2"), projectKey, "projectName");
             var testSubject = BindingConfiguration.CreateBoundConfiguration(project, SonarLintMode.LegacyConnected, rootDirectory);
 
-            var result = testSubject.BuildEscapedPathUnderProjectDirectory(fileNameSuffixAndExtension);
+            var result = testSubject.BuildPathUnderConfigDirectory(fileNameSuffixAndExtension);
 
             result.Should().Be(expectedPath);
         }

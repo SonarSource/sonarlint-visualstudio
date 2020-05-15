@@ -107,8 +107,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");
 
-            var cppFilePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.Cpp.FileSuffixAndExtension);
-            var cFilePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.C.FileSuffixAndExtension);
+            var cppFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(Language.Cpp.FileSuffixAndExtension);
+            var cFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(Language.C.FileSuffixAndExtension);
 
             fileSystemMock
                 .Setup(x => x.File.Exists(cppFilePath))

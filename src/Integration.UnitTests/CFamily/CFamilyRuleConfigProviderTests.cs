@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 standaloneSettingsProviderMock.Setup(x => x.UserSettings).Returns(StandaloneModeSettings);
 
                 // Data: connected mode settings
-                var connectedSettingsFilesPath = activeSolutionBoundTracker.CurrentConfiguration.BuildEscapedPathUnderProjectDirectory(Language.Cpp.FileSuffixAndExtension);
+                var connectedSettingsFilesPath = activeSolutionBoundTracker.CurrentConfiguration.BuildPathUnderConfigDirectory(Language.Cpp.FileSuffixAndExtension);
                 var connectedSettingsData = JsonConvert.SerializeObject(ConnectedModeSettings?.RulesSettings, Formatting.Indented);
 
                 fileSystemMock.Setup(x => x.File.Exists(connectedSettingsFilesPath)).Returns(ConnectedSettingsFileExists);

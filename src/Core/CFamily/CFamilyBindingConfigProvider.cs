@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             cancellationToken.ThrowIfCancellationRequested();
 
             var settings = CreateRulesSettingsFromQPRules(result);
-            var settingsFilePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(language.FileSuffixAndExtension);
+            var settingsFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
             var configFile = new CFamilyBindingConfig(settings, settingsFilePath);
 

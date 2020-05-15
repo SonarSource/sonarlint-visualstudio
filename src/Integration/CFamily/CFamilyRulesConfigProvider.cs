@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
             if (language != null)
             {
-                var filePath = binding.BuildEscapedPathUnderProjectDirectory(language.FileSuffixAndExtension);
+                var filePath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
                 var settings = serializer.SafeLoad(filePath);
                 return settings;
             }

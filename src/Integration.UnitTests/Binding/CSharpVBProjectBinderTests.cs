@@ -223,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private string SetupRulesetPath(BindingConfiguration bindingConfiguration)
         {
-            return bindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.CSharp.FileSuffixAndExtension);
+            return bindingConfiguration.BuildPathUnderConfigDirectory(Language.CSharp.FileSuffixAndExtension);
         }
 
         private static BindingConfiguration GetBindingConfiguration()

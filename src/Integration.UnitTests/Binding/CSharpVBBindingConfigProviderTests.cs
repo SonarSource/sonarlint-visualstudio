@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var expectedRulesetFilePath = builder.BindingConfiguration.BuildEscapedPathUnderProjectDirectory(Language.VBNET.FileSuffixAndExtension);
+            var expectedRulesetFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.FileSuffixAndExtension);
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).FilePath.Should().Be(expectedRulesetFilePath);

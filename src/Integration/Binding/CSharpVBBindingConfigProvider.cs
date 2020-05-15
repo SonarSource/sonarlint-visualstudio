@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
-            var ruleSetFilePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(language.FileSuffixAndExtension);
+            var ruleSetFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
             return new CSharpVBBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
         }

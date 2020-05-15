@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
 
             public string SetSolutionLevelFilePathForLanguage(Language language, bool fileExists)
             {
-                var filePath = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(language.FileSuffixAndExtension);
+                var filePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
                 fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(fileExists);
 

@@ -293,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private string SetValidSolutionRulesFile(BindingConfiguration bindingConfiguration, Language language)
         {
-            var expectedSolutionRulesFile = bindingConfiguration.BuildEscapedPathUnderProjectDirectory(language.FileSuffixAndExtension);
+            var expectedSolutionRulesFile = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
             fileMock.Setup(x => x.File.Exists(expectedSolutionRulesFile)).Returns(true);
             return expectedSolutionRulesFile;

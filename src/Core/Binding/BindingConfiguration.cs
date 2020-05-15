@@ -90,9 +90,9 @@ namespace SonarLint.VisualStudio.Core.Binding
 
         #endregion
 
-        public string BuildEscapedPathUnderProjectDirectory(string fileName = "")
+        public string BuildPathUnderConfigDirectory(string fileSuffix = "")
         {
-            var escapedFileName = Helpers.PathHelper.EscapeFileName(Project.ProjectKey + fileName).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
+            var escapedFileName = Helpers.PathHelper.EscapeFileName(Project.ProjectKey + fileSuffix).ToLowerInvariant(); // Must be lower case - see https://github.com/SonarSource/sonarlint-visualstudio/issues/1068;
             
             return Path.Combine(BindingConfigDirectory, escapedFileName);
         }
