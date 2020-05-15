@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            var isAdditionalFileBound = ProjectHasAdditionalFile(project, additionalFilePath);
+            var isAdditionalFileBound = DoesProjectReferenceAdditionalFile(project, additionalFilePath);
 
             if (!isAdditionalFileBound)
             {
@@ -169,10 +169,27 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
         }
 
-        private bool ProjectHasAdditionalFile(Project project, string additionalFilePath)
+        public bool DoesProjectReferenceAdditionalFile(Project project, string additionalFilePath)
         {
-            // ritag todo: 1. Check if there is another SonarLint.xml, 2. Check if the property is AdditionalFiles
-            return projectSystemHelper.IsFileInProject(project, additionalFilePath);
+            var additionalFile = projectSystemHelper.GetFileInProject(project, additionalFilePath);
+
+            if (additionalFile == null)
+            {
+                var additionalFileName = Path.GetFileName(additionalFilePath);
+                var hasAnotherAdditionalFile = projectSystemHelper.IsFileInProject(project, additionalFileName);
+
+                if (hasAnotherAdditionalFile)
+                {
+                    throw new Exception($"Could not bind project {project.Name}, project already contains {additionalFileName} file. Please remove {additionalFileName} from the project.");
+                }
+
+                return false;
+            }
+
+            var property = VsShellUtils.FindProperty(additionalFile.Properties, Constants.ItemTypePropertyKey);
+            var isMarkedAsAdditionalFile = "AdditionalFiles".Equals(property.Value);
+
+            return isMarkedAsAdditionalFile;
         }
     }
 }

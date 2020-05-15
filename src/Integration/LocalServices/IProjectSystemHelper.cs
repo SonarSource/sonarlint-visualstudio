@@ -67,6 +67,11 @@ namespace SonarLint.VisualStudio.Integration
         void RemoveFileFromProject(Project project, string fileName);
 
         /// <summary>
+        /// Retrieves a file from the given project. Returns null if item does not exist.
+        /// </summary>
+        ProjectItem GetFileInProject(Project project, string fileName);
+
+        /// <summary>
         /// Returns all what VS considers as a projects in a solution
         /// </summary>
         IEnumerable<Project> GetSolutionProjects();

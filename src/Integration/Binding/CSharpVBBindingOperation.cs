@@ -127,17 +127,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddAdditionalFile()
         {
-            try
-            {
-                var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-                projectSystem.AssertLocalServiceIsNotNull();
-                projectSystem.RemoveFileFromProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path);
-                projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to bind project {initializedProject.FullName}, exception details: {ex}");
-            }
+            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+            projectSystem.RemoveFileFromProject(initializedProject, Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path));
+            projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
         }
 
         #region Helpers

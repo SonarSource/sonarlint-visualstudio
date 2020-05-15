@@ -67,7 +67,6 @@ namespace SonarLint.VisualStudio.Integration
             this.serviceProvider = serviceProvider;
         }
 
-
         public IEnumerable<Project> GetSolutionProjects()
         {
             IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
@@ -156,6 +155,25 @@ namespace SonarLint.VisualStudio.Integration
             return false;
         }
 
+        public ProjectItem GetFileInProject(Project project, string fileName)
+        {
+            if (project == null)
+            {
+                throw new ArgumentNullException(nameof(project));
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            var projectItem = project.ProjectItems
+                .OfType<ProjectItem>()
+                .FirstOrDefault(x => fileName.Equals(x.FileNames[0]));
+
+            return projectItem;
+        }
+
         public void AddFileToProject(Project project, string file)
         {
             if (project == null)
@@ -218,7 +236,7 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             // If the project is an empty solution folder, then remove it
-            if (project.ProjectItems.Count == 0 && project.Kind == ProjectSystemHelper.VsProjectItemKindSolutionFolder)
+            if (project.ProjectItems.Count == 0 && project.Kind == VsProjectItemKindSolutionFolder)
             {
                 Solution2 solution = this.GetCurrentActiveSolution();
                 solution.Remove(project);
