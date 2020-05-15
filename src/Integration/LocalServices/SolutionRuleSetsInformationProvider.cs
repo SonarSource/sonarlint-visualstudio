@@ -28,7 +28,6 @@ using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -39,19 +38,17 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
-        private readonly ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator;
 
         public SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, logger, new FileSystem(), new SolutionBindingFilePathGenerator())
+            : this(serviceProvider, logger, new FileSystem())
         {
         }
 
-        internal SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem, ISolutionBindingFilePathGenerator solutionBindingFilePathGenerator)
+        internal SolutionRuleSetsInformationProvider(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.solutionBindingFilePathGenerator = solutionBindingFilePathGenerator ?? throw new ArgumentNullException(nameof(solutionBindingFilePathGenerator));
         }
 
         public IEnumerable<RuleSetDeclaration> GetProjectRuleSetsDeclarations(Project project)
@@ -127,30 +124,6 @@ namespace SonarLint.VisualStudio.Integration
                 Constants.SonarlintManagedFolderName);
 
             return ruleSetDirectoryRoot;
-        }
-
-        public string CalculateSolutionSonarQubeRuleSetFilePath(string ProjectKey, Language language, SonarLintMode bindingMode)
-        {
-            if (string.IsNullOrWhiteSpace(ProjectKey))
-            {
-                throw new ArgumentNullException(nameof(ProjectKey));
-            }
-
-            if (language == null)
-            {
-                throw new ArgumentOutOfRangeException(nameof(language));
-            }
-
-            bindingMode.ThrowIfNotConnected();
-
-            string ruleSetDirectoryRoot = this.GetSolutionSonarQubeRulesFolder(bindingMode);
-
-            if (string.IsNullOrWhiteSpace(ruleSetDirectoryRoot))
-            {
-                throw new InvalidOperationException(Strings.SolutionIsClosed);
-            }
-
-            return solutionBindingFilePathGenerator.Generate(ruleSetDirectoryRoot, ProjectKey, language.FileSuffixAndExtension);
         }
 
         public bool TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)

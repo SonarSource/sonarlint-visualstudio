@@ -24,13 +24,11 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -62,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
 
-            this.testSubject = new SolutionRuleSetsInformationProvider(serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem, new SolutionBindingFilePathGenerator());
+            this.testSubject = new SolutionRuleSetsInformationProvider(serviceProvider, new SonarLintOutputLogger(serviceProvider), fileSystem);
         }
 
         #region Tests
@@ -70,10 +68,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void SolutionRuleSetsInformationProvider_Ctor_ArgChecks()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), null, new MockFileSystem(), Mock.Of<ISolutionBindingFilePathGenerator>()));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, null, Mock.Of<ISolutionBindingFilePathGenerator>()));
-            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, new MockFileSystem(), null));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(null, new Mock<ILogger>().Object, new MockFileSystem()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), null, new MockFileSystem()));
+            Exceptions.Expect<ArgumentNullException>(() => new SolutionRuleSetsInformationProvider(Mock.Of<IServiceProvider>(), new Mock<ILogger>().Object, null));
         }
 
         [TestMethod]
@@ -166,121 +163,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyRuleSetInformation(info[0], ruleSet1);
             VerifyRuleSetInformation(info[1], ruleSet2);
             this.outputPane.AssertOutputStrings(0);
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_ArgChecks()
-        {
-            // Act Verify
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.CSharp, SonarLintMode.LegacyConnected));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath(null, Language.VBNET, SonarLintMode.Connected));
-
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("123", Language.VBNET, SonarLintMode.Standalone));
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_InvalidBindingMode_Throws()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            // Act + Assert
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Standalone));
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_LegacyMode_OnOpenSolution()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            // Case 1: VB + invalid path characters
-            // Act
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(),
-                Language.VBNET, SonarLintMode.LegacyConnected);
-
-            // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\mykey_vb.ruleset");
-
-            // Case 2: C# + valid path characters
-            // Act
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.LegacyConnected);
-
-            // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\SonarQube\mykeycsharp.ruleset");
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_ConnectedMode_OnOpenSolution()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            // Case 1: VB + invalid path characters
-            // Act
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey" + Path.GetInvalidPathChars().First(),
-                Language.VBNET, SonarLintMode.Connected);
-
-            // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykey_vb.ruleset"); // should be lower-case
-
-            // Case 2: C# + valid path characters
-            // Act
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Connected);
-
-            // Assert
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeycsharp.ruleset");
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_CalculateSolutionSonarQubeRuleSetFilePath_OnClosedSolution()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
-
-            // Act + Assert
-            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.LegacyConnected));
-            Exceptions.Expect<InvalidOperationException>(() => testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MyKey", Language.CSharp, SonarLintMode.Connected));
-        }
-
-        [TestMethod] // Regression test for #1068: https://github.com/SonarSource/sonarlint-visualstudio/issues/1068
-        public void CheckSolutionRuleSet_RuleSetIncludePathFormatting()
-        {
-            // 1. Check the behaviour of the Microsoft.VisualStudio.CodeAnalysis.RuleSetInclude constructor
-            // is as expected (forces path to lower case)
-            var include = new RuleSetInclude("C:\\subDIR1\\SUBDIR2\\file.txt", RuleAction.Default);
-            include.FilePath.Should().Be("c:\\subdir1\\subdir2\\file.txt");
-
-            include = new RuleSetInclude("..\\xxx\\SUBDIR2\\file.txt", RuleAction.Default);
-            include.FilePath.Should().Be("..\\xxx\\subdir2\\file.txt");
-
-            // 2. Check our file name calculation function produces lower-case
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", new Language("l_id", "l_name", "FILESUFFIX.ANDEXT",
-                new SonarQube.Client.Models.SonarQubeLanguage("l_server_key", "l_server_name")), SonarLintMode.Connected);
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyfilesuffix.andext"); // should be lower-case
-        }
-
-        [TestMethod]
-        public void CheckSolutionRuleSet_RuleConfigIncludePath_UsesLanguageSpecificSuffixAndExtension()
-        {
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            // 1. VB
-            string ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.VBNET, SonarLintMode.Connected);
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeyvb.ruleset"); // should be lower-case
-
-            // 2. C#
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.CSharp, SonarLintMode.Connected);
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykeycsharp.ruleset"); // should be lower-case
-
-            // 3. Cpp
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.Cpp, SonarLintMode.Connected);
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykey_cpp_settings.json"); // should be lower-case
-
-            // 4. C
-            ruleSetPath = testSubject.CalculateSolutionSonarQubeRuleSetFilePath("MYKEY", Language.C, SonarLintMode.Connected);
-            ruleSetPath.Should().Be(@"z:\folder\solution\.sonarlint\mykey_c_settings.json"); // should be lower-case
         }
 
         [TestMethod]

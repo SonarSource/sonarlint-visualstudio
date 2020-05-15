@@ -42,9 +42,6 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         // Settable in constructor for testing
         private readonly ICFamilyRulesConfigProvider sonarWayProvider;
 
-        // Local services
-        private readonly ISolutionRuleSetsInformationProvider solutionInfoProvider;
-
         private readonly RulesSettingsSerializer serializer;
 
         [ImportingConstructor]
@@ -61,9 +58,6 @@ namespace SonarLint.VisualStudio.Integration.CFamily
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.userSettingsProvider = userSettingsProvider;
             this.logger = logger;
-
-            solutionInfoProvider = host.GetService<ISolutionRuleSetsInformationProvider>();
-            solutionInfoProvider.AssertLocalServiceIsNotNull();
 
             this.sonarWayProvider = sonarWayProvider;
             this.serializer = new RulesSettingsSerializer(fileSystem, logger);
@@ -107,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.CFamily
 
             if (language != null)
             {
-                var filePath = solutionInfoProvider.CalculateSolutionSonarQubeRuleSetFilePath(binding.Project.ProjectKey, language, binding.Mode);
+                var filePath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
                 var settings = serializer.SafeLoad(filePath);
                 return settings;
             }
