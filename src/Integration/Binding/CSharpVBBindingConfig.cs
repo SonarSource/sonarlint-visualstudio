@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             RuleSet.Content.WriteToFile(RuleSet.Path);
 
-            var serializedContent = JsonConvert.SerializeObject(AdditionalFile.Content, Formatting.Indented);
+            var serializedContent = Serializer.ToString(AdditionalFile.Content);
             fileSystem.File.WriteAllText(AdditionalFile.Path, serializedContent);
         }
     }

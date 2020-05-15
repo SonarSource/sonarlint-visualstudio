@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Core.CSharpVB
     /// <summary>
     /// Helper class to serialize objects to and from XML
     /// </summary>
-    internal static class Serializer
+    public static class Serializer
     {
         /// <summary>
         /// Return the object as an XML string
