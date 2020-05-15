@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -123,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetConfig_NoSupportedActiveRules_ReturnsNull()
+        public async Task GetConfig_NoSupportedActiveRules_ReturnsNull()
         {
             // Arrange
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
@@ -135,7 +136,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            var result = testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None).Result;
+            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None)
+                .ConfigureAwait(false);
 
             // Assert
             result.Should().BeNull();
@@ -151,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetConfig_ReturnsCorrectRuleset()
+        public async Task GetConfig_ReturnsCorrectRuleset()
         {
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
@@ -164,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var response = testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None).Result;
+            var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).RuleSet.Path.Should().Be("expected file path");
             (response as ICSharpVBBindingConfig).RuleSet.Content.Description.Should().Be(validRuleSet.Description);
             (response as ICSharpVBBindingConfig).RuleSet.Content.Rules.Should().AllBeEquivalentTo(validRuleSet.Rules);
@@ -172,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetConfig_ReturnsCorrectAdditionalFile()
+        public async Task GetConfig_ReturnsCorrectAdditionalFile()
         {
             var expectedConfiguration = new SonarLintConfiguration
             {
@@ -198,13 +200,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             };
             var testSubject = builder.CreateTestSubject();
 
-            var response = testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None).Result;
+            var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
             (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be("expected_additional_file_directory\\VB\\SonarLint.xml");
             (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
         }
 
         [TestMethod]
-        public void GetConfig_NuGetBindingOperationFails_ReturnsNull()
+        public async Task GetConfig_NuGetBindingOperationFails_ReturnsNull()
         {
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
@@ -217,7 +219,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = builder.CreateTestSubject();
 
-            var result = testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None).Result;
+            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None)
+                .ConfigureAwait(false);
 
             result.Should().BeNull();
 
@@ -228,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetConfig_HasActiveInactiveAndUnsupportedRules_ReturnsValidBindingConfig()
+        public async Task GetConfig_HasActiveInactiveAndUnsupportedRules_ReturnsValidBindingConfig()
         {
             // Arrange
             const string expectedProjectName = "my project";
@@ -265,7 +268,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = builder.CreateTestSubject();
 
             // Act
-            var result = testSubject.GetConfigurationAsync(validQualityProfile, Language.CSharp, builder.BindingConfiguration, CancellationToken.None).Result;
+            var result = await testSubject.GetConfigurationAsync(validQualityProfile, Language.CSharp, builder.BindingConfiguration, CancellationToken.None)
+                .ConfigureAwait(false);
 
             // Assert
             result.Should().NotBeNull();
