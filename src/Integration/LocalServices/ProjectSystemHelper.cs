@@ -137,41 +137,51 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(file));
             }
 
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
-
-            IVsHierarchy projectHierarchy;
-            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(project.UniqueName, out projectHierarchy)))
-            {
-                IVsProject vsProject = projectHierarchy as IVsProject;
-                int pfFound;
-                VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
-                if (ErrorHandler.Succeeded(vsProject.IsDocumentInProject(file, out pfFound, pdwPriority, out _)) && pfFound != 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            var projectHierarchy = GetIVsHierarchy(project);
+            return FindProjectItemId(projectHierarchy, file) != (uint)VSConstants.VSITEMID.Nil;
         }
 
-        public ProjectItem GetFileInProject(Project project, string fileName)
+
+        public ProjectItem FindFileInProject(Project project, string file)
         {
             if (project == null)
             {
                 throw new ArgumentNullException(nameof(project));
             }
 
-            if (string.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(file))
             {
-                throw new ArgumentNullException(nameof(fileName));
+                throw new ArgumentNullException(nameof(file));
             }
 
-            var projectItem = project.ProjectItems
-                .OfType<ProjectItem>()
-                .FirstOrDefault(x => fileName.Equals(x.FileNames[0]));
+            var projectHierarchy = GetIVsHierarchy(project);
+            var itemId = FindProjectItemId(projectHierarchy, file);
 
-            return projectItem;
+            object extObj;
+            if (itemId != (uint)VSConstants.VSITEMID.Nil &&
+                ErrorHandler.Succeeded(projectHierarchy.GetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, out extObj)))
+            {
+                return extObj as ProjectItem;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the VSItemId of the project item with the specified path in the given
+        /// hierarchy, or VSITEMID.Nil if the file is not in the project
+        /// </summary>
+        private uint FindProjectItemId(IVsHierarchy vsHierarchy, string filePath)
+        {
+            var vsProject = vsHierarchy as IVsProject;
+            int pfFound;
+            uint itemId;
+            VSDOCUMENTPRIORITY[] pdwPriority = new VSDOCUMENTPRIORITY[1];
+            if (ErrorHandler.Succeeded(vsProject.IsDocumentInProject(filePath, out pfFound, pdwPriority, out itemId)) && pfFound != 0)
+            {
+                return itemId;
+            }
+            return (uint)VSConstants.VSITEMID.Nil;
         }
 
         public void AddFileToProject(Project project, string file)

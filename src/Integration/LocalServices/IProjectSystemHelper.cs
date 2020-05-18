@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// Retrieves a file from the given project. Returns null if item does not exist.
         /// </summary>
-        ProjectItem GetFileInProject(Project project, string fileName);
+        ProjectItem FindFileInProject(Project project, string fileName);
 
         /// <summary>
         /// Returns all what VS considers as a projects in a solution

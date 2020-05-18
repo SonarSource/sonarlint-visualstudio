@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public bool DoesProjectReferenceAdditionalFile(Project project, string solutionAdditionalFilePath)
         {
-            var additionalFile = projectSystemHelper.GetFileInProject(project, solutionAdditionalFilePath);
+            var additionalFile = projectSystemHelper.FindFileInProject(project, solutionAdditionalFilePath);
 
             if (additionalFile == null)
             {
