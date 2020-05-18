@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -44,6 +45,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private CSharpVBProjectBinder testSubject;
         private Mock<CSharpVBProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
+
+        private static readonly Project ValidProject = new ProjectMock("any.csproj");
+        private const string ValidSonarLintFilePath = "c:\\any\\SonarLint.xml";
 
         [TestInitialize]
         public void TestInitialize()
@@ -263,6 +267,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             Assert.Inconclusive("TBD");
         }
+
+        [TestMethod]
+        public void IsIsAdditionalFileReferencedCorrectly_FileIsNotReferenced_ReturnsFalse()
+        {
+            SetFindFileResponse(ValidProject, ValidSonarLintFilePath, null);
+
+            CSharpVBProjectBinder.IsAdditionalFileReferencedCorrectly(projectSystemHelperMock.Object, ValidProject, ValidSonarLintFilePath)
+                .Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(null, false)]
+        [DataRow("NotAnAdditionalFile", false)]
+        [DataRow("AdditionalFile", false)]
+        [DataRow("AdditionalFiles", true)]
+        [DataRow("ADDITIONALFILES", true)]
+        public void IsIsAdditionalFileReferencedCorrectly_FileIsReferenced_DifferentItemTypes(string itemType, bool expected)
+        {
+            var projectItem = CreateProjectItemWithItemType(itemType);
+            SetFindFileResponse(ValidProject, ValidSonarLintFilePath, projectItem);
+
+            CSharpVBProjectBinder.IsAdditionalFileReferencedCorrectly(projectSystemHelperMock.Object, ValidProject, ValidSonarLintFilePath)
+                .Should().Be(expected);
+        }
+
+        private static ProjectItem CreateProjectItemWithItemType(string itemType)
+        {
+            var projectItemMock = new Mock<ProjectItem>();
+
+            var properties = new PropertiesMock(projectItemMock.Object);
+            properties.RegisterKnownProperty(Constants.ItemTypePropertyKey).Value = itemType;
+
+            projectItemMock.Setup(x => x.Properties).Returns(properties);
+            return projectItemMock.Object;
+        }
+
+        private void SetFindFileResponse(Project project, string filePath, ProjectItem projectItem) =>
+            projectSystemHelperMock.Setup(x => x.FindFileInProject(project, filePath)).Returns(projectItem);
 
         private RuleSetDeclaration GetRuleSetDeclaration(ProjectMock projectMock)
         {
