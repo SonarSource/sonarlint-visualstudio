@@ -45,5 +45,14 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("content");
         }
+
+        [TestMethod]
+        public void Ctor_ValidProperties_AreSetCorrectly()
+        {
+            var testSubject = new FilePathAndContent<int>("foo", 123);
+
+            testSubject.Path.Should().Be("foo");
+            testSubject.Content.Should().Be(123);
+        }
     }
 }

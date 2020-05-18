@@ -168,10 +168,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expectedRulesetFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.FileSuffixAndExtension);
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).RuleSet.Path.Should().Be(expectedRulesetFilePath);
-            (response as ICSharpVBBindingConfig).RuleSet.Content.Description.Should().Be(validRuleSet.Description);
-            (response as ICSharpVBBindingConfig).RuleSet.Content.Rules.Should().AllBeEquivalentTo(validRuleSet.Rules);
-            (response as ICSharpVBBindingConfig).RuleSet.Content.ToolsVersion.ToString().Should().Be(validRuleSet.ToolsVersion);
+
+            response.Should().BeAssignableTo<ICSharpVBBindingConfig>();
+            
+            var actualRuleset = ((ICSharpVBBindingConfig)response).RuleSet;
+            actualRuleset.Path.Should().Be(expectedRulesetFilePath);
+            actualRuleset.Content.Description.Should().Be(validRuleSet.Description);
+            actualRuleset.Content.Rules.Should().AllBeEquivalentTo(validRuleSet.Rules);
+            actualRuleset.Content.ToolsVersion.ToString().Should().Be(validRuleSet.ToolsVersion);
         }
 
         [TestMethod]
