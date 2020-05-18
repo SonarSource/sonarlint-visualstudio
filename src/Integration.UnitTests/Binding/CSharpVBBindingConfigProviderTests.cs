@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
@@ -152,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public async Task GetConfig_ReturnsCorrectFilePath()
+        public async Task GetConfig_ReturnsCorrectRuleset()
         {
             var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
             {
@@ -167,7 +168,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var expectedRulesetFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory(Language.VBNET.FileSuffixAndExtension);
 
             var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
-            (response as ICSharpVBBindingConfig).FilePath.Should().Be(expectedRulesetFilePath);
+
+            response.Should().BeAssignableTo<ICSharpVBBindingConfig>();
+            
+            var actualRuleset = ((ICSharpVBBindingConfig)response).RuleSet;
+            actualRuleset.Path.Should().Be(expectedRulesetFilePath);
+            actualRuleset.Content.Description.Should().Be(validRuleSet.Description);
+            actualRuleset.Content.Rules.Should().AllBeEquivalentTo(validRuleSet.Rules);
+            actualRuleset.Content.ToolsVersion.ToString().Should().Be(validRuleSet.ToolsVersion);
+        }
+
+        [TestMethod]
+        public async Task GetConfig_ReturnsCorrectAdditionalFile()
+        {
+            var expectedConfiguration = new SonarLintConfiguration
+            {
+                Rules = new List<SonarLintRule>
+                {
+                    new SonarLintRule
+                    {
+                        Key = "test",
+                        Parameters = new List<SonarLintKeyValuePair> {new SonarLintKeyValuePair {Key = "ruleid", Value = "value"}}
+                    }
+                }
+            };
+
+            var builder = new TestEnvironmentBuilder(validQualityProfile, Language.VBNET)
+            {
+                ActiveRulesResponse = validRules,
+                InactiveRulesResponse = emptyRules,
+                PropertiesResponse = anyProperties,
+                NuGetBindingOperationResponse = true,
+                RuleSetGeneratorResponse = validRuleSet,
+                SonarLintConfigurationResponse = expectedConfiguration
+            };
+            var testSubject = builder.CreateTestSubject();
+
+            var expectedAdditionalFilePath = builder.BindingConfiguration.BuildPathUnderConfigDirectory() + "\\VB\\SonarLint.xml";
+
+            var response = await testSubject.GetConfigurationAsync(validQualityProfile, Language.VBNET, builder.BindingConfiguration, CancellationToken.None);
+            (response as ICSharpVBBindingConfig).AdditionalFile.Path.Should().Be(expectedAdditionalFilePath);
+            (response as ICSharpVBBindingConfig).AdditionalFile.Content.Should().Be(expectedConfiguration);
         }
 
         [TestMethod]
@@ -241,13 +282,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeOfType<CSharpVBBindingConfig>();
             var dotNetResult = (CSharpVBBindingConfig)result;
             dotNetResult.RuleSet.Should().NotBeNull();
-            dotNetResult.RuleSet.ToolsVersion.Should().Be(new Version(validRuleSet.ToolsVersion));
+            dotNetResult.RuleSet.Content.ToolsVersion.Should().Be(new Version(validRuleSet.ToolsVersion));
 
             var expectedName = string.Format(Strings.SonarQubeRuleSetNameFormat, expectedProjectName, validQualityProfile.Name);
-            dotNetResult.RuleSet.DisplayName.Should().Be(expectedName);
+            dotNetResult.RuleSet.Content.DisplayName.Should().Be(expectedName);
 
             var expectedDescription = $"{OriginalValidRuleSetDescription} {string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, expectedServerUrl, validQualityProfile.Key)}";
-            dotNetResult.RuleSet.Description.Should().Be(expectedDescription);
+            dotNetResult.RuleSet.Content.Description.Should().Be(expectedDescription);
 
             // Check properties passed to the ruleset generator
             builder.CapturedPropertiesPassedToRuleSetGenerator.Should().NotBeNull();
@@ -304,11 +345,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private class TestEnvironmentBuilder
         {
+            private Mock<ISonarLintConfigGenerator> sonarLintConfigGeneratorMock = new Mock<ISonarLintConfigGenerator>();
             private Mock<ISonarQubeService> sonarQubeServiceMock;
-
             private Mock<Core.CSharpVB.IRuleSetGenerator> ruleGenMock;
             private Mock<Core.CSharpVB.INuGetPackageInfoGenerator> nugetGenMock;
-
             private Mock<INuGetBindingOperation> nugetBindingMock;
 
             private readonly SonarQubeQualityProfile profile;
@@ -327,24 +367,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.serverUrl = serverUrl;
 
                 Logger = new TestLogger();
+                SonarLintConfigurationResponse = new SonarLintConfiguration();
+                PropertiesResponse = new List<SonarQubeProperty>();
             }
 
-            public BindingConfiguration BindingConfiguration { get; set; }
-
+            public BindingConfiguration BindingConfiguration { get; private set; }
+            public SonarLintConfiguration SonarLintConfigurationResponse { get; set; }
             public IList<SonarQubeRule> ActiveRulesResponse { get; set; }
-
             public IList<SonarQubeRule> InactiveRulesResponse { get; set; }
-
             public IList<SonarQubeProperty> PropertiesResponse { get; set; }
-
             public IList<NuGetPackageInfo> NuGetGeneratorResponse { get; set; }
-
             public bool NuGetBindingOperationResponse { get; set; }
-
             public Core.CSharpVB.RuleSet RuleSetGeneratorResponse { get; set; }
-
             public TestLogger Logger { get; private set; }
-
             public IEnumerable<SonarQubeRule> CapturedRulesPassedToRuleSetGenerator { get; private set; }
             public IDictionary<string, string> CapturedPropertiesPassedToRuleSetGenerator { get; private set; }
 
@@ -385,15 +420,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 nugetBindingMock.Setup(x => x.ProcessExport(language, NuGetGeneratorResponse))
                     .Returns(NuGetBindingOperationResponse);
 
-                var bindingRootFolder = "c:\\test\\";
-
                 BindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri(serverUrl), ExpectedProjectKey, projectName),
-                    SonarLintMode.Connected, bindingRootFolder);
+                    SonarLintMode.Connected, "c:\\test\\");
+
+                var sonarProperties = PropertiesResponse.ToDictionary(x => x.Key, y => y.Value);
+                sonarLintConfigGeneratorMock
+                    .Setup(x => x.Generate(It.IsAny<IEnumerable<SonarQubeRule>>(), sonarProperties, language))
+                    .Returns(SonarLintConfigurationResponse);
 
                 return new CSharpVBBindingConfigProvider(sonarQubeServiceMock.Object, nugetBindingMock.Object, Logger,
                     // inject the generator mocks
                     ruleGenMock.Object,
-                    nugetGenMock.Object);
+                    nugetGenMock.Object,
+                    sonarLintConfigGeneratorMock.Object);
             }
 
             public void AssertRuleSetGeneratorNotCalled()
