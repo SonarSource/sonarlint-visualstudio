@@ -25,6 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -49,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-
+        
         [TestMethod]
         public void ProjectSystemHelper_ArgCheck()
         {
@@ -93,16 +94,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
-            csProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, csProject);
+            csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
             csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
             ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
-            vbProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, vbProject);
+            vbProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, vbProject);
             vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
             ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
-            otherProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, otherProject);
+            otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
             otherProject.ProjectKind ="other";
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
-            erronousProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, null);
+            erronousProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, null);
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
 
             // Act
@@ -165,6 +166,61 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act + Assert
             this.testSubject.IsFileInProject(project, newFile).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_FindFileInProject_Missing_ReturnsNull()
+        {
+            var project = this.solutionMock.AddOrGetProject("project");
+            project.AddOrGetFile("fileThatExists.txt");
+
+            this.testSubject.FindFileInProject(project, "fileNotInTheProject.txt").Should().BeNull();
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_FindFileInProject_ArgChecks()
+        {
+            // 1. Invalid project
+            Action act = () => testSubject.FindFileInProject(null, "file");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+
+            // 2. Null file name
+            act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+
+            // 3. Empty file name
+            act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), "");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+
+            // 4. Null file name
+            act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), "\t\n");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_FindFileInProject_Exists_ReturnsProjectItem()
+        {
+            var project = this.solutionMock.AddOrGetProject("project");
+            var itemId = project.AddOrGetFile("fileInProject");
+
+            var file1ExtObj = Mock.Of<ProjectItem>();
+            project.SetExtObjProperty(itemId, file1ExtObj);
+
+            var actual = this.testSubject.FindFileInProject(project, "fileInProject");
+            actual.Should().BeSameAs(file1ExtObj);
+        }
+
+        [TestMethod]
+        public void ProjectSystemHelper_FindFileInProject_ExistsButWrongExtObjType_ReturnsNull()
+        {
+            var project = this.solutionMock.AddOrGetProject("project");
+            var itemId = project.AddOrGetFile("fileInProject");
+
+            var extObjectItem = new object();
+            project.SetExtObjProperty(itemId, extObjectItem);
+
+            var actual = this.testSubject.FindFileInProject(project, "fileInProject");
+            actual.Should().BeNull();
         }
 
         [TestMethod]
@@ -249,16 +305,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ProjectSystemHelper_GetFilteredSolutionProjects()
         {
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
-            csProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, csProject);
+            csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
             csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
             ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
-            vbProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, vbProject);
+            vbProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, vbProject);
             vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
             ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
-            otherProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, otherProject);
+            otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
             otherProject.ProjectKind = "other";
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
-            erronousProject.SetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, null);
+            erronousProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, null);
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
             // Filter out C#, keep VB
             projectFilter.MatchingProjects.Add(vbProject);
