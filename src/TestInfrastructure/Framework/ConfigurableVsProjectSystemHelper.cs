@@ -50,6 +50,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return this.SolutionItemsProject;
         }
 
+        public ProjectItem FindFileInProject(Project project, string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
         IEnumerable<Project> IProjectSystemHelper.GetSolutionProjects()
         {
             return this.Projects ?? Enumerable.Empty<Project>();

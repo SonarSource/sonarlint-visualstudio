@@ -72,6 +72,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             itemProperties[propId] = value;
         }
 
+        public void SetExtObjProperty(uint itemId, object value) =>
+            SetProperty(itemId, (int)__VSHPROPID.VSHPROPID_ExtObject, value);
+
         public void RemoveProperty(uint itemId, int propId)
         {
             this.properties[itemId].Remove(propId);
