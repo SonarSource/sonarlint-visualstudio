@@ -18,8 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 // Note: this interface was added as part of the refactoring that was done when
 // the support for configuration of C++ files in Connected Mode was added.
@@ -35,7 +36,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
     /// </summary>
     public interface ICSharpVBBindingConfig : IBindingConfig
     {
-        string FilePath { get; }
-        RuleSet RuleSet { get; }
+        FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
+
+        FilePathAndContent<RuleSet> RuleSet { get; }
     }
 }

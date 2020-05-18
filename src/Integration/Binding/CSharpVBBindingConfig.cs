@@ -20,31 +20,42 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using System.IO.Abstractions;
+using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CSharpVBBindingConfig : ICSharpVBBindingConfig
     {
-        public string FilePath { get; }
-        public RuleSet RuleSet { get; }
-        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { FilePath };
+        private readonly IFileSystem fileSystem;
 
-        public CSharpVBBindingConfig(RuleSet ruleSet, string filePath)
+        public FilePathAndContent<SonarLintConfiguration> AdditionalFile { get; }
+
+        public FilePathAndContent<RuleSet> RuleSet { get; }
+
+        public IEnumerable<string> SolutionLevelFilePaths => new List<string> { RuleSet.Path, AdditionalFile.Path };
+
+        public CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<SonarLintConfiguration> additionalFile)
+            : this(ruleset, additionalFile, new FileSystem())
         {
-            RuleSet = ruleSet ?? throw new ArgumentNullException(nameof(ruleSet));
+        }
 
-            if (string.IsNullOrWhiteSpace(filePath))
-            {
-                throw new ArgumentNullException(nameof(filePath));
-            }
-
-            FilePath = filePath;
+        internal CSharpVBBindingConfig(FilePathAndContent<RuleSet> ruleset, FilePathAndContent<SonarLintConfiguration> additionalFile, IFileSystem fileSystem)
+        {
+            RuleSet = ruleset ?? throw new ArgumentNullException(nameof(ruleset));
+            AdditionalFile = additionalFile ?? throw new ArgumentNullException(nameof(additionalFile));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public void Save()
         {
-            RuleSet.WriteToFile(FilePath);
+            RuleSet.Content.WriteToFile(RuleSet.Path);
+
+            var serializedContent = Serializer.ToString(AdditionalFile.Content);
+            fileSystem.File.WriteAllText(AdditionalFile.Path, serializedContent);
         }
     }
 }

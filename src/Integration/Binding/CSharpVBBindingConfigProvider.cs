@@ -46,22 +46,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ILogger logger;
         private readonly IRuleSetGenerator ruleSetGenerator;
         private readonly INuGetPackageInfoGenerator nuGetPackageInfoGenerator;
+        private readonly ISonarLintConfigGenerator sonarLintConfigGenerator;
 
         public CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService, INuGetBindingOperation nuGetBindingOperation, ILogger logger)
             : this(sonarQubeService, nuGetBindingOperation, logger,
-                  new RuleSetGenerator(), new NuGetPackageInfoGenerator())
+                  new RuleSetGenerator(), new NuGetPackageInfoGenerator(), new SonarLintConfigGenerator())
         {
         }
 
         internal /* for testing */ CSharpVBBindingConfigProvider(ISonarQubeService sonarQubeService,
             INuGetBindingOperation nuGetBindingOperation, ILogger logger,
-            IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator)
+            IRuleSetGenerator ruleSetGenerator, INuGetPackageInfoGenerator nuGetPackageInfoGenerator,
+            ISonarLintConfigGenerator sonarLintConfigGenerator)
         {
             this.sonarQubeService = sonarQubeService;
             this.nuGetBindingOperation = nuGetBindingOperation;
             this.logger = logger;
             this.ruleSetGenerator = ruleSetGenerator;
             this.nuGetPackageInfoGenerator = nuGetPackageInfoGenerator;
+            this.sonarLintConfigGenerator = sonarLintConfigGenerator;
         }
 
         public bool IsLanguageSupported(Language language)
@@ -109,11 +112,31 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // Finally, fetch the remaining data needed to build the ruleset
             var inactiveRules = await FetchSupportedRulesAsync(false, qualityProfile.Key, cancellationToken);
 
+            var ruleset = GetRulesetFile(qualityProfile, language, bindingConfiguration, activeRules, inactiveRules, sonarProperties);
+            var additionalFile = GetAdditionalFile(language, bindingConfiguration, activeRules, sonarProperties);
+
+            return new CSharpVBBindingConfig(ruleset, additionalFile);
+        }
+
+        private FilePathAndContent<VsRuleset> GetRulesetFile(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, Dictionary<string, string> sonarProperties)
+        {
             var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
-            var ruleSetFilePath = bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
+            var ruleSetFilePath = GetSolutionRuleSetFilePath(language, bindingConfiguration);
 
-            return new CSharpVBBindingConfig(ToVsRuleset(coreRuleset), ruleSetFilePath);
+            var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
+
+            return ruleset;
+        }
+
+        private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, Dictionary<string, string> sonarProperties)
+        {
+            var additionalFilePath = GetSolutionAdditionalFilePath(language, bindingConfiguration);
+            var additionalFileContent = sonarLintConfigGenerator.Generate(activeRules, sonarProperties, language);
+
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFilePath, additionalFileContent);
+
+            return additionalFile;
         }
 
         private async Task<IEnumerable<SonarQubeRule>> FetchSupportedRulesAsync(bool active, string qpKey, CancellationToken cancellationToken)
@@ -163,7 +186,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return IsSupportedIssueType(rule.IssueType) && !IsTaintAnalysisRule(rule);
         }
 
-
         private static bool IsTaintAnalysisRule(SonarQubeRule rule) =>
             rule.RepositoryKey.StartsWith(TaintAnalyisRepoPrefix, StringComparison.OrdinalIgnoreCase);
 
@@ -171,5 +193,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             issueType == SonarQubeIssueType.CodeSmell ||
             issueType == SonarQubeIssueType.Bug ||
             issueType == SonarQubeIssueType.Vulnerability;
+
+        internal static string GetSolutionRuleSetFilePath(Language language, BindingConfiguration bindingConfiguration)
+        {
+            return bindingConfiguration.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
+        }
+
+        internal static string GetSolutionAdditionalFilePath(Language language, BindingConfiguration bindingConfiguration)
+        {
+            var additionalFilePathDirectory = bindingConfiguration.BuildPathUnderConfigDirectory();
+
+            return Path.Combine(additionalFilePathDirectory, language.Id, "SonarLint.xml");
+        }
     }
 }

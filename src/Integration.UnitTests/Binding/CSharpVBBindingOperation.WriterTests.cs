@@ -26,8 +26,12 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Binding;
+using RuleAction = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleAction;
+using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -196,14 +200,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var dotNetConfig = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
+
+            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, expectedRuleSet);
 
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetConfig, existingProjectRuleSetPath);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, existingProjectRuleSetPath);
 
             // Assert
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
             actualPath.Should().Be(existingProjectRuleSetPath, "Expecting the rule set to be updated");
+        }
+
+        private static CSharpVBBindingConfig CreateCSharpVbBindingConfig(string newSolutionRuleSetPath, RuleSet expectedRuleSet)
+        {
+            var ruleset = new FilePathAndContent<RuleSet>(newSolutionRuleSetPath, expectedRuleSet);
+            var additionalFile = new FilePathAndContent<SonarLintConfiguration>("dummy.txt", new SonarLintConfiguration());
+            var csharpVbConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
+            return csharpVbConfig;
         }
 
         [TestMethod]
@@ -235,10 +248,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, expectedRuleSet);
 
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
 
             // Assert
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
@@ -269,10 +282,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
 
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, existingProjectRuleSetPath);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, existingProjectRuleSetPath);
 
             // Assert
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
@@ -311,10 +324,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
 
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, dotNetRuleSet, relativePathToExistingProjectRuleSet);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, relativePathToExistingProjectRuleSet);
 
             // Assert
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
@@ -349,10 +362,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { currentNonExistingRuleSet, newSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, newSolutionRuleSetPath);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, expectedRuleSet);
 
             // Act
-            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, dotNetRuleSet, currentNonExistingRuleSet);
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, currentNonExistingRuleSet);
 
             // Assert
             this.ruleSetFS.AssertRuleSetNotExists(actualPath);
@@ -381,13 +394,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 numRules: 0,
                 includes: new[] { expectedSolutionRuleSetInclude }
             );
-            var dotNetRuleSet = new CSharpVBBindingConfig(expectedRuleSet, solutionRuleSetPath);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
 
             List<string> filesPending = new List<string>();
             foreach (var currentRuleSet in new[] { null, string.Empty, CSharpVBBindingOperation.DefaultProjectRuleSet })
             {
                 // Act
-                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, dotNetRuleSet, currentRuleSet);
+                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, currentRuleSet);
                 filesPending.Add(actualPath);
 
                 // Assert
