@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             ((Project)this).Name = Path.GetFileName(projectFile);
             this.Properties = new PropertiesMock(this);
+            ProjectItemsMock = new ProjectItemsMock(this);
         }
 
         public bool IsLoaded
@@ -129,12 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         ProjectItems Project.ProjectItems
         {
-            get
-            {
-                ProjectItems projectItems = new ProjectItemsMock(this);
-                this.Files.Keys.ToList().ForEach(f => projectItems.AddFromFile(f));
-                return projectItems;
-            }
+            get { return ProjectItemsMock; }
         }
 
         Properties Project.Properties
@@ -351,6 +347,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #endregion IVsBuildPropertyStorage
+
+        public ProjectItemsMock ProjectItemsMock { get; }
 
         public uint AddOrGetFile(string filePath)
         {
