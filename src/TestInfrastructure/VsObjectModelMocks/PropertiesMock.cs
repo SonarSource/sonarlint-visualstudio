@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         Property Properties.Item(object index)
         {
-            return this.properties[(int)index - 1]; // Starts from 1.
+            return this.properties[(int)index - 1]; // VS proprerty indexing starts from 1.
         }
 
         #endregion Properties
@@ -99,6 +99,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             PropertyMock prop = new PropertyMock(name, this);
             this.properties.Add(prop);
             return prop;
+        }
+
+        public PropertyMock this[string propertyName]
+        {
+            get { return properties.FirstOrDefault(x => x.Name == propertyName); }
         }
 
         #endregion Test helpers
