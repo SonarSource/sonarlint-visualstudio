@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-        
+
         [TestMethod]
         public void ProjectSystemHelper_ArgCheck()
         {
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ProjectSystemHelper_GetIVsHierarchy()
         {
             // Arrange
-            string projectName = "project";
+            const string projectName = "project";
 
             // Sanity
             this.testSubject.GetIVsHierarchy(new ProjectMock(projectName)).Should().BeNull("Project not associated with the solution");
@@ -115,22 +115,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsFileInProject_ArgChecks()
+        public void ProjectSystemHelper_IsFileInProject_ProjectArgCheck()
         {
-            // 1. Invalid project
             Action act = () => this.testSubject.IsFileInProject(null, "file");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+        }
 
-            // 2. Null file name
-            act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
-
-            // 3. Empty file name
-            act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), "");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
-
-            // 4. Null file name
-            act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), "\t\n");
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void ProjectSystemHelper_IsFileInProject_FileArgCheck(string file)
+        {
+            Action act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), file);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
@@ -140,9 +137,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
             ProjectMock project2 = this.solutionMock.AddOrGetProject("project2");
-            string file1 = "file1";
-            string file2 = "file2";
-            string file3 = "file3";
+            const string file1 = "file1";
+            const string file2 = "file2";
+            const string file3 = "file3";
             project1.AddOrGetFile(file1);
             project1.AddOrGetFile(file2);
 
@@ -160,8 +157,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
-            string existingFile = "FILENAME";
-            string newFile = "filename";
+            const string existingFile = "FILENAME";
+            const string newFile = "filename";
             project.AddOrGetFile(existingFile);
 
             // Act + Assert
@@ -178,22 +175,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_FindFileInProject_ArgChecks()
+        public void ProjectSystemHelper_FindFileInProject_ProjectArgCheck()
         {
-            // 1. Invalid project
             Action act = () => testSubject.FindFileInProject(null, "file");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+        }
 
-            // 2. Null file name
-            act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
-
-            // 3. Empty file name
-            act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), "");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
-
-            // 4. Null file name
-            act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), "\t\n");
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void ProjectSystemHelper_FindFileInProject_FileArgChecks(string fileName)
+        {
+            Action act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), fileName);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
@@ -253,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetSolutionFolderProject_WhenFolderDoesntExistButForceCreate_ExpectsANonNullProject()
         {
             /// Arrange
-            var solutionFolderName = "SomeFolderName";
+            const string solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
             dte.Solution = this.solutionMock;
@@ -272,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetSolutionFolderProject_WhenFolderDoesntExistButDontForceCreate_ExpectsANullProject()
         {
             /// Arrange
-            var solutionFolderName = "SomeFolderName";
+            const string solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
             dte.Solution = this.solutionMock;
@@ -288,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetSolutionFolderProject_WhenCalledMultipleTimes_ReturnsSameProject()
         {
             // Arrange
-            var solutionFolderName = "SomeFolderName";
+            const string solutionFolderName = "SomeFolderName";
             DTEMock dte = new DTEMock();
             this.serviceProvider.RegisterService(typeof(DTE), dte);
             dte.Solution = this.solutionMock;
@@ -328,22 +322,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_AddFileToProject_ArgChecks()
+        public void ProjectSystemHelper_AddFileToProject_ProjectArgCheck()
         {
-            // 1. Invalid project
             Action act = () => this.testSubject.AddFileToProject(null, "file");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
+        }
 
-            // 2. Null file name
-            act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
-
-            // 3. Empty file name
-            act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), "");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
-
-            // 4. Whitespace file name
-            act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), "\t\n");
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void ProjectSystemHelper_AddFileToProject_FileArgCheck(string file)
+        {
+            Action act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), file);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
@@ -352,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
-            string fileToAdd = @"x:\myFile.txt";
+            const string fileToAdd = @"x:\myFile.txt";
 
             // Case 1: file not in project
             // Act
@@ -374,7 +365,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
-            string file = @"x:\myFile.txt";
+            const string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
             project.Files.ContainsKey(file).Should().BeTrue();
 
@@ -390,7 +381,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
-            string file = @"x:\myFile.txt";
+            const string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
             project.Files.ContainsKey(file).Should().BeTrue();
             var oldCount = project.Files.Count;
@@ -408,7 +399,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
-            string file = @"x:\myFile.txt";
+            const string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
             project.Files.ContainsKey(file).Should().BeTrue();
 
@@ -429,7 +420,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(DTE), dte);
             dte.Solution = this.solutionMock;
             var project = this.testSubject.GetSolutionFolderProject("foo", true);
-            string file = @"x:\myFile.txt";
+            const string file = @"x:\myFile.txt";
             this.testSubject.AddFileToProject(project, file);
             this.testSubject.IsFileInProject(project, file).Should().BeTrue();
 
@@ -462,18 +453,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetProjectProperty_ArgChecks()
+        public void ProjectSystemHelper_GetProjectProperty_ProjectArgCheck()
         {
-            // 1. Null project
             Action act = () => testSubject.GetProjectProperty(null, "prop");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
+        }
 
-            // 2. Null property name
-            act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
-
-            // 3. Empty property name
-            act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), string.Empty);
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void ProjectSystemHelper_GetProjectProperty_PropertyNameArgCheck(string propertyName)
+        {
+            Action act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), propertyName);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
@@ -506,18 +498,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_SetProjectProperty_ArgChecks()
+        public void ProjectSystemHelper_SetProjectProperty_PropertyArgCheck()
         {
             // 1. Null project
             Action act = () => testSubject.SetProjectProperty(null, "prop", "val");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
+        }
 
-            // 2. Null property name
-            act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), null, "val");
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
-
-            // 3. Empty property name
-            act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), string.Empty, "val");
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void ProjectSystemHelper_SetProjectProperty_PropertyArgCheck(string propertyName)
+        {
+            Action act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), propertyName, "val");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
@@ -550,18 +543,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_ClearProjectProperty_ArgChecks()
+        public void ProjectSystemHelper_ClearProjectProperty_ProjectArgCheck()
         {
-            // 1. Null project
             Action act = () => testSubject.ClearProjectProperty(null, "prop");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
+        }
 
-            // 2. Null property name
-            act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
-
-            // 3. Empty property name
-            act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), string.Empty);
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void ProjectSystemHelper_ClearProjectProperty_PropertyArgCheck(string propertyName)
+        {
+            Action act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), propertyName);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
@@ -618,7 +612,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ProjectSystemHelper_GetAggregateProjectKinds_HasGoodAndBadGuids_ReturnsSuccessfullyParsedGuidsOnly()
         {
             // Arrange
-            string guidString = ";;;F602148F607646F88F7772CC9C49BC3F;;__BAD__;;__BADGUID__;0BA323B301614B1C80D74607B7EB7F5A;;;__FOO__;;;";
+            const string guidString = ";;;F602148F607646F88F7772CC9C49BC3F;;__BAD__;;__BADGUID__;0BA323B301614B1C80D74607B7EB7F5A;;;__FOO__;;;";
             Guid[] expectedGuids = new[]
             {
                 new Guid("F602148F607646F88F7772CC9C49BC3F"),
