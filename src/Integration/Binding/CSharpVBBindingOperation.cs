@@ -129,10 +129,35 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
-            // Three options:
+            // We assume that we've checked during the "Prepare" step that there are references to other
+            // SonarLint.xml files as additional files in the project, and failed the binding if there are.
+            // In theory, that leaves three options:
             // * the file isn't referenced -> add it
             // * the file is referenced but with the wrong ItemType -> try to fix it.
             // * the file is correctly referenced -> do nothing
+            //
+            // In practice, things are more complicated.
+            // Scenario:
+            // A) Old-style project, file is ref'd in a Directory.Build.props file.
+            //      It will be used by MSBuild in command line builds.
+            //      However, the VS APIs won't detect the file so we can't tell it exists -> we think the project is not fully bound.
+            //      We'll still try to add it, and will succeed -> the file will also be ref'd in each project file.
+            //      Summary: no error, but duplicate references in the project files.
+            //
+            // B) Old-style project, file is *not* ref'd, but SonarLint.xml file exists on disc in the same folder as the project file.
+            //      We detect the project is not fully bound -> try to add the file.
+            //      This will error with:
+            //          "Cannot add a link to the file SonarLint.xml. There is already a file of the same name in this folder.".
+            //      This should be a real corner case.
+            // 
+            // C) New-style project, file is ref'd in a Directory.Build.props file but with the wrong ItemType
+            //      We detect the project is not fully bound -> try to change the item type.
+            //      This errors with:
+            //          "Only included item inside the project can be moved.
+            //           Parameter name: currentItem"
+            //      Note: this only happens if the ItemType is one that VS knows e.g. "Content". If it is a type
+            //      VS does not recognise (e.g. "Foo") then adding the file succeeds.
+
             var additionalFilePath = cSharpVBBindingConfig.AdditionalFile.Path;
             var refdFile = projectSystem.FindFileInProject(initializedProject, additionalFilePath);
             if (refdFile == null)
