@@ -364,13 +364,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             projectMock.Files.ContainsKey(cSharpVBBindingConfig.AdditionalFile.Path).Should().BeTrue("Should add AdditionalFile to the project");
+
+            var fileProperties = projectMock.ProjectItemsMock[cSharpVBBindingConfig.AdditionalFile.Path].PropertiesMock;
+            fileProperties[Constants.ItemTypePropertyKey].Value.Should().Be(Constants.AdditionalFilesItemTypeName);
         }
 
         #endregion Tests
 
-            #region Helpers
+        #region Helpers
 
-            private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue)
+        private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue)
         {
             ConfigurationMock config = project.ConfigurationManager.Configurations.SingleOrDefault(c => c.ConfigurationName == configurationName);
             if (config == null)

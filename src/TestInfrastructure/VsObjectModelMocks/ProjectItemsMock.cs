@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -29,9 +29,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ProjectItemsMock : ProjectItems
     {
-        private readonly List<ProjectItem> items = new List<ProjectItem>();
+        private readonly List<FileProjectItemMock> items = new List<FileProjectItemMock>();
 
-        public ProjectItemsMock(ProjectMock parent, params ProjectItem[] items)
+        public ProjectItemsMock(ProjectMock parent)
         {
             if (parent == null)
             {
@@ -40,6 +40,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.Project = parent;
             this.items.AddRange(items);
+        }
+
+        public FileProjectItemMock this[string filePath]
+        {
+            get { return items.FirstOrDefault(x => x.Name == filePath); }
+        }
+
+        private void RemoveProjectItem(FileProjectItemMock item)
+        {
+            items.Remove(item);
+            Project.RemoveFile(item.Name);
         }
 
         public ProjectMock Project
@@ -131,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         ProjectItem ProjectItems.Item(object index)
         {
-            return this.items[(int)index + 1];
+            return this.items[(int)index - 1]; // VS item indexing starts at 1
         }
 
         #endregion ProjectItems
@@ -139,16 +150,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region FileProjectItemMock
 
         // Simplification over the exact structure
-        internal class FileProjectItemMock : ProjectItem
+        public class FileProjectItemMock : ProjectItem
         {
-            private readonly PropertiesMock properties;
+            public PropertiesMock PropertiesMock { get; }
 
             public FileProjectItemMock(ProjectItemsMock parent, string file)
             {
                 this.Parent = parent;
                 this.Name = file;
-                this.properties = new PropertiesMock(this);
-                this.properties.RegisterKnownProperty(Constants.ItemTypePropertyKey);
+                this.PropertiesMock = new PropertiesMock(this);
+                this.PropertiesMock.RegisterKnownProperty(Constants.ItemTypePropertyKey);
             }
 
             public ProjectItemsMock Parent
@@ -255,13 +266,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 get
                 {
-                    return null;
+                    return Parent;
                 }
             }
 
             public Properties Properties
             {
-                get { return this.properties; }
+                get { return this.PropertiesMock; }
             }
 
             public bool Saved
@@ -310,11 +321,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public void Remove()
             {
-                var projectMock = ContainingProject as ProjectMock;
-                if (projectMock != null)
-                {
-                    projectMock.RemoveFile(Name);
-                }
+                this.Parent.RemoveProjectItem(this);
             }
 
             public void Save(string FileName = "")
