@@ -68,7 +68,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal /*for testing purposes*/ Language ProjectLanguage { get; private set; }
 
         internal /*for testing purposes*/ string ProjectFullPath { get; private set; }
-       
         internal /*for testing purposes*/ IReadOnlyDictionary<Property, PropertyInformation> PropertyInformationMap { get { return this.propertyInformationMap; } }
         #endregion
 
@@ -92,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 string targetRuleSetFileName = group.Key;
                 string currentRuleSetFilePath = group.First().CurrentRuleSetFilePath;
-                Debug.Assert(group.All(i => StringComparer.OrdinalIgnoreCase.Equals(currentRuleSetFilePath, currentRuleSetFilePath)), "Expected all the rulesets to be the same when the target rule set name is the same");
+                Debug.Assert(group.All(_ => StringComparer.OrdinalIgnoreCase.Equals(currentRuleSetFilePath, currentRuleSetFilePath)), "Expected all the rulesets to be the same when the target rule set name is the same");
                 string newRuleSetFilePath = this.QueueWriteProjectLevelRuleSet(this.ProjectFullPath, targetRuleSetFileName, cSharpVBBindingConfig, currentRuleSetFilePath);
 
                 foreach (PropertyInformation info in group)
@@ -105,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public void Commit()
         {
             AddRuleset();
-            AddAdditionalFile();
+            EnsureAdditionalFileIsReferenced();
         }
 
         private void AddRuleset()
@@ -125,20 +124,30 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
         }
 
-        private void AddAdditionalFile()
+        private void EnsureAdditionalFileIsReferenced()
         {
-            try
+            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+
+            // Three options:
+            // * the file isn't referenced -> add it
+            // * the file is referenced but with the wrong ItemType -> try to fix it.
+            // * the file is correctly referenced -> do nothing
+            var additionalFilePath = cSharpVBBindingConfig.AdditionalFile.Path;
+            var refdFile = projectSystem.FindFileInProject(initializedProject, additionalFilePath);
+            if (refdFile == null)
             {
-                var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-                projectSystem.AssertLocalServiceIsNotNull();
-                // It's possible that the additional file is set property, but the ruleset is out of date, which will trigger the binding. So we need to remove the file first, otherwise we get an error that the file already exists.
-                // It's possible that the additional file exists but has a wrong type, e.g. Compile/Content, and not AdditionalFiles. In which case removing and re-adding it solves the problem.
-                projectSystem.RemoveFileFromProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path);
-                projectSystem.AddFileToProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, "AdditionalFiles");
+                projectSystem.AddFileToProject(initializedProject, additionalFilePath, Constants.AdditionalFilesItemTypeName);
             }
-            catch (Exception ex)
+            else
             {
-                throw new Exception($"Failed to bind project {initializedProject.FullName}, exception details: {ex}");
+                var property = VsShellUtils.FindProperty(refdFile.Properties, Constants.ItemTypePropertyKey);
+                if (!Constants.AdditionalFilesItemTypeName.Equals(property.Value?.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    // This will fail if the existing item ref isn't in the main project file e.g. if it is in a Directory.Build.props file.
+                    // We can't do much about this, other than catch and log the error higher up.
+                    property.Value = Constants.AdditionalFilesItemTypeName;
+                }
             }
         }
 
@@ -220,7 +229,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             public string CurrentRuleSetFilePath { get; }
 
             public string NewRuleSetFilePath { get; set; }
-
         }
         #endregion
     }
