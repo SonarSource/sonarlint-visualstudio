@@ -19,7 +19,10 @@
  */
 
 using System;
+using System.IO;
+using System.Runtime.Serialization.Formatters.Binary;
 using FluentAssertions;
+using FluentAssertions.Formatting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace SonarLint.VisualStudio.Core.UnitTests
@@ -55,6 +58,26 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             ex.Message.Should().Be("Binding failed");
             ex.InnerException.Should().BeSameAs(inner);
+        }
+
+        [TestMethod]
+        public void Ctor_Serialization()
+        {
+            var inner = new InvalidDataException();
+            var serializer = new BinaryFormatter();
+
+            var originalEx = new SonarLintException("yyy", inner);
+            SonarLintException deserializedEx;
+
+            using (var stream = new MemoryStream())
+            {
+                serializer.Serialize(stream, originalEx);
+                stream.Position = 0;
+                deserializedEx = serializer.Deserialize(stream) as SonarLintException;
+            }
+
+            deserializedEx.Message.Should().Be("yyy");
+            deserializedEx.InnerException.Should().BeOfType<InvalidDataException>();
         }
     }
 }
