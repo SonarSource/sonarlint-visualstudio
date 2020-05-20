@@ -52,7 +52,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public ProjectItem FindFileInProject(Project project, string fileName)
         {
-            throw new NotImplementedException();
+            var item = project.ProjectItems.OfType<ProjectItem>().FirstOrDefault(pi => StringComparer.OrdinalIgnoreCase.Equals(pi.Name, fileName));
+            return item;
         }
 
         IEnumerable<Project> IProjectSystemHelper.GetSolutionProjects()

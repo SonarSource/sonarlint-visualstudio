@@ -348,25 +348,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_Commit_AddsAdditionalFile()
+        public void ProjectBindingOperation_Commit_AdditionalFileIsNotRefd_FileIsAdded()
         {
             // Arrange
-            var testSubject = CreateTestSubject();
             projectMock.SetCSProjectKind();
+            projectMock.Files.Count().Should().Be(0); // sanity check - no files
+
+            var testSubject = CreateTestSubject();
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
             // Act
-            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
-            {
-                testSubject.Commit();
-            }
+            testSubject.Commit();
 
             // Assert
-            projectMock.Files.ContainsKey(cSharpVBBindingConfig.AdditionalFile.Path).Should().BeTrue("Should add AdditionalFile to the project");
+            CheckAdditionalFileIsReferenced(projectMock, cSharpVBBindingConfig.AdditionalFile.Path);
+            projectMock.Files.Count().Should().Be(1); // file added
+        }
 
-            var fileProperties = projectMock.ProjectItemsMock[cSharpVBBindingConfig.AdditionalFile.Path].PropertiesMock;
-            fileProperties[Constants.ItemTypePropertyKey].Value.Should().Be(Constants.AdditionalFilesItemTypeName);
+        [TestMethod]
+        [DataRow("WrongItemType")]
+        [DataRow(Constants.AdditionalFilesItemTypeName)]
+        public void ProjectBindingOperation_Commit_FileIsAlreadyReferenced(string existingFileItemType)
+        {
+            // Arrange
+            var filePath = cSharpVBBindingConfig.AdditionalFile.Path;
+            projectMock.SetCSProjectKind();
+            AddProjectItem(filePath, existingFileItemType);
+
+            var testSubject = CreateTestSubject();
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            // Act
+            testSubject.Commit();
+
+            // Assert
+            CheckAdditionalFileIsReferenced(projectMock, filePath);
+            projectMock.Files.Count().Should().Be(1); // existing file updated
         }
 
         #endregion Tests
@@ -390,6 +409,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private CSharpVBBindingOperation CreateTestSubject()
         {
             return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig);
+        }
+
+        private void AddProjectItem(string filePath, string itemType)
+        {
+            ((EnvDTE.ProjectItems)projectMock.ProjectItemsMock).AddFromFile(filePath);
+            projectMock.ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
+        }
+
+        private static void CheckAdditionalFileIsReferenced(ProjectMock projectMock, string filePath)
+        {
+            projectMock.Files.ContainsKey(filePath).Should().BeTrue();
+            projectMock.ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value.Should().Be(Constants.AdditionalFilesItemTypeName);
         }
 
         #endregion Helpers
