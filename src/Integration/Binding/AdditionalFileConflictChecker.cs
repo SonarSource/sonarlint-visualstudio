@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var additionalFileName = Path.GetFileName(expectedAdditionalFilePath);
 
             return ExistsUnderRootFolder(project, additionalFileName, out conflictedAdditionalFilePath) ||
-                   IsReferencedUnderProjectFolder(project, additionalFileName, out conflictedAdditionalFilePath);
+                   ExistsInProject(project, additionalFileName, out conflictedAdditionalFilePath);
         }
 
         private bool ExistsUnderRootFolder(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return fileSystem.File.Exists(additionalFileName);
         }
 
-        private bool IsReferencedUnderProjectFolder(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
+        private bool ExistsInProject(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
         {
             foreach (ProjectItem projectItem in project.ProjectItems)
             {
