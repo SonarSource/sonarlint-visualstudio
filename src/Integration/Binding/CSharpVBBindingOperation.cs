@@ -26,6 +26,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -130,6 +131,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             EnsureAdditionalFileIsReferenced();
         }
 
+
+        #region Helpers
+
         private void AddRuleset()
         {
             foreach (var keyValue in this.propertyInformationMap)
@@ -185,11 +189,32 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var refdFile = projectSystem.FindFileInProject(initializedProject, additionalFilePath);
             if (refdFile == null)
             {
-                projectSystem.AddFileToProject(initializedProject, additionalFilePath, Constants.AdditionalFilesItemTypeName);
+                AddAdditionalFileToProject(projectSystem, initializedProject, additionalFilePath);
             }
             else
             {
-                var property = VsShellUtils.FindProperty(refdFile.Properties, Constants.ItemTypePropertyKey);
+                EnsureItemTypeIsCorrect(refdFile);
+            }
+        }
+
+        internal /* for testing */ static void AddAdditionalFileToProject(IProjectSystemHelper projectSystem, Project project, string filePath)
+        {
+            try
+            {
+                projectSystem.AddFileToProject(project, filePath, Constants.AdditionalFilesItemTypeName);
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                var message = string.Format(BindingStrings.CSharpVB_FailedToAddSonarLintXml, project.FileName, ex.Message);
+                throw new SonarLintException(message, ex);
+            }
+        }
+
+        internal /* for testing */ static void EnsureItemTypeIsCorrect(ProjectItem projectItem)
+        {
+            try
+            {
+                var property = VsShellUtils.FindProperty(projectItem.Properties, Constants.ItemTypePropertyKey);
                 if (!Constants.AdditionalFilesItemTypeName.Equals(property.Value?.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
                     // This will fail if the existing item ref isn't in the main project file e.g. if it is in a Directory.Build.props file.
@@ -197,9 +222,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     property.Value = Constants.AdditionalFilesItemTypeName;
                 }
             }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                var message = string.Format(BindingStrings.CSharpVB_FailedToSetSonarLintXmlItemType, projectItem.ContainingProject.FileName, 
+                    Constants.AdditionalFilesItemTypeName, ex.Message);
+                throw new SonarLintException(message, ex);
+            }
         }
-
-        #region Helpers
 
         private void CaptureProject()
         {
