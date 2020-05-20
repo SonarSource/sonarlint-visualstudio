@@ -414,11 +414,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projectMock.SetCSProjectKind();
             projectMock.Files.Count().Should().Be(0); // sanity check - no files
 
-            string conflictPath;
-            additionalFileConflictChecker
-                .Setup(x => x.HasConflictingAdditionalFile(projectMock, cSharpVBBindingConfig.AdditionalFile.Path, out conflictPath))
-                .Returns(false);
-
             var testSubject = CreateTestSubject();
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);

@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectRootDirectory = Path.GetDirectoryName(project.FullName);
             conflictingAdditionalFilePath = Path.Combine(projectRootDirectory, additionalFileName);
 
-            // For old-style SDK projects, the file can exist on disk but not referenced in the project, so we check using the file system
+            // For old-style MSBuild projects, the file can exist on disk but not referenced in the project, so we check using the file system
             return fileSystem.File.Exists(conflictingAdditionalFilePath);
         }
 
