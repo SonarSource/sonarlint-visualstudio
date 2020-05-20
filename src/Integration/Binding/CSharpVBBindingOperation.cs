@@ -40,22 +40,24 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IServiceProvider serviceProvider;
         private readonly ICSharpVBBindingConfig cSharpVBBindingConfig;
         private readonly IFileSystem fileSystem;
+        private readonly IAdditionalFileConflictChecker additionalFileConflictChecker;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
         public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
-            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem())
+            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker(serviceProvider))
         {
         }
 
-        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, IFileSystem fileSystem)
+        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, IFileSystem fileSystem, IAdditionalFileConflictChecker additionalFileConflictChecker)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
             this.cSharpVBBindingConfig = cSharpVBBindingConfig ?? throw new ArgumentNullException(nameof(cSharpVBBindingConfig));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.additionalFileConflictChecker = additionalFileConflictChecker;
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
@@ -98,6 +100,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     info.NewRuleSetFilePath = newRuleSetFilePath;
                 }
+            }
+
+            var hasAnotherAdditionalFile = additionalFileConflictChecker.HasAnotherAdditionalFile(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, out var conflictedAdditionalFilePath);
+
+            if (hasAnotherAdditionalFile)
+            {
+                throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} is found under {conflictedAdditionalFilePath}. Please remove the file and try again.");
             }
         }
 
