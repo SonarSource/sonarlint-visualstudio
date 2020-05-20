@@ -48,8 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             projectSystem.AssertLocalServiceIsNotNull();
         }
 
-        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath,
-            out string conflictedAdditionalFilePath)
+        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictedAdditionalFilePath)
         {
             // If the correct file is already in the project, it means we were successful in adding it and there is no clash
             if (projectSystem.IsFileInProject(project, expectedAdditionalFilePath))
