@@ -28,37 +28,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
     internal class AdditionalFileConflictChecker : IAdditionalFileConflictChecker
     {
         private readonly IFileSystem fileSystem;
-        private readonly IProjectSystemHelper projectSystem;
 
-        public AdditionalFileConflictChecker(IServiceProvider serviceProvider)
-            : this(serviceProvider, new FileSystem())
+        public AdditionalFileConflictChecker()
+            : this(new FileSystem())
         {
         }
 
-        internal AdditionalFileConflictChecker(IServiceProvider serviceProvider, IFileSystem fileSystem)
+        internal AdditionalFileConflictChecker(IFileSystem fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.fileSystem = fileSystem;
-
-            projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.AssertLocalServiceIsNotNull();
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
-        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictingAdditionalFilePath)
+        public bool HasConflictingAdditionalFile(Project project, string additionalFileName, out string conflictingAdditionalFilePath)
         {
-            // If the correct file is already in the project, it means we were successful in adding it and there is no clash
-            if (projectSystem.IsFileInProject(project, expectedAdditionalFilePath))
-            {
-                conflictingAdditionalFilePath = string.Empty;
-                return false;
-            }
-
-            var additionalFileName = Path.GetFileName(expectedAdditionalFilePath);
-
             return ExistsUnderRootFolder(project, additionalFileName, out conflictingAdditionalFilePath) ||
                    ExistsInProject(project, additionalFileName, out conflictingAdditionalFilePath);
         }
@@ -69,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             conflictingAdditionalFilePath = Path.Combine(projectRootDirectory, additionalFileName);
 
             // For old-style SDK projects, the file can exist on disk but not referenced in the project, so we check using the file system
-            return fileSystem.File.Exists(additionalFileName);
+            return fileSystem.File.Exists(conflictingAdditionalFilePath);
         }
 
         private bool ExistsInProject(Project project, string additionalFileName, out string conflictingAdditionalFilePath)

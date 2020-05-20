@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly Project initializedProject;
 
         public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
-            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker(serviceProvider))
+            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker())
         {
         }
 
@@ -102,11 +102,25 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
             }
 
-            var hasAnotherAdditionalFile = additionalFileConflictChecker.HasAnotherAdditionalFile(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, out var conflictingAdditionalFilePath);
+            EnsureNoConflictingAdditionalFile();
+        }
 
-            if (hasAnotherAdditionalFile)
+        private void EnsureNoConflictingAdditionalFile()
+        {
+            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.AssertLocalServiceIsNotNull();
+
+            // If the correct file is already in the project, it means we were successful in adding it and there is no clash
+            if (!projectSystem.IsFileInProject(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path))
             {
-                throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} already exists. Please remove '{conflictingAdditionalFilePath}' and try again.");
+                var additionalFileName = Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path);
+
+                var hasConflict = additionalFileConflictChecker.HasConflictingAdditionalFile(initializedProject, additionalFileName, out var conflictingAdditionalFilePath);
+
+                if (hasConflict)
+                {
+                    throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} already exists. Please remove '{conflictingAdditionalFilePath}' and try again.");
+                }
             }
         }
 

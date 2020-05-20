@@ -264,10 +264,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public ProjectItems ProjectItems
             {
-                get
-                {
-                    return Parent;
-                }
+                get { return new ProjectItemsMock(Parent.Project); }
             }
 
             public Properties Properties
@@ -306,7 +303,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public string get_FileNames(short index)
             {
-                throw new NotImplementedException();
+                return Name;
             }
 
             public bool get_IsOpen(string ViewKind = "{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}")

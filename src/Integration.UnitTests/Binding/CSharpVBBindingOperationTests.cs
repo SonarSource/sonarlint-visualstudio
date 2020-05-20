@@ -77,10 +77,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             cSharpVBBindingConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
 
             additionalFileConflictChecker = new Mock<IAdditionalFileConflictChecker>();
-            string conflictPath;
-            additionalFileConflictChecker
-                .Setup(x => x.HasAnotherAdditionalFile(It.IsAny<Project>(), It.IsAny<string>(), out conflictPath))
-                .Returns(false);
         }
 
         #region Tests
@@ -308,6 +304,62 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
+        public void ProjectBindingOperation_Prepare_AdditionalFileAlreadyReferenced_AdditionalFileConflictNotChecked()
+        {
+            var testSubject = CreateTestSubject();
+            projectMock.SetCSProjectKind();
+            testSubject.Initialize();
+
+            projectSystemHelper.IsFileInProjectAction = (project, s) => project == projectMock && s == cSharpVBBindingConfig.AdditionalFile.Path;
+
+            testSubject.Prepare(CancellationToken.None);
+
+            additionalFileConflictChecker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ProjectBindingOperation_Prepare_AdditionalFileConflict_Exception()
+        {
+            var testSubject = CreateTestSubject();
+            projectMock.SetCSProjectKind();
+            testSubject.Initialize();
+
+            var additionalFileName = Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path);
+            var conflictingPath = "this is the conflicting file path";
+            additionalFileConflictChecker
+                .Setup(x => x.HasConflictingAdditionalFile(projectMock, additionalFileName, out conflictingPath))
+                .Returns(true);
+
+            Action act = () => testSubject.Prepare(CancellationToken.None);
+
+            act.Should().Throw<Exception>().And.Message.Should().Contain(((Project)projectMock).Name);
+            act.Should().Throw<Exception>().And.Message.Should().Contain(additionalFileName);
+            act.Should().Throw<Exception>().And.Message.Should().Contain(conflictingPath);
+
+            additionalFileConflictChecker.VerifyAll();
+        }
+
+        [TestMethod]
+        public void ProjectBindingOperation_Prepare_NoAdditionalFileConflict_NoException()
+        {
+            var testSubject = CreateTestSubject();
+            projectMock.SetCSProjectKind();
+            testSubject.Initialize();
+
+            var additionalFileName = Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path);
+            var conflictingPath = "this is the conflicting file path";
+            additionalFileConflictChecker
+                .Setup(x => x.HasConflictingAdditionalFile(projectMock, additionalFileName, out conflictingPath))
+                .Returns(false);
+
+            Action act = () => testSubject.Prepare(CancellationToken.None);
+
+            act.Should().NotThrow();
+
+            additionalFileConflictChecker.VerifyAll();
+        }
+
+        [TestMethod]
         public void ProjectBindingOperation_Commit_NewProjectSystem_DoesNotAddFile()
         {
             // Arrange
@@ -364,7 +416,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             string conflictPath;
             additionalFileConflictChecker
-                .Setup(x => x.HasAnotherAdditionalFile(projectMock, cSharpVBBindingConfig.AdditionalFile.Path, out conflictPath))
+                .Setup(x => x.HasConflictingAdditionalFile(projectMock, cSharpVBBindingConfig.AdditionalFile.Path, out conflictPath))
                 .Returns(false);
 
             var testSubject = CreateTestSubject();
@@ -387,7 +439,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var filePath = cSharpVBBindingConfig.AdditionalFile.Path;
             projectMock.SetCSProjectKind();
-            AddProjectItem(filePath, existingFileItemType);
+            projectMock.AddProjectItem(filePath, existingFileItemType);
 
             var testSubject = CreateTestSubject();
             testSubject.Initialize();
@@ -422,12 +474,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private CSharpVBBindingOperation CreateTestSubject()
         {
             return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig, new MockFileSystem(), additionalFileConflictChecker.Object);
-        }
-
-        private void AddProjectItem(string filePath, string itemType)
-        {
-            ((EnvDTE.ProjectItems)projectMock.ProjectItemsMock).AddFromFile(filePath);
-            projectMock.ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
         }
 
         private static void CheckAdditionalFileIsReferenced(ProjectMock projectMock, string filePath)
