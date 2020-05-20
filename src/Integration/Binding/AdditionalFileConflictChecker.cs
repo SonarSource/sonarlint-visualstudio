@@ -19,13 +19,8 @@
  */
 
 using System;
-using System.Collections;
 using System.IO;
 using System.IO.Abstractions;
-using System.Linq;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
-using System.Xml.XPath;
 using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -53,7 +48,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             projectSystem.AssertLocalServiceIsNotNull();
         }
 
-        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictedAdditionalFilePath)
+        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath,
+            out string conflictedAdditionalFilePath)
         {
             // If the correct file is already in the project, it means we were successful in adding it and there is no clash
             if (projectSystem.IsFileInProject(project, expectedAdditionalFilePath))
@@ -63,22 +59,18 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             var additionalFileName = Path.GetFileName(expectedAdditionalFilePath);
-            var projectRootDirectory = Path.GetDirectoryName(project.FullName);
-            var conflictingFileFullPath = Path.Combine(projectRootDirectory, additionalFileName);
 
-            if (Exists(conflictingFileFullPath))
-            {
-                conflictedAdditionalFilePath = conflictingFileFullPath;
-                return true;
-            }
-
-            return IsReferencedUnderProjectFolder(project, additionalFileName, out conflictedAdditionalFilePath);
+            return ExistsUnderRootFolder(project, additionalFileName, out conflictedAdditionalFilePath) ||
+                   IsReferencedUnderProjectFolder(project, additionalFileName, out conflictedAdditionalFilePath);
         }
 
-        private bool Exists(string fileName)
+        private bool ExistsUnderRootFolder(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
         {
+            var projectRootDirectory = Path.GetDirectoryName(project.FullName);
+            conflictedAdditionalFilePath = Path.Combine(projectRootDirectory, additionalFileName);
+
             // For old-style SDK projects, the file can exist on disk but not referenced in the project, so we check using the file system
-            return fileSystem.File.Exists(fileName);
+            return fileSystem.File.Exists(additionalFileName);
         }
 
         private bool IsReferencedUnderProjectFolder(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
