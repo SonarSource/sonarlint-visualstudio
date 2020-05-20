@@ -67,6 +67,8 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public const string ItemTypePropertyKey = "ItemType";
 
+        public const string FullPathPropertyKey = "FullPath";
+
         /// <summary>
         /// Ruleset file extension
         /// </summary>
