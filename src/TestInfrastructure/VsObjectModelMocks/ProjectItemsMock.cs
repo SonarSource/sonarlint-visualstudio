@@ -160,6 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.Name = file;
                 this.PropertiesMock = new PropertiesMock(this);
                 this.PropertiesMock.RegisterKnownProperty(Constants.ItemTypePropertyKey);
+                this.PropertiesMock.RegisterKnownProperty(Constants.FullPathPropertyKey);
             }
 
             public ProjectItemsMock Parent

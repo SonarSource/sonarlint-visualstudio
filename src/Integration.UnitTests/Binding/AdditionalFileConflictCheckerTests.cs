@@ -67,18 +67,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [DataRow("AdditionalFiles", true)]
         [DataRow("Foo", false)]
         [DataRow("Content", false)]
+        public void HasConflictingAdditionalFile_ConflictingFileIsALink_ReturnsIfFileIsAdditionalFile(string itemType, bool isConflicting)
+        {
+            const string conflictingFilePath = "c:\\dummy\\SonarLint.xml";
+            SetupFileUnderRootFolder(conflictingFilePath, exists: false);
+
+            var projectMock = new ProjectMock("c:\\dummy\\test.csproj");
+            projectMock.AddProjectItem("C:\\test\\folder\\sonarlint.xml", itemType);
+
+            var result = testSubject.HasConflictingAdditionalFile(projectMock, "SonarLint.xml", out var conflictingPath);
+
+            result.Should().Be(isConflicting);
+            conflictingPath.Should().Be(isConflicting ? "C:\\test\\folder\\sonarlint.xml" : "");
+        }
+
+        [TestMethod]
+        [DataRow("AdditionalFiles", true)]
+        [DataRow("Foo", false)]
+        [DataRow("Content", false)]
         public void HasConflictingAdditionalFile_ConflictingFileFoundInProject_ReturnsIfFileIsAdditionalFile(string itemType, bool isConflicting)
         {
             const string conflictingFilePath = "c:\\dummy\\SonarLint.xml";
             SetupFileUnderRootFolder(conflictingFilePath, exists: false);
 
             var projectMock = new ProjectMock("c:\\dummy\\test.csproj");
-            projectMock.AddProjectItem("sonarlint.xml", itemType);
+            projectMock.AddProjectItem("sonarLINT.xml", itemType);
 
             var result = testSubject.HasConflictingAdditionalFile(projectMock, "SonarLint.xml", out var conflictingPath);
             
             result.Should().Be(isConflicting);
-            conflictingPath.Should().Be(isConflicting ? "sonarlint.xml" : string.Empty);
+            conflictingPath.Should().Be(isConflicting ? "c:\\dummy\\sonarLINT.xml" : "");
         }
 
         [TestMethod]

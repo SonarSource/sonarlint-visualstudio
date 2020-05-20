@@ -402,6 +402,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             ((EnvDTE.ProjectItems) ProjectItemsMock).AddFromFile(filePath);
             ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
+            ProjectItemsMock[filePath].PropertiesMock[Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
         }
     }
 }

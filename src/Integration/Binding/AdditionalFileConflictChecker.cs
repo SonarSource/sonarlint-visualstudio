@@ -70,14 +70,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool HasAdditionalFile(ProjectItem projectItem, string additionalFileName, out string conflictingAdditionalFilePath)
         {
-            if (additionalFileName.Equals(projectItem.FileNames[0], StringComparison.OrdinalIgnoreCase))
+            if (additionalFileName.Equals(Path.GetFileName(projectItem.FileNames[0]), StringComparison.OrdinalIgnoreCase))
             {
                 var itemTypeProperty = VsShellUtils.FindProperty(projectItem.Properties, Constants.ItemTypePropertyKey);
                 var isMarkedAsAdditionalFile = Constants.AdditionalFilesItemTypeName.Equals(itemTypeProperty.Value?.ToString(), StringComparison.OrdinalIgnoreCase);
 
                 if (isMarkedAsAdditionalFile)
                 {
-                    conflictingAdditionalFilePath = projectItem.FileNames[0];
+                    var pathProperty = VsShellUtils.FindProperty(projectItem.Properties, Constants.FullPathPropertyKey);
+                    conflictingAdditionalFilePath = pathProperty.Value.ToString();
                     return true;
                 }
             }
