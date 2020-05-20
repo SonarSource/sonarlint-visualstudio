@@ -83,21 +83,38 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsReferencedUnderProjectFolder(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
         {
-            // When the file is under a folder, VS API cannot detect it: IVsProject.IsDocumentInProject/project.ProjectItems do not work.
-            // And we cannot detect using the file system, since the file can be referenced as a link.
-
-            var projectXml = fileSystem.File.ReadAllText(project.FullName);
-            var xDocument = XDocument.Load(new StringReader(projectXml));
-            var xPathEvaluate = xDocument.XPathEvaluate("//*[local-name() = 'Project']//*[local-name() = 'ItemGroup']//*[local-name() = 'AdditionalFiles']/@Include") as IEnumerable;
-
-            var hasAdditionalFile = xPathEvaluate
-                .Cast<XAttribute>()
-                .FirstOrDefault(x => additionalFileName.Equals(Path.GetFileName(x.Value), StringComparison.OrdinalIgnoreCase));
-
-            if (hasAdditionalFile != null)
+            foreach (ProjectItem projectItem in project.ProjectItems)
             {
-                conflictedAdditionalFilePath = hasAdditionalFile.Value;
-                return true;
+                if (IsAdditionalFile(projectItem, additionalFileName, out conflictedAdditionalFilePath))
+                {
+                    return true;
+                }
+            }
+
+            conflictedAdditionalFilePath = string.Empty;
+            return false;
+        }
+
+        private bool IsAdditionalFile(ProjectItem projectItem, string additionalFileName, out string conflictedAdditionalFilePath)
+        {
+            if (projectItem.FileNames[0].EndsWith(additionalFileName))
+            {
+                var itemTypeProperty = VsShellUtils.FindProperty(projectItem.Properties, Constants.ItemTypePropertyKey);
+                var isMarkedAsAdditionalFile = Constants.AdditionalFilesItemTypeName.Equals(itemTypeProperty.Value?.ToString(), StringComparison.OrdinalIgnoreCase);
+
+                if (isMarkedAsAdditionalFile)
+                {
+                    conflictedAdditionalFilePath = projectItem.FileNames[0];
+                    return true;
+                }
+            }
+
+            foreach (ProjectItem subItem in projectItem.ProjectItems)
+            {
+                if (IsAdditionalFile(subItem, additionalFileName, out conflictedAdditionalFilePath))
+                {
+                    return true;
+                }
             }
 
             conflictedAdditionalFilePath = string.Empty;
