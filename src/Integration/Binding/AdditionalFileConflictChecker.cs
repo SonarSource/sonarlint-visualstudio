@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             foreach (ProjectItem projectItem in project.ProjectItems)
             {
-                if (IsAdditionalFile(projectItem, additionalFileName, out conflictedAdditionalFilePath))
+                if (HasAdditionalFile(projectItem, additionalFileName, out conflictedAdditionalFilePath))
                 {
                     return true;
                 }
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return false;
         }
 
-        private bool IsAdditionalFile(ProjectItem projectItem, string additionalFileName, out string conflictedAdditionalFilePath)
+        private bool HasAdditionalFile(ProjectItem projectItem, string additionalFileName, out string conflictedAdditionalFilePath)
         {
             if (projectItem.FileNames[0].EndsWith(additionalFileName))
             {
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             foreach (ProjectItem subItem in projectItem.ProjectItems)
             {
-                if (IsAdditionalFile(subItem, additionalFileName, out conflictedAdditionalFilePath))
+                if (HasAdditionalFile(subItem, additionalFileName, out conflictedAdditionalFilePath))
                 {
                     return true;
                 }

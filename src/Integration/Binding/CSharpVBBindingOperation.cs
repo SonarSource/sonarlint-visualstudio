@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (hasAnotherAdditionalFile)
             {
-                throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} is found under {conflictedAdditionalFilePath}. Please remove the file and try again.");
+                throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} already exists. Please remove '{conflictedAdditionalFilePath}' and try again.");
             }
         }
 

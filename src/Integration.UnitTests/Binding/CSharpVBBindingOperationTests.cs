@@ -23,6 +23,7 @@ using System.IO;
 using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableSourceControlledFileSystem sccFileSystem;
         private ConfigurableRuleSetSerializer ruleSetFS;
         private MockFileSystem fileSystem;
+        private Mock<IAdditionalFileConflictChecker> additionalFileConflictChecker;
 
         [TestInitialize]
         public void TestInitialize()
@@ -73,6 +75,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var ruleset = new FilePathAndContent<RuleSet>(@"c:\Solution\sln.ruleset", new RuleSet("SonarQube"));
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(@"c:\Solution\additionalFile.txt", new SonarLintConfiguration());
             cSharpVBBindingConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
+
+            additionalFileConflictChecker = new Mock<IAdditionalFileConflictChecker>();
+            string conflictPath;
+            additionalFileConflictChecker
+                .Setup(x => x.HasAnotherAdditionalFile(It.IsAny<Project>(), It.IsAny<string>(), out conflictPath))
+                .Returns(false);
         }
 
         #region Tests
@@ -354,6 +362,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projectMock.SetCSProjectKind();
             projectMock.Files.Count().Should().Be(0); // sanity check - no files
 
+            string conflictPath;
+            additionalFileConflictChecker
+                .Setup(x => x.HasAnotherAdditionalFile(projectMock, cSharpVBBindingConfig.AdditionalFile.Path, out conflictPath))
+                .Returns(false);
+
             var testSubject = CreateTestSubject();
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
@@ -408,7 +421,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private CSharpVBBindingOperation CreateTestSubject()
         {
-            return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig);
+            return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig, new MockFileSystem(), additionalFileConflictChecker.Object);
         }
 
         private void AddProjectItem(string filePath, string itemType)
