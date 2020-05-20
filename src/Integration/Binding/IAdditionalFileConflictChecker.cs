@@ -24,6 +24,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal interface IAdditionalFileConflictChecker
     {
-        bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictedAdditionalFilePath);
+        bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictingAdditionalFilePath);
     }
 }

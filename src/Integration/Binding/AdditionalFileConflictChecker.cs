@@ -48,45 +48,45 @@ namespace SonarLint.VisualStudio.Integration.Binding
             projectSystem.AssertLocalServiceIsNotNull();
         }
 
-        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictedAdditionalFilePath)
+        public bool HasAnotherAdditionalFile(Project project, string expectedAdditionalFilePath, out string conflictingAdditionalFilePath)
         {
             // If the correct file is already in the project, it means we were successful in adding it and there is no clash
             if (projectSystem.IsFileInProject(project, expectedAdditionalFilePath))
             {
-                conflictedAdditionalFilePath = string.Empty;
+                conflictingAdditionalFilePath = string.Empty;
                 return false;
             }
 
             var additionalFileName = Path.GetFileName(expectedAdditionalFilePath);
 
-            return ExistsUnderRootFolder(project, additionalFileName, out conflictedAdditionalFilePath) ||
-                   ExistsInProject(project, additionalFileName, out conflictedAdditionalFilePath);
+            return ExistsUnderRootFolder(project, additionalFileName, out conflictingAdditionalFilePath) ||
+                   ExistsInProject(project, additionalFileName, out conflictingAdditionalFilePath);
         }
 
-        private bool ExistsUnderRootFolder(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
+        private bool ExistsUnderRootFolder(Project project, string additionalFileName, out string conflictingAdditionalFilePath)
         {
             var projectRootDirectory = Path.GetDirectoryName(project.FullName);
-            conflictedAdditionalFilePath = Path.Combine(projectRootDirectory, additionalFileName);
+            conflictingAdditionalFilePath = Path.Combine(projectRootDirectory, additionalFileName);
 
             // For old-style SDK projects, the file can exist on disk but not referenced in the project, so we check using the file system
             return fileSystem.File.Exists(additionalFileName);
         }
 
-        private bool ExistsInProject(Project project, string additionalFileName, out string conflictedAdditionalFilePath)
+        private bool ExistsInProject(Project project, string additionalFileName, out string conflictingAdditionalFilePath)
         {
             foreach (ProjectItem projectItem in project.ProjectItems)
             {
-                if (HasAdditionalFile(projectItem, additionalFileName, out conflictedAdditionalFilePath))
+                if (HasAdditionalFile(projectItem, additionalFileName, out conflictingAdditionalFilePath))
                 {
                     return true;
                 }
             }
 
-            conflictedAdditionalFilePath = string.Empty;
+            conflictingAdditionalFilePath = string.Empty;
             return false;
         }
 
-        private bool HasAdditionalFile(ProjectItem projectItem, string additionalFileName, out string conflictedAdditionalFilePath)
+        private bool HasAdditionalFile(ProjectItem projectItem, string additionalFileName, out string conflictingAdditionalFilePath)
         {
             if (projectItem.FileNames[0].EndsWith(additionalFileName))
             {
@@ -95,20 +95,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 if (isMarkedAsAdditionalFile)
                 {
-                    conflictedAdditionalFilePath = projectItem.FileNames[0];
+                    conflictingAdditionalFilePath = projectItem.FileNames[0];
                     return true;
                 }
             }
 
             foreach (ProjectItem subItem in projectItem.ProjectItems)
             {
-                if (HasAdditionalFile(subItem, additionalFileName, out conflictedAdditionalFilePath))
+                if (HasAdditionalFile(subItem, additionalFileName, out conflictingAdditionalFilePath))
                 {
                     return true;
                 }
             }
 
-            conflictedAdditionalFilePath = string.Empty;
+            conflictingAdditionalFilePath = string.Empty;
             return false;
         }
     }

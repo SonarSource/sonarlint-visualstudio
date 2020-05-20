@@ -102,11 +102,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 }
             }
 
-            var hasAnotherAdditionalFile = additionalFileConflictChecker.HasAnotherAdditionalFile(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, out var conflictedAdditionalFilePath);
+            var hasAnotherAdditionalFile = additionalFileConflictChecker.HasAnotherAdditionalFile(initializedProject, cSharpVBBindingConfig.AdditionalFile.Path, out var conflictingAdditionalFilePath);
 
             if (hasAnotherAdditionalFile)
             {
-                throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} already exists. Please remove '{conflictedAdditionalFilePath}' and try again.");
+                throw new Exception($"Could not bind project {initializedProject.FullName}: {Path.GetFileName(cSharpVBBindingConfig.AdditionalFile.Path)} already exists. Please remove '{conflictingAdditionalFilePath}' and try again.");
             }
         }
 
