@@ -120,7 +120,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
                 if (hasConflict)
                 {
-                    throw new Exception($"Could not bind project {initializedProject.FullName}: {additionalFileName} already exists. Please remove '{conflictingAdditionalFilePath}' and try again.");
+                    var message = string.Format(BindingStrings.FoundConflictingAdditionalFile, initializedProject.FullName, additionalFileName, conflictingAdditionalFilePath);
+                    throw new SonarLintException(message);
                 }
             }
         }

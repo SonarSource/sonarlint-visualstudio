@@ -81,5 +81,15 @@ namespace SonarLint.VisualStudio.Integration.Binding {
                 return ResourceManager.GetString("CSharpVB_FailedToSetSonarLintXmlItemType", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to bind project &apos;{0}&apos;.
+        ///A conflicting version of {1} has been found. Please remove &apos;{2}&apos;, re-open the solution and try again..
+        /// </summary>
+        internal static string FoundConflictingAdditionalFile {
+            get {
+                return ResourceManager.GetString("FoundConflictingAdditionalFile", resourceCulture);
+            }
+        }
     }
 }

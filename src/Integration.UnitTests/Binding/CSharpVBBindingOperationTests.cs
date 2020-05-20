@@ -333,9 +333,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             Action act = () => testSubject.Prepare(CancellationToken.None);
 
-            act.Should().Throw<Exception>().And.Message.Should().Contain(((Project)projectMock).Name);
-            act.Should().Throw<Exception>().And.Message.Should().Contain(additionalFileName);
-            act.Should().Throw<Exception>().And.Message.Should().Contain(conflictingPath);
+            act.Should().ThrowExactly<SonarLintException>().And.Message.Should().Contain(((Project)projectMock).Name);
+            act.Should().ThrowExactly<SonarLintException>().And.Message.Should().Contain(additionalFileName);
+            act.Should().ThrowExactly<SonarLintException>().And.Message.Should().Contain(conflictingPath);
 
             additionalFileConflictChecker.VerifyAll();
         }
@@ -447,64 +447,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Assert
             CheckAdditionalFileIsReferenced(projectMock, filePath);
             projectMock.Files.Count().Should().Be(1); // existing file updated
-        }
-
-        [TestMethod]
-        public void AddAdditional_NonCriticalException_IsCaughtAndWrapped()
-        {
-            var projectMock = new ProjectMock("any.proj");
-            var innerException = new InvalidCastException("inner exception message");
-
-            var projectSystemMock = new Mock<IProjectSystemHelper>();
-            projectSystemMock.Setup(x => x.AddFileToProject(projectMock, It.IsAny<string>(), Constants.AdditionalFilesItemTypeName))
-                .Throws(innerException);
-
-            Action act = () => CSharpVBBindingOperation.AddAdditionalFileToProject(projectSystemMock.Object, projectMock, "anyFile.txt");
-            act.Should().ThrowExactly<SonarLintException>()
-                .Where(x => x.Message.Contains(projectMock.FilePath)
-                            && x.Message.Contains(innerException.Message))
-                .And.InnerException.Should().BeSameAs(innerException);
-        }
-
-        [TestMethod]
-        public void AddAdditional_CriticalException_IsNotCaught()
-        {
-            var projectMock = Mock.Of<EnvDTE.Project>();
-
-            var projectSystemMock = new Mock<IProjectSystemHelper>();
-            projectSystemMock.Setup(x => x.AddFileToProject(projectMock, It.IsAny<string>(), It.IsAny<string>()))
-                .Throws<StackOverflowException>();
-
-            Action act = () => CSharpVBBindingOperation.AddAdditionalFileToProject(projectSystemMock.Object, projectMock, "any file");
-            act.Should().ThrowExactly<StackOverflowException>();
-        }
-
-        [TestMethod]
-        public void EnsureItemTypeIsCorrect_NonCriticalException_IsCaughtAndWrapped()
-        {
-            var projectMock = new ProjectMock("myproject.vbproj");
-            var innerException = new ArgumentException("aaa bbb");
-
-            var projectItemMock = new Mock<ProjectItem>();
-            projectItemMock.Setup(x => x.ContainingProject).Returns(projectMock);
-            projectItemMock.Setup(x => x.Properties).Throws(innerException);
-
-            Action act = () => CSharpVBBindingOperation.EnsureItemTypeIsCorrect(projectItemMock.Object);
-
-            act.Should().ThrowExactly<SonarLintException>()
-                .Where(x => x.Message.Contains(projectMock.FilePath)
-                            && x.Message.Contains(innerException.Message))
-                .And.InnerException.Should().BeSameAs(innerException);
-        }
-
-        [TestMethod]
-        public void EnsureItemTypeIsCorrect_CriticalException_IsNotCaught()
-        {
-            var projectItemMock = new Mock<ProjectItem>();
-            projectItemMock.Setup(x => x.Properties).Throws<AccessViolationException>();
-
-            Action act = () => CSharpVBBindingOperation.EnsureItemTypeIsCorrect(projectItemMock.Object);
-            act.Should().ThrowExactly<AccessViolationException>();
         }
 
         #endregion Tests
