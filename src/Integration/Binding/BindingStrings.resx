@@ -132,4 +132,8 @@ Error: {2}</value>
 1 = additional files item type name
 2 = inner error message</comment>
   </data>
+  <data name="FoundConflictingAdditionalFile" xml:space="preserve">
+    <value>Failed to bind project '{0}'.
+A conflicting version of {1} has been found. Please remove '{2}', re-open the solution and try again.</value>
+  </data>
 </root>

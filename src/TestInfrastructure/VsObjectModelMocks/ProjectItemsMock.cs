@@ -160,6 +160,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.Name = file;
                 this.PropertiesMock = new PropertiesMock(this);
                 this.PropertiesMock.RegisterKnownProperty(Constants.ItemTypePropertyKey);
+                this.PropertiesMock.RegisterKnownProperty(Constants.FullPathPropertyKey);
             }
 
             public ProjectItemsMock Parent
@@ -264,10 +265,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public ProjectItems ProjectItems
             {
-                get
-                {
-                    return Parent;
-                }
+                get { return new ProjectItemsMock(Parent.Project); }
             }
 
             public Properties Properties
@@ -306,7 +304,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             public string get_FileNames(short index)
             {
-                throw new NotImplementedException();
+                return Name;
             }
 
             public bool get_IsOpen(string ViewKind = "{FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF}")

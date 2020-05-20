@@ -397,5 +397,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             ((IVsBuildPropertyStorage)this).RemoveProperty(propertyName, configuration, (uint)_PersistStorageType.PST_PROJECT_FILE);
         }
+
+        public void AddProjectItem(string filePath, string itemType)
+        {
+            ((EnvDTE.ProjectItems) ProjectItemsMock).AddFromFile(filePath);
+            ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
+            ProjectItemsMock[filePath].PropertiesMock[Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
+        }
     }
 }
