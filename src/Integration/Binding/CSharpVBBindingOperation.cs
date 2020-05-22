@@ -42,23 +42,30 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly ICSharpVBBindingConfig cSharpVBBindingConfig;
         private readonly IFileSystem fileSystem;
         private readonly IAdditionalFileConflictChecker additionalFileConflictChecker;
+        private readonly IRuleSetReferenceChecker ruleSetReferenceChecker;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
 
         public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
-            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker())
+            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker(), new RuleSetReferenceChecker(serviceProvider))
         {
         }
 
-        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, IFileSystem fileSystem, IAdditionalFileConflictChecker additionalFileConflictChecker)
+        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, 
+            Project project,
+            ICSharpVBBindingConfig cSharpVBBindingConfig, 
+            IFileSystem fileSystem,
+            IAdditionalFileConflictChecker additionalFileConflictChecker,
+            IRuleSetReferenceChecker ruleSetReferenceChecker)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.initializedProject = project ?? throw new ArgumentNullException(nameof(project));
             this.cSharpVBBindingConfig = cSharpVBBindingConfig ?? throw new ArgumentNullException(nameof(cSharpVBBindingConfig));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.additionalFileConflictChecker = additionalFileConflictChecker;
+            this.additionalFileConflictChecker = additionalFileConflictChecker ?? throw new ArgumentNullException(nameof(additionalFileConflictChecker));
+            this.ruleSetReferenceChecker = ruleSetReferenceChecker ?? throw new ArgumentNullException(nameof(ruleSetReferenceChecker));
 
             this.sourceControlledFileSystem = this.serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
@@ -239,26 +246,32 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void CalculateRuleSetInformation()
         {
-            var solutionRuleSetProvider = this.serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            RuleSetDeclaration[] ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(this.initializedProject).ToArray();
+            var solutionRuleSet = ruleSetSerializer.LoadRuleSet(cSharpVBBindingConfig.RuleSet.Path);
 
-            string sameRuleSetCandidate = ruleSetsInfo.FirstOrDefault()?.RuleSetPath;
+            if (ruleSetReferenceChecker.IsReferenced(initializedProject, solutionRuleSet))
+            {
+                return;
+            }
+
+            var solutionRuleSetProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            var ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(initializedProject).ToArray();
+            var sameRuleSetCandidate = ruleSetsInfo.FirstOrDefault()?.RuleSetPath;
 
             // Special case: if all the values are the same use project name as the target ruleset name
-            bool useSameTargetName = ruleSetsInfo.All(r => StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath));
+            var useSameTargetName = ruleSetsInfo.All(r => StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath));
 
-            string projectBasedRuleSetName = Path.GetFileNameWithoutExtension(this.initializedProject.FullName);
-            foreach (RuleSetDeclaration singleRuleSetInfo in ruleSetsInfo)
+            var projectBasedRuleSetName = Path.GetFileNameWithoutExtension(initializedProject.FullName);
+            foreach (var singleRuleSetInfo in ruleSetsInfo)
             {
-                string targetRuleSetName = projectBasedRuleSetName;
-                string currentRuleSetValue = useSameTargetName ? sameRuleSetCandidate : singleRuleSetInfo.RuleSetPath;
+                var targetRuleSetName = projectBasedRuleSetName;
+                var currentRuleSetValue = useSameTargetName ? sameRuleSetCandidate : singleRuleSetInfo.RuleSetPath;
 
                 if (!useSameTargetName && !ShouldIgnoreConfigureRuleSetValue(currentRuleSetValue))
                 {
                     targetRuleSetName = string.Join(".", targetRuleSetName, singleRuleSetInfo.ConfigurationContext);
                 }
 
-                this.propertyInformationMap[singleRuleSetInfo.DeclaringProperty] = new PropertyInformation(targetRuleSetName, currentRuleSetValue);
+                propertyInformationMap[singleRuleSetInfo.DeclaringProperty] = new PropertyInformation(targetRuleSetName, currentRuleSetValue);
             }
         }
 

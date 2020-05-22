@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableRuleSetSerializer ruleSetFS;
         private MockFileSystem fileSystem;
         private Mock<IAdditionalFileConflictChecker> additionalFileConflictChecker;
+        private Mock<IRuleSetReferenceChecker> ruleSetReferenceChecker;
 
         [TestInitialize]
         public void TestInitialize()
@@ -78,6 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             cSharpVBBindingConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
 
             additionalFileConflictChecker = new Mock<IAdditionalFileConflictChecker>();
+            ruleSetReferenceChecker = new Mock<IRuleSetReferenceChecker>();
         }
 
         #region Tests
@@ -527,7 +529,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private CSharpVBBindingOperation CreateTestSubject()
         {
-            return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig, new MockFileSystem(), additionalFileConflictChecker.Object);
+            return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig, new MockFileSystem(), additionalFileConflictChecker.Object, ruleSetReferenceChecker.Object);
         }
 
         private static void CheckAdditionalFileIsReferenced(ProjectMock projectMock, string filePath)

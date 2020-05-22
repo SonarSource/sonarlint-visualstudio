@@ -19,7 +19,6 @@
  */
 
 using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {

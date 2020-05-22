@@ -8,12 +8,6 @@
     <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory).sonarlint\sonarlint-visualstudioCsharp.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
-  <!--<ItemGroup Label="Common items">
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory).sonarlint\SonarLint.xml">
-      <Link>Properties\SonarLint.xml</Link>
-    </AdditionalFiles>
-  </ItemGroup>-->
-
   <PropertyGroup Condition=" $(SignArtifacts) == 'true' ">
     <!-- Turn on strong-naming. -->
     <SignAssembly>true</SignAssembly>
