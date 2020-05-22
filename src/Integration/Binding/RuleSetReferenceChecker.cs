@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
@@ -58,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var projectRuleSet = FindDeclarationRuleSet(project, declaration);
 
-            return projectRuleSet != null && RuleSetIncludeChecker.HasInclude(projectRuleSet, ruleSet);
+            return projectRuleSet != null && HasInclude(projectRuleSet, ruleSet);
         }
 
         private RuleSet FindDeclarationRuleSet(Project project, RuleSetDeclaration declaration)
@@ -70,6 +72,45 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
 
             return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+        }
+
+        private bool HasInclude(RuleSet source, RuleSet target)
+        {
+            Debug.Assert(Path.IsPathRooted(source.FilePath));
+            Debug.Assert(Path.IsPathRooted(target.FilePath));
+
+            // The path in the RuleSetInclude could be relative or absolute.
+            // If relative, we assume it's relative to the source ruleset file.
+            var sourceDirectory = Path.GetDirectoryName(source.FilePath);
+            var canonicalTargetFilePath = Path.GetFullPath(target.FilePath);
+
+            // Special case: the target ruleset is the one we are looking for
+            if (IsMatchingPath(source.FilePath, canonicalTargetFilePath, sourceDirectory))
+            {
+                return true;
+            }
+
+            var matchingRuleSetIncludes = source.RuleSetIncludes
+                .Where(i => IsMatchingPath(i.FilePath, canonicalTargetFilePath, sourceDirectory))
+                .ToList();
+
+            Debug.Assert(matchingRuleSetIncludes.Count < 2, "Not expecting to find multiple RuleSetInclude matching the filter");
+            return matchingRuleSetIncludes.Count != 0;
+        }
+
+        private static bool IsMatchingPath(string candidate, string canonicalAbsoluteTargetPath, string sourceDirectory)
+        {
+            Debug.Assert(Path.IsPathRooted(canonicalAbsoluteTargetPath));
+
+            if (!Path.IsPathRooted(candidate))
+            {
+                candidate = Path.Combine(sourceDirectory, candidate);
+            }
+
+            // Make sure the path is in a canonical form
+            candidate = Path.GetFullPath(candidate);
+
+            return StringComparer.OrdinalIgnoreCase.Equals(candidate, canonicalAbsoluteTargetPath);
         }
     }
 }
