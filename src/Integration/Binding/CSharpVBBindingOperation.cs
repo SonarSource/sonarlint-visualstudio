@@ -245,11 +245,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             string sameRuleSetCandidate = ruleSetsInfo.FirstOrDefault()?.RuleSetPath;
 
             // Special case: if all the values are the same use project name as the target ruleset name
-            bool useSameTargetName = false;
-            if (ruleSetsInfo.All(r => StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath)))
-            {
-                useSameTargetName = true;
-            }
+            bool useSameTargetName = ruleSetsInfo.All(r => StringComparer.OrdinalIgnoreCase.Equals(sameRuleSetCandidate, r.RuleSetPath));
 
             string projectBasedRuleSetName = Path.GetFileNameWithoutExtension(this.initializedProject.FullName);
             foreach (RuleSetDeclaration singleRuleSetInfo in ruleSetsInfo)

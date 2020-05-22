@@ -35,33 +35,29 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public delegate ICSharpVBBindingOperation CreateBindingOperationFunc(Project project, IBindingConfig bindingConfig);
 
         private readonly IFileSystem fileSystem;
-        private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
+        private readonly IRuleSetReferenceChecker ruleSetReferenceChecker;
+        private readonly IAdditionalFileReferenceChecker additionalFileReferenceChecker;
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
-        private readonly IProjectSystemHelper projectSystemHelper;
 
         public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
-            :  this(serviceProvider, fileSystem, GetCreateBindingOperationFunc(serviceProvider))
+            : this(serviceProvider, fileSystem, new RuleSetReferenceChecker(serviceProvider), new AdditionalFileReferenceChecker(serviceProvider), GetCreateBindingOperationFunc(serviceProvider))
         {
         }
 
-        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, CreateBindingOperationFunc createBindingOperationFunc)
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, IRuleSetReferenceChecker ruleSetReferenceChecker, IAdditionalFileReferenceChecker additionalFileReferenceChecker, CreateBindingOperationFunc createBindingOperationFunc)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            this.ruleSetReferenceChecker = ruleSetReferenceChecker ?? throw new ArgumentNullException(nameof(ruleSetReferenceChecker));
+            this.additionalFileReferenceChecker = additionalFileReferenceChecker ?? throw new ArgumentNullException(nameof(additionalFileReferenceChecker));
             this.createBindingOperationFunc = createBindingOperationFunc ?? throw new ArgumentNullException(nameof(createBindingOperationFunc));
-
-            ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
 
             ruleSetSerializer = serviceProvider.GetService<IRuleSetSerializer>();
             ruleSetSerializer.AssertLocalServiceIsNotNull();
-
-            projectSystemHelper = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystemHelper.AssertLocalServiceIsNotNull();
         }
 
         private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
@@ -89,30 +85,28 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return languages.Any(l => !IsFullyBoundProject(binding, project, l));
         }
 
-        private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Core.Language language)
+        private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Language language)
         {
-            if (!IsSolutionBound(binding, language, out var solutionRuleset, out var additionalFilePath))
+            if (!IsSolutionBound(binding, language, out var solutionRuleSet, out var additionalFilePath))
             {
                 return false;
             }
 
-            var isAdditionalFileBound = IsAdditionalFileReferencedCorrectly(projectSystemHelper, project, additionalFilePath);
+            var isAdditionalFileBound = additionalFileReferenceChecker.IsReferenced(project, additionalFilePath);
 
             if (!isAdditionalFileBound)
             {
                 return false;
             }
 
-            var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
-
-            var isRuleSetBound = declarations.Length > 0 && declarations.All(declaration => IsRuleSetBound(project, declaration, solutionRuleset));
+            var isRuleSetBound = ruleSetReferenceChecker.IsReferenced(project, solutionRuleSet);
 
             return isRuleSetBound;
         }
 
-        private bool IsSolutionBound(BindingConfiguration binding, Language language, out RuleSet solutionRuleset, out string additionalFilePath)
+        private bool IsSolutionBound(BindingConfiguration binding, Language language, out RuleSet solutionRuleSet, out string additionalFilePath)
         {
-            solutionRuleset = null;
+            solutionRuleSet = null;
             additionalFilePath = CSharpVBBindingConfigProvider.GetSolutionAdditionalFilePath(language, binding);
 
             if (!fileSystem.File.Exists(additionalFilePath))
@@ -120,12 +114,12 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            solutionRuleset = GetSolutionRuleset(binding, language);
+            solutionRuleSet = GetSolutionRuleSet(binding, language);
 
-            return solutionRuleset != null;
+            return solutionRuleSet != null;
         }
 
-        private RuleSet GetSolutionRuleset(BindingConfiguration binding, Language language)
+        private RuleSet GetSolutionRuleSet(BindingConfiguration binding, Language language)
         {
             // If solution is not bound/is missing a rules configuration file, no need to go further
             var slnLevelBindingConfigFilepath = CSharpVBBindingConfigProvider.GetSolutionRuleSetFilePath(language, binding);
@@ -135,37 +129,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return fileSystem.File.Exists(slnLevelBindingConfigFilepath)
                 ? ruleSetSerializer.LoadRuleSet(slnLevelBindingConfigFilepath)
                 : null;
-        }
-
-        private bool IsRuleSetBound(Project project, RuleSetDeclaration declaration, RuleSet sonarQubeRuleSet)
-        {
-            var projectRuleSet = FindDeclarationRuleSet(project, declaration);
-
-            return projectRuleSet != null && RuleSetIncludeChecker.HasInclude(projectRuleSet, sonarQubeRuleSet);
-        }
-
-        private RuleSet FindDeclarationRuleSet(Project project, RuleSetDeclaration declaration)
-        {
-            // Check if project rule set is found (we treat missing/erroneous rule set settings as not found)
-            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(project, declaration, out var ruleSetFilePath))
-            {
-                return null;
-            }
-
-            return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
-        }
-
-        internal /* for testing */ static bool IsAdditionalFileReferencedCorrectly(IProjectSystemHelper projectSystemHelper, Project project, string additionalFilePath)
-        {
-            var fileItem = projectSystemHelper.FindFileInProject(project, additionalFilePath);
-            if (fileItem == null)
-            {
-                return false;
-            }
-
-            var property = VsShellUtils.FindProperty(fileItem.Properties, Constants.ItemTypePropertyKey);
-            var isMarkedAsAdditionalFile = Constants.AdditionalFilesItemTypeName.Equals(property.Value?.ToString(), StringComparison.OrdinalIgnoreCase);
-            return isMarkedAsAdditionalFile;
         }
     }
 }
