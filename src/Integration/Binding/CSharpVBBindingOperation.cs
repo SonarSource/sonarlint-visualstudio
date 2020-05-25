@@ -248,7 +248,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var solutionRuleSet = ruleSetSerializer.LoadRuleSet(cSharpVBBindingConfig.RuleSet.Path);
 
-            if (ruleSetReferenceChecker.IsReferenced(initializedProject, solutionRuleSet))
+            if (solutionRuleSet != null && ruleSetReferenceChecker.IsReferenced(initializedProject, solutionRuleSet))
             {
                 return;
             }
