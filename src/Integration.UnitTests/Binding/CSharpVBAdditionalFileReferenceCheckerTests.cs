@@ -28,13 +28,13 @@ using SonarLint.VisualStudio.Integration.Binding;
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     [TestClass]
-    public class AdditionalFileReferenceCheckerTests
+    public class CSharpVBAdditionalFileReferenceCheckerTests
     {
         private static readonly Project ValidProject = new ProjectMock("any.csproj");
         private const string ValidSonarLintFilePath = "c:\\any\\SonarLint.xml";
 
         private Mock<IProjectSystemHelper> projectSystemHelperMock;
-        private AdditionalFileReferenceChecker testSubject;
+        private CSharpVBAdditionalFileReferenceChecker testSubject;
 
         [TestInitialize]
         public void TestInitialize()
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.GetService(typeof(IProjectSystemHelper)))
                 .Returns(projectSystemHelperMock.Object);
 
-            testSubject = new AdditionalFileReferenceChecker(serviceProviderMock.Object);
+            testSubject = new CSharpVBAdditionalFileReferenceChecker(serviceProviderMock.Object);
         }
 
         private void SetFindFileResponse(Project project, string filePath, ProjectItem projectItem) =>

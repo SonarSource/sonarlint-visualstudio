@@ -23,11 +23,11 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal class AdditionalFileReferenceChecker : IAdditionalFileReferenceChecker
+    internal class CSharpVBAdditionalFileReferenceChecker : ICSharpVBAdditionalFileReferenceChecker
     {
         private readonly IProjectSystemHelper projectSystemHelper;
 
-        public AdditionalFileReferenceChecker(IServiceProvider serviceProvider)
+        public CSharpVBAdditionalFileReferenceChecker(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
             {

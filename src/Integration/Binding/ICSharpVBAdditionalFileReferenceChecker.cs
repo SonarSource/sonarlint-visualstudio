@@ -22,8 +22,11 @@ using EnvDTE;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal interface IAdditionalFileReferenceChecker
+    internal interface ICSharpVBAdditionalFileReferenceChecker
     {
+        /// <summary>
+        /// Returns true when a project references the correct file and the item type is AdditionalFiles
+        /// </summary>
         bool IsReferenced(Project project, string additionalFilePath);
     }
 }

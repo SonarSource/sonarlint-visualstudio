@@ -36,16 +36,16 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private readonly IFileSystem fileSystem;
         private readonly IRuleSetReferenceChecker ruleSetReferenceChecker;
-        private readonly IAdditionalFileReferenceChecker additionalFileReferenceChecker;
+        private readonly ICSharpVBAdditionalFileReferenceChecker additionalFileReferenceChecker;
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
 
         public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
-            : this(serviceProvider, fileSystem, new RuleSetReferenceChecker(serviceProvider), new AdditionalFileReferenceChecker(serviceProvider), GetCreateBindingOperationFunc(serviceProvider))
+            : this(serviceProvider, fileSystem, new RuleSetReferenceChecker(serviceProvider), new CSharpVBAdditionalFileReferenceChecker(serviceProvider), GetCreateBindingOperationFunc(serviceProvider))
         {
         }
 
-        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, IRuleSetReferenceChecker ruleSetReferenceChecker, IAdditionalFileReferenceChecker additionalFileReferenceChecker, CreateBindingOperationFunc createBindingOperationFunc)
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, IRuleSetReferenceChecker ruleSetReferenceChecker, ICSharpVBAdditionalFileReferenceChecker additionalFileReferenceChecker, CreateBindingOperationFunc createBindingOperationFunc)
         {
             if (serviceProvider == null)
             {

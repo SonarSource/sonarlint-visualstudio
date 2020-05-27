@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IRuleSetSerializer> ruleSetSerializerMock;
         private Mock<IProjectSystemHelper> projectSystemHelperMock;
         private Mock<IRuleSetReferenceChecker> rulesetReferenceCheckerMock;
-        private Mock<IAdditionalFileReferenceChecker> additionalFileReferenceCheckerMock;
+        private Mock<ICSharpVBAdditionalFileReferenceChecker> additionalFileReferenceCheckerMock;
 
         private CSharpVBProjectBinder testSubject;
         private Mock<CSharpVBProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Returns(projectSystemHelperMock.Object);
 
             rulesetReferenceCheckerMock = new Mock<IRuleSetReferenceChecker>();
-            additionalFileReferenceCheckerMock = new Mock<IAdditionalFileReferenceChecker>();
+            additionalFileReferenceCheckerMock = new Mock<ICSharpVBAdditionalFileReferenceChecker>();
 
             testSubject = new CSharpVBProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, rulesetReferenceCheckerMock.Object, additionalFileReferenceCheckerMock.Object, createBindingOperationFuncMock.Object);
         }
