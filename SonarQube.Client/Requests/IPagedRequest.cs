@@ -29,5 +29,6 @@ namespace SonarQube.Client.Requests
         int Page { get; set; }
 
         int PageSize { get; set; }
+        int ItemsLimit { get; set; }
     }
 }
