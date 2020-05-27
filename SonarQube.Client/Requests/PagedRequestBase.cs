@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,7 +35,10 @@ namespace SonarQube.Client.Requests
     public abstract class PagedRequestBase<TResponseItem> : RequestBase<TResponseItem[]>, IPagedRequest<TResponseItem>
     {
         private const int FirstPage = 1;
-        private const int MaximumPageSize = 500;
+        public const int MaximumPageSize = 500;
+        public const int MaximumItemsCount = 10000;
+
+        [JsonIgnore] public virtual int ItemsLimit { get; set; } = MaximumItemsCount;
 
         [JsonProperty("p")]
         public virtual int Page { get; set; } = FirstPage;
@@ -42,7 +46,7 @@ namespace SonarQube.Client.Requests
         [JsonProperty("ps")]
         public virtual int PageSize { get; set; } = MaximumPageSize;
 
-        public async override Task<TResponseItem[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
+        public override async Task<TResponseItem[]> InvokeAsync(HttpClient httpClient, CancellationToken token)
         {
             var allResponseItems = new List<TResponseItem>();
 
@@ -60,13 +64,19 @@ namespace SonarQube.Client.Requests
 
                 Page++;
             }
-            while (pageResult.Value != null &&
-                // Continue paging until we get a partial page of results i.e. fewer than requested.
-                // NB there is a bug here: should be comparing against the request page size, not the
-                // maximum allowed size. See https://github.com/SonarSource/sonarqube-webclient-dotnet/issues/8
-                pageResult.Value.Length >= MaximumPageSize);
+            while (allResponseItems.Count < ItemsLimit &&
+                   pageResult.Value != null &&
+                   pageResult.Value.Length >= PageSize);
 
-            return allResponseItems.ToArray();
+            if (allResponseItems.Count < ItemsLimit)
+            {
+                return allResponseItems.ToArray();
+            }
+
+            Logger.Warning("Sonar web maximum API response limit reached.");
+
+            return allResponseItems.Take(ItemsLimit).ToArray();
+
         }
 
         protected virtual void ValidateResult(Result<TResponseItem[]> pageResult, List<TResponseItem> allResponseItems) =>

@@ -40,6 +40,9 @@ namespace SonarQube.Client.Api.V2_10
         [JsonIgnore]
         public virtual int PageSize { get; set; }
 
+        [JsonIgnore]
+        public virtual int ItemsLimit { get; set; }
+
         protected override string Path => "api/projects/index";
 
         protected override SonarQubeProject[] ParseResponse(string response) =>
