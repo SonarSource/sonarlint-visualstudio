@@ -35,6 +35,8 @@ namespace SonarQube.Client.Tests
     [TestClass]
     public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_TestBase
     {
+        private const int PageSize = 500;
+
         [TestMethod]
         public async Task GetSuppressedIssuesAsync_Old_ExampleFromSonarQube()
         {
@@ -310,72 +312,12 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=CODE_SMELL&p=1&ps=500", $@"
-{{
-  ""paging"": {{
-    ""pageIndex"": 1,
-    ""pageSize"": 500,
-    ""total"": 3
-  }},
-  ""issues"": [
-    {string.Join(",\n", Enumerable.Range(1, 500).Select(CreateIssueJson))}
-  ],
-  ""components"": [
-    {CreateComponentJson()}
-  ]
-}}");
+            SetupPageOfResponses("simplcom", 1, PageSize, "CODE_SMELL");
+            SetupPageOfResponses("simplcom", 2, PageSize, "CODE_SMELL");
+            SetupPageOfResponses("simplcom", 3, 1, "CODE_SMELL");
 
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=CODE_SMELL&p=2&ps=500", $@"
-{{
-  ""paging"": {{
-    ""pageIndex"": 2,
-    ""pageSize"": 500,
-    ""total"": 3
-  }},
-  ""issues"": [
-    {string.Join(",\n", Enumerable.Range(501, 500).Select(CreateIssueJson))}
-  ],
-  ""components"": [
-    {CreateComponentJson()}
-  ]
-}}");
-
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=CODE_SMELL&p=3&ps=500", $@"
-{{
-  ""paging"": {{
-    ""pageIndex"": 3,
-    ""pageSize"": 500,
-    ""total"": 3
-  }},
-  ""issues"": [
-    {string.Join(",\n", Enumerable.Range(1001, 1).Select(CreateIssueJson))}
-  ],
-  ""components"": [
-    {CreateComponentJson()}
-  ]
-}}");
-
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=BUG&p=1&ps=500", $@"
-{{
-  ""paging"": {{
-    ""pageIndex"": 1,
-    ""pageSize"": 500,
-    ""total"": 3
-  }},
-  ""issues"": [ ],
-  ""components"": [ ]
-}}");
-
-            SetupRequest("api/issues/search?projects=simplcom&statuses=RESOLVED&types=VULNERABILITY&p=1&ps=500", $@"
-{{
-  ""paging"": {{
-    ""pageIndex"": 1,
-    ""pageSize"": 500,
-    ""total"": 3
-  }},
-  ""issues"": [ ],
-  ""components"": [ ]
-}}");
+            SetupPageOfResponses("simplcom", 1, 0, "BUG");
+            SetupPageOfResponses("simplcom", 1, 0, "VULNERABILITY");
 
             var result = await service.GetSuppressedIssuesAsync("simplcom", CancellationToken.None);
 
@@ -398,6 +340,37 @@ namespace SonarQube.Client.Tests
                 .Message.Should().Be("This operation expects the service to be connected.");
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
+        }
+
+        private void SetupPageOfResponses(string projectName, int pageNumber, int numberOfIssues, string issueType)
+        {
+            // Sanity check of the issue types
+            issueType.Should().BeOneOf("CODE_SMELL", "BUG", "VULNERABILITY");
+
+            var startItemNumber = (pageNumber - 1) * PageSize + 1;
+
+            var issuesJson = string.Empty;
+            var componentJson = string.Empty;
+            if (numberOfIssues > 0)
+            {
+                issuesJson = string.Join(",\n", Enumerable.Range(startItemNumber, numberOfIssues).Select(CreateIssueJson));
+                componentJson = CreateComponentJson();
+            }
+
+            SetupRequest($"api/issues/search?projects={projectName}&statuses=RESOLVED&types={issueType}&p={pageNumber}&ps=500", $@"
+{{
+  ""paging"": {{
+    ""pageIndex"": {pageNumber},
+    ""pageSize"": {PageSize},
+    ""total"": 9999
+  }},
+  ""issues"": [
+    {issuesJson}
+  ],
+  ""components"": [
+    {componentJson}
+  ]
+}}");
         }
 
         private static string CreateIssueJson(int number) =>
