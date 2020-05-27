@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableRuleSetSerializer ruleSetFS;
         private MockFileSystem fileSystem;
         private Mock<IAdditionalFileConflictChecker> additionalFileConflictChecker;
+        private Mock<IRuleSetReferenceChecker> ruleSetReferenceChecker;
 
         [TestInitialize]
         public void TestInitialize()
@@ -77,7 +78,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(@"c:\Solution\additionalFile.txt", new SonarLintConfiguration());
             cSharpVBBindingConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
 
+            ruleSetFS.RegisterRuleSet(ruleset.Content, ruleset.Path);
+
             additionalFileConflictChecker = new Mock<IAdditionalFileConflictChecker>();
+            ruleSetReferenceChecker = new Mock<IRuleSetReferenceChecker>();
         }
 
         #region Tests
@@ -278,6 +282,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert that written
             fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().NotBe(null);
+        }
+
+        [TestMethod]
+        public void ProjectBindingOperation_Commit_RulesetIsAlreadyReferenced_RulesetNotWritten()
+        {
+            // Arrange
+            CreateProperty(projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            projectMock.SetVBProjectKind();
+            ruleSetReferenceChecker
+                .Setup(x => x.IsReferenced(projectMock, cSharpVBBindingConfig.RuleSet.Content))
+                .Returns(true);
+
+            var testSubject = CreateTestSubject();
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            // Act
+            testSubject.Commit();
+
+            // Assert
+            string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().Be(null);
+
+            // Act (write pending)
+            this.sccFileSystem.WritePendingNoErrorsExpected();
+
+            // Assert that not written
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().Be(null);
         }
 
         [TestMethod]
@@ -527,7 +559,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private CSharpVBBindingOperation CreateTestSubject()
         {
-            return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig, new MockFileSystem(), additionalFileConflictChecker.Object);
+            return new CSharpVBBindingOperation(serviceProvider, projectMock, cSharpVBBindingConfig, new MockFileSystem(), additionalFileConflictChecker.Object, ruleSetReferenceChecker.Object);
         }
 
         private static void CheckAdditionalFileIsReferenced(ProjectMock projectMock, string filePath)

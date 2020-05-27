@@ -22,31 +22,60 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Integration.Binding
 {
-    internal static class RuleSetIncludeChecker
+    internal class RuleSetReferenceChecker : IRuleSetReferenceChecker
     {
-        /// <summary>
-        /// Return true if the source directly includes the target, otherwise false
-        /// </summary>
-        /// <param name="source">Required</param>
-        /// <param name="target">Required</param>
-        /// <remarks>We don't currently check nested includes in ruleset
-        /// i.e. if A includes B includes C, HasInclude(A, C) returns false.</remarks>
-        public static bool HasInclude(RuleSet source, RuleSet target)
+        private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
+        private readonly IRuleSetSerializer ruleSetSerializer;
+
+        public RuleSetReferenceChecker(IServiceProvider serviceProvider)
         {
-            if (source == null)
+            if (serviceProvider == null)
             {
-                throw new ArgumentNullException(nameof(source));
+                throw new ArgumentNullException(nameof(serviceProvider));
             }
 
-            if (target == null)
+            ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            ruleSetInfoProvider.AssertLocalServiceIsNotNull();
+
+            ruleSetSerializer = serviceProvider.GetService<IRuleSetSerializer>();
+            ruleSetSerializer.AssertLocalServiceIsNotNull();
+        }
+
+        public bool IsReferenced(Project project, RuleSet ruleSet)
+        {
+            var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
+
+            var isRuleSetBound = declarations.Length > 0 &&
+                                 declarations.All(declaration => IsRuleSetReferenced(project, declaration, ruleSet));
+
+            return isRuleSetBound;
+        }
+
+        private bool IsRuleSetReferenced(Project project, RuleSetDeclaration declaration, RuleSet ruleSet)
+        {
+            var projectRuleSet = FindDeclarationRuleSet(project, declaration);
+
+            return projectRuleSet != null && HasInclude(projectRuleSet, ruleSet);
+        }
+
+        private RuleSet FindDeclarationRuleSet(Project project, RuleSetDeclaration declaration)
+        {
+            // Check if project rule set is found (we treat missing/erroneous rule set settings as not found)
+            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(project, declaration, out var ruleSetFilePath))
             {
-                throw new ArgumentNullException(nameof(target));
+                return null;
             }
 
+            return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
+        }
+
+        private bool HasInclude(RuleSet source, RuleSet target)
+        {
             Debug.Assert(Path.IsPathRooted(source.FilePath));
             Debug.Assert(Path.IsPathRooted(target.FilePath));
 
