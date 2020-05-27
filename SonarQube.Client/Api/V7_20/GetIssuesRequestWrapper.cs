@@ -24,7 +24,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
-using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api.V7_20
 {
@@ -60,17 +59,17 @@ namespace SonarQube.Client.Api.V7_20
             ResetInnerRequest();
             innerRequest.Types = "CODE_SMELL";
             var codeSmells = await innerRequest.InvokeAsync(httpClient, token);
-            WarnForApiLimit(codeSmells);
+            WarnForApiLimit(codeSmells, innerRequest, "code smells");
 
             ResetInnerRequest();
             innerRequest.Types = "BUG";
             var bugs = await innerRequest.InvokeAsync(httpClient, token);
-            WarnForApiLimit(bugs);
+            WarnForApiLimit(bugs, innerRequest, "bugs");
 
             ResetInnerRequest();
             innerRequest.Types = "VULNERABILITY";
             var vulnerabilities = await innerRequest.InvokeAsync(httpClient, token);
-            WarnForApiLimit(vulnerabilities);
+            WarnForApiLimit(vulnerabilities, innerRequest, "vulnerabilities");
 
             return codeSmells
                 .Concat(bugs)
@@ -78,11 +77,11 @@ namespace SonarQube.Client.Api.V7_20
                 .ToArray();
         }
 
-        private void WarnForApiLimit(SonarQubeIssue[] issues)
+        private void WarnForApiLimit(SonarQubeIssue[] issues, GetIssuesRequest request, string friendlyIssueType)
         {
-            if (issues.Length == 10000)
+            if (issues.Length == request.ItemsLimit)
             {
-                Logger.Warning($"The SonarQube maximum API response limit reached. Some issues might not be suppressed.");
+                Logger.Warning($"Sonar web API response limit reached ({request.ItemsLimit} items). Some {friendlyIssueType} might not be suppressed.");
             }
         }
 

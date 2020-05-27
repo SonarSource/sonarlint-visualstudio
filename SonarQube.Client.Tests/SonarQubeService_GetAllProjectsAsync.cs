@@ -317,13 +317,10 @@ namespace SonarQube.Client.Tests
 }}");
             }
 
-            SetupRequest($"api/components/search_projects?organization=myorganization&asc=true&p={numberOfPagesBeforeCrash + 1}&ps={pageSize}",
-                $"Can return only the first {numberOfItemsBeforeCrash} results. {numberOfItemsBeforeCrash + pageSize}th result asked.",
-                HttpStatusCode.BadRequest);
-
             var result = await service.GetAllProjectsAsync("myorganization", CancellationToken.None);
 
             messageHandler.VerifyAll();
+            messageHandler.VerifyNoOtherCalls();
 
             result.Should().HaveCount(10000);
         }
