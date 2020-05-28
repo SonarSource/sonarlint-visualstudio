@@ -28,14 +28,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Client.Api;
 using SonarQube.Client.Models;
+using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Tests
 {
     [TestClass]
     public class SonarQubeService_GetSuppressedIssuesAsync : SonarQubeService_TestBase
     {
-        private const int PageSize = 500;
+        private const int MaxAllowedIssues = PagedRequestBase<IGetIssuesRequest>.MaximumItemsCount;
+        private const int PageSize = PagedRequestBase<IGetIssuesRequest>.MaximumPageSize;
 
         [TestMethod]
         public async Task GetSuppressedIssuesAsync_Old_ExampleFromSonarQube()
@@ -312,10 +315,7 @@ namespace SonarQube.Client.Tests
         {
             await ConnectToSonarQube("7.2.0.0");
 
-            SetupPageOfResponses("simplcom", 1, PageSize, "CODE_SMELL");
-            SetupPageOfResponses("simplcom", 2, PageSize, "CODE_SMELL");
-            SetupPageOfResponses("simplcom", 3, 1, "CODE_SMELL");
-
+            SetupPagesOfResponses("simplcom", 1001, "CODE_SMELL");
             SetupPageOfResponses("simplcom", 1, 0, "BUG");
             SetupPageOfResponses("simplcom", 1, 0, "VULNERABILITY");
 
@@ -325,6 +325,44 @@ namespace SonarQube.Client.Tests
             result.Select(i => i.FilePath).Should().Match(paths => paths.All(p => p == "Program.cs"));
 
             messageHandler.VerifyAll();
+        }
+
+        [TestMethod]
+        // Note: we're not testing all possible combinations because testing with the
+        // max number of items is relatively slow (several seconds per iteration)
+        [DataRow(5, 5, 5)] // No issue types with too many issues
+        [DataRow(MaxAllowedIssues, 5, 2)] // One issue type with too many issues
+        [DataRow(1, MaxAllowedIssues, MaxAllowedIssues)] // Multiple issue types with too many issues
+        public async Task GetSuppressedIssuesAsync_From_7_20_NotifyWhenMaxIssuesReeturned(
+            int numCodeSmells, int numBugs, int numVulnerabilities)
+        {
+            await ConnectToSonarQube("7.2.0.0");
+
+            SetupPagesOfResponses("proj1", numCodeSmells, "CODE_SMELL");
+            SetupPagesOfResponses("proj1", numBugs, "BUG");
+            SetupPagesOfResponses("proj1", numVulnerabilities, "VULNERABILITY");
+
+            var result = await service.GetSuppressedIssuesAsync("proj1", CancellationToken.None);
+
+            result.Should().HaveCount(
+                Math.Min(MaxAllowedIssues, numCodeSmells) +
+                Math.Min(MaxAllowedIssues, numBugs) +
+                Math.Min(MaxAllowedIssues, numVulnerabilities));
+
+            DumpWarningsToConsole();
+
+            messageHandler.VerifyAll();
+
+            checkForExpectedWarning(numCodeSmells, "code smells");
+            checkForExpectedWarning(numBugs, "bugs");
+            checkForExpectedWarning(numVulnerabilities, "vulnerabilities");
+
+            void checkForExpectedWarning(int itemCount, string partialText)
+            {
+                // Only expect a warning if the number of items is equal or greater than the max allowed
+                var expectedMessageCount = itemCount >= MaxAllowedIssues ? 1 : 0;
+                logger.WarningMessages.Count(x => x.Contains(partialText)).Should().Be(expectedMessageCount);
+            }
         }
 
         [TestMethod]
@@ -373,6 +411,20 @@ namespace SonarQube.Client.Tests
 }}");
         }
 
+        private void SetupPagesOfResponses(string projectName, int numberOfIssues, string issueType)
+        {
+            var pageNumber = 1;
+            var remainingIssues = numberOfIssues;
+            while(remainingIssues > 0)
+            {
+                var issuesOnNewPage = Math.Min(remainingIssues, PageSize);
+                SetupPageOfResponses(projectName, pageNumber, issuesOnNewPage, issueType);
+
+                pageNumber++;
+                remainingIssues = remainingIssues - issuesOnNewPage;
+            }
+        }
+
         private static string CreateIssueJson(int number) =>
             "{ " +
             $"\"key\": \"{number}\", " +
@@ -399,5 +451,15 @@ namespace SonarQube.Client.Tests
     ""longName"": ""Program.cs"",
     ""path"": ""Program.cs""
 }";
+
+        private void DumpWarningsToConsole()
+        {
+            System.Console.WriteLine("Warnings:");
+            foreach (string item in logger.WarningMessages)
+            {
+                System.Console.WriteLine(item);
+            }
+            System.Console.WriteLine("");
+        }
     }
 }
