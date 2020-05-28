@@ -7,7 +7,6 @@
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RootNamespace>SonarQube.Client.Tests</RootNamespace>
-    <LangVersion>6</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
