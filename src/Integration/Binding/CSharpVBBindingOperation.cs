@@ -53,9 +53,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
         }
 
-        internal CSharpVBBindingOperation(IServiceProvider serviceProvider, 
+        internal CSharpVBBindingOperation(IServiceProvider serviceProvider,
             Project project,
-            ICSharpVBBindingConfig cSharpVBBindingConfig, 
+            ICSharpVBBindingConfig cSharpVBBindingConfig,
             IFileSystem fileSystem,
             IAdditionalFileConflictChecker additionalFileConflictChecker,
             IRuleSetReferenceChecker ruleSetReferenceChecker)
@@ -138,7 +138,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             AddRuleset();
             EnsureAdditionalFileIsReferenced();
         }
-
 
         #region Helpers
 
@@ -232,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                var message = string.Format(BindingStrings.CSharpVB_FailedToSetSonarLintXmlItemType, projectItem.ContainingProject.FileName, 
+                var message = string.Format(BindingStrings.CSharpVB_FailedToSetSonarLintXmlItemType, projectItem.ContainingProject.FileName,
                     Constants.AdditionalFilesItemTypeName, ex.Message);
                 throw new SonarLintException(message, ex);
             }
@@ -246,9 +245,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void CalculateRuleSetInformation()
         {
-            var solutionRuleSet = ruleSetSerializer.LoadRuleSet(cSharpVBBindingConfig.RuleSet.Path);
+            var slnRuleSetFilePath = cSharpVBBindingConfig.RuleSet.Path;
+            var solutionRuleSet = ruleSetSerializer.LoadRuleSet(slnRuleSetFilePath);
 
-            if (solutionRuleSet != null && ruleSetReferenceChecker.IsReferenced(initializedProject, solutionRuleSet))
+            if (solutionRuleSet != null // null is file is missing or can't be loaded
+                && ruleSetReferenceChecker.IsReferenced(initializedProject, slnRuleSetFilePath))
             {
                 return;
             }

@@ -46,21 +46,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ruleSetSerializer.AssertLocalServiceIsNotNull();
         }
 
-        public bool IsReferenced(Project project, RuleSet ruleSet)
+        public bool IsReferenced(Project project, string targetRuleSetFilePath)
         {
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
             var isRuleSetBound = declarations.Length > 0 &&
-                                 declarations.All(declaration => IsRuleSetReferenced(project, declaration, ruleSet));
+                                 declarations.All(declaration => IsRuleSetReferenced(project, declaration, targetRuleSetFilePath));
 
             return isRuleSetBound;
         }
 
-        private bool IsRuleSetReferenced(Project project, RuleSetDeclaration declaration, RuleSet ruleSet)
+        private bool IsRuleSetReferenced(Project project, RuleSetDeclaration declaration, string targetRuleSetFilePath)
         {
             var projectRuleSet = FindDeclarationRuleSet(project, declaration);
 
-            return projectRuleSet != null && HasInclude(projectRuleSet, ruleSet);
+            return projectRuleSet != null && HasInclude(projectRuleSet, targetRuleSetFilePath);
         }
 
         private RuleSet FindDeclarationRuleSet(Project project, RuleSetDeclaration declaration)
@@ -74,15 +74,15 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return ruleSetSerializer.LoadRuleSet(ruleSetFilePath);
         }
 
-        private bool HasInclude(RuleSet source, RuleSet target)
+        private bool HasInclude(RuleSet source, string targetRuleSetFilePath)
         {
             Debug.Assert(Path.IsPathRooted(source.FilePath));
-            Debug.Assert(Path.IsPathRooted(target.FilePath));
+            Debug.Assert(Path.IsPathRooted(targetRuleSetFilePath));
 
             // The path in the RuleSetInclude could be relative or absolute.
             // If relative, we assume it's relative to the source ruleset file.
             var sourceDirectory = Path.GetDirectoryName(source.FilePath);
-            var canonicalTargetFilePath = Path.GetFullPath(target.FilePath);
+            var canonicalTargetFilePath = Path.GetFullPath(targetRuleSetFilePath);
 
             // Special case: the target ruleset is the one we are looking for
             if (IsMatchingPath(source.FilePath, canonicalTargetFilePath, sourceDirectory))
