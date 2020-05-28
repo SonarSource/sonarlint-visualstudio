@@ -248,7 +248,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var slnRuleSetFilePath = cSharpVBBindingConfig.RuleSet.Path;
             var solutionRuleSet = ruleSetSerializer.LoadRuleSet(slnRuleSetFilePath);
 
-            if (solutionRuleSet != null // null is file is missing or can't be loaded
+            if (solutionRuleSet != null // null means file is missing or can't be loaded
                 && ruleSetReferenceChecker.IsReferenced(initializedProject, slnRuleSetFilePath))
             {
                 return;
