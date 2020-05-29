@@ -378,6 +378,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
+
         [TestMethod]
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_NewBinding()
         {
@@ -392,31 +393,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
-                includes: new[] { expectedSolutionRuleSetInclude }
+                includes: new[] { expectedSolutionRuleSetInclude, "ConcurrencyRules.ruleset" }
             );
             var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
 
-            List<string> filesPending = new List<string>();
-            foreach (var currentRuleSet in new[] { null, string.Empty, CSharpVBBindingOperation.DefaultProjectRuleSet })
-            {
-                // Act
-                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, currentRuleSet);
-                filesPending.Add(actualPath);
+            // Act
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, "ConcurrencyRules.ruleset");
 
-                // Assert
-                this.ruleSetFS.AssertRuleSetNotExists(actualPath);
-                actualPath.Should().NotBe(solutionRuleSetPath, "Expecting a new rule set to be created once pending were written");
-            }
+            // Assert
+            this.ruleSetFS.AssertRuleSetNotExists(actualPath);
+            actualPath.Should().NotBe(solutionRuleSetPath, "Expecting a new rule set to be created once pending were written");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
-            foreach (var pending in filesPending)
-            {
-                // Assert
-                this.ruleSetFS.AssertRuleSetsAreEqual(pending, expectedRuleSet);
-            }
+            this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
         [DataTestMethod]
@@ -467,7 +459,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 @"..\..\relativeSolutionLevel.ruleset",
                 @"X:\SolutionDir\Sonar\absolutionSolutionRooted.ruleset",
                 @"c:\OtherPlaceEntirey\rules.ruleset",
-                CSharpVBBindingOperation.DefaultProjectRuleSet,
+                "ConcurrencyRules.ruleset",
                 null,
                 string.Empty
             };

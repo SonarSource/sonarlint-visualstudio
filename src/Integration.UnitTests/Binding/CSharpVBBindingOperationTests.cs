@@ -31,6 +31,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
@@ -209,16 +210,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             testSubject.Prepare(CancellationToken.None);
 
             // Assert
-            string expectedRuleSetFileForPropertiesWithDefaultRulSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().Be(null);
+            string expectedRuleSetFileForPropertiesWithDefaultRulSets = cSharpVBBindingConfig.RuleSet.Path;
+            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().NotBe(null);
             testSubject.PropertyInformationMap[defaultRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected all the properties with default ruleset to have the same new ruleset");
             testSubject.PropertyInformationMap[defaultRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetFileForPropertiesWithDefaultRulSets, "Expected all the properties with default ruleset to have the same new ruleset");
 
-            string expectedRuleSetForConfig1 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config1.ruleset");
+            string expectedRulesetFilePath = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
+
+            string expectedRuleSetForConfig1 = Path.ChangeExtension(expectedRulesetFilePath, "config1.ruleset");
             testSubject.PropertyInformationMap[customRuleSetProperty1].NewRuleSetFilePath.Should().Be(expectedRuleSetForConfig1, "Expected different rule set path for properties with custom rulesets");
             fileSystem.GetFile(expectedRuleSetForConfig1).Should().Be(null);
 
-            string expectedRuleSetForConfig2 = Path.ChangeExtension(expectedRuleSetFileForPropertiesWithDefaultRulSets, "config2.ruleset");
+            string expectedRuleSetForConfig2 = Path.ChangeExtension(expectedRulesetFilePath, "config2.ruleset");
             testSubject.PropertyInformationMap[customRuleSetProperty2].NewRuleSetFilePath.Should().Be(expectedRuleSetForConfig2, "Expected different rule set path for properties with custom rulesets");
             fileSystem.GetFile(expectedRuleSetForConfig2).Should().Be(null);
 
@@ -226,7 +229,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert that written
-            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRulSets).Should().NotBe(null);
             fileSystem.GetFile(expectedRuleSetForConfig1).Should().NotBe(null);
             fileSystem.GetFile(expectedRuleSetForConfig2).Should().NotBe(null);
         }
@@ -263,8 +265,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
-            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config2", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "ConcurrencyRules.ruleset");
+            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config2", "ConcurrencyRules.ruleset");
             testSubject.Initialize();
 
             // Act
@@ -398,7 +400,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop = CreateProperty(this.projectMock, "config1", "ConcurrencyRules.ruleset");
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
@@ -417,12 +419,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void ProjectBindingOperation_Commit_ShouldNotGenerateProjectRuleSetWhenRuleSetIsDefault(bool isLegacySystem)
+        {
+            // Arrange
+            var testSubject = CreateTestSubject();
+            projectMock.SetCSProjectKind();
+            var prop = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            projectSystemHelper.SetIsLegacyProjectSystem(isLegacySystem);
+
+            // Act
+            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
+            {
+                testSubject.Commit();
+            }
+
+            // Assert
+            prop.Value.ToString().Should().Be(PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path), "Should update the property value");
+            projectMock.Files.ContainsKey(cSharpVBBindingConfig.RuleSet.Path).Should().Be(isLegacySystem, "Should add the file to the project only if legacy system");
+        }
+
+        [TestMethod]
         public void ProjectBindingOperation_Commit_LegacyProjectSystem_DoesAddFile()
         {
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop = CreateProperty(this.projectMock, "config1", "ConcurrencyRules.ruleset");
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
