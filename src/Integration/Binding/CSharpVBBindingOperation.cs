@@ -266,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 var targetRuleSetName = projectBasedRuleSetName;
                 var currentRuleSetValue = useSameTargetName ? sameRuleSetCandidate : singleRuleSetInfo.RuleSetPath;
 
-                if (!useSameTargetName && !IsDefaultRuleSet(currentRuleSetValue))
+                if (!useSameTargetName && !IsDefaultMicrosoftRuleSet(currentRuleSetValue))
                 {
                     targetRuleSetName = string.Join(".", targetRuleSetName, singleRuleSetInfo.ConfigurationContext);
                 }

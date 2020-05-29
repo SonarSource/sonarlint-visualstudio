@@ -139,19 +139,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_IsDefaultRuleSet()
+        public void ProjectBindingOperation_IsDefaultMicrosoftRuleSet()
         {
             // Test case 1: not ignored
-            CSharpVBBindingOperation.IsDefaultRuleSet("My awesome rule set.ruleset").Should().BeFalse();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet("My awesome rule set.ruleset").Should().BeFalse();
 
             // Test case 2: ignored
             // Act
-            CSharpVBBindingOperation.IsDefaultRuleSet(null).Should().BeTrue();
-            CSharpVBBindingOperation.IsDefaultRuleSet(" ").Should().BeTrue();
-            CSharpVBBindingOperation.IsDefaultRuleSet("\t").Should().BeTrue();
-            CSharpVBBindingOperation.IsDefaultRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
-            CSharpVBBindingOperation.IsDefaultRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
-            CSharpVBBindingOperation.IsDefaultRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(null).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(" ").Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet("\t").Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
         }
 
         [TestMethod]

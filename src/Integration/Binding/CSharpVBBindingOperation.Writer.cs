@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <returns>Full file path of the file that we expect to write to</returns>
         internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, ICSharpVBBindingConfig cSharpVBBindingConfig, string currentRuleSetPath)
         {
-            if (IsDefaultRuleSet(currentRuleSetPath))
+            if (IsDefaultMicrosoftRuleSet(currentRuleSetPath))
             {
                 return cSharpVBBindingConfig.RuleSet.Path;
             }
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // default rule set property value. The idea here is that we would like to preserve any explicit setting by the user
             // and we assume that the default rule set can be safely ignored since wasn't set explicitly by the user (or even if it was
             // it has low value in comparison to what is configured in SQ).
-            if (!IsDefaultRuleSet(currentRuleSetPath))
+            if (!IsDefaultMicrosoftRuleSet(currentRuleSetPath))
             {
                 ruleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
             }
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <summary>
         /// Returns whether the given RuleSet path is the default predefined RuleSet
         /// </summary>
-        internal static bool IsDefaultRuleSet(string ruleSet)
+        internal static bool IsDefaultMicrosoftRuleSet(string ruleSet)
         {
             return string.IsNullOrWhiteSpace(ruleSet) || StringComparer.OrdinalIgnoreCase.Equals(DefaultProjectRuleSet, ruleSet);
         }
