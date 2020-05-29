@@ -21,10 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Abstractions;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -52,10 +50,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public void Save()
         {
-            RuleSet.Content.WriteToFile(RuleSet.Path);
+            var serializedRuleSet = RuleSet.Content.ToXml();
+            fileSystem.File.WriteAllText(RuleSet.Path, serializedRuleSet);
 
-            var serializedContent = Serializer.ToString(AdditionalFile.Content);
-            fileSystem.File.WriteAllText(AdditionalFile.Path, serializedContent);
+            var serializedAdditionalFile = Serializer.ToString(AdditionalFile.Content);
+            fileSystem.File.WriteAllText(AdditionalFile.Path, serializedAdditionalFile);
         }
     }
 }
