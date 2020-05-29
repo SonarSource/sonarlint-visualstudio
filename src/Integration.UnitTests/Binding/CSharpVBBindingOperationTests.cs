@@ -34,7 +34,8 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
-using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
+using VsRuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
+using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
@@ -75,11 +76,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
 
-            var ruleset = new FilePathAndContent<RuleSet>(@"c:\Solution\sln.ruleset", new RuleSet("SonarQube"));
+            var coreRuleSet = new FilePathAndContent<CoreRuleSet>(@"c:\Solution\sln.ruleset", new CoreRuleSet());
+            var vsRuleSet = new VsRuleSet("VS ruleset");
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(@"c:\Solution\additionalFile.txt", new SonarLintConfiguration());
-            cSharpVBBindingConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
+            cSharpVBBindingConfig = new CSharpVBBindingConfig(coreRuleSet, additionalFile);
 
-            ruleSetFS.RegisterRuleSet(ruleset.Content, ruleset.Path);
+            ruleSetFS.RegisterRuleSet(vsRuleSet, coreRuleSet.Path);
 
             additionalFileConflictChecker = new Mock<IAdditionalFileConflictChecker>();
             ruleSetReferenceChecker = new Mock<IRuleSetReferenceChecker>();
