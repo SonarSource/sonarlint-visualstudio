@@ -566,28 +566,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             act.Should().ThrowExactly<AccessViolationException>();
         }
 
-        [TestMethod]
-        public void Commit_ProjectHasNoExplicitRuleSetProperty_AddsNonConditionalProperty()
-        {
-            Assert.Inconclusive("TBD");
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(CSharpVBBindingOperation.DefaultProjectRuleSet)]
-        public void Commit_ProjectHasExplicitRuleSetProperty_PropertyIsNonConditional_ProperySetToSolutionRuleSet(string propertyValue)
-        {
-            Assert.Inconclusive("TBD");
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(CSharpVBBindingOperation.DefaultProjectRuleSet)]
-        public void Commit_ProjectHasExplicitRuleSetProperty_PropertyIsConditional_NewNonConditionalPropertyIsAddedAndConditionalProperySetToSolutionRuleSet()
-        {
-            Assert.Inconclusive("TBD");
-        }
-
         #endregion Tests
 
         #region Helpers
