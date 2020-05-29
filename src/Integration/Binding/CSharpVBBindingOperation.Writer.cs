@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             // Create a new project level rule set
             var solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, cSharpVBBindingConfig.RuleSet.Path);
-            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, cSharpVBBindingConfig.RuleSet.Content.DisplayName);
+            RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, cSharpVBBindingConfig.RuleSet.Content.Name);
             string newRuleSetPath = this.GenerateNewProjectRuleSetPath(ruleSetRoot, ruleSetFileName);
 
             // Pend new
