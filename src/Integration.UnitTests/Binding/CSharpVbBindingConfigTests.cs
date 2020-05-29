@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Binding;
-using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
+using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_InvalidArgs()
         {
-            var ruleSet = new FilePathAndContent<RuleSet>("dummy", new RuleSet("dummy"));
+            var ruleSet = new FilePathAndContent<RuleSet>("dummy", new CoreRuleSet());
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>("dummy", new SonarLintConfiguration());
 
             Action act = () => new CSharpVBBindingConfig(null, additionalFile);
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetSolutionLevelFilePaths_ReturnFilePaths()
         {
-            var ruleSet = new FilePathAndContent<RuleSet>("ruleset dummy", new RuleSet("dummy"));
+            var ruleSet = new FilePathAndContent<RuleSet>("ruleset dummy", new CoreRuleSet());
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>("additional file dummy", new SonarLintConfiguration());
 
             var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var rulesetFullPath = Path.Combine(testDir, "savedRuleSet.txt");
             var additionalFileFullPath = Path.Combine(testDir, "additionalFile.txt");
 
-            var ruleSet = new FilePathAndContent<RuleSet>(rulesetFullPath, new RuleSet("dummy"));
+            var ruleSet = new FilePathAndContent<RuleSet>(rulesetFullPath, new CoreRuleSet());
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>(additionalFileFullPath, new SonarLintConfiguration());
 
             var testSubject = new CSharpVBBindingConfig(ruleSet, additionalFile);

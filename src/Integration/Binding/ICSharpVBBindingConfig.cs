@@ -20,7 +20,6 @@
 
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
-using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 // Note: this interface was added as part of the refactoring that was done when
 // the support for configuration of C++ files in Connected Mode was added.

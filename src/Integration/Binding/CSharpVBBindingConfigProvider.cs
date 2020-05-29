@@ -31,9 +31,7 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client;
 using SonarQube.Client.Models;
-using CoreRuleset = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 using Language = SonarLint.VisualStudio.Core.Language;
-using VsRuleset = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
@@ -118,15 +116,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return new CSharpVBBindingConfig(ruleset, additionalFile);
         }
 
-        private FilePathAndContent<VsRuleset> GetRulesetFile(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, Dictionary<string, string> sonarProperties)
+        private FilePathAndContent<RuleSet> GetRulesetFile(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, IEnumerable<SonarQubeRule> inactiveRules, Dictionary<string, string> sonarProperties)
         {
-            var coreRuleset = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
+            var RuleSet = CreateRuleset(qualityProfile, language, bindingConfiguration, activeRules.Union(inactiveRules), sonarProperties);
 
             var ruleSetFilePath = GetSolutionRuleSetFilePath(language, bindingConfiguration);
 
-            var ruleset = new FilePathAndContent<VsRuleset>(ruleSetFilePath, ToVsRuleset(coreRuleset));
-
-            return ruleset;
+            return new FilePathAndContent<RuleSet>(ruleSetFilePath, RuleSet);
         }
 
         private FilePathAndContent<SonarLintConfiguration> GetAdditionalFile(Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> activeRules, Dictionary<string, string> sonarProperties)
@@ -154,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             return serverProperties.ToDictionary(x => x.Key, x => x.Value);
         }
 
-        private CoreRuleset CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
+        private RuleSet CreateRuleset(SonarQubeQualityProfile qualityProfile, Language language, BindingConfiguration bindingConfiguration, IEnumerable<SonarQubeRule> rules, Dictionary<string, string> sonarProperties)
         {
             var coreRuleset = ruleSetGenerator.Generate(language.ServerLanguage.Key, rules, sonarProperties);
 
@@ -163,18 +159,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var descriptionSuffix = string.Format(Strings.SonarQubeQualityProfilePageUrlFormat, bindingConfiguration.Project.ServerUri, qualityProfile.Key);
             coreRuleset.Description = $"{coreRuleset.Description} {descriptionSuffix}";
             return coreRuleset;
-        }
-
-        private static VsRuleset ToVsRuleset(CoreRuleset coreRuleset)
-        {
-            // duncanp - refactor so IBindingConfigFileWithRuleset the VS RuleSet is not used
-            // (looks like only the ruleset DisplayName used by consumers of IBindingConfigFileWithRuleset
-            // so we don't actually need a ruleset)
-            var tempRuleSetFilePath = Path.GetTempFileName();
-            File.WriteAllText(tempRuleSetFilePath, coreRuleset.ToXml());
-            var ruleSet = VsRuleset.LoadFromFile(tempRuleSetFilePath);
-            
-            return ruleSet;
         }
 
         internal static  /* for testing */ bool IsSupportedRule(SonarQubeRule rule)
