@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             projectMock.SetCSProjectKind();
 
             SetupSolutionAdditionalFileExists(bindingConfiguration);
-            SetupSolutionRulesetExists(bindingConfiguration, null);
+            SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: false);
 
             var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
             result.Should().BeTrue();
@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetCSProjectKind();
 
-            SetupSolutionRulesetExists(bindingConfiguration, new RuleSet("test"));
+            SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: true);
             var solutionAdditionalFilePath = SetupSolutionAdditionalFileExists(bindingConfiguration);
 
             additionalFileReferenceCheckerMock
@@ -226,11 +226,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.IsReferenced(projectMock, solutionAdditionalFilePath))
                 .Returns(true);
 
-            var solutionRuleSet = new RuleSet("test");
-            SetupSolutionRulesetExists(bindingConfiguration, solutionRuleSet);
+            var solutionRuleSetFilePath = SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: true);
 
             rulesetReferenceCheckerMock
-                .Setup(x => x.IsReferenced(projectMock, solutionRuleSet))
+                .Setup(x => x.IsReferenced(projectMock, solutionRuleSetFilePath))
                 .Returns(false);
 
             var result = testSubject.IsBindingRequired(bindingConfiguration, projectMock);
@@ -247,11 +246,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var projectMock = new ProjectMock("c:\\test.csproj");
             projectMock.SetCSProjectKind();
 
-            var solutionRuleSet = new RuleSet("test");
-            SetupSolutionRulesetExists(bindingConfiguration, solutionRuleSet);
+            var solutionRuleSetFilePath = SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: true);
 
             rulesetReferenceCheckerMock
-                .Setup(x => x.IsReferenced(projectMock, solutionRuleSet))
+                .Setup(x => x.IsReferenced(projectMock, solutionRuleSetFilePath))
                 .Returns(true);
 
             var solutionAdditionalFilePath = SetupSolutionAdditionalFileExists(bindingConfiguration);
@@ -285,12 +283,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return bindingConfiguration;
         }
 
-        private void SetupSolutionRulesetExists(BindingConfiguration bindingConfiguration, RuleSet ruleSet)
+        private string SetupSolutionRulesetExists(BindingConfiguration bindingConfiguration, bool isRuleSetLoadable)
         {
             var mockRulesetPath = GetSolutionRulesetPath(bindingConfiguration);
             fileSystemMock.Setup(x => x.File.Exists(mockRulesetPath)).Returns(true);
 
-            ruleSetSerializerMock.Setup(x => x.LoadRuleSet(mockRulesetPath)).Returns(ruleSet);
+            RuleSet serializerResult = null;
+            if (isRuleSetLoadable)
+            {
+                serializerResult = new RuleSet("temp");
+                serializerResult.FilePath = mockRulesetPath;
+            }
+
+            ruleSetSerializerMock.Setup(x => x.LoadRuleSet(mockRulesetPath)).Returns(serializerResult);
+            return mockRulesetPath;
         }
 
         private string SetupSolutionAdditionalFileExists(BindingConfiguration bindingConfiguration)

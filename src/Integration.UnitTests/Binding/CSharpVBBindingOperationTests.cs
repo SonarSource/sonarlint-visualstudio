@@ -293,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             CreateProperty(projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
             projectMock.SetVBProjectKind();
             ruleSetReferenceChecker
-                .Setup(x => x.IsReferenced(projectMock, cSharpVBBindingConfig.RuleSet.Content))
+                .Setup(x => x.IsReferenced(projectMock, cSharpVBBindingConfig.RuleSet.Path))
                 .Returns(true);
 
             var testSubject = CreateTestSubject();

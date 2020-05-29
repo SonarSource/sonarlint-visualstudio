@@ -19,17 +19,16 @@
  */
 
 using EnvDTE;
-using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal interface IRuleSetReferenceChecker
     {
         /// <summary>
-        /// Return true if the the project's ruleSets directly include the target ruleSet, otherwise false
+        /// Return true if the project's ruleSets directly include the target ruleSet, otherwise false
         /// </summary>
         /// <remarks>We don't currently check nested includes in RuleSet
         /// i.e. if Project has RuleSet A which includes RuleSet B that includes RuleSet C, IsReferenced(Project, C) returns false.</remarks>
-        bool IsReferenced(Project project, RuleSet ruleSet);
+        bool IsReferenced(Project project, string targetRuleSetFilePath);
     }
 }
