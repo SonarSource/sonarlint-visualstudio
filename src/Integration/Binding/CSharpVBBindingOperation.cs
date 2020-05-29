@@ -143,23 +143,21 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddRuleset()
         {
-            if (!TryAddNonConditionalRuleSet())
-            {
-                AddConditionalRuleSets();
-            }
+            TryAddNonConditionalRuleSet();
+            AddConditionalRuleSets();
         }
 
         /// <summary>
         /// Try to add a ruleset without a configuration condition. If the project already has a non-default ruleset.
         /// </summary>
-        private bool TryAddNonConditionalRuleSet()
+        private void TryAddNonConditionalRuleSet()
         {
             var shouldAddSingleNonConditionalRuleSet = propertyInformationMap.Keys.All(x => IsDefaultMicrosoftRuleSet(x.Value as string));
 
             if (!shouldAddSingleNonConditionalRuleSet)
             {
                 // We don't want to create noise for users who already have existing rulesets configurations.
-                return false;
+                return;
             }
 
             var newRuleSetFilePath = propertyInformationMap.Values
@@ -168,8 +166,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.SetProjectProperty(initializedProject, Constants.CodeAnalysisRuleSetPropertyKey, newRuleSetFilePath);
-
-            return true;
         }
 
         /// <summary>
