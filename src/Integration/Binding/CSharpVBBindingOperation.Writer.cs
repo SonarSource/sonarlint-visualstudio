@@ -47,6 +47,11 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// <returns>Full file path of the file that we expect to write to</returns>
         internal /*for testing purposes*/ string QueueWriteProjectLevelRuleSet(string projectFullPath, string ruleSetFileName, ICSharpVBBindingConfig cSharpVBBindingConfig, string currentRuleSetPath)
         {
+            if (IsDefaultRuleSet(currentRuleSetPath))
+            {
+                return cSharpVBBindingConfig.RuleSet.Path;
+            }
+
             Debug.Assert(!string.IsNullOrWhiteSpace(projectFullPath));
             Debug.Assert(!string.IsNullOrWhiteSpace(ruleSetFileName));
 
@@ -70,11 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return existingRuleSetPath;
             }
 
-            if (ShouldIgnoreConfigureRuleSetValue(currentRuleSetPath))
-            {
-                return cSharpVBBindingConfig.RuleSet.Path;
-            }
-
             // Create a new project level rule set
             var solutionIncludePath = PathHelper.CalculateRelativePath(ruleSetRoot, cSharpVBBindingConfig.RuleSet.Path);
             RuleSet newRuleSet = GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, cSharpVBBindingConfig.RuleSet.Content.DisplayName);
@@ -93,14 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         #region Rule Set Helpers
         internal /*for testing purposes*/ bool TryUpdateExistingProjectRuleSet(string solutionRuleSetPath, string projectRuleSetRootFolder, string currentRuleSet, out string existingRuleSetPath, out RuleSet existingRuleSet)
         {
-            existingRuleSetPath = null;
             existingRuleSet = null;
-
-            if (ShouldIgnoreConfigureRuleSetValue(currentRuleSet))
-            {
-                return false;
-            }
-
             existingRuleSetPath = PathHelper.ResolveRelativePath(currentRuleSet, projectRuleSetRootFolder);
             if (!PathHelper.IsPathRootedUnderRoot(existingRuleSetPath, projectRuleSetRootFolder))
             {
@@ -142,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             // default rule set property value. The idea here is that we would like to preserve any explicit setting by the user
             // and we assume that the default rule set can be safely ignored since wasn't set explicitly by the user (or even if it was
             // it has low value in comparison to what is configured in SQ).
-            if (!ShouldIgnoreConfigureRuleSetValue(currentRuleSetPath))
+            if (!IsDefaultRuleSet(currentRuleSetPath))
             {
                 ruleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
             }
@@ -150,9 +143,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         }
 
         /// <summary>
-        /// Gets whether or not the provided rule set should be ignored for inclusion in a rule set.
+        /// Returns whether the given RuleSet path is the default predefined RuleSet
         /// </summary>
-        public static bool ShouldIgnoreConfigureRuleSetValue(string ruleSet)
+        internal static bool IsDefaultRuleSet(string ruleSet)
         {
             return string.IsNullOrWhiteSpace(ruleSet) || StringComparer.OrdinalIgnoreCase.Equals(DefaultProjectRuleSet, ruleSet);
         }
