@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private bool IsFullyBoundProject(BindingConfiguration binding, Project project, Language language)
         {
-            if (!IsSolutionBound(binding, language, out var solutionRuleSet, out var additionalFilePath))
+            if (!IsSolutionBound(binding, language, out var solutionRuleSetFilePath, out var additionalFilePath))
             {
                 return false;
             }
@@ -99,14 +99,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            var isRuleSetBound = ruleSetReferenceChecker.IsReferenced(project, solutionRuleSet);
-
+            var isRuleSetBound = ruleSetReferenceChecker.IsReferenced(project, solutionRuleSetFilePath);
             return isRuleSetBound;
         }
 
-        private bool IsSolutionBound(BindingConfiguration binding, Language language, out RuleSet solutionRuleSet, out string additionalFilePath)
+        private bool IsSolutionBound(BindingConfiguration binding, Language language, out string solutionRuleSetFilePath, out string additionalFilePath)
         {
-            solutionRuleSet = null;
+            solutionRuleSetFilePath = null;
             additionalFilePath = CSharpVBBindingConfigProvider.GetSolutionAdditionalFilePath(language, binding);
 
             if (!fileSystem.File.Exists(additionalFilePath))
@@ -114,7 +113,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            solutionRuleSet = GetSolutionRuleSet(binding, language);
+            var solutionRuleSet = GetSolutionRuleSet(binding, language);
+            solutionRuleSetFilePath = solutionRuleSet?.FilePath;
 
             return solutionRuleSet != null;
         }
