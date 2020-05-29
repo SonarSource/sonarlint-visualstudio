@@ -139,19 +139,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void ProjectBindingOperation_ShouldIgnoreConfigureRuleSetValue()
+        public void ProjectBindingOperation_IsDefaultMicrosoftRuleSet()
         {
             // Test case 1: not ignored
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue("My awesome rule set.ruleset").Should().BeFalse();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet("My awesome rule set.ruleset").Should().BeFalse();
 
             // Test case 2: ignored
             // Act
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(null).Should().BeTrue();
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(" ").Should().BeTrue();
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue("\t").Should().BeTrue();
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(CSharpVBBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(CSharpVBBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
-            CSharpVBBindingOperation.ShouldIgnoreConfigureRuleSetValue(CSharpVBBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(null).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(" ").Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet("\t").Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet.ToLower(CultureInfo.CurrentCulture)).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet.ToUpper(CultureInfo.CurrentCulture)).Should().BeTrue();
+            CSharpVBBindingOperation.IsDefaultMicrosoftRuleSet(CSharpVBBindingOperation.DefaultProjectRuleSet).Should().BeTrue();
         }
 
         [TestMethod]
@@ -378,6 +378,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
+
         [TestMethod]
         public void ProjectBindingOperation_QueueWriteProjectLevelRuleSet_NewBinding()
         {
@@ -392,31 +393,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
-                includes: new[] { expectedSolutionRuleSetInclude }
+                includes: new[] { expectedSolutionRuleSetInclude, "MyCustomRuleSet.ruleset" }
             );
             var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
 
-            List<string> filesPending = new List<string>();
-            foreach (var currentRuleSet in new[] { null, string.Empty, CSharpVBBindingOperation.DefaultProjectRuleSet })
-            {
-                // Act
-                string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, currentRuleSet);
-                filesPending.Add(actualPath);
+            // Act
+            string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, "MyCustomRuleSet.ruleset");
 
-                // Assert
-                this.ruleSetFS.AssertRuleSetNotExists(actualPath);
-                actualPath.Should().NotBe(solutionRuleSetPath, "Expecting a new rule set to be created once pending were written");
-            }
+            // Assert
+            this.ruleSetFS.AssertRuleSetNotExists(actualPath);
+            actualPath.Should().NotBe(solutionRuleSetPath, "Expecting a new rule set to be created once pending were written");
 
             // Act (write pending)
             this.sccFileSystem.WritePendingNoErrorsExpected();
 
             // Assert
-            foreach (var pending in filesPending)
-            {
-                // Assert
-                this.ruleSetFS.AssertRuleSetsAreEqual(pending, expectedRuleSet);
-            }
+            this.ruleSetFS.AssertRuleSetsAreEqual(actualPath, expectedRuleSet);
         }
 
         [DataTestMethod]
@@ -467,9 +459,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 @"..\..\relativeSolutionLevel.ruleset",
                 @"X:\SolutionDir\Sonar\absolutionSolutionRooted.ruleset",
                 @"c:\OtherPlaceEntirey\rules.ruleset",
-                CSharpVBBindingOperation.DefaultProjectRuleSet,
-                null,
-                string.Empty
+                "MyCustomRuleSet.ruleset"
             };
 
             foreach (var currentRuleSet in cases)
