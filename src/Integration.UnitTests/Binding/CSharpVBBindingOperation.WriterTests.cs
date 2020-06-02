@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
@@ -31,12 +30,15 @@ using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Binding;
 using RuleAction = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleAction;
-using RuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
+using VsRuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
+using CoreRuleSet = SonarLint.VisualStudio.Core.CSharpVB.RuleSet;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {
     public partial class CSharpVBBindingOperationTests
     {
+        private static readonly CoreRuleSet ValidCoreRuleSet = new CoreRuleSet { Name = Constants.RuleSetName };
+
         #region Tests
 
         [TestMethod]
@@ -160,12 +162,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             const string solutionIncludePath = @"..\..\solution.ruleset";
             const string currentRuleSetPath = @"X:\MyOriginal.ruleset";
-            var expectedRuleSet = new RuleSet(Constants.RuleSetName);
+            var expectedRuleSet = new VsRuleSet(Constants.RuleSetName);
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(solutionIncludePath, RuleAction.Default));
             expectedRuleSet.RuleSetIncludes.Add(new RuleSetInclude(currentRuleSetPath, RuleAction.Default));
 
             // Act
-            RuleSet actualRuleSet = CSharpVBBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, Constants.RuleSetName);
+            VsRuleSet actualRuleSet = CSharpVBBindingOperation.GenerateNewProjectRuleSet(solutionIncludePath, currentRuleSetPath, Constants.RuleSetName);
 
             // Assert
             RuleSetAssert.AreEqual(expectedRuleSet, actualRuleSet);
@@ -182,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
             const string existingProjectRuleSetPath = @"X:\SolutionDir\ProjectDir\ExistingRuleSet.ruleset";
 
-            RuleSet existingRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet existingRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { solutionRuleSetPath }
@@ -190,18 +192,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             existingRuleSet.FilePath = existingProjectRuleSetPath;
 
             this.ruleSetFS.RegisterRuleSet(existingRuleSet);
-            this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            this.ruleSetFS.RegisterRuleSet(new VsRuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
 
-            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, expectedRuleSet);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, ValidCoreRuleSet);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, existingProjectRuleSetPath);
@@ -211,9 +213,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             actualPath.Should().Be(existingProjectRuleSetPath, "Expecting the rule set to be updated");
         }
 
-        private static CSharpVBBindingConfig CreateCSharpVbBindingConfig(string newSolutionRuleSetPath, RuleSet expectedRuleSet)
+        private static CSharpVBBindingConfig CreateCSharpVbBindingConfig(string newSolutionRuleSetPath, CoreRuleSet coreRuleSet)
         {
-            var ruleset = new FilePathAndContent<RuleSet>(newSolutionRuleSetPath, expectedRuleSet);
+            var ruleset = new FilePathAndContent<CoreRuleSet>(newSolutionRuleSetPath, coreRuleSet);
             var additionalFile = new FilePathAndContent<SonarLintConfiguration>("dummy.txt", new SonarLintConfiguration());
             var csharpVbConfig = new CSharpVBBindingConfig(ruleset, additionalFile);
             return csharpVbConfig;
@@ -230,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
             const string existingProjectRuleSetPath = @"X:\SolutionDir\ProjectDir\ExistingRuleSet.ruleset";
 
-            RuleSet existingRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet existingRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath) }
@@ -238,17 +240,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             existingRuleSet.FilePath = existingProjectRuleSetPath;
 
             this.ruleSetFS.RegisterRuleSet(existingRuleSet);
-            this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            this.ruleSetFS.RegisterRuleSet(new VsRuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
             string newSolutionRuleSetPath = Path.Combine(Path.GetDirectoryName(solutionRuleSetPath), "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { newSolutionRuleSetInclude }
             );
-            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, expectedRuleSet);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, ValidCoreRuleSet);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, PathHelper.CalculateRelativePath(projectFullPath, existingProjectRuleSetPath));
@@ -270,10 +272,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
             const string existingProjectRuleSetPath = @"x:\myexistingproject.ruleset";
 
-            this.ruleSetFS.RegisterRuleSet(new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
-            this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            this.ruleSetFS.RegisterRuleSet(new VsRuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
+            this.ruleSetFS.RegisterRuleSet(new VsRuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[]
@@ -282,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, ValidCoreRuleSet);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, existingProjectRuleSetPath);
@@ -310,12 +312,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
             const string existingProjectRuleSetPath = @"x:\SolutionDir\myexistingproject.ruleset";
 
-            this.ruleSetFS.RegisterRuleSet(new RuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
-            this.ruleSetFS.RegisterRuleSet(new RuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
+            this.ruleSetFS.RegisterRuleSet(new VsRuleSet("NotOurRuleSet") { FilePath = existingProjectRuleSetPath });
+            this.ruleSetFS.RegisterRuleSet(new VsRuleSet("SolutionRuleSet") { FilePath = solutionRuleSetPath });
 
             string relativePathToExistingProjectRuleSet = PathHelper.CalculateRelativePath(existingProjectRuleSetPath, projectFullPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[]
@@ -324,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                     PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath)
                 }
             );
-            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, ValidCoreRuleSet);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetName, csharpVbConfig, relativePathToExistingProjectRuleSet);
@@ -357,12 +359,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             string newSolutionRuleSetPath = Path.Combine(solutionRoot, "RuleSets", "sonar2.ruleset");
             string newSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, newSolutionRuleSetPath);
 
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { currentNonExistingRuleSet, newSolutionRuleSetInclude }
             );
-            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, expectedRuleSet);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(newSolutionRuleSetPath, ValidCoreRuleSet);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, currentNonExistingRuleSet);
@@ -390,12 +392,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             const string solutionRuleSetPath = @"X:\SolutionDir\RuleSets\sonar1.ruleset";
 
             string expectedSolutionRuleSetInclude = PathHelper.CalculateRelativePath(projectFullPath, solutionRuleSetPath);
-            RuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
+            VsRuleSet expectedRuleSet = TestRuleSetHelper.CreateTestRuleSet
             (
                 numRules: 0,
                 includes: new[] { expectedSolutionRuleSetInclude, "MyCustomRuleSet.ruleset" }
             );
-            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, expectedRuleSet);
+            var csharpVbConfig = CreateCSharpVbBindingConfig(solutionRuleSetPath, ValidCoreRuleSet);
 
             // Act
             string actualPath = testSubject.QueueWriteProjectLevelRuleSet(projectFullPath, ruleSetFileName, csharpVbConfig, "MyCustomRuleSet.ruleset");
@@ -435,7 +437,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             string pathOutResult;
-            RuleSet rsOutput;
+            VsRuleSet rsOutput;
             bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, existingRuleSetPropValue, out pathOutResult, out rsOutput);
 
             // Assert
@@ -466,7 +468,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             {
                 // Act
                 string pathOutResult;
-                RuleSet rsOutput;
+                VsRuleSet rsOutput;
                 bool result = testSubject.TryUpdateExistingProjectRuleSet(solutionRuleSetPath, projectRuleSetRoot, currentRuleSet, out pathOutResult, out rsOutput);
 
                 // Assert
