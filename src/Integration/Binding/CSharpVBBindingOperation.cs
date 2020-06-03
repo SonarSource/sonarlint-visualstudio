@@ -143,35 +143,38 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddRuleset()
         {
-            TryAddNonConditionalRuleSet();
-            AddConditionalRuleSets();
+            TrySetNonConditionalRuleSet();
+            SetConditionalRuleSets();
         }
 
         /// <summary>
-        /// Try to add a ruleset without a configuration condition. If the project already has a non-default ruleset.
+        /// Try to set a ruleset without specifying a configuration (e.g. Debug / Release).
+        /// No changes are made if the project already has a ruleset.
         /// </summary>
-        private void TryAddNonConditionalRuleSet()
+        private void TrySetNonConditionalRuleSet()
         {
-            var shouldAddSingleNonConditionalRuleSet = propertyInformationMap.Keys.All(x => IsDefaultMicrosoftRuleSet(x.Value as string));
+            var hasUserSpecifiedRuleSet = propertyInformationMap.Keys.Any(x => !IsDefaultMicrosoftRuleSet(x.Value as string));
 
-            if (!shouldAddSingleNonConditionalRuleSet)
+            if (hasUserSpecifiedRuleSet)
             {
-                // We don't want to create noise for users who already have existing rulesets configurations.
+                // We could've done this for all projects that have configurations that point to the same ruleset but we don't want to create noise for existing users.
                 return;
             }
 
-            var newRuleSetFilePath = propertyInformationMap.Values
-                .Select(x => x.NewRuleSetFilePath)
-                .FirstOrDefault();
+            var ruleSetFullFilePath = propertyInformationMap.Values.FirstOrDefault()?.NewRuleSetFilePath;
 
-            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-            projectSystem.SetProjectProperty(initializedProject, Constants.CodeAnalysisRuleSetPropertyKey, newRuleSetFilePath);
+            if (!string.IsNullOrEmpty(ruleSetFullFilePath))
+            {
+                var relativeRuleSetValue = PathHelper.CalculateRelativePath(ProjectFullPath, ruleSetFullFilePath);
+                var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+                projectSystem.SetProjectProperty(initializedProject, Constants.CodeAnalysisRuleSetPropertyKey, relativeRuleSetValue);
+            }
         }
 
         /// <summary>
-        /// Add a conditional ruleset for each project configuration
+        /// Set a ruleset for each project configuration (e.g. Debug / Release).
         /// </summary>
-        private void AddConditionalRuleSets()
+        private void SetConditionalRuleSets()
         {
             foreach (var keyValue in this.propertyInformationMap)
             {
