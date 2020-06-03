@@ -204,8 +204,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Arrange
             var testSubject = CreateTestSubject();
-            var references = CreateProperty(projectMock, "config1", "references.ruleset");
-            var notReferences = CreateProperty(projectMock, notReferencesConfigurationName, "notreferences.ruleset");
+            var references = CreateRuleSetProperty(projectMock, "config1", "references.ruleset");
+            var notReferences = CreateRuleSetProperty(projectMock, notReferencesConfigurationName, "notreferences.ruleset");
 
             ruleSetReferenceChecker
                 .Setup(x => x.IsReferenced(projectMock,
