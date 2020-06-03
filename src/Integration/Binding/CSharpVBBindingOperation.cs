@@ -149,7 +149,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         /// <summary>
         /// Try to set a ruleset without specifying a configuration (e.g. Debug / Release).
-        /// No changes are made if the project already has a ruleset.
+        /// No-op for new-style projects that already have an unconditional reference.
+        /// No-op if the project already references a non-default ruleset.
         /// </summary>
         private void TrySetNonConditionalRuleSet()
         {
@@ -157,18 +158,14 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             if (hasUserSpecifiedRuleSet)
             {
-                // We could've done this for all projects that have configurations that point to the same ruleset but we don't want to create noise for existing users.
+                // We could've done a general fix: create an unconditional property if all the project's ruleset properties point to the same ruleset.
+                // But doing that will create noise for existing users. So we only do this for users who didn't specify a ruleset.
                 return;
             }
 
-            var ruleSetFullFilePath = propertyInformationMap.Values.FirstOrDefault()?.NewRuleSetFilePath;
-
-            if (!string.IsNullOrEmpty(ruleSetFullFilePath))
-            {
-                var relativeRuleSetValue = PathHelper.CalculateRelativePath(ProjectFullPath, ruleSetFullFilePath);
-                var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
-                projectSystem.SetProjectProperty(initializedProject, Constants.CodeAnalysisRuleSetPropertyKey, relativeRuleSetValue);
-            }
+            var relativeRuleSetValue = PathHelper.CalculateRelativePath(ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
+            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.SetProjectProperty(initializedProject, Constants.CodeAnalysisRuleSetPropertyKey, relativeRuleSetValue);
         }
 
         /// <summary>

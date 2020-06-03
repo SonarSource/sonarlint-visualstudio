@@ -418,12 +418,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             }
 
             // Assert
-            var solutionLevelRuleSet = PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
+            var generatedRuleSet = PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
 
             nonConditionalProperty = projectMock.GetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey);
-            nonConditionalProperty.Should().Be(solutionLevelRuleSet);
-            debug.Value.ToString().Should().Be(solutionLevelRuleSet);
-            release.Value.ToString().Should().Be(solutionLevelRuleSet);
+            nonConditionalProperty.Should().Be(generatedRuleSet);
+            debug.Value.ToString().Should().Be(generatedRuleSet);
+            release.Value.ToString().Should().Be(generatedRuleSet);
         }
 
         [TestMethod]
@@ -450,8 +450,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var nonConditionalProperty = projectMock.GetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey);
             nonConditionalProperty.Should().BeNullOrEmpty();
 
-            var solutionLevelRuleSet = PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
-            defaultRuleSet.Value.ToString().Should().Be(solutionLevelRuleSet);
+            var generatedRuleSet = PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
+            defaultRuleSet.Value.ToString().Should().Be(generatedRuleSet);
 
             var projectLevelRuleSet = Path.GetFileNameWithoutExtension(projectMock.FilePath) + ".Release.ruleset";
             nonDefaultRuleSet.Value.ToString().Should().Be(projectLevelRuleSet);
