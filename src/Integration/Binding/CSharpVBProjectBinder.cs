@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 return false;
             }
 
-            var isRuleSetBound = ruleSetReferenceChecker.IsReferenced(project, solutionRuleSetFilePath);
+            var isRuleSetBound = ruleSetReferenceChecker.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
             return isRuleSetBound;
         }
 

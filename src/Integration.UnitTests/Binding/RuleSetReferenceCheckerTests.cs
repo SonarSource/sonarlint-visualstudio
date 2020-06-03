@@ -67,18 +67,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void IsReferenced_ProjectHasNoRuleSets_False()
+        public void IsReferencedByAllDeclarations_ProjectHasNoRuleSets_False()
         {
             var projectMock = CreateMockProject(0, out _);
 
-            var result = testSubject.IsReferenced(projectMock, solutionRuleSetFilePath);
+            var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
             result.Should().BeFalse();
 
             ruleSetSerializerMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void IsReferenced_ProjectHasOneRuleSet_CantLoadProjectRuleSetFile_False()
+        public void IsReferencedByAllDeclarations_ProjectHasOneRuleSet_CantLoadProjectRuleSetFile_False()
         {
             var projectMock = CreateMockProject(1, out var declarations);
 
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.TryGetProjectRuleSetFilePath(projectMock, declarations.First(), out filePath))
                 .Returns(false);
 
-            var result = testSubject.IsReferenced(projectMock, solutionRuleSetFilePath);
+            var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
             result.Should().BeFalse();
 
             ruleSetSerializerMock.VerifyNoOtherCalls();
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void IsReferenced_ProjectHasOneRuleSet_ReturnIfReferencesSolutionRuleSet(bool referencesSolutionRuleSet)
+        public void IsReferencedByAllDeclarations_ProjectHasOneRuleSet_ReturnIfReferencesSolutionRuleSet(bool referencesSolutionRuleSet)
         {
             var projectMock = CreateMockProject(1, out var declarations);
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SetupProjectRuleSet(projectMock, declarations.First(), projectRuleSet);
 
-            var result = testSubject.IsReferenced(projectMock, solutionRuleSetFilePath);
+            var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
 
             result.Should().Be(referencesSolutionRuleSet);
         }
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [DataRow(true, false, false)]
         [DataRow(false, true, false)]
         [DataRow(false, false, false)]
-        public void IsReferenced_ProjectHasTwoRuleSets_ReturnIfAllReferenceSolutionRuleSet(bool firstReferencesSolutionRuleSet, bool secondReferencesSolutionRuleSet, bool expectedResult)
+        public void IsReferencedByAllDeclarations_ProjectHasTwoRuleSets_ReturnIfAllReferenceSolutionRuleSet(bool firstReferencesSolutionRuleSet, bool secondReferencesSolutionRuleSet, bool expectedResult)
         {
             var projectMock = CreateMockProject(2, out var declarations);
 
@@ -132,13 +132,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             SetupProjectRuleSet(projectMock, declarations.Last(), secondProjectRuleSet);
 
-            var result = testSubject.IsReferenced(projectMock, solutionRuleSetFilePath);
+            var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
 
             result.Should().Be(expectedResult);
         }
 
         [TestMethod]
-        public void IsReferenced_RelativePaths()
+        public void IsReferencedByAllDeclarations_RelativePaths()
         {
             // Arrange
             var relativeInclude = @"Solution\SomeFolder\fullFilePath.ruleset".ToLowerInvariant(); // Catch casing errors
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Case 1: Relative include
             // Act
             var project = CreateMockProjectWithRuleSet(sourceWithRelativeInclude);
-            var isReferenced = testSubject.IsReferenced(project, solutionRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeTrue();
@@ -163,14 +163,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Case 2: Relative include, alternative path separators
             // Act
             project = CreateMockProjectWithRuleSet(sourceWithRelativeInclude2);
-            isReferenced = testSubject.IsReferenced(project, solutionRuleSetFilePath);
+            isReferenced = testSubject.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeTrue();
         }
 
         [TestMethod]
-        public void IsReferenced_RelativePaths_Complex()
+        public void IsReferencedByAllDeclarations_RelativePaths_Complex()
         {
             // Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/658
             // "SonarLint for Visual Studio 2017 plugin does not respect shared imports "
@@ -185,14 +185,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             var project = CreateMockProjectWithRuleSet(sourceWithRelativeInclude);
-            var isReferenced = testSubject.IsReferenced(project, targetRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, targetRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeTrue();
         }
 
         [TestMethod]
-        public void IsReferenced_RelativePaths_Complex2()
+        public void IsReferencedByAllDeclarations_RelativePaths_Complex2()
         {
             // Arrange
             var targetRuleSetFilePath = @"c:\Solution\SomeFolder\fullFilePath.ruleset";
@@ -204,14 +204,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             var project = CreateMockProjectWithRuleSet(sourceWithRelativeInclude);
-            var isReferenced = testSubject.IsReferenced(project, targetRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, targetRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeTrue();
         }
 
         [TestMethod]
-        public void IsReferenced_AbsolutePaths()
+        public void IsReferencedByAllDeclarations_AbsolutePaths()
         {
             // Arrange
             var absoluteInclude = solutionRuleSetFilePath.ToUpperInvariant(); // Catch casing errors
@@ -220,28 +220,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             var project = CreateMockProjectWithRuleSet(sourceWithAbsoluteInclude);
-            var isReferenced = testSubject.IsReferenced(project, solutionRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeTrue();
         }
 
         [TestMethod]
-        public void IsReferenced_NoIncludes()
+        public void IsReferencedByAllDeclarations_NoIncludes()
         {
             // Arrange
             var unreferencedRuleSet = TestRuleSetHelper.CreateTestRuleSet(@"c:\unreferenced.ruleset");
 
             // Act No includes at all
             var project = CreateMockProjectWithRuleSet(unreferencedRuleSet);
-            var isReferenced = testSubject.IsReferenced(project, solutionRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsReferenced_NoIncludesFromSourceToTarget()
+        public void IsReferencedByAllDeclarations_NoIncludesFromSourceToTarget()
         {
             // Arrange
             var sourceWithInclude = TestRuleSetHelper.CreateTestRuleSetWithIncludes(@"c:\fullFilePath.ruleset",
@@ -249,14 +249,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act - No includes from source to target
             var project = CreateMockProjectWithRuleSet(sourceWithInclude);
-            var isReferenced = testSubject.IsReferenced(project, solutionRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, solutionRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeFalse();
         }
 
         [TestMethod]
-        public void IsReferenced_SourceIsTarget_ReturnsTrue()
+        public void IsReferencedByAllDeclarations_SourceIsTarget_ReturnsTrue()
         {
             // Covers the case where the ruleset is included directly in the project, rather
             // than indirectly as a RuleSetInclude in another ruleset.
@@ -267,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Act
             var project = CreateMockProjectWithRuleSet(projectRuleSet);
-            var isReferenced = testSubject.IsReferenced(project, targetRuleSetFilePath);
+            var isReferenced = testSubject.IsReferencedByAllDeclarations(project, targetRuleSetFilePath);
 
             // Assert
             isReferenced.Should().BeTrue();
