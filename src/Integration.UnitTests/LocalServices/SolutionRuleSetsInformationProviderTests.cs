@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.AddFile(declaration.RuleSetPath, new MockFileData(""));
 
             // Act
-            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeTrue();
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out ruleSetPath).Should().BeTrue();
 
             // Assert
             ruleSetPath.Should().Be(@"c:\RuleSet.ruleset");
@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             fileSystem.AddFile(@"c:\Solution\RuleSet.ruleset", new MockFileData(""));
 
             // Act
-            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeTrue();
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out ruleSetPath).Should().BeTrue();
 
             // Assert
             ruleSetPath.Should().Be(@"c:\Solution\RuleSet.ruleset");
@@ -246,7 +246,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             declaration = CreateDeclaration(project, "MyFile.ruleset");
 
             // Act
-            testSubject.TryGetProjectRuleSetFilePath(project, declaration, out ruleSetPath).Should().BeFalse();
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out ruleSetPath).Should().BeFalse();
 
             // Assert
             ruleSetPath.Should().BeNull();

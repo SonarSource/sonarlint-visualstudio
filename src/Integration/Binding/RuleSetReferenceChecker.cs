@@ -51,22 +51,22 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
             var isRuleSetBound = declarations.Length > 0 &&
-                                 declarations.All(declaration => IsReferenced(project, declaration, targetRuleSetFilePath));
+                                 declarations.All(declaration => IsReferenced(declaration, targetRuleSetFilePath));
 
             return isRuleSetBound;
         }
 
-        public bool IsReferenced(Project project, RuleSetDeclaration declaration, string targetRuleSetFilePath)
+        public bool IsReferenced(RuleSetDeclaration declaration, string targetRuleSetFilePath)
         {
-            var projectRuleSet = FindDeclarationRuleSet(project, declaration);
+            var projectRuleSet = FindDeclarationRuleSet(declaration);
 
             return projectRuleSet != null && HasInclude(projectRuleSet, targetRuleSetFilePath);
         }
 
-        private RuleSet FindDeclarationRuleSet(Project project, RuleSetDeclaration declaration)
+        private RuleSet FindDeclarationRuleSet(RuleSetDeclaration declaration)
         {
             // Check if project rule set is found (we treat missing/erroneous rule set settings as not found)
-            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(project, declaration, out var ruleSetFilePath))
+            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(declaration, out var ruleSetFilePath))
             {
                 return null;
             }

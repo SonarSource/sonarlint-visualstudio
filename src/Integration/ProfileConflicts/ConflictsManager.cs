@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
                     foreach (var declaration in ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project))
                     {
                         string projectRuleSet =
-                            CalculateProjectRuleSetFullPath(ruleSetInfoProvider, project, declaration);
+                            CalculateProjectRuleSetFullPath(ruleSetInfoProvider, declaration);
 
                         this.AddOrUpdateAggregatedRuleSetInformation(projectRuleSetAggregation, baselineRuleSet,
                             declaration, projectRuleSet);
@@ -191,11 +191,11 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             logger.WriteLine(Strings.ConflictsManagerWarningMessage, message);
         }
 
-        private static string CalculateProjectRuleSetFullPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, Project project, RuleSetDeclaration declaration)
+        private static string CalculateProjectRuleSetFullPath(ISolutionRuleSetsInformationProvider ruleSetInfoProvider, RuleSetDeclaration declaration)
         {
             string projectRuleSet;
 
-            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(project, declaration, out projectRuleSet))
+            if (!ruleSetInfoProvider.TryGetProjectRuleSetFilePath(declaration, out projectRuleSet))
             {
                 // Use the original property value to attempt to load the rule set with the directories information, during FindConflicts
                 projectRuleSet = declaration.RuleSetPath;
