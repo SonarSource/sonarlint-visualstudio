@@ -197,6 +197,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
+        public void ProjectBindingOperation_Initialize_VariousRuleSetsReferenceAndDontReferenceSolutionRuleSet()
+        {
+            projectMock.SetVBProjectKind();
+            const string notReferencesConfigurationName = "config2";
+
+            // Arrange
+            var testSubject = CreateTestSubject();
+            var references = CreateProperty(projectMock, "config1", "references.ruleset");
+            var notReferences = CreateProperty(projectMock, notReferencesConfigurationName, "notreferences.ruleset");
+
+            ruleSetReferenceChecker
+                .Setup(x => x.IsReferenced(projectMock,
+                    It.Is((RuleSetDeclaration r) => r.RuleSetPath == "references.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
+                .Returns(true);
+
+            ruleSetReferenceChecker
+                .Setup(x => x.IsReferenced(projectMock,
+                    It.Is((RuleSetDeclaration r) => r.RuleSetPath == "notreferences.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
+                .Returns(false);
+
+            // Act
+            testSubject.Initialize();
+
+            // Assert
+            testSubject.PropertyInformationMap.Keys.Should().NotContain(references);
+            testSubject.PropertyInformationMap.Keys.Should().Contain(notReferences);
+
+            var expectedRuleSetForNotReferences = Path.GetFileNameWithoutExtension(projectMock.FilePath) + "." + notReferencesConfigurationName;
+            testSubject.PropertyInformationMap[notReferences].TargetRuleSetFileName.Should().Be(expectedRuleSetForNotReferences);
+        }
+
+        [TestMethod]
         public void ProjectBindingOperation_Prepare_VariousRuleSetsInProjects()
         {
             // Arrange
@@ -286,34 +318,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert that written
             fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRuleSets).Should().NotBe(null);
-        }
-
-        [TestMethod]
-        public void ProjectBindingOperation_Commit_RulesetIsAlreadyReferenced_RulesetNotWritten()
-        {
-            // Arrange
-            CreateProperty(projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
-            projectMock.SetVBProjectKind();
-            ruleSetReferenceChecker
-                .Setup(x => x.IsReferenced(projectMock, cSharpVBBindingConfig.RuleSet.Path))
-                .Returns(true);
-
-            var testSubject = CreateTestSubject();
-            testSubject.Initialize();
-            testSubject.Prepare(CancellationToken.None);
-
-            // Act
-            testSubject.Commit();
-
-            // Assert
-            string expectedRuleSetFileForPropertiesWithDefaultRuleSets = Path.Combine(Path.GetDirectoryName(this.projectMock.FilePath), Path.GetFileNameWithoutExtension(this.projectMock.FilePath) + ".ruleset");
-            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRuleSets).Should().Be(null);
-
-            // Act (write pending)
-            this.sccFileSystem.WritePendingNoErrorsExpected();
-
-            // Assert that not written
-            fileSystem.GetFile(expectedRuleSetFileForPropertiesWithDefaultRuleSets).Should().Be(null);
         }
 
         [TestMethod]

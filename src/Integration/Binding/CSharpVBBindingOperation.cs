@@ -245,15 +245,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void CalculateRuleSetInformation()
         {
-            var slnRuleSetFilePath = cSharpVBBindingConfig.RuleSet.Path;
-            var solutionRuleSet = ruleSetSerializer.LoadRuleSet(slnRuleSetFilePath);
-
-            if (solutionRuleSet != null // null means file is missing or can't be loaded
-                && ruleSetReferenceChecker.IsReferenced(initializedProject, slnRuleSetFilePath))
-            {
-                return;
-            }
-
             var solutionRuleSetProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             var ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(initializedProject).ToArray();
             var sameRuleSetCandidate = ruleSetsInfo.FirstOrDefault()?.RuleSetPath;
@@ -264,6 +255,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectBasedRuleSetName = Path.GetFileNameWithoutExtension(initializedProject.FullName);
             foreach (var singleRuleSetInfo in ruleSetsInfo)
             {
+                var slnRuleSetFilePath = cSharpVBBindingConfig.RuleSet.Path;
+
+                if (ruleSetReferenceChecker.IsReferenced(initializedProject, singleRuleSetInfo, slnRuleSetFilePath))
+                {
+                    continue;
+                }
+
                 var targetRuleSetName = projectBasedRuleSetName;
                 var currentRuleSetValue = useSameTargetName ? sameRuleSetCandidate : singleRuleSetInfo.RuleSetPath;
 
