@@ -46,17 +46,17 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ruleSetSerializer.AssertLocalServiceIsNotNull();
         }
 
-        public bool IsReferenced(Project project, string targetRuleSetFilePath)
+        public bool IsReferencedByAllDeclarations(Project project, string targetRuleSetFilePath)
         {
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
             var isRuleSetBound = declarations.Length > 0 &&
-                                 declarations.All(declaration => IsRuleSetReferenced(project, declaration, targetRuleSetFilePath));
+                                 declarations.All(declaration => IsReferenced(project, declaration, targetRuleSetFilePath));
 
             return isRuleSetBound;
         }
 
-        private bool IsRuleSetReferenced(Project project, RuleSetDeclaration declaration, string targetRuleSetFilePath)
+        public bool IsReferenced(Project project, RuleSetDeclaration declaration, string targetRuleSetFilePath)
         {
             var projectRuleSet = FindDeclarationRuleSet(project, declaration);
 
