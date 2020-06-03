@@ -149,7 +149,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         /// <summary>
         /// Try to set a ruleset without specifying a configuration (e.g. Debug / Release).
-        /// No-op for new-style projects that already have an unconditional reference.
         /// No-op if the project already references a non-default ruleset.
         /// </summary>
         private void TrySetNonConditionalRuleSet()
@@ -170,6 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         /// <summary>
         /// Set a ruleset for each project configuration (e.g. Debug / Release).
+        /// No-op for new-style projects that already have an unconditional reference.
         /// </summary>
         private void SetConditionalRuleSets()
         {
