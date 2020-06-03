@@ -143,6 +143,36 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void AddRuleset()
         {
+            TrySetNonConditionalRuleSet();
+            SetConditionalRuleSets();
+        }
+
+        /// <summary>
+        /// Try to set a ruleset without specifying a configuration (e.g. Debug / Release).
+        /// No-op if the project already references a non-default ruleset.
+        /// </summary>
+        private void TrySetNonConditionalRuleSet()
+        {
+            var hasUserSpecifiedRuleSet = propertyInformationMap.Keys.Any(x => !IsDefaultMicrosoftRuleSet(x.Value as string));
+
+            if (hasUserSpecifiedRuleSet)
+            {
+                // We could've done a general fix: create an unconditional property if all the project's ruleset properties point to the same ruleset.
+                // But doing that will create noise for existing users. So we only do this for users who didn't specify a ruleset.
+                return;
+            }
+
+            var relativeRuleSetValue = PathHelper.CalculateRelativePath(ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
+            var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
+            projectSystem.SetProjectProperty(initializedProject, Constants.CodeAnalysisRuleSetPropertyKey, relativeRuleSetValue);
+        }
+
+        /// <summary>
+        /// Set a ruleset for each project configuration (e.g. Debug / Release).
+        /// No-op for new-style projects that already have an unconditional reference.
+        /// </summary>
+        private void SetConditionalRuleSets()
+        {
             foreach (var keyValue in this.propertyInformationMap)
             {
                 Property property = keyValue.Key;

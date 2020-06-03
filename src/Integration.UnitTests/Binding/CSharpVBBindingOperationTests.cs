@@ -107,8 +107,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
-            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop1 = CreateRuleSetProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop2 = CreateRuleSetProperty(this.projectMock, "config2", CSharpVBBindingOperation.DefaultProjectRuleSet);
 
             // Act
             testSubject.Initialize();
@@ -131,8 +131,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", null);
-            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", string.Empty);
+            PropertyMock prop1 = CreateRuleSetProperty(this.projectMock, "config1", null);
+            PropertyMock prop2 = CreateRuleSetProperty(this.projectMock, "config2", string.Empty);
 
             // Act
             testSubject.Initialize();
@@ -155,8 +155,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", "Custom1.ruleset");
-            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", "Custom1.ruleset");
+            PropertyMock prop1 = CreateRuleSetProperty(this.projectMock, "config1", "Custom1.ruleset");
+            PropertyMock prop2 = CreateRuleSetProperty(this.projectMock, "config2", "Custom1.ruleset");
 
             // Act
             testSubject.Initialize();
@@ -179,8 +179,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop1 = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
-            PropertyMock prop2 = CreateProperty(this.projectMock, "config2", "NonDefualtRuleSet.ruleset");
+            PropertyMock prop1 = CreateRuleSetProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop2 = CreateRuleSetProperty(this.projectMock, "config2", "NonDefualtRuleSet.ruleset");
 
             // Act
             testSubject.Initialize();
@@ -204,8 +204,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Arrange
             var testSubject = CreateTestSubject();
-            var references = CreateProperty(projectMock, "config1", "references.ruleset");
-            var notReferences = CreateProperty(projectMock, notReferencesConfigurationName, "notreferences.ruleset");
+            var references = CreateRuleSetProperty(projectMock, "config1", "references.ruleset");
+            var notReferences = CreateRuleSetProperty(projectMock, notReferencesConfigurationName, "notreferences.ruleset");
 
             ruleSetReferenceChecker
                 .Setup(x => x.IsReferenced(projectMock,
@@ -234,10 +234,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
-            PropertyMock customRuleSetProperty2 = CreateProperty(this.projectMock, "config2", "Custom.ruleset");
-            PropertyMock defaultRuleSetProperty1 = CreateProperty(this.projectMock, "config3", CSharpVBBindingOperation.DefaultProjectRuleSet);
-            PropertyMock defaultRuleSetProperty2 = CreateProperty(this.projectMock, "config4", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock customRuleSetProperty1 = CreateRuleSetProperty(this.projectMock, "config1", "Custom.ruleset");
+            PropertyMock customRuleSetProperty2 = CreateRuleSetProperty(this.projectMock, "config2", "Custom.ruleset");
+            PropertyMock defaultRuleSetProperty1 = CreateRuleSetProperty(this.projectMock, "config3", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock defaultRuleSetProperty2 = CreateRuleSetProperty(this.projectMock, "config4", CSharpVBBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
 
             // Act
@@ -273,8 +273,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock customRuleSetProperty1 = CreateProperty(this.projectMock, "config1", "Custom.ruleset");
-            PropertyMock customRuleSetProperty2 = CreateProperty(this.projectMock, "config2", "Custom.ruleset");
+            PropertyMock customRuleSetProperty1 = CreateRuleSetProperty(this.projectMock, "config1", "Custom.ruleset");
+            PropertyMock customRuleSetProperty2 = CreateRuleSetProperty(this.projectMock, "config2", "Custom.ruleset");
             testSubject.Initialize();
 
             // Act
@@ -299,8 +299,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetVBProjectKind();
-            PropertyMock firstRuleSet = CreateProperty(this.projectMock, "config1", "MyCustomRuleSet.ruleset");
-            PropertyMock secondRuleSet = CreateProperty(this.projectMock, "config2", "MyCustomRuleSet.ruleset");
+            PropertyMock firstRuleSet = CreateRuleSetProperty(this.projectMock, "config1", "MyCustomRuleSet.ruleset");
+            PropertyMock secondRuleSet = CreateRuleSetProperty(this.projectMock, "config2", "MyCustomRuleSet.ruleset");
             testSubject.Initialize();
 
             // Act
@@ -326,7 +326,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            PropertyMock prop = CreateRuleSetProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             using (CancellationTokenSource src = new CancellationTokenSource())
             {
@@ -401,12 +401,73 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
+        public void ProjectBindingOperation_Commit_AllRuleSetsAreDefault_AddsNonConditionalRuleSetProperty()
+        {
+            // Arrange
+            projectMock.SetCSProjectKind();
+            var testSubject = CreateTestSubject();
+            var debug = CreateRuleSetProperty(projectMock, "Debug", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            var release = CreateRuleSetProperty(projectMock, "Release", CSharpVBBindingOperation.DefaultProjectRuleSet);
+
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            var nonConditionalProperty = projectMock.GetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey);
+            nonConditionalProperty.Should().BeNullOrEmpty();
+
+            // Act
+            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
+            {
+                testSubject.Commit();
+            }
+
+            // Assert
+            var generatedRuleSet = PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
+
+            nonConditionalProperty = projectMock.GetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey);
+            nonConditionalProperty.Should().Be(generatedRuleSet);
+            debug.Value.ToString().Should().Be(generatedRuleSet);
+            release.Value.ToString().Should().Be(generatedRuleSet);
+        }
+
+        [TestMethod]
+        public void ProjectBindingOperation_Commit_HasNonDefaultRuleSet_DoesNotAddNonConditionalRuleSetProperty()
+        {
+            // Arrange
+            projectMock.SetCSProjectKind();
+
+            var testSubject = CreateTestSubject();
+            var defaultRuleSet = CreateRuleSetProperty(projectMock, "Debug", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            var nonDefaultRuleSet = CreateRuleSetProperty(projectMock, "Release", "myruleset.ruleset");
+
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            // Act
+            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
+            {
+                testSubject.Commit();
+            }
+
+            // Assert
+
+            var nonConditionalProperty = projectMock.GetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey);
+            nonConditionalProperty.Should().BeNullOrEmpty();
+
+            var generatedRuleSet = PathHelper.CalculateRelativePath(testSubject.ProjectFullPath, cSharpVBBindingConfig.RuleSet.Path);
+            defaultRuleSet.Value.ToString().Should().Be(generatedRuleSet);
+
+            var projectLevelRuleSet = Path.GetFileNameWithoutExtension(projectMock.FilePath) + ".Release.ruleset";
+            nonDefaultRuleSet.Value.ToString().Should().Be(projectLevelRuleSet);
+        }
+
+        [TestMethod]
         public void ProjectBindingOperation_Commit_NewProjectSystem_DoesNotAddFile()
         {
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", "MyCustomRuleSet.ruleset");
+            PropertyMock prop = CreateRuleSetProperty(this.projectMock, "config1", "MyCustomRuleSet.ruleset");
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
@@ -432,7 +493,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var testSubject = CreateTestSubject();
             projectMock.SetCSProjectKind();
-            var prop = CreateProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
+            var prop = CreateRuleSetProperty(this.projectMock, "config1", CSharpVBBindingOperation.DefaultProjectRuleSet);
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
@@ -455,7 +516,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             this.projectMock.SetCSProjectKind();
-            PropertyMock prop = CreateProperty(this.projectMock, "config1", "MyCustomRuleSet.ruleset");
+            PropertyMock prop = CreateRuleSetProperty(this.projectMock, "config1", "MyCustomRuleSet.ruleset");
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);
 
@@ -576,7 +637,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         #region Helpers
 
-        private static PropertyMock CreateProperty(ProjectMock project, string configurationName, object propertyValue)
+        private static PropertyMock CreateRuleSetProperty(ProjectMock project, string configurationName, object propertyValue)
         {
             ConfigurationMock config = project.ConfigurationManager.Configurations.SingleOrDefault(c => c.ConfigurationName == configurationName);
             if (config == null)
