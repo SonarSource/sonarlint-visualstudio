@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var filePath = "";
             solutionRuleSetsInformationProviderMock
-                .Setup(x => x.TryGetProjectRuleSetFilePath(projectMock, declarations.First(), out filePath))
+                .Setup(x => x.TryGetProjectRuleSetFilePath(declarations.First(), out filePath))
                 .Returns(false);
 
             var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 ? projectRuleSetThatIncludesSolutionRuleSet
                 : projectRuleSetThatDoesNotIncludeSolutionRuleSet;
 
-            SetupProjectRuleSet(projectMock, declarations.First(), projectRuleSet);
+            SetupProjectRuleSet(declarations.First(), projectRuleSet);
 
             var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
 
@@ -124,13 +124,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 ? projectRuleSetThatIncludesSolutionRuleSet
                 : projectRuleSetThatDoesNotIncludeSolutionRuleSet;
 
-            SetupProjectRuleSet(projectMock, declarations.First(), firstProjectRuleSet);
+            SetupProjectRuleSet(declarations.First(), firstProjectRuleSet);
 
             var secondProjectRuleSet = secondReferencesSolutionRuleSet
                 ? projectRuleSetThatIncludesSolutionRuleSet
                 : projectRuleSetThatDoesNotIncludeSolutionRuleSet;
 
-            SetupProjectRuleSet(projectMock, declarations.Last(), secondProjectRuleSet);
+            SetupProjectRuleSet(declarations.Last(), secondProjectRuleSet);
 
             var result = testSubject.IsReferencedByAllDeclarations(projectMock, solutionRuleSetFilePath);
 
@@ -293,11 +293,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return projectMock;
         }
 
-        private void SetupProjectRuleSet(Project project, RuleSetDeclaration declaration, RuleSet projectRuleSet)
+        private void SetupProjectRuleSet(RuleSetDeclaration declaration, RuleSet projectRuleSet)
         {
             var projectRuleSetPath = Guid.NewGuid().ToString();
             solutionRuleSetsInformationProviderMock
-                .Setup(x => x.TryGetProjectRuleSetFilePath(project, declaration, out projectRuleSetPath))
+                .Setup(x => x.TryGetProjectRuleSetFilePath(declaration, out projectRuleSetPath))
                 .Returns(true);
 
             ruleSetSerializerMock
@@ -309,7 +309,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             var projectMock = CreateMockProject(1, out var declarations);
 
-            SetupProjectRuleSet(projectMock, declarations.First(), projectRuleSet);
+            SetupProjectRuleSet(declarations.First(), projectRuleSet);
 
             return projectMock;
         }

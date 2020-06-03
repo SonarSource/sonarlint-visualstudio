@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         /// <remarks>We don't currently check nested includes in RuleSet
         /// i.e. if Project has RuleSet A which includes RuleSet B that includes RuleSet C, IsReferenced(Project, C) returns false.</remarks>
-        bool IsReferenced(Project project, RuleSetDeclaration declaration, string targetRuleSetFilePath);
+        bool IsReferenced(RuleSetDeclaration declaration, string targetRuleSetFilePath);
 
         /// <summary>
         /// Return true if all project's ruleSets directly include the target ruleSet, otherwise false

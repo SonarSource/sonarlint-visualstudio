@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
         }
 
-        bool ISolutionRuleSetsInformationProvider.TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath)
+        bool ISolutionRuleSetsInformationProvider.TryGetProjectRuleSetFilePath(RuleSetDeclaration declaration, out string fullFilePath)
         {
             fullFilePath = declaration.RuleSetPath;
 
