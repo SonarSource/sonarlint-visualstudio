@@ -40,11 +40,10 @@ namespace SonarLint.VisualStudio.Integration
         /// Will return a calculated file path to the expected project RuleSet
         /// that corresponds to the <paramref name="declaration"/>.
         /// </summary>
-        /// <param name="project">Required</param>
         /// <param name="declaration">Required</param>
         /// <param name="fullFilePath">A full file path to an existing RuleSet, or null if failed.</param>
         /// <returns>Whether succeeded in which case the <param name="fullFilePath" /> will point to an existing file</returns>
-        bool TryGetProjectRuleSetFilePath(Project project, RuleSetDeclaration declaration, out string fullFilePath);
+        bool TryGetProjectRuleSetFilePath(RuleSetDeclaration declaration, out string fullFilePath);
 
         /// <summary>
         /// Returns the path to solution level rulesets.
