@@ -257,7 +257,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var slnRuleSetFilePath = cSharpVBBindingConfig.RuleSet.Path;
 
-                if (ruleSetReferenceChecker.IsReferenced(initializedProject, singleRuleSetInfo, slnRuleSetFilePath))
+                if (ruleSetReferenceChecker.IsReferenced(singleRuleSetInfo, slnRuleSetFilePath))
                 {
                     continue;
                 }

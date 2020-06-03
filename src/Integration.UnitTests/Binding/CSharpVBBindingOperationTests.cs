@@ -208,13 +208,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             var notReferences = CreateProperty(projectMock, notReferencesConfigurationName, "notreferences.ruleset");
 
             ruleSetReferenceChecker
-                .Setup(x => x.IsReferenced(projectMock,
-                    It.Is((RuleSetDeclaration r) => r.RuleSetPath == "references.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
+                .Setup(x => x.IsReferenced(It.Is((RuleSetDeclaration r) => r.RuleSetPath == "references.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
                 .Returns(true);
 
             ruleSetReferenceChecker
-                .Setup(x => x.IsReferenced(projectMock,
-                    It.Is((RuleSetDeclaration r) => r.RuleSetPath == "notreferences.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
+                .Setup(x => x.IsReferenced(It.Is((RuleSetDeclaration r) => r.RuleSetPath == "notreferences.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
                 .Returns(false);
 
             // Act
