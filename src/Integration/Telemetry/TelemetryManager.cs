@@ -49,37 +49,12 @@ namespace SonarLint.VisualStudio.Integration
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
             ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts)
         {
-            if (solutionBindingTracker == null)
-            {
-                throw new ArgumentNullException(nameof(solutionBindingTracker));
-            }
-            if (telemetryRepository == null)
-            {
-                throw new ArgumentNullException(nameof(telemetryRepository));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-            if (telemetryClient == null)
-            {
-                throw new ArgumentNullException(nameof(telemetryClient));
-            }
-            if (telemetryTimer == null)
-            {
-                throw new ArgumentNullException(nameof(telemetryTimer));
-            }
-            if (knownUIContexts == null)
-            {
-                throw new ArgumentNullException(nameof(knownUIContexts));
-            }
-
-            this.solutionBindingTracker = solutionBindingTracker;
-            this.telemetryClient = telemetryClient;
-            this.logger = logger;
-            this.telemetryTimer = telemetryTimer;
-            this.telemetryRepository = telemetryRepository;
-            this.knownUIContexts = knownUIContexts;
+            this.solutionBindingTracker = solutionBindingTracker ?? throw new ArgumentNullException(nameof(solutionBindingTracker));
+            this.telemetryRepository = telemetryRepository ?? throw new ArgumentNullException(nameof(telemetryRepository));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            this.telemetryTimer = telemetryTimer ?? throw new ArgumentNullException(nameof(telemetryTimer));
+            this.knownUIContexts = knownUIContexts ?? throw new ArgumentNullException(nameof(knownUIContexts));
 
             if (this.telemetryRepository.Data.InstallationDate == DateTimeOffset.MinValue)
             {
@@ -121,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration
 
             await telemetryClient.OptOutAsync(GetPayload(telemetryRepository.Data));
         }
-         
+
         private void DisableAllEvents()
         {
             telemetryTimer.Elapsed -= OnTelemetryTimerElapsed;
@@ -210,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration
             try
             {
                 telemetryRepository.Data.LastUploadDate = e.SignalTime;
-                
+
                 await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
 
                 // Clear out the list of saved languages

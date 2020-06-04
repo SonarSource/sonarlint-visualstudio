@@ -34,6 +34,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
     {
         private const int CloseTimeThresholdInMilliseconds = 10000;
 
+        // Fixed time to use in tests in which the specific time is not checked or manipulated
+        private readonly DateTimeOffset AnyValidTime = new DateTimeOffset(2020, 06, 04, 11, 01, 02, TimeSpan.FromHours(1));
+
         private Mock<IActiveSolutionBoundTracker> activeSolutionTrackerMock;
         private Mock<ITelemetryDataRepository> telemetryRepositoryMock;
         private Mock<ITelemetryClient> telemetryClientMock;
@@ -66,17 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
-        public void Ctor_WhenGivenANullLogger_ThrowsArgumentNullException()
-        {
-            // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, null,
-                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object);
-
-            // Assert
-            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        [TestMethod]
         public void Ctor_WhenGivenANullTelmetryRepository_ThrowsArgumentNullException()
         {
             // Act
@@ -87,6 +79,16 @@ namespace SonarLint.VisualStudio.Integration.Tests
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
         }
 
+        [TestMethod]
+        public void Ctor_WhenGivenANullLogger_ThrowsArgumentNullException()
+        {
+            // Act
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, null,
+                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object);
+
+            // Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
 
         [TestMethod]
         public void Ctor_WhenGivenANullTelemetryClient_ThrowsArgumentNullException()
@@ -111,6 +113,17 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
+        public void Ctor_WhenGivenANullKnownUIContexts_ThrowsArgumentNullException()
+        {
+            // Act
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+                loggerMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, null);
+
+            // Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("knownUIContexts");
+        }
+
+        [TestMethod]
         public void Ctor_WhenInstallationDateIsDateTimeMin_SetsCurrentDateAndSave()
         {
             // Arrange
@@ -131,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             this.telemetryRepositoryMock.Setup(x => x.Data)
-                .Returns(new TelemetryData { InstallationDate = DateTimeOffset.Now, IsAnonymousDataShared = true });
+                .Returns(new TelemetryData { InstallationDate = AnyValidTime, IsAnonymousDataShared = true });
             var manager = CreateManager();
 
             // Act
@@ -145,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void OptIn_SavesChoiceAndStartsTimers()
         {
             // Arrange
-            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.Now };
+            var telemetryData = new TelemetryData { InstallationDate = AnyValidTime };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             var manager = CreateManager();
@@ -165,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void OptOut_SavesChoiceAndStopsTimersAndSendOptOutTelemetry()
         {
             // Arrange
-            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.Now };
+            var telemetryData = new TelemetryData { InstallationDate = AnyValidTime };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
             var manager = CreateManager();
@@ -297,8 +310,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var telemetryData = new TelemetryData
             {
                 IsAnonymousDataShared = true,
-                InstallationDate = DateTimeOffset.Now,
-                LastSavedAnalysisDate = DateTimeOffset.Now
+                InstallationDate = AnyValidTime,
+                LastSavedAnalysisDate = AnyValidTime
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
@@ -418,7 +431,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             CheckExpectedLanguages(telemetryData, "cpp", "js");
             this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Exactly(2)); // Saved
         }
-        
+
         private static void CheckExpectedLanguages(TelemetryData data, params string[] expectedLanguageKeys)
         {
             var actualLanguageKeys = data.Analyses.Select(a => a.Language).ToList();
