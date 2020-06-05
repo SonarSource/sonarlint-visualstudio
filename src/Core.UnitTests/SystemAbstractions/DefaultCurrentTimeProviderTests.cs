@@ -19,36 +19,36 @@
  */
 
 using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
-namespace SonarLint.VisualStudio.Core.SystemAbstractions
+
+namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
 {
-    /// <summary>
-    ///  Abstraction over DateTimeOffset.Now for testing
-    /// </summary>
-    public interface ICurrentTimeProvider
+    [TestClass]
+    public class DefaultCurrentTimeProviderTests
     {
-        /// <summary>
-        /// Returns the current date and time
-        /// </summary>
-        DateTimeOffset Now { get; }
-
-        /// <summary>
-        /// Returns the local time zone
-        /// </summary>
-        TimeZoneInfo LocalTimeZone { get; }
-    }
-
-    public sealed class DefaultCurrentTimeProvider : ICurrentTimeProvider
-    {
-        public static ICurrentTimeProvider Instance { get; } = new DefaultCurrentTimeProvider();
-
-        private DefaultCurrentTimeProvider()
+        [TestMethod]
+        public void Instance_ReturnsCurrentTime()
         {
-            // Can't be publicly constructed
+            var now = DefaultCurrentTimeProvider.Instance.Now;
+            now.Should().BeOnOrBefore(DateTimeOffset.Now);
         }
 
-        DateTimeOffset ICurrentTimeProvider.Now => DateTimeOffset.Now;
 
-        TimeZoneInfo ICurrentTimeProvider.LocalTimeZone => TimeZoneInfo.Local;
+        [TestMethod]
+        public void Instance_ReturnsLocalTimeZone()
+        {
+            DefaultCurrentTimeProvider.Instance.LocalTimeZone.Should().Be(TimeZoneInfo.Local);
+        }
+
+        [TestMethod]
+        public void Instance_IsSingleton()
+        {
+            var instance1 = DefaultCurrentTimeProvider.Instance;
+            var instance2 = DefaultCurrentTimeProvider.Instance;
+            instance1.Should().BeSameAs(instance2);
+        }
     }
 }
