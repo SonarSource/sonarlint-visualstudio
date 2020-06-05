@@ -24,9 +24,28 @@ namespace SonarLint.VisualStudio.Integration
 {
     public static class DateTimeOffsetExtensions
     {
-
-        public static bool IsSameDay(this DateTimeOffset date, DateTimeOffset other) =>
+        public static bool IsSameDayOld(this DateTimeOffset date, DateTimeOffset other) =>
             Math.Abs(date.Date.Subtract(other.Date).TotalDays) < 1;
+
+        /// <summary>
+        /// Returns true if the two date-times fall in the same calendar day in
+        /// the specified time-zone, otherwise false
+        /// </summary>
+        /// <param name="timeZoneInfo">(Optional) time-zone to used to determine the calendar day.
+        /// Defaults to the local time-zone.</param>
+        public static bool IsSameDay(this DateTimeOffset date, DateTimeOffset other, TimeZoneInfo timeZoneInfo = null)
+        {
+            if (timeZoneInfo == null)
+            {
+                timeZoneInfo = TimeZoneInfo.Local;
+            }
+
+            var localDate1 = TimeZoneInfo.ConvertTime(date, timeZoneInfo);
+            var localDate2 = TimeZoneInfo.ConvertTime(other, timeZoneInfo);
+
+            return Math.Abs(localDate1.Subtract(localDate2).TotalDays) < 1 && (localDate1.Day == localDate2.Day);
+        }
+
 
         public static long HoursPassedSince(this DateTimeOffset date, DateTimeOffset other) =>
             (long)date.Subtract(other).TotalHours;
