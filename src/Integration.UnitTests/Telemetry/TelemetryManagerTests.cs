@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -43,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<ILogger> loggerMock;
         private Mock<ITelemetryTimer> telemetryTimerMock;
         private Mock<IKnownUIContexts> knownUIContexts;
+        private ICurrentTimeProvider currentTimeProvider = DefaultCurrentTimeProvider.Instance;
 
         [TestInitialize]
         public void TestInitialize()
@@ -62,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(null, telemetryRepositoryMock.Object, loggerMock.Object,
-                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object);
+                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingTracker");
@@ -73,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, null, loggerMock.Object,
-                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object);
+                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryRepository");
@@ -84,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, null,
-                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object);
+                telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
@@ -95,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
-                loggerMock.Object, null, telemetryTimerMock.Object, knownUIContexts.Object);
+                loggerMock.Object, null, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryClient");
@@ -106,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
-                loggerMock.Object, telemetryClientMock.Object, null, knownUIContexts.Object);
+                loggerMock.Object, telemetryClientMock.Object, null, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryTimer");
@@ -117,10 +119,21 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Act
             Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
-                loggerMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, null);
+                loggerMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, null, currentTimeProvider);
 
             // Assert
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("knownUIContexts");
+        }
+
+        [TestMethod]
+        public void Ctor_WhenGivenANullCurrentTimeProvider_ThrowsArgumentNullException()
+        {
+            // Act
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+                loggerMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, null);
+
+            // Assert
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("currentTimeProvider");
         }
 
         [TestMethod]
@@ -394,7 +407,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
         private TelemetryManager CreateManager() => new TelemetryManager(activeSolutionTrackerMock.Object,
             telemetryRepositoryMock.Object, loggerMock.Object, telemetryClientMock.Object,
-            telemetryTimerMock.Object, knownUIContexts.Object);
+            telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
         #region Languages analyzed tests
 
