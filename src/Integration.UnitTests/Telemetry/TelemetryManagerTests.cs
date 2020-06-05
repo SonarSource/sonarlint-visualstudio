@@ -563,12 +563,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [TestMethod]
         [DataRow(0, 0, 1)] // first check on day of initial installation -> increment days of use
         [DataRow(0, 1, 1)] // second and subsequent check on day of installation -> can't be incremented above 1
-
-        [DataRow(4, 4, 5)] // used every day since installation, already checked and incremented on day 4 -> incremented
-        [DataRow(4, 5, 5)] // used every day since installation, second and subsequent checks on day 4 -> not capped or incremented
-
+        [DataRow(4, 4, 5)] // used every day since installation, first check on day 5 -> incremented
+        [DataRow(4, 5, 5)] // used every day since installation, second and subsequent checks on day 5 -> not incremented further
         [DataRow(1001, 100, 101)] // not used every day -> incremented and saved
-
         [DataRow(1, 100, 2)] // bad data - should be capped at (days since installation + 1)
         [DataRow(999, 1001, 1000)] // bad data - should be capped at (days since installation + 1)
         public void Update_DaysOfUseIsCorrectlyCalculated(int daysSinceInstallation, int daysOfUse,
