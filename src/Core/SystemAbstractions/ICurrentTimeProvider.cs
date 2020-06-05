@@ -18,24 +18,37 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Core.SystemAbstractions;
+using System;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    [TestClass]
-    public class TimerFactoryTests
+    /// <summary>
+    ///  Abstraction over DateTimeOffset.Now for testing
+    /// </summary>
+    public interface ICurrentTimeProvider
     {
-        [TestMethod]
-        public void Create_ReturnsExpectedInstance()
-        {
-            // Arrange & Act
-            var timer = new TimerFactory().Create();
+        /// <summary>
+        /// Returns the current date and time
+        /// </summary>
+        DateTimeOffset Now { get; }
 
-            // Assert
-            timer.Should().NotBeNull();
-            timer.Should().BeOfType<TimerWrapper>();
+        /// <summary>
+        /// Returns the local time zone
+        /// </summary>
+        TimeZoneInfo LocalTimeZone { get; }
+    }
+
+    public sealed class DefaultCurrentTimeProvider : ICurrentTimeProvider
+    {
+        public static ICurrentTimeProvider Instance { get; } = new DefaultCurrentTimeProvider();
+
+        private DefaultCurrentTimeProvider()
+        {
+            // Can't be publicly constructed
         }
+
+        DateTimeOffset ICurrentTimeProvider.Now => DateTimeOffset.Now;
+
+        TimeZoneInfo ICurrentTimeProvider.LocalTimeZone => TimeZoneInfo.Local;
     }
 }

@@ -37,17 +37,20 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ITelemetryTimer telemetryTimer;
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly IKnownUIContexts knownUIContexts;
+        private readonly ICurrentTimeProvider currentTimeProvider;
 
         [ImportingConstructor]
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
             ILogger logger)
             : this(solutionBindingTracker, telemetryRepository, logger,
-                  new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()), new KnownUIContextsWrapper())
+                  new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
+                  new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
         {
         }
 
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
-            ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts)
+            ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts,
+            ICurrentTimeProvider currentTimeProvider)
         {
             this.solutionBindingTracker = solutionBindingTracker ?? throw new ArgumentNullException(nameof(solutionBindingTracker));
             this.telemetryRepository = telemetryRepository ?? throw new ArgumentNullException(nameof(telemetryRepository));
@@ -55,10 +58,11 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
             this.telemetryTimer = telemetryTimer ?? throw new ArgumentNullException(nameof(telemetryTimer));
             this.knownUIContexts = knownUIContexts ?? throw new ArgumentNullException(nameof(knownUIContexts));
+            this.currentTimeProvider = currentTimeProvider ?? throw new ArgumentNullException(nameof(currentTimeProvider));
 
             if (this.telemetryRepository.Data.InstallationDate == DateTimeOffset.MinValue)
             {
-                this.telemetryRepository.Data.InstallationDate = DateTimeOffset.Now; // TODO: Use some mockable clock
+                this.telemetryRepository.Data.InstallationDate = currentTimeProvider.Now;
                 this.telemetryRepository.Save();
             }
 
@@ -137,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
-            return TelemetryHelper.CreatePayload(telemetryData, DateTimeOffset.Now,
+            return TelemetryHelper.CreatePayload(telemetryData, currentTimeProvider.Now,
                 solutionBindingTracker.CurrentConfiguration);
         }
 
@@ -154,9 +158,10 @@ namespace SonarLint.VisualStudio.Integration
             try
             {
                 var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
-                if (!DateTimeOffset.Now.IsSameDay(lastAnalysisDate))
+                var now = currentTimeProvider.Now;
+                if (!now.IsSameDay(lastAnalysisDate))
                 {
-                    telemetryRepository.Data.LastSavedAnalysisDate = DateTimeOffset.Now;
+                    telemetryRepository.Data.LastSavedAnalysisDate = now;
                     telemetryRepository.Data.NumberOfDaysOfUse++;
                     telemetryRepository.Save();
                 }
