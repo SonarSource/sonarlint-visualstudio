@@ -429,6 +429,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void ProjectBindingOperation_Commit_AllRuleSetsAreNotDefault_DoesNotAddNonConditionalRuleSetProperty(bool referencesGeneratedRuleSet)
+        {
+            // Arrange
+            projectMock.SetCSProjectKind();
+
+            var testSubject = CreateTestSubject();
+            var nonDefaultRuleSetDebug = CreateRuleSetProperty(projectMock, "Debug", "non-existing.ruleset");
+            var nonDefaultRuleSetRelease = CreateRuleSetProperty(projectMock, "Release", "non-existing.ruleset");
+
+            ruleSetReferenceChecker
+                .Setup(x => x.IsReferenced(It.Is((RuleSetDeclaration r) => r.RuleSetPath == "non-existing.ruleset"), cSharpVBBindingConfig.RuleSet.Path))
+                .Returns(referencesGeneratedRuleSet);
+
+            testSubject.Initialize();
+            testSubject.Prepare(CancellationToken.None);
+
+            // Act
+            using (new AssertIgnoreScope()) // Ignore that the file is not on disk
+            {
+                testSubject.Commit();
+            }
+
+            // Assert
+
+            var nonConditionalProperty = projectMock.GetBuildProperty(Constants.CodeAnalysisRuleSetPropertyKey);
+            nonConditionalProperty.Should().BeNullOrEmpty();
+
+            if (referencesGeneratedRuleSet)
+            {
+                nonDefaultRuleSetDebug.Value.ToString().Should().Be("non-existing.ruleset");
+                nonDefaultRuleSetRelease.Value.ToString().Should().Be("non-existing.ruleset");
+            }
+            else
+            {
+                // Since "non-existing.ruleset" doesn't really exist on disk, the code will generate a new ruleset that references it.
+                var ruleSetThatContainsOriginalRuleSet = Path.GetFileNameWithoutExtension(projectMock.FilePath) + ".ruleset";
+                nonDefaultRuleSetDebug.Value.ToString().Should().Be(ruleSetThatContainsOriginalRuleSet);
+                nonDefaultRuleSetRelease.Value.ToString().Should().Be(ruleSetThatContainsOriginalRuleSet);
+            }
+        }
+
+        [TestMethod]
         public void ProjectBindingOperation_Commit_HasNonDefaultRuleSet_DoesNotAddNonConditionalRuleSetProperty()
         {
             // Arrange
@@ -436,7 +480,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             var testSubject = CreateTestSubject();
             var defaultRuleSet = CreateRuleSetProperty(projectMock, "Debug", CSharpVBBindingOperation.DefaultProjectRuleSet);
-            var nonDefaultRuleSet = CreateRuleSetProperty(projectMock, "Release", "myruleset.ruleset");
+            var nonDefaultRuleSet = CreateRuleSetProperty(projectMock, "Release", "non-existing.ruleset");
 
             testSubject.Initialize();
             testSubject.Prepare(CancellationToken.None);

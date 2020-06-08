@@ -153,7 +153,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         private void TrySetNonConditionalRuleSet()
         {
-            var hasUserSpecifiedRuleSet = propertyInformationMap.Keys.Any(x => !IsDefaultMicrosoftRuleSet(x.Value as string));
+            var solutionRuleSetProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
+            var ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(initializedProject).ToArray();
+            var hasUserSpecifiedRuleSet = ruleSetsInfo.Any(x => !IsDefaultMicrosoftRuleSet(x.RuleSetPath));
 
             if (hasUserSpecifiedRuleSet)
             {
