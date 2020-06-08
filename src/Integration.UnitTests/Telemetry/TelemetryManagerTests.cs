@@ -405,9 +405,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
         }
 
-        private TelemetryManager CreateManager() => new TelemetryManager(activeSolutionTrackerMock.Object,
+        private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => new TelemetryManager(activeSolutionTrackerMock.Object,
             telemetryRepositoryMock.Object, loggerMock.Object, telemetryClientMock.Object,
-            telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
+            telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
 
         #region Languages analyzed tests
 
@@ -452,5 +452,157 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         #endregion
+
+        [TestMethod]
+        public void Sequence_InstallFollowedByMultipleUpdates()
+        {
+            // Arrange
+            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.MinValue };
+
+            var installationTime = DateTimeOffset.Parse("2020-05-31T09:30:00.000+00:00");
+            var mockTimeProvider = new Mock<ICurrentTimeProvider>();
+            mockTimeProvider.Setup(x => x.LocalTimeZone).Returns(TimeZoneInfo.Utc);
+            resetMocks(installationTime);
+
+            // 1. Create -> initial values set
+            var testSubject = CreateManager(mockTimeProvider.Object);
+        
+            telemetryData.NumberOfDaysOfUse.Should().Be(0);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+
+            // 2. First update on day 1 -> days of use updated and saved
+            var firstUpdateTime = installationTime.AddMinutes(1);
+            resetMocks(firstUpdateTime);
+
+            testSubject.Update();
+
+            telemetryData.NumberOfDaysOfUse.Should().Be(1);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+
+            // 3. Second update on day 1 -> no change to days of use
+            var secondUpdateTime = installationTime.AddMinutes(2);
+            resetMocks(secondUpdateTime);
+
+            testSubject.Update();
+
+            telemetryData.NumberOfDaysOfUse.Should().Be(1);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
+
+            // 4. First update on day 2 -> days of use updated and saved
+            var secondDay_firstUpdateTime = installationTime.AddDays(1);
+            resetMocks(secondDay_firstUpdateTime);
+
+            testSubject.Update();
+
+            telemetryData.NumberOfDaysOfUse.Should().Be(2);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+
+            // 5. Second update on day 2 -> no change to days of use
+            var secondDay_secondUpdateTime = secondDay_firstUpdateTime.AddMinutes(1);
+            resetMocks(secondDay_secondUpdateTime);
+
+            testSubject.Update();
+
+            telemetryData.NumberOfDaysOfUse.Should().Be(2);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
+
+            void resetMocks(DateTimeOffset newNow)
+            {
+                mockTimeProvider.Setup(x => x.Now).Returns(newNow);
+                telemetryRepositoryMock.Reset();
+                telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("2020-05-31T20:30:00.000+00:00", "2020-06-01T06:30:00.000+08:00", 8, false)] // regression test for #1434
+        [DataRow("2020-06-01T04:30:00.000+00:00", "2020-06-01T06:30:00.000+00:00", 0, false)] // same day -> don't update
+        [DataRow("2020-05-31T20:30:00.000+00:00", "2020-06-01T06:30:00.000+00:00", 0, true)] // different day -> update
+        [DataRow("2020-06-01T04:30:00.000+00:00", "2020-08-23T02:30:00.000+08:00", 8, true)] // many days later -> update
+        public void Update_IfNotSameDayAsLastUpdate_DaysOfUseIsIncremented(string lastSavedDate, string now, int utcOffset, bool expectedIncrement)
+        {
+            var lastSavedTimeUTC = DateTimeOffset.Parse(lastSavedDate);
+            var nowDateTimeOffset = DateTimeOffset.Parse(now);
+            const int initialDaysOfUse = 2;
+
+            // Arrange
+            var telemetryData = new TelemetryData
+            {
+                InstallationDate = lastSavedTimeUTC.AddDays(-100), // anything, as long as it's earlier
+                LastSavedAnalysisDate = lastSavedTimeUTC,
+                NumberOfDaysOfUse = initialDaysOfUse
+            };
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            var mockTimeProvider = CreateMockTimeProvider(nowDateTimeOffset, utcOffset);
+
+            var testSubject = CreateManager(mockTimeProvider.Object);
+
+            // Act
+            testSubject.Update();
+
+            // Assert
+            mockTimeProvider.Verify(x => x.Now, Times.Once);
+            mockTimeProvider.Verify(x => x.LocalTimeZone, Times.Once);
+
+            if (expectedIncrement)
+            {
+                telemetryData.LastSavedAnalysisDate.Should().Be(nowDateTimeOffset);
+                telemetryData.NumberOfDaysOfUse.Should().Be(initialDaysOfUse + 1);
+                this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
+            }
+            else
+            {
+                telemetryData.LastSavedAnalysisDate.Should().Be(lastSavedTimeUTC);
+                telemetryData.NumberOfDaysOfUse.Should().Be(initialDaysOfUse);
+                this.telemetryRepositoryMock.Verify(x => x.Save(), Times.Never);
+            }
+        }
+
+
+        [TestMethod]
+        [DataRow(0, 0, 1)] // first check on day of initial installation -> increment days of use
+        [DataRow(0, 1, 1)] // second and subsequent check on day of installation -> can't be incremented above 1
+        [DataRow(4, 4, 5)] // used every day since installation, first check on day 5 -> incremented
+        [DataRow(4, 5, 5)] // used every day since installation, second and subsequent checks on day 5 -> not incremented further
+        [DataRow(1001, 100, 101)] // not used every day -> incremented and saved
+        [DataRow(1, 100, 2)] // bad data - should be capped at (days since installation + 1)
+        [DataRow(999, 1001, 1000)] // bad data - should be capped at (days since installation + 1)
+        public void Update_DaysOfUseIsCorrectlyCalculated(int daysSinceInstallation, int daysOfUse,
+            int expectedDaysOfUse)
+        {
+            var currentTimeUTC = DateTimeOffset.UtcNow;
+            var installationDate = currentTimeUTC.AddDays(-(daysSinceInstallation));
+            var lastSavedTimeUTC = currentTimeUTC.AddDays(-1); // last saved yesterday so update is triggered
+
+            // Arrange
+            var telemetryData = new TelemetryData
+            {
+                InstallationDate = installationDate,
+                LastSavedAnalysisDate = lastSavedTimeUTC,
+                NumberOfDaysOfUse = daysOfUse
+            };
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            var mockTimeProvider = CreateMockTimeProvider(currentTimeUTC, 0);
+
+            var testSubject = CreateManager(mockTimeProvider.Object);
+
+            // Act
+            testSubject.Update();
+
+            telemetryData.NumberOfDaysOfUse.Should().Be(expectedDaysOfUse);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once());
+        }
+
+        private static Mock<ICurrentTimeProvider> CreateMockTimeProvider(DateTimeOffset now, int timeZoneOffsetFromUTC)
+        {
+            var localTimeZone = TimeZoneInfo.CreateCustomTimeZone("test", TimeSpan.FromHours(timeZoneOffsetFromUTC), "test", "test");
+
+            var mock = new Mock<ICurrentTimeProvider>();
+            mock.Setup(x => x.Now).Returns(now);
+            mock.Setup(x => x.LocalTimeZone).Returns(localTimeZone);
+            return mock;
+        }
     }
 }
