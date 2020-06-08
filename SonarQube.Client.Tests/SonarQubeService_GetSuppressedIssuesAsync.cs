@@ -333,7 +333,7 @@ namespace SonarQube.Client.Tests
         [DataRow(5, 5, 5)] // No issue types with too many issues
         [DataRow(MaxAllowedIssues, 5, 2)] // One issue type with too many issues
         [DataRow(1, MaxAllowedIssues, MaxAllowedIssues)] // Multiple issue types with too many issues
-        public async Task GetSuppressedIssuesAsync_From_7_20_NotifyWhenMaxIssuesReeturned(
+        public async Task GetSuppressedIssuesAsync_From_7_20_NotifyWhenMaxIssuesReturned(
             int numCodeSmells, int numBugs, int numVulnerabilities)
         {
             await ConnectToSonarQube("7.2.0.0");

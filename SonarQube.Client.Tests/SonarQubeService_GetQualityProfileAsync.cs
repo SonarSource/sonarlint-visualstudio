@@ -353,6 +353,10 @@ namespace SonarQube.Client.Tests
             result.Language.Should().Be("cs");
             result.Name.Should().Be("Sonar way");
             result.TimeStamp.Should().Be(DateTime.Parse("2015-02-23T17:58:39+0100"));
+
+            // Regression test for #1450 - shouldn't get a warning about max items retrieved
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/1450
+            logger.WarningMessages.Count.Should().Be(0);
         }
 
         [TestMethod]
