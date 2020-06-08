@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
+        private bool hasUserSpecifiedRuleSet;
 
         public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
             : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker(), new RuleSetReferenceChecker(serviceProvider))
@@ -153,10 +154,6 @@ namespace SonarLint.VisualStudio.Integration.Binding
         /// </summary>
         private void TrySetNonConditionalRuleSet()
         {
-            var solutionRuleSetProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
-            var ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(initializedProject).ToArray();
-            var hasUserSpecifiedRuleSet = ruleSetsInfo.Any(x => !IsDefaultMicrosoftRuleSet(x.RuleSetPath));
-
             if (hasUserSpecifiedRuleSet)
             {
                 // We could've done a general fix: create an unconditional property if all the project's ruleset properties point to the same ruleset.
@@ -279,6 +276,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var solutionRuleSetProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             var ruleSetsInfo = solutionRuleSetProvider.GetProjectRuleSetsDeclarations(initializedProject).ToArray();
+            hasUserSpecifiedRuleSet = ruleSetsInfo.Any(x => !IsDefaultMicrosoftRuleSet(x.RuleSetPath));
+
             var sameRuleSetCandidate = ruleSetsInfo.FirstOrDefault()?.RuleSetPath;
 
             // Special case: if all the values are the same use project name as the target ruleset name
