@@ -159,10 +159,14 @@ namespace SonarLint.VisualStudio.Integration
             {
                 var lastAnalysisDate = telemetryRepository.Data.LastSavedAnalysisDate;
                 var now = currentTimeProvider.Now;
-                if (!now.IsSameDay(lastAnalysisDate))
+                if (!now.IsSameDay(lastAnalysisDate, currentTimeProvider.LocalTimeZone))
                 {
+                    // Fix up bad days_of_use data. See #1440: https://github.com/SonarSource/sonarlint-visualstudio/issues/1440
+                    var maxPossibleDaysOfUse = now.DaysPassedSince(telemetryRepository.Data.InstallationDate) + 1;
+                    var daysOfUse = Math.Min(telemetryRepository.Data.NumberOfDaysOfUse + 1, maxPossibleDaysOfUse);
+
                     telemetryRepository.Data.LastSavedAnalysisDate = now;
-                    telemetryRepository.Data.NumberOfDaysOfUse++;
+                    telemetryRepository.Data.NumberOfDaysOfUse = daysOfUse;
                     telemetryRepository.Save();
                 }
             }
