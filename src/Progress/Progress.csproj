@@ -14,6 +14,7 @@
     <None Remove="ProgressObservation\View\DataTemplates.xaml" />
     <None Remove="ProgressObservation\View\ProgressVisualizerControl.xaml" />
     <None Remove="ProgressObservation\View\Styles.xaml" />
+    <AdditionalFiles Include="..\..\.sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml" Link="SonarLint.xml" />
 
     <Page Include="ProgressObservation\View\DataTemplates.xaml" />
     <Page Include="ProgressObservation\View\ProgressVisualizerControl.xaml" />

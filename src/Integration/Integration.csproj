@@ -77,6 +77,7 @@
     <None Remove="Connection\UI\OrganizationSelectionWindow.xaml" />
     <None Remove="Notifications\NotificationIndicator.xaml" />
     <None Remove="Progress\ProgressControl.xaml" />
+    <AdditionalFiles Include="..\..\.sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml" Link="SonarLint.xml" />
 
     <Page Include="Connection\UI\ConnectionInfoDialogView.xaml" />
     <Page Include="Connection\UI\OrganizationSelectionWindow.xaml" />

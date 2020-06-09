@@ -40,6 +40,7 @@
   <ItemGroup>
     <None Remove="CommonStyles.xaml" />
     <None Remove="ConnectSectionView.xaml" />
+    <AdditionalFiles Include="..\..\.sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml" Link="SonarLint.xml" />
     
     <Page Include="CommonStyles.xaml" />
     <Page Include="ConnectSectionView.xaml" />

@@ -11,6 +11,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <AdditionalFiles Include="..\..\.sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml" Link="SonarLint.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
   </ItemGroup>
