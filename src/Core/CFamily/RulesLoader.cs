@@ -136,6 +136,11 @@ namespace SonarLint.VisualStudio.Core.CFamily
                     return IssueType.CodeSmell;
                 }
 
+                if (serializedString.Equals("SECURITY_HOTSPOT", StringComparison.OrdinalIgnoreCase))
+                {
+                    return IssueType.SecurityHotspot;
+                }
+
                 if (Enum.TryParse<IssueType>(serializedString, true /* ignore case */, out IssueType data))
                 {
                     return data;
