@@ -439,10 +439,12 @@
   -->
   <PropertyGroup>
     <!-- Only check the VS2019 build -->
-    <AsmRefDisableBaselining Condition=" $(VsTargetVersion) != '2019' " >true</AsmRefDisableBaselining>
+    <AsmRefDisableBaselining Condition=" $(VsTargetVersion) != '2019' ">true</AsmRefDisableBaselining>
     
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
-    <AsmRefVersionCompatibility>MajorMinorBuild</AsmRefVersionCompatibility>
+    <AsmRefSourceVersionCompatibility>strict</AsmRefSourceVersionCompatibility>
+   
+    <AsmRefTargetVersionCompatibility>strict</AsmRefTargetVersionCompatibility>
     
     <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
     <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'true' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt</AsmRefBaselineFilePath>
@@ -451,7 +453,7 @@
     <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.9.0-rc">
+    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.10.0-rc">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
