@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup Label="Common items">
-    <AdditionalFiles Include="$(MSBuildThisFileDirectory).sonarlint\SonarLint.xml">
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory).sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml">
       <Link>Properties\SonarLint.xml</Link>
     </AdditionalFiles>
   </ItemGroup>
