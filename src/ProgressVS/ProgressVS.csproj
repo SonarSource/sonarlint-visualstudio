@@ -29,7 +29,6 @@
     <None Remove="ProgressObservation\View\Images\CheckMark.png" />
     <None Remove="ProgressObservation\View\Styles.xaml" />
     <None Remove="ProgressObservation\View\WpfWindowProgressVisualizer.xaml" />
-    <AdditionalFiles Include="..\..\.sonarlint\sonarlint-visualstudio\CSharp\SonarLint.xml" Link="SonarLint.xml" />
     <Content Include="ProgressObservation\View\Images\CheckMark.png" />
 
     <Page Include="ProgressObservation\View\DataTemplates.xaml" />
