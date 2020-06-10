@@ -460,4 +460,9 @@
     </PackageReference>
   </ItemGroup>
 
+  <Target Name="OutputAsmRef">
+    <Exec Command="type $(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt"/>
+    <Exec Command="type $(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Latest.txt"/>
+  </Target>
+
 </Project>
