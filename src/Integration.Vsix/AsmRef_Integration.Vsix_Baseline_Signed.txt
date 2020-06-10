@@ -19,7 +19,7 @@
 #
 ################################
 
-# Base directory: bin\Debug\VS2019\net46\
+# Base directory: bin\Release\VS2019\net46\
 Include patterns:
 - 'Sonar*'
 Exclude patterns:
