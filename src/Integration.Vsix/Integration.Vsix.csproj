@@ -439,12 +439,12 @@
   -->
   <PropertyGroup>
     <!-- Only check the VS2019 build -->
-    <!--<AsmRefDisableBaselining Condition=" $(VsTargetVersion) != '2019' ">true</AsmRefDisableBaselining>-->
+    <AsmRefDisableBaselining Condition=" $(VsTargetVersion) != '2019' ">true</AsmRefDisableBaselining>
     
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
-    <AsmRefSourceVersionCompatibility>strict</AsmRefSourceVersionCompatibility>
+    <AsmRefSourceVersionCompatibility>any</AsmRefSourceVersionCompatibility>
    
-    <AsmRefTargetVersionCompatibility>strict</AsmRefTargetVersionCompatibility>
+    <AsmRefTargetVersionCompatibility>any</AsmRefTargetVersionCompatibility>
     
     <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
     <AsmRefBaselineFilePath>$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
@@ -460,9 +460,8 @@
     </PackageReference>
   </ItemGroup>
 
-  <Target Name="OutputAsmRef" AfterTargets="Build">
-    <Exec Command="type $(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt"/>
-    <Exec Command="type $(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Latest.txt"/>
+  <Target Name="OutputAsmRef">
+    <Exec Command="fc $(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt $(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Latest.txt"/>
   </Target>
 
 </Project>
