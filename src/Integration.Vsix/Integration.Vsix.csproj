@@ -440,7 +440,8 @@
   <PropertyGroup>
     <!-- Only check the VS2019 build -->
     <!--<AsmRefDisableBaselining Condition=" $(VsTargetVersion) == '2017' OR $(VsTargetVersion) == '2015' ">true</AsmRefDisableBaselining>-->
-    
+    <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' " >true</AsmRefDisableBaselining>
+
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
     <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
    
@@ -449,7 +450,7 @@
     <AsmRefBaselineFilePath>$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
 
     <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
-    <AsmRefIncludePatterns>Sonar* Microsoft.Alm.Authentication</AsmRefIncludePatterns>
+    <AsmRefIncludePatterns>Sonar* Microsoft.Alm.Authentication*</AsmRefIncludePatterns>
 
     <AsmRefIgnoreSourcePublicKeyToken>true</AsmRefIgnoreSourcePublicKeyToken>
   </PropertyGroup>
