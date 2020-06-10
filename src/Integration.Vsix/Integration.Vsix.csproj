@@ -404,19 +404,22 @@
   -->
   <PropertyGroup>
     <!-- Only check the VS2019 build -->
-    <AsmRefDisableBaselining Condition=" $(VsTargetVersion) != '2019' " >true</AsmRefDisableBaselining>
+    <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' " >true</AsmRefDisableBaselining>
     
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
-    <AsmRefVersionCompatibility>MajorMinorBuild</AsmRefVersionCompatibility>
+    <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
+
+    <AsmRefTargetVersionCompatibility>Strict</AsmRefTargetVersionCompatibility>
     
     <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
     <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'true' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt</AsmRefBaselineFilePath>
+    <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'false' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
 
     <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
     <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.9.0-rc">
+    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.10.0-rc">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
