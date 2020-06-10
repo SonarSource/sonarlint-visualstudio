@@ -460,4 +460,13 @@
     </PackageReference>
   </ItemGroup>
 
+  <!-- Target to help debugging the CI build - dumps report differences to the console. 
+       Note: there will always be differences in the reports since the timestamps will be
+       different for each run.
+  -->
+  <Target Name="DumpOutputAsmRef" AfterTargets="_GenerateAsmRefReportOnBuild" BeforeTargets="_PostGenerateAndRefProcessing">
+    <Message Importance="high" Text="Differences between AsmRef baseline and latest report:" />
+    <Exec Command="fc $(AsmRefBaselineFilePath) $(AsmRefOutputFilePath)" IgnoreExitCode="true"/>
+  </Target>
+  
 </Project>
