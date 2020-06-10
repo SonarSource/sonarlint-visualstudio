@@ -193,7 +193,7 @@ Referenced assemblies:
 - 'PresentationCore, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'PresentationFramework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 - 'SonarLint.VisualStudio.Integration, Version=4.23.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
-- 'SonarQube.Client, Version=4.2.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
+- 'SonarQube.Client, Version=4.23.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
 - 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
