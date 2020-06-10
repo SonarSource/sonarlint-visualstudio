@@ -21,6 +21,7 @@
 
 # Base directory: C:\Projects\sonarlint-visualstudio\src\Integration.Vsix\bin\Debug\VS2019\net46
 Include patterns:
+- 'Microsoft.Alm.Authentication'
 - 'Sonar*'
 Exclude patterns:
 # Number of matches: 10
