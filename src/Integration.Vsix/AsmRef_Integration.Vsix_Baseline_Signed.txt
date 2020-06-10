@@ -23,6 +23,7 @@
 Include patterns:
 - 'Sonar*'
 Exclude patterns:
+- 'Microsoft.Alm.Authentication'
 # Number of matches: 10
 
 ---
