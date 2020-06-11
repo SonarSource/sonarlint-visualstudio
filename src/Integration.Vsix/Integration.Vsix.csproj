@@ -410,10 +410,11 @@
     <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
 
     <AsmRefTargetVersionCompatibility>Strict</AsmRefTargetVersionCompatibility>
-    
-    <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
-    <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'true' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt</AsmRefBaselineFilePath>
-    <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'false' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
+
+    <!-- If we're strong-naming the binaries (i.e. on the CI machine) then do check strong-naming of our
+         assemblies. -->
+    <AsmRefIgnoreSourcePublicKeyToken Condition=" $(SignAssembly) == 'true' ">false</AsmRefIgnoreSourcePublicKeyToken>
+    <AsmRefIgnoreSourcePublicKeyToken Condition=" $(SignAssembly) == 'false' ">true</AsmRefIgnoreSourcePublicKeyToken>
 
     <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
     <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
@@ -433,5 +434,26 @@
     <Message Importance="high" Text="Differences between AsmRef baseline and latest report:" />
     <Exec Command="fc $(AsmRefBaselineFilePath) $(AsmRefOutputFilePath)" IgnoreExitCode="true"/>
   </Target>
-  
+
+  <Target Name="AddPublicKeyTokesnToUnsignedBaseline" AfterTargets="Build" Condition=" $(AsmRefUpdateBaseline) == 'true' AND $(SignAssembly) != 'true' ">
+    <!-- When the dev runs a local build with /p:AsmRefUpdateBaseline=true, the AsmRef NuGet package will generate a new baseline file
+         that will not contain PKTs for our assemblies.
+         This target runs afterwards to update the baseline to include our PKTs. We do this so we can check against a strongly-named
+         baseline on the CI machine.
+    -->
+    <Message Importance="high" Text="Updating AsmRef baseline: $(AsmRefBaselineFilePath)" />
+
+    <PropertyGroup>
+      <NewSignedBaseLineText>$([System.IO.File]::ReadAllText($(AsmRefBaselineFilePath)))</NewSignedBaseLineText>
+      <!-- Fix up the PublicKeyTokens -->
+      <NewSignedBaseLineText>$(NewSignedBaseLineText.Replace("Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null", "Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, PublicKeyToken=e33b67d3bb5581e4"))</NewSignedBaseLineText>
+      <NewSignedBaseLineText>$(NewSignedBaseLineText.Replace("PublicKeyToken=null", "PublicKeyToken=c5b62af9de6d7244"))</NewSignedBaseLineText>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="Updated signed baseline: $(NewSignedBaseLineText)" />
+
+    <WriteLinesToFile File="$(AsmRefBaselineFilePath)" Overwrite="true" WriteOnlyWhenDifferent="true"
+                      Encoding="UTF-8" Lines="$(NewSignedBaseLineText)" />
+  </Target>
+
 </Project>
