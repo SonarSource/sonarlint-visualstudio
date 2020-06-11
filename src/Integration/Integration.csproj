@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup Label="Specify which VS-specific refs are required">
+  <PropertyGroup Label="Specify which external/VS-specific refs are required">
     <RequiresRuleset>true</RequiresRuleset>
+    <RequiresAlmAuthentication>true</RequiresAlmAuthentication>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
 
@@ -58,19 +59,6 @@
       <LastGenOutput>Strings.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="StrongNamer" Version="0.0.8" />
-  </ItemGroup>
-  <ItemGroup Label="Alm authentication">
-    <!-- The package from MS isn't signed so we need to reference the StrongName package
-         and conditionally set the DisableStrongName properties -->
-    <PackageReference Include="Microsoft.Alm.Authentication" Version="4.0.0.1" IncludeAssets="compile" />
-    <PackageReference Include="StrongNamer" Version="0.0.8" />
-  </ItemGroup>
-  <PropertyGroup>
-    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
-  </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Connection\UI\ConnectionInfoDialogView.xaml" />
