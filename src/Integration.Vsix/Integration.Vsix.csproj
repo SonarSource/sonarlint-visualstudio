@@ -458,7 +458,6 @@
     <PropertyGroup>
       <NewSignedBaseLineText>$([System.IO.File]::ReadAllText($(BaselineWithoutStrongNames)))</NewSignedBaseLineText>
       <!-- Fix up the PublicKeyTokens -->
-      <NewSignedBaseLineText>$(NewSignedBaseLineText.Replace("Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, PublicKeyToken=null", "Microsoft.Alm.Authentication, Version=4.0.0.0, Culture=neutral, PublicKeyToken=e33b67d3bb5581e4"))</NewSignedBaseLineText>
       <NewSignedBaseLineText>$(NewSignedBaseLineText.Replace("PublicKeyToken=null", "PublicKeyToken=c5b62af9de6d7244"))</NewSignedBaseLineText>
     </PropertyGroup>
 
