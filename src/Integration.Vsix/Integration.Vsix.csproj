@@ -385,4 +385,53 @@
     </ItemGroup>
   </Target>
 
+  <!-- *************************************************************************** -->
+  <!-- Build-time safety net to catch changes to the set of referenced assemblies -->
+  <!-- *************************************************************************** -->
+  <!-- If the set/versions of referenced assemblies changes the build will fail.
+       Check the following:
+       
+       New dependencies:
+       * are they included in the VSIX?
+       * if it's a third-party component, do the third-party license statements need to be updated?
+       
+       New versions of existing dependencies:
+       * is the new version of the dependency compatible with the minimum targetted .NET Framework?
+       * if it is not already included in the VSIX, does it need to be?
+       
+       If the dependency changes are ok, then re-run the build specifying "/p:AsmRefUpdateBaseline=true"
+       to update the baseline file, then check in the updated baseline with the rest of your changes.
+  -->
+  <PropertyGroup>
+    <!-- Only check the VS2019 build -->
+    <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' " >true</AsmRefDisableBaselining>
+    
+    <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
+    <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
+
+    <AsmRefTargetVersionCompatibility>Strict</AsmRefTargetVersionCompatibility>
+    
+    <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
+    <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'true' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline_Signed.txt</AsmRefBaselineFilePath>
+    <AsmRefBaselineFilePath Condition=" $(SignAssembly) == 'false' ">$(MSBuildProjectDirectory)\AsmRef_$(MSBuildProjectName)_Baseline.txt</AsmRefBaselineFilePath>
+
+    <!-- Include SonarLint assemblies, the SonarQube.Client library, and the analyzers-->
+    <AsmRefIncludePatterns>Sonar*</AsmRefIncludePatterns>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.10.0-rc">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Target to help debugging the CI build - dumps report differences to the console. 
+       Note: there will always be differences in the reports since the timestamps will be
+       different for each run.
+  -->
+  <Target Name="DumpOutputAsmRef" AfterTargets="_GenerateAsmRefReportOnBuild" BeforeTargets="_PostGenerateAndRefProcessing">
+    <Message Importance="high" Text="Differences between AsmRef baseline and latest report:" />
+    <Exec Command="fc $(AsmRefBaselineFilePath) $(AsmRefOutputFilePath)" IgnoreExitCode="true"/>
+  </Target>
+  
 </Project>
