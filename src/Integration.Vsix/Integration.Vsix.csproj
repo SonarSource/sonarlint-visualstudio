@@ -419,13 +419,13 @@
     <BaselineWithoutStrongNames>$(MSBuildProjectDirectory)\AsmRef_Integration.Vsix_Baseline_WithoutStrongNames.txt</BaselineWithoutStrongNames>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" $(SignAssembly) == 'true'" >
+  <PropertyGroup Condition=" $(SignAssembly) == 'true'">
     <!-- Use the baseline file containing public key tokens if the assemblies are being strong-named -->
     <AsmRefBaselineFilePath>$(BaselineWithStrongNames)</AsmRefBaselineFilePath>
     <AsmRefIgnoreSourcePublicKeyToken>false</AsmRefIgnoreSourcePublicKeyToken>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" $(SignAssembly) == 'false'" >
+  <PropertyGroup Condition=" $(SignAssembly) == 'false'">
     <AsmRefBaselineFilePath>$(BaselineWithoutStrongNames)</AsmRefBaselineFilePath>
     <AsmRefIgnoreSourcePublicKeyToken>true</AsmRefIgnoreSourcePublicKeyToken>
   </PropertyGroup>
