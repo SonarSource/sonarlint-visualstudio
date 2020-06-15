@@ -26,8 +26,6 @@ using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -41,9 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
     /// Factory for the <see cref="ITagger{T}"/>. There will be one instance of this class/VS session.
-    /// <para>
-    /// It is also the <see cref="ITableDataSource"/> that reports Sonar errors to the Error List
-    /// </para>
     /// </summary>
     /// <remarks>
     /// See the README.md in this folder for more information
@@ -52,9 +47,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed partial class TaggerProvider : IViewTaggerProvider
+    internal sealed class TaggerProvider : IViewTaggerProvider
     {
-        internal readonly ITableManager errorTableManager;
+        internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly IIssuesFilter issuesFilter;
         internal readonly DTE dte;
@@ -68,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IScheduler scheduler;
 
         [ImportingConstructor]
-        internal TaggerProvider(ITableManagerProvider tableManagerProvider,
+        internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
             IIssuesFilter issuesFilter,
             IAnalyzerController analyzerController,
@@ -78,17 +73,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ILogger logger,
             IScheduler scheduler)
         {
-            this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
+            this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.issuesFilter = issuesFilter;
-
-            this.errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
-                                                   StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
-                                                   StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
-                                                   StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
-                                                   StandardTableColumnDefinitions.ProjectName);
 
             this.analyzerController = analyzerController;
             this.dte = serviceProvider.GetService<DTE>();
@@ -198,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Add(issueTracker);
-                AddFactory(issueTracker.Factory);
+                sonarErrorDataSource.AddFactory(issueTracker.Factory);
             }
         }
 
@@ -207,8 +194,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
-                RemoveFactory(issueTracker.Factory);
+                sonarErrorDataSource.RemoveFactory(issueTracker.Factory);
             }
+        }
+
+        public void RefreshErrorList()
+        {
+            sonarErrorDataSource.RefreshErrorList();
         }
     }
 }

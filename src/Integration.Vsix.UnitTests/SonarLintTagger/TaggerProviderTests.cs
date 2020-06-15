@@ -25,7 +25,6 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -48,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class TaggerProviderTests
     {
+        private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
         private Mock<IAnalyzerController> mockAnalyzerController;
         private IAnalyzerController analyzerController;
         private Mock<ILogger> mockLogger;
@@ -64,14 +64,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // minimal setup to create a tagger
 
+            mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
+
             mockAnalyzerController = new Mock<IAnalyzerController>();
             mockAnalyzerController.Setup(x => x.IsAnalysisSupported(It.IsAny<IEnumerable<AnalysisLanguage>>())).Returns(true);
             analyzerController = this.mockAnalyzerController.Object;
-
-            var mockTableManagerProvider = new Mock<ITableManagerProvider>();
-            mockTableManagerProvider.Setup(t => t.GetTableManager(StandardTables.ErrorsTable))
-                .Returns(new Mock<ITableManager>().Object);
-            var tableManagerProvider = mockTableManagerProvider.Object;
 
             var mockContentTypeRegistryService = new Mock<IContentTypeRegistryService>();
             mockContentTypeRegistryService.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
@@ -117,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
 
             var issuesFilter = new Mock<IIssuesFilter>();
-            this.provider = new TaggerProvider(tableManagerProvider, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
+            this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
                 sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object, mockAnalysisScheduler.Object);
         }
 
@@ -195,61 +192,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Should_propagate_new_tracker_factories_to_existing_sink_managers()
+        public void TaggerAdded_SonarErrorDataSourceIsNotified()
         {
-            var mockTableDataSink1 = new Mock<ITableDataSink>();
-            provider.Subscribe(mockTableDataSink1.Object);
-
-            var mockTableDataSink2 = new Mock<ITableDataSink>();
-            provider.Subscribe(mockTableDataSink2.Object);
-
             CreateTagger(jsContentType);
             var trackers = provider.ActiveTrackersForTesting.ToArray();
             trackers.Count().Should().Be(1); // sanity check
-            
-            // factory of new tracker is propagated to all existing sink managers
-            mockTableDataSink1.Verify(s => s.AddFactory(trackers[0].Factory, false));
-            mockTableDataSink2.Verify(s => s.AddFactory(trackers[0].Factory, false));
-        }
 
-        [TestMethod]
-        public void Should_not_crash_when_sink_subscriber_gone()
-        {
-            var mockTableDataSink1 = new Mock<ITableDataSink>();
-            provider.Subscribe(mockTableDataSink1.Object);
-
-            var mockTableDataSink2 = new Mock<ITableDataSink>(MockBehavior.Strict);
-            var sinkManager = provider.Subscribe(mockTableDataSink2.Object);
-
-            sinkManager.Dispose();
-
-            CreateTagger(jsContentType);
-
-            var trackers = provider.ActiveTrackersForTesting.ToArray();
-            trackers.Count().Should().Be(1); // sanity check
-
-            // factory of new tracker is propagated to all existing sink managers
-            mockTableDataSink1.Verify(s => s.AddFactory(trackers[0].Factory, false));
-        }
-
-        [TestMethod]
-        public void Should_propagate_existing_tracker_factories_to_new_sink_managers()
-        {
-            var doc1 = CreateMockedDocument("foo.js", jsContentType);
-            CreateTaggerForDocument(doc1);
-
-            var doc2 = CreateMockedDocument("bar.js", jsContentType);
-            CreateTaggerForDocument(doc2);
-
-            var trackers = provider.ActiveTrackersForTesting.ToArray();
-            trackers.Count().Should().Be(2); // sanity check
-
-            var mockTableDataSink = new Mock<ITableDataSink>();
-            provider.Subscribe(mockTableDataSink.Object);
-
-            // factories of existing trackers are propagated to new sink manager
-            mockTableDataSink.Verify(s => s.AddFactory(trackers[0].Factory, false));
-            mockTableDataSink.Verify(s => s.AddFactory(trackers[1].Factory, false));
+            mockSonarErrorDataSource.Verify(x => x.AddFactory(trackers[0].Factory), Times.Once);
         }
 
         [TestMethod]

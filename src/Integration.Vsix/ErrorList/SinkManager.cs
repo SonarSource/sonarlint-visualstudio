@@ -25,10 +25,11 @@ using Microsoft.VisualStudio.Shell.TableManager;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     // Interface introduced to simplify testing.
-    internal interface ISinkManagerRegister
+    internal interface ISinkManager : IDisposable
     {
-        void AddSinkManager(SinkManager manager);
-        void RemoveSinkManager(SinkManager manager);
+        void AddFactory(ITableEntriesSnapshotFactory factory);
+        void RemoveFactory(ITableEntriesSnapshotFactory factory);
+        void UpdateSink();
     }
 
     /// <summary>
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </summary>
-    internal sealed class SinkManager : IDisposable
+    internal sealed class SinkManager : ISinkManager
     {
         private ISinkManagerRegister sinkRegister;
         private readonly ITableDataSink sink;
@@ -67,12 +68,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             sinkRegister = null;
         }
 
-        public void AddFactory(SnapshotFactory factory)
+        public void AddFactory(ITableEntriesSnapshotFactory factory)
         {
             SafeOperation("AddFactory", () => sink.AddFactory(factory));
         }
 
-        public void RemoveFactory(SnapshotFactory factory)
+        public void RemoveFactory(ITableEntriesSnapshotFactory factory)
         {
             SafeOperation("RemoveFactory", () => sink.RemoveFactory(factory));
         }
