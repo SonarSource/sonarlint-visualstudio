@@ -52,14 +52,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource, ISinkManagerRegister
+    internal sealed partial class TaggerProvider : IViewTaggerProvider
     {
         internal readonly ITableManager errorTableManager;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly IIssuesFilter issuesFilter;
         internal readonly DTE dte;
 
-        private readonly ISet<SinkManager> managers = new HashSet<SinkManager>();
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
         private readonly IAnalyzerController analyzerController;
@@ -180,19 +179,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion IViewTaggerProvider members
 
-        #region ITableDataSource members
-
-        public string DisplayName => "SonarLint";
-
-        public string Identifier => "SonarLint";
-
-        public string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
-
-        // Note: Error List is the only expected subscriber
-        public IDisposable Subscribe(ITableDataSink sink) => new SinkManager(this, sink);
-
-        #endregion
-
         public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions)
         {
             // May be called on the UI thread -> unhandled exceptions will crash VS
@@ -207,61 +193,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddSinkManager(SinkManager manager)
-        {
-            lock (managers)
-            {
-                managers.Add(manager);
-
-                foreach (var issueTracker in issueTrackers)
-                {
-                    manager.AddFactory(issueTracker.Factory);
-                }
-            }
-        }
-
-        public void RemoveSinkManager(SinkManager manager)
-        {
-            lock (managers)
-            {
-                managers.Remove(manager);
-            }
-        }
-
         public void AddIssueTracker(IIssueTracker issueTracker)
         {
-            lock (managers)
+            lock (issueTrackers)
             {
                 issueTrackers.Add(issueTracker);
-
-                foreach (var manager in managers)
-                {
-                    manager.AddFactory(issueTracker.Factory);
-                }
+                AddFactory(issueTracker.Factory);
             }
         }
 
         public void RemoveIssueTracker(IIssueTracker issueTracker)
         {
-            lock (managers)
+            lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
-
-                foreach (var manager in managers)
-                {
-                    manager.RemoveFactory(issueTracker.Factory);
-                }
-            }
-        }
-
-        public void UpdateAllSinks()
-        {
-            lock (managers)
-            {
-                foreach (var manager in managers)
-                {
-                    manager.UpdateSink();
-                }
+                RemoveFactory(issueTracker.Factory);
             }
         }
     }
