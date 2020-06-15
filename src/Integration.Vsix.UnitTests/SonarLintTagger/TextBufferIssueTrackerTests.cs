@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class TextBufferIssueTrackerTests
     {
+        private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
         private Mock<IAnalyzerController> mockAnalyzerController;
         private TaggerProvider taggerProvider;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
@@ -57,6 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void SetUp()
         {
+            mockSonarErrorDataSource = new Mock<ISonarErrorListDataSource>();
             mockAnalyzerController = new Mock<IAnalyzerController>();
             issuesFilter = new Mock<IIssuesFilter>();
             taggerProvider = CreateTaggerProvider();
@@ -87,7 +89,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WhenFileRenamed_FileNameIsUpdated_AndAnalysisIsNotRequested()
         {
-            var errorListSink = RegisterNewErrorListSink();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0); // sanity check
 
             // Act
@@ -98,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
-            CheckSinkNotified(errorListSink, 1);
+            CheckErrorListRefreshWasRequested(1);
 
             CheckAnalysisWasNotRequested();
         }
@@ -192,10 +193,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var issues = new[] { new Issue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
 
-            // Add a couple of error list listeners
-            var errorListSinkMock1 = RegisterNewErrorListSink();
-            var errorListSinkMock2 = RegisterNewErrorListSink();
-
             // Act
             using (new AssertIgnoreScope())
             {
@@ -203,8 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             // Assert
-            CheckSinkNotNotified(errorListSinkMock1);
-            CheckSinkNotNotified(errorListSinkMock2);
+            CheckErrorListRefreshWasNotRequested();
 
             issuesFilter.Verify(x => x.Filter(It.IsAny<IEnumerable<IFilterableIssue>>()), Times.Never);
         }
@@ -224,10 +220,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Setup up the filter to return whatever was supplied
             SetupIssuesFilter(out var _);
 
-            // Add a couple of error list listeners
-            var errorListSinkMock1 = RegisterNewErrorListSink();
-            var errorListSinkMock2 = RegisterNewErrorListSink();
-
             // Sanity check
             testSubject.LastIssues.Should().BeNull();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0);
@@ -237,11 +229,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, issues);
 
             // Assert
-            // We can't check that the editors listeners are notified: we can't mock
-            // SnapshotSpan well enough for the product code to work -> affected span
-            // is always null so the taggers don't notify their listeners.
-            CheckSinkNotified(errorListSinkMock1, 1);
-            CheckSinkNotified(errorListSinkMock2, 1);
+            CheckErrorListRefreshWasRequested(1);
 
             testSubject.LastIssues.Should().NotBeNull();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
@@ -270,8 +258,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
 
-            var errorListSinkMock1 = RegisterNewErrorListSink();
-
             // Act
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
 
@@ -281,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issuesPassedToFilter[0].RuleId.Should().Be("S111");
             issuesPassedToFilter[1].RuleId.Should().Be("S222");
 
-            CheckSinkNotified(errorListSinkMock1, 1);
+            CheckErrorListRefreshWasRequested(1);
 
             // Check the post-filter issues
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
@@ -300,8 +286,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var issuesToReturnFromFilter = Enumerable.Empty<DaemonIssueAdapter>();
             SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
 
-            var errorListSinkMock1 = RegisterNewErrorListSink();
-
             // Act
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
 
@@ -310,7 +294,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             capturedFilterInput.Count.Should().Be(1);
             capturedFilterInput[0].RuleId.Should().Be("single issue");
 
-            CheckSinkNotified(errorListSinkMock1, 1);
+            CheckErrorListRefreshWasRequested(1);
 
             // Check there are no markers
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
@@ -322,15 +306,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             SetupIssuesFilter(out var capturedFilterInput, Enumerable.Empty<IFilterableIssue>());
 
-            var errorListSinkMock1 = RegisterNewErrorListSink();
-
             // Act
             ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, Enumerable.Empty<Issue>());
 
             // Assert
             capturedFilterInput.Should().BeEmpty();
 
-            CheckSinkNotified(errorListSinkMock1, 1);
+            CheckErrorListRefreshWasRequested(1);
 
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
         }
@@ -345,23 +327,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             capturedFilterInput = captured;
         }
 
-        private Mock<ITableDataSink> RegisterNewErrorListSink()
+        private void CheckErrorListRefreshWasNotRequested()
         {
-            // Adds a new error list sink to the tagger provider.
-            // Should be notified when issues change.
-            var newSink = new Mock<ITableDataSink>();
-            taggerProvider.Subscribe(newSink.Object);
-            return newSink;
+            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Never);
         }
 
-        private void CheckSinkNotNotified(Mock<ITableDataSink> sinkMock)
+        private void CheckErrorListRefreshWasRequested(int count)
         {
-            sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Never);
-        }
-
-        private void CheckSinkNotified(Mock<ITableDataSink> sinkMock, int count)
-        {
-            sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Exactly(count));
+            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Exactly(count));
         }
 
         #endregion
@@ -407,7 +380,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>()))
                 .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
 
-            var provider = new TaggerProvider(tableManagerProviderMock.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
+            var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
                 serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger(), mockAnalysisScheduler.Object);
             return provider;
         }

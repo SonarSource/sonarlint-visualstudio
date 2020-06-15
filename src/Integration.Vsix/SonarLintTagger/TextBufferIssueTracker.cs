@@ -218,9 +218,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Tell our factory to snap to a new snapshot.
             this.Factory.UpdateSnapshot(newIssues);
 
-            // Tell the provider to mark all the sinks dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
-            // from the factory).
-            Provider.UpdateAllSinks();
+            Provider.RefreshErrorList();
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes

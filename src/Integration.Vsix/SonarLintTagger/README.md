@@ -16,7 +16,7 @@ In a nutshell:
 
 The `TaggerProvider` is the glue that holds everthing together:
 - it is a singleton that will be created by VS when required
-- it is an ITableDataSource, meaning it can provide issues to be shown in the Error List
+- it has an ISonarErrorListDataSource that it uses to update the Error List
 - it is an IViewTaggerProvider, meaning it is a factory that will created taggers for
   the editor.
 
@@ -65,14 +65,14 @@ The same document can be opened in multiple separate windows (views) at the same
 Error list integration:
 -----------------------
 
---->   TaggerProvider  // ITableDataSource, singleton)
+---> ISonarErrorListDataSource  // ITableDataSource, singleton
               |
               | 1..*    // many: one per ITableDataSink. In practice, only expecting one, for the Error List.
-          SinkManger   
+         ISinkManager   
               |
               | 1..*    // many: registers/unregisters factories with ITableDataSink
               |  
-       SnapshotFactory  // one per TextBufferIssueTracker i.e. per file
+   ITableEntriesSnapshotFactory  // one per TextBufferIssueTracker i.e. per file
        + IssuesSnapshot
 
 
