@@ -188,11 +188,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void CallsToSink_AddFactory_NonCriticalException_Suppressed()
         {
             // Arrange
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
-
             var mockSink = new Mock<ITableDataSink>();
-            mockSink.Setup(x => x.AddFactory(It.IsAny<ITableEntriesSnapshotFactory>(), false))
+            mockSink.Setup(x => x.AddFactory(ValidFactory, false))
                 .Throws(new InvalidCastException("add factory custom error"));
+
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.Subscribe(mockSink.Object);
 
             // Act
             testSubject.AddFactory(ValidFactory);
@@ -205,11 +206,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void CallsToSink_RemoveFactory_NonCriticalException_Suppressed()
         {
             // Arrange
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
             var mockSink = new Mock<ITableDataSink>();
-
             mockSink.Setup(x => x.RemoveFactory(ValidFactory))
                 .Throws(new InvalidCastException("remove factory custom error"));
+
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.Subscribe(mockSink.Object);
 
             // Act
             testSubject.RemoveFactory(ValidFactory);
@@ -222,11 +224,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void CallsToSink_RefreshErrorList_NonCriticalException_Suppressed()
         {
             // Arrange
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
             var mockSink = new Mock<ITableDataSink>();
-
             mockSink.Setup(x => x.FactorySnapshotChanged(null))
                 .Throws(new InvalidCastException("update custom error"));
+
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.Subscribe(mockSink.Object);
 
             // Act
             testSubject.RefreshErrorList();
@@ -239,11 +242,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void CallsToSink_AddFactory_CriticalException_NotSuppressed()
         {
             // Arrange
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
             var mockSink = new Mock<ITableDataSink>();
-
             mockSink.Setup(x => x.AddFactory(ValidFactory, false))
                 .Throws(new StackOverflowException("add factory custom error"));
+
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.Subscribe(mockSink.Object);
 
             // Act & assert
             Action act = () => testSubject.AddFactory(ValidFactory);
@@ -254,11 +258,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void CallsToSink_RemoveFactory_CriticalException_NotSuppressed()
         {
             // Arrange
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
             var mockSink = new Mock<ITableDataSink>();
-
             mockSink.Setup(x => x.RemoveFactory(ValidFactory))
                 .Throws(new StackOverflowException("remove factory custom error"));
+
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.Subscribe(mockSink.Object);
 
             // Act & assert
             Action act = () => testSubject.RemoveFactory(ValidFactory);
@@ -269,11 +274,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void CallsToSink_RefereshErrorList_CriticalException_NotSuppressed()
         {
             // Arrange
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
             var mockSink = new Mock<ITableDataSink>();
-
             mockSink.Setup(x => x.FactorySnapshotChanged(null))
                 .Throws(new StackOverflowException("update custom error"));
+
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.Subscribe(mockSink.Object);
 
             // Act & assert
             Action act = () => testSubject.RefreshErrorList();
