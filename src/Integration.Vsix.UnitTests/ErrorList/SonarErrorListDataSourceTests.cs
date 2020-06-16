@@ -33,6 +33,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         private Mock<ITableManagerProvider> mockTableManagerProvider;
         private Mock<ITableManager> mockTableManager;
 
+        private readonly ITableEntriesSnapshotFactory ValidFactory = Mock.Of<ITableEntriesSnapshotFactory>();
+
         [TestInitialize]
         public void TestInitialize()
         {
@@ -57,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Subscribe_ReturnsNewSinkManager()
+        public void Subscribe_ReturnsNewDisposableToken()
         {
             var mockSink = new Mock<ITableDataSink>();
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
@@ -65,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var token = testSubject.Subscribe(mockSink.Object);
 
             token.Should().NotBeNull();
-            token.Should().BeOfType<SinkManager>();
+            token.Should().BeOfType<ExecuteOnDispose>();
         }
 
         [TestMethod]
@@ -105,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void AddSinkManager_NewManagerIsNotifiedOfExistingFactories()
+        public void Subscribe_NewManagerIsNotifiedOfExistingFactories()
         {
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
@@ -114,9 +116,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.AddFactory(factory1);
             testSubject.AddFactory(factory2);
 
-            var mockSinkManager = new Mock<ISinkManager>();
+            var mockSinkManager = new Mock<ITableDataSink>();
 
-            testSubject.AddSinkManager(mockSinkManager.Object);
+            testSubject.Subscribe(mockSinkManager.Object);
 
             CheckFactoryWasAdded(mockSinkManager, factory1);
             CheckFactoryWasAdded(mockSinkManager, factory2);
@@ -127,39 +129,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
-            var mockManager1 = new Mock<ISinkManager>();
-            var mockManager2 = new Mock<ISinkManager>();
-            testSubject.AddSinkManager(mockManager1.Object);
-            testSubject.AddSinkManager(mockManager2.Object);
+            var mockSink1 = new Mock<ITableDataSink>();
+            var mockSink2 = new Mock<ITableDataSink>();
+            testSubject.Subscribe(mockSink1.Object);
+            testSubject.Subscribe(mockSink2.Object);
 
             var mockFactory = new Mock<ITableEntriesSnapshotFactory>();
 
             testSubject.AddFactory(mockFactory.Object);
 
-            CheckFactoryWasAdded(mockManager1, mockFactory.Object);
-            CheckFactoryWasAdded(mockManager2, mockFactory.Object);
+            CheckFactoryWasAdded(mockSink1, mockFactory.Object);
+            CheckFactoryWasAdded(mockSink2, mockFactory.Object);
         }
 
         [TestMethod]
-        public void RemoveSinkManager_ManagerIsNoLongerNotified()
+        public void RemoveSink_IsNoLongerNotified()
         {
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
-            var mockSinkManager = new Mock<ISinkManager>();
-            testSubject.AddSinkManager(mockSinkManager.Object);
+            var mockSink = new Mock<ITableDataSink>();
+            var disposeToken = testSubject.Subscribe(mockSink.Object);
 
             // 1. Manager is registered -> should be notified
             testSubject.RefreshErrorList();
             testSubject.RefreshErrorList();
 
-            mockSinkManager.Verify(x => x.UpdateSink(), Times.Exactly(2));
+            mockSink.Verify(x => x.FactorySnapshotChanged(null), Times.Exactly(2));
 
-            // 2. Unregister manager -> no longer notified
-            mockSinkManager.Reset();
-            testSubject.RemoveSinkManager(mockSinkManager.Object);
+            // 2. Unsubscribe -> no longer notified
+            mockSink.Reset();
+            disposeToken.Dispose();
             testSubject.RefreshErrorList();
 
-            mockSinkManager.Verify(x => x.UpdateSink(), Times.Never);
+            mockSink.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Never);
         }
 
         [TestMethod]
@@ -167,29 +169,129 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
-            var mockManager1 = new Mock<ISinkManager>();
-            var mockManager2 = new Mock<ISinkManager>();
-            testSubject.AddSinkManager(mockManager1.Object);
-            testSubject.AddSinkManager(mockManager2.Object);
+            var mockSink1 = new Mock<ITableDataSink>();
+            var mockSink2 = new Mock<ITableDataSink>();
+            testSubject.Subscribe(mockSink1.Object);
+            testSubject.Subscribe(mockSink2.Object);
 
             var mockFactory = new Mock<ITableEntriesSnapshotFactory>();
 
             testSubject.RemoveFactory(mockFactory.Object);
 
-            CheckFactoryWasRemoved(mockManager1, mockFactory.Object);
-            CheckFactoryWasRemoved(mockManager2, mockFactory.Object);
+            CheckFactoryWasRemoved(mockSink1, mockFactory.Object);
+            CheckFactoryWasRemoved(mockSink2, mockFactory.Object);
         }
 
+        #region Exception handling tests
+
+        [TestMethod]
+        public void CallsToSink_AddFactory_NonCriticalException_Suppressed()
+        {
+            // Arrange
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+
+            var mockSink = new Mock<ITableDataSink>();
+            mockSink.Setup(x => x.AddFactory(It.IsAny<ITableEntriesSnapshotFactory>(), false))
+                .Throws(new InvalidCastException("add factory custom error"));
+
+            // Act
+            testSubject.AddFactory(ValidFactory);
+
+            // Assert
+            CheckFactoryWasAdded(mockSink, ValidFactory);
+        }
+
+        [TestMethod]
+        public void CallsToSink_RemoveFactory_NonCriticalException_Suppressed()
+        {
+            // Arrange
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var mockSink = new Mock<ITableDataSink>();
+
+            mockSink.Setup(x => x.RemoveFactory(ValidFactory))
+                .Throws(new InvalidCastException("remove factory custom error"));
+
+            // Act
+            testSubject.RemoveFactory(ValidFactory);
+
+            // Assert
+            CheckFactoryWasRemoved(mockSink, ValidFactory);
+        }
+
+        [TestMethod]
+        public void CallsToSink_RefreshErrorList_NonCriticalException_Suppressed()
+        {
+            // Arrange
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var mockSink = new Mock<ITableDataSink>();
+
+            mockSink.Setup(x => x.FactorySnapshotChanged(null))
+                .Throws(new InvalidCastException("update custom error"));
+
+            // Act
+            testSubject.RefreshErrorList();
+
+            // Assert
+            CheckSinkWasNotified(mockSink);
+        }
+
+        [TestMethod]
+        public void CallsToSink_AddFactory_CriticalException_NotSuppressed()
+        {
+            // Arrange
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var mockSink = new Mock<ITableDataSink>();
+
+            mockSink.Setup(x => x.AddFactory(ValidFactory, false))
+                .Throws(new StackOverflowException("add factory custom error"));
+
+            // Act & assert
+            Action act = () => testSubject.AddFactory(ValidFactory);
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("add factory custom error");
+        }
+
+        [TestMethod]
+        public void CallsToSink_RemoveFactory_CriticalException_NotSuppressed()
+        {
+            // Arrange
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var mockSink = new Mock<ITableDataSink>();
+
+            mockSink.Setup(x => x.RemoveFactory(ValidFactory))
+                .Throws(new StackOverflowException("remove factory custom error"));
+
+            // Act & assert
+            Action act = () => testSubject.RemoveFactory(ValidFactory);
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("remove factory custom error");
+        }
+
+        [TestMethod]
+        public void CallsToSink_RefereshErrorList_CriticalException_NotSuppressed()
+        {
+            // Arrange
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var mockSink = new Mock<ITableDataSink>();
+
+            mockSink.Setup(x => x.FactorySnapshotChanged(null))
+                .Throws(new StackOverflowException("update custom error"));
+
+            // Act & assert
+            Action act = () => testSubject.RefreshErrorList();
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("update custom error");
+        }
+
+        #endregion
+
         private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink) =>
-            mockSink.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Once);
+            mockSink.Verify(x => x.FactorySnapshotChanged(null), Times.Once);
 
         private static void CheckSinkWasNotNotified(Mock<ITableDataSink> mockSink) =>
             mockSink.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Never);
 
-        private static void CheckFactoryWasAdded(Mock<ISinkManager> mockSinkManager, ITableEntriesSnapshotFactory expectedFactory) =>
-            mockSinkManager.Verify(x => x.AddFactory(expectedFactory), Times.Once);
+        private static void CheckFactoryWasAdded(Mock<ITableDataSink> mockSink, ITableEntriesSnapshotFactory expectedFactory) =>
+            mockSink.Verify(x => x.AddFactory(expectedFactory, false), Times.Once);
 
-        private static void CheckFactoryWasRemoved(Mock<ISinkManager> mockSinkManager, ITableEntriesSnapshotFactory expectedFactory) =>
-            mockSinkManager.Verify(x => x.RemoveFactory(expectedFactory), Times.Once);
+        private static void CheckFactoryWasRemoved(Mock<ITableDataSink> mockSink, ITableEntriesSnapshotFactory expectedFactory) =>
+            mockSink.Verify(x => x.RemoveFactory(expectedFactory), Times.Once);
     }
 }
