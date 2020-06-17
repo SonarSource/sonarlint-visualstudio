@@ -389,30 +389,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ConvertFromIssueSeverity()
+        [DataRow(DaemonIssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
+        [DataRow(DaemonIssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
+        [DataRow(DaemonIssueSeverity.Info, AnalysisIssueSeverity.Info)]
+        [DataRow(DaemonIssueSeverity.Major, AnalysisIssueSeverity.Major)]
+        [DataRow(DaemonIssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
+        public void ConvertFromIssueSeverity(DaemonIssueSeverity daemonIssueSeverity, AnalysisIssueSeverity analysisIssueSeverity)
         {
-            
-            Daemon.Convert(DaemonIssueSeverity.Blocker).Should().Be(AnalysisIssueSeverity.Blocker);
-            Daemon.Convert(DaemonIssueSeverity.Critical).Should().Be(AnalysisIssueSeverity.Critical);
-            Daemon.Convert(DaemonIssueSeverity.Info).Should().Be(AnalysisIssueSeverity.Info);
-            Daemon.Convert(DaemonIssueSeverity.Major).Should().Be(AnalysisIssueSeverity.Major);
-            Daemon.Convert(DaemonIssueSeverity.Minor).Should().Be(AnalysisIssueSeverity.Minor);
+            Daemon.Convert(daemonIssueSeverity).Should().Be(analysisIssueSeverity);
+        }
 
+        [TestMethod]
+        public void ConvertFromIssueSeverity_InvalidValue_Throws()
+        {
             Action act = () => Daemon.Convert((DaemonIssueSeverity)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
         [TestMethod]
-        public void ConvertFromIssueType()
+        [DataRow(DaemonIssueType.Bug, AnalysisIssueType.Bug)]
+        [DataRow(DaemonIssueType.CodeSmell, AnalysisIssueType.CodeSmell)]
+        [DataRow(DaemonIssueType.Vulnerability, AnalysisIssueType.Vulnerability)]
+        public void ConvertFromIssueType(DaemonIssueType daemonIssueType, AnalysisIssueType analysisIssueType)
         {
-            Daemon.Convert(DaemonIssueType.Bug).Should().Be(AnalysisIssueType.Bug);
-            Daemon.Convert(DaemonIssueType.CodeSmell).Should().Be(AnalysisIssueType.CodeSmell);
-            Daemon.Convert(DaemonIssueType.Vulnerability).Should().Be(AnalysisIssueType.Vulnerability);
+            Daemon.Convert(daemonIssueType).Should().Be(analysisIssueType);
+        }
 
+        [TestMethod]
+        public void ConvertFromIssueType_InvalidValue_Throws()
+        {
             Action act = () => Daemon.Convert((DaemonIssueType)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
-
 
         private static void ForceDeleteDirectory(string path)
         {

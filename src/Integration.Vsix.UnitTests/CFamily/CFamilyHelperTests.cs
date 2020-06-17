@@ -700,26 +700,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void ConvertFromIssueSeverity()
+        [DataRow(IssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
+        [DataRow(IssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
+        [DataRow(IssueSeverity.Info, AnalysisIssueSeverity.Info)]
+        [DataRow(IssueSeverity.Major, AnalysisIssueSeverity.Major)]
+        [DataRow(IssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
+        public void ConvertFromIssueSeverity(IssueSeverity cfamilySeverity, AnalysisIssueSeverity analysisIssueSeverity)
         {
-            CFamilyHelper.Convert(IssueSeverity.Blocker).Should().Be(AnalysisIssueSeverity.Blocker);
-            CFamilyHelper.Convert(IssueSeverity.Critical).Should().Be(AnalysisIssueSeverity.Critical);
-            CFamilyHelper.Convert(IssueSeverity.Info).Should().Be(AnalysisIssueSeverity.Info);
-            CFamilyHelper.Convert(IssueSeverity.Major).Should().Be(AnalysisIssueSeverity.Major);
-            CFamilyHelper.Convert(IssueSeverity.Minor).Should().Be(AnalysisIssueSeverity.Minor);
+            CFamilyHelper.Convert(cfamilySeverity).Should().Be(analysisIssueSeverity);
+        }
 
-            Action act = () => CFamilyHelper.Convert((IssueSeverity) (-1));
+        [TestMethod]
+        public void ConvertFromIssueSeverity_InvalidValue_Throws()
+        {
+            Action act = () => CFamilyHelper.Convert((IssueSeverity)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
         [TestMethod]
-        public void ConvertFromIssueType()
+        [DataRow(IssueType.Bug, AnalysisIssueType.Bug)]
+        [DataRow(IssueType.CodeSmell, AnalysisIssueType.CodeSmell)]
+        [DataRow(IssueType.Vulnerability, AnalysisIssueType.Vulnerability)]
+        public void ConvertFromIssueType(IssueType cfamilyIssueType, AnalysisIssueType analysisIssueType)
         {
-            CFamilyHelper.Convert(IssueType.Bug).Should().Be(AnalysisIssueType.Bug);
-            CFamilyHelper.Convert(IssueType.CodeSmell).Should().Be(AnalysisIssueType.CodeSmell);
-            CFamilyHelper.Convert(IssueType.Vulnerability).Should().Be(AnalysisIssueType.Vulnerability);
+            CFamilyHelper.Convert(cfamilyIssueType).Should().Be(analysisIssueType);
 
             Action act = () => CFamilyHelper.Convert((IssueType) (-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
+        }
+
+        [TestMethod]
+        public void ConvertFromIssueType_InvalidValue_Throws()
+        {
+            Action act = () => CFamilyHelper.Convert((IssueType)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
 
