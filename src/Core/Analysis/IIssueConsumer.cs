@@ -18,19 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core
 {
-    public delegate void DaemonEventHandler(object sender, EventArgs e);
-
-    public interface ISonarLintDaemon : IAnalyzer, IDisposable
+    public interface IIssueConsumer
     {
-        bool IsRunning { get; }
-        event EventHandler<EventArgs> Ready;
-
-        void Start();
-        void Stop();
+        void Accept(string path, IEnumerable<IAnalysisIssue> issues);
     }
 }
