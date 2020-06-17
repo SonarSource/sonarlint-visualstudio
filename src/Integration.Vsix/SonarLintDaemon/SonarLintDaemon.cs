@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Grpc.Core;
-using Sonarlint;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -28,12 +25,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using EnvDTE;
+using Grpc.Core;
+using Sonarlint;
 using SonarLint.VisualStudio.Core;
-using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
-using Process = System.Diagnostics.Process;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using DaemonIssueSeverity = Sonarlint.Issue.Types.Severity;
 using DaemonIssueType = Sonarlint.Issue.Types.Type;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
+using Process = System.Diagnostics.Process;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
