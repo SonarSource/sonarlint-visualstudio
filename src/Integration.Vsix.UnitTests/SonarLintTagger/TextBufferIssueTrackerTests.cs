@@ -251,7 +251,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var issuesToReturnFromFilter = new[]
             {
-                new DaemonIssueAdapter(
+                new FilterableIssueAdapter(
                     new DummyAnalysisIssue { RuleKey = "xxx", StartLine = 3 }, "text1", "hash1")
             };
 
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new DummyAnalysisIssue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
             };
 
-            var issuesToReturnFromFilter = Enumerable.Empty<DaemonIssueAdapter>();
+            var issuesToReturnFromFilter = Enumerable.Empty<FilterableIssueAdapter>();
             SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
 
             // Act

@@ -22,17 +22,17 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
+namespace SonarLint.VisualStudio.Core.UnitTests
 {
     [TestClass]
-    public class DaemonIssueAdapterTests
+    public class FilterableIssueAdapterTests
     {
         [TestMethod]
         public void Ctor_NullIssue_Throws()
         {
-            Action act = () => new DaemonIssueAdapter(null, "line text", "hash");
+            Action act = () => new FilterableIssueAdapter(null, "line text", "hash");
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sonarLintIssue");
         }
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         [TestMethod]
         public void Ctor_NullPathAndHash_PathAndHashAreSetToNull()
         {
-            var result = (IFilterableIssue)new DaemonIssueAdapter(new DummyAnalysisIssue(), null, null);
+            var result = (IFilterableIssue)new FilterableIssueAdapter(new DummyAnalysisIssue(), null, null);
 
             result.WholeLineText.Should().BeNull();
             result.LineHash.Should().BeNull();
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
             };
 
             // Act
-            var result = new DaemonIssueAdapter(issue, "line text", "line hash");
+            var result = new FilterableIssueAdapter(issue, "line text", "line hash");
 
             // Assert
             result.SonarLintIssue.Should().BeSameAs(issue);

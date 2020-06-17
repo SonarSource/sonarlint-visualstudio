@@ -283,12 +283,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
 
             var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is DaemonIssueAdapter), "Not expecting the issue filter to change the list item type");
+            Debug.Assert(filteredIssues.All(x => x is FilterableIssueAdapter), "Not expecting the issue filter to change the list item type");
 
             var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
             logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
 
-            return filteredIssues.OfType<DaemonIssueAdapter>()
+            return filteredIssues.OfType<FilterableIssueAdapter>()
                 .Select(x => x.SonarLintIssue);
         }
 
