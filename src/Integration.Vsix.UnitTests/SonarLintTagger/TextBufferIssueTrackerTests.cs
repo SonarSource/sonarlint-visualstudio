@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
-using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -191,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void WhenNewIssuesAreFound_ButForIncorrectFile_FilterNotCalledAndListenersAreNotUpdated()
         {
             // Arrange
-            var issues = new[] { new Issue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
+            var issues = new[] { new DummyAnalysisIssue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
 
             // Act
             using (new AssertIgnoreScope())
@@ -211,10 +210,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var issues = new[]
             {
-                new Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
+                new DummyAnalysisIssue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
                 // The next issue is outside the range of the new snapshot and should be ignored
-                new Issue { RuleKey = "S222", StartLine = 99999998, EndLine = 99999999 },
-                new Issue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
+                new DummyAnalysisIssue { RuleKey = "S222", StartLine = 99999998, EndLine = 99999999 },
+                new DummyAnalysisIssue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
             };
 
             // Setup up the filter to return whatever was supplied
@@ -246,14 +245,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var inputIssues = new[]
             {
-                new Issue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
-                new Issue { RuleKey = "S222", StartLine = 2, EndLine = 2 }
+                new DummyAnalysisIssue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
+                new DummyAnalysisIssue { RuleKey = "S222", StartLine = 2, EndLine = 2 }
             };
 
             var issuesToReturnFromFilter = new[]
             {
                 new DaemonIssueAdapter(
-                    new Issue { RuleKey = "xxx", StartLine = 3 }, "text1", "hash1")
+                    new DummyAnalysisIssue { RuleKey = "xxx", StartLine = 3 }, "text1", "hash1")
             };
 
             SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
@@ -280,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var inputIssues = new[]
             {
-                new Issue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
+                new DummyAnalysisIssue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
             };
 
             var issuesToReturnFromFilter = Enumerable.Empty<DaemonIssueAdapter>();
@@ -307,7 +306,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetupIssuesFilter(out var capturedFilterInput, Enumerable.Empty<IFilterableIssue>());
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, Enumerable.Empty<Issue>());
+            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, Enumerable.Empty<AnalysisIssue>());
 
             // Assert
             capturedFilterInput.Should().BeEmpty();

@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Text;
-using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -207,10 +206,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
         }
 
-        private bool IsValidIssueTextRange(Issue issue) =>
+        private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
             1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
-        private IssueMarker CreateIssueMarker(Issue issue) =>
+        private IssueMarker CreateIssueMarker(IAnalysisIssue issue) =>
             issueConverter.ToMarker(issue, currentSnapshot);
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
@@ -264,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, options);
         }
 
-        void IIssueConsumer.Accept(string path, IEnumerable<Issue> issues)
+        void IIssueConsumer.Accept(string path, IEnumerable<IAnalysisIssue> issues)
         {
             // Callback from the daemon when new results are available
             if (path != FilePath)
@@ -279,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             UpdateIssues(newMarkers);
         }
 
-        private IEnumerable<Issue> RemoveSuppressedIssues(IEnumerable<Issue> issues)
+        private IEnumerable<IAnalysisIssue> RemoveSuppressedIssues(IEnumerable<IAnalysisIssue> issues)
         {
             var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
 

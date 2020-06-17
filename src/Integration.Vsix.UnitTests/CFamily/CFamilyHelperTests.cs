@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
-using static Sonarlint.Issue.Types;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
@@ -688,39 +687,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
             issue.RuleKey.Should().Be("lang1:rule2");
-            issue.Severity.Should().Be(Severity.Info);
-            issue.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+            issue.Severity.Should().Be(AnalysisIssueSeverity.Info);
+            issue.Type.Should().Be(AnalysisIssueType.CodeSmell);
 
             // 2. Check rule3
             message = new Message("rule3", "any", 4, 3, 2, 1, "message", false, null);
             issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
             issue.RuleKey.Should().Be("lang1:rule3");
-            issue.Severity.Should().Be(Severity.Critical);
-            issue.Type.Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+            issue.Severity.Should().Be(AnalysisIssueSeverity.Critical);
+            issue.Type.Should().Be(AnalysisIssueType.Vulnerability);
         }
 
         [TestMethod]
-        public void ConvertFromIssueSeverity()
+        [DataRow(IssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
+        [DataRow(IssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
+        [DataRow(IssueSeverity.Info, AnalysisIssueSeverity.Info)]
+        [DataRow(IssueSeverity.Major, AnalysisIssueSeverity.Major)]
+        [DataRow(IssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
+        public void ConvertFromIssueSeverity(IssueSeverity cfamilySeverity, AnalysisIssueSeverity analysisIssueSeverity)
         {
-            CFamilyHelper.Convert(IssueSeverity.Blocker).Should().Be(Severity.Blocker);
-            CFamilyHelper.Convert(IssueSeverity.Critical).Should().Be(Severity.Critical);
-            CFamilyHelper.Convert(IssueSeverity.Info).Should().Be(Severity.Info);
-            CFamilyHelper.Convert(IssueSeverity.Major).Should().Be(Severity.Major);
-            CFamilyHelper.Convert(IssueSeverity.Minor).Should().Be(Severity.Minor);
+            CFamilyHelper.Convert(cfamilySeverity).Should().Be(analysisIssueSeverity);
+        }
 
-            Action act = () => CFamilyHelper.Convert((IssueSeverity) (-1));
+        [TestMethod]
+        public void ConvertFromIssueSeverity_InvalidValue_Throws()
+        {
+            Action act = () => CFamilyHelper.Convert((IssueSeverity)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
         [TestMethod]
-        public void ConvertFromIssueType()
+        [DataRow(IssueType.Bug, AnalysisIssueType.Bug)]
+        [DataRow(IssueType.CodeSmell, AnalysisIssueType.CodeSmell)]
+        [DataRow(IssueType.Vulnerability, AnalysisIssueType.Vulnerability)]
+        public void ConvertFromIssueType(IssueType cfamilyIssueType, AnalysisIssueType analysisIssueType)
         {
-            CFamilyHelper.Convert(IssueType.Bug).Should().Be(Sonarlint.Issue.Types.Type.Bug);
-            CFamilyHelper.Convert(IssueType.CodeSmell).Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-            CFamilyHelper.Convert(IssueType.Vulnerability).Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+            CFamilyHelper.Convert(cfamilyIssueType).Should().Be(analysisIssueType);
 
             Action act = () => CFamilyHelper.Convert((IssueType) (-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
+        }
+
+        [TestMethod]
+        public void ConvertFromIssueType_InvalidValue_Throws()
+        {
+            Action act = () => CFamilyHelper.Convert((IssueType)(-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
 

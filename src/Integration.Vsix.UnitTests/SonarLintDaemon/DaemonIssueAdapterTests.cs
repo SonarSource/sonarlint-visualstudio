@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         [TestMethod]
         public void Ctor_NullPathAndHash_PathAndHashAreSetToNull()
         {
-            var result = (IFilterableIssue)new DaemonIssueAdapter(new Sonarlint.Issue(), null, null);
+            var result = (IFilterableIssue)new DaemonIssueAdapter(new DummyAnalysisIssue(), null, null);
 
             result.WholeLineText.Should().BeNull();
             result.LineHash.Should().BeNull();
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintDaemon
         public void Ctor_ValidIssue_CorrectlyInitialized()
         {
             // Arrange
-            var issue = new Sonarlint.Issue
+            var issue = new DummyAnalysisIssue
             {
                 FilePath = "path",
                 RuleKey = "rule id",

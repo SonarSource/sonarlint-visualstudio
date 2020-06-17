@@ -23,7 +23,6 @@ using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using Sonarlint;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -135,19 +134,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        internal /* for testing */ __VSERRORCATEGORY ToVsErrorCategory(Sonarlint.Issue.Types.Severity daemonSeverity)
+        internal /* for testing */ __VSERRORCATEGORY ToVsErrorCategory(AnalysisIssueSeverity severity)
         {
-            switch (daemonSeverity)
+            switch (severity)
             {
-                case Issue.Types.Severity.Info:
-                case Issue.Types.Severity.Minor:
+                case AnalysisIssueSeverity.Info:
+                case AnalysisIssueSeverity.Minor:
                     return __VSERRORCATEGORY.EC_MESSAGE;
 
-                case Issue.Types.Severity.Major:
-                case Issue.Types.Severity.Critical:
+                case AnalysisIssueSeverity.Major:
+                case AnalysisIssueSeverity.Critical:
                     return __VSERRORCATEGORY.EC_WARNING;
 
-                case Issue.Types.Severity.Blocker:
+                case AnalysisIssueSeverity.Blocker:
                     return environmentSettings.TreatBlockerSeverityAsError() ? __VSERRORCATEGORY.EC_ERROR : __VSERRORCATEGORY.EC_WARNING;
 
                 default:
@@ -178,13 +177,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return $"https://rules.sonarsource.com/{language}/RSPEC-{ruleId}";
         }
 
-        private object ToString(Issue.Types.Type type)
+        private object ToString(AnalysisIssueType type)
         {
             switch (type)
             {
-                case Issue.Types.Type.Vulnerability: return "Vulnerability";
-                case Issue.Types.Type.Bug: return "Bug";
-                case Issue.Types.Type.CodeSmell:
+                case AnalysisIssueType.Vulnerability: return "Vulnerability";
+                case AnalysisIssueType.Bug: return "Bug";
+                case AnalysisIssueType.CodeSmell:
                 default:
                     return "Code Smell";
             }

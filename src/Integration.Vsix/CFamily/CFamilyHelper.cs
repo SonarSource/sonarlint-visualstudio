@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        internal /* for testing */ static Sonarlint.Issue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
+        internal /* for testing */ static IAnalysisIssue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
         {
             // Lines and character positions are 1-based
             Debug.Assert(cfamilyIssue.Line > 0);
@@ -187,39 +187,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultSeverity = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].DefaultSeverity;
             var defaultType = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].Type;
 
-            return new Sonarlint.Issue()
-            {
-                FilePath = cfamilyIssue.Filename,
-                Message = cfamilyIssue.Text,
-                RuleKey = sqLanguage + ":" + cfamilyIssue.RuleKey,
-                Severity = Convert(defaultSeverity),
-                Type = Convert(defaultType),
-                StartLine = cfamilyIssue.Line,
-                EndLine = cfamilyIssue.EndLine,
+            return new AnalysisIssue
+            (
+                filePath: cfamilyIssue.Filename,
+                message: cfamilyIssue.Text,
+                ruleKey: sqLanguage + ":" + cfamilyIssue.RuleKey,
+                severity: Convert(defaultSeverity),
+                type: Convert(defaultType),
+                startLine: cfamilyIssue.Line,
+                endLine: cfamilyIssue.EndLine,
 
                 // We don't care about the columns in the special case EndLine=0
-                StartLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
-                EndLineOffset = cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
-            };
+                startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
+                endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
+            );
         }
 
         /// <summary>
-        /// Converts from the Core issue severity enum to the equivalent daemon protofbuf generated enum
+        /// Converts from the CFamily issue severity enum to the standard AnalysisIssueSeverity
         /// </summary>
-        internal /* for testing */ static Sonarlint.Issue.Types.Severity Convert(IssueSeverity issueSeverity)
+        internal /* for testing */ static AnalysisIssueSeverity Convert(IssueSeverity issueSeverity)
         {
             switch (issueSeverity)
             {
                 case IssueSeverity.Blocker:
-                    return Sonarlint.Issue.Types.Severity.Blocker;
+                    return AnalysisIssueSeverity.Blocker;
                 case IssueSeverity.Critical:
-                    return Sonarlint.Issue.Types.Severity.Critical;
+                    return AnalysisIssueSeverity.Critical;
                 case IssueSeverity.Info:
-                    return Sonarlint.Issue.Types.Severity.Info;
+                    return AnalysisIssueSeverity.Info;
                 case IssueSeverity.Major:
-                    return Sonarlint.Issue.Types.Severity.Major;
+                    return AnalysisIssueSeverity.Major;
                 case IssueSeverity.Minor:
-                    return Sonarlint.Issue.Types.Severity.Minor;
+                    return AnalysisIssueSeverity.Minor;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueSeverity));
@@ -227,18 +227,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
 
         /// <summary>
-        /// Converts from the Core issue type enum to the equivalent daemon protofbuf generated enum
+        /// Converts from the CFamily issue type enum to the standard AnalysisIssueType
         /// </summary>
-        internal /* for testing */static Sonarlint.Issue.Types.Type Convert(IssueType issueType)
+        internal /* for testing */static AnalysisIssueType Convert(IssueType issueType)
         {
             switch (issueType)
             {
                 case IssueType.Bug:
-                    return Sonarlint.Issue.Types.Type.Bug;
+                    return AnalysisIssueType.Bug;
                 case IssueType.CodeSmell:
-                    return Sonarlint.Issue.Types.Type.CodeSmell;
+                    return AnalysisIssueType.CodeSmell;
                 case IssueType.Vulnerability:
-                    return Sonarlint.Issue.Types.Type.Vulnerability;
+                    return AnalysisIssueType.Vulnerability;
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueType));
