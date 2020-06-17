@@ -28,6 +28,43 @@
     </Content>
   </ItemGroup>
   
+  <ItemGroup>
+    <None Remove="CFamily\CLangAnalyzerRequest.json" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.cpp" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile_response.json" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.cpp" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.cpp" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues_response.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.cpp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.cpp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.cpp">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerRequestTemplate.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  
   <ItemGroup Label="Framework references">
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />

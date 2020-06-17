@@ -97,8 +97,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public bool PartsMakeFlow { get; }
         public MessagePart[] Parts { get; }
 
-        public Message(string ruleKey, string filename, int line, int column, int endLine, int endColumn, string message, bool partsMakeFlow, MessagePart[] parts)
-            : base(filename, line, column, endLine, endColumn, message)
+        public Message(string ruleKey, string filename, int line, int column, int endLine, int endColumn, string text, bool partsMakeFlow, MessagePart[] parts)
+            : base(filename, line, column, endLine, endColumn, text)
         {
             RuleKey = ruleKey;
             PartsMakeFlow = partsMakeFlow;
