@@ -18,12 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace SonarLint.VisualStudio.Core
 {
     public interface IAnalysisIssue
@@ -60,46 +54,6 @@ namespace SonarLint.VisualStudio.Core
     {
         CodeSmell,
         Bug,
-        Vulnerability,
-        Hotspot
-    }
-
-    public class AnalysisIssue : IAnalysisIssue
-    {
-        public AnalysisIssue(
-            string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type,
-            string message, string filePath,
-            int startLine, int endLine,
-            int startLineOffset, int endLineOffset
-            )
-        {
-            RuleKey = ruleKey;
-            Severity = severity;
-            Type = type;
-            StartLine = startLine;
-            StartLineOffset = startLineOffset;
-            EndLine = endLine;
-            EndLineOffset = endLineOffset;
-            FilePath = filePath;
-            Message = message;
-        }
-
-        public string RuleKey { get; }
-
-        public AnalysisIssueSeverity Severity { get; }
-
-        public AnalysisIssueType Type { get; }
-
-        public int StartLine { get; }
-
-        public int EndLine { get; }
-
-        public int StartLineOffset { get; }
-
-        public int EndLineOffset { get; }
-
-        public string Message { get; }
-
-        public string FilePath { get; }
+        Vulnerability
     }
 }
