@@ -19,17 +19,16 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core
 {
-    internal class DaemonIssueAdapter : IFilterableIssue
+    public class FilterableIssueAdapter : IFilterableIssue
     {
         private readonly string wholeLineText;
         private readonly string lineHash;
 
-        public DaemonIssueAdapter(IAnalysisIssue sonarLintIssue, string wholeLineText, string lineHash)
+        public FilterableIssueAdapter(IAnalysisIssue sonarLintIssue, string wholeLineText, string lineHash)
         {
             SonarLintIssue = sonarLintIssue ?? throw new ArgumentNullException(nameof(sonarLintIssue));
 

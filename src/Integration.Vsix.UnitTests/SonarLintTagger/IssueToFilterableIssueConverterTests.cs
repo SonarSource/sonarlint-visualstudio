@@ -59,9 +59,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = IssueToFilterableIssueConverter.CreateFilterableIssue(issue, mockSnapshot.Object);
 
             // Assert
-            actual.Should().BeOfType(typeof(DaemonIssueAdapter));
+            actual.Should().BeOfType(typeof(FilterableIssueAdapter));
 
-            var adapterIssue = (DaemonIssueAdapter)actual;
+            var adapterIssue = (FilterableIssueAdapter)actual;
             adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
 
             actual.WholeLineText.Should().Be("some text");
@@ -79,8 +79,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var actual = IssueToFilterableIssueConverter.CreateFilterableIssue(issue, mockSnapshot.Object);
 
             // Assert
-            actual.Should().BeOfType(typeof(DaemonIssueAdapter));
-            var adapterIssue = (DaemonIssueAdapter)actual;
+            actual.Should().BeOfType(typeof(FilterableIssueAdapter));
+            var adapterIssue = (FilterableIssueAdapter)actual;
             adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
 
             actual.StartLine.Should().Be(0);
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Count().Should().Be(3);
 
-            var adapterIssues = actual.OfType<DaemonIssueAdapter>().ToArray();
+            var adapterIssues = actual.OfType<FilterableIssueAdapter>().ToArray();
             adapterIssues[0].SonarLintIssue.Should().BeSameAs(fileIssue);
             adapterIssues[1].SonarLintIssue.Should().BeSameAs(validIssue1);
             adapterIssues[2].SonarLintIssue.Should().BeSameAs(validIssue2);
