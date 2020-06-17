@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void ToMarker_Calculates_Span_Positions()
         {
             // Arrange
-            var issue = new Sonarlint.Issue
+            var issue = new DummyAnalysisIssue
             {
                 StartLine = 3,
                 StartLineOffset = 10,
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // If issue.EndLine is zero the whole of the start line should be selected
 
             // Arrange
-            var issue = new Sonarlint.Issue
+            var issue = new DummyAnalysisIssue
             {
                 StartLine = 22,
                 StartLineOffset = 2,
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Rule "cpp:S113 - no newline at end of file" returns an offset after the end of the file.
 
             // Arrange
-            var issue = new Sonarlint.Issue
+            var issue = new DummyAnalysisIssue
             {
                 StartLine = 53,
                 StartLineOffset = 2,
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // (we have not seen this in practice so far)
 
             // Arrange
-            var issue = new Sonarlint.Issue
+            var issue = new DummyAnalysisIssue
             {
                 StartLine = 53,
                 StartLineOffset = 2,

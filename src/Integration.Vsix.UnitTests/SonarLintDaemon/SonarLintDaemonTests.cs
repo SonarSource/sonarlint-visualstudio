@@ -24,8 +24,12 @@ using System.IO;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using Daemon = SonarLint.VisualStudio.Integration.Vsix.SonarLintDaemon;
+using DaemonIssueSeverity = Sonarlint.Issue.Types.Severity;
+using DaemonIssueType = Sonarlint.Issue.Types.Type;
 using VSIX = SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -383,6 +387,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeFalse();
             testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }).Should().BeTrue();
         }
+
+        [TestMethod]
+        public void ConvertFromIssueSeverity()
+        {
+            
+            Daemon.Convert(DaemonIssueSeverity.Blocker).Should().Be(AnalysisIssueSeverity.Blocker);
+            Daemon.Convert(DaemonIssueSeverity.Critical).Should().Be(AnalysisIssueSeverity.Critical);
+            Daemon.Convert(DaemonIssueSeverity.Info).Should().Be(AnalysisIssueSeverity.Info);
+            Daemon.Convert(DaemonIssueSeverity.Major).Should().Be(AnalysisIssueSeverity.Major);
+            Daemon.Convert(DaemonIssueSeverity.Minor).Should().Be(AnalysisIssueSeverity.Minor);
+
+            Action act = () => Daemon.Convert((DaemonIssueSeverity)(-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
+        }
+
+        [TestMethod]
+        public void ConvertFromIssueType()
+        {
+            Daemon.Convert(DaemonIssueType.Bug).Should().Be(AnalysisIssueType.Bug);
+            Daemon.Convert(DaemonIssueType.CodeSmell).Should().Be(AnalysisIssueType.CodeSmell);
+            Daemon.Convert(DaemonIssueType.Vulnerability).Should().Be(AnalysisIssueType.Vulnerability);
+
+            Action act = () => Daemon.Convert((DaemonIssueType)(-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
+        }
+
 
         private static void ForceDeleteDirectory(string path)
         {

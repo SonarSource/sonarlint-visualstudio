@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
-using static Sonarlint.Issue.Types;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
@@ -688,26 +687,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
             issue.RuleKey.Should().Be("lang1:rule2");
-            issue.Severity.Should().Be(Severity.Info);
-            issue.Type.Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
+            issue.Severity.Should().Be(AnalysisIssueSeverity.Info);
+            issue.Type.Should().Be(AnalysisIssueType.CodeSmell);
 
             // 2. Check rule3
             message = new Message("rule3", "any", 4, 3, 2, 1, "message", false, null);
             issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
             issue.RuleKey.Should().Be("lang1:rule3");
-            issue.Severity.Should().Be(Severity.Critical);
-            issue.Type.Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+            issue.Severity.Should().Be(AnalysisIssueSeverity.Critical);
+            issue.Type.Should().Be(AnalysisIssueType.Vulnerability);
         }
 
         [TestMethod]
         public void ConvertFromIssueSeverity()
         {
-            CFamilyHelper.Convert(IssueSeverity.Blocker).Should().Be(Severity.Blocker);
-            CFamilyHelper.Convert(IssueSeverity.Critical).Should().Be(Severity.Critical);
-            CFamilyHelper.Convert(IssueSeverity.Info).Should().Be(Severity.Info);
-            CFamilyHelper.Convert(IssueSeverity.Major).Should().Be(Severity.Major);
-            CFamilyHelper.Convert(IssueSeverity.Minor).Should().Be(Severity.Minor);
+            CFamilyHelper.Convert(IssueSeverity.Blocker).Should().Be(AnalysisIssueSeverity.Blocker);
+            CFamilyHelper.Convert(IssueSeverity.Critical).Should().Be(AnalysisIssueSeverity.Critical);
+            CFamilyHelper.Convert(IssueSeverity.Info).Should().Be(AnalysisIssueSeverity.Info);
+            CFamilyHelper.Convert(IssueSeverity.Major).Should().Be(AnalysisIssueSeverity.Major);
+            CFamilyHelper.Convert(IssueSeverity.Minor).Should().Be(AnalysisIssueSeverity.Minor);
 
             Action act = () => CFamilyHelper.Convert((IssueSeverity) (-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
@@ -716,9 +715,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void ConvertFromIssueType()
         {
-            CFamilyHelper.Convert(IssueType.Bug).Should().Be(Sonarlint.Issue.Types.Type.Bug);
-            CFamilyHelper.Convert(IssueType.CodeSmell).Should().Be(Sonarlint.Issue.Types.Type.CodeSmell);
-            CFamilyHelper.Convert(IssueType.Vulnerability).Should().Be(Sonarlint.Issue.Types.Type.Vulnerability);
+            CFamilyHelper.Convert(IssueType.Bug).Should().Be(AnalysisIssueType.Bug);
+            CFamilyHelper.Convert(IssueType.CodeSmell).Should().Be(AnalysisIssueType.CodeSmell);
+            CFamilyHelper.Convert(IssueType.Vulnerability).Should().Be(AnalysisIssueType.Vulnerability);
 
             Action act = () => CFamilyHelper.Convert((IssueType) (-1));
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
