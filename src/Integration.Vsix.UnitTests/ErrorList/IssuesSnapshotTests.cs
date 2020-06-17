@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using DaemonSeverity = Sonarlint.Issue.Types.Severity;
@@ -37,18 +36,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class IssuesSnapshotTests
     {
         private IssuesSnapshot snapshot;
-        private Issue issue;
+        private DummyAnalysisIssue issue;
 
         [TestInitialize]
         public void SetUp()
         {
             var path = "foo.js";
-            issue = new Issue()
+            issue = new DummyAnalysisIssue()
             {
                 FilePath = path,
                 Message = "This is dangerous",
                 RuleKey = "javascript:123",
-                Severity = Issue.Types.Severity.Blocker,
+                Severity = AnalysisIssueSeverity.Blocker,
             };
 
             var mockTextSnap = new Mock<ITextSnapshot>();
@@ -123,12 +122,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ErrorCategory_Is_Issue_Type()
         {
-            issue.Type = Issue.Types.Type.Bug;
-            issue.Severity = Issue.Types.Severity.Blocker;
+            issue.Type = AnalysisIssueType.Bug;
+            issue.Severity = AnalysisIssueSeverity.Blocker;
             GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Bug");
-            issue.Type = Issue.Types.Type.CodeSmell;
+            issue.Type = AnalysisIssueType.CodeSmell;
             GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
-            issue.Type = Issue.Types.Type.Vulnerability;
+            issue.Type = AnalysisIssueType.Vulnerability;
             GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Vulnerability");
         }
 
@@ -167,9 +166,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(DaemonSeverity.Minor, __VSERRORCATEGORY.EC_MESSAGE)]
         [DataRow(DaemonSeverity.Major, __VSERRORCATEGORY.EC_WARNING)]
         [DataRow(DaemonSeverity.Critical, __VSERRORCATEGORY.EC_WARNING)]
-        public void ToVsErrorCategory_NotBlocker_CorrectlyMapped(DaemonSeverity daemonSeverity, __VSERRORCATEGORY expectedVsErrorCategory)
+        public void ToVsErrorCategory_NotBlocker_CorrectlyMapped(AnalysisIssueSeverity severity, __VSERRORCATEGORY expectedVsErrorCategory)
         {
-            snapshot.ToVsErrorCategory(daemonSeverity).Should().Be(expectedVsErrorCategory);
+            snapshot.ToVsErrorCategory(severity).Should().Be(expectedVsErrorCategory);
         }
 
         [TestMethod]
@@ -182,13 +181,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var testSubject = new IssuesSnapshot("any", "any", 0, Array.Empty<IssueMarker>(), envSettingsMock.Object);
 
-            testSubject.ToVsErrorCategory(DaemonSeverity.Blocker).Should().Be(expectedVsErrorCategory);
+            testSubject.ToVsErrorCategory(AnalysisIssueSeverity.Blocker).Should().Be(expectedVsErrorCategory);
         }
 
         [TestMethod]
         public void ToVsErrorCategory_InvalidDaemonSeverity_DoesNotThrow()
         {
-            snapshot.ToVsErrorCategory((DaemonSeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
+            snapshot.ToVsErrorCategory((AnalysisIssueSeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
         }
 
         private object GetValue(string columnName)
