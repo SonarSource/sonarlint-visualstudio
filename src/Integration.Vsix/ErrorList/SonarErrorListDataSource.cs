@@ -21,22 +21,16 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    // Interface introduced to simplify testing.
-    internal interface ISinkManagerRegister
-    {
-        void AddSinkManager(ISinkManager manager);
-        void RemoveSinkManager(ISinkManager manager);
-    }
-
     [Export(typeof(ISonarErrorListDataSource))]
-    internal class SonarErrorListDataSource : ITableDataSource, ISonarErrorListDataSource, ISinkManagerRegister
+    internal class SonarErrorListDataSource : ITableDataSource, ISonarErrorListDataSource
     {
-        private readonly ISet<ISinkManager> managers = new HashSet<ISinkManager>();
+        private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<ITableEntriesSnapshotFactory> factories = new HashSet<ITableEntriesSnapshotFactory>();
 
         [ImportingConstructor]
@@ -66,30 +60,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
 
         // Note: Error List is the only expected subscriber
-        public IDisposable Subscribe(ITableDataSink sink) => new SinkManager(this, sink);
-
-        #endregion
-
-        #region ISinkManagerRegister
-
-        public void AddSinkManager(ISinkManager manager)
+        public IDisposable Subscribe(ITableDataSink sink)
         {
-            lock (managers)
+            lock(sinks)
             {
-                managers.Add(manager);
+                sinks.Add(sink);
 
-                foreach (var factory in factories)
+                foreach(var factory in factories)
                 {
-                    manager.AddFactory(factory);
+                    sink.AddFactory(factory);
                 }
+
+                return new ExecuteOnDispose(() => Unsubscribe(sink));
             }
+
         }
 
-        public void RemoveSinkManager(ISinkManager manager)
+        private void Unsubscribe(ITableDataSink sink)
         {
-            lock (managers)
+            lock (sinks)
             {
-                managers.Remove(manager);
+                sinks.Remove(sink);
             }
         }
 
@@ -101,39 +92,55 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             // Mark all the sinks as dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
             // from the snapshot factories).
-            lock (managers)
+            lock (sinks)
             {
-                foreach (var manager in managers)
+                foreach (var sink in sinks)
                 {
-                    manager.UpdateSink();
+                    SafeOperation(sink, "FactorySnapshotChanged", () => sink.FactorySnapshotChanged(null));
                 }
             }
         }
 
         public void AddFactory(ITableEntriesSnapshotFactory factory)
         {
-            lock (managers)
+            lock (sinks)
             {
                 factories.Add(factory);
-                foreach (var manager in managers)
+                foreach (var sink in sinks)
                 {
-                    manager.AddFactory(factory);
+                    SafeOperation(sink, "AddFactory", () => sink.AddFactory(factory));
                 }
             }
         }
 
         public void RemoveFactory(ITableEntriesSnapshotFactory factory)
         {
-            lock (managers)
+            lock (sinks)
             {
                 factories.Remove(factory);
-                foreach (var manager in managers)
+                foreach (var sink in sinks)
                 {
-                    manager.RemoveFactory(factory);
+                    SafeOperation(sink, "RemoveFactory", () => sink.RemoveFactory(factory));
                 }
             }
         }
 
         #endregion ISonarErrorListDataSource implementation
+
+        private void SafeOperation(ITableDataSink sink, string operationName, Action op)
+        {
+            try
+            {
+                op();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // Suppress non-critical exception.
+                // We are not logging the errors to the output window because it might be too noisy e.g. if
+                // bug #1055 mentioned above occurs then the faulty sink will throw an exception each
+                // time a character is typed in the editor.
+                System.Diagnostics.Debug.WriteLine($"Error in sink {sink.GetType().FullName}.{operationName}: {ex.Message}");
+            }
+        }
     }
 }
