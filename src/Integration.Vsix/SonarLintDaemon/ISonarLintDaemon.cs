@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Sonarlint;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using System;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -38,6 +38,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
     public interface IIssueConsumer
     {
-        void Accept(string path, IEnumerable<Issue> issues);
+        void Accept(string path, IEnumerable<IAnalysisIssue> issues);
     }
 }

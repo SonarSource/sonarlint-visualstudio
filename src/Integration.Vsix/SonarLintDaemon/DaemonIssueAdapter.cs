@@ -19,6 +19,7 @@
  */
 
 using System;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -28,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string wholeLineText;
         private readonly string lineHash;
 
-        public DaemonIssueAdapter(Sonarlint.Issue sonarLintIssue, string wholeLineText, string lineHash)
+        public DaemonIssueAdapter(IAnalysisIssue sonarLintIssue, string wholeLineText, string lineHash)
         {
             SonarLintIssue = sonarLintIssue ?? throw new ArgumentNullException(nameof(sonarLintIssue));
 
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.lineHash = lineHash;
         }
 
-        public Sonarlint.Issue SonarLintIssue { get; }
+        public IAnalysisIssue SonarLintIssue { get; }
 
         string IFilterableIssue.RuleId => SonarLintIssue.RuleKey;
 

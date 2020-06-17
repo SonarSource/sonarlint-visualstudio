@@ -18,13 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal interface IIssueConverter
+    // Properties are settable to simplify creating test instances
+    public class DummyAnalysisIssue : IAnalysisIssue
     {
-        IssueMarker ToMarker(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
+        public string RuleKey { get; set; }
+
+        public AnalysisIssueSeverity Severity { get; set; }
+
+        public AnalysisIssueType Type { get; set; }
+
+        public int StartLine { get; set; }
+
+        public int EndLine { get; set; }
+
+        public int StartLineOffset { get; set; }
+
+        public int EndLineOffset { get; set; }
+
+        public string Message { get; set; }
+
+        public string FilePath { get; set; }
     }
 }
