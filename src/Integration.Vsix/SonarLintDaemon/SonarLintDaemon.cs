@@ -487,8 +487,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
-            ProjectItem projectItem, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             if (!settings.IsActivateMoreEnabled)
             {
