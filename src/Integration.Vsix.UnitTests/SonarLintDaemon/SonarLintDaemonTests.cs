@@ -24,6 +24,7 @@ using System.IO;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -386,6 +387,36 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeTrue();
             testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeFalse();
             testableDaemon.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }).Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void ToAnalysisIssue_PropertiesSetCorrectly()
+        {
+            var daemonIssue = new Issue()
+            {
+                RuleName = "unused",
+                RuleKey = "key",
+                StartLine = 1,
+                EndLine = 2,
+                StartLineOffset = 4,
+                EndLineOffset = 5,
+                FilePath = "path",
+                Message =" message",
+                Severity = DaemonIssueSeverity.Info,
+                Type = DaemonIssueType.CodeSmell
+            };
+
+            var actual = Daemon.ToAnalysisIssue(daemonIssue);
+
+            actual.RuleKey.Should().Be(daemonIssue.RuleKey);
+            actual.StartLine.Should().Be(daemonIssue.StartLine);
+            actual.EndLine.Should().Be(daemonIssue.EndLine);
+            actual.StartLineOffset.Should().Be(daemonIssue.StartLineOffset);
+            actual.EndLineOffset.Should().Be(daemonIssue.EndLineOffset);
+            actual.FilePath.Should().Be(daemonIssue.FilePath);
+            actual.Message.Should().Be(daemonIssue.Message);
+            actual.Severity.Should().Be(AnalysisIssueSeverity.Info);
+            actual.Type.Should().Be(AnalysisIssueType.CodeSmell);
         }
 
         [TestMethod]

@@ -369,7 +369,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             consumer.Accept(path, issues);
         }
 
-        private static AnalysisIssue ToAnalysisIssue(Issue daemonIssue) =>
+        internal /* for testing */ static AnalysisIssue ToAnalysisIssue(Issue daemonIssue) =>
             new AnalysisIssue(
 
                 filePath: daemonIssue.FilePath,
