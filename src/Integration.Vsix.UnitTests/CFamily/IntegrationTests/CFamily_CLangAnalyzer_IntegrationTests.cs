@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         [DataRow("CLangAnalyzerTestFile_TwoIssues")]
         public void CallAnalyzer_IntegrationTest(string testCaseFileName)
         {
-            var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".cpp");
+            var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".txt");
 
             var request = GetRequest(testedFile);
             var expectedResponse = GetExpectedResponse(testCaseFileName, testedFile);

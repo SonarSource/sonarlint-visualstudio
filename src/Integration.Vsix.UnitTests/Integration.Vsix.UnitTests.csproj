@@ -30,11 +30,11 @@
   
   <ItemGroup>
     <None Remove="CFamily\CLangAnalyzerRequest.json" />
-    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.cpp" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.txt" />
     <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile_response.json" />
-    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.cpp" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.txt" />
     <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json" />
-    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.cpp" />
+    <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.txt" />
     <None Remove="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues_response.json" />
   </ItemGroup>
   
@@ -42,16 +42,16 @@
     <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile_response.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.cpp">
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.cpp">
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.cpp">
+    <Content Include="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
