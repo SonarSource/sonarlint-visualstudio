@@ -286,12 +286,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteUTF(writer, "OUT");
 
                 // 0 issues
-                Protocol.WriteInt(writer, 0);
 
                 // 0 measures
+                Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 0);
 
                 // 0 symbols
+                Protocol.WriteUTF(writer, "symbols");
                 Protocol.WriteInt(writer, 0);
 
                 Protocol.WriteUTF(writer, "END");
@@ -315,16 +316,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             {
                 BinaryWriter writer = new BinaryWriter(stream);
                 Protocol.WriteUTF(writer, "OUT");
-
-                // 0 issues
-                Protocol.WriteInt(writer, 0);
-
-                // 0 measures
-                Protocol.WriteInt(writer, 0);
-
-                // 0 symbols
-                Protocol.WriteInt(writer, 0);
-
                 Protocol.WriteUTF(writer, "FOO");
                 return stream.ToArray();
             }
@@ -338,7 +329,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteUTF(writer, "OUT");
 
                 // 1 issue
-                Protocol.WriteInt(writer, 1);
+                Protocol.WriteUTF(writer, "message");
 
                 Protocol.WriteUTF(writer, "ruleKey");
                 Protocol.WriteUTF(writer, "file.cpp");
@@ -360,6 +351,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteUTF(writer, "Flow message");
 
                 // 1 measure
+                Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteUTF(writer, "file.cpp");
                 Protocol.WriteInt(writer, 1);
@@ -374,6 +366,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 
 
                 // 1 symbol
+                Protocol.WriteUTF(writer, "symbols");
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteInt(writer, 1);
@@ -393,10 +386,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 BinaryWriter writer = new BinaryWriter(stream);
                 Protocol.WriteUTF(writer, "OUT");
 
-                // Number of issues
-                Protocol.WriteInt(writer, 3);
-
                 // Issue 1 
+                Protocol.WriteUTF(writer, "message");
                 Protocol.WriteUTF(writer, "ruleKey1");
                 Protocol.WriteUTF(writer, "c:\\data\\file1.cpp");
                 Protocol.WriteInt(writer, 10);
@@ -410,6 +401,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteInt(writer, 0);
 
                 // Issue 2
+                Protocol.WriteUTF(writer, "message");
                 Protocol.WriteUTF(writer, "ruleKey2");
                 Protocol.WriteUTF(writer, "e:\\data\\file2.cpp");
                 Protocol.WriteInt(writer, 10);
@@ -423,6 +415,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteInt(writer, 0);
 
                 // Issue 3 
+                Protocol.WriteUTF(writer, "message");
                 Protocol.WriteUTF(writer, "ruleKey3");
                 Protocol.WriteUTF(writer, "E:\\data\\file2.cpp");
                 Protocol.WriteInt(writer, 10);
@@ -437,6 +430,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
 
                 // 1 measure
+                Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteUTF(writer, "file.cpp");
                 Protocol.WriteInt(writer, 1);
@@ -451,6 +445,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
 
                 // 1 symbol
+                Protocol.WriteUTF(writer, "symbols");
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteInt(writer, 1);
