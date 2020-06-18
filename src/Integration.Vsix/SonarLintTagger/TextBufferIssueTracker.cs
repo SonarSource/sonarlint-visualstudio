@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, options);
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, options);
         }
 
         void IIssueConsumer.Accept(string path, IEnumerable<IAnalysisIssue> issues)

@@ -25,7 +25,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -57,8 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// Executes analysis for the given path. CancellationToken is not currently supported.
         /// </summary>
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken)
+            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             if (!IsAnalysisSupported(detectedLanguages))
             {
@@ -68,15 +66,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Optimise for the common case of daemon up and running
             if (installer.IsInstalled() && daemon.IsRunning)
             {
-                InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem, cancellationToken, analyzerOptions);
+                InvokeDaemon(path, charset, detectedLanguages, consumer, cancellationToken, analyzerOptions);
                 return;
             }
 
-            new DelayedRequest(this, path, charset, detectedLanguages, consumer, projectItem).Execute();
+            new DelayedRequest(this, path, charset, detectedLanguages, consumer).Execute();
         }
 
         private void InvokeDaemon(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, ProjectItem projectItem, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
+            IIssueConsumer consumer, CancellationToken cancellationToken, IAnalyzerOptions analyzerOptions)
         {
             Debug.Assert(detectedLanguages?.Contains(AnalysisLanguage.Javascript) ?? false, "Not expecting the daemon to be called for languages other than JavaScript");
 
@@ -84,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // decisions about whether to run or not. That should all be handled by 
             // this class.
             telemetryManager.LanguageAnalyzed("js");
-            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, projectItem, analyzerOptions, cancellationToken);
+            daemon.ExecuteAnalysis(path, charset, detectedLanguages, consumer, analyzerOptions, cancellationToken);
         }
 
         /// <summary>
@@ -105,10 +103,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             private readonly string charset;
             private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
             private readonly IIssueConsumer consumer;
-            private readonly ProjectItem projectItem;
 
             public DelayedRequest(DaemonAnalyzer daemonAnalyzer, string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-                IIssueConsumer consumer, ProjectItem projectItem)
+                IIssueConsumer consumer)
             {
                 this.daemonAnalyzer = daemonAnalyzer;
                 this.daemon = daemonAnalyzer.daemon;
@@ -117,7 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 this.charset = charset;
                 this.detectedLanguages = detectedLanguages;
                 this.consumer = consumer;
-                this.projectItem = projectItem;
             }
 
             public void Execute()
@@ -148,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 daemon.Ready -= HandleDaemonReady;
                 daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
-                daemonAnalyzer.InvokeDaemon(path, charset, detectedLanguages, consumer, projectItem, CancellationToken.None, null);
+                daemonAnalyzer.InvokeDaemon(path, charset, detectedLanguages, consumer, CancellationToken.None, null);
             }
 
             private void HandleInstallCompleted(object sender, AsyncCompletedEventArgs e)

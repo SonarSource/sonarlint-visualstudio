@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -42,14 +43,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ISonarLintSettings settings;
         private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
         private readonly ILogger logger;
+        private readonly DTE dte;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.cFamilyRulesConfigProvider = cFamilyRulesConfigProvider;
             this.logger = logger;
+
+            this.dte = serviceProvider.GetService<DTE>();
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -58,20 +63,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions,
+            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken)
         {
+            var projectItem = dte?.Solution?.FindProjectItem(path);
+            if (projectItem == null)
+            {
+                return;
+            }
+
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            var request = CFamilyHelper.CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, analyzerOptions);
+            var request = CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, analyzerOptions);
             if (request == null)
             {
                 return;
             }
 
+            TriggerAnalysis(request, consumer, cancellationToken);
+        }
+
+        protected /* for testing */ virtual Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions) =>
+            CFamilyHelper.CreateRequest(logger, projectItem, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
+
+        protected /* for testing */ virtual void TriggerAnalysis(Request request, IIssueConsumer consumer, CancellationToken cancellationToken) =>
             TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
-        }
 
         private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
@@ -79,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
             // that are only available in newer versions of VS e.g. [Import] IThreadHandling.          
 
-            // Switch a background thread
+            // Switch to a background thread
             await TaskScheduler.Default;
 
             logger.WriteLine($"Analyzing {request.File}");
