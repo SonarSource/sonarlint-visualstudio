@@ -404,7 +404,7 @@
   -->
   <PropertyGroup>
     <!-- Only check the VS2019 build -->
-    <AsmRefDisableBaselining>true</AsmRefDisableBaselining>
+    <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' ">true</AsmRefDisableBaselining>
     
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
     <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
