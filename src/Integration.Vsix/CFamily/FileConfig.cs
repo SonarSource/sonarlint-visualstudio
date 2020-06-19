@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         internal class FileConfig
         {
+            private static readonly Regex AdditionalOptionsSplitPattern = new Regex("(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
             public static FileConfig TryGet(ProjectItem projectItem, string absoluteFilePath)
             {
                 string configurationName = projectItem.ConfigurationManager.ActiveConfiguration.ConfigurationName; // "Debug" or "Release"
@@ -48,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
                 string platformToolset = config.Rules.Item("ConfigurationGeneral").GetEvaluatedPropertyValue("PlatformToolset");
 
-                return new FileConfig()
+                return new FileConfig
                 {
                     AbsoluteFilePath = absoluteFilePath,
 
@@ -264,9 +266,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
+
             internal /* for testing */ static string[] GetAdditionalOptions(string options)
             {
-                var additionalOptions = Regex.Split(options, "(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+                var additionalOptions = AdditionalOptionsSplitPattern.Split(options);
                 
                 additionalOptions = additionalOptions.Select(x => x.Replace("\"", "")).ToArray();
 

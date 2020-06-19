@@ -229,16 +229,65 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void AdditionalOptions()
+        [DynamicData(nameof(AdditionalOptionsTestCases))]
+        public void AdditionalOptions(dynamic testCase)
         {
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D test").Should().BeEquivalentTo("/D", "test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"test\"").Should().BeEquivalentTo("/D", "test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\"").Should().BeEquivalentTo("/D", "my test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\" /D test").Should().BeEquivalentTo("/D", "my test", "/D", "test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D test /D test").Should().BeEquivalentTo("/D", "test", "/D", "test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D test /D \"my test\"").Should().BeEquivalentTo("/D", "test", "/D", "my test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\" /D \"my test\"").Should().BeEquivalentTo("/D", "my test", "/D", "my test");
-            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\" /D \"my test\" /D test").Should().BeEquivalentTo("/D", "my test", "/D", "my test", "/D", "test");
+            string optionsString = testCase.optionsString;
+            string[] expectedOptions = testCase.expectedOptions;
+            CFamilyHelper.FileConfig.GetAdditionalOptions(optionsString).Should().BeEquivalentTo(expectedOptions);
+        }
+
+        public static IEnumerable<object[]> AdditionalOptionsTestCases
+        {
+            get
+            {
+                return new[]
+                {
+                    new object[] {new {optionsString = "/D test", expectedOptions = new[] {"/D", "test"}}},
+                    new object[] {new {optionsString = "/D \"test\"", expectedOptions = new[] {"/D", "test"}}},
+                    new object[] {new {optionsString = "/D \"my test\"", expectedOptions = new[] {"/D", "my test"}}},
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D \"my test\" /D test",
+                            expectedOptions = new[] {"/D", "my test", "/D", "test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D test /D test", 
+                            expectedOptions = new[] {"/D", "test", "/D", "test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D test /D \"my test\"",
+                            expectedOptions = new[] {"/D", "test", "/D", "my test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D \"my test\" /D \"my test\"",
+                            expectedOptions = new[] {"/D", "my test", "/D", "my test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D \"my test\" /D \"my test\" /D test",
+                            expectedOptions = new[] {"/D", "my test", "/D", "my test", "/D", "test"}
+                        }
+                    }
+                };
+            }
         }
 
         [TestMethod]
