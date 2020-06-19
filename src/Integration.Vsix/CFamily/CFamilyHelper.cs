@@ -26,6 +26,7 @@ using System.Linq;
 using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily

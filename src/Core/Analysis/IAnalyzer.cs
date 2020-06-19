@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using System.Threading;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalyzer
     {

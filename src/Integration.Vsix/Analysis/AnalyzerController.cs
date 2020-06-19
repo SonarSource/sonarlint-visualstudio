@@ -23,7 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {

@@ -21,7 +21,7 @@
 using System;
 using SonarLint.VisualStudio.Core.Suppression;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     public class FilterableIssueAdapter : IFilterableIssue
     {

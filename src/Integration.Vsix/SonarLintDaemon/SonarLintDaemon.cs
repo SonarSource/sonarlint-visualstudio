@@ -27,7 +27,7 @@ using System.Linq;
 using System.Threading;
 using Grpc.Core;
 using Sonarlint;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using DaemonIssueSeverity = Sonarlint.Issue.Types.Severity;
 using DaemonIssueType = Sonarlint.Issue.Types.Type;
