@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
-    /// Enum of languages supported by the SonarLint tagger
+    /// Enum of languages supported by the analyzers
     /// </summary>
     public enum AnalysisLanguage
     {
