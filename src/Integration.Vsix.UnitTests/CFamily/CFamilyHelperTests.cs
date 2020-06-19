@@ -229,6 +229,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void AdditionalOptions()
+        {
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D test").Should().BeEquivalentTo("/D", "test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"test\"").Should().BeEquivalentTo("/D", "test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\"").Should().BeEquivalentTo("/D", "my test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\" /D test").Should().BeEquivalentTo("/D", "my test", "/D", "test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D test /D test").Should().BeEquivalentTo("/D", "test", "/D", "test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D test /D \"my test\"").Should().BeEquivalentTo("/D", "test", "/D", "my test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\" /D \"my test\"").Should().BeEquivalentTo("/D", "my test", "/D", "my test");
+            CFamilyHelper.FileConfig.GetAdditionalOptions("/D \"my test\" /D \"my test\" /D test").Should().BeEquivalentTo("/D", "my test", "/D", "my test", "/D", "test");
+        }
+
+        [TestMethod]
         public void PlatformToolset()
         {
             CFamilyHelper.FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");
