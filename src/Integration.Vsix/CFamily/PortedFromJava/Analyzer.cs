@@ -60,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public string File { get; set; } = "";
     }
 
+    [Serializable]
     internal class Response
     {
         public Message[] Messages { get; }
@@ -90,13 +91,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
     }
 
+    [Serializable]
     internal class Message : MessagePart
     {
-
         public string RuleKey { get; }
         public bool PartsMakeFlow { get; }
         public MessagePart[] Parts { get; }
 
+        // we expect the class to be serializable for the ease of testing, and therefore the ctor parameter names must match the property names
         public Message(string ruleKey, string filename, int line, int column, int endLine, int endColumn, string text, bool partsMakeFlow, MessagePart[] parts)
             : base(filename, line, column, endLine, endColumn, text)
         {
