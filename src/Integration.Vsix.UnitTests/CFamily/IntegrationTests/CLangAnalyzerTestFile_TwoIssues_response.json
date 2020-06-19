@@ -1,0 +1,26 @@
+{
+  "Messages": [
+    {
+      "Filename": "",
+      "RuleKey": "S1135",
+      "PartsMakeFlow": false,
+      "Parts": [],
+      "Line": 1,
+      "Column": 4,
+      "EndLine": 1,
+      "EndColumn": 44,
+      "Text": "Complete the task associated to this \"todo\" comment."
+    },
+    {
+      "Filename": "",
+      "RuleKey": "S1135",
+      "PartsMakeFlow": false,
+      "Parts": [],
+      "Line": 2,
+      "Column": 4,
+      "EndLine": 2,
+      "EndColumn": 55,
+      "Text": "Complete the task associated to this \"todo\" comment."
+    }
+  ]
+}

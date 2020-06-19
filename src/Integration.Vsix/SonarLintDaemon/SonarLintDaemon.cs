@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Grpc.Core;
-using Sonarlint;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
@@ -28,8 +25,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using EnvDTE;
+using Grpc.Core;
+using Sonarlint;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using DaemonIssueSeverity = Sonarlint.Issue.Types.Severity;
+using DaemonIssueType = Sonarlint.Issue.Types.Type;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 using Process = System.Diagnostics.Process;
 
@@ -354,17 +355,73 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private async System.Threading.Tasks.Task ProcessIssues(AsyncServerStreamingCall<Issue> call, string path, IIssueConsumer consumer)
         {
-            var issues = new List<Issue>();
+            var issues = new List<IAnalysisIssue>();
             int issueCount = 0;
             while (await call.ResponseStream.MoveNext())
             {
                 var issue = call.ResponseStream.Current;
-                issues.Add(issue);
+                issues.Add(ToAnalysisIssue(issue));
                 issueCount++;
             }
             WritelnToPane($"Found {issueCount} issue(s)");
 
             consumer.Accept(path, issues);
+        }
+
+        internal /* for testing */ static AnalysisIssue ToAnalysisIssue(Issue daemonIssue) =>
+            new AnalysisIssue(
+
+                filePath: daemonIssue.FilePath,
+                message: daemonIssue.Message,
+                ruleKey: daemonIssue.RuleKey,
+                severity: Convert(daemonIssue.Severity),
+                type: Convert(daemonIssue.Type),
+                startLine: daemonIssue.StartLine,
+                endLine: daemonIssue.EndLine,
+                startLineOffset: daemonIssue.StartLineOffset,
+                endLineOffset: daemonIssue.EndLineOffset
+                );
+
+        /// <summary>
+        /// Converts from the daemon issue severity enum to the standard AnalysisIssueSeverity
+        /// </summary>
+        internal /* for testing */ static AnalysisIssueSeverity Convert(DaemonIssueSeverity issueSeverity)
+        {
+            switch (issueSeverity)
+            {
+                case DaemonIssueSeverity.Blocker:
+                    return AnalysisIssueSeverity.Blocker;
+                case DaemonIssueSeverity.Critical:
+                    return AnalysisIssueSeverity.Critical;
+                case DaemonIssueSeverity.Info:
+                    return AnalysisIssueSeverity.Info;
+                case DaemonIssueSeverity.Major:
+                    return AnalysisIssueSeverity.Major;
+                case DaemonIssueSeverity.Minor:
+                    return AnalysisIssueSeverity.Minor;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(issueSeverity));
+            }
+        }
+
+        /// <summary>
+        /// Converts from the daemon issue type enum to the standard AnalysisIssueType
+        /// </summary>
+        internal /* for testing */static AnalysisIssueType Convert(DaemonIssueType issueType)
+        {
+            switch (issueType)
+            {
+                case DaemonIssueType.Bug:
+                    return AnalysisIssueType.Bug;
+                case DaemonIssueType.CodeSmell:
+                    return AnalysisIssueType.CodeSmell;
+                case DaemonIssueType.Vulnerability:
+                    return AnalysisIssueType.Vulnerability;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(issueType));
+            }
         }
 
         internal void SafeOperation(Action op)
@@ -429,8 +486,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
-            ProjectItem projectItem, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             if (!settings.IsActivateMoreEnabled)
             {

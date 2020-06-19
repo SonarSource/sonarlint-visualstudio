@@ -18,13 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.Core;
+using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
+namespace SonarLint.VisualStudio.Core
 {
-    internal interface IIssueConverter
+    public interface IIssueConsumer
     {
-        IssueMarker ToMarker(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
+        void Accept(string path, IEnumerable<IAnalysisIssue> issues);
     }
 }

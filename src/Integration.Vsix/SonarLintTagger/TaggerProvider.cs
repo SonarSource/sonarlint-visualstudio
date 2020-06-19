@@ -26,8 +26,6 @@ using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -41,9 +39,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
     /// Factory for the <see cref="ITagger{T}"/>. There will be one instance of this class/VS session.
-    /// <para>
-    /// It is also the <see cref="ITableDataSource"/> that reports Sonar errors to the Error List
-    /// </para>
     /// </summary>
     /// <remarks>
     /// See the README.md in this folder for more information
@@ -52,14 +47,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider, ITableDataSource, ISinkManagerRegister
+    internal sealed class TaggerProvider : IViewTaggerProvider
     {
-        internal readonly ITableManager errorTableManager;
+        internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly IIssuesFilter issuesFilter;
         internal readonly DTE dte;
 
-        private readonly ISet<SinkManager> managers = new HashSet<SinkManager>();
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
         private readonly IAnalyzerController analyzerController;
@@ -69,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IScheduler scheduler;
 
         [ImportingConstructor]
-        internal TaggerProvider(ITableManagerProvider tableManagerProvider,
+        internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
             ITextDocumentFactoryService textDocumentFactoryService,
             IIssuesFilter issuesFilter,
             IAnalyzerController analyzerController,
@@ -79,17 +73,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ILogger logger,
             IScheduler scheduler)
         {
-            this.errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
+            this.sonarErrorDataSource = sonarErrorDataSource;
             this.textDocumentFactoryService = textDocumentFactoryService;
             this.issuesFilter = issuesFilter;
-
-            this.errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
-                                                   StandardTableColumnDefinitions.ErrorSeverity, StandardTableColumnDefinitions.ErrorCode,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.BuildTool,
-                                                   StandardTableColumnDefinitions.ErrorSource, StandardTableColumnDefinitions.ErrorCategory,
-                                                   StandardTableColumnDefinitions.Text, StandardTableColumnDefinitions.DocumentName,
-                                                   StandardTableColumnDefinitions.Line, StandardTableColumnDefinitions.Column,
-                                                   StandardTableColumnDefinitions.ProjectName);
 
             this.analyzerController = analyzerController;
             this.dte = serviceProvider.GetService<DTE>();
@@ -180,26 +166,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion IViewTaggerProvider members
 
-        #region ITableDataSource members
-
-        public string DisplayName => "SonarLint";
-
-        public string Identifier => "SonarLint";
-
-        public string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
-
-        // Note: Error List is the only expected subscriber
-        public IDisposable Subscribe(ITableDataSink sink) => new SinkManager(this, sink);
-
-        #endregion
-
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, ProjectItem projectItem, IAnalyzerOptions analyzerOptions)
+        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, IAnalyzerOptions analyzerOptions)
         {
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
                 scheduler.Schedule(path, cancellationToken =>
-                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, projectItem, analyzerOptions, cancellationToken));
+                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, analyzerOptions, cancellationToken));
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
@@ -207,62 +180,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddSinkManager(SinkManager manager)
-        {
-            lock (managers)
-            {
-                managers.Add(manager);
-
-                foreach (var issueTracker in issueTrackers)
-                {
-                    manager.AddFactory(issueTracker.Factory);
-                }
-            }
-        }
-
-        public void RemoveSinkManager(SinkManager manager)
-        {
-            lock (managers)
-            {
-                managers.Remove(manager);
-            }
-        }
-
         public void AddIssueTracker(IIssueTracker issueTracker)
         {
-            lock (managers)
+            lock (issueTrackers)
             {
                 issueTrackers.Add(issueTracker);
-
-                foreach (var manager in managers)
-                {
-                    manager.AddFactory(issueTracker.Factory);
-                }
+                sonarErrorDataSource.AddFactory(issueTracker.Factory);
             }
         }
 
         public void RemoveIssueTracker(IIssueTracker issueTracker)
         {
-            lock (managers)
+            lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
-
-                foreach (var manager in managers)
-                {
-                    manager.RemoveFactory(issueTracker.Factory);
-                }
+                sonarErrorDataSource.RemoveFactory(issueTracker.Factory);
             }
         }
 
-        public void UpdateAllSinks()
+        public void RefreshErrorList()
         {
-            lock (managers)
-            {
-                foreach (var manager in managers)
-                {
-                    manager.UpdateSink();
-                }
-            }
+            sonarErrorDataSource.RefreshErrorList();
         }
     }
 }

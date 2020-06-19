@@ -72,8 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
-            ProjectItem projectItem, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
             RequestAnalysisCallCount++;
             RequestAnalysisOperation?.Invoke();

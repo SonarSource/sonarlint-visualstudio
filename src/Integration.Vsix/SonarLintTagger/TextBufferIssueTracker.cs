@@ -24,7 +24,6 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Text;
-using Sonarlint;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
@@ -207,10 +206,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
         }
 
-        private bool IsValidIssueTextRange(Issue issue) =>
+        private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
             1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
-        private IssueMarker CreateIssueMarker(Issue issue) =>
+        private IssueMarker CreateIssueMarker(IAnalysisIssue issue) =>
             issueConverter.ToMarker(issue, currentSnapshot);
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
@@ -218,9 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Tell our factory to snap to a new snapshot.
             this.Factory.UpdateSnapshot(newIssues);
 
-            // Tell the provider to mark all the sinks dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
-            // from the factory).
-            Provider.UpdateAllSinks();
+            Provider.RefreshErrorList();
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes
@@ -263,10 +260,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, ProjectItem, options);
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, options);
         }
 
-        void IIssueConsumer.Accept(string path, IEnumerable<Issue> issues)
+        void IIssueConsumer.Accept(string path, IEnumerable<IAnalysisIssue> issues)
         {
             // Callback from the daemon when new results are available
             if (path != FilePath)
@@ -281,17 +278,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             UpdateIssues(newMarkers);
         }
 
-        private IEnumerable<Issue> RemoveSuppressedIssues(IEnumerable<Issue> issues)
+        private IEnumerable<IAnalysisIssue> RemoveSuppressedIssues(IEnumerable<IAnalysisIssue> issues)
         {
             var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
 
             var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is DaemonIssueAdapter), "Not expecting the issue filter to change the list item type");
+            Debug.Assert(filteredIssues.All(x => x is FilterableIssueAdapter), "Not expecting the issue filter to change the list item type");
 
             var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
             logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
 
-            return filteredIssues.OfType<DaemonIssueAdapter>()
+            return filteredIssues.OfType<FilterableIssueAdapter>()
                 .Select(x => x.SonarLintIssue);
         }
 

@@ -128,4 +128,19 @@
 
   <!-- ******************************************************************************* -->
 
+  <!-- ******************************************************************************* -->
+  <!-- Alm authentication package -->
+  <!-- ******************************************************************************* -->
+  <ItemGroup Label="Alm authentication" Condition="$(RequiresAlmAuthentication)=='true'">
+    <!-- The package from MS isn't signed so we need to reference the StrongName package
+         and conditionally set the DisableStrongName properties -->
+    <PackageReference Include="Microsoft.Alm.Authentication" Version="4.0.0.1" />
+    <PackageReference Include="StrongNamer" Version="0.0.8" />
+  </ItemGroup>
+  <PropertyGroup Condition="$(RequiresAlmAuthentication)=='true'">
+    <DisableStrongNamer Condition="'$(SignAssembly)' != 'true'">true</DisableStrongNamer>
+    <!-- Tell the StrongNamer to use our key, if set. -->
+    <StrongNamerKeyFile>$(AssemblyOriginatorKeyFile)</StrongNamerKeyFile>
+  </PropertyGroup>
+
 </Project>

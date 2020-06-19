@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var controller = new AnalyzerController(new TestLogger(), analyzers, null);
 
             // Act
-            controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null, null, CancellationToken.None);
+            controller.ExecuteAnalysis("c:\\file.cpp", "charset1", new[] { AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers.Any(x => x.RequestAnalysisCalled).Should().BeFalse();
         }
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             // Act
             controller.ExecuteAnalysis("c:\\file.cpp", "charset1",
-                new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, null, CancellationToken.None);
+                new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript }, null, null, CancellationToken.None);
 
             analyzers[0].RequestAnalysisCalled.Should().BeFalse();
             analyzers[2].RequestAnalysisCalled.Should().BeFalse();
@@ -139,8 +139,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             }
 
             public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-                IIssueConsumer consumer,
-                ProjectItem projectItem, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+                IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
             {
                 detectedLanguages.Should().NotBeNull();
                 detectedLanguages.Any().Should().BeTrue();

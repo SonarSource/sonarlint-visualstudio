@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using System.Threading;
-using EnvDTE;
 using SonarLint.VisualStudio.Core;
 
 // TODO: decide whether both of these interfaces are required
@@ -35,7 +34,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             string charset,
             IEnumerable<AnalysisLanguage> detectedLanguages,
             IIssueConsumer consumer,
-            ProjectItem projectItem,
             IAnalyzerOptions analyzerOptions,
             CancellationToken cancellationToken);
     }

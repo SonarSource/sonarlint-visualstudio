@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
-using Sonarlint;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
 
@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal static class IssueToFilterableIssueConverter
     {
-        public static IEnumerable<IFilterableIssue> Convert(IEnumerable<Issue> issues, ITextSnapshot textSnapshot)
+        public static IEnumerable<IFilterableIssue> Convert(IEnumerable<IAnalysisIssue> issues, ITextSnapshot textSnapshot)
         {
             if (issues == null)
             {
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 .ToArray();
         }
 
-        internal/* for testing */ static IFilterableIssue CreateFilterableIssue(Issue issue, ITextSnapshot textSnapshot)
+        internal/* for testing */ static IFilterableIssue CreateFilterableIssue(IAnalysisIssue issue, ITextSnapshot textSnapshot)
         {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // A start line of zero means the issue is file-level i.e. not associated with a particular line
             if (issue.StartLine == 0)
             {
-                return new DaemonIssueAdapter(issue, null, null);
+                return new FilterableIssueAdapter(issue, null, null);
             }
 
             if (issue.StartLine > textSnapshot.LineCount)
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var text = textSnapshot.GetLineFromLineNumber(issue.StartLine - 1).GetText();
             var lineHash = ChecksumCalculator.Calculate(text);
-            return new DaemonIssueAdapter(issue, text, lineHash);
+            return new FilterableIssueAdapter(issue, text, lineHash);
         }
     }
 }

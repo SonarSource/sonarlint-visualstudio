@@ -20,12 +20,13 @@
 
 using System;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 {
     internal class IssueConverter : IIssueConverter
     {
-        public IssueMarker ToMarker(Sonarlint.Issue issue, ITextSnapshot currentSnapshot)
+        public IssueMarker ToMarker(IAnalysisIssue issue, ITextSnapshot currentSnapshot)
         {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
 

@@ -19,37 +19,33 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal class DaemonIssueAdapter : IFilterableIssue
+    /// <summary>
+    /// Disposable class that executes a specified action on Dispose().
+    /// </summary>
+    internal sealed class ExecuteOnDispose : IDisposable
     {
-        private readonly string wholeLineText;
-        private readonly string lineHash;
+        private bool alreadyDisposed;
+        private readonly Action onDispose;
 
-        public DaemonIssueAdapter(Sonarlint.Issue sonarLintIssue, string wholeLineText, string lineHash)
+        public ExecuteOnDispose(Action onDispose)
         {
-            SonarLintIssue = sonarLintIssue ?? throw new ArgumentNullException(nameof(sonarLintIssue));
-
-            this.wholeLineText = wholeLineText;
-            this.lineHash = lineHash;
+            this.onDispose = onDispose ?? throw new ArgumentNullException(nameof(onDispose));
         }
 
-        public Sonarlint.Issue SonarLintIssue { get; }
+        void IDisposable.Dispose()
+        {
+            if (alreadyDisposed)
+            {
+                return;
+            }
 
-        string IFilterableIssue.RuleId => SonarLintIssue.RuleKey;
+            onDispose.Invoke();
+            alreadyDisposed = true;
 
-        string IFilterableIssue.FilePath => SonarLintIssue.FilePath;
-
-        string IFilterableIssue.ProjectGuid { get; }
-
-        int? IFilterableIssue.StartLine => SonarLintIssue.StartLine;
-
-        string IFilterableIssue.WholeLineText => wholeLineText;
-
-        string IFilterableIssue.LineHash => lineHash;
+            GC.SuppressFinalize(this);
+        }
     }
 }
-
-

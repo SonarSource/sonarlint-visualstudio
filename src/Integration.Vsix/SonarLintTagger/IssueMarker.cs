@@ -19,7 +19,7 @@
  */
 
 using Microsoft.VisualStudio.Text;
-using Sonarlint;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -32,10 +32,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal class IssueMarker
     {
-        public Issue Issue { get; }
+        public IAnalysisIssue Issue { get; }
         public SnapshotSpan Span { get; }
 
-        public IssueMarker(Issue issue, SnapshotSpan span)
+        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span)
         {
             this.Issue = issue;
             this.Span = span;
