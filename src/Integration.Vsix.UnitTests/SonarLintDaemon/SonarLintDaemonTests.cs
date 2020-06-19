@@ -25,7 +25,7 @@ using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Sonarlint;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using Daemon = SonarLint.VisualStudio.Integration.Vsix.SonarLintDaemon;

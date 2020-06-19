@@ -19,7 +19,7 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

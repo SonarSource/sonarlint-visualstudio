@@ -21,7 +21,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.Analysis
 {
     public interface IAnalysisRequester
     {
