@@ -22,12 +22,12 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers;
+using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
     [TestClass]
-    public class IssueConverterTests
+    public class IssueMarkerFactoryTests
     {
         [TestMethod]
         public void ToMarker_Calculates_Span_Positions()
@@ -58,8 +58,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(firstLine, secondLine);
 
             // Act
-            var result = new IssueConverter()
-                .ToMarker(issue, textSnapshotMock.Object);
+            var result = new IssueMarkerFactory()
+                .Create(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
@@ -99,8 +99,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(firstLine, secondLine);
 
             // Act
-            var result = new IssueConverter()
-                .ToMarker(issue, textSnapshotMock.Object);
+            var result = new IssueMarkerFactory()
+                .Create(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
@@ -141,8 +141,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(firstLine, secondLine, 1600);
 
             // Act
-            var result = new IssueConverter()
-                .ToMarker(issue, textSnapshotMock.Object);
+            var result = new IssueMarkerFactory()
+                .Create(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
@@ -177,8 +177,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(vsLine, vsLine, 1602);
 
             // Act
-            var result = new IssueConverter()
-                .ToMarker(issue, textSnapshotMock.Object);
+            var result = new IssueMarkerFactory()
+                .Create(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
