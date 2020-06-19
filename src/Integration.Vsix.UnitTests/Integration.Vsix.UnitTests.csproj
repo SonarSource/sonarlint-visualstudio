@@ -83,4 +83,28 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerRequestTemplate.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_NoIssues_EmptyFile_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_TwoIssues_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
