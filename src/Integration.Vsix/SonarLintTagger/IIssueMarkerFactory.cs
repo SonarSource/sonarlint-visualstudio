@@ -21,10 +21,10 @@
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
+namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueConverter
+    internal interface IIssueMarkerFactory
     {
-        IssueMarker ToMarker(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
+        IssueMarker Create(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
     }
 }
