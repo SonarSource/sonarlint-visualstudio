@@ -229,6 +229,68 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        [DynamicData(nameof(AdditionalOptionsTestCases))]
+        public void AdditionalOptions(dynamic testCase)
+        {
+            string optionsString = testCase.optionsString;
+            string[] expectedOptions = testCase.expectedOptions;
+            CFamilyHelper.FileConfig.GetAdditionalOptions(optionsString).Should().BeEquivalentTo(expectedOptions);
+        }
+
+        public static IEnumerable<object[]> AdditionalOptionsTestCases
+        {
+            get
+            {
+                return new[]
+                {
+                    new object[] {new {optionsString = "/D test", expectedOptions = new[] {"/D", "test"}}},
+                    new object[] {new {optionsString = "/D \"test\"", expectedOptions = new[] {"/D", "test"}}},
+                    new object[] {new {optionsString = "/D \"my test\"", expectedOptions = new[] {"/D", "my test"}}},
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D \"my test\" /D test",
+                            expectedOptions = new[] {"/D", "my test", "/D", "test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D test /D test", 
+                            expectedOptions = new[] {"/D", "test", "/D", "test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D test /D \"my test\"",
+                            expectedOptions = new[] {"/D", "test", "/D", "my test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D \"my test\" /D \"my test\"",
+                            expectedOptions = new[] {"/D", "my test", "/D", "my test"}
+                        }
+                    },
+                    new object[]
+                    {
+                        new
+                        {
+                            optionsString = "/D \"my test\" /D \"my test\" /D test",
+                            expectedOptions = new[] {"/D", "my test", "/D", "my test", "/D", "test"}
+                        }
+                    }
+                };
+            }
+        }
+
+        [TestMethod]
         public void PlatformToolset()
         {
             CFamilyHelper.FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");

@@ -21,7 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -32,6 +34,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         internal class FileConfig
         {
+            private static readonly Regex AdditionalOptionsSplitPattern = new Regex("(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
             public static FileConfig TryGet(ProjectItem projectItem, string absoluteFilePath)
             {
                 string configurationName = projectItem.ConfigurationManager.ActiveConfiguration.ConfigurationName; // "Debug" or "Release"
@@ -46,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
                 string platformToolset = config.Rules.Item("ConfigurationGeneral").GetEvaluatedPropertyValue("PlatformToolset");
 
-                return new FileConfig()
+                return new FileConfig
                 {
                     AbsoluteFilePath = absoluteFilePath,
 
@@ -234,9 +238,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 Add(c.Cmd, "false".Equals(RuntimeTypeInfo) ? "/GR-" : ""); // undefines macro "_CPPRTTI"
                 Add(c.Cmd, ConvertBasicRuntimeChecks(BasicRuntimeChecks));
                 Add(c.Cmd, ConvertLanguageStandard(LanguageStandard));
-
-                // TODO Q: what if it contains space in double quotes?
-                AddRange(c.Cmd, AdditionalOptions.Split(' '));
+                AddRange(c.Cmd, GetAdditionalOptions(AdditionalOptions));
 
                 c.Cmd.Add(AbsoluteFilePath);
 
@@ -262,6 +264,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     case "x64":
                         return true;
                 }
+            }
+
+
+            internal /* for testing */ static string[] GetAdditionalOptions(string options)
+            {
+                var additionalOptions = AdditionalOptionsSplitPattern.Split(options);
+                
+                additionalOptions = additionalOptions.Select(x => x.Replace("\"", "")).ToArray();
+
+                return additionalOptions;
             }
 
             internal /* for testing */ static string GetCompilerVersion(string platformToolset, string vcToolsVersion)
