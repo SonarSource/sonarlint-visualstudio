@@ -26,7 +26,6 @@ using EnvDTE;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -54,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private NormalizedSnapshotSpanCollection dirtySpans;
 
         private readonly ITextDocument document;
-        private readonly IIssueConverter issueConverter;
+        private readonly IIssueMarkerFactory issueMarkerFactory;
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
@@ -68,12 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, IIssuesFilter issuesFilter)
-            : this(dte, provider, document, detectedLanguages, new IssueConverter(), logger, issuesFilter)
+            : this(dte, provider, document, detectedLanguages, new IssueMarkerFactory(), logger, issuesFilter)
         {
         }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConverter issueConverter, ILogger logger, IIssuesFilter issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueMarkerFactory issueMarkerFactory
+            , ILogger logger, IIssuesFilter issuesFilter)
         {
             this.dte = dte;
 
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.currentSnapshot = document.TextBuffer.CurrentSnapshot;
 
             this.detectedLanguages = detectedLanguages;
-            this.issueConverter = issueConverter;
+            this.issueMarkerFactory = issueMarkerFactory;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -210,7 +210,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
         private IssueMarker CreateIssueMarker(IAnalysisIssue issue) =>
-            issueConverter.ToMarker(issue, currentSnapshot);
+            issueMarkerFactory.Create(issue, currentSnapshot);
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
         {

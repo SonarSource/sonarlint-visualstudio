@@ -22,11 +22,11 @@ using System;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
+namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal class IssueConverter : IIssueConverter
+    internal class IssueMarkerFactory : IIssueMarkerFactory
     {
-        public IssueMarker ToMarker(IAnalysisIssue issue, ITextSnapshot currentSnapshot)
+        public IssueMarker Create(IAnalysisIssue issue, ITextSnapshot currentSnapshot)
         {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
 
