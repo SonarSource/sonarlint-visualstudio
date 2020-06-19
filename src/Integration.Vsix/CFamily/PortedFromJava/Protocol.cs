@@ -159,6 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 throw new InvalidDataException("Communication issue with the C/C++ analyzer: OUT expected");
             }
 
+            List<Message> messages = new List<Message>();
             bool doFilterResults;
             if (string.IsNullOrEmpty(issueFilePath))
             {
@@ -170,72 +171,44 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 doFilterResults = true;
             }
 
-            int messageCount = ReadInt(reader);
-            List<Message> messages = new List<Message>();
-            for (int i = 0; i < messageCount; i++)
-            {
-                string ruleKey = ReadUTF(reader);
-                string filename = ReadUTF(reader);
-                int line = ReadInt(reader);
-                int column = ReadInt(reader);
-                int endLine = ReadInt(reader);
-                int endColumn = ReadInt(reader);
-                // Skip remediation cost
-                ReadInt(reader);
-                string text = ReadUTF(reader);
-                bool partsMakeFlow = reader.ReadBoolean();
-                MessagePart[] parts = ReadMessageParts(reader);
-
-                if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(filename), StringComparison.InvariantCultureIgnoreCase))
-                {
-                    var message = new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);
-                    messages.Add(message);
-                }
+            while (true) {
+              switch (ReadUTF(reader)) {
+              default:
+                  throw new InvalidDataException("Communication issue with the C/C++ analyzer");
+              case "message":
+                  var message = readMessage(reader);
+                  if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
+                  {
+                      messages.Add(message);
+                  }
+                  break;
+              case "measures":
+                  // Skip measures
+                  readMeasures(reader);
+                  break;
+              case "symbols":
+                  // Skip symbols
+                  readSymbols(reader);
+                  break;
+              case "END":
+                  return new Response(messages.ToArray());
+              }
             }
-            // Skip measures
-            int nbMeasures = ReadInt(reader);
-            for (int i = 0; i < nbMeasures; i++)
-            {
-                /* filename */
-                ReadUTF(reader);
-                /* classes */
-                ReadInt(reader);
-                /* functions */
-                ReadInt(reader);
-                /* statements */
-                ReadInt(reader);
-                /* complexity */
-                ReadInt(reader);
-                /* cognitiveComplexity */
-                ReadInt(reader);
-                /* exec lines */
-                reader.ReadBytes(ReadInt(reader));
-            }
+        }
 
-            // Skip symbols
-            int nbSymbols = ReadInt(reader);
-            for (int i = 0; i < nbSymbols; i++)
-            {
-                int nbSymbolRefs = ReadInt(reader);
-                for (int j = 0; j < nbSymbolRefs; j++)
-                {
-                    /* line */
-                    ReadInt(reader);
-                    /* column */
-                    ReadInt(reader);
-                    /* endLine */
-                    ReadInt(reader);
-                    /* endColumn */
-                    ReadInt(reader);
-                }
-            }
-
-            if ("END" != ReadUTF(reader))
-            {
-                throw new InvalidDataException("Communication issue with the C/C++ analyzer: END expected");
-            }
-
-            return new Response(messages.ToArray());
+        private static Message readMessage(BinaryReader reader) {
+            string ruleKey = ReadUTF(reader);
+            string filename = ReadUTF(reader);
+            int line = ReadInt(reader);
+            int column = ReadInt(reader);
+            int endLine = ReadInt(reader);
+            int endColumn = ReadInt(reader);
+            // Skip remediation cost
+            ReadInt(reader);
+            string text = ReadUTF(reader);
+            bool partsMakeFlow = reader.ReadBoolean();
+            MessagePart[] parts = ReadMessageParts(reader);
+            return new Message(ruleKey, filename, line, column, endLine, endColumn, text, partsMakeFlow, parts);;
         }
 
         private static MessagePart[] ReadMessageParts(BinaryReader reader)
@@ -257,6 +230,46 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   /* text= */ ReadUTF(reader));
             }
             return parts;
+        }
+
+        private static void readMeasures(BinaryReader reader) {
+            int nbMeasures = ReadInt(reader);
+            for (int i = 0; i < nbMeasures; i++)
+            {
+                /* filename */
+                ReadUTF(reader);
+                /* classes */
+                ReadInt(reader);
+                /* functions */
+                ReadInt(reader);
+                /* statements */
+                ReadInt(reader);
+                /* complexity */
+                ReadInt(reader);
+                /* cognitiveComplexity */
+                ReadInt(reader);
+                /* exec lines */
+                reader.ReadBytes(ReadInt(reader));
+            }
+        }
+
+        private static void readSymbols(BinaryReader reader) {
+            int nbSymbols = ReadInt(reader);
+            for (int i = 0; i < nbSymbols; i++)
+            {
+                int nbSymbolRefs = ReadInt(reader);
+                for (int j = 0; j < nbSymbolRefs; j++)
+                {
+                    /* line */
+                    ReadInt(reader);
+                    /* column */
+                    ReadInt(reader);
+                    /* endLine */
+                    ReadInt(reader);
+                    /* endColumn */
+                    ReadInt(reader);
+                }
+            }
         }
     }
 }

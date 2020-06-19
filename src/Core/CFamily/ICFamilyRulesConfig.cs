@@ -56,5 +56,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
         CodeSmell = 0,
         Bug = 1,
         Vulnerability = 2,
+        SecurityHotspot = 3,
     }
 }
