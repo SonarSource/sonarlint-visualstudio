@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SonarLint.VisualStudio.Core;
 
 /**
  * This is a port of the protocol implemented between Java and C++
@@ -177,6 +178,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   throw new InvalidDataException("Communication issue with the C/C++ analyzer");
               case "message":
                   var message = readMessage(reader);
+
+                  if ("ParsingError".Equals(message.RuleKey))
+                  {
+                      throw new SonarLintException("Parsing error: " + message.Text);
+                  }
+
                   if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
                   {
                       messages.Add(message);

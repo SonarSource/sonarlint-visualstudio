@@ -88,9 +88,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/D"))
                     {
                         string defineStr = args.readPrefix("/D");
+                        defineStr = defineStr.Replace("\"", "");
+
                         if (defineStr.Contains("="))
                         {
                             defineStr = defineStr.ReplaceFirst("=", " ");
+                        }
+                        else if (defineStr.Contains("#"))
+                        {
+                            defineStr = defineStr.ReplaceFirst("#", " ");
                         }
                         else
                         {
@@ -102,13 +108,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/U"))
                     {
                         string undefStr = args.readPrefix("/U");
+                        undefStr = undefStr.Replace("\"", "");
+
                         predefines.Append("#undef ").Append(undefStr).Append('\n');
 
                     }
                     else if (arg.StartsWith("/FI"))
                     {
                         string includeStr = args.readPrefix("/FI");
-                        includes.Append("#include ").Append('"').Append(includeStr).Append('"').Append('\n');
+                        if (!includeStr.StartsWith("\""))
+                        {
+                            includeStr = "\"" + includeStr + "\"";
+                        }
+
+                        includes.Append("#include ").Append(includeStr).Append('\n');
 
                     }
                     else if (arg.StartsWith("/ZW") || arg.StartsWith("/clr"))
@@ -260,7 +273,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                     else
                     {
-                        string file = Absolute(capture.Cwd, arg);
+                        var relativeOrAbsolutePath = arg.Replace("\"", "");
+                        string file = Absolute(capture.Cwd, relativeOrAbsolutePath);
                         if (file != null)
                         {
                             files.Add(file);
