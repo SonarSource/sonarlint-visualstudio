@@ -21,10 +21,27 @@
 // Note: copied from the S4MSB
 // https://github.com/SonarSource/sonar-scanner-msbuild/blob/b28878e21cbdda9aca6bd08d90c3364cca882861/src/SonarScanner.MSBuild.Common/Interfaces/IProcessRunner.cs#L23
 
+using System.Diagnostics;
+using System.IO;
+
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     public interface IProcessRunner
     {
-        bool Execute(ProcessRunnerArguments runnerArgs);
+        ProcessStreams Execute(ProcessRunnerArguments runnerArgs);
+    }
+
+    public class ProcessStreams
+    {
+        public StreamReader ErrorStream { get; }
+        public StreamReader OutputStream { get; }
+        public StreamWriter InputStream { get; }
+
+        public ProcessStreams(Process process)
+        {
+            ErrorStream = process.StandardError;
+            OutputStream = process.StandardOutput;
+            InputStream = process.StandardInput;
+        }
     }
 }

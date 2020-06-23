@@ -119,26 +119,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
-            string tempFileName = null;
             try
             {
-                tempFileName = Path.GetTempFileName();
+                var workingDirectory = Path.GetTempPath();
+                var success = ExecuteAnalysis(runner, workingDirectory, logger, cancellationToken);
 
-                // Create a FileInfo object to set the file's attributes
-                FileInfo fileInfo = new FileInfo(tempFileName);
-
-                // Set the Attribute property of this file to Temporary. 
-                // Although this is not completely necessary, the .NET Framework is able 
-                // to optimize the use of Temporary files by keeping them cached in memory.
-                fileInfo.Attributes = FileAttributes.Temporary;
-
-                using (var writeStream = new FileStream(tempFileName, FileMode.Open))
+                if (success == null)
                 {
-                    Protocol.Write(new BinaryWriter(writeStream), request);
+                    return null;
                 }
 
-                var workingDirectory = Path.GetTempPath();
-                var success = ExecuteAnalysis(runner, tempFileName, workingDirectory, logger, cancellationToken);
+                using (var binaryWriter = new BinaryWriter(success.InputStream.BaseStream))
+                {
+                    Protocol.Write(binaryWriter, request);
+                }
+
+                var response = Protocol.Read(new BinaryReader(success.OutputStream.BaseStream), request.File);
 
                 if ((request.Flags & Request.CreateReproducer) != 0)
                 {
@@ -149,28 +145,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     return null;
                 }
 
-                if (success)
-                {
-                    using (var readStream = new FileStream(tempFileName, FileMode.Open))
-                    {
-                        var response = Protocol.Read(new BinaryReader(readStream), request.File);
-                        return response;
-                    }
-                }
-
-                return null;
+                return response;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, ex.ToString());
                 return null;
-            }
-            finally
-            {
-                if (tempFileName != null)
-                {
-                    File.Delete(tempFileName);
-                }
             }
         }
 
@@ -246,17 +226,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, string workingDirectory, ILogger logger, CancellationToken cancellationToken)
+        private static ProcessStreams ExecuteAnalysis(IProcessRunner runner, string workingDirectory, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
                 logger.WriteLine("Unable to locate the CFamily analyzer exe");
-                return false;
+                return null;
             }
 
             var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
             {
-                CmdLineArgs = new[] {fileName},
+                CmdLineArgs = new[] {"-"},
                 TimeoutInMilliseconds = GetTimeoutInMs(),
                 CancellationToken = cancellationToken,
                 WorkingDirectory = workingDirectory
