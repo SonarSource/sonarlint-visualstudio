@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
 
         private static Response InvokeAnalyzer(Request request)
         {
-            var testLogger = new TestLogger();
+            var testLogger = new TestLogger(true);
             var processRunner = new ProcessRunner(new ConfigurableSonarLintSettings(), testLogger);
             var response = CFamilyHelper.CallClangAnalyzer(request, processRunner, testLogger, CancellationToken.None);
 

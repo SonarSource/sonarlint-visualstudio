@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// Runs the specified executable and returns a boolean indicating success or failure
         /// </summary>
         /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent automatically</remarks>
-        public bool Execute(ProcessRunnerArguments runnerArgs)
+        public ProcessStreams Execute(ProcessRunnerArguments runnerArgs)
         {
             if (runnerArgs == null)
             {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 LogError(CFamilyStrings.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
                 ExitCode = ErrorCode;
-                return false;
+                return null;
             }
 
             var psi = new ProcessStartInfo
@@ -74,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 FileName = runnerArgs.ExeName,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
+                RedirectStandardInput = true,
                 UseShellExecute = false, // required if we want to capture the error output
                 ErrorDialog = false,
                 CreateNoWindow = true,
@@ -103,8 +104,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }))
             {
                 process.StartInfo = psi;
-                process.ErrorDataReceived += OnErrorDataReceived;
-                process.OutputDataReceived += OnOutputDataReceived;
 
                 lock (process)
                 {
@@ -116,12 +115,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else
                     {
                         LogMessage(CFamilyStrings.MSG_ExecutionCancelled);
-                        return false;
+                        return null;
                     }
                 }
 
-                var result = WaitForProcessToFinish(process, runnerArgs);
-                return result;
+                return new ProcessStreams(process);
+
+                //var result = WaitForProcessToFinish(process, runnerArgs);
+                //return result;
             }
         }
 
