@@ -100,8 +100,9 @@ in the new ITextSnapshot e.g.
  
 A SnapshotSpan can be translated across multiple snapshot versions e.g. from snapshot v1 to snapshot v3.
 
-Implementation note: the VS Editor also supports "tracking spans" that work across snapshots. The Roslyn tagger
-uses tracking spans.
+Implementation note: the VS Editor also supports "tracking spans" that work across snapshots i.e. it seems they
+automatically translate the span as the buffer changes (so potentially we could get rid of some our "manual"
+translation code). The Roslyn tagger uses tracking spans.
 
 
 A) Processing issues returned by an analyzer
