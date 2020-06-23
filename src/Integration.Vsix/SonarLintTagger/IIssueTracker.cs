@@ -24,8 +24,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface IIssueTracker
     {
-        void AddTagger(IssueTagger tagger);
-        void RemoveTagger(IssueTagger tagger);
         IssuesSnapshot LastIssues { get; }
         string FilePath { get; }
         SnapshotFactory Factory { get; }
