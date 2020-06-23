@@ -32,9 +32,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class IssueTaggerTests
     {
-        private readonly IEnumerable<IssueMarker> ValidMarkerList = new[] { CreateValidMarker() };
-
-        private readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan();
+        private static readonly IEnumerable<IssueMarker> ValidMarkerList = new[] { CreateValidMarker() };
+        private static readonly ITextSnapshot ValidTextSnapshot = Mock.Of<ITextSnapshot>();
+        private static readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan(ValidTextSnapshot, 0, 0);
 
         [TestMethod]
         public void UpdateMarkers_NoSpan_EventNotRaised()
@@ -76,6 +76,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
+        public void GetTags_NullIssues_ReturnEmptyList()
+        {
+            var testSubject = new IssueTagger(null, null);
+            var normalizedSpans = new NormalizedSnapshotSpanCollection();
+
+            var result = testSubject.GetTags(normalizedSpans);
+
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void Dispose_CallsDelegateOnlyOnce()
         {
             var delegateCallCount = 0;
@@ -102,6 +113,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         private static IssueMarker CreateValidMarker() =>
-            new IssueMarker(Mock.Of<IAnalysisIssue>(), new SnapshotSpan());
+            new IssueMarker(Mock.Of<IAnalysisIssue>(), ValidSnapshotSpan);
     }
 }
