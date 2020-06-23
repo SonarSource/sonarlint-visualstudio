@@ -84,10 +84,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.Line:
+                    // Note: the line and column numbers are taken from the SnapshotSpan, not the Issue.
+                    // The SnapshotSpan represents the live document, so the text positions could have
+                    // changed from those reported from the Issue.
                     content = this.issueMarkers[index].Span.Start.GetContainingLine().LineNumber;
                     return true;
 
                 case StandardTableKeyNames.Column:
+                    // Use the span, not the issue. See comment immediately above.
                     var position = this.issueMarkers[index].Span.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;

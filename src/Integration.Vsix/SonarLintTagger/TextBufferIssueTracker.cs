@@ -170,6 +170,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
+                // The text buffer has been edited (i.e.text added, deleted or modified).
+                // The spans we have stored for issues relate to the previous text buffer and
+                // are no longer valid, so we need to translate them to the equivalent spans
+                // in the new text buffer.
                 UpdateDirtySpans(e);
 
                 var newMarkers = TranslateMarkerSpans();
@@ -274,6 +278,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var filteredIssues = RemoveSuppressedIssues(issues);
 
+            // See bug #1487: we should be creating the issue markers using the text snapshot
+            // from when the analysis was triggered, not the current one.
             var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
             UpdateIssues(newMarkers);
         }
