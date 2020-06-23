@@ -60,10 +60,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-2, "Unexpected exit code");
         }
 
@@ -73,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             var exeName = WriteBatchFileForTest(TestContext,
 @"@echo Hello world
-xxx yyy
+@echo xxx yyy
 @echo Testing 1,2,3...>&2
 ");
 
@@ -82,10 +81,9 @@ xxx yyy
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
@@ -116,7 +114,7 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var timer = Stopwatch.StartNew();
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
             timer.Stop(); // Sanity check that the process actually timed out
@@ -124,7 +122,6 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
             // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
 
-            success.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
             logger.AssertMessageNotLogged("Hello world");
             // expecting a warning about the timeout
@@ -154,10 +151,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             };
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             logger.AssertMessageLogged("PROCESS_VAR value");
@@ -199,10 +195,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
                 };
 
                 // Act
-                var success = runner.Execute(args);
+                runner.Execute(args);
 
                 // Assert
-                success.Should().BeTrue("Expecting the process to have succeeded");
                 runner.ExitCode.Should().Be(0, "Unexpected exit code");
             }
             finally
@@ -234,10 +229,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
             logger.AssertSingleErrorExists("missingExe.foo");
         }
@@ -276,10 +270,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
@@ -323,10 +316,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
@@ -389,14 +381,13 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(runnerArgs);
+            runner.Execute(runnerArgs);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check public arguments are logged but private ones are not
-            foreach(var arg in publicArgs)
+            foreach (var arg in publicArgs)
             {
                 logger.AssertSingleDebugMessageExists(arg);
             }
@@ -425,13 +416,12 @@ xxx yyy
             args.CancellationToken = new CancellationToken(true);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse();
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertOutputStringDoesNotExist("Hello world"); 
+            logger.AssertOutputStringDoesNotExist("Hello world");
         }
 
         [Ignore] // Flaky https://github.com/SonarSource/sonarlint-visualstudio/issues/1330
@@ -447,7 +437,7 @@ echo test > ""{signalFileName}""
 waitfor /t 10 {Guid.NewGuid():N}
 @echo Done!
 ");
-            using var processCancellationTokenSource = new CancellationTokenSource(); 
+            using var processCancellationTokenSource = new CancellationTokenSource();
             var logger = new TestLogger(true, true);
             var args = new ProcessRunnerArguments(exeName, true)
             {
@@ -458,19 +448,19 @@ waitfor /t 10 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             bool? result = null;
-            var processTask = Task.Run(() => { result = runner.Execute(args); });
+            var processTask = Task.Run(() => { runner.Execute(args); });
 
             var taskCancellationTokenSource = new CancellationTokenSource();
             var cancellationTask = Task.Run(() =>
             {
                 while (!taskCancellationTokenSource.IsCancellationRequested && !File.Exists(signalFileName))
                 {
-                    Thread.Sleep(millisecondsTimeout:10);
+                    Thread.Sleep(millisecondsTimeout: 10);
                 }
                 processCancellationTokenSource.Cancel();
             }, taskCancellationTokenSource.Token);
 
-            Task.WaitAll(new[] {processTask, cancellationTask}, TimeSpan.FromSeconds(15));
+            Task.WaitAll(new[] { processTask, cancellationTask }, TimeSpan.FromSeconds(15));
             taskCancellationTokenSource.Cancel();
 
             result.Should().BeFalse("Expecting the process to have failed");

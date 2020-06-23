@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -32,66 +34,61 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class CFamily_CLangAnalyzerTests
     {
         [TestMethod]
-        public void CallAnalyzer_Succeeds()
+        public void CallAnalyzer_Succeeds_ReturnsMessages()
         {
             // Arrange
-            var dummyProcessRunner = new DummyProcessRunner(MockResponse(), true);
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
 
             // Act
-            var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), CancellationToken.None);
+            var response = GetResponse(dummyProcessRunner, new Request(), new TestLogger());
 
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
-            File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
 
-            response.Should().NotBeNull();
-            response.Messages.Count().Should().Be(1);
-            response.Messages[0].Filename.Should().Be("file.cpp");
+            response.Count().Should().Be(1);
+            response[0].Filename.Should().Be("file.cpp");
         }
 
         [TestMethod]
-        public void CallAnalyzer_Fails()
+        public void CallAnalyzer_Fails_ReturnsZeroMessages()
         {
             // Arrange
-            var dummyProcessRunner = new DummyProcessRunner(MockEmptyResponse(), false);
+            var dummyProcessRunner = new DummyProcessRunner(MockEmptyResponse());
 
             // Act
-            var response = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, new TestLogger(), CancellationToken.None);
+            var response = GetResponse(dummyProcessRunner, new Request(), new TestLogger());
 
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
-            File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
 
-            response.Should().BeNull();
+            response.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void CallAnalyzer_RequestWithReproducer_ReturnsNull()
+        public void CallAnalyzer_RequestWithReproducer_ReturnsZeroMessages()
         {
             // Arrange
-            var request = new Request {Flags = Request.CreateReproducer};
-            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse(), true);
-            var result = CFamilyHelper.CallClangAnalyzer(request, dummyProcessRunner, new TestLogger(), CancellationToken.None);
+            var request = new Request { Flags = Request.CreateReproducer };
+            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
+            var result = GetResponse(dummyProcessRunner, request, new TestLogger());
 
             // Act and Assert
-            result.Should().BeNull();
+            result.Should().BeEmpty();
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
-            File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
         }
 
         [TestMethod]
-        public void CallAnalyzer_BadResponse_FailsSilentlyAndReturnsNull()
+        public void CallAnalyzer_BadResponse_FailsSilentlyAndReturnsZeroMessages()
         {
             // Arrange
             var logger = new TestLogger();
-            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse(), true);
-            var result = CFamilyHelper.CallClangAnalyzer(new Request(), dummyProcessRunner, logger, CancellationToken.None);
+            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
+            var result = GetResponse(dummyProcessRunner, new Request(), logger);
 
             // Act and Assert
-            result.Should().BeNull();
+            result.Should().BeEmpty();
             logger.AssertPartialOutputStrings("Failed to execute analysis");
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
-            File.Exists(dummyProcessRunner.ExchangeFileName).Should().BeFalse();
         }
 
         [TestMethod]
@@ -118,21 +115,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
         }
 
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger)
+        {
+            var messages = new List<Message>();
+
+            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, logger, CancellationToken.None);
+
+            return messages;
+        }
+
         private class DummyProcessRunner : IProcessRunner
         {
             private readonly byte[] responseToReturn;
-            private readonly bool successCodeToReturn;
 
-            public DummyProcessRunner(byte[] responseToReturn, bool successCodeToReturn)
+            public DummyProcessRunner(byte[] responseToReturn)
             {
                 this.responseToReturn = responseToReturn;
-                this.successCodeToReturn = successCodeToReturn;
             }
 
             public bool ExecuteCalled { get; private set; }
-            public string ExchangeFileName { get; private set; }
 
-            public bool Execute(ProcessRunnerArguments runnerArgs)
+            public void Execute(ProcessRunnerArguments runnerArgs)
             {
                 ExecuteCalled = true;
 
@@ -140,22 +143,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
                 // Expecting a single file name as input
                 runnerArgs.CmdLineArgs.Count().Should().Be(1);
-                ExchangeFileName = runnerArgs.CmdLineArgs.First();
-                File.Exists(ExchangeFileName).Should().BeTrue();
 
-                // Replace the file with the response
-                File.Delete(ExchangeFileName);
-
-                WriteResponse(ExchangeFileName, responseToReturn);
-
-                return successCodeToReturn;
-            }
-
-            private static void WriteResponse(string fileName, byte[] data)
-            {
-                using (var stream = new FileStream(fileName, FileMode.CreateNew))
+                using (var stream = new MemoryStream(responseToReturn))
+                using (var streamReader = new StreamReader(stream))
                 {
-                    stream.Write(data, 0, data.Length);
+                    runnerArgs.HandleOutputStream(streamReader);
                 }
             }
         }

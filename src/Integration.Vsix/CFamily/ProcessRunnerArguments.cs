@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -79,6 +80,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// Additional environments variables that should be set/overridden for the process. Can be null.
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
+
+        public Action<StreamWriter> HandleInputStream { get; set; } = writer => { };
+        public Action<StreamReader> HandleOutputStream { get; set; } = reader => { };
 
         public string GetEscapedArguments()
         {

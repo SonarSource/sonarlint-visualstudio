@@ -25,6 +25,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     public interface IProcessRunner
     {
-        bool Execute(ProcessRunnerArguments runnerArgs);
+        void Execute(ProcessRunnerArguments runnerArgs);
     }
 }
