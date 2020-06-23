@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
-        private NormalizedSnapshotSpanCollection dirtySpans;
 
         private readonly ITextDocument document;
         private readonly IIssueMarkerFactory issueMarkerFactory;
@@ -113,8 +112,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 textBuffer.ChangedLowPriority += SafeOnBufferChange;
 
-                this.dirtySpans = new NormalizedSnapshotSpanCollection(new SnapshotSpan(currentSnapshot, 0, currentSnapshot.Length));
-
                 Provider.AddIssueTracker(this);
 
                 RequestAnalysis(null /* no options */);
@@ -174,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // The spans we have stored for issues relate to the previous text buffer and
                 // are no longer valid, so we need to translate them to the equivalent spans
                 // in the new text buffer.
-                UpdateDirtySpans(e);
+                currentSnapshot = e.After;
 
                 var newMarkers = TranslateMarkerSpans();
 
@@ -184,20 +181,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
             }
-        }
-
-        private void UpdateDirtySpans(TextContentChangedEventArgs e)
-        {
-            currentSnapshot = e.After;
-
-            var newDirtySpans = dirtySpans.CloneAndTrackTo(e.After, SpanTrackingMode.EdgeInclusive);
-
-            foreach (var change in e.Changes)
-            {
-                newDirtySpans = NormalizedSnapshotSpanCollection.Union(newDirtySpans, new NormalizedSnapshotSpanCollection(e.After, change.NewSpan));
-            }
-
-            dirtySpans = newDirtySpans;
         }
 
         private IssuesSnapshot TranslateMarkerSpans()
