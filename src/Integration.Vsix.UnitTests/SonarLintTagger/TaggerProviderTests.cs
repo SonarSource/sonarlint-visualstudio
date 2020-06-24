@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             mockAnalysisScheduler = new Mock<IScheduler>();
             mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
-                .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
+                .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,

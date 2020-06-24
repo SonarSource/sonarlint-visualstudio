@@ -114,60 +114,56 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal /* for testing */ static Response CallClangAnalyzer(Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
+        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
-            string tempFileName = null;
+            if (analyzerExeFilePath == null)
+            {
+                logger.WriteLine("Unable to locate the CFamily analyzer exe");
+                return;
+            }
+
             try
             {
-                tempFileName = Path.GetTempFileName();
-
-                // Create a FileInfo object to set the file's attributes
-                FileInfo fileInfo = new FileInfo(tempFileName);
-
-                // Set the Attribute property of this file to Temporary. 
-                // Although this is not completely necessary, the .NET Framework is able 
-                // to optimize the use of Temporary files by keeping them cached in memory.
-                fileInfo.Attributes = FileAttributes.Temporary;
-
-                using (var writeStream = new FileStream(tempFileName, FileMode.Open))
-                {
-                    Protocol.Write(new BinaryWriter(writeStream), request);
-                }
-
                 var workingDirectory = Path.GetTempPath();
-                var success = ExecuteAnalysis(runner, tempFileName, workingDirectory, logger, cancellationToken);
+                const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
 
-                if ((request.Flags & Request.CreateReproducer) != 0)
+                var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
                 {
-                    logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved,
-                        Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
-
-                    // When running with reproducer flag, we don't want to show analysis results.
-                    return null;
-                }
-
-                if (success)
-                {
-                    using (var readStream = new FileStream(tempFileName, FileMode.Open))
+                    CmdLineArgs = new[] { communicateViaStreaming },
+                    CancellationToken = cancellationToken,
+                    WorkingDirectory = workingDirectory,
+                    HandleInputStream = writer =>
                     {
-                        var response = Protocol.Read(new BinaryReader(readStream), request.File);
-                        return response;
-                    }
-                }
+                        using (var binaryWriter = new BinaryWriter(writer.BaseStream))
+                        {
+                            Protocol.Write(binaryWriter, request);
+                        }
+                    },
+                    HandleOutputStream = reader =>
+                    {
+                        if ((request.Flags & Request.CreateReproducer) != 0)
+                        {
+                            // When running with reproducer flag, we don't want to show analysis results.
+                            // todo: no need to actually wait for results, just need to know if the reproducer file has been created
+                            reader.ReadToEnd();
 
-                return null;
+                            logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+                        }
+                        else
+                        {
+                            using (var binaryReader = new BinaryReader(reader.BaseStream))
+                            {
+                                Protocol.Read(binaryReader, handleMessage, request.File);
+                            }
+                        }
+                    }
+                };
+
+                runner.Execute(args);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, ex.ToString());
-                return null;
-            }
-            finally
-            {
-                if (tempFileName != null)
-                {
-                    File.Delete(tempFileName);
-                }
             }
         }
 
@@ -241,26 +237,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueType));
             }
-        }
-
-        private static bool ExecuteAnalysis(IProcessRunner runner, string fileName, string workingDirectory, ILogger logger, CancellationToken cancellationToken)
-        {
-            if (analyzerExeFilePath == null)
-            {
-                logger.WriteLine("Unable to locate the CFamily analyzer exe");
-                return false;
-            }
-
-            var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
-            {
-                CmdLineArgs = new[] {fileName},
-                CancellationToken = cancellationToken,
-                WorkingDirectory = workingDirectory
-            };
-
-            var success = runner.Execute(args);
-
-            return success;
         }
 
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)

@@ -25,9 +25,6 @@ using System.Globalization;
 using System.IO;
 using SonarLint.VisualStudio.Core;
 
-// Note: copied from the S4MSB
-// https://github.com/SonarSource/sonar-scanner-msbuild/blob/b28878e21cbdda9aca6bd08d90c3364cca882861/src/SonarScanner.MSBuild.Common/ProcessRunner.cs#L31
-
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     /// <summary>
@@ -49,10 +46,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public int ExitCode { get; private set; }
 
         /// <summary>
-        /// Runs the specified executable and returns a boolean indicating success or failure
+        /// Runs the specified executable and communicates with it via Standard IO streams.
+        /// The method blocks until the handler has read to the end of the output stream, or when the cancellation token is cancelled.
         /// </summary>
-        /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent automatically</remarks>
-        public bool Execute(ProcessRunnerArguments runnerArgs)
+        /// <remarks>
+        /// Child processes do not inherit the env variables from the parent automatically.
+        /// The stream reader callbacks are executed on the original calling thread.
+        /// Errors and timeouts are written to the logger, which in turn writes to the output window. The caller won't see them and has no way of checking the outcome.
+        /// </remarks>
+        public void Execute(ProcessRunnerArguments runnerArgs)
         {
             if (runnerArgs == null)
             {
@@ -66,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 LogError(CFamilyStrings.ERROR_ProcessRunner_ExeNotFound, runnerArgs.ExeName);
                 ExitCode = ErrorCode;
-                return false;
+                return;
             }
 
             var psi = new ProcessStartInfo
@@ -74,6 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 FileName = runnerArgs.ExeName,
                 RedirectStandardError = true,
                 RedirectStandardOutput = true,
+                RedirectStandardInput = true,
                 UseShellExecute = false, // required if we want to capture the error output
                 ErrorDialog = false,
                 CreateNoWindow = true,
@@ -84,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             SetEnvironmentVariables(psi, runnerArgs.EnvironmentVariables);
 
             var hasProcessStarted = false;
+            var isRunningProcessCancelled = false;
 
             using (var process = new Process())
             using (runnerArgs.CancellationToken.Register(() =>
@@ -99,12 +103,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                 }
                 // Cancellation was requested after process started - kill it
+                isRunningProcessCancelled = true;
                 KillProcess(process);
             }))
             {
-                process.StartInfo = psi;
                 process.ErrorDataReceived += OnErrorDataReceived;
-                process.OutputDataReceived += OnOutputDataReceived;
+                process.StartInfo = psi;
 
                 lock (process)
                 {
@@ -116,68 +120,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else
                     {
                         LogMessage(CFamilyStrings.MSG_ExecutionCancelled);
-                        return false;
+                        return;
                     }
                 }
 
-                var result = WaitForProcessToFinish(process, runnerArgs);
-                return result;
-            }
-        }
+                process.BeginErrorReadLine();
 
-        private bool WaitForProcessToFinish(Process process, ProcessRunnerArguments runnerArgs)
-        {
-            process.BeginErrorReadLine();
-            process.BeginOutputReadLine();
-
-            // Warning: do not log the raw command line args as they
-            // may contain sensitive data
-            LogDebug(CFamilyStrings.MSG_ExecutingFile,
-                runnerArgs.ExeName,
-                runnerArgs.AsLogText(),
-                runnerArgs.WorkingDirectory,
-                runnerArgs.TimeoutInMilliseconds,
-                process.Id);
-
-            var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
-
-            if (succeeded)
-            {
-                process.WaitForExit(); // Give any asynchronous events the chance to complete
-            }
-
-            // false means we asked the process to stop but it didn't.
-            // true: we might still have timed out, but the process ended when we asked it to
-            if (succeeded)
-            {
-                LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
-                ExitCode = process.ExitCode;
-
-                if (process.ExitCode != 0 && !runnerArgs.CancellationToken.IsCancellationRequested)
-                {
-                    LogError(CFamilyStrings.ERROR_ProcessRunner_Failed, process.ExitCode);
-                }
-            }
-            else
-            {
-                ExitCode = ErrorCode;
+                // Warning: do not log the raw command line args as they
+                // may contain sensitive data
+                LogDebug(CFamilyStrings.MSG_ExecutingFile,
+                    runnerArgs.ExeName,
+                    runnerArgs.AsLogText(),
+                    runnerArgs.WorkingDirectory,
+                    process.Id);
 
                 try
                 {
-                    process.Kill();
-                    LogWarning(CFamilyStrings.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds,
-                        runnerArgs.ExeName);
+                    runnerArgs.HandleInputStream(process.StandardInput);
+                    runnerArgs.HandleOutputStream(process.StandardOutput);
+                    process.WaitForExit();
+                    ExitCode = process.ExitCode;
                 }
-                catch
+                catch (Exception) when (isRunningProcessCancelled)
                 {
-                    LogWarning(CFamilyStrings.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds,
-                        runnerArgs.ExeName);
+                    // If a process is cancelled mid-stream, an exception will be thrown.
                 }
             }
-
-            return succeeded && ExitCode == 0;
         }
-
         private void KillProcess(Process process)
         {
             try
@@ -217,16 +186,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            if (e.Data != null)
-            {
-                // It's important to log this as an important message because
-                // this the log redirection pipeline of the child process
-                LogMessage(e.Data);
-            }
-        }
-
         private void OnErrorDataReceived(object sender, DataReceivedEventArgs e)
         {
             if (e.Data != null)
@@ -244,11 +203,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private void LogError(string message, params object[] args)
         {
             LogMessage(CFamilyStrings.MSG_Prefix_ERROR + message, args);
-        }
-
-        private void LogWarning(string message, params object[] args)
-        {
-            LogMessage(CFamilyStrings.MSG_Prefix_WARN + message, args);
         }
 
         private void LogDebug(string message, params object[] args)

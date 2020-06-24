@@ -13,7 +13,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         [DataRow(0, CFamilyAnalyzerOptions.DefaultAnalysisTimeoutMs)]
         [DataRow(1, 1)]
         [DataRow(999, 999)]
-        public void SubProcessTimeout(int envSettingsResponse, int expectedTimeout)
+        public void AnalysisTimeout(int envSettingsResponse, int expectedTimeout)
         {
             var envSettingsMock = new Mock<IEnvironmentSettings>();
             envSettingsMock.Setup(x => x.CFamilyAnalysisTimeoutInMs()).Returns(envSettingsResponse);
@@ -22,7 +22,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void SubProcessTimeout_NoSettingsSupplied_NoError()
+        public void AnalysisTimeoutInMiliseconds_NoEnvironmentSettings_DefaultTimeout()
         {
             new CFamilyAnalyzerOptions().AnalysisTimeoutInMiliseconds.Should().Be(CFamilyAnalyzerOptions.DefaultAnalysisTimeoutMs);
         }

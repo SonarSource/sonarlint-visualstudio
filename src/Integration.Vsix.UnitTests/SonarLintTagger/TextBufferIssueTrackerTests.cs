@@ -377,7 +377,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockAnalysisScheduler = new Mock<IScheduler>();
             mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
-                .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
+                .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
                 serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger(), mockAnalysisScheduler.Object);

@@ -99,34 +99,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             await TaskScheduler.Default;
 
             logger.WriteLine($"Analyzing {request.File}");
+            var messages = new List<Message>();
+            Action<Message> handleMessage = message => messages.Add(message); // todo: change to consumer.Accept
 
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
-            // RequestAnalysis method to be synchronous, rather than fire-and-forget.
-            var response = CFamilyHelper.CallClangAnalyzer(request, new ProcessRunner(settings, logger), logger, cancellationToken);
+            // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
+            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
 
-            if (response != null)
-            {
-                Debug.Assert(response.Messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
+            Debug.Assert(messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
 
-                var issues = response.Messages
-                        .Where(m => IsIssueForActiveRule(m, request.RulesConfiguration))
-                        .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, request.RulesConfiguration))
-                        .ToList();
+            var issues = messages
+                .Where(m => IsIssueForActiveRule(m, request.RulesConfiguration))
+                .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, request.RulesConfiguration))
+                .ToList();
 
-                telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
+            telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
 
-                logger.WriteLine($"Found {issues.Count} issue(s)");
+            logger.WriteLine($"Found {issues.Count} issue(s)");
 
-                // Switch back to the UI thread
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+            // Switch back to the UI thread
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                // Note: the file being analyzed might have been closed by the time the analysis results are 
-                // returned. This doesn't cause a crash; all active taggers will have been detached from the
-                // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
-                // still exist and handle the call.
-                consumer.Accept(request.File, issues);
-            }
+            // Note: the file being analyzed might have been closed by the time the analysis results are 
+            // returned. This doesn't cause a crash; all active taggers will have been detached from the
+            // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
+            // still exist and handle the call.
+            consumer.Accept(request.File, issues);
         }
 
         internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)

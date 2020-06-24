@@ -21,12 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-
-// Note: copied from the S4MSB
-// https://github.com/SonarSource/sonar-scanner-msbuild/blob/b28878e21cbdda9aca6bd08d90c3364cca882861/src/SonarScanner.MSBuild.Common/ProcessRunnerArguments.cs#L33
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -69,14 +67,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public string WorkingDirectory { get; set; }
 
-        public int TimeoutInMilliseconds { get; set; }
-
         private bool IsBatchScript { get; set; }
 
         /// <summary>
         /// Additional environments variables that should be set/overridden for the process. Can be null.
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
+
+        public Action<StreamWriter> HandleInputStream { get; set; } = writer => { };
+        public Action<StreamReader> HandleOutputStream { get; set; } = reader => { };
 
         public string GetEscapedArguments()
         {

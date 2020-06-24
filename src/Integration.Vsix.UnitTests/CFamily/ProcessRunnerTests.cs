@@ -18,14 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-// Note: copied from the S4MSB
-// https://github.com/SonarSource/sonar-scanner-msbuild/blob/5c23a7da9171e90a1970a31507dce3da3e8ee094/Tests/SonarScanner.MSBuild.Common.UnitTests/ProcessRunnerTests.cs#L32
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -60,10 +58,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-2, "Unexpected exit code");
         }
 
@@ -73,62 +70,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             var exeName = WriteBatchFileForTest(TestContext,
 @"@echo Hello world
-xxx yyy
+@echo xxx yyy
 @echo Testing 1,2,3...>&2
 ");
 
             var logger = new TestLogger();
             var args = new ProcessRunnerArguments(exeName, true);
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
-            logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
-        }
-
-        [TestMethod]
-        public void ProcRunner_FailsOnTimeout()
-        {
-            // Arrange
-
-            // Calling TIMEOUT can fail on some OSes (e.g. Windows 7) with the error
-            // "Input redirection is not supported, exiting the process immediately."
-            // Alternatives such as
-            // pinging a non-existent address with a timeout were not reliable.
-            var exeName = WriteBatchFileForTest(TestContext,
-$@"waitfor /t 2 {Guid.NewGuid():N}
-@echo Hello world
-");
-
-            var logger = new TestLogger();
-            var args = new ProcessRunnerArguments(exeName, true)
-            {
-                TimeoutInMilliseconds = 100
-            };
-            var runner = CreateProcessRunner(logger);
-
-            var timer = Stopwatch.StartNew();
-
-            // Act
-            var success = runner.Execute(args);
-
-            // Assert
-            timer.Stop(); // Sanity check that the process actually timed out
-            logger.WriteLine("Test output: test ran for {0}ms", timer.ElapsedMilliseconds);
-            // TODO: the following line throws regularly on the CI machines (elapsed time is around 97ms)
-            // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
-
-            success.Should().BeFalse("Expecting the process to have failed");
-            runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
-            logger.AssertMessageNotLogged("Hello world");
-            // expecting a warning about the timeout
-            logger.AssertPartialOutputStringExists("has been terminated");
+            output.Should().Contain("Hello world");
+            output.Should().NotContain("Testing 1,2,3...");
         }
 
         [TestMethod]
@@ -152,17 +111,17 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             {
                 EnvironmentVariables = envVariables
             };
-
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertMessageLogged("PROCESS_VAR value");
-            logger.AssertMessageLogged("PROCESS_VAR2 value");
-            logger.AssertMessageLogged("PROCESS_VAR3 value");
+            output.Should().Contain("PROCESS_VAR value");
+            output.Should().Contain("PROCESS_VAR2 value");
+            output.Should().Contain("PROCESS_VAR3 value");
         }
 
         [TestMethod]
@@ -173,6 +132,7 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             // Arrange
             var logger = new TestLogger();
             var runner = CreateProcessRunner(logger);
+            var output = "";
 
             try
             {
@@ -195,14 +155,17 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
 
                 var args = new ProcessRunnerArguments(exeName, true)
                 {
-                    EnvironmentVariables = envVariables
+                    EnvironmentVariables = envVariables,
+                    HandleOutputStream = reader =>
+                    {
+                        output = reader.ReadToEnd();
+                    }
                 };
 
                 // Act
-                var success = runner.Execute(args);
+                runner.Execute(args);
 
                 // Assert
-                success.Should().BeTrue("Expecting the process to have succeeded");
                 runner.ExitCode.Should().Be(0, "Unexpected exit code");
             }
             finally
@@ -213,9 +176,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             }
 
             // Check the child process used expected values
-            logger.AssertMessageLogged("file: machine override");
-            logger.AssertMessageLogged("file: process override");
-            logger.AssertMessageLogged("file: user override");
+            output.Should().Contain("file: machine override");
+            output.Should().Contain("file: process override");
+            output.Should().Contain("file: user override");
 
             // Check the runner reported it was overwriting existing variables
             // Note: the existing non-process values won't be visible to the child process
@@ -234,10 +197,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
             logger.AssertSingleErrorExists("missingExe.foo");
         }
@@ -276,10 +238,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
@@ -323,10 +284,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check that the public and private arguments are passed to the child process
@@ -389,14 +349,13 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             var runner = CreateProcessRunner(logger);
 
             // Act
-            var success = runner.Execute(runnerArgs);
+            runner.Execute(runnerArgs);
 
             // Assert
-            success.Should().BeTrue("Expecting the process to have succeeded");
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
             // Check public arguments are logged but private ones are not
-            foreach(var arg in publicArgs)
+            foreach (var arg in publicArgs)
             {
                 logger.AssertSingleDebugMessageExists(arg);
             }
@@ -423,60 +382,57 @@ xxx yyy
             var runner = CreateProcessRunner(logger);
 
             args.CancellationToken = new CancellationToken(true);
-
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             // Act
-            var success = runner.Execute(args);
+            runner.Execute(args);
 
             // Assert
-            success.Should().BeFalse();
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertOutputStringDoesNotExist("Hello world"); 
+            output.Should().NotContain("Hello world");
         }
 
-        [Ignore] // Flaky https://github.com/SonarSource/sonarlint-visualstudio/issues/1330
         [TestMethod]
-        public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
+        public void Execute_CancellationTokenCancelledMidway_CancelledDuringWritingRequest_ProcessKilled()
         {
-            var testFolder = CreateTestSpecificFolder(TestContext);
-            var signalFileName = $"{testFolder}\\signal-{Guid.NewGuid():N}.txt";
+            var exeName = WriteBatchFileForTest(TestContext, @"
+echo started!
+:again
+   set /p arg= 
+   echo %arg%
+   if %arg% == END (goto finished)
+   goto again
+:finished
+   echo done!");
 
-            var exeName = WriteBatchFileForTest(TestContext,
-                $@"
-echo test > ""{signalFileName}"" 
-waitfor /t 10 {Guid.NewGuid():N}
-@echo Done!
-");
-            using var processCancellationTokenSource = new CancellationTokenSource(); 
+            using var processCancellationTokenSource = new CancellationTokenSource();
             var logger = new TestLogger(true, true);
             var args = new ProcessRunnerArguments(exeName, true)
             {
-                TimeoutInMilliseconds = 12000,
                 CancellationToken = processCancellationTokenSource.Token
+            };
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
+            args.HandleInputStream = writer =>
+            {
+                writer.WriteLine("dummy");
+                Thread.Sleep(2500);
+                writer.WriteLine("END");
             };
 
             var runner = CreateProcessRunner(logger);
+            var processTask = Task.Run(() => { runner.Execute(args); });
 
-            bool? result = null;
-            var processTask = Task.Run(() => { result = runner.Execute(args); });
+            processCancellationTokenSource.CancelAfter(500);
 
-            var taskCancellationTokenSource = new CancellationTokenSource();
-            var cancellationTask = Task.Run(() =>
-            {
-                while (!taskCancellationTokenSource.IsCancellationRequested && !File.Exists(signalFileName))
-                {
-                    Thread.Sleep(millisecondsTimeout:10);
-                }
-                processCancellationTokenSource.Cancel();
-            }, taskCancellationTokenSource.Token);
+            Task.WaitAll(new[] { processTask }, TimeSpan.FromSeconds(15));
 
-            Task.WaitAll(new[] {processTask, cancellationTask}, TimeSpan.FromSeconds(15));
-            taskCancellationTokenSource.Cancel();
-
-            result.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
             processCancellationTokenSource.IsCancellationRequested.Should().BeTrue();
-            logger.AssertPartialOutputStringDoesNotExist("Done!");
+            output.Should().Contain("started!");
+            output.Should().Contain("dummy");
+            output.Should().NotContain("done!");
         }
 
         [TestMethod]
@@ -555,31 +511,8 @@ xxx yyy
         #endregion Private methods
     }
 
-    // This test class was copied from the Scanner for MSBuild repo. The test logger in the scanner has different
-    // methods. To keep the bulk of this source file as similar as possible to the scanner version, we have an
-    // extension class to provide test logger assertion methods with the expected names.
     internal static class LoggerExtensions
     {
-        public static void AssertMessageLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringExists(expected);
-        }
-
-        public static void AssertErrorLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringExists(CFamilyStrings.MSG_Prefix_ERROR + expected);
-        }
-
-        public static void AssertMessageNotLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringDoesNotExist(expected);
-        }
-
-        public static void AssertWarningLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringExists(CFamilyStrings.MSG_Prefix_WARN + expected);
-        }
-
         public static void AssertSingleErrorExists(this TestLogger logger, string expected)
         {
             AssertSinglePartialMessageExists(logger, CFamilyStrings.MSG_Prefix_ERROR, expected);
@@ -599,5 +532,4 @@ xxx yyy
             matches.Should().ContainSingle("More than one message contains the expected strings: {0}", string.Join(",", expected));
         }
     }
-
 }
