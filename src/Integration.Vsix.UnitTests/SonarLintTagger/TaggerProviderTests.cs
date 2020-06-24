@@ -110,8 +110,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
             mockAnalysisScheduler = new Mock<IScheduler>();
-            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>()))
-                .Callback((string file, Action<CancellationToken> analyze) => analyze(CancellationToken.None));
+            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
+                .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RequestAnalysis_Should_NotThrow_When_AnalysisFails()
         {
             mockAnalysisScheduler
-                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>()))
+                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
                 .Throws<Exception>();
 
             Action act = () => 
