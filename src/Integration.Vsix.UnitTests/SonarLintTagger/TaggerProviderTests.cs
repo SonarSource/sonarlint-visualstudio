@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Taggers should be different but tracker should be the same
             tagger1.Should().NotBeSameAs(tagger2);
-            tagger1.IssueTracker.Should().BeSameAs(tagger2.IssueTracker);
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
         }
 
         [TestMethod]
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger2 = CreateTaggerForDocument(doc2);
             tagger2.Should().NotBeNull();
 
-            tagger1.IssueTracker.Should().NotBeSameAs(tagger2.IssueTracker);
+            provider.ActiveTrackersForTesting.Count().Should().Be(2);
             tagger1.Should().NotBe(tagger2);
         }
 

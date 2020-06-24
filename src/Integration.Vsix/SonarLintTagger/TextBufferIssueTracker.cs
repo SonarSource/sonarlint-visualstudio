@@ -101,7 +101,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             document.FileActionOccurred += SafeOnFileActionOccurred;
         }
 
-        public void AddTagger(IssueTagger tagger)
+        public IssueTagger CreateTagger()
+        {
+            var tagger = new IssueTagger(this.Factory.CurrentSnapshot.IssueMarkers, RemoveTagger);
+            this.AddTagger(tagger);
+            
+            return tagger;
+        }
+
+        private void AddTagger(IssueTagger tagger)
         {
             Debug.Assert(!activeTaggers.Contains(tagger), "Not expecting the tagger to be already registered");
             activeTaggers.Add(tagger);
@@ -118,7 +126,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveTagger(IssueTagger tagger)
+        private void RemoveTagger(IssueTagger tagger)
         {
             Debug.Assert(activeTaggers.Contains(tagger), "Not expecting RemoveTagger to be called for an unregistered tagger");
             activeTaggers.Remove(tagger);
@@ -211,7 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             SnapshotSpan? affectedSpan = CalculateAffectedSpan(LastIssues, newIssues);
             foreach (var tagger in activeTaggers)
             {
-                tagger.UpdateMarkers(newIssues, affectedSpan);
+                tagger.UpdateMarkers(newIssues.IssueMarkers, affectedSpan);
             }
 
             this.LastIssues = newIssues;

@@ -71,13 +71,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Triggering analysis tests
 
         [TestMethod]
-        public void WhenTaggerIsRegistered_AnalysisIsRequested()
+        public void WhenTaggerCreated_AnalysisIsRequested()
         {
             // 1. No tagger -> analysis not requested
             CheckAnalysisWasNotRequested();
 
             // 2. Add a tagger -> analysis requested
-            using (var tagger = new IssueTagger(testSubject))
+            using (testSubject.CreateTagger())
             {
                 mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
                     (IAnalyzerOptions)null /* no expecting any options when a new tagger is added */,
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckAnalysisWasNotRequested();
 
             // 2. Add a tagger and raise -> analysis requested
-            var tagger = new IssueTagger(testSubject);
+            var tagger = testSubject.CreateTagger();
             mockAnalyzerController.Invocations.Clear();
 
 
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void WhenFileIsLoaded_AnalysisIsNotRequested()
         {
-            using (var tagger = new IssueTagger(testSubject))
+            using (var tagger = testSubject.CreateTagger())
             {
                 mockAnalyzerController.Invocations.Clear();
 
