@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -171,8 +172,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
-                scheduler.Schedule(path, cancellationToken =>
-                    analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer, analyzerOptions, cancellationToken));
+                var analysisTimeout = analyzerOptions?.AnalysisTimeout ?? Timeout.Infinite;
+
+                scheduler.Schedule(path,
+                    cancellationToken =>
+                        analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
+                            analyzerOptions, cancellationToken),
+                    analysisTimeout);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {

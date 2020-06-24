@@ -42,9 +42,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static readonly string analyzerExeFilePath = Path.Combine(
             CFamilyFilesDirectory, "subprocess.exe");
-       
-        private static readonly IEnvironmentSettings SharedEnvSettings = new EnvironmentSettings();
-        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 20 * 1000;
 
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
@@ -132,7 +129,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
                 {
                     CmdLineArgs = new[] { "-" },
-                    TimeoutInMilliseconds = GetTimeoutInMs(),
                     CancellationToken = cancellationToken,
                     WorkingDirectory = workingDirectory,
                     HandleInputStream = writer =>
@@ -240,14 +236,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 default:
                     throw new ArgumentOutOfRangeException(nameof(issueType));
             }
-        }
-
-        internal /* for testing*/ static int GetTimeoutInMs(IEnvironmentSettings environmentSettings = null)
-        {
-            environmentSettings = environmentSettings ?? SharedEnvSettings;
-            var userSuppliedTimeout = environmentSettings.CFamilyAnalysisTimeoutInMs();
-
-            return userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
         }
 
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)

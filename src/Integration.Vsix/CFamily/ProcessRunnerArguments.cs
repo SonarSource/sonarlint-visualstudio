@@ -55,8 +55,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             ExeName = exeName;
             IsBatchScript = isBatchScript;
-
-            TimeoutInMilliseconds = Timeout.Infinite;
         }
 
         #region Public properties
@@ -71,8 +69,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public IEnumerable<string> CmdLineArgs { get; set; }
 
         public string WorkingDirectory { get; set; }
-
-        public int TimeoutInMilliseconds { get; set; }
 
         private bool IsBatchScript { get; set; }
 
