@@ -61,8 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
 
-        public IssuesSnapshot LastIssues { get; private set; }
-
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
@@ -214,6 +212,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
         {
+            var oldIssues = Factory.CurrentSnapshot;
+
             // Tell our factory to snap to a new snapshot.
             this.Factory.UpdateSnapshot(newIssues);
 
@@ -221,13 +221,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes
-            SnapshotSpan? affectedSpan = CalculateAffectedSpan(LastIssues, newIssues);
+            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newIssues);
             foreach (var tagger in activeTaggers)
             {
                 tagger.UpdateMarkers(newIssues.IssueMarkers, affectedSpan);
             }
-
-            this.LastIssues = newIssues;
         }
 
         private SnapshotSpan? CalculateAffectedSpan(IssuesSnapshot oldIssues, IssuesSnapshot newIssues)

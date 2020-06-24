@@ -24,7 +24,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface IIssueTracker
     {
-        IssuesSnapshot LastIssues { get; }
         string FilePath { get; }
         void RequestAnalysis(IAnalyzerOptions options);
     }
