@@ -26,7 +26,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         IssuesSnapshot LastIssues { get; }
         string FilePath { get; }
-        SnapshotFactory Factory { get; }
         void RequestAnalysis(IAnalyzerOptions options);
     }
 }

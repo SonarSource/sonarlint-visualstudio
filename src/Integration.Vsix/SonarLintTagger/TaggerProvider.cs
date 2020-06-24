@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, logger, issuesFilter));
+                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, logger));
 
                 // Always create a new tagger for each request.
                 // Delegate the actual creation to the tracker for the file.
@@ -192,7 +192,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Add(issueTracker);
-                sonarErrorDataSource.AddFactory(issueTracker.Factory);
             }
         }
 
@@ -201,13 +200,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (issueTrackers)
             {
                 issueTrackers.Remove(issueTracker);
-                sonarErrorDataSource.RemoveFactory(issueTracker.Factory);
             }
-        }
-
-        public void RefreshErrorList()
-        {
-            sonarErrorDataSource.RefreshErrorList();
         }
     }
 }

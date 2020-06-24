@@ -65,7 +65,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
             testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, new TestLogger(), issuesFilter.Object);
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
+                mockSonarErrorDataSource.Object, new TestLogger());
+        }
+
+        [TestMethod]
+        public void Lifecycle_FactoryIsRegisteredAndUnregisteredWithDataSource()
+        {
+            // 1. No taggers to start with -> not registered
+            CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Never());
+
+            // 2. Registered only on creation of first tagger
+            var tagger1 = testSubject.CreateTagger();
+            CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Once());
+
+            var tagger2 = testSubject.CreateTagger();
+            CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Once());
+
+            // 3. Unregistered only on disposal of last tagger
+            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
+            tagger1.Dispose();
+            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
+
+            tagger2.Dispose();
+            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Once());
+        }
+
+        private void CheckFactoryWasRegisteredWithDataSource(SnapshotFactory factory, Times times)
+        {
+            mockSonarErrorDataSource.Verify(x => x.AddFactory(factory), times);
+        }
+
+        private void CheckFactoryWasUnregisteredFromDataSource(SnapshotFactory factory, Times times)
+        {
+            mockSonarErrorDataSource.Verify(x => x.RemoveFactory(factory), times);
         }
 
         #region Triggering analysis tests
