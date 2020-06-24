@@ -153,13 +153,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         {
                             using (var binaryReader = new BinaryReader(reader.BaseStream))
                             {
-                                Protocol.Read(binaryReader, handleMessage, request.File);
+                                Protocol.Read(logger,binaryReader, handleMessage, request.File);
                             }
+
+                            logger.WriteLine("DONE HANDLING ALL MESSAGES!");
                         }
                     }
                 };
 
                 runner.Execute(args);
+
+                logger.WriteLine("DONE WITH PROCESS RUNNER");
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

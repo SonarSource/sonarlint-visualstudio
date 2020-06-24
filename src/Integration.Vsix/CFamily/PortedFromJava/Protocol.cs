@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
            // Example: analysing a small C# file produced 1300 issues; ten in the cpp file, the rest in
            // header files (we don't currently show issues in header files).
            // The issueFilePath is optional.
-        public static void Read(BinaryReader reader, Action<Message> handleIssue, string issueFilePath = null)
+        public static void Read(ILogger logger, BinaryReader reader, Action<Message> handleIssue, string issueFilePath = null)
         {
             if ("OUT" != ReadUTF(reader))
             {
@@ -177,6 +177,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   var message = readMessage(reader);
                   if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
                   {
+                      logger.WriteLine("GOT MESSAGE, HANDLING");
                       handleIssue(message);
                   }
                   break;
@@ -189,7 +190,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   readSymbols(reader);
                   break;
               case "END":
-                  return;
+                  logger.WriteLine("DONE READING FROM STREAM");
+                        return;
               }
             }
         }

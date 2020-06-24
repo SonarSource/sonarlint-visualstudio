@@ -20,6 +20,8 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration
@@ -42,12 +44,13 @@ namespace SonarLint.VisualStudio.Integration
 
         public void WriteLine(string message)
         {
+            message = DateTime.Now.ToUniversalTime().ToTimestamp() + " : " + Thread.CurrentThread.ManagedThreadId + " : " + message;
             VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, message);
         }
 
         public void WriteLine(string messageFormat, params object[] args)
         {
-            VsShellUtils.WriteToSonarLintOutputPane(this.serviceProvider, messageFormat, args);
+            WriteLine(string.Format(messageFormat, args));
         }
     }
 }
