@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-// Note: copied from the S4MSB
-// https://github.com/SonarSource/sonar-scanner-msbuild/blob/b28878e21cbdda9aca6bd08d90c3364cca882861/src/SonarScanner.MSBuild.Common/Interfaces/IProcessRunner.cs#L23
-
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     public interface IProcessRunner

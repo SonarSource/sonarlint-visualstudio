@@ -23,11 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
-
-// Note: copied from the S4MSB
-// https://github.com/SonarSource/sonar-scanner-msbuild/blob/b28878e21cbdda9aca6bd08d90c3364cca882861/src/SonarScanner.MSBuild.Common/ProcessRunner.cs#L31
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -50,9 +46,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public int ExitCode { get; private set; }
 
         /// <summary>
-        /// Runs the specified executable and returns a boolean indicating success or failure
+        /// Runs the specified executable and communicates with it via Standard IO streams.
+        /// The method blocks until the handler has read to the end of the output stream, or when the cancellation token is cancelled.
         /// </summary>
-        /// <remarks>The standard and error output will be streamed to the logger. Child processes do not inherit the env variables from the parent automatically</remarks>
+        /// <remarks>
+        /// Child processes do not inherit the env variables from the parent automatically.
+        /// The stream reader callbacks are executed on the original calling thread.
+        /// Errors and timeouts are written to the logger, which in turn writes to the output window. The caller won't see them and has no way of checking the outcome.
+        /// </remarks>
         public void Execute(ProcessRunnerArguments runnerArgs)
         {
             if (runnerArgs == null)
@@ -101,7 +102,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return;
                     }
                 }
-
                 // Cancellation was requested after process started - kill it
                 isRunningProcessCancelled = true;
                 KillProcess(process);
@@ -203,11 +203,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private void LogError(string message, params object[] args)
         {
             LogMessage(CFamilyStrings.MSG_Prefix_ERROR + message, args);
-        }
-
-        private void LogWarning(string message, params object[] args)
-        {
-            LogMessage(CFamilyStrings.MSG_Prefix_WARN + message, args);
         }
 
         private void LogDebug(string message, params object[] args)

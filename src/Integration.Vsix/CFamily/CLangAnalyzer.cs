@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
-            // RequestAnalysis method to be synchronous, rather than fire-and-forget.
+            // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
             CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
 
             Debug.Assert(messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");

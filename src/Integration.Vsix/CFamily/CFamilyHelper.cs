@@ -116,19 +116,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
+            if (analyzerExeFilePath == null)
+            {
+                logger.WriteLine("Unable to locate the CFamily analyzer exe");
+                return;
+            }
+
             try
             {
-                if (analyzerExeFilePath == null)
-                {
-                    logger.WriteLine("Unable to locate the CFamily analyzer exe");
-                    return;
-                }
-
                 var workingDirectory = Path.GetTempPath();
+                const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
 
                 var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
                 {
-                    CmdLineArgs = new[] { "-" },
+                    CmdLineArgs = new[] { communicateViaStreaming },
                     CancellationToken = cancellationToken,
                     WorkingDirectory = workingDirectory,
                     HandleInputStream = writer =>
