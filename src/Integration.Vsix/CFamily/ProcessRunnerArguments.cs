@@ -54,8 +54,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             ExeName = exeName;
             IsBatchScript = isBatchScript;
-
-            TimeoutInMilliseconds = Timeout.Infinite;
         }
 
         #region Public properties

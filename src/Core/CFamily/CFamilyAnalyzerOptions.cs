@@ -24,6 +24,21 @@ namespace SonarLint.VisualStudio.Core.CFamily
 {
     public class CFamilyAnalyzerOptions : IAnalyzerOptions
     {
+        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 20 * 1000;
+
         public bool CreateReproducer { get; set; }
+        public int AnalysisTimeoutInMiliseconds { get; }
+
+        public CFamilyAnalyzerOptions()
+            : this(new EnvironmentSettings())
+        {
+        }
+
+        internal CFamilyAnalyzerOptions(IEnvironmentSettings environmentSettings)
+        {
+            var userSuppliedTimeout = environmentSettings.CFamilyAnalysisTimeoutInMs();
+
+            AnalysisTimeoutInMiliseconds = userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
+        }
     }
 }

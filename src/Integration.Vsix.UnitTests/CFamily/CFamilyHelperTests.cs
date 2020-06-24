@@ -737,25 +737,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
 
-        [TestMethod]
-        [DataRow(-1, CFamilyHelper.DefaultAnalysisTimeoutMs)]
-        [DataRow(0, CFamilyHelper.DefaultAnalysisTimeoutMs)]
-        [DataRow(1, 1)]
-        [DataRow(999, 999)]
-        public void SubProcessTimeout(int envSettingsResponse, int expectedTimeout)
-        {
-            var envSettingsMock = new Mock<IEnvironmentSettings>();
-            envSettingsMock.Setup(x => x.CFamilyAnalysisTimeoutInMs()).Returns(envSettingsResponse);
-
-            CFamilyHelper.GetTimeoutInMs(envSettingsMock.Object).Should().Be(expectedTimeout);
-        }
-
-        [TestMethod]
-        public void SubProcessTimeout_NoSettingsSupplied_NoError()
-        {
-            CFamilyHelper.GetTimeoutInMs().Should().BeGreaterThan(0);
-        }
-
         private static ICFamilyRulesConfig GetDummyRulesConfiguration()
         {
             var config = new DummyCFamilyRulesConfig("any")
