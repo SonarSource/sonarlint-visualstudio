@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -145,7 +146,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             using (MemoryStream stream = new MemoryStream(data))
             {
                 BinaryReader reader = new BinaryReader(stream);
-                return Protocol.Read(reader, issueFileName);
+
+                var messages = new List<Message>();
+                Protocol.Read(reader, messages.Add, issueFileName);
+
+                return new Response(messages.ToArray());
             }
         }
 
@@ -363,7 +368,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 byte[] execLines = new byte[] { 1, 2, 3, 4 };
                 Protocol.WriteInt(writer, execLines.Length);
                 writer.Write(execLines);
-                
+
 
                 // 1 symbol
                 Protocol.WriteUTF(writer, "symbols");

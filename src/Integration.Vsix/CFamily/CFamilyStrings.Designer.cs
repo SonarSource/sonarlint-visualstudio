@@ -79,15 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process failed. Exit code: {0}.
-        /// </summary>
-        internal static string ERROR_ProcessRunner_Failed {
-            get {
-                return ResourceManager.GetString("ERROR_ProcessRunner_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
         internal static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {
@@ -109,8 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         ///   Looks up a localized string similar to Executing file {0}
         ///  Args: {1}
         ///  Working directory: {2}
-        ///  Timeout (ms):{3}
-        ///  Process id: {4}.
+        ///  Process id: {3}.
         /// </summary>
         internal static string MSG_ExecutingFile {
             get {
@@ -124,15 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_ExecutionCancelled {
             get {
                 return ResourceManager.GetString("MSG_ExecutionCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Process returned exit code {0}.
-        /// </summary>
-        internal static string MSG_ExecutionExitCode {
-            get {
-                return ResourceManager.GetString("MSG_ExecutionExitCode", resourceCulture);
             }
         }
         
@@ -243,24 +224,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string ReproCmd_NoActiveDocument {
             get {
                 return ResourceManager.GetString("ReproCmd_NoActiveDocument", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running..
-        /// </summary>
-        internal static string WARN_ExecutionTimedOutKilled {
-            get {
-                return ResourceManager.GetString("WARN_ExecutionTimedOutKilled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running..
-        /// </summary>
-        internal static string WARN_ExecutionTimedOutNotKilled {
-            get {
-                return ResourceManager.GetString("WARN_ExecutionTimedOutNotKilled", resourceCulture);
             }
         }
     }

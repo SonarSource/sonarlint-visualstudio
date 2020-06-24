@@ -123,9 +123,6 @@
   <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
-  <data name="ERROR_ProcessRunner_Failed" xml:space="preserve">
-    <value>Process failed. Exit code: {0}</value>
-  </data>
   <data name="MSG_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
     <value>&lt;sensitive data removed&gt;</value>
   </data>
@@ -136,14 +133,10 @@
     <value>Executing file {0}
   Args: {1}
   Working directory: {2}
-  Timeout (ms):{3}
-  Process id: {4}</value>
+  Process id: {3}</value>
   </data>
   <data name="MSG_ExecutionCancelled" xml:space="preserve">
     <value>Execution cancelled.</value>
-  </data>
-  <data name="MSG_ExecutionExitCode" xml:space="preserve">
-    <value>Process returned exit code {0}</value>
   </data>
   <data name="MSG_Prefix_DEBUG" xml:space="preserve">
     <value>DEBUG: </value>
@@ -182,11 +175,5 @@
   </data>
   <data name="ReproCmd_NoActiveDocument" xml:space="preserve">
     <value>Cannot run SonarLint CFamily reproducer - no active document.</value>
-  </data>
-  <data name="WARN_ExecutionTimedOutKilled" xml:space="preserve">
-    <value>Timed out after waiting {0} ms for process {1} to complete: it has been terminated, but its child processes may still be running.</value>
-  </data>
-  <data name="WARN_ExecutionTimedOutNotKilled" xml:space="preserve">
-    <value>Timed out after waiting {0} ms for process {1} to complete: it could not be terminated and might still be running.</value>
   </data>
 </root>

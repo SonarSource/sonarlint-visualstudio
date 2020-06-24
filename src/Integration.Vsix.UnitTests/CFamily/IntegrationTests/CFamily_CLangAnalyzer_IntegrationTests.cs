@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using FluentAssertions;
@@ -49,10 +50,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".txt");
 
             var request = GetRequest(testedFile);
-            var expectedResponse = GetExpectedResponse(testCaseFileName, testedFile);
+            var expectedMessages = GetExpectedMessages(testCaseFileName, testedFile);
 
-            var response = InvokeAnalyzer(request);
-            response.Should().BeEquivalentTo(expectedResponse);
+            var messages = InvokeAnalyzer(request);
+            messages.Should().BeEquivalentTo(expectedMessages);
         }
 
         private Request GetRequest(string testedFile)
@@ -60,11 +61,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var requestJson = File.ReadAllText(Path.Combine(testsDataDirectory, "CLangAnalyzerRequestTemplate.json"));
             var request = JsonConvert.DeserializeObject<Request>(requestJson);
             request.File = testedFile;
-            
+
             return request;
         }
 
-        private Response GetExpectedResponse(string testFileName, string testedFile)
+        private Message[] GetExpectedMessages(string testFileName, string testedFile)
         {
             var expectedResponseJson = File.ReadAllText(Path.Combine(testsDataDirectory, testFileName + "_response.json"));
             var expectedResponse = JsonConvert.DeserializeObject<Response>(expectedResponseJson);
@@ -74,16 +75,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
                 expectedResponseMessage.Filename = testedFile;
             }
 
-            return expectedResponse;
+            return expectedResponse.Messages;
         }
 
-        private static Response InvokeAnalyzer(Request request)
+        private static List<Message> InvokeAnalyzer(Request request)
         {
-            var testLogger = new TestLogger();
+            var testLogger = new TestLogger(true);
             var processRunner = new ProcessRunner(new ConfigurableSonarLintSettings(), testLogger);
-            var response = CFamilyHelper.CallClangAnalyzer(request, processRunner, testLogger, CancellationToken.None);
 
-            return response;
+            var messages = new List<Message>();
+            CFamilyHelper.CallClangAnalyzer(messages.Add, request, processRunner, testLogger, CancellationToken.None);
+
+            return messages;
         }
     }
 }
