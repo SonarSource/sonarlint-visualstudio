@@ -101,6 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return;
                     }
                 }
+
                 // Cancellation was requested after process started - kill it
                 isRunningProcessCancelled = true;
                 KillProcess(process);
@@ -123,82 +124,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                 }
 
-                using (var timeoutTask = Task.Factory.StartNew(() => WaitForProcessToFinish(process, runnerArgs)))
+                process.BeginErrorReadLine();
+
+                // Warning: do not log the raw command line args as they
+                // may contain sensitive data
+                LogDebug(CFamilyStrings.MSG_ExecutingFile,
+                    runnerArgs.ExeName,
+                    runnerArgs.AsLogText(),
+                    runnerArgs.WorkingDirectory,
+                    "",
+                    process.Id);
+
+                try
                 {
-                    process.BeginErrorReadLine();
-
-                    // Warning: do not log the raw command line args as they
-                    // may contain sensitive data
-                    LogDebug(CFamilyStrings.MSG_ExecutingFile,
-                        runnerArgs.ExeName,
-                        runnerArgs.AsLogText(),
-                        runnerArgs.WorkingDirectory,
-                        runnerArgs.TimeoutInMilliseconds,
-                        process.Id);
-
-                    try
-                    {
-                        runnerArgs.HandleInputStream(process.StandardInput);
-                        runnerArgs.HandleOutputStream(process.StandardOutput);
-                    }
-                    catch (Exception) when (isRunningProcessCancelled)
-                    {
-                        // If a process is cancelled mid-stream, an exception will be thrown.
-                    }
-                    finally
-                    {
-                        timeoutTask.Wait();
-                    }
+                    runnerArgs.HandleInputStream(process.StandardInput);
+                    runnerArgs.HandleOutputStream(process.StandardOutput);
                 }
-            }
-        }
-
-        private bool WaitForProcessToFinish(Process process, ProcessRunnerArguments runnerArgs)
-        {
-            try
-            {
-                var succeeded = process.WaitForExit(runnerArgs.TimeoutInMilliseconds);
-
-                if (succeeded)
+                catch (Exception) when (isRunningProcessCancelled)
                 {
-                    process.WaitForExit(); // Give any asynchronous events the chance to complete
+                    // If a process is cancelled mid-stream, an exception will be thrown.
                 }
-
-                // false means we asked the process to stop but it didn't.
-                // true: we might still have timed out, but the process ended when we asked it to
-                if (succeeded)
-                {
-                    LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
-                    ExitCode = process.ExitCode;
-
-                    if (process.ExitCode != 0 && !runnerArgs.CancellationToken.IsCancellationRequested)
-                    {
-                        LogError(CFamilyStrings.ERROR_ProcessRunner_Failed, process.ExitCode);
-                    }
-                }
-                else
-                {
-                    ExitCode = ErrorCode;
-
-                    try
-                    {
-                        process.Kill();
-                        LogWarning(CFamilyStrings.WARN_ExecutionTimedOutKilled, runnerArgs.TimeoutInMilliseconds,
-                            runnerArgs.ExeName);
-                    }
-                    catch
-                    {
-                        LogWarning(CFamilyStrings.WARN_ExecutionTimedOutNotKilled, runnerArgs.TimeoutInMilliseconds,
-                            runnerArgs.ExeName);
-                    }
-                }
-
-                return succeeded && ExitCode == 0;
-            }
-            catch (InvalidOperationException ex) when (ex.Message == "No process is associated with this object.")
-            {
-                // Process was cancelled
-                return false;
             }
         }
 

@@ -25,5 +25,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public class CFamilyAnalyzerOptions : IAnalyzerOptions
     {
         public bool CreateReproducer { get; set; }
+        public int AnalysisTimeout { get; } = 20000;
     }
 }
