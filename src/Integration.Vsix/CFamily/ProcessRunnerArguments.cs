@@ -74,8 +74,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// </summary>
         public IDictionary<string, string> EnvironmentVariables { get; set; }
 
-        public Action<StreamWriter> HandleInputStream { get; set; } = writer => { };
-        public Action<StreamReader> HandleOutputStream { get; set; } = reader => { };
+        public Action<StreamWriter> HandleInputStream { get; set; }
+        public Action<StreamReader> HandleOutputStream { get; set; }
 
         public string GetEscapedArguments()
         {

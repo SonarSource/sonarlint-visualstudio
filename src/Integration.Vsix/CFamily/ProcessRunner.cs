@@ -136,12 +136,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 try
                 {
-                    runnerArgs.HandleInputStream(process.StandardInput);
-                    runnerArgs.HandleOutputStream(process.StandardOutput);
-                    process.WaitForExit();
+                    runnerArgs.HandleInputStream?.Invoke(process.StandardInput);
+
+                    // the caller needs to start a blocking read operation, otherwise the method would exit.
+                    runnerArgs.HandleOutputStream?.Invoke(process.StandardOutput);
+
+                    // Give any asynchronous events the chance to complete
+                    process.WaitForExit(); 
                     ExitCode = process.ExitCode;
                 }
-                catch (Exception) when (isRunningProcessCancelled)
+                catch (Exception ex) when (isRunningProcessCancelled && !ErrorHandler.IsCriticalException(ex))
                 {
                     // If a process is cancelled mid-stream, an exception will be thrown.
                 }
