@@ -56,23 +56,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
+        private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string FilePath { get; private set; }
-        public SnapshotFactory Factory { get; }
+        internal /* for testing */ SnapshotFactory Factory { get; }
 
         public IssuesSnapshot LastIssues { get; private set; }
 
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, ILogger logger, IIssuesFilter issuesFilter)
-            : this(dte, provider, document, detectedLanguages, new IssueMarkerFactory(), logger, issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
+            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
+            : this(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger, new IssueMarkerFactory())
         {
         }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssueMarkerFactory issueMarkerFactory
-            , ILogger logger, IIssuesFilter issuesFilter)
+            IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
+            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger, IIssueMarkerFactory issueMarkerFactory)
         {
             this.dte = dte;
 
@@ -81,6 +83,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.currentSnapshot = document.TextBuffer.CurrentSnapshot;
 
             this.detectedLanguages = detectedLanguages;
+            this.sonarErrorDataSource = sonarErrorDataSource;
             this.issueMarkerFactory = issueMarkerFactory;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
@@ -105,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var tagger = new IssueTagger(this.Factory.CurrentSnapshot.IssueMarkers, RemoveTagger);
             this.AddTagger(tagger);
-            
+
             return tagger;
         }
 
@@ -120,6 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 textBuffer.ChangedLowPriority += SafeOnBufferChange;
 
+                sonarErrorDataSource.AddFactory(this.Factory);
                 Provider.AddIssueTracker(this);
 
                 RequestAnalysis(null /* no options */);
@@ -138,6 +142,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 document.FileActionOccurred -= SafeOnFileActionOccurred;
                 textBuffer.ChangedLowPriority -= SafeOnBufferChange;
                 textBuffer.Properties.RemoveProperty(typeof(TextBufferIssueTracker));
+                sonarErrorDataSource.RemoveFactory(this.Factory);
                 Provider.RemoveIssueTracker(this);
             }
         }
@@ -212,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // Tell our factory to snap to a new snapshot.
             this.Factory.UpdateSnapshot(newIssues);
 
-            Provider.RefreshErrorList();
+            sonarErrorDataSource.RefreshErrorList();
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes

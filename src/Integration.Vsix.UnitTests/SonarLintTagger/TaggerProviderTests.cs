@@ -192,23 +192,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void TaggerAdded_SonarErrorDataSourceIsNotified()
-        {
-            CreateTagger(jsContentType);
-            var trackers = provider.ActiveTrackersForTesting.ToArray();
-            trackers.Count().Should().Be(1); // sanity check
-
-            mockSonarErrorDataSource.Verify(x => x.AddFactory(trackers[0].Factory), Times.Once);
-        }
-
-        [TestMethod]
         public void RequestAnalysis_Should_NotThrow_When_AnalysisFails()
         {
             mockAnalysisScheduler
                 .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
                 .Throws<Exception>();
 
-            Action act = () => 
+            Action act = () =>
             provider.RequestAnalysis("doc1.js", "", new []{AnalysisLanguage.CFamily}, null, null);
 
             act.Should().NotThrow();
@@ -222,7 +212,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var trackers = CreateMockedIssueTrackers("any", "any2");
 
             var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
-            
+
             actual.Should().BeEquivalentTo(trackers);
         }
 
@@ -284,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
             filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
 
-        private IIssueTracker CreateMockedIssueTracker(string filePath)
+        private static IIssueTracker CreateMockedIssueTracker(string filePath)
         {
             var mock = new Mock<IIssueTracker>();
             mock.Setup(x => x.FilePath).Returns(filePath);
