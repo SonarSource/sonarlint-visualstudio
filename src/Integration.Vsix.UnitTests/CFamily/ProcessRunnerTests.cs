@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -436,7 +437,7 @@ xxx yyy
         }
 
         [TestMethod]
-        public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
+        public void Execute_CancellationTokenCancelledMidway_CancelledDuringWritingRequest_ProcessKilled()
         {
             var exeName = WriteBatchFileForTest(TestContext, @"
 echo started!
@@ -460,7 +461,7 @@ echo started!
             args.HandleInputStream = writer =>
             {
                 writer.WriteLine("dummy");
-                Thread.Sleep(3000);
+                Thread.Sleep(2500);
                 writer.WriteLine("END");
             };
 
@@ -476,6 +477,55 @@ echo started!
             output.Should().Contain("started!");
             output.Should().Contain("dummy");
             output.Should().NotContain("done!");
+        }
+
+        [TestMethod]
+        public void Execute_CancellationTokenCancelledMidway_CanceleldDuringReadingResponse_ProcessKilled()
+        {
+            var exeName = WriteBatchFileForTest(TestContext, @"
+echo started!
+:again
+   set /p arg= 
+   echo %arg%
+   goto again");
+
+            using var processCancellationTokenSource = new CancellationTokenSource();
+            var logger = new TestLogger(true, true);
+            var args = new ProcessRunnerArguments(exeName, true)
+            {
+                TimeoutInMilliseconds = 5000,
+                CancellationToken = processCancellationTokenSource.Token
+            };
+            var output = new StringBuilder();
+            args.HandleOutputStream = reader =>
+            {
+                output.Append(reader.ReadLine()); // read the 'started!'
+
+                while (!reader.EndOfStream)
+                {
+                    output.Append(reader.ReadLine()); // read the parameters
+                    Thread.Sleep(2500);
+                }
+            };
+            args.HandleInputStream = writer =>
+            {
+                writer.WriteLine("dummy1");
+                writer.WriteLine("dummy2");
+            };
+
+            var runner = CreateProcessRunner(logger);
+            var processTask = Task.Run(() => { runner.Execute(args); });
+
+            processCancellationTokenSource.CancelAfter(500);
+
+            Task.WaitAll(new[] { processTask }, TimeSpan.FromSeconds(15));
+
+            runner.ExitCode.Should().Be(-1, "Unexpected exit code");
+            processCancellationTokenSource.IsCancellationRequested.Should().BeTrue();
+            var outputString = output.ToString();
+            outputString.Should().Contain("started!");
+            outputString.Should().Contain("dummy1");
+            outputString.Should().NotContain("dummy2");
         }
 
         [TestMethod]
