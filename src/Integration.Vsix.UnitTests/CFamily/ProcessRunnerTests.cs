@@ -438,7 +438,15 @@ xxx yyy
         [TestMethod]
         public void Execute_CancellationTokenCancelledMidway_ProcessKilled()
         {
-            var exeName = WriteBatchFileForTest(TestContext, "pause");
+            var exeName = WriteBatchFileForTest(TestContext, @"
+echo started!
+:again
+   set /p arg= 
+   echo %arg%
+   if %arg% == END (goto finished)
+   goto again
+:finished
+   echo done!");
 
             using var processCancellationTokenSource = new CancellationTokenSource();
             var logger = new TestLogger(true, true);
@@ -451,8 +459,9 @@ xxx yyy
             args.HandleOutputStream = reader => output = reader.ReadToEnd();
             args.HandleInputStream = writer =>
             {
+                writer.WriteLine("dummy");
                 Thread.Sleep(3000);
-                writer.WriteLine("Done!");
+                writer.WriteLine("END");
             };
 
             var runner = CreateProcessRunner(logger);
@@ -464,7 +473,9 @@ xxx yyy
 
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
             processCancellationTokenSource.IsCancellationRequested.Should().BeTrue();
-            output.Should().NotContain("Done!");
+            output.Should().Contain("started!");
+            output.Should().Contain("dummy");
+            output.Should().NotContain("done!");
         }
 
         [TestMethod]
@@ -548,11 +559,6 @@ xxx yyy
     // extension class to provide test logger assertion methods with the expected names.
     internal static class LoggerExtensions
     {
-        public static void AssertMessageLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringExists(expected);
-        }
-
         public static void AssertSingleErrorExists(this TestLogger logger, string expected)
         {
             AssertSinglePartialMessageExists(logger, CFamilyStrings.MSG_Prefix_ERROR, expected);
