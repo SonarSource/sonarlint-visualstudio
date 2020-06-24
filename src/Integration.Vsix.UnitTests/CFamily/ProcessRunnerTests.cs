@@ -78,6 +78,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             var logger = new TestLogger();
             var args = new ProcessRunnerArguments(exeName, true);
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             var runner = CreateProcessRunner(logger);
 
             // Act
@@ -86,8 +88,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Assert
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertMessageLogged("Hello world"); // Check output message are passed to the logger
-            logger.AssertErrorLogged("Testing 1,2,3..."); // Check error messages are passed to the logger
+            output.Should().Contain("Hello world");
+            output.Should().NotContain("Testing 1,2,3...");
         }
 
         [TestMethod]
@@ -109,6 +111,8 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             {
                 TimeoutInMilliseconds = 100
             };
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             var runner = CreateProcessRunner(logger);
 
             var timer = Stopwatch.StartNew();
@@ -123,7 +127,7 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             // timer.ElapsedMilliseconds >= 100.Should().BeTrue("Test error: batch process exited too early. Elapsed time(ms): {0}", timer.ElapsedMilliseconds)
 
             runner.ExitCode.Should().Be(ProcessRunner.ErrorCode, "Unexpected exit code");
-            logger.AssertMessageNotLogged("Hello world");
+            output.Should().NotContain("Hello world");
             // expecting a warning about the timeout
             logger.AssertPartialOutputStringExists("has been terminated");
         }
@@ -149,16 +153,17 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             {
                 EnvironmentVariables = envVariables
             };
-
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             // Act
             runner.Execute(args);
 
             // Assert
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertMessageLogged("PROCESS_VAR value");
-            logger.AssertMessageLogged("PROCESS_VAR2 value");
-            logger.AssertMessageLogged("PROCESS_VAR3 value");
+            output.Should().Contain("PROCESS_VAR value");
+            output.Should().Contain("PROCESS_VAR2 value");
+            output.Should().Contain("PROCESS_VAR3 value");
         }
 
         [TestMethod]
@@ -414,14 +419,15 @@ xxx yyy
             var runner = CreateProcessRunner(logger);
 
             args.CancellationToken = new CancellationToken(true);
-
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
             // Act
             runner.Execute(args);
 
             // Assert
             runner.ExitCode.Should().Be(0, "Unexpected exit code");
 
-            logger.AssertOutputStringDoesNotExist("Hello world");
+            output.Should().NotContain("Hello world");
         }
 
         [Ignore] // Flaky https://github.com/SonarSource/sonarlint-visualstudio/issues/1330
@@ -444,6 +450,8 @@ waitfor /t 10 {Guid.NewGuid():N}
                 TimeoutInMilliseconds = 12000,
                 CancellationToken = processCancellationTokenSource.Token
             };
+            var output = "";
+            args.HandleOutputStream = reader => output = reader.ReadToEnd();
 
             var runner = CreateProcessRunner(logger);
 
@@ -466,7 +474,7 @@ waitfor /t 10 {Guid.NewGuid():N}
             result.Should().BeFalse("Expecting the process to have failed");
             runner.ExitCode.Should().Be(-1, "Unexpected exit code");
             processCancellationTokenSource.IsCancellationRequested.Should().BeTrue();
-            logger.AssertPartialOutputStringDoesNotExist("Done!");
+            output.Should().NotContain("Done!");
         }
 
         [TestMethod]
@@ -545,7 +553,7 @@ xxx yyy
         #endregion Private methods
     }
 
-    // This test class was copied from the Scanner for MSBuild repo. The test logger in the scanner has different
+    // This test class was copied from the Scanner for MSBuild repo.The test logger in the scanner has different
     // methods. To keep the bulk of this source file as similar as possible to the scanner version, we have an
     // extension class to provide test logger assertion methods with the expected names.
     internal static class LoggerExtensions
@@ -553,21 +561,6 @@ xxx yyy
         public static void AssertMessageLogged(this TestLogger logger, string expected)
         {
             logger.AssertOutputStringExists(expected);
-        }
-
-        public static void AssertErrorLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringExists(CFamilyStrings.MSG_Prefix_ERROR + expected);
-        }
-
-        public static void AssertMessageNotLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringDoesNotExist(expected);
-        }
-
-        public static void AssertWarningLogged(this TestLogger logger, string expected)
-        {
-            logger.AssertOutputStringExists(CFamilyStrings.MSG_Prefix_WARN + expected);
         }
 
         public static void AssertSingleErrorExists(this TestLogger logger, string expected)
@@ -589,5 +582,4 @@ xxx yyy
             matches.Should().ContainSingle("More than one message contains the expected strings: {0}", string.Join(",", expected));
         }
     }
-
 }
