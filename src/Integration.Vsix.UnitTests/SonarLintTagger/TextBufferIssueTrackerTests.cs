@@ -253,7 +253,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetupIssuesFilter(out var _);
 
             // Sanity check
-            testSubject.LastIssues.Should().BeNull();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0);
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
 
@@ -263,7 +262,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             CheckErrorListRefreshWasRequested(1);
 
-            testSubject.LastIssues.Should().NotBeNull();
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(2);
 
