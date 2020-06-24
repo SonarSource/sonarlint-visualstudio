@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
-                var analysisTimeout = analyzerOptions?.AnalysisTimeoutInMiliseconds ?? Timeout.Infinite;
+                var analysisTimeout = analyzerOptions?.AnalysisTimeoutInMilliseconds ?? Timeout.Infinite;
 
                 scheduler.Schedule(path,
                     cancellationToken =>
