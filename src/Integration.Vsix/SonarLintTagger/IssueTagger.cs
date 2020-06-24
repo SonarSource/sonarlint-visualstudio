@@ -37,21 +37,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal sealed class IssueTagger : ITagger<IErrorTag>, IDisposable
     {
-        private IssuesSnapshot issues;
+        public delegate void OnTaggerDisposed(IssueTagger issueTagger);
+
+        private IEnumerable<IssueMarker> issueMarkers;
+        private readonly OnTaggerDisposed onTaggerDisposed;
         private bool isDisposed;
-        internal /* for testing */ IIssueTracker IssueTracker { get; }
 
-        public IssueTagger(IIssueTracker issueTracker)
+        public IssueTagger(IEnumerable<IssueMarker> issueMarkers, OnTaggerDisposed onTaggerDisposed)
         {
-            this.IssueTracker = issueTracker;
-            this.issues = issueTracker.LastIssues;
-
-            issueTracker.AddTagger(this);
+            this.issueMarkers = issueMarkers;
+            this.onTaggerDisposed = onTaggerDisposed;
         }
 
-        public void UpdateMarkers(IssuesSnapshot newIssues, SnapshotSpan? affectedSpan)
+        public void UpdateMarkers(IEnumerable<IssueMarker> newMarkers, SnapshotSpan? affectedSpan)
         {
-            this.issues = newIssues;
+            issueMarkers = newMarkers;
 
             var handler = this.TagsChanged;
             if (handler != null && affectedSpan.HasValue)
@@ -65,8 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (!isDisposed)
             {
                 // Called when the tagger is no longer needed (generally when the ITextView is closed).
-                this.IssueTracker.RemoveTagger(this);
-
+                onTaggerDisposed?.Invoke(this);
                 this.isDisposed = true;
             }
         }
@@ -77,12 +76,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(!isDisposed, "Not expecting GetTags to be called after the tagger has been disposed");
 
-            if (issues == null)
+            if (issueMarkers == null)
             {
                 return Enumerable.Empty<ITagSpan<IErrorTag>>();
             }
 
-            return issues.IssueMarkers
+            return issueMarkers
                 .Where(marker => spans.IntersectsWith(marker.Span))
                 .Select(marker => new TagSpan<IErrorTag>(marker.Span, new ErrorTag(PredefinedErrorTypeNames.Warning, marker.Issue.Message)));
         }

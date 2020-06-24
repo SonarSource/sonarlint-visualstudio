@@ -157,8 +157,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
                     () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, logger, issuesFilter));
 
-                // Always create a new tagger for each request
-                return new IssueTagger(issueTracker) as ITagger<T>;
+                // Always create a new tagger for each request.
+                // Delegate the actual creation to the tracker for the file.
+                return issueTracker.CreateTagger() as ITagger<T>;
             }
 
             return null;
