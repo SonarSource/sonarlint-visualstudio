@@ -174,6 +174,7 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             // Arrange
             var logger = new TestLogger();
             var runner = CreateProcessRunner(logger);
+            var output = "";
 
             try
             {
@@ -196,7 +197,11 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
 
                 var args = new ProcessRunnerArguments(exeName, true)
                 {
-                    EnvironmentVariables = envVariables
+                    EnvironmentVariables = envVariables,
+                    HandleOutputStream = reader =>
+                    {
+                        output = reader.ReadToEnd();
+                    }
                 };
 
                 // Act
@@ -213,9 +218,9 @@ $@"waitfor /t 2 {Guid.NewGuid():N}
             }
 
             // Check the child process used expected values
-            logger.AssertMessageLogged("file: machine override");
-            logger.AssertMessageLogged("file: process override");
-            logger.AssertMessageLogged("file: user override");
+            output.Should().Contain("file: machine override");
+            output.Should().Contain("file: process override");
+            output.Should().Contain("file: user override");
 
             // Check the runner reported it was overwriting existing variables
             // Note: the existing non-process values won't be visible to the child process
