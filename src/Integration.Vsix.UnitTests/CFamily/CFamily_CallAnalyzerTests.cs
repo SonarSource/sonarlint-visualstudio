@@ -43,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
 
+            statusNotifierMock.Verify(x=> x.AnalysisStarted("test.cpp"), Times.Once);
             statusNotifierMock.Verify(x=> x.AnalysisFinished("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
 
+            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
             statusNotifierMock.Verify(x => x.AnalysisFailed("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
@@ -69,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, new CancellationToken(true));
 
+            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
             statusNotifierMock.Verify(x => x.AnalysisCancelled("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
