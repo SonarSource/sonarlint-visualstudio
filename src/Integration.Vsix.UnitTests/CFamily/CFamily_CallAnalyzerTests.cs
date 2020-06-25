@@ -19,12 +19,13 @@
  */
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
@@ -33,6 +34,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     [TestClass]
     public class CFamily_CLangAnalyzerTests
     {
+        [TestMethod]
+        public void CallAnalyzer_Succeeds_NotifiesOfSuccess()
+        {
+            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            
+            GetResponse(dummyProcessRunner, new Request(), new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+
+            statusNotifierMock.Verify(x=> x.AnalysisFinished(), Times.Once);
+            statusNotifierMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_Fails_NotifiesOfFailure()
+        {
+            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
+            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
+
+            GetResponse(dummyProcessRunner, new Request(), new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+
+            statusNotifierMock.Verify(x => x.AnalysisFailed(), Times.Once);
+            statusNotifierMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_AnalysisIsCancelled_NotifiesOfCancellation()
+        {
+            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+
+            GetResponse(dummyProcessRunner, new Request(), new TestLogger(), statusNotifierMock.Object, new CancellationToken(true));
+
+            statusNotifierMock.Verify(x => x.AnalysisCancelled(), Times.Once);
+            statusNotifierMock.VerifyNoOtherCalls();
+        }
+
         [TestMethod]
         public void CallAnalyzer_Succeeds_ReturnsMessages()
         {
@@ -117,9 +154,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger)
         {
+            return GetResponse(dummyProcessRunner, request, logger, Mock.Of<IAnalysisStatusNotifier>(), CancellationToken.None);
+        }
+
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
+        {
             var messages = new List<Message>();
 
-            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, logger, CancellationToken.None);
+            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, analysisStatusNotifier, logger, cancellationToken);
 
             return messages;
         }
