@@ -36,13 +36,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         [TestInitialize]
         public void TestInitialize()
         {
-            statusIcon = Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
+            statusIcon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
             statusBarMock = new Mock<IVsStatusbar>();
 
             var serviceProviderMock = new Mock<IServiceProvider>();
             serviceProviderMock.Setup(x => x.GetService(typeof(IVsStatusbar))).Returns(statusBarMock.Object);
 
             testSubject = new AnalysisStatusNotifier(serviceProviderMock.Object);
+
+            ThreadHelper.SetCurrentThreadAsUIThread();
         }
 
         [TestMethod]

@@ -40,41 +40,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisStarted(string filePath)
         {
-            ShowSpinner();
-            ShowStatus(AnalysisStrings.Notifier_AnalysisStarted, filePath);
+            Notify(string.Format(AnalysisStrings.Notifier_AnalysisStarted, filePath), true);
         }
 
         public void AnalysisFinished(string filePath)
         {
-            HideSpinner();
-            ShowStatus(AnalysisStrings.Notifier_AnalysisEnded, filePath);
+            Notify(string.Format(AnalysisStrings.Notifier_AnalysisEnded, filePath), false);
         }
 
         public void AnalysisCancelled(string filePath)
         {
-            HideSpinner();
-            ShowStatus(AnalysisStrings.Notifier_AnalysisCancelled, filePath);
+            Notify(string.Format(AnalysisStrings.Notifier_AnalysisCancelled, filePath), false);
         }
 
         public void AnalysisFailed(string filePath)
         {
-            HideSpinner();
-            ShowStatus(AnalysisStrings.Notifier_AnalysisFailed, filePath);
+            Notify(string.Format(AnalysisStrings.Notifier_AnalysisFailed, filePath), false);
         }
 
-        private void ShowStatus(string text, params object[] args)
+        private void Notify(string message, bool showSpinner)
         {
-            vsStatusBar.SetText(string.Format(text, args));
+            RunOnUIThread(() =>
+            {
+                vsStatusBar.SetText(message);
+
+                object icon = (short) Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
+                vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
+            });
         }
 
-        private void ShowSpinner()
+        private static void RunOnUIThread(Action op)
         {
-            vsStatusBar.Animation(1, Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General);
-        }
-
-        private void HideSpinner()
-        {
-            vsStatusBar.Animation(0, Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General);
+            if (ThreadHelper.CheckAccess())
+            {
+                op();
+                return;
+            }
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                op();
+            });
         }
     }
 }
