@@ -32,7 +32,6 @@ using System.Text;
  */
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-
     internal static class MsvcDriver
     {
         public static Request ToRequest(CFamilyHelper.Capture[] captures)
@@ -88,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/D"))
                     {
                         string defineStr = args.readPrefix("/D");
-                        defineStr = defineStr.Replace("\"", "");
+                        defineStr = RemoveDoubleQuotes(defineStr);
 
                         if (defineStr.Contains("="))
                         {
@@ -108,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/U"))
                     {
                         string undefStr = args.readPrefix("/U");
-                        undefStr = undefStr.Replace("\"", "");
+                        undefStr = RemoveDoubleQuotes(undefStr);
 
                         predefines.Append("#undef ").Append(undefStr).Append('\n');
 
@@ -116,10 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/FI"))
                     {
                         string includeStr = args.readPrefix("/FI");
-                        if (!includeStr.StartsWith("\""))
-                        {
-                            includeStr = "\"" + includeStr + "\"";
-                        }
+                        includeStr = AddDoubleQuotes(includeStr);
 
                         includes.Append("#include ").Append(includeStr).Append('\n');
 
@@ -273,7 +269,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                     else
                     {
-                        var relativeOrAbsolutePath = arg.Replace("\"", "");
+                        var relativeOrAbsolutePath = RemoveDoubleQuotes(arg);
                         string file = Absolute(capture.Cwd, relativeOrAbsolutePath);
                         if (file != null)
                         {
@@ -447,6 +443,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             return request;
+        }
+
+        private static string AddDoubleQuotes(string originalString)
+        {
+            if (!originalString.StartsWith("\""))
+            {
+                originalString = "\"" + originalString + "\"";
+            }
+
+            return originalString;
+        }
+
+        private static string RemoveDoubleQuotes(string originalString)
+        {
+            return originalString.Replace("\"", "");
         }
 
         /**

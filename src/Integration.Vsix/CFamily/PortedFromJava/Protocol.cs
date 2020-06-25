@@ -179,11 +179,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
               case "message":
                   var message = readMessage(reader);
 
-                  if ("ParsingError".Equals(message.RuleKey))
-                  {
-                      throw new SonarLintException("Parsing error: " + message.Text);
-                  }
-
                   if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
                   {
                       messages.Add(message);
