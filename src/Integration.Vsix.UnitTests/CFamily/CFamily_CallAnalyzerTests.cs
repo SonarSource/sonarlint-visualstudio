@@ -39,10 +39,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
             var dummyProcessRunner = new DummyProcessRunner(MockResponse());
-            
-            GetResponse(dummyProcessRunner, new Request(), new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+            var request = new Request {File = "test.cpp"};
 
-            statusNotifierMock.Verify(x=> x.AnalysisFinished(), Times.Once);
+            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+
+            statusNotifierMock.Verify(x=> x.AnalysisFinished("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
 
@@ -51,10 +52,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
             var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
+            var request = new Request { File = "test.cpp" };
 
-            GetResponse(dummyProcessRunner, new Request(), new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
 
-            statusNotifierMock.Verify(x => x.AnalysisFailed(), Times.Once);
+            statusNotifierMock.Verify(x => x.AnalysisFailed("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
 
@@ -63,10 +65,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
             var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            var request = new Request { File = "test.cpp" };
 
-            GetResponse(dummyProcessRunner, new Request(), new TestLogger(), statusNotifierMock.Object, new CancellationToken(true));
+            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, new CancellationToken(true));
 
-            statusNotifierMock.Verify(x => x.AnalysisCancelled(), Times.Once);
+            statusNotifierMock.Verify(x => x.AnalysisCancelled("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
 

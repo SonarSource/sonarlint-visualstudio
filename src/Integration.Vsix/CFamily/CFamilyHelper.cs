@@ -159,22 +159,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                 };
 
+                statusNotifier.AnalysisStarted(request.File);
+
                 runner.Execute(args);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    statusNotifier.AnalysisCancelled();
+                    statusNotifier.AnalysisCancelled(request.File);
                 }
                 else
                 {
-                    statusNotifier.AnalysisFinished();
+                    statusNotifier.AnalysisFinished(request.File);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, ex.ToString());
 
-                statusNotifier.AnalysisFailed();
+                statusNotifier.AnalysisFailed(request.File);
             }
         }
 

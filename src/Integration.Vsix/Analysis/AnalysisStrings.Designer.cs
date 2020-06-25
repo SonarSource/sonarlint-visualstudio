@@ -153,6 +153,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Cancelled analysis of {0}.
+        /// </summary>
+        internal static string Notifier_AnalysisCancelled {
+            get {
+                return ResourceManager.GetString("Notifier_AnalysisCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Finished analyzing {0}.
+        /// </summary>
+        internal static string Notifier_AnalysisEnded {
+            get {
+                return ResourceManager.GetString("Notifier_AnalysisEnded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Failed to analyze {0}, please see the Output Window for more information..
+        /// </summary>
+        internal static string Notifier_AnalysisFailed {
+            get {
+                return ResourceManager.GetString("Notifier_AnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Analyzing {0}.
+        /// </summary>
+        internal static string Notifier_AnalysisStarted {
+            get {
+                return ResourceManager.GetString("Notifier_AnalysisStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error re-analysing open documents: {0}.
         /// </summary>
         internal static string ReanalysisStatusBar_Error {
