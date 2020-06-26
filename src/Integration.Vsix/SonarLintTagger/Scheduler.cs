@@ -38,13 +38,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             jobs = new Dictionary<string, WeakReference<ExtendedCancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public void Schedule(string jobId, Action<CancellationToken> action, int timeoutInMilliseconds)
+        public void Schedule(string jobId, Action<CancellationToken> action, int? timeoutInMilliseconds)
         {
             var newTokenSource = IssueToken(jobId);
 
-            if (timeoutInMilliseconds != Timeout.Infinite)
+            if (timeoutInMilliseconds.HasValue)
             {
-                newTokenSource.CancelAfter(timeoutInMilliseconds);
+                newTokenSource.CancelAfter(timeoutInMilliseconds.Value);
             }
 
             action(newTokenSource.Token);
