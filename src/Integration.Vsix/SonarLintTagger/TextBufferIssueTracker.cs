@@ -52,13 +52,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ITextSnapshot currentSnapshot;
 
         private readonly ITextDocument document;
-        private readonly IIssueMarkerFactory issueMarkerFactory;
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
 
         public string FilePath { get; private set; }
+        private string projectName;
+
         internal /* for testing */ SnapshotFactory Factory { get; }
 
         private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
@@ -82,7 +83,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.issueMarkerFactory = issueMarkerFactory;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -92,14 +92,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             this.charset = document.Encoding.WebName;
 
-            // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
-            // It's possible to have a ProjectItem that doesn't have a ContainingProject
-            // e.g. files under the "External Dependencies" project folder in the Solution Explorer
-            var projectName = this.ProjectItem?.ContainingProject.Name ?? "{none}";
+            this.projectName = GetProjectName();
             this.Factory = new SnapshotFactory(new IssuesSnapshot(projectName, this.FilePath, 0,
                 new List<IssueMarker>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
+        }
+
+        private string GetProjectName()
+        {
+            // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
+            // It's possible to have a ProjectItem that doesn't have a ContainingProject
+            // e.g. files under the "External Dependencies" project folder in the Solution Explorer
+            var projectName = this.ProjectItem?.ContainingProject.Name ?? "{none}";
+
+            return projectName;
         }
 
         public IssueTagger CreateTagger()
@@ -184,47 +191,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // in the new text buffer.
                 currentSnapshot = e.After;
 
-                var newMarkers = TranslateMarkerSpans();
+                projectName = GetProjectName();
 
-                SnapToNewSnapshot(newMarkers);
+                UpdateIssues(this.Factory.CurrentSnapshot.IssueMarkers);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
-            }
-        }
-
-        private IssuesSnapshot TranslateMarkerSpans()
-        {
-            var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = oldSnapshot.IssueMarkers
-                .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
-                .Where(clone => clone != null);
-
-            return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
-        }
-
-        private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
-            1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
-
-        private IssueMarker CreateIssueMarker(IAnalysisIssue issue) =>
-            issueMarkerFactory.Create(issue, currentSnapshot);
-
-        private void SnapToNewSnapshot(IssuesSnapshot newIssues)
-        {
-            var oldIssues = Factory.CurrentSnapshot;
-
-            // Tell our factory to snap to a new snapshot.
-            this.Factory.UpdateSnapshot(newIssues);
-
-            sonarErrorDataSource.RefreshErrorList();
-
-            // Work out which part of the document has been affected by the changes, and tell
-            // the taggers about the changes
-            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newIssues);
-            foreach (var tagger in activeTaggers)
-            {
-                tagger.UpdateMarkers(newIssues.IssueMarkers, affectedSpan);
             }
         }
 
@@ -256,40 +229,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Daemon interaction
 
-        public void RequestAnalysis(IAnalyzerOptions options)
-        {
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, options);
-        }
-
         void IIssueConsumer.Accept(string path, IEnumerable<IAnalysisIssue> issues)
         {
-            // Callback from the daemon when new results are available
-            if (path != FilePath)
-            {
-                Debug.Fail("Issues returned for an unexpected file path");
-                return;
-            }
-
-            var filteredIssues = RemoveSuppressedIssues(issues);
-
-            // See bug #1487: we should be creating the issue markers using the text snapshot
-            // from when the analysis was triggered, not the current one.
-            var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
-            UpdateIssues(newMarkers);
+            projectName = GetProjectName();
+            IIssueConsumer issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, issuesFilter, UpdateIssues, logger);
+            issueConsumer.Accept(path, issues);
         }
 
-        private IEnumerable<IAnalysisIssue> RemoveSuppressedIssues(IEnumerable<IAnalysisIssue> issues)
+        public void RequestAnalysis(IAnalyzerOptions options)
         {
-            var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
-
-            var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is FilterableIssueAdapter), "Not expecting the issue filter to change the list item type");
-
-            var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
-            logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
-
-            return filteredIssues.OfType<FilterableIssueAdapter>()
-                .Select(x => x.SonarLintIssue);
+            projectName = GetProjectName();
+            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, issuesFilter, UpdateIssues, logger);
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 
         private void RefreshIssues()
@@ -299,9 +250,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void UpdateIssues(IEnumerable<IssueMarker> issueMarkers)
         {
-            var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newSnapshot = new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
+            var newSnapshot = TranslateAndCreateNewSnapshot(issueMarkers);
             SnapToNewSnapshot(newSnapshot);
+        }
+
+        private IssuesSnapshot TranslateAndCreateNewSnapshot(IEnumerable<IssueMarker> issueMarkers)
+        {
+            var oldSnapshotVersion = this.Factory.CurrentSnapshot.VersionNumber;
+
+            var newMarkers = issueMarkers
+                .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
+                .Where(clone => clone != null);
+
+            return new IssuesSnapshot(projectName, this.FilePath, oldSnapshotVersion + 1, newMarkers);
+        }
+
+        private void SnapToNewSnapshot(IssuesSnapshot newIssues)
+        {
+            var oldIssues = Factory.CurrentSnapshot;
+
+            // Tell our factory to snap to a new snapshot.
+            this.Factory.UpdateSnapshot(newIssues);
+
+            sonarErrorDataSource.RefreshErrorList();
+
+            // Work out which part of the document has been affected by the changes, and tell
+            // the taggers about the changes
+            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newIssues);
+            foreach (var tagger in activeTaggers)
+            {
+                tagger.UpdateMarkers(newIssues.IssueMarkers, affectedSpan);
+            }
         }
 
         #endregion
