@@ -70,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var request = new Request { File = "test.cpp" };
 
             var extendedCancellationTokenSource = new ExtendedCancellationTokenSource();
+            extendedCancellationTokenSource.IsCancelledExplicitly = true;
             extendedCancellationTokenSource.Cancel();
 
             GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, extendedCancellationTokenSource.Token);
@@ -100,8 +101,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             // This is our only indication of a timeout: a CancellationTokenSource that is cancelled with a timer.
             var extendedCancellationTokenSource = new ExtendedCancellationTokenSource();
-            extendedCancellationTokenSource.CancelAfter(1);
-            Thread.Sleep(100);
+            extendedCancellationTokenSource.IsCancelledExplicitly = false;
+            extendedCancellationTokenSource.Cancel();
 
             GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, extendedCancellationTokenSource.Token);
 
