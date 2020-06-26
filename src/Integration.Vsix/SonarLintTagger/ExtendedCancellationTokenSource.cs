@@ -25,19 +25,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     public class ExtendedCancellationTokenSource : CancellationTokenSource
     {
-        public bool IsCancelledExplicitly { get; private set; }
-
-        public new void Cancel()
-        {
-            IsCancelledExplicitly = true;
-            base.Cancel();
-        }
-
-        public new void Cancel(bool throwOnException)
-        {
-            IsCancelledExplicitly = true;
-            base.Cancel(throwOnException);
-        }
+        public bool IsCancelledExplicitly { get; set; }
     }
 
     public static class CancellationTokenExtensions

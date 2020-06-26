@@ -46,13 +46,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             var job = SetupJobAction(out var getToken);
 
-            testSubject.Schedule("test path", job.Object, 10);
+            testSubject.Schedule("test path", job.Object, 1000);
 
             var token = getToken();
             token.IsCancellationRequested.Should().BeFalse();
 
             // wait for job to time out
-            Thread.Sleep(100);
+            Thread.Sleep(3000);
 
             token.IsCancellationRequested.Should().BeTrue();
             token.IsTimedOut().Should().BeTrue();

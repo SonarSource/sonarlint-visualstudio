@@ -42,7 +42,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var newTokenSource = IssueToken(jobId);
 
-            newTokenSource.CancelAfter(timeoutInMilliseconds);
+            if (timeoutInMilliseconds != Timeout.Infinite)
+            {
+                newTokenSource.CancelAfter(timeoutInMilliseconds);
+            }
 
             action(newTokenSource.Token);
             // The job might be running asynchronously so we don't know when to dispose the CancellationTokenSources, and have to rely on weak-refs and garbage collection to do it for us
@@ -65,7 +68,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (jobs.ContainsKey(jobId) && jobs[jobId].TryGetTarget(out var tokenSource))
             {
-                tokenSource.Cancel(throwOnException: false);
+                tokenSource.IsCancelledExplicitly = true;
+                tokenSource.Cancel(throwOnFirstException: false);
                 tokenSource.Dispose();
             }
         }
