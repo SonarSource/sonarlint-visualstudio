@@ -48,45 +48,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
-        public void AnalysisStarted_DisplayMessageAndStartSpinner()
+        [DataRow("foo-started.cpp", "foo-started.cpp")]
+        [DataRow("c:\\test\\foo-started.cpp", "foo-started.cpp")]
+        [DataRow("..\\test\\foo-started.cpp", "foo-started.cpp")]
+        public void AnalysisStarted_DisplayMessageAndStartSpinner(string filePath, string expectedNotifiedFileName)
         {
-            const string fileName = "foo-started.cpp";
-            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisStarted, fileName);
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisStarted, expectedNotifiedFileName);
 
-            testSubject.AnalysisStarted(fileName);
+            testSubject.AnalysisStarted(filePath);
 
             VerifyStatusBarMessageAndIcon(expectedMessage, true);
         }
 
         [TestMethod]
-        public void AnalysisFinished_DisplayMessageAndStopSpinner()
+        [DataRow("foo-finished.cpp", "foo-finished.cpp")]
+        [DataRow("c:\\test\\foo-finished.cpp", "foo-finished.cpp")]
+        [DataRow("..\\test\\foo-finished.cpp", "foo-finished.cpp")]
+        public void AnalysisFinished_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
         {
-            const string fileName = "foo-finished.cpp";
-            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisEnded, fileName);
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFinished, expectedNotifiedFileName);
 
-            testSubject.AnalysisFinished(fileName);
+            testSubject.AnalysisFinished(filePath);
 
             VerifyStatusBarMessageAndIcon(expectedMessage, false);
         }
 
         [TestMethod]
-        public void AnalysisCancelled_DisplayMessageAndStopSpinner()
+        [DataRow("foo-cancelled.cpp", "foo-cancelled.cpp")]
+        [DataRow("c:\\test\\foo-cancelled.cpp", "foo-cancelled.cpp")]
+        [DataRow("..\\test\\foo-cancelled.cpp", "foo-cancelled.cpp")]
+        public void AnalysisCancelled_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
         {
-            const string fileName = "foo-cancelled.cpp";
-            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisCancelled, fileName);
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisCancelled, expectedNotifiedFileName);
 
-            testSubject.AnalysisCancelled(fileName);
+            testSubject.AnalysisCancelled(filePath);
 
             VerifyStatusBarMessageAndIcon(expectedMessage, false);
         }
 
         [TestMethod]
-        public void AnalysisFailed_DisplayMessageAndStopSpinner()
+        [DataRow("foo-failed.cpp", "foo-failed.cpp")]
+        [DataRow("c:\\test\\foo-failed.cpp", "foo-failed.cpp")]
+        [DataRow("..\\test\\foo-failed.cpp", "foo-failed.cpp")]
+        public void AnalysisFailed_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
         {
-            const string fileName = "foo-failed.cpp";
-            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFailed, fileName);
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFailed, expectedNotifiedFileName);
 
-            testSubject.AnalysisFailed(fileName);
+            testSubject.AnalysisFailed(filePath);
 
             VerifyStatusBarMessageAndIcon(expectedMessage, false);
         }

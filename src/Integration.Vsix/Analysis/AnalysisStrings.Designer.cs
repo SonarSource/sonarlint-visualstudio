@@ -162,20 +162,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Finished analyzing {0}.
-        /// </summary>
-        internal static string Notifier_AnalysisEnded {
-            get {
-                return ResourceManager.GetString("Notifier_AnalysisEnded", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarLint: Failed to analyze {0}, please see the Output Window for more information..
         /// </summary>
         internal static string Notifier_AnalysisFailed {
             get {
                 return ResourceManager.GetString("Notifier_AnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint: Finished analyzing {0}.
+        /// </summary>
+        internal static string Notifier_AnalysisFinished {
+            get {
+                return ResourceManager.GetString("Notifier_AnalysisFinished", resourceCulture);
             }
         }
         

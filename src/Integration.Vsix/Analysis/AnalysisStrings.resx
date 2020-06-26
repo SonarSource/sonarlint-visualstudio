@@ -166,7 +166,7 @@
   <data name="Notifier_AnalysisCancelled" xml:space="preserve">
     <value>SonarLint: Cancelled analysis of {0}</value>
   </data>
-  <data name="Notifier_AnalysisEnded" xml:space="preserve">
+  <data name="Notifier_AnalysisFinished" xml:space="preserve">
     <value>SonarLint: Finished analyzing {0}</value>
   </data>
   <data name="Notifier_AnalysisFailed" xml:space="preserve">

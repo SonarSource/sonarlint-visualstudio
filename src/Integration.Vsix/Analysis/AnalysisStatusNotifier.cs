@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -40,28 +41,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisStarted(string filePath)
         {
-            Notify(string.Format(AnalysisStrings.Notifier_AnalysisStarted, filePath), true);
+            Notify(AnalysisStrings.Notifier_AnalysisStarted, filePath, true);
         }
 
         public void AnalysisFinished(string filePath)
         {
-            Notify(string.Format(AnalysisStrings.Notifier_AnalysisEnded, filePath), false);
+            Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false);
         }
 
         public void AnalysisCancelled(string filePath)
         {
-            Notify(string.Format(AnalysisStrings.Notifier_AnalysisCancelled, filePath), false);
+            Notify(AnalysisStrings.Notifier_AnalysisCancelled, filePath, false);
         }
 
         public void AnalysisFailed(string filePath)
         {
-            Notify(string.Format(AnalysisStrings.Notifier_AnalysisFailed, filePath), false);
+            Notify(AnalysisStrings.Notifier_AnalysisFailed, filePath, false);
         }
 
-        private void Notify(string message, bool showSpinner)
+        private void Notify(string messageFormat, string filePath, bool showSpinner)
         {
             RunOnUIThread(() =>
             {
+                var fileName = Path.GetFileName(filePath);
+                var message = string.Format(messageFormat, fileName);
                 vsStatusBar.SetText(message);
 
                 object icon = (short) Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
