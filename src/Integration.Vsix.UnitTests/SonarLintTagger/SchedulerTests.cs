@@ -42,20 +42,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void Schedule_TimeoutProvided_JobCancelledAfterTimeoutElapsed()
+        public void Schedule_JobReachedTimeout_JobCancelledDueToTimeOut()
         {
             var job = SetupJobAction(out var getToken);
-            const int timeoutInMiliseconds = 100;
 
-            testSubject.Schedule("test path", job.Object, timeoutInMiliseconds);
+            testSubject.Schedule("test path", job.Object, 10);
 
             var token = getToken();
-            job.Verify(x => x(token), Times.Once);
             token.IsCancellationRequested.Should().BeFalse();
 
-            Thread.Sleep(300);
+            // wait for job to time out
+            Thread.Sleep(100);
 
             token.IsCancellationRequested.Should().BeTrue();
+            token.IsTimedOut().Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Schedule_JobDidNotReachTimeout_JobCancelledDueToSecondRetrigger()
+        {
+            var firstJob = SetupJobAction(out var getFirstToken);
+            var secondJob = SetupJobAction(out _);
+
+            testSubject.Schedule("test path", firstJob.Object, 3000);
+            testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
+
+            var firstToken = getFirstToken();
+
+            firstToken.IsCancellationRequested.Should().BeTrue();
+            firstToken.IsTimedOut().Should().BeFalse();
         }
 
         [TestMethod]
