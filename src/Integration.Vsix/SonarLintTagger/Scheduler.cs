@@ -65,9 +65,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (jobs.ContainsKey(jobId) && jobs[jobId].TryGetTarget(out var tokenSource))
             {
-                tokenSource.Cancel(throwOnFirstException: false);
+                tokenSource.Cancel(throwOnException: false);
                 tokenSource.Dispose();
             }
         }
-    }
+    }   
 }
