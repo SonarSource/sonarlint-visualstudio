@@ -74,14 +74,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
-        [DataRow("foo-cancelled.cpp", "foo-cancelled.cpp")]
-        [DataRow("c:\\test\\foo-cancelled.cpp", "foo-cancelled.cpp")]
-        [DataRow("..\\test\\foo-cancelled.cpp", "foo-cancelled.cpp")]
-        public void AnalysisCancelled_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
+        [DataRow("foo-timedout.cpp", "foo-timedout.cpp")]
+        [DataRow("c:\\test\\foo-timedout.cpp", "foo-timedout.cpp")]
+        [DataRow("..\\test\\foo-timedout.cpp", "foo-timedout.cpp")]
+        public void AnalysisTimedOut_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
         {
-            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisCancelled, expectedNotifiedFileName);
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisTimedOut, expectedNotifiedFileName);
 
-            testSubject.AnalysisCancelled(filePath);
+            testSubject.AnalysisTimedOut(filePath);
 
             VerifyStatusBarMessageAndIcon(expectedMessage, false);
         }

@@ -49,9 +49,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false);
         }
 
-        public void AnalysisCancelled(string filePath)
+        public void AnalysisTimedOut(string filePath)
         {
-            Notify(AnalysisStrings.Notifier_AnalysisCancelled, filePath, false);
+            Notify(AnalysisStrings.Notifier_AnalysisTimedOut, filePath, false);
         }
 
         public void AnalysisFailed(string filePath)
@@ -63,12 +63,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             RunOnUIThread(() =>
             {
+                object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
+                vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
+
                 var fileName = Path.GetFileName(filePath);
                 var message = string.Format(messageFormat, fileName);
                 vsStatusBar.SetText(message);
-
-                object icon = (short) Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
-                vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
             });
         }
 

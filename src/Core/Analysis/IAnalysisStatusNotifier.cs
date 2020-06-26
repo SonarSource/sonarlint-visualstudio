@@ -24,7 +24,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         void AnalysisStarted(string filePath);
         void AnalysisFinished(string filePath);
-        void AnalysisCancelled(string filePath);
+        void AnalysisTimedOut(string filePath);
         void AnalysisFailed(string filePath);
     }
 }

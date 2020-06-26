@@ -165,7 +165,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    statusNotifier.AnalysisCancelled(request.File);
+                    if (cancellationToken.IsTimedOut())
+                    {
+                        statusNotifier.AnalysisTimedOut(request.File);
+                    }
                 }
                 else
                 {
