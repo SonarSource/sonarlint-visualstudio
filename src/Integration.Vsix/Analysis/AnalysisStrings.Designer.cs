@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Failed to analyze {0}, please see the Output Window for more information..
+        ///   Looks up a localized string similar to SonarLint: Failed to analyze {0}. See the Output Window for more information..
         /// </summary>
         internal static string Notifier_AnalysisFailed {
             get {

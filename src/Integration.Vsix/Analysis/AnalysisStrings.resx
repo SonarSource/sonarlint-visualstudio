@@ -170,7 +170,7 @@
     <value>SonarLint: Finished analyzing {0}</value>
   </data>
   <data name="Notifier_AnalysisFailed" xml:space="preserve">
-    <value>SonarLint: Failed to analyze {0}, please see the Output Window for more information.</value>
+    <value>SonarLint: Failed to analyze {0}. See the Output Window for more information.</value>
   </data>
   <data name="Notifier_AnalysisStarted" xml:space="preserve">
     <value>SonarLint: Analyzing {0}</value>
