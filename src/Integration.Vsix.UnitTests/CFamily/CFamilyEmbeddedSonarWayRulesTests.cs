@@ -40,11 +40,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         // The QP filter has "active/inactive" tabs. The number of rules is shown in the top-right of the screen.
         // 5. Repeat for C++.
 
-        // Rule data for C-Family plugin v6.10 (build 18490)
-        private const int Active_C_Rules = 179;
+        // Rule data for C-Family plugin v6.11 (build 19130)
+        private const int Active_C_Rules = 181;
         private const int Inactive_C_Rules = 104;
 
-        private const int Active_CPP_Rules = 286;
+        private const int Active_CPP_Rules = 289;
         private const int Inactive_CPP_Rules = 168;
 
         private readonly CFamilySonarWayRulesConfigProvider rulesMetadataCache = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
