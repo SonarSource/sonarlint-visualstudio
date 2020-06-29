@@ -24,9 +24,9 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal class IssueMarkerFactory : IIssueMarkerFactory
+    internal class IssueSpanCalculator : IIssueSpanCalculator
     {
-        public IssueMarker Create(IAnalysisIssue issue, ITextSnapshot currentSnapshot)
+        public SnapshotSpan CalculateSpan(IAnalysisIssue issue, ITextSnapshot currentSnapshot)
         {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
 
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var start = new SnapshotPoint(currentSnapshot, startPos);
             var end = new SnapshotPoint(currentSnapshot, endPos);
 
-            return new IssueMarker(issue, new SnapshotSpan(start, end));
+            return new SnapshotSpan(start, end);
         }
     }
 }

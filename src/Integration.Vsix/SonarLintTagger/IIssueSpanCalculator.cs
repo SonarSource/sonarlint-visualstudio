@@ -23,8 +23,11 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueMarkerFactory
+    internal interface IIssueSpanCalculator
     {
-        IssueMarker Create(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
+        /// <summary>
+        /// Returns the text span corresponding to the supplied analysis issue
+        /// </summary>
+        SnapshotSpan CalculateSpan(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
     }
 }
