@@ -86,6 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject.Schedule("test path", secondJob.Object, 1);
             Thread.Sleep(10);
             testSubject.Schedule("test path", thirdJob.Object, 1);
+            Thread.Sleep(10);
 
             var firstToken = getFirstToken();
             firstToken.IsCancellationRequested.Should().BeTrue();

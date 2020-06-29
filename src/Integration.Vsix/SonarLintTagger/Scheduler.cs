@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 newTokenSource.CancelAfter(timeoutInMilliseconds.Value);
             }
-
+            
             action(newTokenSource.Token);
             // The job might be running asynchronously so we don't know when to dispose the CancellationTokenSources, and have to rely on weak-refs and garbage collection to do it for us
         }
