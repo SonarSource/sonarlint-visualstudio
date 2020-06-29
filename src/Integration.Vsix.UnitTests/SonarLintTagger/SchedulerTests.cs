@@ -45,17 +45,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void Schedule_TimeoutProvided_JobCancelledAfterTimeoutElapsed()
         {
             var job = SetupJobAction(out var getToken);
-            const int timeoutInMiliseconds = 100;
 
-            testSubject.Schedule("test path", job.Object, timeoutInMiliseconds);
+            testSubject.Schedule("test path", job.Object, 1);
 
             var token = getToken();
             job.Verify(x => x(token), Times.Once);
             token.IsCancellationRequested.Should().BeFalse();
 
-            Thread.Sleep(300);
+            Thread.Sleep(100);
 
             token.IsCancellationRequested.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Schedule_JobDidNotReachTimeout_JobCancelledDueToSecondRetrigger()
+        {
+            var firstJob = SetupJobAction(out var getFirstToken);
+            var secondJob = SetupJobAction(out _);
+
+            testSubject.Schedule("test path", firstJob.Object, 3000);
+
+            var firstToken = getFirstToken();
+            firstToken.IsCancellationRequested.Should().BeFalse();
+
+            testSubject.Schedule("test path", secondJob.Object, null);
+
+            firstToken.IsCancellationRequested.Should().BeTrue();
         }
 
         [TestMethod]
@@ -65,9 +80,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var secondJob = SetupJobAction(out var getSecondToken);
             var thirdJob = SetupJobAction(out var getThirdToken);
 
-            testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite);
-            testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
-            testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite);
+            testSubject.Schedule("test path", firstJob.Object, null);
+            testSubject.Schedule("test path", secondJob.Object, null);
+            testSubject.Schedule("test path", thirdJob.Object, null);
 
             var firstToken = getFirstToken();
             firstJob.Verify(x => x(firstToken), Times.Once);
@@ -80,15 +95,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
+        public void Schedule_MultipleCalls_Sequential_TimeOut_EachJobIsCancelled()
+        {
+            var firstJob = SetupJobAction(out var getFirstToken);
+            var secondJob = SetupJobAction(out var getSecondToken);
+            var thirdJob = SetupJobAction(out var getThirdToken);
+
+            testSubject.Schedule("test path", firstJob.Object, 1);
+            Thread.Sleep(100);
+
+            var firstToken = getFirstToken();
+            firstToken.IsCancellationRequested.Should().BeTrue();
+            firstJob.Verify(x => x(firstToken), Times.Once);
+
+            testSubject.Schedule("test path", secondJob.Object, 1);
+            Thread.Sleep(100);
+
+            var secondToken = getSecondToken();
+            secondToken.IsCancellationRequested.Should().BeTrue();
+            secondJob.Verify(x => x(secondToken), Times.Once);
+
+            testSubject.Schedule("test path", thirdJob.Object, null);
+
+            var thirdToken = getThirdToken();
+            thirdToken.IsCancellationRequested.Should().BeFalse();
+            thirdJob.Verify(x => x(thirdToken), Times.Once);
+        }
+
+        [TestMethod]
         public void Schedule_MultipleCalls_Sequential_EachCallHasNewToken()
         {
             var firstJob = SetupJobAction(out var getFirstToken);
             var secondJob = SetupJobAction(out var getSecondToken);
             var thirdJob = SetupJobAction(out var getThirdToken);
 
-            testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite);
-            testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
-            testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite);
+            testSubject.Schedule("test path", firstJob.Object, null);
+            testSubject.Schedule("test path", secondJob.Object, null);
+            testSubject.Schedule("test path", thirdJob.Object, null);
 
             var firstToken = getFirstToken();
             var secondToken = getSecondToken();
@@ -105,17 +148,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var secondJob = SetupJobAction(out var getSecondToken);
             var thirdJob = SetupJobAction(out var getThirdToken);
 
-            testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite);
+            testSubject.Schedule("test path", firstJob.Object, null);
 
             var firstToken = getFirstToken();
             firstToken.IsCancellationRequested.Should().BeFalse();
 
-            testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
+            testSubject.Schedule("test path", secondJob.Object, null);
 
             var secondToken = getSecondToken();
             secondToken.IsCancellationRequested.Should().BeFalse();
 
-            testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite);
+            testSubject.Schedule("test path", thirdJob.Object, null);
 
             var thirdToken = getThirdToken();
             thirdToken.IsCancellationRequested.Should().BeFalse();
@@ -128,9 +171,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var secondJob = SetupJobAction(out var getSecondToken, sleepInMiliseconds: 200);
             var thirdJob = SetupJobAction(out var getThirdToken, sleepInMiliseconds: 100);
 
-            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite));
-            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite));
-            var thirdJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite));
+            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, null));
+            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", secondJob.Object, null));
+            var thirdJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", thirdJob.Object, null));
 
             Task.WaitAll(firstJobTask, secondJobTask, thirdJobTask);
 
@@ -151,9 +194,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var secondJob = SetupJobAction(out var getSecondToken, sleepInMiliseconds: 200);
             var thirdJob = SetupJobAction(out var getThirdToken, sleepInMiliseconds: 100);
 
-            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite));
-            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite));
-            var thirdJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite));
+            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, null));
+            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", secondJob.Object, null));
+            var thirdJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", thirdJob.Object, null));
 
             Task.WaitAll(firstJobTask, secondJobTask, thirdJobTask);
 
@@ -172,9 +215,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var secondJob = SetupJobAction(out var getSecondToken, sleepInMiliseconds: 100);
             var thirdJob = SetupJobAction(out var getThirdToken, sleepInMiliseconds: 200);
 
-            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite));
-            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite));
-            var thirdJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite));
+            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, null));
+            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", secondJob.Object, null));
+            var thirdJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", thirdJob.Object, null));
 
             Task.WaitAll(firstJobTask, secondJobTask, thirdJobTask);
 
@@ -194,8 +237,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var firstJob = SetupJobAction(out var getFirstToken, sleepInMiliseconds: 300);
             var secondJob = SetupJobAction(out var getSecondToken, sleepInMiliseconds: 100);
 
-            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, Timeout.Infinite));
-            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test PATH", secondJob.Object, Timeout.Infinite));
+            var firstJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test path", firstJob.Object, null));
+            var secondJobTask = Task.Factory.StartNew(() => testSubject.Schedule("test PATH", secondJob.Object, null));
 
             Task.WaitAll(firstJobTask, secondJobTask);
 
