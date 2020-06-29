@@ -45,17 +45,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void Schedule_TimeoutProvided_JobCancelledAfterTimeoutElapsed()
         {
             var job = SetupJobAction(out var getToken);
-            const int timeoutInMiliseconds = 100;
 
-            testSubject.Schedule("test path", job.Object, timeoutInMiliseconds);
+            testSubject.Schedule("test path", job.Object, 1000);
 
             var token = getToken();
             job.Verify(x => x(token), Times.Once);
             token.IsCancellationRequested.Should().BeFalse();
 
-            Thread.Sleep(300);
+            Thread.Sleep(2000);
 
             token.IsCancellationRequested.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Schedule_JobDidNotReachTimeout_JobCancelledDueToSecondRetrigger()
+        {
+            var firstJob = SetupJobAction(out var getFirstToken);
+            var secondJob = SetupJobAction(out _);
+
+            testSubject.Schedule("test path", firstJob.Object, 3000);
+
+            var firstToken = getFirstToken();
+            firstToken.IsCancellationRequested.Should().BeFalse();
+
+            testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
+
+            firstToken.IsCancellationRequested.Should().BeTrue();
         }
 
         [TestMethod]
@@ -76,6 +91,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             secondJob.Verify(x => x(secondToken), Times.Once);
 
             var thirdToken = getThirdToken();
+            thirdJob.Verify(x => x(thirdToken), Times.Once);
+        }
+
+        [TestMethod]
+        public void Schedule_MultipleCalls_Sequential_TimeOut_EachJobIsCancelled()
+        {
+            var firstJob = SetupJobAction(out var getFirstToken);
+            var secondJob = SetupJobAction(out var getSecondToken);
+            var thirdJob = SetupJobAction(out var getThirdToken);
+
+            testSubject.Schedule("test path", firstJob.Object, 1);
+            Thread.Sleep(100);
+
+            var firstToken = getFirstToken();
+            firstToken.IsCancellationRequested.Should().BeTrue();
+            firstJob.Verify(x => x(firstToken), Times.Once);
+
+            testSubject.Schedule("test path", secondJob.Object, 1);
+            Thread.Sleep(100);
+
+            var secondToken = getSecondToken();
+            secondToken.IsCancellationRequested.Should().BeTrue();
+            secondJob.Verify(x => x(secondToken), Times.Once);
+
+            testSubject.Schedule("test path", thirdJob.Object, Timeout.Infinite);
+
+            var thirdToken = getThirdToken();
+            thirdToken.IsCancellationRequested.Should().BeFalse();
             thirdJob.Verify(x => x(thirdToken), Times.Once);
         }
 
