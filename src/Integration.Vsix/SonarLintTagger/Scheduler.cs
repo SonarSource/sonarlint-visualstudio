@@ -40,24 +40,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Schedule(string jobId, Action<CancellationToken> action, int timeoutInMilliseconds)
         {
-            var newTokenSource = IssueToken(jobId);
+            var newCancellationToken = IssueToken(jobId, timeoutInMilliseconds);
 
-            newTokenSource.CancelAfter(timeoutInMilliseconds);
-
-            action(newTokenSource.Token);
+            action(newCancellationToken);
             // The job might be running asynchronously so we don't know when to dispose the CancellationTokenSources, and have to rely on weak-refs and garbage collection to do it for us
         }
 
-        private CancellationTokenSource IssueToken(string jobId)
+        private CancellationToken IssueToken(string jobId, int timeoutInMilliseconds)
         {
             lock (jobs)
             {
                 CancelPreviousJob(jobId);
 
                 var newTokenSource = new CancellationTokenSource();
+                newTokenSource.CancelAfter(timeoutInMilliseconds);
+
                 jobs[jobId] = new WeakReference<CancellationTokenSource>(newTokenSource);
 
-                return newTokenSource;
+                return newTokenSource.Token;
             }
         }
 
