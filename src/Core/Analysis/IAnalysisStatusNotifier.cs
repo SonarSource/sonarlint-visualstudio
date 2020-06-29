@@ -18,19 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Threading;
-
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IScheduler
+    public interface IAnalysisStatusNotifier
     {
-        /// <summary>
-        /// Issues a cancellation token for a given job and fires cancellation request for the previous job for same jobId.
-        /// </summary>
-        /// <param name="jobId">Unique key based on which previous job is cancelled</param>
-        /// <param name="action">Job action</param>
-        /// <param name="timeoutInMilliseconds">number of milliseconds after which the job should be cancelled</param>
-        void Schedule(string jobId, Action<CancellationToken> action, int? timeoutInMilliseconds);
+        void AnalysisStarted(string filePath);
+        void AnalysisFinished(string filePath);
+        void AnalysisCancelled(string filePath);
+        void AnalysisFailed(string filePath);
     }
 }

@@ -29,33 +29,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class Scheduler : IScheduler
     {
-        private readonly IDictionary<string, WeakReference<CancellationTokenSource>> jobs;
+        private readonly IDictionary<string, WeakReference<ExtendedCancellationTokenSource>> jobs;
 
         [ImportingConstructor]
         public Scheduler()
         {
             // Slow memory leak: each unique jobId will add a new entry to the dictionary. Entries for completed jobs are not removed
-            jobs = new Dictionary<string, WeakReference<CancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
+            jobs = new Dictionary<string, WeakReference<ExtendedCancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public void Schedule(string jobId, Action<CancellationToken> action, int timeoutInMilliseconds)
+        public void Schedule(string jobId, Action<CancellationToken> action, int? timeoutInMilliseconds)
         {
             var newTokenSource = IssueToken(jobId);
 
-            newTokenSource.CancelAfter(timeoutInMilliseconds);
-
+            if (timeoutInMilliseconds.HasValue)
+            {
+                newTokenSource.CancelAfter(timeoutInMilliseconds.Value);
+            }
+            
             action(newTokenSource.Token);
             // The job might be running asynchronously so we don't know when to dispose the CancellationTokenSources, and have to rely on weak-refs and garbage collection to do it for us
         }
 
-        private CancellationTokenSource IssueToken(string jobId)
+        private ExtendedCancellationTokenSource IssueToken(string jobId)
         {
             lock (jobs)
             {
                 CancelPreviousJob(jobId);
 
-                var newTokenSource = new CancellationTokenSource();
-                jobs[jobId] = new WeakReference<CancellationTokenSource>(newTokenSource);
+                var newTokenSource = new ExtendedCancellationTokenSource();
+                jobs[jobId] = new WeakReference<ExtendedCancellationTokenSource>(newTokenSource);
 
                 return newTokenSource;
             }
@@ -65,9 +68,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (jobs.ContainsKey(jobId) && jobs[jobId].TryGetTarget(out var tokenSource))
             {
+                tokenSource.IsCancelledExplicitly = true;
                 tokenSource.Cancel(throwOnFirstException: false);
                 tokenSource.Dispose();
             }
         }
-    }
+    }   
 }
