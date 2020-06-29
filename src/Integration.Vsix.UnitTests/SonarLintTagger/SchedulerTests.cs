@@ -83,21 +83,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             testSubject.Schedule("test path", firstJob.Object, 1);
             Thread.Sleep(10);
-            testSubject.Schedule("test path", secondJob.Object, 1);
-            Thread.Sleep(10);
-            testSubject.Schedule("test path", thirdJob.Object, 1);
-            Thread.Sleep(10);
 
             var firstToken = getFirstToken();
             firstToken.IsCancellationRequested.Should().BeTrue();
             firstJob.Verify(x => x(firstToken), Times.Once);
 
+            testSubject.Schedule("test path", secondJob.Object, 1);
+            Thread.Sleep(10);
+
             var secondToken = getSecondToken();
             secondToken.IsCancellationRequested.Should().BeTrue();
             secondJob.Verify(x => x(secondToken), Times.Once);
 
+            testSubject.Schedule("test path", thirdJob.Object, null);
+
             var thirdToken = getThirdToken();
-            thirdToken.IsCancellationRequested.Should().BeTrue();
+            thirdToken.IsCancellationRequested.Should().BeFalse();
             thirdJob.Verify(x => x(thirdToken), Times.Once);
         }
 
