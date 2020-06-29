@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Integration.Vsix;
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
     [TestClass]
-    public class IssueMarkerFactoryTests
+    public class ISpanCalculatorTests
     {
         [TestMethod]
         public void ToMarker_Calculates_Span_Positions()
@@ -58,13 +58,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(firstLine, secondLine);
 
             // Act
-            var result = new IssueMarkerFactory()
-                .Create(issue, textSnapshotMock.Object);
+            var result = new IssueSpanCalculator()
+                .CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
-            result.Span.Start.Position.Should().Be(45); // firstLine.LineStartPosition + issue.StartLineOffset
-            result.Span.End.Position.Should().Be(67); // secondLine.LineStartPosition + issue.EndLineOffset
+            result.Start.Position.Should().Be(45); // firstLine.LineStartPosition + issue.StartLineOffset
+            result.End.Position.Should().Be(67); // secondLine.LineStartPosition + issue.EndLineOffset
         }
 
         [TestMethod]
@@ -99,13 +99,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(firstLine, secondLine);
 
             // Act
-            var result = new IssueMarkerFactory()
-                .Create(issue, textSnapshotMock.Object);
+            var result = new IssueSpanCalculator()
+                .CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
-            result.Span.Start.Position.Should().Be(103); // firstLine.LineStartPosition. Ignore issue.StartLineOffset in this case
-            result.Span.End.Position.Should().Be(137); // firstLine.LineStartPosition +  firstLine.LineLength
+            result.Start.Position.Should().Be(103); // firstLine.LineStartPosition. Ignore issue.StartLineOffset in this case
+            result.End.Position.Should().Be(137); // firstLine.LineStartPosition +  firstLine.LineLength
         }
 
         [TestMethod]
@@ -141,13 +141,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(firstLine, secondLine, 1600);
 
             // Act
-            var result = new IssueMarkerFactory()
-                .Create(issue, textSnapshotMock.Object);
+            var result = new IssueSpanCalculator()
+                .CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
-            result.Span.Start.Position.Should().Be(1599); // firstLine.LineStartPosition. Ignore offset because that will take us beyond the end of file
-            result.Span.End.Position.Should().Be(1600); // snapshot length
+            result.Start.Position.Should().Be(1599); // firstLine.LineStartPosition. Ignore offset because that will take us beyond the end of file
+            result.End.Position.Should().Be(1600); // snapshot length
         }
 
         [TestMethod]
@@ -177,13 +177,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var textSnapshotMock = CreateSnapshotMock(vsLine, vsLine, 1602);
 
             // Act
-            var result = new IssueMarkerFactory()
-                .Create(issue, textSnapshotMock.Object);
+            var result = new IssueSpanCalculator()
+                .CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
             result.Should().NotBeNull();
-            result.Span.Start.Position.Should().Be(1601); // vsLine.LineStartPosition + issue.StartLineOffset
-            result.Span.End.Position.Should().Be(1602); // snapshot length
+            result.Start.Position.Should().Be(1601); // vsLine.LineStartPosition + issue.StartLineOffset
+            result.End.Position.Should().Be(1602); // snapshot length
         }
 
 
