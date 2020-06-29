@@ -82,14 +82,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var thirdJob = SetupJobAction(out var getThirdToken);
 
             testSubject.Schedule("test path", firstJob.Object, 1);
-            Thread.Sleep(10);
+            Thread.Sleep(100);
 
             var firstToken = getFirstToken();
             firstToken.IsCancellationRequested.Should().BeTrue();
             firstJob.Verify(x => x(firstToken), Times.Once);
 
             testSubject.Schedule("test path", secondJob.Object, 1);
-            Thread.Sleep(10);
+            Thread.Sleep(100);
 
             var secondToken = getSecondToken();
             secondToken.IsCancellationRequested.Should().BeTrue();
