@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
