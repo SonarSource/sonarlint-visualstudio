@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ITextSnapshot currentSnapshot;
 
         private readonly ITextDocument document;
-        private readonly IIssueMarkerFactory issueMarkerFactory;
+        private readonly IIssueSpanCalculator issueSpanCalculator;
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
@@ -66,13 +66,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
-            : this(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger, new IssueMarkerFactory())
+            : this(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger, new IssueSpanCalculator())
         {
         }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger, IIssueMarkerFactory issueMarkerFactory)
+            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger, IIssueSpanCalculator issueSpanCalculator)
         {
             this.dte = dte;
 
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.issueMarkerFactory = issueMarkerFactory;
+            this.issueSpanCalculator = issueSpanCalculator;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -207,8 +207,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
             1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
-        private IssueMarker CreateIssueMarker(IAnalysisIssue issue) =>
-            issueMarkerFactory.Create(issue, currentSnapshot);
+        private IssueMarker CreateIssueMarker(IAnalysisIssue issue)
+        {
+            var span = issueSpanCalculator.CalculateSpan(issue, currentSnapshot);
+            return new IssueMarker(issue, span);
+        }
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
         {
