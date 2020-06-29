@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 2. Add a tagger -> analysis requested
             using (testSubject.CreateTagger())
             {
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                     (IAnalyzerOptions)null /* no expecting any options when a new tagger is added */,
                     It.IsAny<CancellationToken>()), Times.Once);
             }
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                 (IAnalyzerOptions)null /* no expecting any options when the settings file is updated */,
                 It.IsAny<CancellationToken>()), Times.Once);
 
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Sanity check (that the test setup is correct and that events are actually being handled)
                 RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
