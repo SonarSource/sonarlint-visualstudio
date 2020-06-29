@@ -63,24 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void CallAnalyzer_AnalysisIsCancelled_ExtendedToken_NoNotification()
-        {
-            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
-            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
-            var request = new Request { File = "test.cpp" };
-
-            var extendedCancellationTokenSource = new ExtendedCancellationTokenSource();
-            extendedCancellationTokenSource.IsCancelledExplicitly = true;
-            extendedCancellationTokenSource.Cancel();
-
-            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, extendedCancellationTokenSource.Token);
-
-            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
-            statusNotifierMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void CallAnalyzer_AnalysisIsCancelled_RegularToken_NoNotification()
+        public void CallAnalyzer_AnalysisIsCancelled_NotifiesOfCancellation()
         {
             var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
             var dummyProcessRunner = new DummyProcessRunner(MockResponse());
@@ -89,25 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, new CancellationToken(true));
 
             statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
-            statusNotifierMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void CallAnalyzer_AnalysisIsTimedOut_NotifiesOfTimeOut()
-        {
-            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
-            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
-            var request = new Request { File = "test.cpp" };
-
-            // This is our only indication of a timeout: a CancellationTokenSource that is cancelled with a timer.
-            var extendedCancellationTokenSource = new ExtendedCancellationTokenSource();
-            extendedCancellationTokenSource.IsCancelledExplicitly = false;
-            extendedCancellationTokenSource.Cancel();
-
-            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, extendedCancellationTokenSource.Token);
-
-            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
-            statusNotifierMock.Verify(x => x.AnalysisTimedOut("test.cpp"), Times.Once);
+            statusNotifierMock.Verify(x => x.AnalysisCancelled("test.cpp"), Times.Once);
             statusNotifierMock.VerifyNoOtherCalls();
         }
 

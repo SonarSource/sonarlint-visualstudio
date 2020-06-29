@@ -49,9 +49,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false);
         }
 
-        public void AnalysisTimedOut(string filePath)
+        public void AnalysisCancelled(string filePath)
         {
-            Notify(AnalysisStrings.Notifier_AnalysisTimedOut, filePath, false);
+            Notify("", "", false);
         }
 
         public void AnalysisFailed(string filePath)

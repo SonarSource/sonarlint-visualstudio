@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
 using System.Threading;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -26,21 +25,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     public class ExtendedCancellationTokenSource : CancellationTokenSource
     {
         public bool IsCancelledExplicitly { get; set; }
-    }
-
-    public static class CancellationTokenExtensions
-    {
-        public static bool IsTimedOut(this CancellationToken token)
-        {
-            var fieldInfo = typeof(CancellationToken).GetField("m_source", BindingFlags.NonPublic | BindingFlags.Instance);
-            var source = fieldInfo.GetValue(token);
-
-            if (source is ExtendedCancellationTokenSource extendedTokenSource)
-            {
-                return !extendedTokenSource.IsCancelledExplicitly;
-            }
-
-            return false;
-        }
     }
 }

@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -71,6 +72,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             firstToken.IsCancellationRequested.Should().BeTrue();
             firstToken.IsTimedOut().Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Schedule_MultipleCalls_Sequential_TimeOut_EachJobIsCancelled()
+        {
+            var firstJob = SetupJobAction(out var getFirstToken);
+            var secondJob = SetupJobAction(out var getSecondToken);
+            var thirdJob = SetupJobAction(out var getThirdToken);
+
+            testSubject.Schedule("test path", firstJob.Object, 1);
+            Thread.Sleep(10);
+            testSubject.Schedule("test path", secondJob.Object, 1);
+            Thread.Sleep(10);
+            testSubject.Schedule("test path", thirdJob.Object, 1);
+
+            var firstToken = getFirstToken();
+            firstToken.IsCancellationRequested.Should().BeTrue();
+            firstJob.Verify(x => x(firstToken), Times.Once);
+
+            var secondToken = getSecondToken();
+            secondToken.IsCancellationRequested.Should().BeTrue();
+            secondJob.Verify(x => x(secondToken), Times.Once);
+
+            var thirdToken = getThirdToken();
+            thirdToken.IsCancellationRequested.Should().BeTrue();
+            thirdJob.Verify(x => x(thirdToken), Times.Once);
         }
 
         [TestMethod]
@@ -241,6 +268,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             getCreatedToken = () => cancellationToken;
 
             return action;
+        }
+    }
+
+    internal static class CancellationTokenExtensions
+    {
+        public static bool IsTimedOut(this CancellationToken token)
+        {
+            var fieldInfo = typeof(CancellationToken).GetField("m_source", BindingFlags.NonPublic | BindingFlags.Instance);
+            var source = fieldInfo.GetValue(token);
+
+            if (source is ExtendedCancellationTokenSource extendedTokenSource)
+            {
+                return !extendedTokenSource.IsCancelledExplicitly;
+            }
+
+            return false;
         }
     }
 }
