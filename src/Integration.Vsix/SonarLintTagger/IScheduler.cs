@@ -31,6 +31,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <param name="jobId">Unique key based on which previous job is cancelled</param>
         /// <param name="action">Job action</param>
         /// <param name="timeoutInMilliseconds">number of milliseconds after which the job should be cancelled</param>
-        void Schedule(string jobId, Action<CancellationToken> action, int? timeoutInMilliseconds);
+        void Schedule(string jobId, Action<CancellationToken> action, int timeoutInMilliseconds);
     }
 }
