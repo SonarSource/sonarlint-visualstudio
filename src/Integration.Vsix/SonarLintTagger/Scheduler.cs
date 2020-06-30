@@ -38,29 +38,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             jobs = new Dictionary<string, WeakReference<ExtendedCancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public void Schedule(string jobId, Action<CancellationToken> action, int? timeoutInMilliseconds)
+        public void Schedule(string jobId, Action<CancellationToken> action, int timeoutInMilliseconds)
         {
-            var newTokenSource = IssueToken(jobId);
+            var newCancellationToken = IssueToken(jobId, timeoutInMilliseconds);
 
-            if (timeoutInMilliseconds.HasValue)
-            {
-                newTokenSource.CancelAfter(timeoutInMilliseconds.Value);
-            }
-            
-            action(newTokenSource.Token);
+            action(newCancellationToken);
             // The job might be running asynchronously so we don't know when to dispose the CancellationTokenSources, and have to rely on weak-refs and garbage collection to do it for us
         }
 
-        private ExtendedCancellationTokenSource IssueToken(string jobId)
+        private CancellationToken IssueToken(string jobId, int timeoutInMilliseconds)
         {
             lock (jobs)
             {
                 CancelPreviousJob(jobId);
 
                 var newTokenSource = new ExtendedCancellationTokenSource();
+                newTokenSource.CancelAfter(timeoutInMilliseconds);
+
                 jobs[jobId] = new WeakReference<ExtendedCancellationTokenSource>(newTokenSource);
 
-                return newTokenSource;
+                return newTokenSource.Token;
             }
         }
 

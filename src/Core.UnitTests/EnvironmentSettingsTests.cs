@@ -58,12 +58,12 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("0", 0)]
         [DataRow("1", 1)]
         [DataRow("9876", 9876)]
-        public void CFamilyAnalysisTimeoutInMs_ReturnsExpectedValue(string envVarValue, int expected)
+        public void AnalysisTimeoutInMs_ReturnsExpectedValue(string envVarValue, int expected)
         {
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(EnvironmentSettings.CFamilyAnalysisTimeoutEnvVar, envVarValue);
-                new EnvironmentSettings().CFamilyAnalysisTimeoutInMs().Should().Be(expected);
+                scope.SetVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, envVarValue);
+                new EnvironmentSettings().AnalysisTimeoutInMs().Should().Be(expected);
             }
         }
 
