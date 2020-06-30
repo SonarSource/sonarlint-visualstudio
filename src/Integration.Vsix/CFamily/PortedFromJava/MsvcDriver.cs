@@ -72,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     if (arg.StartsWith("/I"))
                     {
                         string dirStr = args.readPrefix("/I");
+
                         var absolutePath = Absolute(capture.Cwd, dirStr);
                         if (absolutePath != null)
                         {
@@ -269,8 +270,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                     else
                     {
-                        var relativeOrAbsolutePath = RemoveDoubleQuotes(arg);
-                        string file = Absolute(capture.Cwd, relativeOrAbsolutePath);
+                        string file = Absolute(capture.Cwd, arg);
                         if (file != null)
                         {
                             files.Add(file);
@@ -465,23 +465,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
          */
         internal static string Absolute(string basePath, string relativeOrAbsolutePath)
         {
-            Debug.Assert(!string.IsNullOrEmpty(basePath), "basePath should not be empty");
-            Debug.Assert(!string.IsNullOrEmpty(relativeOrAbsolutePath), "relativeOrAbsolutePath should not be empty");
-
-            var cleanedPath = relativeOrAbsolutePath.Trim();
-
-            Debug.Assert(!cleanedPath.Any(c => Path.GetInvalidPathChars().Contains(c)), "relativeOrAbsolutePath should not contain invalid path characters");
-
-            if (string.IsNullOrEmpty(cleanedPath))
+            try
             {
-                return null;
-            }
+                relativeOrAbsolutePath = RemoveDoubleQuotes(relativeOrAbsolutePath);
 
-            if (!System.IO.Path.IsPathRooted(cleanedPath))
-            {
-                return Path.Combine(basePath, cleanedPath).Replace('\\', '/');
+                Debug.Assert(!string.IsNullOrEmpty(basePath), "basePath should not be empty");
+                Debug.Assert(!string.IsNullOrEmpty(relativeOrAbsolutePath), "relativeOrAbsolutePath should not be empty");
+
+                var cleanedPath = relativeOrAbsolutePath.Trim();
+
+                Debug.Assert(!cleanedPath.Any(c => Path.GetInvalidPathChars().Contains(c)), "relativeOrAbsolutePath should not contain invalid path characters");
+
+                if (string.IsNullOrEmpty(cleanedPath))
+                {
+                    return null;
+                }
+
+                if (!Path.IsPathRooted(cleanedPath))
+                {
+                    return Path.Combine(basePath, cleanedPath).Replace('\\', '/');
+                }
+                return cleanedPath;
             }
-            return cleanedPath;
+            catch
+            {
+                throw new InvalidOperationException("Invalid argument:" + relativeOrAbsolutePath);
+            }
         }
     }
 

@@ -165,6 +165,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Executable = "",
                     Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "\"c:/user\"" },
+                }
+            });
+            req.IncludeDirs.Should().BeEquivalentTo("c:/user", "basePath/system");
+
+            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>() { "INCLUDE=system" },
                     Cmd = new List<string>() { "cl.exe", "/I", "d:\\user", "/X" },
                 }
             });
