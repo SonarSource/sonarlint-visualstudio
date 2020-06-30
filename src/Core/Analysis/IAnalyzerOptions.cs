@@ -25,6 +25,5 @@ namespace SonarLint.VisualStudio.Core.Analysis
     /// </summary>
     public interface IAnalyzerOptions
     {
-        int AnalysisTimeoutInMilliseconds { get; }
     }
 }
