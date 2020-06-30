@@ -171,6 +171,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     statusNotifier.AnalysisFinished(request.File);
                 }
+
+                logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, request.File);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

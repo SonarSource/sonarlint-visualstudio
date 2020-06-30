@@ -144,6 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     // Give any asynchronous events the chance to complete
                     process.WaitForExit(); 
                     ExitCode = process.ExitCode;
+                    LogDebug(CFamilyStrings.MSG_ExecutionExitCode, process.ExitCode);
                 }
                 catch (Exception ex) when (isRunningProcessCancelled && !ErrorHandler.IsCriticalException(ex))
                 {

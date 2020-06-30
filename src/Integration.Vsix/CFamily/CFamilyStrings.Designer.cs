@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Finished analyzing {0}.
+        /// </summary>
+        internal static string MSG_AnalysisComplete {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
         internal static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {
@@ -114,6 +123,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_ExecutionCancelled {
             get {
                 return ResourceManager.GetString("MSG_ExecutionCancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process returned exit code {0}.
+        /// </summary>
+        internal static string MSG_ExecutionExitCode {
+            get {
+                return ResourceManager.GetString("MSG_ExecutionExitCode", resourceCulture);
             }
         }
         
