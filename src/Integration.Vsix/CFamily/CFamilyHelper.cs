@@ -160,6 +160,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 };
 
                 runner.Execute(args);
+
+                logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, request.File);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
