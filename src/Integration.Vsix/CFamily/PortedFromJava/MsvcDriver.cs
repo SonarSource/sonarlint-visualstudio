@@ -32,7 +32,6 @@ using System.Text;
  */
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-
     internal static class MsvcDriver
     {
         public static Request ToRequest(CFamilyHelper.Capture[] captures)
@@ -73,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     if (arg.StartsWith("/I"))
                     {
                         string dirStr = args.readPrefix("/I");
+
                         var absolutePath = Absolute(capture.Cwd, dirStr);
                         if (absolutePath != null)
                         {
@@ -88,9 +88,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/D"))
                     {
                         string defineStr = args.readPrefix("/D");
+                        defineStr = RemoveDoubleQuotes(defineStr);
+
                         if (defineStr.Contains("="))
                         {
                             defineStr = defineStr.ReplaceFirst("=", " ");
+                        }
+                        else if (defineStr.Contains("#"))
+                        {
+                            defineStr = defineStr.ReplaceFirst("#", " ");
                         }
                         else
                         {
@@ -102,13 +108,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/U"))
                     {
                         string undefStr = args.readPrefix("/U");
+                        undefStr = RemoveDoubleQuotes(undefStr);
+
                         predefines.Append("#undef ").Append(undefStr).Append('\n');
 
                     }
                     else if (arg.StartsWith("/FI"))
                     {
                         string includeStr = args.readPrefix("/FI");
-                        includes.Append("#include ").Append('"').Append(includeStr).Append('"').Append('\n');
+                        includeStr = AddDoubleQuotes(includeStr);
+
+                        includes.Append("#include ").Append(includeStr).Append('\n');
 
                     }
                     else if (arg.StartsWith("/ZW") || arg.StartsWith("/clr"))
@@ -435,28 +445,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return request;
         }
 
+        private static string AddDoubleQuotes(string originalString)
+        {
+            if (!originalString.StartsWith("\""))
+            {
+                originalString = "\"" + originalString + "\"";
+            }
+
+            return originalString;
+        }
+
+        private static string RemoveDoubleQuotes(string originalString)
+        {
+            return originalString.Replace("\"", "");
+        }
+
         /**
          * @return given path if it is absolute, otherwise prepends given base path
          */
         internal static string Absolute(string basePath, string relativeOrAbsolutePath)
         {
-            Debug.Assert(!string.IsNullOrEmpty(basePath), "basePath should not be empty");
-            Debug.Assert(!string.IsNullOrEmpty(relativeOrAbsolutePath), "relativeOrAbsolutePath should not be empty");
-
-            var cleanedPath = relativeOrAbsolutePath.Trim();
-
-            Debug.Assert(!cleanedPath.Any(c => Path.GetInvalidPathChars().Contains(c)), "relativeOrAbsolutePath should not contain invalid path characters");
-
-            if (string.IsNullOrEmpty(cleanedPath))
+            try
             {
-                return null;
-            }
+                relativeOrAbsolutePath = RemoveDoubleQuotes(relativeOrAbsolutePath);
 
-            if (!System.IO.Path.IsPathRooted(cleanedPath))
-            {
-                return Path.Combine(basePath, cleanedPath).Replace('\\', '/');
+                Debug.Assert(!string.IsNullOrEmpty(basePath), "basePath should not be empty");
+                Debug.Assert(!string.IsNullOrEmpty(relativeOrAbsolutePath), "relativeOrAbsolutePath should not be empty");
+
+                var cleanedPath = relativeOrAbsolutePath.Trim();
+
+                Debug.Assert(!cleanedPath.Any(c => Path.GetInvalidPathChars().Contains(c)), "relativeOrAbsolutePath should not contain invalid path characters");
+
+                if (string.IsNullOrEmpty(cleanedPath))
+                {
+                    return null;
+                }
+
+                if (!Path.IsPathRooted(cleanedPath))
+                {
+                    return Path.Combine(basePath, cleanedPath).Replace('\\', '/');
+                }
+                return cleanedPath;
             }
-            return cleanedPath;
+            catch
+            {
+                throw new InvalidOperationException("Invalid argument:" + relativeOrAbsolutePath);
+            }
         }
     }
 
