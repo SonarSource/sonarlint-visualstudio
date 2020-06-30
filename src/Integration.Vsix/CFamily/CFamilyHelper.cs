@@ -160,8 +160,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 };
 
                 statusNotifier.AnalysisStarted(request.File);
+                var stopwatch = Stopwatch.StartNew();
 
                 runner.Execute(args);
+
+                stopwatch.Stop();
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -169,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
                 else
                 {
-                    statusNotifier.AnalysisFinished(request.File);
+                    statusNotifier.AnalysisFinished(request.File, Math.Round(stopwatch.Elapsed.TotalSeconds, 3));
                 }
 
                 logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, request.File);

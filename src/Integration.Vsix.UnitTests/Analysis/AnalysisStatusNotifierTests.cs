@@ -66,9 +66,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         [DataRow("..\\test\\foo-finished.cpp", "foo-finished.cpp")]
         public void AnalysisFinished_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
         {
-            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFinished, expectedNotifiedFileName);
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFinished, expectedNotifiedFileName, 1);
 
-            testSubject.AnalysisFinished(filePath);
+            testSubject.AnalysisFinished(filePath, 1);
 
             VerifyStatusBarMessageAndIcon(expectedMessage, false);
         }

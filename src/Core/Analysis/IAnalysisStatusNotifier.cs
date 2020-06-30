@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public interface IAnalysisStatusNotifier
     {
         void AnalysisStarted(string filePath);
-        void AnalysisFinished(string filePath);
+        void AnalysisFinished(string filePath, double analysisTimeInSeconds);
         void AnalysisCancelled(string filePath);
         void AnalysisFailed(string filePath);
     }

@@ -44,9 +44,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify(AnalysisStrings.Notifier_AnalysisStarted, filePath, true);
         }
 
-        public void AnalysisFinished(string filePath)
+        public void AnalysisFinished(string filePath, double analysisTimeInSeconds)
         {
-            Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false);
+            Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false, analysisTimeInSeconds);
         }
 
         public void AnalysisCancelled(string filePath)
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             Notify(AnalysisStrings.Notifier_AnalysisFailed, filePath, false);
         }
 
-        private void Notify(string messageFormat, string filePath, bool showSpinner)
+        private void Notify(string messageFormat, string filePath, bool showSpinner, double time = 0)
         {
             RunOnUIThread(() =>
             {
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
 
                 var fileName = Path.GetFileName(filePath);
-                var message = string.Format(messageFormat, fileName);
+                var message = string.Format(messageFormat, fileName, time);
                 vsStatusBar.SetText(message);
             });
         }

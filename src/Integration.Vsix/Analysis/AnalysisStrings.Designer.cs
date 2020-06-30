@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Finished analyzing {0}.
+        ///   Looks up a localized string similar to SonarLint: Finished analyzing {0}, analysis time: {1}s.
         /// </summary>
         internal static string Notifier_AnalysisFinished {
             get {

@@ -164,7 +164,7 @@
     <value>Default settings will be used</value>
   </data>
   <data name="Notifier_AnalysisFinished" xml:space="preserve">
-    <value>SonarLint: Finished analyzing {0}</value>
+    <value>SonarLint: Finished analyzing {0}, analysis time: {1}s</value>
   </data>
   <data name="Notifier_AnalysisTimedOut" xml:space="preserve">
     <value>SonarLint: Analysis of {0} has timed out.</value>
