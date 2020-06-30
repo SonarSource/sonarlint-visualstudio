@@ -239,7 +239,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void RequestAnalysis(IAnalyzerOptions options)
         {
             projectName = GetProjectName();
-            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, issuesFilter, UpdateIssues, logger);
+            var issueConsumer = (IIssueConsumer)new AccumulatingIssueConsumer(currentSnapshot, FilePath, issuesFilter, UpdateIssues, logger);
+
+            // UX feedback: clear list when analysis starts i.e. before the first issue is received.
+            issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
+
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 

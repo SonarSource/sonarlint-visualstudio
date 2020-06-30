@@ -75,7 +75,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var filteredIssues = RemoveSuppressedIssues(accummulatedIssues);
 
-
             var newMarkers = filteredIssues.Where(IsValidIssueTextRange)
                 .Select(CreateIssueMarker)
                 .ToArray();
@@ -91,7 +90,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(filteredIssues.All(x => x is FilterableIssueAdapter), "Not expecting the issue filter to change the list item type");
 
             var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
-            logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
+
+            // duncanp - TODO: fix misleading issue count so it is shown once per file
+            //logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
 
             return filteredIssues.OfType<FilterableIssueAdapter>()
                 .Select(x => x.SonarLintIssue);
