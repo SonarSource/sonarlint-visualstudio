@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -50,6 +51,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class TaggerProvider : IViewTaggerProvider
     {
+        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 20 * 1000;
+
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly IIssuesFilter issuesFilter;
@@ -173,16 +176,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
             {
+                var analysisTimeout = GetAnalysisTimeoutInMilliseconds();
+
                 scheduler.Schedule(path,
                     cancellationToken =>
                         analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
                             analyzerOptions, cancellationToken),
-                    analyzerOptions?.AnalysisTimeoutInMilliseconds);
+                    analysisTimeout);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Analysis error: {ex}");
             }
+        }
+
+        internal static int GetAnalysisTimeoutInMilliseconds(IEnvironmentSettings environmentSettings = null)
+        {
+            environmentSettings = environmentSettings ?? new EnvironmentSettings();
+            var userSuppliedTimeout = environmentSettings.AnalysisTimeoutInMs();
+            var analysisTimeoutInMilliseconds = userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
+
+            return analysisTimeoutInMilliseconds;
         }
 
         public void AddIssueTracker(IIssueTracker issueTracker)

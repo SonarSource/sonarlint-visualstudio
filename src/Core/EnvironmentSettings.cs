@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.Core
     public class EnvironmentSettings : IEnvironmentSettings
     {
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
-        internal const string CFamilyAnalysisTimeoutEnvVar = "SONAR_INTERNAL_CFAMILY_ANALYSIS_TIMEOUT_MS";
+        internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         public const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
 
         public bool TreatBlockerSeverityAsError()
@@ -37,9 +37,9 @@ namespace SonarLint.VisualStudio.Core
             return false;
         }
 
-        public int CFamilyAnalysisTimeoutInMs()
+        public int AnalysisTimeoutInMs()
         {
-            var setting = Environment.GetEnvironmentVariable(CFamilyAnalysisTimeoutEnvVar);
+            var setting = Environment.GetEnvironmentVariable(AnalysisTimeoutEnvVar);
 
             if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo, out int userSuppliedTimeout)
                 && userSuppliedTimeout > 0)

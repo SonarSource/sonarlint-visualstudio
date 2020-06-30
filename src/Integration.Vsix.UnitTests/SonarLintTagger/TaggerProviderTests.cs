@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -110,8 +111,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
             mockAnalysisScheduler = new Mock<IScheduler>();
-            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int?>()))
-                .Callback((string file, Action<CancellationToken> analyze, int? timeout) => analyze(CancellationToken.None));
+            mockAnalysisScheduler.Setup(x => x.Schedule(It.IsAny<string>(), It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
+                .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
@@ -195,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void RequestAnalysis_Should_NotThrow_When_AnalysisFails()
         {
             mockAnalysisScheduler
-                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int?>()))
+                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
                 .Throws<Exception>();
 
             Action act = () =>
@@ -269,6 +270,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 });
 
             actual.Should().BeEquivalentTo(trackers);
+        }
+
+        [TestMethod]
+        [DataRow(-1, TaggerProvider.DefaultAnalysisTimeoutMs)]
+        [DataRow(0, TaggerProvider.DefaultAnalysisTimeoutMs)]
+        [DataRow(1, 1)]
+        [DataRow(999, 999)]
+        public void AnalysisTimeout(int envSettingsResponse, int expectedTimeout)
+        {
+            var envSettingsMock = new Mock<IEnvironmentSettings>();
+            envSettingsMock.Setup(x => x.AnalysisTimeoutInMs()).Returns(envSettingsResponse);
+
+            TaggerProvider.GetAnalysisTimeoutInMilliseconds(envSettingsMock.Object).Should().Be(expectedTimeout);
+        }
+
+        [TestMethod]
+        public void AnalysisTimeoutInMilliseconds_NoEnvironmentSettings_DefaultTimeout()
+        {
+            TaggerProvider.GetAnalysisTimeoutInMilliseconds().Should().Be(TaggerProvider.DefaultAnalysisTimeoutMs);
         }
 
         private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
