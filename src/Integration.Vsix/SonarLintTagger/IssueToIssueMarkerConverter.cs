@@ -19,47 +19,50 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal static class IssueToFilterableIssueConverter
+    internal interface IIssueToIssueMarkerConverter
     {
-        public static IEnumerable<IFilterableIssue> Convert(IEnumerable<IAnalysisIssue> issues, ITextSnapshot textSnapshot)
-        {
-            if (issues == null)
-            {
-                throw new ArgumentNullException(nameof(issues));
-            }
+        IssueMarker Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
+    }
 
+    internal class IssueToIssueMarkerConverter :  IIssueToIssueMarkerConverter
+    {
+        private readonly IIssueSpanCalculator issueSpanCalculator;
+
+        public IssueToIssueMarkerConverter()
+            : this(new IssueSpanCalculator())
+        {
+        }
+
+        internal /* for testing */ IssueToIssueMarkerConverter(IIssueSpanCalculator issueSpanCalculator)
+        {
+            this.issueSpanCalculator = issueSpanCalculator;
+        }
+
+        public IssueMarker Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot)
+        {
+            if (issue == null)
+            {
+                throw new ArgumentNullException(nameof(issue));
+            }
             if (textSnapshot == null)
             {
                 throw new ArgumentNullException(nameof(textSnapshot));
             }
 
-            return issues.Select(x => CreateFilterableIssue(x, textSnapshot))
-                .Where(i => i != null)
-                .ToArray();
-        }
-
-        internal/* for testing */ static IFilterableIssue CreateFilterableIssue(IAnalysisIssue issue, ITextSnapshot textSnapshot)
-        {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
 
-            if (issue == null)
-            {
-                return null;
-            }
+            var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
 
             // A start line of zero means the issue is file-level i.e. not associated with a particular line
             if (issue.StartLine == 0)
             {
-                return new FilterableIssueAdapter(issue, null, null);
+                return new IssueMarker(issue, span, null, null);
             }
 
             if (issue.StartLine > textSnapshot.LineCount)
@@ -68,10 +71,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // the file has been edited while the analysis was being executed
                 return null;
             }
-
             var text = textSnapshot.GetLineFromLineNumber(issue.StartLine - 1).GetText();
             var lineHash = ChecksumCalculator.Calculate(text);
-            return new FilterableIssueAdapter(issue, text, lineHash);
+            return new IssueMarker(issue, span, text, lineHash);
         }
     }
 }
