@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Core
             return false;
         }
 
-        public int CFamilyAnalysisTimeoutInMs()
+        public int AnalysisTimeoutInMs()
         {
             var setting = Environment.GetEnvironmentVariable(CFamilyAnalysisTimeoutEnvVar);
 
