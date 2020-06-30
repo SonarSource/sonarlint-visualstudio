@@ -138,6 +138,12 @@
   <data name="MSG_ExecutionCancelled" xml:space="preserve">
     <value>Execution cancelled.</value>
   </data>
+  <data name="MSG_ExecutionExitCode" xml:space="preserve">
+    <value>Process returned exit code {0}</value>
+  </data>
+  <data name="MSG_AnalysisComplete" xml:space="preserve">
+    <value>Finished analyzing {0}</value>
+  </data>
   <data name="MSG_Prefix_DEBUG" xml:space="preserve">
     <value>DEBUG: </value>
   </data>
