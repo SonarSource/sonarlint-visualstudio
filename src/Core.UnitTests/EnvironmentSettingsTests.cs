@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             using (var scope = new EnvironmentVariableScope())
             {
-                scope.SetVariable(EnvironmentSettings.CFamilyAnalysisTimeoutEnvVar, envVarValue);
+                scope.SetVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, envVarValue);
                 new EnvironmentSettings().AnalysisTimeoutInMs().Should().Be(expected);
             }
         }
