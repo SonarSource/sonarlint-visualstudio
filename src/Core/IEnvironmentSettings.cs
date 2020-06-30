@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns the user-specific timeout, or zero if one has not been specified
         /// </summary>
-        int CFamilyAnalysisTimeoutInMs();
+        int AnalysisTimeoutInMs();
 
         /// <summary>
         /// Download location for the SonarLint daemon additional zip file
