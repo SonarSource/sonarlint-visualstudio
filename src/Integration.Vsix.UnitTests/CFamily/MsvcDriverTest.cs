@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -94,34 +95,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void File_RelativeAndAbsolutePath()
+        [DataRow("subdir1\\subdir2\\file.cpp", "root/subdir1/subdir2/file.cpp")]
+        [DataRow("\"subdir1\\subdir2\\file.cpp\"", "root/subdir1/subdir2/file.cpp")]
+        [DataRow("d://subdir1\\subdir2\\file.cpp", "d://subdir1\\subdir2\\file.cpp")]
+        [DataRow("\"d://subdir1\\subdir2\\file.cpp\"", "d://subdir1\\subdir2\\file.cpp")]
+        public void File_RelativeAndAbsolutePath(string input, string expected)
         {
-            // 1. Relative Path
-            Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            var req = MsvcDriver.ToRequest(new[] {
                 compiler,
-                new CFamilyHelper.Capture()
+                new CFamilyHelper.Capture
                 {
                     Executable = "",
                     Cwd = "root",
                     Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "subdir1\\subdir2\\file.cpp" }, //  \ should be converted to /
+                    Cmd = new List<string> { "cl.exe",  input}
                 }
             });
-            req.File.Should().Be("root/subdir1/subdir2/file.cpp");
 
-
-            // 2. Absolute path
-            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
-                compiler,
-                new CFamilyHelper.Capture()
-                {
-                    Executable = "",
-                    Cwd = "root",
-                    Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "d://subdir1\\subdir2\\file.cpp" }, //  should not be changed
-                }
-            });
-            req.File.Should().Be("d://subdir1\\subdir2\\file.cpp");
+            req.File.Should().Be(expected);
         }
 
         [TestMethod]
@@ -163,6 +154,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
                     Cmd = new List<string>() { "cl.exe", "/I", "c:/user" },
+                }
+            });
+            req.IncludeDirs.Should().BeEquivalentTo("c:/user", "basePath/system");
+
+            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>() { "INCLUDE=system" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "\"c:/user\"" },
                 }
             });
             req.IncludeDirs.Should().BeEquivalentTo("c:/user", "basePath/system");
@@ -257,23 +260,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Define_Macro()
+        [DataRow("/Dname1", "#define name1 1\n")]
+        [DataRow("/Dname2=value2", "#define name2 value2\n")]
+        [DataRow("/D\"name3\"", "#define name3 1\n")]
+        [DataRow("/D\"name4=value4\"", "#define name4 value4\n")]
+        [DataRow("/D\"name4=    value4\"", "#define name4     value4\n")]
+        [DataRow("/D\"A#2\"", "#define A 2\n")]
+        [DataRow("/D\"A# 2\"", "#define A  2\n")]
+        [DataRow("/D\"A#str\"", "#define A str\n")]
+        public void Define_Macro(string input, string expected)
         {
-            Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            var req = MsvcDriver.ToRequest(new[] {
                 compiler,
-                new CFamilyHelper.Capture()
+                new CFamilyHelper.Capture
                 {
                     Executable = "",
                     Cwd = "",
                     Env = new List<string>(),
-                    Cmd = new List<string>() {
+                    Cmd = new List<string> {
                       "cl.exe",
-                      "/Dname1",
-                      "/Dname2=value2"
-                    },
+                      input
+                    }
                 }
             });
-            req.Predefines.Should().ContainAll("#define name1 1\n", "#define name2 value2\n");
+            req.Predefines.Should().Contain(expected);
         }
 
         [TestMethod]
@@ -296,18 +306,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Forced_Include()
+        [DataRow("A", "#undef A\n")]
+        [DataRow("\"A\"", "#undef A\n")]
+        [DataRow("\" A\"", "#undef  A\n")]
+        public void Undefine(string arg, string expected)
         {
-            Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            var req = MsvcDriver.ToRequest(new[] {
                 compiler,
-                new CFamilyHelper.Capture()
+                new CFamilyHelper.Capture
                 {
                     Executable = "",
                     Cwd = "",
                     Env = new List<string>(),
-                    Cmd = new List<string>() {
+                    Cmd = new List<string> {
+                        "cl.exe",
+                        "/U", arg
+                    },
+                }
+            });
+            req.Predefines.Should().Contain(expected);
+        }
+
+        [TestMethod]
+        [DataRow("file.h")]
+        [DataRow("\"file.h\"")]
+        public void Forced_Include(string includePath)
+        {
+            var req = MsvcDriver.ToRequest(new[] {
+                compiler,
+                new CFamilyHelper.Capture
+                {
+                    Executable = "",
+                    Cwd = "",
+                    Env = new List<string>(),
+                    Cmd = new List<string> {
                       "cl.exe",
-                      "/FI", "file.h"
+                      "/FI", includePath
                     },
                 }
             });
