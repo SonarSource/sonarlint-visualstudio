@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ITextSnapshot currentSnapshot;
 
         private readonly ITextDocument document;
-        private readonly IIssueSpanCalculator issueSpanCalculator;
+        private readonly IIssueToIssueMarkerConverter issueMarkerConverter;
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
@@ -66,13 +66,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
-            : this(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger, new IssueSpanCalculator())
+            : this(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger, new IssueToIssueMarkerConverter())
         {
         }
 
         internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger, IIssueSpanCalculator issueSpanCalculator)
+            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger, IIssueToIssueMarkerConverter issueMarkerConverter)
         {
             this.dte = dte;
 
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.issueSpanCalculator = issueSpanCalculator;
+            this.issueMarkerConverter = issueMarkerConverter;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -207,12 +207,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
             1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
-        private IssueMarker CreateIssueMarker(IAnalysisIssue issue)
-        {
-            var span = issueSpanCalculator.CalculateSpan(issue, currentSnapshot);
-            return new IssueMarker(issue, span);
-        }
-
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
         {
             var oldIssues = Factory.CurrentSnapshot;
@@ -273,26 +267,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return;
             }
 
-            var filteredIssues = RemoveSuppressedIssues(issues);
-
             // See bug #1487: we should be creating the issue markers using the text snapshot
             // from when the analysis was triggered, not the current one.
-            var newMarkers = filteredIssues.Where(IsValidIssueTextRange).Select(CreateIssueMarker);
-            UpdateIssues(newMarkers);
+            var newMarkers = issues
+                .Where(IsValidIssueTextRange)
+                .Select(x => issueMarkerConverter.Convert(x, currentSnapshot))
+                .ToArray();
+
+            var filteredMarkers = RemoveSuppressedIssues(newMarkers);
+
+            UpdateIssues(filteredMarkers);
         }
 
-        private IEnumerable<IAnalysisIssue> RemoveSuppressedIssues(IEnumerable<IAnalysisIssue> issues)
+        private IEnumerable<IssueMarker> RemoveSuppressedIssues(IEnumerable<IssueMarker> issues)
         {
-            var filterableIssues = IssueToFilterableIssueConverter.Convert(issues, currentSnapshot);
+            var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
 
             var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is FilterableIssueAdapter), "Not expecting the issue filter to change the list item type");
+            Debug.Assert(filteredIssues.All(x => x is IssueMarker), "Not expecting the issue filter to change the list item type");
 
             var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
             logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
 
-            return filteredIssues.OfType<FilterableIssueAdapter>()
-                .Select(x => x.SonarLintIssue);
+            return filteredIssues.OfType<IssueMarker>().ToArray();
         }
 
         private void RefreshIssues()
