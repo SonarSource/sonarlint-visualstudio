@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -31,59 +30,57 @@ using SonarLint.VisualStudio.Integration.Vsix;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class IssueToFilterableIssueConverterTests
+    public class IssueToIssueMarkerConverterTests
     {
         [DataTestMethod]
         [DataRow(100, 1)]
         [DataRow(101, 100)]
-        public void CreateFilterableIssue_IssueLineOutsideSnapshot_ReturnsNull(int issueStartLine, int bufferLineCount)
+        public void Convert_IssueLineOutsideSnapshot_ReturnsNull(int issueStartLine, int bufferLineCount)
         {
             // Arrange
             var issue = new DummyAnalysisIssue { StartLine = issueStartLine};
             var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "unimportant");
 
+            var testSubject = new IssueToIssueMarkerConverter();
+
             // Act and assert
-            IssueToFilterableIssueConverter.CreateFilterableIssue(issue, mockSnapshot.Object)
+            testSubject.Convert(issue, mockSnapshot.Object)
                 .Should().BeNull();
         }
 
         [DataTestMethod]
         [DataRow(2, 100)]
         [DataRow(100, 100)]
-        public void CreateFilterableIssue_IssueLineInSnapshot_ReturnsFilterableIssue(int issueStartLine, int bufferLineCount)
+        public void Convert_IssueLineInSnapshot_ReturnsFilterableIssue(int issueStartLine, int bufferLineCount)
         {
             var issue = new DummyAnalysisIssue { StartLine = issueStartLine };
             var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "some text");
+            var testSubject = new IssueToIssueMarkerConverter();
 
             // Act
-            var actual = IssueToFilterableIssueConverter.CreateFilterableIssue(issue, mockSnapshot.Object);
+            var actual = testSubject.Convert(issue, mockSnapshot.Object);
 
             // Assert
-            actual.Should().BeOfType(typeof(FilterableIssueAdapter));
-
-            var adapterIssue = (FilterableIssueAdapter)actual;
-            adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
+            actual.Should().NotBeNull();
 
             actual.WholeLineText.Should().Be("some text");
             actual.LineHash.Should().Be(ChecksumCalculator.Calculate("some text"));
         }
 
         [TestMethod]
-        public void CreateFilterableIssue_FileLevelIssue_ReturnsFilterableIssue()
+        public void Convert_FileLevelIssue_ReturnsFilterableIssue()
         {
             // Arrange
             var issue = new DummyAnalysisIssue { StartLine = 0 };
             var mockSnapshot = CreateMockTextSnapshot(10, "anything");
+            var testSubject = new IssueToIssueMarkerConverter();
 
             // Act
-            var actual = IssueToFilterableIssueConverter.CreateFilterableIssue(issue, mockSnapshot.Object);
+            var actual = testSubject.Convert(issue, mockSnapshot.Object);
 
             // Assert
-            actual.Should().BeOfType(typeof(FilterableIssueAdapter));
-            var adapterIssue = (FilterableIssueAdapter)actual;
-            adapterIssue.SonarLintIssue.Should().BeSameAs(issue);
+            actual.Should().NotBeNull();
 
-            actual.StartLine.Should().Be(0);
             actual.WholeLineText.Should().BeNull();
             actual.LineHash.Should().BeNull();
         }
@@ -93,57 +90,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var mockSnapshot = new Mock<ITextSnapshot>();
-            Action act = () => IssueToFilterableIssueConverter.Convert(null, mockSnapshot.Object);
+            var testSubject = new IssueToIssueMarkerConverter();
+            Action act = () => testSubject.Convert(null, mockSnapshot.Object);
 
             // Act and assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issues");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issue");
         }
 
         [TestMethod]
         public void Convert_NullTextSnapshot_Throws()
         {
             // Arrange
-            Action act = () => IssueToFilterableIssueConverter.Convert(Enumerable.Empty<AnalysisIssue>(), null);
+            var testSubject = new IssueToIssueMarkerConverter();
+            Action act = () => testSubject.Convert(Mock.Of<IAnalysisIssue>(), null);
 
             // Act and assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("textSnapshot");
-        }
-
-        [TestMethod]
-        public void Convert_EmptyList_ReturnsEmptyList()
-        {
-            // Arrange
-            var mockSnapshot = new Mock<ITextSnapshot>();
-
-            // Act and assert
-            IssueToFilterableIssueConverter.Convert(Enumerable.Empty<AnalysisIssue>(), mockSnapshot.Object)
-                .Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void Convert_MultipleItemsIncludingOutOfRangeIssues_InRangeIssuesReturned()
-        {
-            // Arrange
-            const int maxLineNumber = 5;
-            var fileIssue = new DummyAnalysisIssue { StartLine = 0 };
-            var validIssue1 = new DummyAnalysisIssue { StartLine = 2 };
-            var outOfRangeIssue = new DummyAnalysisIssue { StartLine = maxLineNumber + 1 };
-            var validIssue2 = new DummyAnalysisIssue { StartLine = maxLineNumber };
-
-            var input = new[] { fileIssue, validIssue1, outOfRangeIssue, null, validIssue2 };
-
-            var mockSnapshot = CreateMockTextSnapshot(maxLineNumber, "anything");
-
-            // Act
-            var actual = IssueToFilterableIssueConverter.Convert(input, mockSnapshot.Object);
-
-            // Assert
-            actual.Count().Should().Be(3);
-
-            var adapterIssues = actual.OfType<FilterableIssueAdapter>().ToArray();
-            adapterIssues[0].SonarLintIssue.Should().BeSameAs(fileIssue);
-            adapterIssues[1].SonarLintIssue.Should().BeSameAs(validIssue1);
-            adapterIssues[2].SonarLintIssue.Should().BeSameAs(validIssue2);
         }
 
         private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn)

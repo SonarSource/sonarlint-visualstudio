@@ -282,8 +282,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var issuesToReturnFromFilter = new[]
             {
-                new FilterableIssueAdapter(
-                    new DummyAnalysisIssue { RuleKey = "xxx", StartLine = 3 }, "text1", "hash1")
+                new IssueMarker(
+                    new DummyAnalysisIssue { RuleKey = "xxx", StartLine = 3 },
+                    new SnapshotSpan(CreateMockTextSnapshot(100, "any text").Object, 0, 1),
+                    "text1", "hash1")
             };
 
             SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
@@ -313,7 +315,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new DummyAnalysisIssue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
             };
 
-            var issuesToReturnFromFilter = Enumerable.Empty<FilterableIssueAdapter>();
+            var issuesToReturnFromFilter = Enumerable.Empty<IssueMarker>();
             SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
 
             // Act

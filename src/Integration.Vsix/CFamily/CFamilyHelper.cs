@@ -169,6 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
                 else
                 {
+                    logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, request.File);
                     statusNotifier.AnalysisFinished(request.File);
                 }
             }
