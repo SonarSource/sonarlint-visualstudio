@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 2. Add a tagger -> analysis requested
             using (testSubject.CreateTagger())
             {
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                     (IAnalyzerOptions)null /* no expecting any options when a new tagger is added */,
                     It.IsAny<CancellationToken>()), Times.Once);
             }
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                 (IAnalyzerOptions)null /* no expecting any options when the settings file is updated */,
                 It.IsAny<CancellationToken>()), Times.Once);
 
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Sanity check (that the test setup is correct and that events are actually being handled)
                 RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
             }
         }
 
@@ -220,78 +220,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Processing analysis results tests
 
         [TestMethod]
-        public void WhenNewIssuesAreFound_ButForIncorrectFile_FilterNotCalledAndListenersAreNotUpdated()
-        {
-            // Arrange
-            var issues = new[] { new DummyAnalysisIssue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
-
-            // Act
-            using (new AssertIgnoreScope())
-            {
-                ((IIssueConsumer)testSubject).Accept("aRandomFile.xxx", issues);
-            }
-
-            // Assert
-            CheckErrorListRefreshWasNotRequested();
-
-            issuesFilter.Verify(x => x.Filter(It.IsAny<IEnumerable<IFilterableIssue>>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void WhenNewIssuesAreFound_OutOfRangeIssuesAreIgnored_ListenersAreUpdated()
-        {
-            // Arrange
-            var issues = new[]
-            {
-                new DummyAnalysisIssue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
-                // The next issue is outside the range of the new snapshot and should be ignored
-                new DummyAnalysisIssue { RuleKey = "S222", StartLine = 99999998, EndLine = 99999999 },
-                new DummyAnalysisIssue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
-            };
-
-            // Setup up the filter to return whatever was supplied
-            SetupIssuesFilter(out var _);
-
-            // Sanity check
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0);
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
-
-            // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, issues);
-
-            // Assert
-            CheckErrorListRefreshWasRequested(1);
-
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(2);
-
-            var actualMarkers = testSubject.Factory.CurrentSnapshot.IssueMarkers.ToArray();
-            actualMarkers[0].Issue.RuleKey.Should().Be("S111");
-            actualMarkers[1].Issue.RuleKey.Should().Be("S333");
-        }
-
-        [TestMethod]
         public void WhenNewIssuesAreFound_FilterIsApplied_ListenersAreUpdated()
         {
             // Arrange
             var inputIssues = new[]
             {
-                new DummyAnalysisIssue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
-                new DummyAnalysisIssue { RuleKey = "S222", StartLine = 2, EndLine = 2 }
+                CreateIssueMarker("S111", startLine: 1, endLine: 1),
+                CreateIssueMarker("S222", startLine: 2, endLine: 2)
             };
 
             var issuesToReturnFromFilter = new[]
             {
-                new IssueMarker(
-                    new DummyAnalysisIssue { RuleKey = "xxx", StartLine = 3 },
-                    new SnapshotSpan(CreateMockTextSnapshot(100, "any text").Object, 0, 1),
-                    "text1", "hash1")
+                CreateIssueMarker("xxx", startLine: 3, endLine: 3)
             };
 
             SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
+            testSubject.HandleNewIssues(inputIssues);
 
             // Assert
             // Check the expected issues were passed to the filter
@@ -312,14 +258,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var inputIssues = new[]
             {
-                new DummyAnalysisIssue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
+                CreateIssueMarker("single issue", startLine: 1, endLine: 1 )
             };
 
             var issuesToReturnFromFilter = Enumerable.Empty<IssueMarker>();
             SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
+            testSubject.HandleNewIssues(inputIssues);
 
             // Assert
             // Check the expected issues were passed to the filter
@@ -339,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetupIssuesFilter(out var capturedFilterInput, Enumerable.Empty<IFilterableIssue>());
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, Enumerable.Empty<AnalysisIssue>());
+            testSubject.HandleNewIssues(Enumerable.Empty<IssueMarker>());
 
             // Assert
             capturedFilterInput.Should().BeEmpty();
@@ -359,15 +305,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             capturedFilterInput = captured;
         }
 
-        private void CheckErrorListRefreshWasNotRequested()
-        {
-            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Never);
-        }
-
         private void CheckErrorListRefreshWasRequested(int count)
         {
             mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Exactly(count));
         }
+
+        private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine) =>
+            new IssueMarker(
+                new DummyAnalysisIssue
+                {
+                    RuleKey = ruleKey,
+                    StartLine = startLine,
+                    EndLine = endLine
+                },
+                new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1),
+                "any text",
+                "any hash"
+            );
 
         #endregion
 
