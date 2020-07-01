@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
               case "message":
                   var message = readMessage(reader);
 
-                  if (!doFilterResults || string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
+                  if (!doFilterResults || string.IsNullOrEmpty(message.Filename) || string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
                   {
                       handleIssue(message);
                   }

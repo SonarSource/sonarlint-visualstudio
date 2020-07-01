@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             return issueMarkers
-                .Where(marker => spans.IntersectsWith(marker.Span))
-                .Select(marker => new TagSpan<IErrorTag>(marker.Span, new ErrorTag(PredefinedErrorTypeNames.Warning, marker.Issue.Message)));
+                .Where(marker => marker.Span != null && spans.IntersectsWith(marker.Span.Value))
+                .Select(marker => new TagSpan<IErrorTag>(marker.Span.Value, new ErrorTag(PredefinedErrorTypeNames.Warning, marker.Issue.Message)));
         }
     }
 }

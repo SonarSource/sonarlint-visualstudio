@@ -77,6 +77,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return false;
             }
 
+            var issueMarker = this.issueMarkers[index];
+
             switch (keyName)
             {
                 case StandardTableKeyNames.DocumentName:
@@ -87,22 +89,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // Note: the line and column numbers are taken from the SnapshotSpan, not the Issue.
                     // The SnapshotSpan represents the live document, so the text positions could have
                     // changed from those reported from the Issue.
-                    content = this.issueMarkers[index].Span.Start.GetContainingLine().LineNumber;
+                    content = issueMarker.Span?.Start.GetContainingLine().LineNumber;
                     return true;
 
                 case StandardTableKeyNames.Column:
-                    // Use the span, not the issue. See comment immediately above.
-                    var position = this.issueMarkers[index].Span.Start;
-                    var line = position.GetContainingLine();
-                    content = position.Position - line.Start.Position;
+                        // Use the span, not the issue. See comment immediately above.
+                    var position = issueMarker.Span?.Start;
+                    var line = position?.GetContainingLine();
+                    content = position?.Position - line?.Start.Position;
                     return true;
 
                 case StandardTableKeyNames.Text:
-                    content = this.issueMarkers[index].Issue.Message;
+                    content = issueMarker.Issue.Message;
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    content = ToVsErrorCategory(this.issueMarkers[index].Issue.Severity);
+                    content = ToVsErrorCategory(issueMarker.Issue.Severity);
                     return true;
 
                 case StandardTableKeyNames.BuildTool:
@@ -110,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCode:
-                    content = this.issueMarkers[index].Issue.RuleKey;
+                    content = issueMarker.Issue.RuleKey;
                     return true;
 
                 case StandardTableKeyNames.ErrorRank:
@@ -122,11 +124,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
-                    content = $"Open description of rule {this.issueMarkers[index].Issue.RuleKey}";
+                    content = $"Open description of rule {issueMarker.Issue.RuleKey}";
                     return true;
 
                 case StandardTableKeyNames.HelpLink:
-                    string ruleKey = this.issueMarkers[index].Issue.RuleKey;
+                    string ruleKey = issueMarker.Issue.RuleKey;
                     content = GetHelpLink(ruleKey);
                     return true;
 

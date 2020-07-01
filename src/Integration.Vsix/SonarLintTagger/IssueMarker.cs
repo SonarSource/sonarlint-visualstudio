@@ -33,9 +33,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class IssueMarker
     {
         public IAnalysisIssue Issue { get; }
-        public SnapshotSpan Span { get; }
+        public SnapshotSpan? Span { get; }
 
-        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span)
+        public IssueMarker(IAnalysisIssue issue, SnapshotSpan? span)
         {
             this.Issue = issue;
             this.Span = span;
@@ -48,10 +48,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IssueMarker CloneAndTranslateTo(ITextSnapshot newSnapshot)
         {
-            var newSpan = Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
+            var newSpan = Span?.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
 
             // If the span length changed, the marker is no longer valid
-            if (newSpan.Length != Span.Length)
+            if (newSpan?.Length != Span?.Length)
             {
                 return null;
             }

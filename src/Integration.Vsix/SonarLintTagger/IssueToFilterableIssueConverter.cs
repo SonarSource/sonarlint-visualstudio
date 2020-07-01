@@ -56,8 +56,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            // A start line of zero means the issue is file-level i.e. not associated with a particular line
-            if (issue.StartLine == 0)
+            // A start line of zero or empty file path means the issue is file-level i.e. not associated with a particular line
+            if (issue.StartLine == 0  || string.IsNullOrEmpty(issue.FilePath))
             {
                 return new FilterableIssueAdapter(issue, null, null);
             }

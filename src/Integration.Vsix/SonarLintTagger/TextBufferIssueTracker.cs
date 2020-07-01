@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Text;
+using SonarAnalyzer.Helpers;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -205,10 +206,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
-            1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
+            string.IsNullOrEmpty(issue.FilePath) || 0 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
         private IssueMarker CreateIssueMarker(IAnalysisIssue issue)
         {
+            if (string.IsNullOrEmpty(issue.FilePath))
+            {
+                return new IssueMarker(issue, null);
+            }
             var span = issueSpanCalculator.CalculateSpan(issue, currentSnapshot);
             return new IssueMarker(issue, span);
         }
@@ -239,14 +244,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (oldIssues != null && oldIssues.Count > 0)
             {
-                start = oldIssues.IssueMarkers.Select(i => i.Span.Start.TranslateTo(currentSnapshot, PointTrackingMode.Negative)).Min();
-                end = oldIssues.IssueMarkers.Select(i => i.Span.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive)).Max();
+                start = oldIssues.IssueMarkers.Where(x=> !string.IsNullOrEmpty(x.Issue.FilePath)).Select(i => i.Span?.Start.TranslateTo(currentSnapshot, PointTrackingMode.Negative)).WhereNotNull().Min();
+                end = oldIssues.IssueMarkers.Where(x => !string.IsNullOrEmpty(x.Issue.FilePath)).Select(i => i.Span?.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive)).WhereNotNull().Max();
             }
 
             if (newIssues != null && newIssues.Count > 0)
             {
-                start = Math.Min(start, newIssues.IssueMarkers.Select(i => i.Span.Start.Position).Min());
-                end = Math.Max(end, newIssues.IssueMarkers.Select(i => i.Span.End.Position).Max());
+                start = Math.Min(start, newIssues.IssueMarkers.Where(x => !string.IsNullOrEmpty(x.Issue.FilePath)).Select(i => i.Span?.Start.Position).WhereNotNull().Min());
+                end = Math.Max(end, newIssues.IssueMarkers.Where(x => !string.IsNullOrEmpty(x.Issue.FilePath)).Select(i => i.Span?.End.Position).WhereNotNull().Max());
             }
 
             if (start < end)

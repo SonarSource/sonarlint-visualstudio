@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
             CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
 
-            Debug.Assert(messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
+            //Debug.Assert(messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
 
             var issues = messages
                 .Where(m => IsIssueForActiveRule(m, request.RulesConfiguration))
