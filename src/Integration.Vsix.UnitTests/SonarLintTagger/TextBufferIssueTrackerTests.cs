@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -35,7 +36,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
     /*
      * Note: the TextBufferIssueTracker and TaggerProvider are tightly coupled so it isn't possible
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
         private Mock<IAnalyzerController> mockAnalyzerController;
         private TaggerProvider taggerProvider;
+        private Mock<ITextBuffer> mockDocumentTextBuffer;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
         private Mock<IIssuesFilter> issuesFilter;
         private AnalysisLanguage[] javascriptLanguage = new[] { AnalysisLanguage.Javascript };
@@ -61,7 +63,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockAnalyzerController = new Mock<IAnalyzerController>();
             issuesFilter = new Mock<IIssuesFilter>();
             taggerProvider = CreateTaggerProvider();
-            mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
+            mockDocumentTextBuffer = CreateTextBufferMock();
+            mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer.Object);
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
             testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
@@ -101,6 +104,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSonarErrorDataSource.Verify(x => x.RemoveFactory(factory), times);
         }
 
+        [TestMethod]
+        public void OnBufferChange_ErrorListIsUpdated()
+        {
+            // Use the test version of the text buffer to bypass the span translation code
+            testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
+                mockSonarErrorDataSource.Object, new TestLogger());
+
+
+            var beforeSnapshot = CreateMockTextSnapshot(100, "foo");
+            var afterSnapshot = CreateMockTextSnapshot(100, "bar");
+
+            // Need to register a tagger for the buffer to start listening to buffer change events
+            using (testSubject.CreateTagger())
+            {
+                mockAnalyzerController.Invocations.Clear();
+                mockSonarErrorDataSource.Invocations.Clear();
+
+                RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
+
+                CheckAnalysisWasNotRequested();
+                CheckErrorListRefreshWasRequestedOnce();
+            }
+        }
+
         #region Triggering analysis tests
 
         [TestMethod]
@@ -112,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // 2. Add a tagger -> analysis requested
             using (testSubject.CreateTagger())
             {
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
+                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
                     (IAnalyzerOptions)null /* no expecting any options when a new tagger is added */,
                     It.IsAny<CancellationToken>()), Times.Once);
             }
@@ -131,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             CheckAnalysisWasNotRequested();
         }
@@ -162,9 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject,
-                (IAnalyzerOptions)null /* no expecting any options when the settings file is updated */,
-                It.IsAny<CancellationToken>()), Times.Once);
+            CheckAnalysisWasRequested();
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
@@ -187,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
                 // Sanity check (that the test setup is correct and that events are actually being handled)
                 RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, testSubject, It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+                CheckAnalysisWasRequested();
             }
         }
 
@@ -209,10 +235,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockDocument.Raise(x => x.FileActionOccurred += null, args);
         }
 
+        private static void RaiseBufferChangedEvent(Mock<ITextBuffer> mockTextBuffer, ITextSnapshot beforeSnapshot, ITextSnapshot afterSnapshot)
+        {
+            var args = new TextContentChangedEventArgs(beforeSnapshot, afterSnapshot, EditOptions.None, null);
+            mockTextBuffer.Raise(x => x.ChangedLowPriority += null, args);
+        }
+
         private void CheckAnalysisWasNotRequested()
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
                 It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+        private void CheckAnalysisWasRequested()
+        {
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #endregion
@@ -220,78 +257,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Processing analysis results tests
 
         [TestMethod]
-        public void WhenNewIssuesAreFound_ButForIncorrectFile_FilterNotCalledAndListenersAreNotUpdated()
-        {
-            // Arrange
-            var issues = new[] { new DummyAnalysisIssue { RuleKey = "S123", StartLine = 1, EndLine = 1 } };
-
-            // Act
-            using (new AssertIgnoreScope())
-            {
-                ((IIssueConsumer)testSubject).Accept("aRandomFile.xxx", issues);
-            }
-
-            // Assert
-            CheckErrorListRefreshWasNotRequested();
-
-            issuesFilter.Verify(x => x.Filter(It.IsAny<IEnumerable<IFilterableIssue>>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void WhenNewIssuesAreFound_OutOfRangeIssuesAreIgnored_ListenersAreUpdated()
-        {
-            // Arrange
-            var issues = new[]
-            {
-                new DummyAnalysisIssue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
-                // The next issue is outside the range of the new snapshot and should be ignored
-                new DummyAnalysisIssue { RuleKey = "S222", StartLine = 99999998, EndLine = 99999999 },
-                new DummyAnalysisIssue { RuleKey = "S333", StartLine = 100, EndLine = 101 }
-            };
-
-            // Setup up the filter to return whatever was supplied
-            SetupIssuesFilter(out var _);
-
-            // Sanity check
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0);
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
-
-            // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, issues);
-
-            // Assert
-            CheckErrorListRefreshWasRequested(1);
-
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(2);
-
-            var actualMarkers = testSubject.Factory.CurrentSnapshot.IssueMarkers.ToArray();
-            actualMarkers[0].Issue.RuleKey.Should().Be("S111");
-            actualMarkers[1].Issue.RuleKey.Should().Be("S333");
-        }
-
-        [TestMethod]
         public void WhenNewIssuesAreFound_FilterIsApplied_ListenersAreUpdated()
         {
             // Arrange
+            // Use the test version of the text buffer to bypass the span translation code
+            testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
+                mockSonarErrorDataSource.Object, new TestLogger());
+
             var inputIssues = new[]
             {
-                new DummyAnalysisIssue { RuleKey = "S111", StartLine = 1, EndLine = 1 },
-                new DummyAnalysisIssue { RuleKey = "S222", StartLine = 2, EndLine = 2 }
+                CreateIssueMarker("S111", startLine: 1, endLine: 1),
+                CreateIssueMarker("S222", startLine: 2, endLine: 2)
             };
 
             var issuesToReturnFromFilter = new[]
             {
-                new IssueMarker(
-                    new DummyAnalysisIssue { RuleKey = "xxx", StartLine = 3 },
-                    new SnapshotSpan(CreateMockTextSnapshot(100, "any text").Object, 0, 1),
-                    "text1", "hash1")
+                CreateIssueMarker("xxx", startLine: 3, endLine: 3)
             };
 
             SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
+            testSubject.HandleNewIssues(inputIssues);
 
             // Assert
             // Check the expected issues were passed to the filter
@@ -299,7 +287,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issuesPassedToFilter[0].RuleId.Should().Be("S111");
             issuesPassedToFilter[1].RuleId.Should().Be("S222");
 
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             // Check the post-filter issues
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
@@ -312,21 +300,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Arrange
             var inputIssues = new[]
             {
-                new DummyAnalysisIssue { RuleKey = "single issue", StartLine = 1, EndLine = 1 }
+                CreateIssueMarker("single issue", startLine: 1, endLine: 1 )
             };
 
             var issuesToReturnFromFilter = Enumerable.Empty<IssueMarker>();
             SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, inputIssues);
+            testSubject.HandleNewIssues(inputIssues);
 
             // Assert
             // Check the expected issues were passed to the filter
             capturedFilterInput.Count.Should().Be(1);
             capturedFilterInput[0].RuleId.Should().Be("single issue");
 
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             // Check there are no markers
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
@@ -339,12 +327,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             SetupIssuesFilter(out var capturedFilterInput, Enumerable.Empty<IFilterableIssue>());
 
             // Act
-            ((IIssueConsumer)testSubject).Accept(mockedJavascriptDocumentFooJs.Object.FilePath, Enumerable.Empty<AnalysisIssue>());
+            testSubject.HandleNewIssues(Enumerable.Empty<IssueMarker>());
 
             // Assert
             capturedFilterInput.Should().BeEmpty();
 
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
         }
@@ -359,15 +347,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             capturedFilterInput = captured;
         }
 
-        private void CheckErrorListRefreshWasNotRequested()
+        private void CheckErrorListRefreshWasRequestedOnce()
         {
-            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Never);
+            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Once);
         }
 
-        private void CheckErrorListRefreshWasRequested(int count)
-        {
-            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Exactly(count));
-        }
+        private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine) =>
+            new IssueMarker(
+                new DummyAnalysisIssue
+                {
+                    RuleKey = ruleKey,
+                    StartLine = startLine,
+                    EndLine = endLine
+                },
+                new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1),
+                "any text",
+                "any hash"
+            );
 
         #endregion
 
@@ -417,7 +413,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return provider;
         }
 
-        private static Mock<ITextDocument> CreateDocumentMock(string fileName)
+        private static Mock<ITextBuffer> CreateTextBufferMock()
         {
             // Text buffer with a properties collection and current snapshot
             var mockTextBuffer = new Mock<ITextBuffer>();
@@ -428,12 +424,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var mockSnapshot = CreateMockTextSnapshot(1000, "some text");
             mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
 
+            return mockTextBuffer;
+        }
+
+        private static Mock<ITextDocument> CreateDocumentMock(string fileName, ITextBuffer textBuffer)
+        {
             // Create the document and associate the buffer with the it
             var mockTextDocument = new Mock<ITextDocument>();
             mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
             mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
 
-            mockTextDocument.Setup(x => x.TextBuffer).Returns(mockTextBuffer.Object);
+            mockTextDocument.Setup(x => x.TextBuffer).Returns(textBuffer);
 
             return mockTextDocument;
         }
@@ -450,6 +451,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(mockSnapshotLine.Object);
 
             return mockSnapshot;
+        }
+
+        // We can't mock the span translation code (to difficult to mock),
+        // so this subclass by-passes it.
+        // See https://github.com/SonarSource/sonarlint-visualstudio/issues/1522
+        private class TestableTextBufferIssueTracker : TextBufferIssueTracker
+        {
+            public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
+                IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
+                ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
+                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger)
+            { }
+
+            protected override IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)
+            {
+                // Just pass-through the supplied markers
+                return issueMarkers;
+            }
         }
     }
 }

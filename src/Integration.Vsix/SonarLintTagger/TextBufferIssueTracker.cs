@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal sealed class TextBufferIssueTracker : IIssueTracker, IIssueConsumer
+    internal class TextBufferIssueTracker : IIssueTracker
     {
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
@@ -52,7 +52,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ITextSnapshot currentSnapshot;
 
         private readonly ITextDocument document;
-        private readonly IIssueToIssueMarkerConverter issueMarkerConverter;
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
@@ -66,13 +65,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
-            : this(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger, new IssueToIssueMarkerConverter())
-        {
-        }
-
-        internal TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
-            IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger, IIssueToIssueMarkerConverter issueMarkerConverter)
         {
             this.dte = dte;
 
@@ -82,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
-            this.issueMarkerConverter = issueMarkerConverter;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -157,7 +148,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
 
                     // Update and publish a new snapshow with the existing issues so 
-                    // that the name change propagates to items in the error list
+                    // that the name change propagates to items in the error list.
+                    // No need in this case to translate the tagger spans.
                     RefreshIssues();
                 }
                 else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
@@ -184,9 +176,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // in the new text buffer.
                 currentSnapshot = e.After;
 
-                var newMarkers = TranslateMarkerSpans();
-
-                SnapToNewSnapshot(newMarkers);
+                var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
+                UpdateIssues(newMarkers);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -194,18 +185,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private IssuesSnapshot TranslateMarkerSpans()
+        protected virtual /* for testing */ IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)
         {
-            var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = oldSnapshot.IssueMarkers
-                .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
-                .Where(clone => clone != null);
+            var newMarkers = issueMarkers
+                .Select(marker => marker.CloneAndTranslateTo(activeSnapshot))
+                .Where(clone => clone != null)
+                .ToArray();
 
-            return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
+            return newMarkers;
         }
-
-        private bool IsValidIssueTextRange(IAnalysisIssue issue) =>
-            1 <= issue.StartLine && issue.EndLine <= currentSnapshot.LineCount;
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
         {
@@ -255,28 +243,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, this, options);
+            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues);
+
+            // Call the consumer with no analysis issues to immediately clear issies for this file
+            // from the error list
+            issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
+
+            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 
-        void IIssueConsumer.Accept(string path, IEnumerable<IAnalysisIssue> issues)
+        internal /* for testing */ void HandleNewIssues(IEnumerable<IssueMarker> issueMarkers)
         {
-            // Callback from the daemon when new results are available
-            if (path != FilePath)
-            {
-                Debug.Fail("Issues returned for an unexpected file path");
-                return;
-            }
+            var filteredMarkers = RemoveSuppressedIssues(issueMarkers);
 
-            // See bug #1487: we should be creating the issue markers using the text snapshot
-            // from when the analysis was triggered, not the current one.
-            var newMarkers = issues
-                .Where(IsValidIssueTextRange)
-                .Select(x => issueMarkerConverter.Convert(x, currentSnapshot))
-                .ToArray();
+            // The text buffer might have changed since the analysis was triggered, so translate
+            // all issues to the current snapshot.
+            // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
+            var translatedMarkers = TranslateSpans(filteredMarkers, currentSnapshot);
 
-            var filteredMarkers = RemoveSuppressedIssues(newMarkers);
-
-            UpdateIssues(filteredMarkers);
+            UpdateIssues(translatedMarkers);
         }
 
         private IEnumerable<IssueMarker> RemoveSuppressedIssues(IEnumerable<IssueMarker> issues)
