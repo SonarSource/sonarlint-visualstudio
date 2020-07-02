@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to execute analysis, exception details: {0}.
+        ///   Looks up a localized string similar to Failed to analyze {0}, exception details: {1}.
         /// </summary>
         internal static string ERROR_Analysis_Failed {
             get {
@@ -79,7 +79,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Finished analyzing {0}.
+        ///   Looks up a localized string similar to Aborted analysis of {0}, analysis has been re-triggered or has timed-out..
+        /// </summary>
+        internal static string MSG_AnalysisAborted {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisAborted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished analyzing {0}, analysis time: {1}s.
         /// </summary>
         internal static string MSG_AnalysisComplete {
             get {

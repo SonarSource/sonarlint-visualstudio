@@ -33,28 +33,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class SchedulerTests
     {
+        private Mock<Action<CancellationToken>> onExplicitCancel;
         private Scheduler testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new Scheduler();
+            onExplicitCancel = new Mock<Action<CancellationToken>>();
+            testSubject = new Scheduler(onExplicitCancel.Object);
         }
 
         [TestMethod]
-        public void Schedule_TimeoutProvided_JobCancelledAfterTimeoutElapsed()
+        public void Schedule_JobReachedTimeout_JobCancelledDueToTimeOut()
         {
             var job = SetupJobAction(out var getToken);
 
             testSubject.Schedule("test path", job.Object, 1000);
 
             var token = getToken();
-            job.Verify(x => x(token), Times.Once);
             token.IsCancellationRequested.Should().BeFalse();
 
-            Thread.Sleep(2000);
+            // wait for job to time out
+            Thread.Sleep(3000);
 
             token.IsCancellationRequested.Should().BeTrue();
+            onExplicitCancel.Verify(x=> x(token), Times.Never);
         }
 
         [TestMethod]
@@ -71,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
 
             firstToken.IsCancellationRequested.Should().BeTrue();
+            onExplicitCancel.Verify(x => x(firstToken), Times.Once);
         }
 
         [TestMethod]

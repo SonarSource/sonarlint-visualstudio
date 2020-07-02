@@ -41,18 +41,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
         private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
+        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly ILogger logger;
         private readonly DTE dte;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger)
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.cFamilyRulesConfigProvider = cFamilyRulesConfigProvider;
+            this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
-
             this.dte = serviceProvider.GetService<DTE>();
         }
 
@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
+            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
 
             Debug.Assert(messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
 
