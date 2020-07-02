@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void IsSupported()
         {
             var testSubject = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, testLogger);
+                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, Mock.Of<IAnalysisStatusNotifier>(), testLogger);
 
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, 
                 IServiceProvider serviceProvider, ILogger logger)
-                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, logger)
+                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, Mock.Of<IAnalysisStatusNotifier>(), logger)
             {}
 
             protected override Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)

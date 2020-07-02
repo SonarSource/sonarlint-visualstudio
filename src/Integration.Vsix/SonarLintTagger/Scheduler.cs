@@ -30,10 +30,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     public class Scheduler : IScheduler
     {
         private readonly IDictionary<string, WeakReference<CancellationTokenSource>> jobs;
+        private readonly Action<CancellationToken> onExplicitCancel;
 
         [ImportingConstructor]
         public Scheduler()
+            : this(null)
         {
+        }
+
+        internal Scheduler(Action<CancellationToken> onExplicitCancel)
+        {
+            this.onExplicitCancel = onExplicitCancel;
             // Slow memory leak: each unique jobId will add a new entry to the dictionary. Entries for completed jobs are not removed
             jobs = new Dictionary<string, WeakReference<CancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
         }
@@ -65,9 +72,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (jobs.ContainsKey(jobId) && jobs[jobId].TryGetTarget(out var tokenSource))
             {
+                onExplicitCancel?.Invoke(tokenSource.Token);
                 tokenSource.Cancel(throwOnFirstException: false);
                 tokenSource.Dispose();
             }
         }
-    }
+    }   
 }
