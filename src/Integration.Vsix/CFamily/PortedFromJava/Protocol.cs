@@ -19,10 +19,8 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
-using SonarLint.VisualStudio.Core;
 
 /**
  * This is a port of the protocol implemented between Java and C++
