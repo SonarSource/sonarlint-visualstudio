@@ -19,12 +19,13 @@
  */
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
@@ -119,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var messages = new List<Message>();
 
-            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, logger, CancellationToken.None);
+            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, Mock.Of<IAnalysisStatusNotifier>(), logger, CancellationToken.None);
 
             return messages;
         }
