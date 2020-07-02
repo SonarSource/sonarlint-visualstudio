@@ -50,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
         private Mock<IAnalyzerController> mockAnalyzerController;
         private TaggerProvider taggerProvider;
+        private Mock<ITextBuffer> mockDocumentTextBuffer;
         private Mock<ITextDocument> mockedJavascriptDocumentFooJs;
         private Mock<IIssuesFilter> issuesFilter;
         private AnalysisLanguage[] javascriptLanguage = new[] { AnalysisLanguage.Javascript };
@@ -62,7 +63,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockAnalyzerController = new Mock<IAnalyzerController>();
             issuesFilter = new Mock<IIssuesFilter>();
             taggerProvider = CreateTaggerProvider();
-            mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js");
+            mockDocumentTextBuffer = CreateTextBufferMock();
+            mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer.Object);
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
             testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
@@ -100,6 +102,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private void CheckFactoryWasUnregisteredFromDataSource(SnapshotFactory factory, Times times)
         {
             mockSonarErrorDataSource.Verify(x => x.RemoveFactory(factory), times);
+        }
+
+        [TestMethod]
+        public void OnBufferChange_ErrorListIsUpdated()
+        {
+            // Use the test version of the text buffer to bypass the span translation code
+            testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
+                mockSonarErrorDataSource.Object, new TestLogger());
+
+
+            var beforeSnapshot = CreateMockTextSnapshot(100, "foo", 1);
+            var afterSnapshot = CreateMockTextSnapshot(100, "bar", 1);
+
+            // Need to register a tagger for the buffer to start listening to buffer change events
+            using (testSubject.CreateTagger())
+            {
+                mockAnalyzerController.Invocations.Clear();
+                mockSonarErrorDataSource.Invocations.Clear();
+
+                RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
+
+                CheckAnalysisWasNotRequested();
+                CheckErrorListRefreshWasRequested(1);
+            }
         }
 
         #region Triggering analysis tests
@@ -163,9 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
-                (IAnalyzerOptions)null /* no expecting any options when the settings file is updated */,
-                It.IsAny<CancellationToken>()), Times.Once);
+            CheckAnalysisWasRequested();
 
             // 3. Unregister tagger and raise -> analysis not requested
             tagger.Dispose();
@@ -188,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
                 // Sanity check (that the test setup is correct and that events are actually being handled)
                 RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
+                CheckAnalysisWasRequested();
             }
         }
 
@@ -210,10 +235,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockDocument.Raise(x => x.FileActionOccurred += null, args);
         }
 
+        private static void RaiseBufferChangedEvent(Mock<ITextBuffer> mockTextBuffer, ITextSnapshot beforeSnapshot, ITextSnapshot afterSnapshot)
+        {
+            var args = new TextContentChangedEventArgs(beforeSnapshot, afterSnapshot, EditOptions.None, null);
+            mockTextBuffer.Raise(x => x.ChangedLowPriority += null, args);
+        }
+
         private void CheckAnalysisWasNotRequested()
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
                 It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Never);
+        }
+        private void CheckAnalysisWasRequested()
+        {
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
+                It.IsAny<IIssueConsumer>(), It.IsAny<IAnalyzerOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         #endregion
@@ -377,7 +413,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             return provider;
         }
 
-        private static Mock<ITextDocument> CreateDocumentMock(string fileName)
+        private static Mock<ITextBuffer> CreateTextBufferMock()
         {
             // Text buffer with a properties collection and current snapshot
             var mockTextBuffer = new Mock<ITextBuffer>();
@@ -388,12 +424,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var mockSnapshot = CreateMockTextSnapshot(1000, "some text");
             mockTextBuffer.Setup(x => x.CurrentSnapshot).Returns(mockSnapshot.Object);
 
+            return mockTextBuffer;
+        }
+
+        private static Mock<ITextDocument> CreateDocumentMock(string fileName, ITextBuffer textBuffer)
+        {
             // Create the document and associate the buffer with the it
             var mockTextDocument = new Mock<ITextDocument>();
             mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
             mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
 
-            mockTextDocument.Setup(x => x.TextBuffer).Returns(mockTextBuffer.Object);
+            mockTextDocument.Setup(x => x.TextBuffer).Returns(textBuffer);
 
             return mockTextDocument;
         }
@@ -422,6 +463,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         // We can't mock the span translation code (to difficult to mock),
         // so this subclass by-passes it.
+        // See https://github.com/SonarSource/sonarlint-visualstudio/issues/1522
         private class TestableTextBufferIssueTracker : TextBufferIssueTracker
         {
             public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
