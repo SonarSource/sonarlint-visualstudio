@@ -72,6 +72,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void Read_RequestHasFileName_ReturnedMessageHasNoFileName_MessageIgnored()
+        {
+            const string returnedIssueFileName = "";
+            const string testedFileName = "myfile.cpp";
+
+            var response = CallProtocolRead(MockResponse(returnedIssueFileName), testedFileName);
+
+            response.Messages.Length.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Read_RequestHasNoFileName_ReturnedMessageHasNoFileName_MessageReturned()
+        {
+            const string returnedIssueFileName = "";
+            const string testedFileName = "";
+
+            var response = CallProtocolRead(MockResponse(returnedIssueFileName), testedFileName);
+
+            response.Messages.Length.Should().Be(1);
+        }
+
+        [TestMethod]
         public void Read_Response()
         {
             var response = CallProtocolRead(MockResponse());
@@ -326,7 +348,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
         }
 
-        private byte[] MockResponse()
+        private byte[] MockResponse(string fileName = "file.cpp")
         {
             using (MemoryStream stream = new MemoryStream())
             {
@@ -337,7 +359,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.WriteUTF(writer, "message");
 
                 Protocol.WriteUTF(writer, "ruleKey");
-                Protocol.WriteUTF(writer, "file.cpp");
+                Protocol.WriteUTF(writer, fileName);
                 Protocol.WriteInt(writer, 10);
                 Protocol.WriteInt(writer, 11);
                 Protocol.WriteInt(writer, 12);
@@ -358,7 +380,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 // 1 measure
                 Protocol.WriteUTF(writer, "measures");
                 Protocol.WriteInt(writer, 1);
-                Protocol.WriteUTF(writer, "file.cpp");
+                Protocol.WriteUTF(writer, fileName);
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteInt(writer, 1);
                 Protocol.WriteInt(writer, 1);
