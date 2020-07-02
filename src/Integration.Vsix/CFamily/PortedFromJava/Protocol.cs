@@ -178,8 +178,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   var message = readMessage(reader);
                   
                   if (!doFilterResults || 
-                      !string.IsNullOrEmpty(message.Filename) && 
-                      string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase))
+                      (!string.IsNullOrEmpty(message.Filename) && 
+                      string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase)))
                   {
                       handleIssue(message);
                   }
