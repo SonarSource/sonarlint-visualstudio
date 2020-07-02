@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -34,12 +33,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class SchedulerTests
     {
+        private Mock<Action<CancellationToken>> onExplicitCancel;
         private Scheduler testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new Scheduler();
+            onExplicitCancel = new Mock<Action<CancellationToken>>();
+            testSubject = new Scheduler(onExplicitCancel.Object);
         }
 
         [TestMethod]
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             Thread.Sleep(3000);
 
             token.IsCancellationRequested.Should().BeTrue();
-            token.IsTimedOut().Should().BeTrue();
+            onExplicitCancel.Verify(x=> x(token), Times.Never);
         }
 
         [TestMethod]
@@ -73,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject.Schedule("test path", secondJob.Object, Timeout.Infinite);
 
             firstToken.IsCancellationRequested.Should().BeTrue();
-            firstToken.IsTimedOut().Should().BeFalse();
+            onExplicitCancel.Verify(x => x(firstToken), Times.Once);
         }
 
         [TestMethod]
@@ -272,22 +273,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             getCreatedToken = () => cancellationToken;
 
             return action;
-        }
-    }
-
-    internal static class CancellationTokenExtensions
-    {
-        public static bool IsTimedOut(this CancellationToken token)
-        {
-            var fieldInfo = typeof(CancellationToken).GetField("m_source", BindingFlags.NonPublic | BindingFlags.Instance);
-            var source = fieldInfo.GetValue(token);
-
-            if (source is ExtendedCancellationTokenSource extendedTokenSource)
-            {
-                return !extendedTokenSource.IsCancelledExplicitly;
-            }
-
-            return false;
         }
     }
 }

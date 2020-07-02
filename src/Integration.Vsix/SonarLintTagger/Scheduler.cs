@@ -29,13 +29,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class Scheduler : IScheduler
     {
-        private readonly IDictionary<string, WeakReference<ExtendedCancellationTokenSource>> jobs;
+        private readonly IDictionary<string, WeakReference<CancellationTokenSource>> jobs;
+        private readonly Action<CancellationToken> onExplicitCancel;
 
         [ImportingConstructor]
         public Scheduler()
+            : this(null)
         {
+        }
+
+        internal Scheduler(Action<CancellationToken> onExplicitCancel)
+        {
+            this.onExplicitCancel = onExplicitCancel;
             // Slow memory leak: each unique jobId will add a new entry to the dictionary. Entries for completed jobs are not removed
-            jobs = new Dictionary<string, WeakReference<ExtendedCancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
+            jobs = new Dictionary<string, WeakReference<CancellationTokenSource>>(StringComparer.OrdinalIgnoreCase);
         }
 
         public void Schedule(string jobId, Action<CancellationToken> action, int timeoutInMilliseconds)
@@ -52,10 +59,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 CancelPreviousJob(jobId);
 
-                var newTokenSource = new ExtendedCancellationTokenSource();
+                var newTokenSource = new CancellationTokenSource();
                 newTokenSource.CancelAfter(timeoutInMilliseconds);
 
-                jobs[jobId] = new WeakReference<ExtendedCancellationTokenSource>(newTokenSource);
+                jobs[jobId] = new WeakReference<CancellationTokenSource>(newTokenSource);
 
                 return newTokenSource.Token;
             }
@@ -65,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (jobs.ContainsKey(jobId) && jobs[jobId].TryGetTarget(out var tokenSource))
             {
-                tokenSource.IsCancelledExplicitly = true;
+                onExplicitCancel?.Invoke(tokenSource.Token);
                 tokenSource.Cancel(throwOnFirstException: false);
                 tokenSource.Dispose();
             }
