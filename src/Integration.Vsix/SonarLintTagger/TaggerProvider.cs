@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class TaggerProvider : IViewTaggerProvider
     {
-        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 20 * 1000;
+        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
