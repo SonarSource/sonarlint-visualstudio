@@ -180,15 +180,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SonarLint: Analysis of {0} has timed out..
-        /// </summary>
-        internal static string Notifier_AnalysisTimedOut {
-            get {
-                return ResourceManager.GetString("Notifier_AnalysisTimedOut", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error re-analysing open documents: {0}.
         /// </summary>
         internal static string ReanalysisStatusBar_Error {

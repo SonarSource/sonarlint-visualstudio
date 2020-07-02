@@ -121,7 +121,7 @@
     <value>Failed to analyze {0}, exception details: {1}</value>
   </data>
   <data name="MSG_AnalysisAborted" xml:space="preserve">
-    <value>Aborted analysis of {0}, analysis has been re-triggered or timed-out.</value>
+    <value>Aborted analysis of {0}, analysis has been re-triggered or has timed-out.</value>
   </data>
   <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
     <value>Execution failed. The specified executable does not exist: {0}</value>

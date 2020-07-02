@@ -166,9 +166,6 @@
   <data name="Notifier_AnalysisFinished" xml:space="preserve">
     <value>SonarLint: Finished analyzing {0}</value>
   </data>
-  <data name="Notifier_AnalysisTimedOut" xml:space="preserve">
-    <value>SonarLint: Analysis of {0} has timed out.</value>
-  </data>
   <data name="Notifier_AnalysisFailed" xml:space="preserve">
     <value>SonarLint: Failed to analyze {0}. See the Output Window for more information.</value>
   </data>
