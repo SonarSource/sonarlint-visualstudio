@@ -244,6 +244,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void RequestAnalysis(IAnalyzerOptions options)
         {
             var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues);
+
+            // Call the consumer with no analysis issues to immediately clear issies for this file
+            // from the error list
+            issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
+
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 
