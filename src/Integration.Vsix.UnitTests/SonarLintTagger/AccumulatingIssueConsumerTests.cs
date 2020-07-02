@@ -69,22 +69,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        [DataRow(-1, 10, false)] // start line < 1
+        [DataRow(-1, 1, false)] // start line < 1
         [DataRow(0, 0, false)] // file-level issue, can't be mapped to snapshot
+        [DataRow(0, 1, false)] // illegal i.e. shouldn't happen, but should be ignored if it does
         [DataRow(1, 1, true)] // starts in first line of snapshot
         [DataRow(9, 10, true)] // in snapshot
         [DataRow(10, 10, true)] // end is in last line of snapshot
         [DataRow(10, 11, false)] // end is outside snapshot
-        [DataRow(11, 11, false)] // ditto
-        [DataRow(99, 99, false)] // ditto
-        public void Accept_IssuesNotInSnapshotAreIgnored_CallbackIsCalledWithExpectedIssues(int oneBasedIssueStartLine, int oneBasedIssueEndLine, bool isMappableToSnapshot)
+        [DataRow(11, 11, false)] // end is outside snapshot
+        public void Accept_IssuesNotInSnapshotAreIgnored_CallbackIsCalledWithExpectedIssues(int issueStartLine, int issueEndLine, bool isMappableToSnapshot)
         {
+            // Issues are 1-based.
+            // Snapshots are 0-based so last line = index 9
             const int LinesInSnapshot = 10;
             var snapshot = CreateSnapshot(LinesInSnapshot);
-            var issues = new[] { CreateIssue(oneBasedIssueStartLine, oneBasedIssueEndLine) };
+            var issues = new[] { CreateIssue(issueStartLine, issueEndLine) };
 
             var callbackSpy = new OnIssuesChangedCallbackSpy();
-            var converter = CreateWrapAllConverter();
+            var converter = CreatePassthroughConverter();
 
             var testSubject = new AccumulatingIssueConsumer(snapshot, ValidFilePath, callbackSpy.Callback, converter);
 
@@ -119,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             };
 
             var snapshot = CreateSnapshot(lineCount: 10);
-            var converter = CreateWrapAllConverter();
+            var converter = CreatePassthroughConverter();
 
             var testSubject = new AccumulatingIssueConsumer(snapshot, ValidFilePath, callbackSpy.Callback, converter);
 
@@ -170,7 +172,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 Message = "any message"
             };
 
-        private static IIssueToIssueMarkerConverter CreateWrapAllConverter()
+        private static IIssueToIssueMarkerConverter CreatePassthroughConverter()
         {
             // Set up an issue converter that just wraps and returns the supplied issues as IssueMarkers
             var mockIssueConverter = new Mock<IIssueToIssueMarkerConverter>();

@@ -113,8 +113,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 mockSonarErrorDataSource.Object, new TestLogger());
 
 
-            var beforeSnapshot = CreateMockTextSnapshot(100, "foo", 1);
-            var afterSnapshot = CreateMockTextSnapshot(100, "bar", 1);
+            var beforeSnapshot = CreateMockTextSnapshot(100, "foo");
+            var afterSnapshot = CreateMockTextSnapshot(100, "bar");
 
             // Need to register a tagger for the buffer to start listening to buffer change events
             using (testSubject.CreateTagger())
@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
 
                 CheckAnalysisWasNotRequested();
-                CheckErrorListRefreshWasRequested(1);
+                CheckErrorListRefreshWasRequestedOnce();
             }
         }
 
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             CheckAnalysisWasNotRequested();
         }
@@ -287,7 +287,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             issuesPassedToFilter[0].RuleId.Should().Be("S111");
             issuesPassedToFilter[1].RuleId.Should().Be("S222");
 
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             // Check the post-filter issues
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
@@ -314,7 +314,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput.Count.Should().Be(1);
             capturedFilterInput[0].RuleId.Should().Be("single issue");
 
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             // Check there are no markers
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
@@ -332,7 +332,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Assert
             capturedFilterInput.Should().BeEmpty();
 
-            CheckErrorListRefreshWasRequested(1);
+            CheckErrorListRefreshWasRequestedOnce();
 
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
         }
@@ -347,9 +347,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput = captured;
         }
 
-        private void CheckErrorListRefreshWasRequested(int count)
+        private void CheckErrorListRefreshWasRequestedOnce()
         {
-            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Exactly(count));
+            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Once);
         }
 
         private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine) =>
@@ -439,21 +439,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             return mockTextDocument;
         }
 
-        private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn, int versionNumber = 0)
+        private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn)
         {
-            const int length = 9999;
-
-            var mockVersion = new Mock<ITextVersion>();
-            versionNumber = Math.Max(versionNumber, 1);
-            mockVersion.Setup(x => x.VersionNumber).Returns(versionNumber);
-            mockVersion.Setup(x => x.Length).Returns(length);
-
             var mockSnapshotLine = new Mock<ITextSnapshotLine>();
             mockSnapshotLine.Setup(x => x.GetText()).Returns(textToReturn);
 
             var mockSnapshot = new Mock<ITextSnapshot>();
-            mockSnapshot.Setup(x => x.Version).Returns(mockVersion.Object);
-            mockSnapshot.Setup(x => x.Length).Returns(length);
+            mockSnapshot.Setup(x => x.Length).Returns(9999);
             mockSnapshot.Setup(x => x.LineCount).Returns(lineCount);
             mockSnapshot.Setup(x => x.GetLineFromLineNumber(It.IsAny<int>()))
                 .Returns(mockSnapshotLine.Object);

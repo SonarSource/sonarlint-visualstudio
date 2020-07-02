@@ -29,26 +29,28 @@ using SonarLint.VisualStudio.Core.Analysis;
  * Instancing: a new instance of this class should be created for each analysis request.
  * 
  * The class is initialized with the text snapshot representing the state of the text buffer
- * at the point the analysis was triggered ("the analysis snaphost").
+ * at the point the analysis was triggered.
+ * 
+ * The job of the class is to:
+ * 1) map the issue start/end positions supplied by the analyzer to spans in the supplied text snapshot, and 
+ * 2) accumulate the list of issues that have return by the analyzer so far
  * 
  * Each time IIssueConsumer.Accept is called, the new issues will be mapped back to the
- * analysis snapshot and decorated with the additional data required for filtering and tagging.
- * Then, all of the issues that have been received that habe been received so far will be
- * passed to the OnIssuesChanged delegate.
+ * supplied snapshot and decorated with the additional data required for filtering and tagging.
+ * Then, all of the issues that have been received so far will be passed to the OnIssuesChanged delegate.
  * 
  * However, it's possible that the text buffer could have been edited since the analysis
- * was triggered. It is the responsibity of the callback to translate to supplied IssueMarkers
- * to the current snapshot, if necessary.
+ * was triggered. It is the responsibity of the callback to translate the supplied IssueMarkers
+ * to the current text buffer snapshot, if necessary.
  * 
  * 
  * Mapping from reported issue line/char positions to the analysis snapshot
  * ------------------------------------------------------------------------
  * Currently, the JS/CFamily analyzers run against the file on disc, not the content of 
- * the snapshot. We're making a couple of assumptions:
- * 1) we're triggering analysis on save, so the state of the text buffer matches the file on disc, and
- * 2) the file won't have had time to change again before the analyzer reads it so we expect always to
- *    be able to map back from the reported issue to the snapshot.
- * However, we code defensively and strip out any issues that can't be mapped to the analysis snapshot.
+ * the snapshot. We're assuming that analysis is triggered on save so the state of the
+ * text snapshot matches the file on disc which is being analyzed.
+ * We expect always to be able to map back from the reported issue to the snapshot.
+ * However, we code defensively and strip out any issues that can't be mapped.
  * 
  */
 
