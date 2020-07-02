@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             // Act and Assert
             result.Should().BeEmpty();
-            logger.AssertPartialOutputStrings("Failed to execute analysis");
+            logger.AssertPartialOutputStrings("Failed to analyze");
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
         }
 
