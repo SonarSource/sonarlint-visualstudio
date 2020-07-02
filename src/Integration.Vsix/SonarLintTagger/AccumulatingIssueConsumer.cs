@@ -32,7 +32,7 @@ using SonarLint.VisualStudio.Core.Analysis;
  * at the point the analysis was triggered ("the analysis snaphost").
  * 
  * Each time IIssueConsumer.Accept is called, the new issues will be mapped back to the
- * analysis snapshot and decorated with the additional data required for filtering and tagging.s
+ * analysis snapshot and decorated with the additional data required for filtering and tagging.
  * Then, all of the issues that have been received that habe been received so far will be
  * passed to the OnIssuesChanged delegate.
  * 

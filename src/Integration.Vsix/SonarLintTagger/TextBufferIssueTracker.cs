@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal sealed class TextBufferIssueTracker : IIssueTracker
+    internal class TextBufferIssueTracker : IIssueTracker
     {
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
@@ -176,9 +176,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // in the new text buffer.
                 currentSnapshot = e.After;
 
-                var newMarkers = TranslateMarkerSpans();
-
-                SnapToNewSnapshot(newMarkers);
+                var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
+                UpdateIssues(newMarkers);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -186,14 +185,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private IssuesSnapshot TranslateMarkerSpans()
+        protected virtual /* for testing */ IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)
         {
-            var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newMarkers = oldSnapshot.IssueMarkers
-                .Select(marker => marker.CloneAndTranslateTo(currentSnapshot))
-                .Where(clone => clone != null);
+            var newMarkers = issueMarkers
+                .Select(marker => marker.CloneAndTranslateTo(activeSnapshot))
+                .Where(clone => clone != null)
+                .ToArray();
 
-            return new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, newMarkers);
+            return newMarkers;
         }
 
         private void SnapToNewSnapshot(IssuesSnapshot newIssues)
@@ -252,9 +251,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var filteredMarkers = RemoveSuppressedIssues(issueMarkers);
 
-            // duncanp: TODO the snapshot might have changed since the analysis was triggered, so translate
+            // The text buffer might have changed since the analysis was triggered, so translate
             // all issues to the current snapshot.
-            UpdateIssues(filteredMarkers);
+            // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
+            var translatedMarkers = TranslateSpans(filteredMarkers, currentSnapshot);
+
+            UpdateIssues(translatedMarkers);
         }
 
         private IEnumerable<IssueMarker> RemoveSuppressedIssues(IEnumerable<IssueMarker> issues)

@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -35,7 +36,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests
+namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
     /*
      * Note: the TextBufferIssueTracker and TaggerProvider are tightly coupled so it isn't possible
@@ -223,6 +224,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void WhenNewIssuesAreFound_FilterIsApplied_ListenersAreUpdated()
         {
             // Arrange
+            // Use the test version of the text buffer to bypass the span translation code
+            testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
+                mockSonarErrorDataSource.Object, new TestLogger());
+
             var inputIssues = new[]
             {
                 CreateIssueMarker("S111", startLine: 1, endLine: 1),
@@ -392,18 +398,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return mockTextDocument;
         }
 
-        private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn)
+        private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn, int versionNumber = 0)
         {
+            const int length = 9999;
+
+            var mockVersion = new Mock<ITextVersion>();
+            versionNumber = Math.Max(versionNumber, 1);
+            mockVersion.Setup(x => x.VersionNumber).Returns(versionNumber);
+            mockVersion.Setup(x => x.Length).Returns(length);
+
             var mockSnapshotLine = new Mock<ITextSnapshotLine>();
             mockSnapshotLine.Setup(x => x.GetText()).Returns(textToReturn);
 
             var mockSnapshot = new Mock<ITextSnapshot>();
-            mockSnapshot.Setup(x => x.Length).Returns(9999);
+            mockSnapshot.Setup(x => x.Version).Returns(mockVersion.Object);
+            mockSnapshot.Setup(x => x.Length).Returns(length);
             mockSnapshot.Setup(x => x.LineCount).Returns(lineCount);
             mockSnapshot.Setup(x => x.GetLineFromLineNumber(It.IsAny<int>()))
                 .Returns(mockSnapshotLine.Object);
 
             return mockSnapshot;
+        }
+
+        // We can't mock the span translation code (to difficult to mock),
+        // so this subclass by-passes it.
+        private class TestableTextBufferIssueTracker : TextBufferIssueTracker
+        {
+            public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
+                IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
+                ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
+                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger)
+            { }
+
+            protected override IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)
+            {
+                // Just pass-through the supplied markers
+                return issueMarkers;
+            }
         }
     }
 }
