@@ -35,6 +35,48 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class CFamily_CLangAnalyzerTests
     {
         [TestMethod]
+        public void CallAnalyzer_Succeeds_NotifiesOfSuccess()
+        {
+            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            var request = new Request { File = "test.cpp" };
+
+            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+
+            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
+            statusNotifierMock.Verify(x => x.AnalysisFinished("test.cpp"), Times.Once);
+            statusNotifierMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_Fails_NotifiesOfFailure()
+        {
+            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
+            var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
+            var request = new Request { File = "test.cpp" };
+
+            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, CancellationToken.None);
+
+            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
+            statusNotifierMock.Verify(x => x.AnalysisFailed("test.cpp"), Times.Once);
+            statusNotifierMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_AnalysisIsCancelled_NotifiesOfCancellation()
+        {
+            var statusNotifierMock = new Mock<IAnalysisStatusNotifier>();
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            var request = new Request { File = "test.cpp" };
+
+            GetResponse(dummyProcessRunner, request, new TestLogger(), statusNotifierMock.Object, new CancellationToken(true));
+
+            statusNotifierMock.Verify(x => x.AnalysisStarted("test.cpp"), Times.Once);
+            statusNotifierMock.Verify(x => x.AnalysisCancelled("test.cpp"), Times.Once);
+            statusNotifierMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void CallAnalyzer_Succeeds_ReturnsMessages()
         {
             // Arrange
@@ -88,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             // Act and Assert
             result.Should().BeEmpty();
-            logger.AssertPartialOutputStrings("Failed to analyze");
+            logger.AssertPartialOutputStrings("Failed to execute analysis");
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
         }
 
@@ -118,9 +160,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger)
         {
+            return GetResponse(dummyProcessRunner, request, logger, Mock.Of<IAnalysisStatusNotifier>(), CancellationToken.None);
+        }
+
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
+        {
             var messages = new List<Message>();
 
-            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, Mock.Of<IAnalysisStatusNotifier>(), logger, CancellationToken.None);
+            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, analysisStatusNotifier, logger, cancellationToken);
 
             return messages;
         }
