@@ -165,6 +165,62 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void TriggerAnalysisAsync_IssuesForInactiveRulesAreNotStreamed()
+        {
+            const string fileName = "c:\\data\\aaa\\bbb\file.txt";
+            var rulesConfig = new DummyCFamilyRulesConfig("c")
+                .AddRule("inactiveRule", isActive: false)
+                .AddRule("activeRule", isActive: true);
+
+            var request = new Request
+            {
+                File = fileName,
+                RulesConfiguration = rulesConfig
+            };
+
+            var inactiveRuleMessage = new Message("inactiveRule", fileName, 1, 1, 1, 1, "inactive message", false, Array.Empty<MessagePart>());
+            var activeRuleMessage = new Message("activeRule", fileName, 2, 2, 2, 2, "active message", false, Array.Empty<MessagePart>());
+
+            var mockConsumer = new Mock<IIssueConsumer>();
+            var subProcess = new SubProcessSimulator();
+
+            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
+                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, testLogger);
+            testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
+
+            try
+            {
+                // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, CancellationToken.None));
+                subProcess.WaitUntilSubProcessCalledByAnalyzer();
+
+                // Stream the inactive rule message to the analyzer
+                subProcess.PassMessageToCLangAnalyzer(inactiveRuleMessage);
+                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Never);
+
+                // Now stream an active rule message
+                subProcess.PassMessageToCLangAnalyzer(activeRuleMessage);
+
+                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Once);
+                var suppliedIssues = (IEnumerable<IAnalysisIssue>)mockConsumer.Invocations[0].Arguments[1];
+                suppliedIssues.Count().Should().Be(1);
+                suppliedIssues.First().Message.Should().Be("active message");
+
+                // Tell the subprocess mock there are no more messages and wait for the analyzer method to complete
+                subProcess.SignalNoMoreIssues();
+                bool succeeded = analysisTask.Wait(10000);
+                succeeded.Should().BeTrue();
+
+                testLogger.AssertOutputStringExists($"Found 1 issue(s) for {fileName}");
+            }
+            finally
+            {
+                // Unblock the subprocess wrapper in case of errors so it can finish
+                subProcess.SignalNoMoreIssues();
+            }
+        }
+
+        [TestMethod]
         public void TriggerAnalysisAsync_AnalysisIsCancelled_NoIssuesFoundMessage()
         {
             var mockConsumer = new Mock<IIssueConsumer>();
