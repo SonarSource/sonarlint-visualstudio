@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Binding {
         
         /// <summary>
         ///   Looks up a localized string similar to Failed to bind project &apos;{0}&apos;.
-        ///A conflicting version of {1} has been found. Please remove &apos;{2}&apos;, re-open the solution and try again..
+        ///A conflicting version of {1} has been found. Please delete the file &apos;{2}&apos; and remove references to it from your projects, then re-open the solution and try again..
         /// </summary>
         internal static string FoundConflictingAdditionalFile {
             get {
