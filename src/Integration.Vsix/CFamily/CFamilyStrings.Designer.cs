@@ -106,15 +106,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process {0} was killed..
-        /// </summary>
-        internal static string MSG_ExectutionCancelledKilled {
-            get {
-                return ResourceManager.GetString("MSG_ExectutionCancelledKilled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Executing file {0}
         ///  Args: {1}
         ///  Working directory: {2}
@@ -168,6 +159,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_Prefix_WARN {
             get {
                 return ResourceManager.GetString("MSG_Prefix_WARN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process {0} was killed..
+        /// </summary>
+        internal static string MSG_ProessRunner_ProcessKilled {
+            get {
+                return ResourceManager.GetString("MSG_ProessRunner_ProcessKilled", resourceCulture);
             }
         }
         

@@ -129,7 +129,7 @@
   <data name="MSG_CmdLine_SensitiveCmdLineArgsAlternativeText" xml:space="preserve">
     <value>&lt;sensitive data removed&gt;</value>
   </data>
-  <data name="MSG_ExectutionCancelledKilled" xml:space="preserve">
+  <data name="MSG_ProessRunner_ProcessKilled" xml:space="preserve">
     <value>Process {0} was killed.</value>
   </data>
   <data name="MSG_ExecutingFile" xml:space="preserve">
