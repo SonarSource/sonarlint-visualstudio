@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process {0} was cancelled and killed..
+        ///   Looks up a localized string similar to Process {0} was killed..
         /// </summary>
         internal static string MSG_ExectutionCancelledKilled {
             get {

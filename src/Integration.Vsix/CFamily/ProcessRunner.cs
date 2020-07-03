@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 if (process != null && !process.HasExited)
                 {
-                    LogMessage(CFamilyStrings.MSG_ExectutionCancelledKilled, process.Id);
+                    LogDebug(CFamilyStrings.MSG_ExectutionCancelledKilled, process.Id);
                     process.Kill();
                 }
             }

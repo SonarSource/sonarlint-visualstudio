@@ -130,7 +130,7 @@
     <value>&lt;sensitive data removed&gt;</value>
   </data>
   <data name="MSG_ExectutionCancelledKilled" xml:space="preserve">
-    <value>Process {0} was cancelled and killed.</value>
+    <value>Process {0} was killed.</value>
   </data>
   <data name="MSG_ExecutingFile" xml:space="preserve">
     <value>Executing file {0}
