@@ -89,7 +89,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
 
-        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
+        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, ISonarLintSettings settings,
+            ILogger logger, CancellationToken cancellationToken)
+        {
+            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
+        }
+
+        internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
@@ -105,11 +111,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
+            CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
 
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
 
-            logger.WriteLine($"Found {issueCount} issue(s)");
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                logger.WriteLine($"Found {issueCount} issue(s) for {request.File}");
+            }
         }
 
         private void HandleMessage(Message message, Request request, IIssueConsumer consumer, ref int issueCount)
