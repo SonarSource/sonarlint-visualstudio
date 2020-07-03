@@ -89,7 +89,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
 
-        private async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
+        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, ISonarLintSettings settings,
+            ILogger logger, CancellationToken cancellationToken)
+        {
+            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
+        }
+
+        internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
@@ -99,33 +105,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             await TaskScheduler.Default;
 
             logger.WriteLine($"Analyzing {request.File}");
-            var messages = new List<Message>();
-            Action<Message> handleMessage = message => messages.Add(message); // todo: change to consumer.Accept
+            int issueCount = 0;
+            Action<Message> handleMessage = message => HandleMessage(message, request, consumer, ref issueCount);
 
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
-
-            Debug.Assert(messages.All(m => m.Filename == request.File), "Issue for unexpected file returned");
-
-            var issues = messages
-                .Where(m => IsIssueForActiveRule(m, request.RulesConfiguration))
-                .Select(m => CFamilyHelper.ToSonarLintIssue(m, request.CFamilyLanguage, request.RulesConfiguration))
-                .ToList();
+            CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
 
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
 
-            logger.WriteLine($"Found {issues.Count} issue(s)");
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                logger.WriteLine($"Found {issueCount} issue(s) for {request.File}");
+            }
+        }
 
-            // Switch back to the UI thread
-            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        private void HandleMessage(Message message, Request request, IIssueConsumer consumer, ref int issueCount)
+        {
+            Debug.Assert(message.Filename == request.File, $"Issue for unexpected file returned: {message.Filename}");
+            if (!IsIssueForActiveRule(message, request.RulesConfiguration))
+            {
+                return;
+            }
+
+            issueCount++;
+            var issue = CFamilyHelper.ToSonarLintIssue(message, request.CFamilyLanguage, request.RulesConfiguration);
 
             // Note: the file being analyzed might have been closed by the time the analysis results are 
             // returned. This doesn't cause a crash; all active taggers will have been detached from the
             // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
             // still exist and handle the call.
-            consumer.Accept(request.File, issues);
+            consumer.Accept(request.File, new[] { issue });
         }
 
         internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)

@@ -336,8 +336,4 @@
   Error: {1}</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Daemon_SuppressedIssuesInfo" xml:space="preserve">
-    <value>Number of suppressed issues: {0}</value>
-    <comment>Output window message</comment>
-  </data>
 </root>

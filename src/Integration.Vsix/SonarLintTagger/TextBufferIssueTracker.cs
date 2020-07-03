@@ -271,9 +271,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var filteredIssues = issuesFilter.Filter(filterableIssues);
             Debug.Assert(filteredIssues.All(x => x is IssueMarker), "Not expecting the issue filter to change the list item type");
 
-            var suppressedCount = filterableIssues.Count() - filteredIssues.Count();
-            logger.WriteLine(Strings.Daemon_SuppressedIssuesInfo, suppressedCount);
-
             return filteredIssues.OfType<IssueMarker>().ToArray();
         }
 
