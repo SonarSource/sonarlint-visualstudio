@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RuleSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="SonarQube - SonarLint for Visual Studio Sonar way" Description="This rule set was automatically generated from SonarQube https://sonarcloud.io/profiles/show?key=AVxYKDdrFTbgxqUNcakm" ToolsVersion="14.0">
+<RuleSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="SonarQube - SonarLint for Visual Studio C# QP for SonarLint" Description="This rule set was automatically generated from SonarQube https://sonarcloud.io/profiles/show?key=AXMj64MpNLR31yYOjFOv" ToolsVersion="14.0">
   <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
     <Rule Id="S100" Action="None" />
     <Rule Id="S1006" Action="Warning" />
@@ -62,7 +62,7 @@
     <Rule Id="S138" Action="None" />
     <Rule Id="S1449" Action="None" />
     <Rule Id="S1450" Action="Info" />
-    <Rule Id="S1451" Action="None" />
+    <Rule Id="S1451" Action="Warning" />
     <Rule Id="S1479" Action="Warning" />
     <Rule Id="S1481" Action="Info" />
     <Rule Id="S1541" Action="None" />
@@ -359,6 +359,7 @@
     <Rule Id="S5542" Action="Warning" />
     <Rule Id="S5547" Action="Warning" />
     <Rule Id="S5659" Action="Warning" />
+    <Rule Id="S5773" Action="Warning" />
     <Rule Id="S818" Action="Info" />
     <Rule Id="S881" Action="None" />
     <Rule Id="S907" Action="Warning" />
