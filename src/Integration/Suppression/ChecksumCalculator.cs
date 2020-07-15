@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -41,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             }
 
             string content = Regex.Replace(text, "\\s", ""); // strip whitespace
-            using (MD5 md5Digest = MD5.Create())
+            using (var md5Digest = new Md5Managed())
             {
                 return EncodeHex(md5Digest.ComputeHash(Encoding.UTF8.GetBytes(content)));
             }
