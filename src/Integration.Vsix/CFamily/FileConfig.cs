@@ -21,33 +21,67 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using EnvDTE;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.VCProjectEngine;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     partial class CFamilyHelper
     {
+        internal interface IFileConfigBuilder
+        {
+            FileConfig TryGetConfig(ProjectItem projectItem, string absoluteFilePath);
+        }
+
+        internal interface IVCProjectPropertyAccessor
+        {
+            string GetConfigAndPlatform();
+
+            string GetIncludeDirectories();
+
+            string GetPlatformToolset();
+
+            string GetToolProperty(string propertyName);
+
+            string GetConfigRuleProperty(string propertyName);
+        }
+
+
         internal class FileConfig
         {
             private static readonly Regex AdditionalOptionsSplitPattern = new Regex("(?<=^[^\"]*(?:\"[^\"]*\"[^\"]*)*) (?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
             public static FileConfig TryGet(ProjectItem projectItem, string absoluteFilePath)
             {
+                System.Diagnostics.Debugger.Launch();
+
                 string configurationName = projectItem.ConfigurationManager.ActiveConfiguration.ConfigurationName; // "Debug" or "Release"
                 string platformName = projectItem.ConfigurationManager.ActiveConfiguration.PlatformName; // "Win32" or "x64"
                 string pattern = configurationName + '|' + platformName;
 
-                dynamic project = projectItem.ContainingProject.Object; // Microsoft.VisualStudio.VCProjectEngine.VCProject
-                dynamic config = project.Configurations.Item(pattern); // Microsoft.VisualStudio.VCProjectEngine.VCConfiguration
+                //dynamic project = projectItem.ContainingProject.Object; // Microsoft.VisualStudio.VCProjectEngine.VCProject
+                //dynamic config = project.Configurations.Item(pattern); // Microsoft.VisualStudio.VCProjectEngine.VCConfiguration
 
-                dynamic file = projectItem.Object; // Microsoft.VisualStudio.VCProjectEngine.VCFile
-                dynamic fileConfig = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
-                dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
-                string platformToolset = config.Rules.Item("ConfigurationGeneral").GetEvaluatedPropertyValue("PlatformToolset");
+                var typedProject = projectItem.ContainingProject.Object as Microsoft.VisualStudio.VCProjectEngine.VCProject;
+                var typedConfigs = typedProject?.Configurations as Microsoft.VisualStudio.VCProjectEngine.IVCCollection;
+                var typedConfig = typedConfigs?.Item(pattern) as Microsoft.VisualStudio.VCProjectEngine.VCConfiguration;
+
+
+                //dynamic file = projectItem.Object; // Microsoft.VisualStudio.VCProjectEngine.VCFile
+                //dynamic fileConfig = file.FileConfigurations.Item(configurationName); // Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration
+                //dynamic fileTool = fileConfig.Tool; // Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool
+
+                var typedFile = projectItem.Object as Microsoft.VisualStudio.VCProjectEngine.VCFile;
+                var typedFileConfigs = typedFile?.FileConfigurations as Microsoft.VisualStudio.VCProjectEngine.IVCCollection;
+                var typedFileConfig = typedFileConfigs?.Item(configurationName) as Microsoft.VisualStudio.VCProjectEngine.VCFileConfiguration;
+                var typedFileTool = typedFileConfig?.Tool as Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool;
+
+                var fileTool = typedFileTool as Microsoft.VisualStudio.VCProjectEngine.IVCRulePropertyStorage;
+
+                string platformToolset = (typedConfig.Rules.Item("ConfigurationGeneral") as IVCRulePropertyStorage)?.GetEvaluatedPropertyValue("PlatformToolset");
 
                 return new FileConfig
                 {
@@ -56,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     PlatformName = platformName,
                     PlatformToolset = platformToolset,
 
-                    IncludeDirectories = config.Rules.Item("ConfigurationDirectories").GetEvaluatedPropertyValue("IncludePath"),
+                    IncludeDirectories = (typedConfig.Rules.Item("ConfigurationDirectories") as IVCRulePropertyStorage)?.GetEvaluatedPropertyValue("IncludePath"),
                     AdditionalIncludeDirectories = GetEvaluatedPropertyValue(fileTool, "AdditionalIncludeDirectories"),
                     IgnoreStandardIncludePath = GetEvaluatedPropertyValue(fileTool, "IgnoreStandardIncludePath"),
 
@@ -84,27 +118,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     BasicRuntimeChecks = GetEvaluatedPropertyValue(fileTool, "BasicRuntimeChecks"),
                     LanguageStandard = GetPotentiallyUnsupportedPropertyValue(fileTool, "LanguageStandard", null),
                     AdditionalOptions = GetEvaluatedPropertyValue(fileTool, "AdditionalOptions"),
-                    CompilerVersion = GetCompilerVersion(platformToolset, project.ActiveConfiguration.GetEvaluatedPropertyValue("VCToolsVersion")),
+                    CompilerVersion = GetCompilerVersion(platformToolset, typedProject.ActiveConfiguration?.GetEvaluatedPropertyValue("VCToolsVersion")),
                 };
             }
 
-            private static MethodInfo getEvaluatedPropertyValue;
+            //private static MethodInfo getEvaluatedPropertyValue;
 
-            /// <summary>
-            /// Computes property value taking into account inheritance, property sheets and macros.
-            /// </summary>
-            /// <param name="propertyName">name of the property (note that name corresponds to xml tag in vcxproj)</param>
-            private static string GetEvaluatedPropertyValue(object fileTool, string propertyName)
+            ///// <summary>
+            ///// Computes property value taking into account inheritance, property sheets and macros.
+            ///// </summary>
+            ///// <param name="propertyName">name of the property (note that name corresponds to xml tag in vcxproj)</param>
+            //private static string GetEvaluatedPropertyValue(object fileTool, string propertyName)
+            //{
+            //    if (getEvaluatedPropertyValue == null)
+            //    {
+            //        var theType = fileTool.GetType();
+            //        getEvaluatedPropertyValue = theType.GetMethod(
+            //            "Microsoft.VisualStudio.VCProjectEngine.IVCRulePropertyStorage.GetEvaluatedPropertyValue",
+            //            BindingFlags.Instance | BindingFlags.NonPublic
+            //        );
+            //    }
+            //    return (string)getEvaluatedPropertyValue.Invoke(fileTool, new object[] { propertyName });
+            //}
+
+            private static string GetEvaluatedPropertyValue(IVCRulePropertyStorage vCRulePropertyStorage, string propertyName)
             {
-                if (getEvaluatedPropertyValue == null)
-                {
-                    var theType = fileTool.GetType();
-                    getEvaluatedPropertyValue = theType.GetMethod(
-                        "Microsoft.VisualStudio.VCProjectEngine.IVCRulePropertyStorage.GetEvaluatedPropertyValue",
-                        BindingFlags.Instance | BindingFlags.NonPublic
-                    );
-                }
-                return (string)getEvaluatedPropertyValue.Invoke(fileTool, new object[] { propertyName });
+                return vCRulePropertyStorage.GetEvaluatedPropertyValue(propertyName);
             }
 
             /// <summary>
@@ -118,15 +157,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 string result = null;
                 try
                 {
-                    result = GetEvaluatedPropertyValue(fileTool, propertyName);
+                    result = GetEvaluatedPropertyValue(fileTool as IVCRulePropertyStorage, propertyName);
                 }
-                catch (System.Reflection.TargetInvocationException ex)
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    if (ErrorHandler.IsCriticalException(ex.InnerException))
-                    {
-                        throw;
-                    }
-
                     // Property was not found
                     result = defaultValue;
                 }
@@ -478,7 +512,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             internal /* for testing */ static void ClearGetEvaluatedPropertyValueMethod()
             {
-                getEvaluatedPropertyValue = null;
+                //getEvaluatedPropertyValue = null;
             }
         }
     }
