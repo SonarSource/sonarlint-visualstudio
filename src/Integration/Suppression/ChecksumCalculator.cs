@@ -19,18 +19,16 @@
  */
 
 using System;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Utilities.Encoders;
 
 namespace SonarLint.VisualStudio.Integration.Suppression
 {
     /// <summary>
     /// Calculates the checksum for an issue using the same method as the SonarQube server
     /// </summary>
-    /// <remarks>
-    /// For the corresponding code in SL IntelliJ see src\main\java\org\sonarlint\intellij\issue\LiveIssue.java::checksum
-    /// </remarks>
     public static class ChecksumCalculator
     {
         public static string Calculate(string text)
@@ -40,39 +38,14 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 throw new ArgumentNullException(nameof(text));
             }
 
-            string content = Regex.Replace(text, "\\s", ""); // strip whitespace
-            using (MD5 md5Digest = MD5.Create())
-            {
-                return EncodeHex(md5Digest.ComputeHash(Encoding.UTF8.GetBytes(content)));
-            }
-        }
+            var content = Regex.Replace(text, "\\s", ""); // strip whitespace
+            var data = Encoding.UTF8.GetBytes(content);
 
-        /// <summary>
-        /// Converts an array of bytes into a string containing the hexadecimal representation of each byte
-        /// </summary>
-        private static string EncodeHex(byte[] data)
-        {
-            const string HexAlphabet = "0123456789abcdef";
-
-            const byte HighOrderBitsOn = 240; //  128 + 64 + 32 + 16
-            const byte LowOrderBitsOn = 15;   //  8 + 4 + 2 + 1
-
-            int length = data.Length;
-            char[] encodedData = new char[length * 2];
-            int targetIndex = 0;
-
-            for (int sourceIndex = 0; sourceIndex < length; sourceIndex++)
-            {
-                // Converting an 8-bit binary to the corresponding 2-character hex representation:
-                // The binary representation is AAAABBBB where
-                //  AAAA is a number between 0 and 15 that represents the first hex char.
-                //  BBBB is a number between 0 and 15 that represents the second hex char.
-                // To convert, extract AAAA and BBBB in turn and look up the corresponding hex representation (0-9a-f)
-                encodedData[targetIndex++] = HexAlphabet[((HighOrderBitsOn & data[sourceIndex]) >> 4)]; // extract AAAA----
-                encodedData[targetIndex++] = HexAlphabet[LowOrderBitsOn & data[sourceIndex]]; // extract ----BBBB
-            }
-
-            return new string(encodedData);
+            var hash = new MD5Digest();
+            hash.BlockUpdate(data, 0, data.Length);
+            var result = new byte[hash.GetDigestSize()];
+            hash.DoFinal(result, 0);
+            return Hex.ToHexString(result);
         }
     }
 }
