@@ -133,6 +133,15 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Project {0} RuleSet declarations: \n   {1}.
+        /// </summary>
+        public static string Bind_ProjectRulesetDeclarations {
+            get {
+                return ResourceManager.GetString("Bind_ProjectRulesetDeclarations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ruleset binding: all projects need to be updated reference the generated ruleset..
         /// </summary>
         public static string Bind_Ruleset_AllProjectsNeedToBeUpdated {

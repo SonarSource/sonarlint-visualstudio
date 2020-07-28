@@ -24,20 +24,24 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class RuleSetReferenceChecker : IRuleSetReferenceChecker
     {
+        private readonly ILogger logger;
         private readonly ISolutionRuleSetsInformationProvider ruleSetInfoProvider;
         private readonly IRuleSetSerializer ruleSetSerializer;
 
-        public RuleSetReferenceChecker(IServiceProvider serviceProvider)
+        public RuleSetReferenceChecker(IServiceProvider serviceProvider, ILogger logger)
         {
             if (serviceProvider == null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
+
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             ruleSetInfoProvider = serviceProvider.GetService<ISolutionRuleSetsInformationProvider>();
             ruleSetInfoProvider.AssertLocalServiceIsNotNull();
@@ -49,6 +53,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
         public bool IsReferencedByAllDeclarations(Project project, string targetRuleSetFilePath)
         {
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
+
+            logger.WriteLine(Strings.Bind_ProjectRulesetDeclarations,
+                project.Name,
+                string.Join(Environment.NewLine + "   ", declarations.Select(x => x.ToString())));
 
             var isRuleSetBound = declarations.Length > 0 &&
                                  declarations.All(declaration => IsReferenced(declaration, targetRuleSetFilePath));

@@ -49,8 +49,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly Project initializedProject;
         private bool hasUserSpecifiedRuleSet;
 
-        public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig)
-            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker(), new RuleSetReferenceChecker(serviceProvider))
+        public CSharpVBBindingOperation(IServiceProvider serviceProvider, Project project, ICSharpVBBindingConfig cSharpVBBindingConfig, ILogger logger)
+            : this(serviceProvider, project, cSharpVBBindingConfig, new FileSystem(), new AdditionalFileConflictChecker(), new RuleSetReferenceChecker(serviceProvider, logger))
         {
         }
 

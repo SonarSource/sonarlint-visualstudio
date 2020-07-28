@@ -40,8 +40,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
 
-        public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem)
-            : this(serviceProvider, fileSystem, new RuleSetReferenceChecker(serviceProvider), new CSharpVBAdditionalFileReferenceChecker(serviceProvider), GetCreateBindingOperationFunc(serviceProvider))
+        public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, ILogger logger)
+            : this(serviceProvider, fileSystem, new RuleSetReferenceChecker(serviceProvider, logger), new CSharpVBAdditionalFileReferenceChecker(serviceProvider), GetCreateBindingOperationFunc(serviceProvider, logger))
         {
         }
 
@@ -60,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             ruleSetSerializer.AssertLocalServiceIsNotNull();
         }
 
-        private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider)
+        private static CreateBindingOperationFunc GetCreateBindingOperationFunc(IServiceProvider serviceProvider, ILogger logger)
         {
-            return (project, configFile) => new CSharpVBBindingOperation(serviceProvider, project, configFile as ICSharpVBBindingConfig);
+            return (project, configFile) => new CSharpVBBindingOperation(serviceProvider, project, configFile as ICSharpVBBindingConfig, logger);
         }
 
         public BindProject GetBindAction(IBindingConfig config, Project project, CancellationToken cancellationToken)

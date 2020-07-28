@@ -93,9 +93,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void ProjectBindingOperation_ArgChecks()
         {
             var logger = new TestLogger();
-            Exceptions.Expect<ArgumentNullException>(() => new CSharpVBBindingOperation(null, this.projectMock, this.cSharpVBBindingConfig));
-            Exceptions.Expect<ArgumentNullException>(() => new CSharpVBBindingOperation(this.serviceProvider, null, this.cSharpVBBindingConfig));
-            Exceptions.Expect<ArgumentNullException>(() => new CSharpVBBindingOperation(this.serviceProvider, this.projectMock, null));
+            Exceptions.Expect<ArgumentNullException>(() => new CSharpVBBindingOperation(null, projectMock, cSharpVBBindingConfig, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new CSharpVBBindingOperation(serviceProvider, null, cSharpVBBindingConfig, logger));
+            Exceptions.Expect<ArgumentNullException>(() => new CSharpVBBindingOperation(serviceProvider, projectMock, null, logger));
 
             CSharpVBBindingOperation testSubject = this.CreateTestSubject();
             testSubject.Should().NotBeNull("Suppress warning that not used");
