@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- We use BouncyCastle nuget package for its MD5 implementation, since the Framework MD5 throws an exception on FIPS-enabled machines. -->
     <PackageReference Include="BouncyCastle" Version="1.8.6.1" />
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="14.3.25407" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
