@@ -267,6 +267,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             try
             {
+                // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
+                // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
+                // types).
                 return FileConfig.TryGet(projectItem, absoluteFilePath);
             }
             catch (Exception e)

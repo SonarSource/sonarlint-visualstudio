@@ -39,11 +39,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     {
         private const string FileName = @"C:\absolute\path\to\file.cpp";
 
-        [TestInitialize]
-        public void TestInitialize()
+        private const string ValidPlatformName = "Win32";
+
+        private static readonly IDictionary<string, string> MandatoryConfigProperties = new Dictionary<string, string>
         {
-            CFamilyHelper.FileConfig.ClearGetEvaluatedPropertyValueMethod();
-        }
+            ["PlatformToolset"] = "v140_xp"
+        };
+
+        private static readonly IDictionary<string, string> MandatoryFileConfigProperties = new Dictionary<string, string>
+        {
+            ["PrecompiledHeader"] = "NotUsing",
+            ["CompileAs"] = "CompileAsCpp",
+            ["CompileAsManaged"] = "false",
+            ["EnableEnhancedInstructionSet"] = "",
+            ["RuntimeLibrary"] = "",
+            ["LanguageStandard"] = "",
+            ["ExceptionHandling"] = "Sync",
+            ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
+        };
+
 
         [TestMethod]
         public void FileConfig_Test1()
@@ -159,63 +173,53 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void GetEvalutedPropertyValue_NoException_ReturnsValue()
         {
             // Arrange
-            var dummyEngine = new DummyProjectEngine();
-
-            string suppliedPropertyName = null;
-            dummyEngine.TestOp = pn =>
-            {
-                suppliedPropertyName = pn;
-                return "propertyValue";
-            };
+            var settingsMock = new Mock<IVCRulePropertyStorage>();
+            settingsMock.Setup(x => x.GetEvaluatedPropertyValue("propertyName1"))
+                .Returns("propertyValue");
 
             // Act
             var result =
-                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1",
+                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
                     "default xxx");
 
             // Assert
             result.Should().Be("propertyValue");
-            suppliedPropertyName.Should().Be("propertyName1");
         }
 
         [TestMethod]
         public void GetEvalutedPropertyValue_Exception_ReturnsDefault()
         {
             // Arrange
-            var dummyEngine = new DummyProjectEngine();
-
-            bool delegateCalled = false;
-            dummyEngine.TestOp = pn =>
-            {
-                delegateCalled = true;
-                throw new InvalidOperationException("foo");
-            };
+            var settingsMock = new Mock<IVCRulePropertyStorage>();
+            var methodCalled = false;
+            settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
+                .Callback(() => methodCalled = true)
+                .Throws(new InvalidCastException("xxx"));
 
             // Act - exception should be handled
             var result =
-                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1",
+                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
                     "default xxx");
 
             // Assert
             result.Should().Be("default xxx");
-            delegateCalled.Should().BeTrue(); // Sanity check that the test delegate was invoked
+            methodCalled.Should().BeTrue(); // Sanity check that the test mock was invoked
         }
 
         [TestMethod]
         public void GetEvalutedPropertyValue_CriticalException_IsNotSuppressed()
         {
             // Arrange
-            var dummyEngine = new DummyProjectEngine();
-
-            dummyEngine.TestOp = _ => { throw new StackOverflowException("foo"); };
+            var settingsMock = new Mock<IVCRulePropertyStorage>();
+            settingsMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
+                .Throws(new StackOverflowException("foo"));
 
             // Act and Assert
             Action act = () =>
-                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(dummyEngine, "propertyName1",
+                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
                     "default xxx");
 
-            act.Should().ThrowExactly<System.Reflection.TargetInvocationException>()
-                .WithInnerException<StackOverflowException>().And.Message.Should().Be("foo");
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("foo");
         }
 
         [TestMethod]
@@ -523,8 +527,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
-            var vcProjectMock = projectItemMock.Object.Object as VCProjectMock;
-            vcProjectMock.ActiveConfiguration = null;
+            //var vcProjectMock = projectItemMock.Object.Object as VCProjectMock;
+            //vcProjectMock.ActiveConfiguration = null;
+            // TODO
 
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
@@ -826,12 +831,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
         {
+            var vcProjectMock = new Mock<VCProject>();
+            var vcConfig = CreateVCConfigurationWithProperties(ValidPlatformName, MandatoryConfigProperties);
+            vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
+
+            var projectMock = new ProjectMock(projectName) {Project = vcProjectMock.Object};
+
+            var vcFileMock = new Mock<VCFile>();
+            var vcFileConfig = CreateVCFileConfigurationWithToolProperties(MandatoryFileConfigProperties);
+            vcFileMock.Setup(x => x.GetFileConfigurationForProjectConfiguration(vcConfig)).Returns(vcFileConfig);
+
             var projectItemMock = new Mock<ProjectItem>();
-            var projectMock = new ProjectMock(projectName) {Project = new VCProjectMock()};
             projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
-            projectItemMock.Setup(i => i.Object).Returns((projectMock as Project).Object);
-            projectItemMock.Setup(i => i.ConfigurationManager).Returns(projectMock.ConfigurationManager);
-            projectMock.ConfigurationManager.ActiveConfiguration = new ConfigurationMock("dummy config");
+            projectItemMock.Setup(i => i.Object).Returns(vcFileMock.Object);
+
+            // Set the project item to have a valid DTE configuration
+            // - used to check whether the project item is in a solution or not
+            var dteConfigManagerMock = new Mock<ConfigurationManager>();
+            var dteConfigMock = new Mock<Configuration>();
+            dteConfigManagerMock.Setup(x => x.ActiveConfiguration).Returns(dteConfigMock.Object);
+            projectItemMock.Setup(i => i.ConfigurationManager).Returns(dteConfigManagerMock.Object);
 
             return projectItemMock;
         }
@@ -853,6 +872,43 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return request;
         }
 
+        private static VCConfiguration CreateVCConfigurationWithProperties(string platformName, IDictionary<string, string> propertyMap = null)
+        {
+            var vcPlatformMock = new Mock<VCPlatform>();
+            vcPlatformMock.SetupGet(x => x.Name).Returns(platformName);
+
+            var vcConfigMock = new Mock<VCConfiguration>();
+            vcConfigMock.SetupGet(x => x.Platform).Returns(vcPlatformMock.Object);
+
+            vcConfigMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
+                .Returns<string>(s =>
+                {
+                    string propertyValue = null;
+                    propertyMap?.TryGetValue(s, out propertyValue);
+                    return propertyValue ?? string.Empty;
+                });
+
+            return vcConfigMock.Object;
+        }
+
+        private static VCFileConfiguration CreateVCFileConfigurationWithToolProperties(IDictionary<string, string> toolPropertyMap = null)
+        {
+            var toolPropertiesMock = new Mock<IVCRulePropertyStorage>();
+
+            toolPropertiesMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
+                .Returns<string>(s =>
+                {
+                    string propertyValue = null;
+                    toolPropertyMap?.TryGetValue(s, out propertyValue);
+                    return propertyValue ?? string.Empty;
+                });
+
+            var vcFileConfigMock = new Mock<VCFileConfiguration>();
+            vcFileConfigMock.SetupGet(x => x.Tool).Returns(toolPropertiesMock.Object);
+
+            return vcFileConfigMock.Object;
+        }
+
         private static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
@@ -864,75 +920,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Contains(message))), Times.Once);
         }
-
-        private class DummyProjectEngine : IVCRulePropertyStorage
-        {
-            public Func<string, string> TestOp { get; set; }
-
-            string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
-            {
-                return TestOp(propertyName);
-            }
-        }
-
-        public class VCProjectMock
-        {
-            public VCConfigurationMock Configurations { get; set; } = new VCConfigurationMock();
-            public VCConfigurationMock FileConfigurations { get; set; } = new VCConfigurationMock();
-            public VCConfigurationMock ActiveConfiguration { get; set; } = new VCConfigurationMock();
-            public VCProjectMock Object => this;
-        }
-
-        public class VCConfigurationMock : IVCRulePropertyStorage
-        {
-            private IDictionary<string, string> properties { get; } = new Dictionary<string, string>();
-
-            public VCConfigurationMock Rules => this;
-            public VCConfigurationMock Tool => this;
-
-            public VCConfigurationMock()
-            {
-                MockMandatoryProperties();
-            }
-
-            public VCConfigurationMock Item(string name)
-            {
-                return this;
-            }
-
-            string IVCRulePropertyStorage.GetEvaluatedPropertyValue(string propertyName)
-            {
-                return GetEvaluatedPropertyValue(propertyName);
-            }
-
-            public string GetEvaluatedPropertyValue(string propertyName)
-            {
-                return properties.ContainsKey(propertyName) ? properties[propertyName] : "dummy property value";
-            }
-
-            private void MockMandatoryProperties()
-            {
-                properties["PlatformToolset"] = "v140_xp";
-                properties["PrecompiledHeader"] = "NotUsing";
-                properties["CompileAs"] = "CompileAsCpp";
-                properties["CompileAsManaged"] = "false";
-                properties["EnableEnhancedInstructionSet"] = "";
-                properties["RuntimeLibrary"] = "";
-                properties["LanguageStandard"] = "";
-                properties["ExceptionHandling"] = "Sync";
-                properties["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck";
-            }
-        }
-    }
-}
-
-// Ugly hack - the runtime code uses reflection to find the GetEvaluatedPropertyValue
-// method. We don't reference the VCProjectEngine assembly, so we're redefining a
-// namespace/interface/method with the required names here.
-namespace Microsoft.VisualStudio.VCProjectEngine
-{
-    internal interface IVCRulePropertyStorage
-    {
-        string GetEvaluatedPropertyValue(string propertyName);
     }
 }
