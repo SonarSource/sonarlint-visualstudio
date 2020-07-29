@@ -73,5 +73,10 @@ namespace SonarLint.VisualStudio.Integration
         /// In which context the ruleset is active i.e. the configuration name
         /// </summary>
         public string ConfigurationContext { get; }
+
+        public override string ToString()
+        {
+            return $"ConfigurationContext: {ConfigurationContext} | RuleSetPath: '{RuleSetPath}' | RuleSetDirectories: '{string.Join(";", RuleSetDirectories)}'";
+        }
     }
 }

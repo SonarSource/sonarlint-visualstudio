@@ -128,7 +128,13 @@ namespace SonarLint.VisualStudio.Integration
 
         public bool TryGetProjectRuleSetFilePath(RuleSetDeclaration declaration, out string fullFilePath)
         {
-            List<string> options = new List<string>();
+            if (string.IsNullOrWhiteSpace(declaration.RuleSetPath))
+            {
+                fullFilePath = null;
+                return false;
+            }
+
+            var options = new List<string>();
             options.Add(declaration.RuleSetPath); // Might be a full path
             options.Add(PathHelper.ResolveRelativePath(declaration.RuleSetPath, declaration.RuleSetProjectFullName)); // Relative to project
             // Note: currently we don't search in rule set directories since we expect the project rule set

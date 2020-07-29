@@ -206,47 +206,66 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void SolutionRuleSetsInformationProvider_TryGetProjectRuleSetFilePath()
+        public void TryGetProjectRuleSetFilePath_DeclarationReferencesAbsolutePath_SameFilePathReturned()
         {
             // Arrange
-            ProjectMock project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
-            RuleSetDeclaration declaration;
-            string ruleSetPath;
+            var project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
 
-            // Case 1: Declaration has an full path which exists on disk
-            declaration = CreateDeclaration(project, @"c:\RuleSet.ruleset");
+            var declaration = CreateDeclaration(project, @"c:\RuleSet.ruleset");
             fileSystem.AddFile(declaration.RuleSetPath, new MockFileData(""));
 
             // Act
-            testSubject.TryGetProjectRuleSetFilePath(declaration, out ruleSetPath).Should().BeTrue();
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out var ruleSetPath).Should().BeTrue();
 
             // Assert
             ruleSetPath.Should().Be(@"c:\RuleSet.ruleset");
+        }
 
-            // Case 2: Declaration is relative to project and on disk
-            foreach (var filePath in fileSystem.AllFiles)
-            {
-                fileSystem.RemoveFile(filePath);
-            }
+        [TestMethod]
+        public void TryGetProjectRuleSetFilePath_DeclarationReferencesRelativePath_FullPathReturned()
+        {
+            // Arrange
+            var project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
 
-            declaration = CreateDeclaration(project, @"..\RuleSet.ruleset");
+            var declaration = CreateDeclaration(project, @"..\RuleSet.ruleset");
             fileSystem.AddFile(@"c:\Solution\RuleSet.ruleset", new MockFileData(""));
 
             // Act
-            testSubject.TryGetProjectRuleSetFilePath(declaration, out ruleSetPath).Should().BeTrue();
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out var ruleSetPath).Should().BeTrue();
 
             // Assert
             ruleSetPath.Should().Be(@"c:\Solution\RuleSet.ruleset");
+        }
 
-            // Case 3: File doesn't exist
-            foreach (var filePath in fileSystem.AllFiles)
-            {
-                fileSystem.RemoveFile(filePath);
-            }
-            declaration = CreateDeclaration(project, "MyFile.ruleset");
+        [TestMethod]
+        public void TryGetProjectRuleSetFilePath_DeclarationReferencesNonExistingFile_NullReturned()
+        {
+            // Arrange
+            var project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
+
+            var declaration = CreateDeclaration(project, "MyFile.ruleset");
 
             // Act
-            testSubject.TryGetProjectRuleSetFilePath(declaration, out ruleSetPath).Should().BeFalse();
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out var ruleSetPath).Should().BeFalse();
+
+            // Assert
+            ruleSetPath.Should().BeNull();
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow(" ")]
+        [DataRow("\n\r")]
+        public void TryGetProjectRuleSetFilePath_DeclarationReferencesEmptyPath_NullReturned(string filePath)
+        {
+            // Arrange
+            var project = new ProjectMock(@"c:\Solution\Project\Project1.myProj");
+
+            var declaration = CreateDeclaration(project, filePath);
+
+            // Act
+            testSubject.TryGetProjectRuleSetFilePath(declaration, out var ruleSetPath).Should().BeFalse();
 
             // Assert
             ruleSetPath.Should().BeNull();

@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.GetService(typeof(IRuleSetSerializer)))
                 .Returns(ruleSetSerializerMock.Object);
 
-            testSubject = new RuleSetReferenceChecker(serviceProviderMock.Object);
+            testSubject = new RuleSetReferenceChecker(serviceProviderMock.Object, Mock.Of<ILogger>());
 
             solutionRuleSetFilePath = @"c:\aaa\Solution\SomeFolder\fullFilePath.ruleset";
             projectRuleSetThatDoesNotIncludeSolutionRuleSet = TestRuleSetHelper.CreateTestRuleSet(@"c:\foo\dummy.ruleset"); ;
