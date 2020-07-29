@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             using (new AssertIgnoreScope())
             {
-                Action act = () => new CSharpVBProjectBinder(null, Mock.Of<IFileSystem>());
+                Action act = () => new CSharpVBProjectBinder(null, Mock.Of<IFileSystem>(), new TestLogger());
 
                 act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
             }
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             using (new AssertIgnoreScope())
             {
-                Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, null);
+                Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, null, new TestLogger());
 
                 act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
             }

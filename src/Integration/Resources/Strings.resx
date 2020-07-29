@@ -215,7 +215,6 @@ Localization note: '[try again]()' is a special markup used to translate the tex
     <value>Rule set generated from SonarQube</value>
     <comment>Generated rule set description.</comment>
   </data>
-
   <data name="UnexpectedWorkflowError" xml:space="preserve">
     <value>Unexpected error during workflow execution: {0}.</value>
     <comment>Error message in case of an unexpected exception during workflow execution. {0} exception message.</comment>
@@ -758,5 +757,8 @@ This is the general format to use when writing errors to output window or when t
   <data name="FailedToCheckIfTestProject" xml:space="preserve">
     <value>Error identifying project '{0}' as test project: {1}</value>
     <comment>Error message indicating that an error occured while checking if a project is a test project</comment>
+  </data>
+  <data name="Bind_ProjectRulesetDeclarations" xml:space="preserve">
+    <value>Project {0} RuleSet declarations: \n   {1}</value>
   </data>
 </root>
