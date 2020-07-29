@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.ComponentModel;
 using Microsoft.Alm.Authentication;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -29,6 +31,7 @@ namespace SonarLint.VisualStudio.Integration
     public class CredentialStore : ICredentialStoreService
     {
         private readonly ICredentialStore store;
+        private readonly ILogger logger;
 
         // This class implements an ugly fix for #768 - SonarQube token is visible in Credential Manager
         // https://github.com/SonarSource/sonarlint-visualstudio/issues/768
@@ -39,21 +42,19 @@ namespace SonarLint.VisualStudio.Integration
         // a token. Other apps (e.g. the Git credential manager) use "PersonalAccessToken".
         internal const string UserNameForTokenCredential = "PersonalAccessToken";
 
-        public CredentialStore(ICredentialStore store)
+        public CredentialStore(ICredentialStore store, ILogger logger)
         {
-            if (store == null)
-            {
-                throw new ArgumentNullException(nameof(store));
-            }
-            this.store = store;
+            this.store = store ?? throw new ArgumentNullException(nameof(store));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void DeleteCredentials(TargetUri targetUri) =>
-            store.DeleteCredentials(targetUri);
+        public void DeleteCredentials(TargetUri targetUri) => LogWin32Exception("delete", () => store.DeleteCredentials(targetUri));
 
         public Credential ReadCredentials(TargetUri targetUri)
         {
-            var storedCreds = store.ReadCredentials(targetUri);
+            Credential storedCreds = null;
+            LogWin32Exception("read", () => storedCreds = store.ReadCredentials(targetUri));
+
             if (storedCreds != null && UserNameForTokenCredential.Equals(storedCreds.Username, StringComparison.OrdinalIgnoreCase))
             {
                 storedCreds = new Credential(storedCreds.Password);
@@ -69,7 +70,20 @@ namespace SonarLint.VisualStudio.Integration
                 credsToStore = new Credential(UserNameForTokenCredential, credentials.Username);
             }
 
-            store.WriteCredentials(targetUri, credsToStore);
+            LogWin32Exception("write", () => store.WriteCredentials(targetUri, credsToStore));
+        }
+
+        private void LogWin32Exception(string actionName, Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Win32Exception e)
+            {
+                logger.WriteLine(CoreStrings.CredentialStore_Win32Error, actionName, e.NativeErrorCode);
+                throw;
+            }
         }
     }
 }

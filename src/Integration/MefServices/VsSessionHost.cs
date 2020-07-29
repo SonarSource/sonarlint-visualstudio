@@ -285,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
-            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore("SonarLint.VisualStudio.Integration"))));
+            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore("SonarLint.VisualStudio.Integration"), Logger)));
 
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(GetConfigurationProvider));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationProvider));

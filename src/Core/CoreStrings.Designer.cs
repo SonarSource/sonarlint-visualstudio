@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to {0} credentials, Win32ErrorCode: {1}. See https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes for more information..
+        /// </summary>
+        public static string CredentialStore_Win32Error {
+            get {
+                return ResourceManager.GetString("CredentialStore_Win32Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to C#.
         /// </summary>
         public static string CSharpLanguageName {
