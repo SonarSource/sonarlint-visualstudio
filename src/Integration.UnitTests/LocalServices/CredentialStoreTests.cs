@@ -19,6 +19,9 @@
  */
 
 using System;
+using System.ComponentModel;
+using System.IO;
+using System.Linq.Expressions;
 using FluentAssertions;
 using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,7 +32,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     [TestClass]
     public class CredentialStoreTests
     {
+        private const int MockWin32ErrorCode = 12345678;
+
         private Mock<ICredentialStore> mockCredentialStore;
+        private TestLogger logger;
         private CredentialStore testSubject;
         private TargetUri wellKnownTargetUri;
 
@@ -37,7 +43,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         public void TestInitialize()
         {
             mockCredentialStore = new Mock<ICredentialStore>();
-            testSubject = new CredentialStore(mockCredentialStore.Object);
+            logger = new TestLogger();
+            testSubject = new CredentialStore(mockCredentialStore.Object, logger);
             wellKnownTargetUri = new TargetUri("http://sonarcredtest/");
         }
 
@@ -157,6 +164,91 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             mockCredentialStore.Verify(x => x.WriteCredentials(
                 It.Is<TargetUri>(uri => object.ReferenceEquals(uri, wellKnownTargetUri)),
                 It.Is<Credential>(cred => cred.Username == CredentialStore.UserNameForTokenCredential && cred.Password == "old token")), Times.Once);
+        }
+
+        [TestMethod]
+        public void DeleteCredentials_Win32Exception_ExceptionIsRethrownAndLogged()
+        {
+            SetupStoreThrowsWin32Exception(x => x.DeleteCredentials(wellKnownTargetUri));
+
+             Action action = () => testSubject.DeleteCredentials(wellKnownTargetUri);
+            action.Should().ThrowExactly<Win32Exception>();
+
+            VerifyWin32ExceptionIsLogged("delete");
+        }
+
+        [TestMethod]
+        public void DeleteCredentials_RegularException_ExceptionIsRethrownAndNotLogged()
+        {
+            mockCredentialStore
+                .Setup(x => x.DeleteCredentials(wellKnownTargetUri))
+                .Throws(new FileFormatException());
+
+            Action action = () => testSubject.DeleteCredentials(wellKnownTargetUri);
+            action.Should().ThrowExactly<FileFormatException>();
+
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void ReadCredentials_Win32Exception_ExceptionIsRethrownAndLogged()
+        {
+            SetupStoreThrowsWin32Exception(x => x.ReadCredentials(wellKnownTargetUri));
+
+            Action action = () => testSubject.ReadCredentials(wellKnownTargetUri);
+            action.Should().ThrowExactly<Win32Exception>();
+
+            VerifyWin32ExceptionIsLogged("read");
+        }
+
+        [TestMethod]
+        public void ReadCredentials_RegularException_ExceptionIsRethrownAndNotLogged()
+        {
+            mockCredentialStore
+                .Setup(x => x.ReadCredentials(wellKnownTargetUri))
+                .Throws(new FileFormatException());
+
+            Action action = () => testSubject.ReadCredentials(wellKnownTargetUri);
+            action.Should().ThrowExactly<FileFormatException>();
+
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void WriteCredentials_Win32Exception_ExceptionIsRethrownAndLogged()
+        {
+            SetupStoreThrowsWin32Exception(x => x.WriteCredentials(wellKnownTargetUri, It.IsAny<Credential>()));
+
+            Action action = () => testSubject.WriteCredentials(wellKnownTargetUri, new Credential("old token", string.Empty));
+            action.Should().ThrowExactly<Win32Exception>();
+
+            VerifyWin32ExceptionIsLogged("write");
+        }
+
+        [TestMethod]
+        public void WriteCredentials_RegularException_ExceptionIsRethrownAndNotLogged()
+        {
+            mockCredentialStore
+                .Setup(x => x.WriteCredentials(wellKnownTargetUri, It.IsAny<Credential>()))
+                .Throws(new FileFormatException());
+
+            Action action = () => testSubject.WriteCredentials(wellKnownTargetUri, new Credential("old token", string.Empty));
+            action.Should().ThrowExactly<FileFormatException>();
+
+            logger.AssertNoOutputMessages();
+        }
+
+        private void SetupStoreThrowsWin32Exception(Expression<Action<ICredentialStore>> expression)
+        {
+            mockCredentialStore
+                .Setup(expression)
+                .Throws(new Win32Exception(MockWin32ErrorCode));
+        }
+
+        private void VerifyWin32ExceptionIsLogged(string expectedActionName)
+        {
+            logger.AssertPartialOutputStringExists($"Failed to {expectedActionName} credentials");
+            logger.AssertPartialOutputStringExists($"Win32ErrorCode: {MockWin32ErrorCode}");
         }
     }
 }

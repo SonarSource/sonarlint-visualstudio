@@ -177,4 +177,7 @@
     <value>VB.NET</value>
     <comment>VB.NET language name</comment>
   </data>
+  <data name="CredentialStore_Win32Error" xml:space="preserve">
+    <value>Failed to {0} credentials, Win32ErrorCode: {1}. See https://docs.microsoft.com/en-us/windows/win32/debug/system-error-codes for more information.</value>
+  </data>
 </root>
