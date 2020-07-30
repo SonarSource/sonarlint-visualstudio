@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
-            var request = FileConfig.ToRequest(fileConfig, absoluteFilePath);
+            var request = ToRequest(fileConfig, absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
             {
                 return null;
@@ -309,6 +309,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return false;
         }
 
+        private static Request ToRequest(FileConfig fileConfig, string path)
+        {
+            Capture[] c = CFamilyHelper.Capture.ToCaptures(fileConfig, path, out string cfamilyLanguage);
+            var request = MsvcDriver.ToRequest(c);
+            request.CFamilyLanguage = cfamilyLanguage;
+            return request;
+        }
+
         private static void AddRange(IList<string> cmd, string[] values)
         {
             foreach (string value in values)
@@ -340,26 +348,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 cmd.Add(prefix);
                 cmd.Add(value);
             }
-        }
-
-        internal class Capture
-        {
-            public string Compiler { get { return "msvc-cl"; } }
-
-            public string Cwd { get; set; }
-
-            public string Executable { get; set; }
-
-            public List<string> Cmd { get; set; }
-
-            public List<string> Env { get; set; }
-
-            public string StdOut { get; set; }
-
-            public string CompilerVersion { get; set; }
-
-            public bool X64 { get; set; }
-
         }
     }
 }
