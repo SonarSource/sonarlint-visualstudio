@@ -143,4 +143,16 @@
     <StrongNamerKeyFile>$(AssemblyOriginatorKeyFile)</StrongNamerKeyFile>
   </PropertyGroup>
 
+
+  <!-- ******************************************************************************* -->
+  <!-- VCProject assembly -->
+  <!-- ******************************************************************************* -->
+  <ItemGroup Label="VCProjectEngine" Condition="$(RequiresVCProjectEngine)=='true'">
+    <Reference Include="Microsoft.VisualStudio.VCProjectEngine">
+      <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.VCProjectEngine.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+    </Reference>
+
+  </ItemGroup>
+
 </Project>
