@@ -33,8 +33,10 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using Strings = SonarLint.VisualStudio.Integration.Vsix.Resources.Strings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -55,6 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private Mock<IIssuesFilter> issuesFilter;
         private AnalysisLanguage[] javascriptLanguage = new[] { AnalysisLanguage.Javascript };
         private TextBufferIssueTracker testSubject;
+        private Mock<Solution> mockSolution;
+        private TestLogger logger;
 
         [TestInitialize]
         public void SetUp()
@@ -67,9 +71,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer.Object);
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
 
-            testSubject = new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+            testSubject = CreateTextBufferIssueTracker();
+        }
+
+        private TextBufferIssueTracker CreateTextBufferIssueTracker()
+        {
+            logger = new TestLogger();
+            return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, new TestLogger());
+                mockSonarErrorDataSource.Object, logger);
         }
 
         [TestMethod]
@@ -110,8 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, new TestLogger());
-
+                mockSonarErrorDataSource.Object, logger);
 
             var beforeSnapshot = CreateMockTextSnapshot(100, "foo");
             var afterSnapshot = CreateMockTextSnapshot(100, "bar");
@@ -263,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, new TestLogger());
+                mockSonarErrorDataSource.Object, logger);
 
             var inputIssues = new[]
             {
@@ -367,6 +376,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         #endregion
 
+        #region File without associated project tests
+
+        [TestMethod]
+        public void WhenSubjectIsCreated_FileHasNoAssociatedProject_NoExceptionIsThrown()
+        {
+            mockSolution.Reset();
+            mockSolution
+                .Setup(x => x.FindProjectItem(mockedJavascriptDocumentFooJs.Name))
+                .Returns((ProjectItem)null);
+
+            Action act = () => CreateTextBufferIssueTracker();
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void WhenFileIsRenamed_FileHasNoAssociatedProject_NoExceptionIsThrown()
+        {
+            mockSolution.Reset();
+            mockSolution
+                .Setup(x => x.FindProjectItem(mockedJavascriptDocumentFooJs.Name))
+                .Returns((ProjectItem)null);
+
+            Action act = () => mockedJavascriptDocumentFooJs.Raise(x => x.FileActionOccurred += null, new TextDocumentFileActionEventArgs(
+                mockedJavascriptDocumentFooJs.Name, DateTime.Now,
+                FileActionTypes.DocumentRenamed));
+
+            act.Should().NotThrow();
+
+            logger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
+        public void WhenNewIssuesAreFound_FileHasNoAssociatedProject_NoExceptionIsThrown()
+        {
+            mockSolution.Reset();
+            mockSolution
+                .Setup(x => x.FindProjectItem(mockedJavascriptDocumentFooJs.Name))
+                .Returns((ProjectItem)null);
+
+            testSubject = CreateTextBufferIssueTracker();
+
+            Action act = () => testSubject.HandleNewIssues(new List<IssueMarker>());
+            act.Should().NotThrow();
+        }
+
+        #endregion
+
         private TaggerProvider CreateTaggerProvider()
         {
             var tableManagerProviderMock = new Mock<ITableManagerProvider>();
@@ -389,12 +445,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockProjectItem.Setup(s => s.ContainingProject).Returns(project);
             var projectItem = mockProjectItem.Object;
 
-            var mockSolution = new Mock<Solution>();
+            mockSolution = new Mock<Solution>();
             mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItem);
-            var solution = mockSolution.Object;
 
             var mockDTE = new Mock<DTE>();
-            mockDTE.Setup(d => d.Solution).Returns(solution);
+            mockDTE.Setup(d => d.Solution).Returns(mockSolution.Object);
 
             var mockVsStatusBar = new Mock<Microsoft.VisualStudio.Shell.Interop.IVsStatusbar>();
 
@@ -409,7 +464,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, new TestLogger(), mockAnalysisScheduler.Object);
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, logger, mockAnalysisScheduler.Object);
             return provider;
         }
 
