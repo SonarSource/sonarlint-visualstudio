@@ -19,7 +19,6 @@
  */
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
