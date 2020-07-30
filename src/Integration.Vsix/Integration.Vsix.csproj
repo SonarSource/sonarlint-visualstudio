@@ -44,6 +44,8 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+
+    <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
   </PropertyGroup>
 
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
