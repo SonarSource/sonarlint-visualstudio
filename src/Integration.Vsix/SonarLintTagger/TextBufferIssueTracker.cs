@@ -80,23 +80,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(ProjectName, FilePath, 0, new List<IssueMarker>()));
+            this.Factory = new SnapshotFactory(new IssuesSnapshot(GetProjectName(), FilePath, 0, new List<IssueMarker>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
-        }
-
-        private string ProjectName
-        {
-            get
-            {
-                // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
-                // It's possible to have a ProjectItem that doesn't have a ContainingProject
-                // e.g. files under the "External Dependencies" project folder in the Solution Explorer
-                var projectItem = dte.Solution.FindProjectItem(this.FilePath);
-                var projectName = projectItem?.ContainingProject.Name ?? "{none}";
-
-                return projectName;
-            }
         }
 
         public IssueTagger CreateTagger()
@@ -287,10 +273,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private void UpdateIssues(IEnumerable<IssueMarker> issueMarkers)
         {
             var oldSnapshot = Factory.CurrentSnapshot;
-            var newSnapshot = new IssuesSnapshot(ProjectName, FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
+            var newSnapshot = new IssuesSnapshot(GetProjectName(), FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
 
         #endregion
+
+        private string GetProjectName()
+        {
+            // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
+            // It's possible to have a ProjectItem that doesn't have a ContainingProject
+            // e.g. files under the "External Dependencies" project folder in the Solution Explorer
+            var projectItem = dte.Solution.FindProjectItem(this.FilePath);
+            var projectName = projectItem?.ContainingProject.Name ?? "{none}";
+
+            return projectName;
+        }
     }
 }
