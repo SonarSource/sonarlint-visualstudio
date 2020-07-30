@@ -37,8 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public static FileConfig TryGet(ProjectItem dteProjectItem, string absoluteFilePath)
             {
-                System.Diagnostics.Debugger.Launch();
-
                 var vcProject = dteProjectItem.ContainingProject.Object as VCProject;
                 var file = dteProjectItem.Object as VCFile;
                 if (vcProject == null || file == null)
