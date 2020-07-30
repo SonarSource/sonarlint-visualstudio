@@ -527,9 +527,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
-            //var vcProjectMock = projectItemMock.Object.Object as VCProjectMock;
-            //vcProjectMock.ActiveConfiguration = null;
-            // TODO
+            // NB we want the exception to be thrown from inside the FileConfig::TryGet
+            projectItemMock.Setup(x => x.Object).Throws(new InvalidOperationException("xxx"));
 
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 

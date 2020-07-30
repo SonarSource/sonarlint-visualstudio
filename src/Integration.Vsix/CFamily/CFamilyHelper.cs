@@ -274,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
             catch (Exception e)
             {
-                logger.WriteLine($"Unable to collect C/C++ configuration for {absoluteFilePath}: {e.ToString()}");
+                logger.WriteLine($"Unable to collect C/C++ configuration for {absoluteFilePath}: {e}");
                 return null;
             }
         }
