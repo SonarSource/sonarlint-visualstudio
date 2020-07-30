@@ -58,11 +58,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
         };
 
-
         [TestMethod]
         public void FileConfig_Test1()
         {
-            CFamilyHelper.Capture[] captures = new CFamilyHelper.FileConfig()
+            var fileConfig = new CFamilyHelper.FileConfig()
             {
                 PlatformName = "Win32",
                 PlatformToolset = "v140",
@@ -82,7 +81,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 AdditionalOptions = "/a1 /a2",
                 AbsoluteFilePath = FileName,
                 CompilerVersion = "19.00.00",
-            }.ToCaptures(FileName, out _);
+            };
+
+            CFamilyHelper.Capture[] captures = CFamilyHelper.FileConfig.ToCaptures(fileConfig, FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
 
@@ -113,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void FileConfig_Test2()
         {
-            CFamilyHelper.Capture[] captures = new CFamilyHelper.FileConfig()
+            var fileConfig = new CFamilyHelper.FileConfig()
             {
                 PlatformName = "x64",
                 PlatformToolset = "v140",
@@ -140,7 +141,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 AdditionalOptions = "",
                 AbsoluteFilePath = FileName,
                 CompilerVersion = "19.00.00",
-            }.ToCaptures(FileName, out _);
+            };
+
+            CFamilyHelper.Capture[] captures = CFamilyHelper.FileConfig.ToCaptures(fileConfig, FileName, out _);
             CFamilyHelper.Capture p = captures[0];
             CFamilyHelper.Capture c = captures[1];
 

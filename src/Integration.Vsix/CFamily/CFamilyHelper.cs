@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
-            var request = fileConfig.ToRequest(absoluteFilePath);
+            var request = FileConfig.ToRequest(fileConfig, absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
             {
                 return null;

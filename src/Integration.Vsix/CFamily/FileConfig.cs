@@ -181,14 +181,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             #endregion
 
-            public Capture[] ToCaptures(string path, out string cfamilyLanguage)
+            public static Capture[] ToCaptures(FileConfig fileConfig, string path, out string cfamilyLanguage)
             {
                 var p = new Capture()
                 {
                     Executable = "cl.exe",
-                    Cwd = Path.GetDirectoryName(AbsoluteFilePath),
-                    CompilerVersion= CompilerVersion,
-                    X64= IsPlatformX64(PlatformName),
+                    Cwd = Path.GetDirectoryName(fileConfig.AbsoluteFilePath),
+                    CompilerVersion = fileConfig.CompilerVersion,
+                    X64 = IsPlatformX64(fileConfig.PlatformName),
                     StdOut = "",
                 };
 
@@ -199,42 +199,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     Env = new List<string>(),
                     Cmd = new List<string>(),
                 };
-                c.Env.Add("INCLUDE=" + IncludeDirectories);
+                c.Env.Add("INCLUDE=" + fileConfig.IncludeDirectories);
                 c.Cmd.Add(c.Executable);
-                Add(c.Cmd, "true".Equals(IgnoreStandardIncludePath) ? "/X" : "");
-                AddRange(c.Cmd, "/I", AdditionalIncludeDirectories.Split(';'));
-                AddRange(c.Cmd, "/FI", ForcedIncludeFiles.Split(';'));
-                Add(c.Cmd, ConvertPrecompiledHeader(PrecompiledHeader, PrecompiledHeaderFile));
+                Add(c.Cmd, "true".Equals(fileConfig.IgnoreStandardIncludePath) ? "/X" : "");
+                AddRange(c.Cmd, "/I", fileConfig.AdditionalIncludeDirectories.Split(';'));
+                AddRange(c.Cmd, "/FI", fileConfig.ForcedIncludeFiles.Split(';'));
+                Add(c.Cmd, ConvertPrecompiledHeader(fileConfig.PrecompiledHeader, fileConfig.PrecompiledHeaderFile));
 
-                Add(c.Cmd, "true".Equals(UndefineAllPreprocessorDefinitions) ? "/u" : "");
-                AddRange(c.Cmd, "/D", PreprocessorDefinitions.Split(';'));
-                AddRange(c.Cmd, "/U", UndefinePreprocessorDefinitions.Split(';'));
+                Add(c.Cmd, "true".Equals(fileConfig.UndefineAllPreprocessorDefinitions) ? "/u" : "");
+                AddRange(c.Cmd, "/D", fileConfig.PreprocessorDefinitions.Split(';'));
+                AddRange(c.Cmd, "/U", fileConfig.UndefinePreprocessorDefinitions.Split(';'));
 
-                Add(c.Cmd, ConvertCompileAsAndGetLanguage(CompileAs, path, out cfamilyLanguage));
-                Add(c.Cmd, ConvertCompileAsManaged(CompileAsManaged));
-                Add(c.Cmd, "true".Equals(CompileAsWinRT) ? "/ZW" : "");
-                Add(c.Cmd, "true".Equals(DisableLanguageExtensions) ? "/Za" : ""); // defines macro "__STDC__" when compiling C
-                Add(c.Cmd, "false".Equals(TreatWChar_tAsBuiltInType) ? "/Zc:wchar_t-" : ""); // undefines macros "_NATIVE_WCHAR_T_DEFINED" and "_WCHAR_T_DEFINED"
-                Add(c.Cmd, "false".Equals(ForceConformanceInForLoopScope) ? "/Zc:forScope-" : "");
-                Add(c.Cmd, "true".Equals(OpenMPSupport) ? "/openmp" : "");
+                Add(c.Cmd, ConvertCompileAsAndGetLanguage(fileConfig.CompileAs, path, out cfamilyLanguage));
+                Add(c.Cmd, ConvertCompileAsManaged(fileConfig.CompileAsManaged));
+                Add(c.Cmd, "true".Equals(fileConfig.CompileAsWinRT) ? "/ZW" : "");
+                Add(c.Cmd, "true".Equals(fileConfig.DisableLanguageExtensions) ? "/Za" : ""); // defines macro "__STDC__" when compiling C
+                Add(c.Cmd, "false".Equals(fileConfig.TreatWChar_tAsBuiltInType) ? "/Zc:wchar_t-" : ""); // undefines macros "_NATIVE_WCHAR_T_DEFINED" and "_WCHAR_T_DEFINED"
+                Add(c.Cmd, "false".Equals(fileConfig.ForceConformanceInForLoopScope) ? "/Zc:forScope-" : "");
+                Add(c.Cmd, "true".Equals(fileConfig.OpenMPSupport) ? "/openmp" : "");
 
-                Add(c.Cmd, ConvertRuntimeLibrary(RuntimeLibrary));
-                Add(c.Cmd, ConvertExceptionHandling(ExceptionHandling));
-                Add(c.Cmd, ConvertEnableEnhancedInstructionSet(EnableEnhancedInstructionSet));
-                Add(c.Cmd, "true".Equals(OmitDefaultLibName) ? "/Zl" : ""); // defines macro "_VC_NODEFAULTLIB"
-                Add(c.Cmd, "false".Equals(RuntimeTypeInfo) ? "/GR-" : ""); // undefines macro "_CPPRTTI"
-                Add(c.Cmd, ConvertBasicRuntimeChecks(BasicRuntimeChecks));
-                Add(c.Cmd, ConvertLanguageStandard(LanguageStandard));
-                AddRange(c.Cmd, GetAdditionalOptions(AdditionalOptions));
+                Add(c.Cmd, ConvertRuntimeLibrary(fileConfig.RuntimeLibrary));
+                Add(c.Cmd, ConvertExceptionHandling(fileConfig.ExceptionHandling));
+                Add(c.Cmd, ConvertEnableEnhancedInstructionSet(fileConfig.EnableEnhancedInstructionSet));
+                Add(c.Cmd, "true".Equals(fileConfig.OmitDefaultLibName) ? "/Zl" : ""); // defines macro "_VC_NODEFAULTLIB"
+                Add(c.Cmd, "false".Equals(fileConfig.RuntimeTypeInfo) ? "/GR-" : ""); // undefines macro "_CPPRTTI"
+                Add(c.Cmd, ConvertBasicRuntimeChecks(fileConfig.BasicRuntimeChecks));
+                Add(c.Cmd, ConvertLanguageStandard(fileConfig.LanguageStandard));
+                AddRange(c.Cmd, GetAdditionalOptions(fileConfig.AdditionalOptions));
 
-                c.Cmd.Add(AbsoluteFilePath);
+                c.Cmd.Add(fileConfig.AbsoluteFilePath);
 
                 return new Capture[] { p, c };
             }
 
-            public Request ToRequest(string path)
+            public static Request ToRequest(FileConfig fileConfig, string path)
             {
-                Capture[] c = ToCaptures(path, out string cfamilyLanguage);
+                Capture[] c = ToCaptures(fileConfig, path, out string cfamilyLanguage);
                 var request = MsvcDriver.ToRequest(c);
                 request.CFamilyLanguage = cfamilyLanguage;
                 return request;
@@ -252,7 +252,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return true;
                 }
             }
-
 
             internal /* for testing */ static string[] GetAdditionalOptions(string options)
             {
