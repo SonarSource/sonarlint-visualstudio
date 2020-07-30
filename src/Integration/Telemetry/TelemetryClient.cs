@@ -22,7 +22,6 @@ using System;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -48,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
             this.retryTimeout = retryTimeout;
             this.client = new HttpClient(httpHandler)
             {
-                BaseAddress = new Uri("https://chestnutsl.sonarsource.com", UriKind.RelativeOrAbsolute)
+                BaseAddress = new Uri("https://telemetry.sonarsource.com", UriKind.RelativeOrAbsolute)
             };
             this.client.DefaultRequestHeaders.Add("User-Agent", "SonarLint");
         }
@@ -80,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private async Task<HttpResponseMessage> SendAsync(HttpMethod method, TelemetryPayload payload)
         {
-            var request = new HttpRequestMessage(method, "telemetry")
+            var request = new HttpRequestMessage(method, "sonarlint")
             {
                 Content = new StringContent(TelemetryHelper.Serialize(payload), Encoding.UTF8, "application/json")
             };
