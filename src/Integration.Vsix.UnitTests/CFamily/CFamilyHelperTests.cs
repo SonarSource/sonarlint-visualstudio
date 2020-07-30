@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private const string ValidPlatformName = "Win32";
 
-        private static readonly IDictionary<string, string> MandatoryConfigProperties = new Dictionary<string, string>
+        private static readonly IDictionary<string, string> MandatoryProjectConfigProperties = new Dictionary<string, string>
         {
             ["PlatformToolset"] = "v140_xp"
         };
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void GetEvalutedPropertyValue_NoException_ReturnsValue()
+        public void GetPotentiallyUnsupportedPropertyValue_PropertySupported_ReturnsValue()
         {
             // Arrange
             var settingsMock = new Mock<IVCRulePropertyStorage>();
@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void GetEvalutedPropertyValue_Exception_ReturnsDefault()
+        public void GetPotentiallyUnsupportedPropertyValue_PropertyUnsupported_ReturnsDefaultValue()
         {
             // Arrange
             var settingsMock = new Mock<IVCRulePropertyStorage>();
@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void GetEvalutedPropertyValue_CriticalException_IsNotSuppressed()
+        public void GetPotentiallyUnsuppertedPropertyValue_CriticalException_IsNotSuppressed()
         {
             // Arrange
             var settingsMock = new Mock<IVCRulePropertyStorage>();
@@ -521,13 +521,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void CreateRequest_ErrorGetting_IsHandled()
+        public void CreateRequest_ErrorInFileConfigTryGet_IsHandled()
         {
             // Arrange
             var loggerMock = new Mock<ILogger>();
 
             var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
-            // NB we want the exception to be thrown from inside the FileConfig::TryGet
+            // Note: we want the exception to be thrown from inside the FileConfig::TryGet
             projectItemMock.Setup(x => x.Object).Throws(new InvalidOperationException("xxx"));
 
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
@@ -831,7 +831,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
         {
             var vcProjectMock = new Mock<VCProject>();
-            var vcConfig = CreateVCConfigurationWithProperties(ValidPlatformName, MandatoryConfigProperties);
+            var vcConfig = CreateVCConfigurationWithProperties(ValidPlatformName, MandatoryProjectConfigProperties);
             vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
 
             var projectMock = new ProjectMock(projectName) {Project = vcProjectMock.Object};
