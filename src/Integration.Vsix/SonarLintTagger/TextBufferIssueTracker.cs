@@ -48,7 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
-        internal ProjectItem ProjectItem { get; private set; }
         private ITextSnapshot currentSnapshot;
 
         private readonly ITextDocument document;
@@ -79,18 +78,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.document = document;
             this.FilePath = document.FilePath;
-
-            this.ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
             this.charset = document.Encoding.WebName;
 
-            // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
-            // It's possible to have a ProjectItem that doesn't have a ContainingProject
-            // e.g. files under the "External Dependencies" project folder in the Solution Explorer
-            var projectName = this.ProjectItem?.ContainingProject.Name ?? "{none}";
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(projectName, this.FilePath, 0,
-                new List<IssueMarker>()));
+            this.Factory = new SnapshotFactory(new IssuesSnapshot(ProjectName, FilePath, 0, new List<IssueMarker>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
+        }
+
+        private string ProjectName
+        {
+            get
+            {
+                // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
+                // It's possible to have a ProjectItem that doesn't have a ContainingProject
+                // e.g. files under the "External Dependencies" project folder in the Solution Explorer
+                var projectItem = dte.Solution.FindProjectItem(this.FilePath);
+                var projectName = projectItem?.ContainingProject.Name ?? "{none}";
+
+                return projectName;
+            }
         }
 
         public IssueTagger CreateTagger()
@@ -145,7 +151,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (e.FileActionType == FileActionTypes.DocumentRenamed)
                 {
                     FilePath = e.FilePath;
-                    ProjectItem = dte.Solution.FindProjectItem(this.FilePath);
 
                     // Update and publish a new snapshow with the existing issues so 
                     // that the name change propagates to items in the error list.
@@ -276,13 +281,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void RefreshIssues()
         {
-            UpdateIssues(this.Factory.CurrentSnapshot.IssueMarkers ?? Enumerable.Empty<IssueMarker>());
+            UpdateIssues(Factory.CurrentSnapshot.IssueMarkers ?? Enumerable.Empty<IssueMarker>());
         }
 
         private void UpdateIssues(IEnumerable<IssueMarker> issueMarkers)
         {
-            var oldSnapshot = this.Factory.CurrentSnapshot;
-            var newSnapshot = new IssuesSnapshot(this.ProjectItem.ContainingProject.Name, this.FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
+            var oldSnapshot = Factory.CurrentSnapshot;
+            var newSnapshot = new IssuesSnapshot(ProjectName, FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
             SnapToNewSnapshot(newSnapshot);
         }
 
