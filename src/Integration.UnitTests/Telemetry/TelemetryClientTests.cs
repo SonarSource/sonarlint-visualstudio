@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public async Task OptOut_WhenMoreThanThreeFailures_ReturnsFalse()
         {
             // Arrange
-            var httpHandler = new FakeHttpMessageHandler(x => { throw new Exception(); });
+            var httpHandler = new FakeHttpMessageHandler(_ => throw new Exception());
             var client = new TelemetryClient(httpHandler, 3, TimeSpan.FromMilliseconds(1));
 
             // Act
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
-            var httpHandler = new FakeHttpMessageHandler(x => { return response; });
+            var httpHandler = new FakeHttpMessageHandler(_ => response);
             var client = new TelemetryClient(httpHandler);
 
             // Act
@@ -79,10 +79,26 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         [TestMethod]
+        public async Task SendPayload_CheckUrl()
+        {
+            // Arrange
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
+            string uriCalled = null;
+            var httpHandler = new FakeHttpMessageHandler(request => { uriCalled = request.RequestUri.AbsoluteUri; return response; });
+            var client = new TelemetryClient(httpHandler);
+
+            // Act
+            var result = await client.SendPayloadAsync(new TelemetryPayload());
+
+            // Assert
+            uriCalled.Should().Be("https://telemetry.sonarsource.com/sonarlint");
+        }
+
+        [TestMethod]
         public async Task SendPayload_WhenMoreThanThreeFailures_ReturnsFalse()
         {
             // Arrange
-            var httpHandler = new FakeHttpMessageHandler(x => { throw new Exception(); });
+            var httpHandler = new FakeHttpMessageHandler(_ => throw new Exception());
             var client = new TelemetryClient(httpHandler, 3, TimeSpan.FromMilliseconds(1));
 
             // Act
@@ -97,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             // Arrange
             var response = new HttpResponseMessage(System.Net.HttpStatusCode.Created);
-            var httpHandler = new FakeHttpMessageHandler(x => { return response; });
+            var httpHandler = new FakeHttpMessageHandler(_ => response);
             var client = new TelemetryClient(httpHandler);
 
             // Act
@@ -117,10 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 .Setup<Task<HttpResponseMessage>>("SendAsync",
                     ItExpr.IsAny<HttpRequestMessage>(),
                     ItExpr.IsAny<CancellationToken>())
-                .Callback<HttpRequestMessage, CancellationToken>((r, t) =>
-                {
-                    serializedRequestPayload = r.Content.ReadAsStringAsync().GetAwaiter().GetResult();
-                })
+                .Callback<HttpRequestMessage, CancellationToken>((r, _) => serializedRequestPayload = r.Content.ReadAsStringAsync().GetAwaiter().GetResult())
                 .Returns(Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
             var client = new TelemetryClient(httpHandlerMock.Object);
@@ -144,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             result.Should().BeTrue();
 
-            var expected = @"{
+            const string expected = @"{
   ""sonarlint_product"": ""SonarLint for Visual Studio"",
   ""sonarlint_version"": ""1.2.3.4"",
   ""ide_version"": ""15.16"",
