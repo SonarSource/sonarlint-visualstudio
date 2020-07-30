@@ -4,10 +4,9 @@
 [![Coverage](https://next.sonarqube.com/sonarqube/api/project_badges/measure?project=sonarlint-visualstudio&metric=coverage)](https://next.sonarqube.com/sonarqube/component_measures/domain/Coverage?id=sonarlint-visualstudio)
 
 
-SonarLint is a Visual Studio 2015 and 2017 extension that provides on-the-fly feedback to developers on new bugs and
+SonarLint is a Visual Studio 2015, 2017 and 2019 extension that provides on-the-fly feedback to developers on new bugs and
 quality issues injected into .NET code. SonarLint for Visual Studio is based on and benefits from the .NET Compiler
-Platform (aka "Roslyn") and its code analysis API to provide a fully-integrated user experience in Visual Studio 2015
-and Visual Studio 2017.
+Platform (aka "Roslyn") and its code analysis API to provide a fully-integrated user experience in Visual Studio 2015, Visual Studio 2017 and Visual Studio 2019.
 SonarLint is free, open source, and available in the Visual Studio Gallery.
 
 ## Features
@@ -35,6 +34,6 @@ Check out the [contributing](CONTRIBUTING.md) page to see the best places to log
 
 ## License
 
-Copyright 2016-2018 SonarSource.
+Copyright 2016-2020 SonarSource.
 
 Licensed under the [GNU Lesser General Public License, Version 3.0](http://www.gnu.org/licenses/lgpl.txt)
