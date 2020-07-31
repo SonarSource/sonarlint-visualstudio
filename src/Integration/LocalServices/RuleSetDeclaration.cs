@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public override string ToString()
         {
-            return $"ConfigurationContext: {ConfigurationContext} | RuleSetPath: '{RuleSetPath}' | RuleSetDirectories: '{string.Join(";", RuleSetDirectories)}'";
+            return $"Configuration: {ConfigurationContext}, RuleSetPath: '{RuleSetPath}', RuleSetDirectories: '{string.Join(";", RuleSetDirectories)}'";
         }
     }
 }
