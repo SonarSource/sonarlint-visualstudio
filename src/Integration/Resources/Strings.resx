@@ -759,6 +759,7 @@ This is the general format to use when writing errors to output window or when t
     <comment>Error message indicating that an error occured while checking if a project is a test project</comment>
   </data>
   <data name="Bind_ProjectRulesetDeclarations" xml:space="preserve">
-    <value>Project {0} RuleSet declarations: \n   {1}</value>
+    <value>Project {0} RuleSet declarations:
+   {1}</value>
   </data>
 </root>
