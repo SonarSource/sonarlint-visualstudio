@@ -313,13 +313,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
             var textDataModel = mockTextDataModel.Object;
 
-            var mockTextView = new Mock<ITextView>();
-            mockTextView.Setup(t => t.TextBuffer).Returns(document.TextBuffer);
-            mockTextView.Setup(t => t.TextDataModel).Returns(textDataModel);
-
-            ITextView textView = mockTextView.Object;
-
-            return provider.CreateTagger<IErrorTag>(textView, document.TextBuffer) as IssueTagger;
+            return provider.CreateTagger<IErrorTag>(document.TextBuffer) as IssueTagger;
         }
 
         private ITextDocument CreateMockedDocument(string fileName, IContentType bufferContentType = null)

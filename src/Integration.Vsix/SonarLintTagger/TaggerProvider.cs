@@ -44,11 +44,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    [Export(typeof(IViewTaggerProvider))]
+    [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider
+    internal sealed class TaggerProvider : ITaggerProvider
     {
         internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
@@ -137,17 +137,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Create a tagger that will track SonarLint issues on the view/buffer combination.
         /// </summary>
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
-            // Only attempt to track the view's edit buffer.
-            if (buffer != textView.TextBuffer ||
-                typeof(T) != typeof(IErrorTag))
+            if (typeof(T) != typeof(IErrorTag))
             {
                 return null;
             }
 
             ITextDocument textDocument;
-            if (!textDocumentFactoryService.TryGetTextDocument(textView.TextDataModel.DocumentBuffer, out textDocument))
+            if (!textDocumentFactoryService.TryGetTextDocument(buffer, out textDocument))
             {
                 return null;
             }

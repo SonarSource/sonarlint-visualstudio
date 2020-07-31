@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (!isDisposed)
             {
-                // Called when the tagger is no longer needed (generally when the ITextView is closed).
+                // Called when the tagger is no longer needed (generally when the buffer is closed).
                 onTaggerDisposed?.Invoke(this);
                 this.isDisposed = true;
             }
