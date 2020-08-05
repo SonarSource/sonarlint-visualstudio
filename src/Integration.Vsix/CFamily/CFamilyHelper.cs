@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, IAnalysisStatusNotifier statusNotifier, ILogger logger, CancellationToken cancellationToken)
+        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
@@ -159,29 +159,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                 };
 
-                statusNotifier.AnalysisStarted(request.File);
-
-                var analysisTimer = Stopwatch.StartNew();
-
                 runner.Execute(args);
-
-                analysisTimer.Stop();
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    logger.WriteLine(CFamilyStrings.MSG_AnalysisAborted, request.File);
-                    statusNotifier.AnalysisCancelled(request.File);
-                }
-                else
-                {
-                    logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, request.File, Math.Round(analysisTimer.Elapsed.TotalSeconds, 3));
-                    statusNotifier.AnalysisFinished(request.File);
-                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, request.File, ex.ToString());
-                statusNotifier.AnalysisFailed(request.File);
             }
         }
 

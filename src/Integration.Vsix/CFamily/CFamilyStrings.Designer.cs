@@ -79,24 +79,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aborted analysis of {0}, analysis has been re-triggered or has timed-out..
-        /// </summary>
-        internal static string MSG_AnalysisAborted {
-            get {
-                return ResourceManager.GetString("MSG_AnalysisAborted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Finished analyzing {0}, analysis time: {1}s.
-        /// </summary>
-        internal static string MSG_AnalysisComplete {
-            get {
-                return ResourceManager.GetString("MSG_AnalysisComplete", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;sensitive data removed&gt;.
         /// </summary>
         internal static string MSG_CmdLine_SensitiveCmdLineArgsAlternativeText {

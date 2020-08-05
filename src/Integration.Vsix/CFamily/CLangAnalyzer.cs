@@ -41,17 +41,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
         private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
-        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly ILogger logger;
         private readonly DTE dte;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.cFamilyRulesConfigProvider = cFamilyRulesConfigProvider;
-            this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
             this.dte = serviceProvider.GetService<DTE>();
         }
@@ -89,10 +87,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
 
-        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, ISonarLintSettings settings,
+        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings,
             ILogger logger, CancellationToken cancellationToken)
         {
-            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
+            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
         }
 
         internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
@@ -111,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
             // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-            CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
+            CallSubProcess(handleMessage, request, settings, logger, cancellationToken);
 
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
 

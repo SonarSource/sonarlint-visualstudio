@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void IsSupported()
         {
             var testSubject = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, Mock.Of<IAnalysisStatusNotifier>(), testLogger);
+                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, testLogger);
 
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
@@ -271,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
         private class TestableCLangAnalyzer : CLangAnalyzer
         {
-            public delegate void HandleCallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, 
+            public delegate void HandleCallSubProcess(Action<Message> handleMessage, Request request,
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken);
 
             private HandleCallSubProcess onCallSubProcess;
@@ -284,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
                 IServiceProvider serviceProvider, ILogger logger)
-                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, Mock.Of<IAnalysisStatusNotifier>(), logger)
+                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, logger)
             {}
 
             protected override Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
@@ -298,15 +298,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 TriggerAnalysisCallCount++;
             }
 
-            protected override void CallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
+            protected override void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
             {
                 if (onCallSubProcess == null)
                 {
-                    base.CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
+                    base.CallSubProcess(handleMessage, request, settings, logger, cancellationToken);
                 }
                 else
                 {
-                    onCallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
+                    onCallSubProcess(handleMessage, request, settings, logger, cancellationToken);
                 }
             }
         }
@@ -318,7 +318,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             private readonly AutoResetEvent callbackFromCLangReceived = new AutoResetEvent(false);
             private readonly AutoResetEvent noMoreIssues = new AutoResetEvent(false);
 
-            public void CallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, ISonarLintSettings settings,
+            public void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings,
                 ILogger logger, CancellationToken cancellationToken)
             {
                 // When this method exits the analyzer will finish processing, so we need to
