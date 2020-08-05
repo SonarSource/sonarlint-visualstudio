@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
 {
-    internal class DocumentFocusedEventArgs
+    internal class DocumentFocusedEventArgs : EventArgs
     {
         public string DocumentFilePath { get; }
 

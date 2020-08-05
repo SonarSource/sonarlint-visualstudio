@@ -154,10 +154,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         {
                             reader.ReadToEnd();
                             logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
-                        } else if ((request.Flags & Request.BuildPreamble) != 0)
-                        {
-                            reader.ReadToEnd();
-                            logger.WriteLine("PCH file saved at {0}", request.PchFile);
                         }
                         else if ((request.Flags & Request.BuildPreamble) != 0)
                         {
