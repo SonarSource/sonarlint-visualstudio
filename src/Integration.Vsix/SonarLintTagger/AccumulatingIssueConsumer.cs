@@ -108,6 +108,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             onIssuesChanged.Invoke(allIssueMarkers);
         }
 
+        public void Finished(bool ranToCompletion)
+        {
+            // no-op - nothing special to do when analysis in complete
+        }
+
         /// <summary>
         /// Checks that the analysis issue can be mapped to location in the text snapshot.
         /// </summary>

@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             if (!IsAnalysisSupported(detectedLanguages))
             {
+                consumer.Finished(false);
                 return;
             }
 
@@ -154,24 +155,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     daemonInstaller.InstallationCompleted -= HandleInstallCompleted;
 
-                    if (e.Error == null && !e.Cancelled)
+                    if (e.Error != null || e.Cancelled)
                     {
-                        // Potential race condition: the daemon might already have been started
-                        if (daemon.IsRunning)
-                        {
-                            MakeRequest();
-                        }
-                        else
-                        {
-                            daemon.Ready += HandleDaemonReady;
-                            daemon.Start();
-                        }
+                        consumer.Finished(false);
+                        return;
+                    }
+
+                    // Potential race condition: the daemon might already have been started
+                    if (daemon.IsRunning)
+                    {
+                        MakeRequest();
+                    }
+                    else
+                    {
+                        daemon.Ready += HandleDaemonReady;
+                        daemon.Start();
                     }
                 }
-                catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
                     // Squash non-critical exceptions
-                    Debug.WriteLine($"Error handling daemon installation complete notification: {ex.ToString()}");
+                    Debug.WriteLine($"Error handling daemon installation complete notification: {ex}");
+                    consumer.Finished(false);
                 }
             }
 
@@ -185,7 +190,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
                     // Squash non-critical exceptions
-                    Debug.WriteLine($"Error handling daemon ready notification: {ex.ToString()}");
+                    Debug.WriteLine($"Error handling daemon ready notification: {ex}");
+                    consumer.Finished(false);
                 }
             }
         }

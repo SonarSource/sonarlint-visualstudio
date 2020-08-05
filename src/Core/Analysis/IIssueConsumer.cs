@@ -22,8 +22,17 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
+    /// <summary>
+    /// Callback interface passed to an analyzer so it can communicate
+    /// back to the caller
+    /// </summary>
     public interface IIssueConsumer
     {
         void Accept(string path, IEnumerable<IAnalysisIssue> issues);
+
+        /// <summary>
+        /// Method called by the analyzer to indicate that processing has completed
+        /// </summary>
+        void Finished(bool ranToCompletion);
     }
 }

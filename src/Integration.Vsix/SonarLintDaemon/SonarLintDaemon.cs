@@ -336,10 +336,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 try
                 {
                     await ProcessIssues(call, path, consumer);
+                    consumer.Finished(true);
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Call to client.Analyze failed: {0}", e);
+                    logger.WriteLine($"Failed to analyze '{path}'. Error: {e}");
+                    consumer.Finished(false);
                 }
                 finally
                 {
@@ -491,6 +493,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (!settings.IsActivateMoreEnabled)
             {
                 // User might have disable additional languages in the meantime
+                consumer.Finished(false);
                 return;
             }
 
@@ -499,6 +502,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // TODO: handle as part of #926: Delay starting the daemon until a file needs to be analyzed
                 // https://github.com/SonarSource/sonarlint-visualstudio/issues/926
                 logger.WriteLine("Daemon has not started yet. Analysis will not be performed");
+                consumer.Finished(false);
                 return;
             }
 

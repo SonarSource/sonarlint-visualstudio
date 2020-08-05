@@ -68,6 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var projectItem = dte?.Solution?.FindProjectItem(path);
             if (projectItem == null)
             {
+                consumer.Finished(false);
                 return;
             }
 
@@ -76,6 +77,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var request = CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, analyzerOptions);
             if (request == null)
             {
+                consumer.Finished(false);
                 return;
             }
 
@@ -119,6 +121,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 logger.WriteLine($"Found {issueCount} issue(s) for {request.File}");
             }
+
+            consumer.Finished(!cancellationToken.IsCancellationRequested);
         }
 
         private void HandleMessage(Message message, Request request, IIssueConsumer consumer, ref int issueCount)

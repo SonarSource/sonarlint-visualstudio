@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private TestLogger testLogger;
         private Mock<ICFamilyRulesConfigProvider> rulesConfigProviderMock;
         private Mock<IServiceProvider> serviceProviderWithValidProjectItem;
+        private Mock<IIssueConsumer> consumerMock;
 
         private readonly ProjectItem ValidProjectItem = Mock.Of<ProjectItem>();
 
@@ -51,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             testLogger = new TestLogger();
             rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
             serviceProviderWithValidProjectItem = CreateServiceProviderReturningProjectItem(ValidProjectItem);
+            consumerMock = new Mock<IIssueConsumer>();
         }
 
         [TestMethod]
@@ -72,10 +74,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
                 rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, testLogger);
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, consumerMock.Object, null, CancellationToken.None);
 
             testSubject.CreateRequestCallCount.Should().Be(0);
             testSubject.TriggerAnalysisCallCount.Should().Be(0);
+            CheckExpectedOutcomeReportedToConsumer(expected: false);
         }
 
         [TestMethod]
@@ -85,10 +88,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, testLogger);
             testSubject.RequestToReturn = null;
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, consumerMock.Object, null, CancellationToken.None);
 
             testSubject.CreateRequestCallCount.Should().Be(1);
             testSubject.TriggerAnalysisCallCount.Should().Be(0);
+            CheckExpectedOutcomeReportedToConsumer(expected: false);
         }
 
         [TestMethod]
@@ -98,10 +102,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, testLogger);
             testSubject.RequestToReturn = new Request();
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, consumerMock.Object, null, CancellationToken.None);
 
             testSubject.CreateRequestCallCount.Should().Be(1);
             testSubject.TriggerAnalysisCallCount.Should().Be(1);
+
+            // We don't expect "Finished" to be called in this test:
+            // - it shouldn't be called with "false" because the project item is valid.
+            // - it won't be called with "true" because our testable analyzer doesn't call it.
+            consumerMock.Verify(x => x.Finished(It.IsAny<bool>()), Times.Never);
         }
 
         [TestMethod]
@@ -121,7 +130,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var message1 = new Message("rule1", fileName, 1, 1, 1, 1, "message one", false, Array.Empty<MessagePart>());
             var message2 = new Message("rule2", fileName, 2, 2, 2, 2, "message two", false, Array.Empty<MessagePart>());
 
-            var mockConsumer = new Mock<IIssueConsumer>();
             var subProcess = new SubProcessSimulator();
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
@@ -131,22 +139,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, consumerMock.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the first message to the analyzer
                 subProcess.PassMessageToCLangAnalyzer(message1);
 
-                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Once);
-                var suppliedIssues = (IEnumerable<IAnalysisIssue>)mockConsumer.Invocations[0].Arguments[1];
+                consumerMock.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Once);
+                var suppliedIssues = (IEnumerable<IAnalysisIssue>)consumerMock.Invocations[0].Arguments[1];
                 suppliedIssues.Count().Should().Be(1);
                 suppliedIssues.First().Message.Should().Be("message one");
 
                 // Stream the second message to the analyzer
                 subProcess.PassMessageToCLangAnalyzer(message2);
 
-                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Exactly(2));
-                suppliedIssues = (IEnumerable<IAnalysisIssue>)mockConsumer.Invocations[1].Arguments[1];
+                consumerMock.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Exactly(2));
+                suppliedIssues = (IEnumerable<IAnalysisIssue>)consumerMock.Invocations[1].Arguments[1];
                 suppliedIssues.Count().Should().Be(1);
                 suppliedIssues.First().Message.Should().Be("message two");
 
@@ -155,6 +163,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 bool succeeded = analysisTask.Wait(10000);
                 succeeded.Should().BeTrue();
 
+                CheckExpectedOutcomeReportedToConsumer(expected: true);
                 testLogger.AssertOutputStringExists($"Found 2 issue(s) for {fileName}");
             }
             finally
@@ -181,7 +190,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var inactiveRuleMessage = new Message("inactiveRule", fileName, 1, 1, 1, 1, "inactive message", false, Array.Empty<MessagePart>());
             var activeRuleMessage = new Message("activeRule", fileName, 2, 2, 2, 2, "active message", false, Array.Empty<MessagePart>());
 
-            var mockConsumer = new Mock<IIssueConsumer>();
             var subProcess = new SubProcessSimulator();
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
@@ -191,18 +199,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, consumerMock.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the inactive rule message to the analyzer
                 subProcess.PassMessageToCLangAnalyzer(inactiveRuleMessage);
-                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Never);
+                consumerMock.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Never);
 
                 // Now stream an active rule message
                 subProcess.PassMessageToCLangAnalyzer(activeRuleMessage);
 
-                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Once);
-                var suppliedIssues = (IEnumerable<IAnalysisIssue>)mockConsumer.Invocations[0].Arguments[1];
+                consumerMock.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Once);
+                var suppliedIssues = (IEnumerable<IAnalysisIssue>)consumerMock.Invocations[0].Arguments[1];
                 suppliedIssues.Count().Should().Be(1);
                 suppliedIssues.First().Message.Should().Be("active message");
 
@@ -211,6 +219,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 bool succeeded = analysisTask.Wait(10000);
                 succeeded.Should().BeTrue();
 
+                CheckExpectedOutcomeReportedToConsumer(expected: true);
                 testLogger.AssertOutputStringExists($"Found 1 issue(s) for {fileName}");
             }
             finally
@@ -223,7 +232,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void TriggerAnalysisAsync_AnalysisIsCancelled_NoIssuesFoundMessage()
         {
-            var mockConsumer = new Mock<IIssueConsumer>();
             var subProcess = new SubProcessSimulator();
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
@@ -234,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(new Request(), mockConsumer.Object, cts.Token));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(new Request(), consumerMock.Object, cts.Token));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 cts.Cancel();
@@ -244,6 +252,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 bool succeeded = analysisTask.Wait(10000);
                 succeeded.Should().BeTrue();
 
+                CheckExpectedOutcomeReportedToConsumer(expected: false);
                 testLogger.AssertPartialOutputStringDoesNotExist("Found");
             }
             finally
@@ -267,6 +276,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(dte);
 
             return mockServiceProvider;
+        }
+
+        private void CheckExpectedOutcomeReportedToConsumer(bool expected)
+        {
+            consumerMock.Verify(x => x.Finished(expected), Times.Once);
+            consumerMock.Verify(x => x.Finished(!expected), Times.Never);
         }
 
         private class TestableCLangAnalyzer : CLangAnalyzer
