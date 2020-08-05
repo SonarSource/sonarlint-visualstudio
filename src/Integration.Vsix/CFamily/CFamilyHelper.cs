@@ -80,9 +80,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
 
-            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions && cFamilyAnalyzerOptions.CreateReproducer)
+            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
-                request.Flags |= Request.CreateReproducer;
+                if (cFamilyAnalyzerOptions.CreateReproducer)
+                {
+                    request.Flags |= Request.CreateReproducer;
+                }
+
+                if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
+                {
+                    request.Flags |= Request.BuildPreamble;
+                }
             }
 
             return request;

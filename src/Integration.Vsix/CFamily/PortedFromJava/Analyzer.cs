@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const int Weak = 1 << 16;
         public const int C17 = 1 << 17;
         public const int SonarLint = 1 << 18;
+        public const int BuildPreamble = 1 << 19;
 
         public string[] Options { get; set; } = Array.Empty<string>();
         public long Flags { get; set; }
