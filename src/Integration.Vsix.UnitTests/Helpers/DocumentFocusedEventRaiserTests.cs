@@ -23,7 +23,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
+using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
@@ -31,15 +34,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     [TestClass]
     public class DocumentFocusedEventRaiserTests
     {
+        private const string FilePath = "c:\\test.cpp";
+        private IContentType contentType;
+
         private Mock<IVsMonitorSelection> monitorSelectionMock;
         private Mock<IServiceProvider> serviceProviderMock;
         private Mock<Action<DocumentFocusedEventArgs>> mockEventHandler;
+        private Mock<ITextDocumentProvider> textDocumentProviderMock;
+
         private DocumentFocusedEventRaiser testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
             ThreadHelper.SetCurrentThreadAsUIThread();
+
+            contentType = Mock.Of<IContentType>();
 
             monitorSelectionMock = new Mock<IVsMonitorSelection>();
 
@@ -48,9 +58,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
                 .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
                 .Returns(monitorSelectionMock.Object);
 
+            textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             mockEventHandler = new Mock<Action<DocumentFocusedEventArgs>>();
 
-            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object);
+            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object, textDocumentProviderMock.Object);
             testSubject.OnDocumentFocused += (sender, e) => mockEventHandler.Object(e);
         }
 
@@ -61,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             monitorSelectionMock.Reset();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
-            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object);
+            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object, textDocumentProviderMock.Object);
 
             monitorSelectionMock.Verify(x=> x.AdviseSelectionEvents(testSubject, out cookie), Times.Once);
             monitorSelectionMock.VerifyNoOtherCalls();
@@ -73,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             uint cookie = 1234;
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
-            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object);
+            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object, textDocumentProviderMock.Object);
             testSubject.Dispose();
 
             monitorSelectionMock.Verify(x => x.UnadviseSelectionEvents(cookie), Times.Once);
@@ -82,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void Dispose_ShouldNoLongerRaiseEvents()
         {
-            var selectedFrame = CreateDocumentFrame("c:\\test.cpp");
+            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
 
             testSubject.Dispose();
             testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
@@ -120,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void OnElementValueChanged_NonWindowFrameElement_DoesNotRaiseEvent()
         {
-            var selectedFrame = CreateDocumentFrame("c:\\test.cpp");
+            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
 
             var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
@@ -138,49 +149,44 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
-            VerifyDocumentPathNotQueried(selectedFrame);
+            textDocumentProviderMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void OnElementValueChanged_FrameElement_ToolFrame_DoesNotRaiseEvent()
         {
-            var selectedFrame = CreateToolFrame();
+            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool);
 
             var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
-            VerifyDocumentPathNotQueried(selectedFrame);
+            textDocumentProviderMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void OnElementValueChanged_FrameElement_DocumentFrame_CantQueryDocumentName_DoesNotRaiseEvent()
+        public void OnElementValueChanged_FrameElement_DocumentFrame_RaisesEvent()
         {
-            var selectedFrame = CreateDocumentFrame("c:\\test.cpp", false);
+            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
+            
+            var mockTextDocument = CreateMockTextDocument();
+            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(mockTextDocument.Object);
 
             var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void OnElementValueChanged_FrameElement_DocumentFrame_SucceededQueryingDocumentName_RaisesEventWithDocumentName()
-        {
-            var selectedFrame = CreateDocumentFrame("c:\\test.cpp");
-
-            var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
-            result.Should().Be(VSConstants.S_OK);
-
-            mockEventHandler.Verify(x=> x(It.Is((DocumentFocusedEventArgs e) => e.DocumentFilePath == "c:\\test.cpp")), Times.Once);
+            mockEventHandler.Verify(x => x(It.Is((DocumentFocusedEventArgs e) => e.DocumentFilePath == FilePath && e.TextBufferContentType == contentType)), Times.Once);
         }
 
         [TestMethod]
         public void OnElementValueChanged_ValidDocumentFrame_NoEventSubscribers_DoesNotFail()
         {
-            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object);
+            testSubject = new DocumentFocusedEventRaiser(serviceProviderMock.Object, textDocumentProviderMock.Object);
 
-            var selectedFrame = CreateDocumentFrame("c:\\test.cpp");
+            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
+           
+            var mockTextDocument = CreateMockTextDocument();
+            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(mockTextDocument.Object);
 
             Func<int> act = () => testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
 
@@ -192,25 +198,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             return CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document, false);
         }
 
-        private Mock<IVsWindowFrame> CreateToolFrame()
-        {
-            return CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool, true);
-        }
-
-        private Mock<IVsWindowFrame> CreateDocumentFrame(string documentPath, bool canQueryDocumentPath = true)
-        {
-            var frame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document, true);
-            var path = (object)documentPath;
-            var queryDocumentPathResult = canQueryDocumentPath ? VSConstants.S_OK : VSConstants.E_FAIL;
-
-            frame
-                .Setup(x => x.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out path))
-                .Returns(queryDocumentPathResult);
-
-            return frame;
-        }
-
-        private Mock<IVsWindowFrame> CreateMockFrame(__WindowFrameTypeFlags frameType, bool canQueryFrameType)
+        private Mock<IVsWindowFrame> CreateMockFrame(__WindowFrameTypeFlags frameType, bool canQueryFrameType = true)
         {
             var frame = new Mock<IVsWindowFrame>();
             var type = (object)(int)frameType;
@@ -223,10 +211,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             return frame;
         }
 
-        private void VerifyDocumentPathNotQueried(Mock<IVsWindowFrame> frame)
+        private Mock<ITextDocument> CreateMockTextDocument()
         {
-            var value = It.IsAny<object>();
-            frame.Verify(x=> x.GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out value), Times.Never);
+            var mockTextBuffer = new Mock<ITextBuffer>();
+            mockTextBuffer.Setup(x => x.ContentType).Returns(contentType);
+
+            var mockTextDocument = new Mock<ITextDocument>();
+            mockTextDocument.Setup(x => x.FilePath).Returns(FilePath);
+            mockTextDocument.Setup(x => x.TextBuffer).Returns(mockTextBuffer.Object);
+
+            return mockTextDocument;
         }
     }
 }
