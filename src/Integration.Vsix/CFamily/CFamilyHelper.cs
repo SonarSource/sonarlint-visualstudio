@@ -152,15 +152,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     {
                         if ((request.Flags & Request.CreateReproducer) != 0)
                         {
-                            // When running with reproducer flag, we don't want to show analysis results.
-                            // todo: no need to actually wait for results, just need to know if the reproducer file has been created
                             reader.ReadToEnd();
-
                             logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
                         } else if ((request.Flags & Request.BuildPreamble) != 0)
                         {
                             reader.ReadToEnd();
                             logger.WriteLine("PCH file saved at {0}", request.PchFile);
+                        }
+                        else if ((request.Flags & Request.BuildPreamble) != 0)
+                        {
+                            reader.ReadToEnd();
+                            logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.PchFile);
                         }
                         else
                         {
