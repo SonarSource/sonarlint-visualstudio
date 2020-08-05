@@ -90,6 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
                 {
                     request.Flags |= Request.BuildPreamble;
+                    request.PchFile = cFamilyAnalyzerOptions.PreCompiledHeadersFilePath;
                 }
             }
 
@@ -157,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         else if ((request.Flags & Request.BuildPreamble) != 0)
                         {
                             reader.ReadToEnd();
-                            logger.WriteLine(CFamilyStrings.MSG_PchSaved, "");
+                            logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.PchFile);
                         }
                         else
                         {

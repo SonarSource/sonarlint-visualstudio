@@ -26,5 +26,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
     {
         public bool CreateReproducer { get; set; }
         public bool CreatePreCompiledHeaders { get; set; }
+        public string PreCompiledHeadersFilePath { get; set; }
     }
 }
