@@ -155,7 +155,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             fileSystemMock.Setup(x => x.File.Exists(fileName)).Returns(true);
 
             var testSubject = new UserSettingsProvider(new TestLogger(), fileSystemMock.Object, CreateMockFileMonitor(fileName).Object);
-            fileSystemMock.Reset();
 
             // Act
             testSubject.EnsureFileExists();

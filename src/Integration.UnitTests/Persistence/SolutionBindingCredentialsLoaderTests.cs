@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             testSubject.Save(credentials, null);
 
-            store.Verify(x=> x.WriteCredentials(It.IsAny<Uri>(), It.IsAny<Credential>()), Times.Never);
+            store.Verify(x=> x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()), Times.Never);
         }
 
         [TestMethod]
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             testSubject.Save(null, mockUri);
 
-            store.Verify(x => x.WriteCredentials(It.IsAny<Uri>(), It.IsAny<Credential>()), Times.Never);
+            store.Verify(x => x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()), Times.Never);
         }
 
         [TestMethod]
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var mockCredentials = new Mock<ICredentials>();
             testSubject.Save(mockCredentials.Object, mockUri);
 
-            store.Verify(x => x.WriteCredentials(It.IsAny<Uri>(), It.IsAny<Credential>()), Times.Never);
+            store.Verify(x => x.WriteCredentials(It.IsAny<TargetUri>(), It.IsAny<Credential>()), Times.Never);
         }
 
         [TestMethod]
