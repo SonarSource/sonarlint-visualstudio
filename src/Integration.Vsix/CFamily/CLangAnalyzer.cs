@@ -102,7 +102,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // Switch to a background thread
             await TaskScheduler.Default;
 
-            logger.WriteLine($"Analyzing {request.File}");
             int issueCount = 0;
             Action<Message> handleMessage = message => HandleMessage(message, request, consumer, ref issueCount);
 
@@ -112,11 +111,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             CallSubProcess(handleMessage, request, settings, logger, cancellationToken);
 
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                logger.WriteLine($"Found {issueCount} issue(s) for {request.File}");
-            }
         }
 
         private void HandleMessage(Message message, Request request, IIssueConsumer consumer, ref int issueCount)
