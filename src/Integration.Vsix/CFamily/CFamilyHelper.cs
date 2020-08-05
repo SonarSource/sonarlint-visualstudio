@@ -80,9 +80,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
 
-            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions && cFamilyAnalyzerOptions.CreateReproducer)
+            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
-                request.Flags |= Request.CreateReproducer;
+                if (cFamilyAnalyzerOptions.CreateReproducer)
+                {
+                    request.Flags |= Request.CreateReproducer;
+                }
+
+                if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
+                {
+                    request.Flags |= Request.BuildPreamble;
+                }
             }
 
             return request;
@@ -143,11 +151,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     {
                         if ((request.Flags & Request.CreateReproducer) != 0)
                         {
-                            // When running with reproducer flag, we don't want to show analysis results.
-                            // todo: no need to actually wait for results, just need to know if the reproducer file has been created
                             reader.ReadToEnd();
-
                             logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+                        }
+                        else if ((request.Flags & Request.BuildPreamble) != 0)
+                        {
+                            reader.ReadToEnd();
+                            logger.WriteLine(CFamilyStrings.MSG_PchSaved, "");
                         }
                         else
                         {

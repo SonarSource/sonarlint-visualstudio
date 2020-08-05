@@ -185,4 +185,7 @@
   <data name="ReproCmd_NoActiveDocument" xml:space="preserve">
     <value>Cannot run SonarLint CFamily reproducer - no active document.</value>
   </data>
+  <data name="MSG_PchSaved" xml:space="preserve">
+    <value>PCH file saved at: {0}</value>
+  </data>
 </root>

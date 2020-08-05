@@ -154,6 +154,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithPCH_RequestCreatedWithPCHFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.BuildPreamble).Should().NotBe(0);
+        }
+
+        [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithoutPCH_RequestCreatedWithoutPCHFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.BuildPreamble).Should().Be(0);
+        }
+
+        [TestMethod]
         public void TryGetConfig_ErrorsAreLogged()
         {
             // Arrange
