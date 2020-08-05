@@ -19,8 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -41,6 +39,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestInitialize]
         public void TestInitialize()
         {
+            ThreadHelper.SetCurrentThreadAsUIThread();
+
             monitorSelectionMock = new Mock<IVsMonitorSelection>();
 
             serviceProviderMock = new Mock<IServiceProvider>();

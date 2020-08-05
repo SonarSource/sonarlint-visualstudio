@@ -30,8 +30,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class DocumentFocusedEventRaiser : IDocumentFocusedEventRaiser, IVsSelectionEvents
     {
-        private readonly IVsMonitorSelection monitorSelection;
-        private readonly uint cookie;
+        private IVsMonitorSelection monitorSelection;
+        private uint cookie;
         private bool disposed;
 
         public event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
@@ -39,12 +39,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
         [ImportingConstructor]
         public DocumentFocusedEventRaiser([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
-            monitorSelection.AdviseSelectionEvents(this, out cookie);
+            RunOnUIThread.Run(() =>
+            {
+                monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+
+                if (monitorSelection == null)
+                {
+                    throw new ArgumentNullException(nameof(monitorSelection));
+                }
+
+                monitorSelection.AdviseSelectionEvents(this, out cookie);
+            });
         }
 
         public int OnElementValueChanged(uint elementId, object oldValue, object newValue)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             if (newValue is IVsWindowFrame frame &&
                 IsFrameElement() && 
                 IsDocumentFrame() && 
