@@ -24,6 +24,7 @@ using System.IO;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
@@ -61,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void Notify(string messageFormat, string filePath, bool showSpinner)
         {
-            RunOnUIThread(() =>
+            RunOnUIThread.Run(() =>
             {
                 object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
                 vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
@@ -69,20 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
                 var fileName = Path.GetFileName(filePath);
                 var message = string.Format(messageFormat, fileName);
                 vsStatusBar.SetText(message);
-            });
-        }
-
-        private static void RunOnUIThread(Action op)
-        {
-            if (ThreadHelper.CheckAccess())
-            {
-                op();
-                return;
-            }
-            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
-            {
-                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-                op();
             });
         }
     }
