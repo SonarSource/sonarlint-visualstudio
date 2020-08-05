@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public string[] Macros { get; set; } = Array.Empty<string>();
         public string TargetTriple { get; set; } = "x86_64-unknown-unknown";
         public string File { get; set; } = "";
+        public string PchFile { get; set; } = "";
     }
 
     internal class Response
