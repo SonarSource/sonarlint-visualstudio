@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
@@ -58,8 +57,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             var monitorSelection = await package.GetServiceAsync(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            var adapterService = await package.GetMefServiceAsync<IVsEditorAdaptersFactoryService>();
-            var docLocator = new ActiveDocumentLocator(monitorSelection, adapterService);
+            var textDocumentProvider = await package.GetMefServiceAsync<ITextDocumentProvider>();
+            var docLocator = new ActiveDocumentLocator(monitorSelection, textDocumentProvider);
 
             var languageRecognizer = await package.GetMefServiceAsync<ISonarLanguageRecognizer>();
             var requester = await package.GetMefServiceAsync<IAnalysisRequester>();
@@ -145,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return false;
             }
 
-            var languages = sonarLanguageRecognizer.Detect(activeDoc, activeDoc.TextBuffer);
+            var languages = sonarLanguageRecognizer.Detect(activeDoc.FilePath, activeDoc.TextBuffer.ContentType);
             if (languages.Contains(AnalysisLanguage.CFamily))
             {
                 logger.WriteLine(CFamilyStrings.ReproCmd_DocumentIsAnalyzable, activeDoc.FilePath);

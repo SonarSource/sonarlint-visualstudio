@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -39,12 +40,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private Mock<ICLangAnalyzer> clangAnalyzerMock;
         private Mock<IDocumentFocusedEventRaiser> documentFocusedEventRaiserMock;
         private Mock<IScheduler> schedulerMock;
+        private IContentType contentTypeMock;
 
         private CFamilyPreCompiledHeadersEventListener testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
+            contentTypeMock = Mock.Of<IContentType>();
             clangAnalyzerMock = new Mock<ICLangAnalyzer>();
             documentFocusedEventRaiserMock = new Mock<IDocumentFocusedEventRaiser>();
             schedulerMock = new Mock<IScheduler>();
@@ -108,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         private void RaiseDocumentFocusedEvent()
         {
-            documentFocusedEventRaiserMock.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(FocusedDocumentFilePath));
+            documentFocusedEventRaiserMock.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(FocusedDocumentFilePath, contentTypeMock));
         }
 
         private void VerifyJobWasScheduled()

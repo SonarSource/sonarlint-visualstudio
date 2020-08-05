@@ -19,11 +19,9 @@
  */
 
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -38,12 +36,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class ActiveDocumentLocator : IActiveDocumentLocator
     {
         private readonly IVsMonitorSelection monitorSelection;
-        private readonly IVsEditorAdaptersFactoryService editorAdapterService;
+        private readonly ITextDocumentProvider textDocumentProvider;
 
-        public ActiveDocumentLocator(IVsMonitorSelection monitorSelection, IVsEditorAdaptersFactoryService editorAdapterService)
+        public ActiveDocumentLocator(IVsMonitorSelection monitorSelection, ITextDocumentProvider textDocumentProvider)
         {
             this.monitorSelection = monitorSelection;
-            this.editorAdapterService = editorAdapterService;
+            this.textDocumentProvider = textDocumentProvider;
         }
 
         public ITextDocument FindActiveDocument()
@@ -57,21 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            // Now get the doc data, which should also be a text buffer
-            frame.GetProperty((int)__VSFPROPID.VSFPROPID_DocData, out var docData);
-            if (!(docData is IVsTextBuffer vsTextBuffer))
-            {
-                return null;
-            }
-
-            // Finally, convert from the legacy VS editor interface to the new-style interface
-            var textBuffer = editorAdapterService.GetDocumentBuffer(vsTextBuffer);
-
-            ITextDocument newTextDocument = null;
-            textBuffer?.Properties?.TryGetProperty(
-                typeof(ITextDocument), out newTextDocument);
-
-            return newTextDocument;
+            return textDocumentProvider.GetFromFrame(frame);
         }
     }
 }

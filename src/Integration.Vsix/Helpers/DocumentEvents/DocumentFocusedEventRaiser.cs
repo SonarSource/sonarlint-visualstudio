@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class DocumentFocusedEventRaiser : IDocumentFocusedEventRaiser, IVsSelectionEvents
     {
+        private readonly ITextDocumentProvider textDocumentProvider;
         private IVsMonitorSelection monitorSelection;
         private uint cookie;
         private bool disposed;
@@ -37,8 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
         public event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
 
         [ImportingConstructor]
-        public DocumentFocusedEventRaiser([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public DocumentFocusedEventRaiser([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
         {
+            this.textDocumentProvider = textDocumentProvider;
+
             RunOnUIThread.Run(() =>
             {
                 monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
@@ -58,11 +61,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
 
             if (newValue is IVsWindowFrame frame &&
                 IsFrameElement() && 
-                IsDocumentFrame() && 
-                ErrorHandler.Succeeded(frame.GetProperty((int) __VSFPROPID.VSFPROPID_pszMkDocument, out var filePath)))
+                IsDocumentFrame())
             {
-                var selectedDocumentFilePath = filePath as string;
-                OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(selectedDocumentFilePath));
+                var textDocument = textDocumentProvider.GetFromFrame(frame);
+
+                OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(textDocument.FilePath, textDocument.TextBuffer.ContentType));
             }
 
             return VSConstants.S_OK;
