@@ -90,10 +90,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
 
-        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, IAnalysisStatusNotifier analysisStatusNotifier, ISonarLintSettings settings,
-            ILogger logger, CancellationToken cancellationToken)
+        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
         {
-            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), analysisStatusNotifier, logger, cancellationToken);
+            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
         }
 
         internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
@@ -115,7 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // We're tying up a background thread waiting for out-of-process analysis. We could
                 // change the process runner so it works asynchronously. Alternatively, we could change the
                 // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-                CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
+                CallSubProcess(handleMessage, request, settings, logger, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {

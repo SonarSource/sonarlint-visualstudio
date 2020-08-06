@@ -23,9 +23,7 @@ using System.IO;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
@@ -84,10 +82,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         {
             var testLogger = new TestLogger(true);
             var processRunner = new ProcessRunner(new ConfigurableSonarLintSettings(), testLogger);
-            var statusNotifier = Mock.Of<IAnalysisStatusNotifier>();
 
             var messages = new List<Message>();
-            CFamilyHelper.CallClangAnalyzer(messages.Add, request, processRunner, statusNotifier, testLogger, CancellationToken.None);
+            CFamilyHelper.CallClangAnalyzer(messages.Add, request, processRunner, testLogger, CancellationToken.None);
 
             return messages;
         }
