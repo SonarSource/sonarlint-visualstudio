@@ -117,12 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERROR_Analysis_Failed" xml:space="preserve">
-    <value>Failed to analyze {0}, exception details: {1}</value>
-  </data>
-  <data name="MSG_AnalysisAborted" xml:space="preserve">
-    <value>Aborted analysis of {0}, analysis has been re-triggered or has timed-out.</value>
-  </data>
   <data name="ERROR_ProcessRunner_ExeNotFound" xml:space="preserve">
     <value>Execution failed. The specified executable does not exist: {0}</value>
   </data>
@@ -143,9 +137,6 @@
   </data>
   <data name="MSG_ExecutionExitCode" xml:space="preserve">
     <value>Process returned exit code {0}</value>
-  </data>
-  <data name="MSG_AnalysisComplete" xml:space="preserve">
-    <value>Finished analyzing {0}, analysis time: {1}s</value>
   </data>
   <data name="MSG_Prefix_DEBUG" xml:space="preserve">
     <value>DEBUG: </value>

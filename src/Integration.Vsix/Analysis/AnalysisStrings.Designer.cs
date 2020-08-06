@@ -153,6 +153,51 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Aborted analysis of {0}, analysis has been re-triggered or has timed-out..
+        /// </summary>
+        internal static string MSG_AnalysisAborted {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisAborted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Finished analyzing {0}, analysis time: {1}s.
+        /// </summary>
+        internal static string MSG_AnalysisComplete {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to analyze {0}, exception details: {1}.
+        /// </summary>
+        internal static string MSG_AnalysisFailed {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzing {0}.
+        /// </summary>
+        internal static string MSG_AnalysisStarted {
+            get {
+                return ResourceManager.GetString("MSG_AnalysisStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Found {0} issue(s) for {1}.
+        /// </summary>
+        internal static string MSG_FoundIssues {
+            get {
+                return ResourceManager.GetString("MSG_FoundIssues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarLint: Failed to analyze {0}. See the Output Window for more information..
         /// </summary>
         internal static string Notifier_AnalysisFailed {

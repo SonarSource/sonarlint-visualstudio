@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, IAnalysisStatusNotifier statusNotifier, ILogger logger, CancellationToken cancellationToken)
+        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
@@ -135,69 +135,44 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return;
             }
 
-            try
-            {
-                var workingDirectory = Path.GetTempPath();
-                const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
+            var workingDirectory = Path.GetTempPath();
+            const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
 
-                var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
+            var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
+            {
+                CmdLineArgs = new[] { communicateViaStreaming },
+                CancellationToken = cancellationToken,
+                WorkingDirectory = workingDirectory,
+                HandleInputStream = writer =>
                 {
-                    CmdLineArgs = new[] { communicateViaStreaming },
-                    CancellationToken = cancellationToken,
-                    WorkingDirectory = workingDirectory,
-                    HandleInputStream = writer =>
+                    using (var binaryWriter = new BinaryWriter(writer.BaseStream))
                     {
-                        using (var binaryWriter = new BinaryWriter(writer.BaseStream))
-                        {
-                            Protocol.Write(binaryWriter, request);
-                        }
-                    },
-                    HandleOutputStream = reader =>
+                        Protocol.Write(binaryWriter, request);
+                    }
+                },
+                HandleOutputStream = reader =>
+                {
+                    if ((request.Flags & Request.CreateReproducer) != 0)
                     {
-                        if ((request.Flags & Request.CreateReproducer) != 0)
+                        reader.ReadToEnd();
+                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+                    }
+                    else if ((request.Flags & Request.BuildPreamble) != 0)
+                    {
+                        reader.ReadToEnd();
+                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.PchFile);
+                    }
+                    else
+                    {
+                        using (var binaryReader = new BinaryReader(reader.BaseStream))
                         {
-                            reader.ReadToEnd();
-                            logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
-                        }
-                        else if ((request.Flags & Request.BuildPreamble) != 0)
-                        {
-                            reader.ReadToEnd();
-                            logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.PchFile);
-                        }
-                        else
-                        {
-                            using (var binaryReader = new BinaryReader(reader.BaseStream))
-                            {
-                                Protocol.Read(binaryReader, handleMessage, request.File);
-                            }
+                            Protocol.Read(binaryReader, handleMessage, request.File);
                         }
                     }
-                };
-
-                statusNotifier.AnalysisStarted(request.File);
-
-                var analysisTimer = Stopwatch.StartNew();
-
-                runner.Execute(args);
-
-                analysisTimer.Stop();
-
-                if (cancellationToken.IsCancellationRequested)
-                {
-                    logger.WriteLine(CFamilyStrings.MSG_AnalysisAborted, request.File);
-                    statusNotifier.AnalysisCancelled(request.File);
                 }
-                else
-                {
-                    logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, request.File, Math.Round(analysisTimer.Elapsed.TotalSeconds, 3));
-                    statusNotifier.AnalysisFinished(request.File);
-                }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, request.File, ex.ToString());
-                statusNotifier.AnalysisFailed(request.File);
-            }
+            };
+
+            runner.Execute(args);
         }
 
         internal /* for testing */ static IAnalysisIssue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
