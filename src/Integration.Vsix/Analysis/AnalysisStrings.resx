@@ -172,4 +172,19 @@
   <data name="Notifier_AnalysisStarted" xml:space="preserve">
     <value>SonarLint: Analyzing {0}</value>
   </data>
+  <data name="MSG_AnalysisComplete" xml:space="preserve">
+    <value>Finished analyzing {0}, analysis time: {1}s</value>
+  </data>
+  <data name="MSG_AnalysisAborted" xml:space="preserve">
+    <value>Aborted analysis of {0}, analysis has been re-triggered or has timed-out.</value>
+  </data>
+  <data name="MSG_AnalysisFailed" xml:space="preserve">
+    <value>Failed to analyze {0}, exception details: {1}</value>
+  </data>
+  <data name="MSG_AnalysisStarted" xml:space="preserve">
+    <value>Analyzing {0}</value>
+  </data>
+  <data name="MSG_FoundIssues" xml:space="preserve">
+    <value>Found {0} issue(s) for {1}</value>
+  </data>
 </root>

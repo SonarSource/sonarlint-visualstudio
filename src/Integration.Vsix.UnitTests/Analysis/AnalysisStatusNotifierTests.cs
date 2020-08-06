@@ -23,7 +23,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
@@ -62,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var filePath = "c:\\test\\foo-started.cpp";
             testSubject.AnalysisStarted(filePath);
 
-            var expectedMessage = string.Format($"Analyzing {filePath}");
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisStarted, filePath);
             logger.AssertOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
@@ -86,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var filePath = "c:\\test\\foo-started.cpp";
             testSubject.AnalysisFinished(filePath, 123, TimeSpan.FromSeconds(6.54321));
 
-            var expectedMessage = string.Format(CFamilyStrings.MSG_AnalysisComplete, filePath, 6.543);
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisComplete, filePath, 6.543);
             logger.AssertOutputStringExists(expectedMessage);
 
             expectedMessage = string.Format($"Found {123} issue(s) for {filePath}");
@@ -112,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var filePath = "c:\\test\\foo-started.cpp";
             testSubject.AnalysisCancelled(filePath);
 
-            var expectedMessage = string.Format(CFamilyStrings.MSG_AnalysisAborted, filePath);
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisAborted, filePath);
             logger.AssertOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
@@ -137,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             var filePath = "c:\\test\\foo-started.cpp";
             testSubject.AnalysisFailed(filePath, exception);
 
-            var expectedMessage = string.Format(CFamilyStrings.ERROR_Analysis_Failed, filePath, exception);
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisFailed, filePath, exception);
             logger.AssertOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }
