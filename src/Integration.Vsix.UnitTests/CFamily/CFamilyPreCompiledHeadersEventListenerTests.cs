@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var cancellationToken = new CancellationTokenSource();
 
             schedulerMock
-                .Setup(x=> x.Schedule(CFamilyPreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), Timeout.Infinite))
+                .Setup(x=> x.Schedule(CFamilyPreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), CFamilyPreCompiledHeadersEventListener.PchJobTimeoutInMilliseconds))
                 .Callback((string jobId, Action<CancellationToken> action, int timeout) => action(cancellationToken.Token));
 
             testSubject.Listen();
@@ -162,13 +162,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         private ITextDocument CreateMockTextDocument()
         {
-            contentTypeMock = Mock.Of<IContentType>();
-
             var textBufferMock = new Mock<ITextBuffer>();
             textBufferMock.Setup(x => x.ContentType).Returns(contentTypeMock);
 
             var textDocumentMock = new Mock<ITextDocument>();
             textDocumentMock.Setup(x => x.TextBuffer).Returns(textBufferMock.Object);
+            textDocumentMock.Setup(x => x.FilePath).Returns(FocusedDocumentFilePath);
 
             return textDocumentMock.Object;
         }
