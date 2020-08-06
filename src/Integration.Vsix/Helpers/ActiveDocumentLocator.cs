@@ -18,10 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -33,15 +36,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         ITextDocument FindActiveDocument();
     }
 
+    [Export(typeof(IActiveDocumentLocator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ActiveDocumentLocator : IActiveDocumentLocator
     {
-        private readonly IVsMonitorSelection monitorSelection;
         private readonly ITextDocumentProvider textDocumentProvider;
+        private IVsMonitorSelection monitorSelection;
 
-        public ActiveDocumentLocator(IVsMonitorSelection monitorSelection, ITextDocumentProvider textDocumentProvider)
+        [ImportingConstructor]
+        public ActiveDocumentLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
         {
-            this.monitorSelection = monitorSelection;
             this.textDocumentProvider = textDocumentProvider;
+            
+            RunOnUIThread.Run(() =>
+            {
+                monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+            });
         }
 
         public ITextDocument FindActiveDocument()

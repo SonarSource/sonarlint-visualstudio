@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -46,7 +47,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocument = Mock.Of<ITextDocument>();
 
-            testSubject = new ActiveDocumentLocator(monitorSelectionMock.Object, textDocumentProviderMock.Object);
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
+                .Returns(monitorSelectionMock.Object);
+
+            testSubject = new ActiveDocumentLocator(serviceProviderMock.Object, textDocumentProviderMock.Object);
         }
 
         [TestMethod]
