@@ -50,6 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestInitialize]
         public void TestInitialize()
         {
+            contentTypeMock = Mock.Of<IContentType>();
             clangAnalyzerMock = new Mock<ICLangAnalyzer>();
             activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             schedulerMock = new Mock<IScheduler>();
