@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Core
     {
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
+        internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
         public const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
 
         public bool TreatBlockerSeverityAsError()
@@ -39,15 +40,14 @@ namespace SonarLint.VisualStudio.Core
 
         public int AnalysisTimeoutInMs()
         {
-            var setting = Environment.GetEnvironmentVariable(AnalysisTimeoutEnvVar);
+            return ParseInt(Environment.GetEnvironmentVariable(AnalysisTimeoutEnvVar));
+        }
 
-            if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo, out int userSuppliedTimeout)
-                && userSuppliedTimeout > 0)
-            {
-                return userSuppliedTimeout;
-            }
+        public int PCHGenerationTimeoutInMs(int defaultValue)
+        {
+            var userValue = ParseInt(Environment.GetEnvironmentVariable(PchGenerationTimeoutEnvVar));
 
-            return 0;
+            return userValue > 0 ? userValue : defaultValue;
         }
 
         public string SonarLintDaemonDownloadUrl()
@@ -55,6 +55,17 @@ namespace SonarLint.VisualStudio.Core
             // The URL validation and logging is being done by the daemon installer, so
             // this is just a passthrough
             return Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
+        }
+
+        internal int ParseInt(string setting)
+        {
+            if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo, out int userSuppliedValue)
+                && userSuppliedValue > 0)
+            {
+                return userSuppliedValue;
+            }
+
+            return 0;
         }
     }
 }

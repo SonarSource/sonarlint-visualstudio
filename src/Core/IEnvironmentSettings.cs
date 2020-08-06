@@ -38,6 +38,11 @@ namespace SonarLint.VisualStudio.Core
         int AnalysisTimeoutInMs();
 
         /// <summary>
+        /// Returns the user-specific timeout for PCH file generation, or the given default value if one has not been specified
+        /// </summary>
+        int PCHGenerationTimeoutInMs(int defaultValue);
+
+        /// <summary>
         /// Download location for the SonarLint daemon additional zip file
         /// </summary>
         string SonarLintDaemonDownloadUrl();
