@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return false;
             }
 
-            var languages = sonarLanguageRecognizer.Detect(activeDoc, activeDoc.TextBuffer);
+            var languages = sonarLanguageRecognizer.Detect(activeDoc.FilePath, activeDoc.TextBuffer.ContentType);
             if (languages.Contains(AnalysisLanguage.CFamily))
             {
                 logger.WriteLine(CFamilyStrings.ReproCmd_DocumentIsAnalyzable, activeDoc.FilePath);

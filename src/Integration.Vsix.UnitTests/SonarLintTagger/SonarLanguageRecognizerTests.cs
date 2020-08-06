@@ -38,8 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<IContentTypeRegistryService> contentTypeServiceMock;
         private Mock<IFileExtensionRegistryService> fileExtensionServiceMock;
         private SonarLanguageRecognizer testSubject;
-        private Mock<ITextDocument> textDocumentMock;
-        private Mock<ITextBuffer> textBufferMock;
 
        [TestInitialize]
         public void TestInitialize()
@@ -47,9 +45,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             contentTypeServiceMock = new Mock<IContentTypeRegistryService>();
             fileExtensionServiceMock = new Mock<IFileExtensionRegistryService>();
             testSubject = new SonarLanguageRecognizer(contentTypeServiceMock.Object, fileExtensionServiceMock.Object);
-
-            textDocumentMock = new Mock<ITextDocument>();
-            textBufferMock = new Mock<ITextBuffer>();
         }
 
         [TestMethod]
@@ -93,8 +88,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             foreach (var expectedExtension in new[] { "js", "jsx", "vue" })
             {
                 // Act
-                textDocumentMock.Setup(x => x.FilePath).Returns($"foo.{expectedExtension}");
-                var result = testSubject.Detect(textDocumentMock.Object, textBufferMock.Object);
+                var result = testSubject.Detect($"foo.{expectedExtension}", null);
 
                 // Assert
                 result.Should().HaveCount(1);
@@ -106,17 +100,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Detect_WhenExtensionNotRegisteredAndBufferContentTypeIsJsRelated_ReturnsJavascript()
         {
             // Arrange
-            textDocumentMock.Setup(x => x.FilePath).Returns("foo");
-
             var contentTypeMock = new Mock<IContentType>();
-            textBufferMock.Setup(x => x.ContentType).Returns(contentTypeMock.Object);
 
             foreach (var expectedType in new[] { "JavaScript", "Vue" })
             {
                 contentTypeMock.Setup(x => x.IsOfType(expectedType)).Returns(true);
 
                 // Act
-                var result = testSubject.Detect(textDocumentMock.Object, textBufferMock.Object);
+                var result = testSubject.Detect("foo", contentTypeMock.Object);
 
                 // Assert
                 result.Should().HaveCount(1);
@@ -128,14 +119,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Detect_WhenExtensionNotRegisteredAndBufferContentTypeIsCRelated_ReturnsCFamily()
         {
             // Arrange
-            textDocumentMock.Setup(x => x.FilePath).Returns("foo");
 
             var contentTypeMock = new Mock<IContentType>();
             contentTypeMock.Setup(x => x.IsOfType("C/C++")).Returns(true);
-            textBufferMock.Setup(x => x.ContentType).Returns(contentTypeMock.Object);
 
             // Act
-            var result = testSubject.Detect(textDocumentMock.Object, textBufferMock.Object);
+            var result = testSubject.Detect("foo", contentTypeMock.Object);
 
             // Assert
             result.Should().HaveCount(1);
@@ -147,14 +136,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var fileExtension = "XXX";
-            textDocumentMock.Setup(x => x.FilePath).Returns($"foo.{fileExtension}");
             var contentTypeMock = new Mock<IContentType>();
             contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentTypeMock.Object });
             fileExtensionServiceMock.Setup(x => x.GetExtensionsForContentType(contentTypeMock.Object)).Returns(new[] { fileExtension });
             contentTypeMock.Setup(x => x.IsOfType("JavaScript")).Returns(true);
 
             // Act
-            var result = testSubject.Detect(textDocumentMock.Object, textBufferMock.Object);
+            var result = testSubject.Detect($"foo.{fileExtension}", null);
 
             // Assert
             result.Should().HaveCount(1);
@@ -166,14 +154,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var fileExtension = "XXX";
-            textDocumentMock.Setup(x => x.FilePath).Returns($"foo.{fileExtension}");
             var contentTypeMock = new Mock<IContentType>();
             contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentTypeMock.Object });
             fileExtensionServiceMock.Setup(x => x.GetExtensionsForContentType(contentTypeMock.Object)).Returns(new[] { fileExtension });
             contentTypeMock.Setup(x => x.IsOfType("C/C++")).Returns(true);
 
             // Act
-            var result = testSubject.Detect(textDocumentMock.Object, textBufferMock.Object);
+            var result = testSubject.Detect($"foo.{fileExtension}", null);
 
             // Assert
             result.Should().HaveCount(1);
@@ -185,7 +172,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var fileExtension = "XXX";
-            textDocumentMock.Setup(x => x.FilePath).Returns($"foo.{fileExtension}");
             var contentTypeMock1 = new Mock<IContentType>();
             var contentTypeMock2 = new Mock<IContentType>();
             contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentTypeMock1.Object, contentTypeMock2.Object });
@@ -195,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             contentTypeMock2.Setup(x => x.IsOfType("JavaScript")).Returns(true);
 
             // Act
-            var result = testSubject.Detect(textDocumentMock.Object, textBufferMock.Object);
+            var result = testSubject.Detect($"foo.{fileExtension}", null);
 
             // Assert
             result.Should().HaveCount(2);

@@ -18,14 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.Core.Analysis;
+using System;
+using Microsoft.VisualStudio.Shell;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
 {
-    internal interface ISonarLanguageRecognizer
+    internal static class RunOnUIThread
     {
-        IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
+        public static void Run(Action op)
+        {
+            if (ThreadHelper.CheckAccess())
+            {
+                op();
+                return;
+            }
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                op();
+            });
+        }
     }
 }

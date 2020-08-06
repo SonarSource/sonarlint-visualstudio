@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
 
@@ -55,10 +54,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.fileExtensionRegistryService = fileExtensionRegistryService;
         }
 
-        public IEnumerable<AnalysisLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer)
+        public IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType)
         {
-            var fileExtension = Path.GetExtension(textDocument.FilePath).Replace(".", "");
-            var contentTypes = GetExtensionContentTypes(fileExtension, buffer);
+            var fileExtension = Path.GetExtension(filePath).Replace(".", "");
+            var contentTypes = GetExtensionContentTypes(fileExtension, bufferContentType);
 
             // Languages are for now mainly exclusive but it should possible for the same file to be analyzed by multiple
             // plugins (language plugin).
@@ -75,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return detectedLanguages;
         }
 
-        private IEnumerable<IContentType> GetExtensionContentTypes(string fileExtension, ITextBuffer buffer)
+        private IEnumerable<IContentType> GetExtensionContentTypes(string fileExtension, IContentType bufferContentType)
         {
             var contentTypes = contentTypeRegistryService
                 .ContentTypes
@@ -84,10 +83,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 .ToList();
 
             if (contentTypes.Count == 0 &&
-                buffer.ContentType != null)
+                bufferContentType != null)
             {
                 // Fallback on TextBuffer content type
-                contentTypes.Add(buffer.ContentType);
+                contentTypes.Add(bufferContentType);
             }
 
             return contentTypes;
