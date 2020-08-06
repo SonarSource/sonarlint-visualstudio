@@ -66,6 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         public void Ctor_RegisterToSelectionEvents()
         {
             uint cookie = 1234;
+            // Reset invocations that were performed in TestInitialize
             monitorSelectionMock.Reset();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
