@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -55,7 +56,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             schedulerMock = new Mock<IScheduler>();
             languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
 
-            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object);
+            var environmentSettingsMock = new Mock<IEnvironmentSettings>();
+            environmentSettingsMock
+                .Setup(x => x.PCHGenerationTimeoutInMs(It.IsAny<int>()))
+                .Returns(1);
+
+            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object, environmentSettingsMock.Object);
         }
 
         [TestMethod]
@@ -132,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var cancellationToken = new CancellationTokenSource();
 
             schedulerMock
-                .Setup(x=> x.Schedule(PreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), PreCompiledHeadersEventListener.PchJobTimeoutInMilliseconds))
+                .Setup(x=> x.Schedule(PreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), testSubject.pchJobTimeoutInMilliseconds))
                 .Callback((string jobId, Action<CancellationToken> action, int timeout) => action(cancellationToken.Token));
 
             testSubject.Listen();

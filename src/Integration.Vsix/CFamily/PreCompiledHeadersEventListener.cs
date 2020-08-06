@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
 
@@ -37,9 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     internal sealed class PreCompiledHeadersEventListener : IPreCompiledHeadersEventListener
     {
         internal const string PchJobId = "pch-generation";
-        internal const int PchJobTimeoutInMilliseconds = 60 * 1000;
         internal const string PchFilePathSuffix = "SonarLintPCH.preamble";
+
         internal string pchFilePath = Path.Combine(Path.GetTempPath(), PchFilePathSuffix);
+        internal readonly int pchJobTimeoutInMilliseconds;
 
         private readonly ICFamilyAnalyzer cFamilyAnalyzer;
         private readonly IActiveDocumentTracker activeDocumentTracker;
@@ -51,12 +53,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public PreCompiledHeadersEventListener(ICFamilyAnalyzer cFamilyAnalyzer,
             IActiveDocumentTracker activeDocumentTracker, 
             IScheduler scheduler,
-            ISonarLanguageRecognizer sonarLanguageRecognizer)
+            ISonarLanguageRecognizer sonarLanguageRecognizer,
+            IEnvironmentSettings environmentSettings)
         {
             this.cFamilyAnalyzer = cFamilyAnalyzer;
             this.activeDocumentTracker = activeDocumentTracker;
             this.scheduler = scheduler;
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
+            
+            pchJobTimeoutInMilliseconds = environmentSettings.PCHGenerationTimeoutInMs(60 * 1000);
         }
 
         public void Listen()
@@ -87,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     null,
                     cFamilyAnalyzerOptions,
                     token);
-            }, PchJobTimeoutInMilliseconds);
+            }, pchJobTimeoutInMilliseconds);
         }
 
         public void Dispose()
