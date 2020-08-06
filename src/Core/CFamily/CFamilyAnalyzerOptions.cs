@@ -25,5 +25,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public class CFamilyAnalyzerOptions : IAnalyzerOptions
     {
         public bool CreateReproducer { get; set; }
+        public bool CreatePreCompiledHeaders { get; set; }
+        public string PreCompiledHeadersFilePath { get; set; }
     }
 }
