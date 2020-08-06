@@ -21,8 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
@@ -30,47 +28,52 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     [Export(typeof(IAnalysisStatusNotifier))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class AnalysisStatusNotifier : IAnalysisStatusNotifier
+    internal class AnalysisStatusNotifier : IAnalysisStatusNotifier
     {
-        private readonly IVsStatusbar vsStatusBar;
+        private readonly IStatusBarNotifier statusBarNotifier;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public AnalysisStatusNotifier([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public AnalysisStatusNotifier(IStatusBarNotifier statusBarNotifier, ILogger logger)
         {
-            vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
+            this.statusBarNotifier = statusBarNotifier;
+            this.logger = logger;
         }
 
         public void AnalysisStarted(string filePath)
         {
+            logger.WriteLine(AnalysisStrings.MSG_AnalysisStarted, filePath);
+
             Notify(AnalysisStrings.Notifier_AnalysisStarted, filePath, true);
         }
 
-        public void AnalysisFinished(string filePath)
+        public void AnalysisFinished(string filePath, int issueCount, TimeSpan analysisTime)
         {
+            logger.WriteLine(AnalysisStrings.MSG_AnalysisComplete, filePath, Math.Round(analysisTime.TotalSeconds, 3));
+            logger.WriteLine(AnalysisStrings.MSG_FoundIssues, issueCount, filePath);
+
             Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false);
         }
 
         public void AnalysisCancelled(string filePath)
         {
+            logger.WriteLine(AnalysisStrings.MSG_AnalysisAborted, filePath);
+            
             Notify("", "", false);
         }
 
-        public void AnalysisFailed(string filePath)
+        public void AnalysisFailed(string filePath, Exception ex)
         {
+            logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, ex.ToString());
+
             Notify(AnalysisStrings.Notifier_AnalysisFailed, filePath, false);
         }
 
         private void Notify(string messageFormat, string filePath, bool showSpinner)
         {
-            RunOnUIThread.Run(() =>
-            {
-                object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
-                vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
-
-                var fileName = Path.GetFileName(filePath);
-                var message = string.Format(messageFormat, fileName);
-                vsStatusBar.SetText(message);
-            });
+            var fileName = Path.GetFileName(filePath);
+            var message = string.Format(messageFormat, fileName);
+            statusBarNotifier.Notify(message, showSpinner);
         }
     }
 }
