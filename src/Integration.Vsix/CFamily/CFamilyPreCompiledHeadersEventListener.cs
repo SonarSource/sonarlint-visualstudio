@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
 
@@ -38,34 +37,36 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     internal sealed class CFamilyPreCompiledHeadersEventListener : ICFamilyPreCompiledHeadersEventListener
     {
         internal const string PchJobId = "pch-generation";
-        internal string pchFilePath = Path.Combine(Path.GetTempPath(), "SonarLintPCH.txt");
+        internal const int PchJobTimeoutInMilliseconds = 60 * 1000;
+        internal const string PchFilePathSuffix = "SonarLintPCH.preamble";
+        internal string pchFilePath = Path.Combine(Path.GetTempPath(), PchFilePathSuffix);
 
         private readonly ICLangAnalyzer cLangAnalyzer;
-        private readonly IDocumentFocusedEventRaiser documentFocusedEventRaiser;
+        private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IScheduler scheduler;
         private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
         private bool disposed;
 
         [ImportingConstructor]
-        public CFamilyPreCompiledHeadersEventListener(ICLangAnalyzer cLangAnalyzer, 
-            IDocumentFocusedEventRaiser documentFocusedEventRaiser, 
+        public CFamilyPreCompiledHeadersEventListener(ICLangAnalyzer cLangAnalyzer,
+            IActiveDocumentTracker activeDocumentTracker, 
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer)
         {
             this.cLangAnalyzer = cLangAnalyzer;
-            this.documentFocusedEventRaiser = documentFocusedEventRaiser;
+            this.activeDocumentTracker = activeDocumentTracker;
             this.scheduler = scheduler;
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
         }
 
         public void Listen()
         {
-            documentFocusedEventRaiser.OnDocumentFocused += OnDocumentFocused;
+            activeDocumentTracker.OnDocumentFocused += OnActiveDocumentFocused;
         }
 
-        private void OnDocumentFocused(object sender, DocumentFocusedEventArgs e)
+        private void OnActiveDocumentFocused(object sender, DocumentFocusedEventArgs e)
         {
-            var detectedLanguages = sonarLanguageRecognizer.Detect(e.DocumentFilePath, e.TextBufferContentType);
+            var detectedLanguages = sonarLanguageRecognizer.Detect(e.TextDocument.FilePath, e.TextDocument.TextBuffer.ContentType);
 
             if (!detectedLanguages.Any() || !cLangAnalyzer.IsAnalysisSupported(detectedLanguages))
             {
@@ -80,21 +81,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             scheduler.Schedule(PchJobId, token =>
             {
-                cLangAnalyzer.ExecuteAnalysis(e.DocumentFilePath,
+                cLangAnalyzer.ExecuteAnalysis(e.TextDocument.FilePath,
                     null,
                     detectedLanguages,
                     null,
                     cFamilyAnalyzerOptions,
                     token);
-            }, Timeout.Infinite);
+            }, PchJobTimeoutInMilliseconds);
         }
 
         public void Dispose()
         {
             if (!disposed)
             {
-                documentFocusedEventRaiser.OnDocumentFocused -= OnDocumentFocused;
-                documentFocusedEventRaiser?.Dispose();
+                activeDocumentTracker.OnDocumentFocused -= OnActiveDocumentFocused;
+                activeDocumentTracker?.Dispose();
                 disposed = true;
             }
         }

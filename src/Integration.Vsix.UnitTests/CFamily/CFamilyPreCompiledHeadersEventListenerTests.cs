@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private IContentType contentTypeMock;
 
         private Mock<ICLangAnalyzer> clangAnalyzerMock;
-        private Mock<IDocumentFocusedEventRaiser> documentFocusedEventRaiserMock;
+        private Mock<IActiveDocumentTracker> activeDocumentTrackerMock;
         private Mock<IScheduler> schedulerMock;
         private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
 
@@ -49,13 +50,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestInitialize]
         public void TestInitialize()
         {
-            contentTypeMock = Mock.Of<IContentType>();
             clangAnalyzerMock = new Mock<ICLangAnalyzer>();
-            documentFocusedEventRaiserMock = new Mock<IDocumentFocusedEventRaiser>();
+            activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             schedulerMock = new Mock<IScheduler>();
             languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
 
-            testSubject = new CFamilyPreCompiledHeadersEventListener(clangAnalyzerMock.Object, documentFocusedEventRaiserMock.Object, schedulerMock.Object, languageRecognizerMock.Object);
+            testSubject = new CFamilyPreCompiledHeadersEventListener(clangAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object);
         }
 
         [TestMethod]
@@ -157,7 +157,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         private void RaiseDocumentFocusedEvent()
         {
-            documentFocusedEventRaiserMock.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(FocusedDocumentFilePath, contentTypeMock));
+            activeDocumentTrackerMock.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(CreateMockTextDocument()));
+        }
+
+        private ITextDocument CreateMockTextDocument()
+        {
+            contentTypeMock = Mock.Of<IContentType>();
+
+            var textBufferMock = new Mock<ITextBuffer>();
+            textBufferMock.Setup(x => x.ContentType).Returns(contentTypeMock);
+
+            var textDocumentMock = new Mock<ITextDocument>();
+            textDocumentMock.Setup(x => x.TextBuffer).Returns(textBufferMock.Object);
+
+            return textDocumentMock.Object;
         }
     }
 }

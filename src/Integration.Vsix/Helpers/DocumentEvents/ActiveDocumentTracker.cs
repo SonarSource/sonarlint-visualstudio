@@ -26,9 +26,14 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
 {
-    [Export(typeof(IDocumentFocusedEventRaiser))]
+    internal interface IActiveDocumentTracker : IDisposable
+    {
+        event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
+    }
+
+    [Export(typeof(IActiveDocumentTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class DocumentFocusedEventRaiser : IDocumentFocusedEventRaiser, IVsSelectionEvents
+    internal sealed class ActiveDocumentTracker : IActiveDocumentTracker, IVsSelectionEvents
     {
         private readonly ITextDocumentProvider textDocumentProvider;
         private IVsMonitorSelection monitorSelection;
@@ -38,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
         public event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
 
         [ImportingConstructor]
-        public DocumentFocusedEventRaiser([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
+        public ActiveDocumentTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
         {
             this.textDocumentProvider = textDocumentProvider;
 
@@ -65,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
             {
                 var textDocument = textDocumentProvider.GetFromFrame(frame);
 
-                OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(textDocument.FilePath, textDocument.TextBuffer.ContentType));
+                OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(textDocument));
             }
 
             return VSConstants.S_OK;
