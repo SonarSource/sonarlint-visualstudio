@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
@@ -30,14 +27,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     [Export(typeof(IAnalysisStatusNotifier))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class AnalysisStatusNotifier : IAnalysisStatusNotifier
+    internal class AnalysisStatusNotifier : IAnalysisStatusNotifier
     {
-        private readonly IVsStatusbar vsStatusBar;
+        private readonly IStatusBarNotifier statusBarNotifier;
 
         [ImportingConstructor]
-        public AnalysisStatusNotifier([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public AnalysisStatusNotifier(IStatusBarNotifier statusBarNotifier)
         {
-            vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
+            this.statusBarNotifier = statusBarNotifier;
         }
 
         public void AnalysisStarted(string filePath)
@@ -62,15 +59,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private void Notify(string messageFormat, string filePath, bool showSpinner)
         {
-            RunOnUIThread.Run(() =>
-            {
-                object icon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
-                vsStatusBar.Animation(showSpinner ? 1 : 0, ref icon);
-
-                var fileName = Path.GetFileName(filePath);
-                var message = string.Format(messageFormat, fileName);
-                vsStatusBar.SetText(message);
-            });
+            var fileName = Path.GetFileName(filePath);
+            var message = string.Format(messageFormat, fileName);
+            statusBarNotifier.Notify(message, showSpinner);
         }
     }
 }

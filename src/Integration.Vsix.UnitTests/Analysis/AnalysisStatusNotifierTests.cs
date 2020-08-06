@@ -18,33 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 {
     [TestClass]
     public class AnalysisStatusNotifierTests
     {
-        private Mock<IVsStatusbar> statusBarMock;
+        private Mock<IStatusBarNotifier> statusBarMock;
         private AnalysisStatusNotifier testSubject;
-        private object statusIcon;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            statusIcon = (short)Microsoft.VisualStudio.Shell.Interop.Constants.SBAI_General;
-            statusBarMock = new Mock<IVsStatusbar>();
-
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock.Setup(x => x.GetService(typeof(IVsStatusbar))).Returns(statusBarMock.Object);
-
-            testSubject = new AnalysisStatusNotifier(serviceProviderMock.Object);
-
-            ThreadHelper.SetCurrentThreadAsUIThread();
+            statusBarMock = new Mock<IStatusBarNotifier>();
+            testSubject = new AnalysisStatusNotifier(statusBarMock.Object);
         }
 
         [TestMethod]
@@ -99,8 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
         private void VerifyStatusBarMessageAndIcon(string expectedMessage, bool isSpinnerOn)
         {
-            statusBarMock.Verify(x => x.SetText(expectedMessage), Times.Once);
-            statusBarMock.Verify(x => x.Animation(isSpinnerOn ? 1 : 0, ref statusIcon), Times.Once);
+            statusBarMock.Verify(x=> x.Notify(expectedMessage, isSpinnerOn), Times.Once);
             statusBarMock.VerifyNoOtherCalls();
         }
     }
