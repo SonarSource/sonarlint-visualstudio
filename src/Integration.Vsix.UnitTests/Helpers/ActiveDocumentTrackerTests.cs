@@ -63,9 +63,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void Ctor_ShouldRegisterToSelectionEvents()
+        public void Ctor_RegisterToSelectionEvents()
         {
             uint cookie = 1234;
+            // Reset invocations that were performed in TestInitialize
             monitorSelectionMock.Reset();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
@@ -93,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
 
             testSubject.Dispose();
-            testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
 
             mockEventHandler.Verify(x => x(It.IsAny<DocumentFocusedEventArgs>()), Times.Never);
         }
@@ -101,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void OnCmdUIContextChanged_DoesNotRaiseEvent()
         {
-            var result = testSubject.OnCmdUIContextChanged(1, 1);
+            var result = (testSubject as IVsSelectionEvents).OnCmdUIContextChanged(1, 1);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -110,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void OnSelectionChanged_DoesNotRaiseEvent()
         {
-            var result = testSubject.OnSelectionChanged(null, 1, null, null, null, 1, null, null);
+            var result = (testSubject as IVsSelectionEvents).OnSelectionChanged(null, 1, null, null, null, 1, null, null);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -119,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void OnElementValueChanged_NewValueIsNull_DoesNotRaiseEvent()
         {
-            var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", null);
+            var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", null);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -130,7 +131,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
 
-            var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, "1", selectedFrame.Object);
+            var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_DocumentFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -142,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var selectedFrame = CreateFrameWithoutType();
 
-            var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -154,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool);
 
-            var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -162,13 +163,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void OnElementValueChanged_FrameElement_DocumentFrame_RaisesEvent()
+        public void OnElementValueChanged_FrameElement_DocumentFrame_NullTextDocument_DoesNotRaiseEvent()
+        {
+            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
+
+            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(null as ITextDocument);
+
+            var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            result.Should().Be(VSConstants.S_OK);
+
+            mockEventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void OnElementValueChanged_FrameElement_DocumentFrame_ValidTextDocument_RaisesEvent()
         {
             var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
             
             textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(textDocumentMock);
 
-            var result = testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.Verify(x => x(It.Is((DocumentFocusedEventArgs e) => e.TextDocument == textDocumentMock)), Times.Once);
@@ -183,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
            
             textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(textDocumentMock);
 
-            Func<int> act = () => testSubject.OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            Func<int> act = () => (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
 
             act.Should().NotThrow().And.Subject().Should().Be(VSConstants.S_OK);
         }

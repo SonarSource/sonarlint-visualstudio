@@ -28,6 +28,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
 {
     internal interface IActiveDocumentTracker : IDisposable
     {
+        /// <summary>
+        /// Raises an event when a text document is brought into focus.
+        /// </summary>
+        /// <remarks>
+        /// Returned <see cref="DocumentFocusedEventArgs.TextDocument"/> cannot be null.
+        /// </remarks>
         event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
     }
 
@@ -50,17 +56,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
             RunOnUIThread.Run(() =>
             {
                 monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
-
-                if (monitorSelection == null)
-                {
-                    throw new ArgumentNullException(nameof(monitorSelection));
-                }
-
                 monitorSelection.AdviseSelectionEvents(this, out cookie);
             });
         }
 
-        public int OnElementValueChanged(uint elementId, object oldValue, object newValue)
+        int IVsSelectionEvents.OnElementValueChanged(uint elementId, object oldValue, object newValue)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -70,7 +70,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
             {
                 var textDocument = textDocumentProvider.GetFromFrame(frame);
 
-                OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(textDocument));
+                if (textDocument != null)
+                {
+                    OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(textDocument));
+                }
             }
 
             return VSConstants.S_OK;
@@ -87,12 +90,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
             }
         }
 
-        public int OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
+        int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
         {
             return VSConstants.S_OK;
         }
 
-        public int OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
+        int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
         {
             return VSConstants.S_OK;
         }
