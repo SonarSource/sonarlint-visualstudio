@@ -154,6 +154,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithPCH_RequestCreatedWithPCHFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true, PreCompiledHeadersFilePath = "c:\\pch-file.cpp" });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.BuildPreamble).Should().NotBe(0);
+            request.PchFile.Should().Be("c:\\pch-file.cpp");
+        }
+
+        [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithoutPCH_RequestCreatedWithoutPCHFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false, PreCompiledHeadersFilePath = "c:\\pch-file.cpp" });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.BuildPreamble).Should().Be(0);
+            request.PchFile.Should().Be("");
+        }
+
+        [TestMethod]
         public void TryGetConfig_ErrorsAreLogged()
         {
             // Arrange
