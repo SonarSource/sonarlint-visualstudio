@@ -20,8 +20,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
@@ -45,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private Mock<IActiveDocumentTracker> activeDocumentTrackerMock;
         private Mock<IScheduler> schedulerMock;
         private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
+        private Mock<IPchFilesDeleter> filesDeleter;
 
         private PreCompiledHeadersEventListener testSubject;
 
@@ -55,13 +58,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             schedulerMock = new Mock<IScheduler>();
             languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
+            filesDeleter = new Mock<IPchFilesDeleter>();
 
             var environmentSettingsMock = new Mock<IEnvironmentSettings>();
             environmentSettingsMock
                 .Setup(x => x.PCHGenerationTimeoutInMs(It.IsAny<int>()))
                 .Returns(1);
 
-            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object, environmentSettingsMock.Object);
+            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object, environmentSettingsMock.Object, filesDeleter.Object);
         }
 
         [TestMethod]
@@ -82,6 +86,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             cFamilyAnalyzerMock.VerifyNoOtherCalls();
             schedulerMock.VerifyNoOtherCalls();
             languageRecognizerMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_DeletePchFiles()
+        {
+            testSubject.Dispose();
+
+            filesDeleter.Verify(x=> x.DeletePchFiles(), Times.Once);
+        }
+
+        [TestMethod]
+        public void Dispose_ExceptionWhenDeletingPchFiles_ExceptionCaught()
+        {
+            filesDeleter.Setup(x => x.DeletePchFiles()).Throws<FileNotFoundException>();
+
+            Action act = () => testSubject.Dispose();
+            act.Should().NotThrow();
         }
 
         [TestMethod]

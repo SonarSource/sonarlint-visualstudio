@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO.Abstractions;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IScheduler scheduler;
         private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
+        private readonly IPchFilesDeleter pchFilesDeleter;
         private bool disposed;
 
         [ImportingConstructor]
@@ -49,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IActiveDocumentTracker activeDocumentTracker,
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer)
-            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings())
+            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings(), new PchFilesDeleter(new FileSystem(), CFamilyHelper.PchFilePath))
         {
         }
 
@@ -57,12 +59,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IActiveDocumentTracker activeDocumentTracker,
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer,
-            IEnvironmentSettings environmentSettings)
+            IEnvironmentSettings environmentSettings,
+            IPchFilesDeleter pchFilesDeleter)
         {
             this.cFamilyAnalyzer = cFamilyAnalyzer;
             this.activeDocumentTracker = activeDocumentTracker;
             this.scheduler = scheduler;
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
+            this.pchFilesDeleter = pchFilesDeleter;
 
             pchJobTimeoutInMilliseconds = environmentSettings.PCHGenerationTimeoutInMs(60 * 1000);
 
@@ -100,6 +104,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 activeDocumentTracker.OnDocumentFocused -= OnActiveDocumentFocused;
                 activeDocumentTracker?.Dispose();
+
+                try
+                {
+                    pchFilesDeleter.DeletePchFiles();
+                }
+                catch
+                {
+                    // Nothing to do if we failed to delete the files
+                }
+
                 disposed = true;
             }
         }
