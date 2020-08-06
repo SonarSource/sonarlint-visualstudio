@@ -34,14 +34,14 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal interface ICLangAnalyzer : IAnalyzer
+    internal interface ICFamilyAnalyzer : IAnalyzer
     {
     }
 
     [Export(typeof(IAnalyzer))]
-    [Export(typeof(ICLangAnalyzer))]
+    [Export(typeof(ICFamilyAnalyzer))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CLangAnalyzer : ICLangAnalyzer
+    internal class CLangAnalyzer : ICFamilyAnalyzer
     {
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
@@ -111,7 +111,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             logger.WriteLine($"Analyzing {request.File}");
             int issueCount = 0;
-            Action<Message> handleMessage = message => HandleMessage(message, request, consumer, ref issueCount);
+
+            var handleMessage = consumer == null
+                ? (Action<Message>) (message => { })
+                : message => HandleMessage(message, request, consumer, ref issueCount);
 
             // We're tying up a background thread waiting for out-of-process analysis. We could
             // change the process runner so it works asynchronously. Alternatively, we could change the
@@ -141,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // returned. This doesn't cause a crash; all active taggers will have been detached from the
             // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
             // still exist and handle the call.
-            consumer?.Accept(request.File, new[] { issue });
+            consumer.Accept(request.File, new[] { issue });
         }
 
         internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)

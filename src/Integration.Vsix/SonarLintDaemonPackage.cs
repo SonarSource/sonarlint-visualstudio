@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ISonarLintDaemon daemon;
         private ILogger logger;
         private StatusBarDownloadProgressHandler statusBarDownloadProgressHandler;
-        private ICFamilyPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
+        private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await DisableRuleCommand.InitializeAsync(this, logger);
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
-                cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<ICFamilyPreCompiledHeadersEventListener>();
+                cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
                 cFamilyPreCompiledHeadersEventListener.Listen();
 
                 daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();

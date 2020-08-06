@@ -35,28 +35,27 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
-    public class CFamilyPreCompiledHeadersEventListenerTests
+    public class PreCompiledHeadersEventListenerTests
     {
         private const string FocusedDocumentFilePath = "c:\\myfile.cpp";
-        private IContentType contentTypeMock;
+        private readonly IContentType focusedDocumentContentType = Mock.Of<IContentType>();
 
-        private Mock<ICLangAnalyzer> clangAnalyzerMock;
+        private Mock<ICFamilyAnalyzer> cFamilyAnalyzerMock;
         private Mock<IActiveDocumentTracker> activeDocumentTrackerMock;
         private Mock<IScheduler> schedulerMock;
         private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
 
-        private CFamilyPreCompiledHeadersEventListener testSubject;
+        private PreCompiledHeadersEventListener testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            contentTypeMock = Mock.Of<IContentType>();
-            clangAnalyzerMock = new Mock<ICLangAnalyzer>();
+            cFamilyAnalyzerMock = new Mock<ICFamilyAnalyzer>();
             activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             schedulerMock = new Mock<IScheduler>();
             languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
 
-            testSubject = new CFamilyPreCompiledHeadersEventListener(clangAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object);
+            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object);
         }
 
         [TestMethod]
@@ -66,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             RaiseDocumentFocusedEvent();
 
-            languageRecognizerMock.Verify(x => x.Detect(FocusedDocumentFilePath, contentTypeMock), Times.Once);
+            languageRecognizerMock.Verify(x => x.Detect(FocusedDocumentFilePath, focusedDocumentContentType), Times.Once);
         }
 
         [TestMethod]
@@ -74,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             RaiseDocumentFocusedEvent();
 
-            clangAnalyzerMock.VerifyNoOtherCalls();
+            cFamilyAnalyzerMock.VerifyNoOtherCalls();
             schedulerMock.VerifyNoOtherCalls();
             languageRecognizerMock.VerifyNoOtherCalls();
         }
@@ -87,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             RaiseDocumentFocusedEvent();
 
-            clangAnalyzerMock.VerifyNoOtherCalls();
+            cFamilyAnalyzerMock.VerifyNoOtherCalls();
             schedulerMock.VerifyNoOtherCalls();
             languageRecognizerMock.VerifyNoOtherCalls();
         }
@@ -95,34 +94,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void OnDocumentFocused_NoLanguagesDetected_PchGenerationNotScheduled()
         {
-            languageRecognizerMock
-                .Setup(x => x.Detect(FocusedDocumentFilePath, contentTypeMock))
-                .Returns(Enumerable.Empty<AnalysisLanguage>());
+            SetupDetectedLanguages(Enumerable.Empty<AnalysisLanguage>());
 
             testSubject.Listen();
             RaiseDocumentFocusedEvent();
 
             schedulerMock.VerifyNoOtherCalls();
-            clangAnalyzerMock.VerifyNoOtherCalls();
+            cFamilyAnalyzerMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void OnDocumentFocused_LanguageIsUnsupported_PchGenerationNotScheduled()
         {
             var unsupportedLanguages = new List<AnalysisLanguage> {AnalysisLanguage.Javascript};
+            
+            SetupDetectedLanguages(unsupportedLanguages);
 
-            languageRecognizerMock
-                .Setup(x => x.Detect(FocusedDocumentFilePath, contentTypeMock))
-                .Returns(unsupportedLanguages);
-
-            clangAnalyzerMock.Setup(x => x.IsAnalysisSupported(unsupportedLanguages)).Returns(false).Verifiable();
+            cFamilyAnalyzerMock.Setup(x => x.IsAnalysisSupported(unsupportedLanguages)).Returns(false).Verifiable();
 
             testSubject.Listen();
             RaiseDocumentFocusedEvent();
 
             schedulerMock.VerifyNoOtherCalls();
-            clangAnalyzerMock.Verify();
-            clangAnalyzerMock.VerifyNoOtherCalls();
+            cFamilyAnalyzerMock.Verify();
+            cFamilyAnalyzerMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -130,22 +125,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             var supportedLanguages = new List<AnalysisLanguage> { AnalysisLanguage.CFamily };
 
-            languageRecognizerMock
-                .Setup(x => x.Detect(FocusedDocumentFilePath, contentTypeMock))
-                .Returns(supportedLanguages);
+            SetupDetectedLanguages(supportedLanguages);
 
-            clangAnalyzerMock.Setup(x => x.IsAnalysisSupported(supportedLanguages)).Returns(true);
+            cFamilyAnalyzerMock.Setup(x => x.IsAnalysisSupported(supportedLanguages)).Returns(true);
 
             var cancellationToken = new CancellationTokenSource();
 
             schedulerMock
-                .Setup(x=> x.Schedule(CFamilyPreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), CFamilyPreCompiledHeadersEventListener.PchJobTimeoutInMilliseconds))
+                .Setup(x=> x.Schedule(PreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), PreCompiledHeadersEventListener.PchJobTimeoutInMilliseconds))
                 .Callback((string jobId, Action<CancellationToken> action, int timeout) => action(cancellationToken.Token));
 
             testSubject.Listen();
             RaiseDocumentFocusedEvent();
 
-            clangAnalyzerMock.Verify(x=> 
+            cFamilyAnalyzerMock.Verify(x=> 
                 x.ExecuteAnalysis(FocusedDocumentFilePath, 
                 null,
                 supportedLanguages,
@@ -164,13 +157,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private ITextDocument CreateMockTextDocument()
         {
             var textBufferMock = new Mock<ITextBuffer>();
-            textBufferMock.Setup(x => x.ContentType).Returns(contentTypeMock);
+            textBufferMock.Setup(x => x.ContentType).Returns(focusedDocumentContentType);
 
             var textDocumentMock = new Mock<ITextDocument>();
             textDocumentMock.Setup(x => x.TextBuffer).Returns(textBufferMock.Object);
             textDocumentMock.Setup(x => x.FilePath).Returns(FocusedDocumentFilePath);
 
             return textDocumentMock.Object;
+        }
+
+        private void SetupDetectedLanguages(IEnumerable<AnalysisLanguage> languages)
+        {
+            languageRecognizerMock
+                .Setup(x => x.Detect(FocusedDocumentFilePath, focusedDocumentContentType))
+                .Returns(languages);
         }
     }
 }

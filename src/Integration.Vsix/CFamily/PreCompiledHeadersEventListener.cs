@@ -27,33 +27,33 @@ using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    interface ICFamilyPreCompiledHeadersEventListener : IDisposable
+    interface IPreCompiledHeadersEventListener : IDisposable
     {
         void Listen();
     }
 
-    [Export(typeof(ICFamilyPreCompiledHeadersEventListener))]
+    [Export(typeof(IPreCompiledHeadersEventListener))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class CFamilyPreCompiledHeadersEventListener : ICFamilyPreCompiledHeadersEventListener
+    internal sealed class PreCompiledHeadersEventListener : IPreCompiledHeadersEventListener
     {
         internal const string PchJobId = "pch-generation";
         internal const int PchJobTimeoutInMilliseconds = 60 * 1000;
         internal const string PchFilePathSuffix = "SonarLintPCH.preamble";
         internal string pchFilePath = Path.Combine(Path.GetTempPath(), PchFilePathSuffix);
 
-        private readonly ICLangAnalyzer cLangAnalyzer;
+        private readonly ICFamilyAnalyzer cFamilyAnalyzer;
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IScheduler scheduler;
         private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
         private bool disposed;
 
         [ImportingConstructor]
-        public CFamilyPreCompiledHeadersEventListener(ICLangAnalyzer cLangAnalyzer,
+        public PreCompiledHeadersEventListener(ICFamilyAnalyzer cFamilyAnalyzer,
             IActiveDocumentTracker activeDocumentTracker, 
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer)
         {
-            this.cLangAnalyzer = cLangAnalyzer;
+            this.cFamilyAnalyzer = cFamilyAnalyzer;
             this.activeDocumentTracker = activeDocumentTracker;
             this.scheduler = scheduler;
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             var detectedLanguages = sonarLanguageRecognizer.Detect(e.TextDocument.FilePath, e.TextDocument.TextBuffer.ContentType);
 
-            if (!detectedLanguages.Any() || !cLangAnalyzer.IsAnalysisSupported(detectedLanguages))
+            if (!detectedLanguages.Any() || !cFamilyAnalyzer.IsAnalysisSupported(detectedLanguages))
             {
                 return;
             }
@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             scheduler.Schedule(PchJobId, token =>
             {
-                cLangAnalyzer.ExecuteAnalysis(e.TextDocument.FilePath,
+                cFamilyAnalyzer.ExecuteAnalysis(e.TextDocument.FilePath,
                     null,
                     detectedLanguages,
                     null,
