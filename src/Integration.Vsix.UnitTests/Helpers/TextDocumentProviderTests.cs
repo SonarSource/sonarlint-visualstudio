@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void Find_OpenDocument_FrameDoesNotHaveDocData()
+        public void GetFromFrame_FrameDoesNotHaveDocData_ReturnsNull()
         {
             // Arrange
             Configure(activeFrameDocDataObject: null);
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void Find_OpenDocument_FrameDocDataIsNotVsTextBuffer()
+        public void GetFromFrame_FrameDocDataIsNotVsTextBuffer_ReturnsNull()
         {
             // Arrange
             var notVsTextBuffer = new object();
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void Find_OpenDocument_FrameDocDataIsTextBuffer_AdapterServiceReturnsNull()
+        public void GetFromFrame_FrameDocDataIsTextBuffer_ReturnsNull()
         {
             // Arrange            
             Configure(activeFrameDocDataObject: ValidVsTextBuffer);
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void Find_OpenDocument_NewTextBuffer_NoTextDoc()
+        public void GetFromFrame_NewTextBuffer_NoTextDoc_ReturnsNull()
         {
             // Arrange
             var newTextBuffer = CreateValidMefTextBuffer(null);
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         }
 
         [TestMethod]
-        public void Find_OpenDocument_NewTextBuffer_HasTextDoc()
+        public void GetFromFrame_NewTextBuffer_HasTextDoc_ReturnsTextDocument()
         {
             // Arrange
             var newTextDoc = new Mock<ITextDocument>().Object;
