@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
     [TestClass]
     public class EnvironmentSettingsTests
     {
+        private const int PchGenerationDefaultValue = 3;
+
         [TestMethod]
         [DataRow(null, false)]
         [DataRow("true", true)]
@@ -64,6 +66,28 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             {
                 scope.SetVariable(EnvironmentSettings.AnalysisTimeoutEnvVar, envVarValue);
                 new EnvironmentSettings().AnalysisTimeoutInMs().Should().Be(expected);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(null, PchGenerationDefaultValue)]
+        [DataRow("", PchGenerationDefaultValue)]
+        [DataRow(" ", PchGenerationDefaultValue)]
+        [DataRow("abc", PchGenerationDefaultValue)]
+        [DataRow("1.23", PchGenerationDefaultValue)]
+        [DataRow("2,000", PchGenerationDefaultValue)]
+        [DataRow("2.001", PchGenerationDefaultValue)]
+        [DataRow("-999", PchGenerationDefaultValue)]
+        [DataRow("-1", PchGenerationDefaultValue)]
+        [DataRow("0", PchGenerationDefaultValue)]
+        [DataRow("1", 1)]
+        [DataRow("9876", 9876)]
+        public void PchTimeoutInMs_ReturnsExpectedValue(string envVarValue, int expected)
+        {
+            using (var scope = new EnvironmentVariableScope())
+            {
+                scope.SetVariable(EnvironmentSettings.PchGenerationTimeoutEnvVar, envVarValue);
+                new EnvironmentSettings().PCHGenerationTimeoutInMs(PchGenerationDefaultValue).Should().Be(expected);
             }
         }
 
