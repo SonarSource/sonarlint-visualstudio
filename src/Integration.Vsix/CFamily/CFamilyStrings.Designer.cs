@@ -61,38 +61,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to analyze {0}, exception details: {1}.
-        /// </summary>
-        internal static string ERROR_Analysis_Failed {
-            get {
-                return ResourceManager.GetString("ERROR_Analysis_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Execution failed. The specified executable does not exist: {0}.
         /// </summary>
         internal static string ERROR_ProcessRunner_ExeNotFound {
             get {
                 return ResourceManager.GetString("ERROR_ProcessRunner_ExeNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Aborted analysis of {0}, analysis has been re-triggered or has timed-out..
-        /// </summary>
-        internal static string MSG_AnalysisAborted {
-            get {
-                return ResourceManager.GetString("MSG_AnalysisAborted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Finished analyzing {0}, analysis time: {1}s.
-        /// </summary>
-        internal static string MSG_AnalysisComplete {
-            get {
-                return ResourceManager.GetString("MSG_AnalysisComplete", resourceCulture);
             }
         }
         
