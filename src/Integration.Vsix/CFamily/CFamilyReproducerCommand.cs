@@ -23,7 +23,6 @@ using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -56,10 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // the UI thread.
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
-            var monitorSelection = await package.GetServiceAsync(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            var textDocumentProvider = await package.GetMefServiceAsync<ITextDocumentProvider>();
-            var docLocator = new ActiveDocumentLocator(monitorSelection, textDocumentProvider);
-
+            var docLocator = await package.GetMefServiceAsync<IActiveDocumentLocator>();
             var languageRecognizer = await package.GetMefServiceAsync<ISonarLanguageRecognizer>();
             var requester = await package.GetMefServiceAsync<IAnalysisRequester>();
 

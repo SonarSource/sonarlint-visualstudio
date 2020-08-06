@@ -136,6 +136,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PCH file saved at: {0}.
+        /// </summary>
+        internal static string MSG_PchSaved {
+            get {
+                return ResourceManager.GetString("MSG_PchSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to DEBUG: .
         /// </summary>
         internal static string MSG_Prefix_DEBUG {
