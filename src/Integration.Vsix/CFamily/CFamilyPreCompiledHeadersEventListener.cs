@@ -19,11 +19,10 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Linq;
 using System.Threading;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
 
@@ -44,16 +43,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ICLangAnalyzer cLangAnalyzer;
         private readonly IDocumentFocusedEventRaiser documentFocusedEventRaiser;
         private readonly IScheduler scheduler;
+        private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
         private bool disposed;
 
         [ImportingConstructor]
         public CFamilyPreCompiledHeadersEventListener(ICLangAnalyzer cLangAnalyzer, 
             IDocumentFocusedEventRaiser documentFocusedEventRaiser, 
-            IScheduler scheduler)
+            IScheduler scheduler,
+            ISonarLanguageRecognizer sonarLanguageRecognizer)
         {
             this.cLangAnalyzer = cLangAnalyzer;
             this.documentFocusedEventRaiser = documentFocusedEventRaiser;
             this.scheduler = scheduler;
+            this.sonarLanguageRecognizer = sonarLanguageRecognizer;
         }
 
         public void Listen()
@@ -63,6 +65,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private void OnDocumentFocused(object sender, DocumentFocusedEventArgs e)
         {
+            var detectedLanguages = sonarLanguageRecognizer.Detect(e.DocumentFilePath, e.TextBufferContentType);
+
+            if (!detectedLanguages.Any() || !cLangAnalyzer.IsAnalysisSupported(detectedLanguages))
+            {
+                return;
+            }
+
             var cFamilyAnalyzerOptions = new CFamilyAnalyzerOptions
             {
                 CreatePreCompiledHeaders = true,
@@ -73,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 cLangAnalyzer.ExecuteAnalysis(e.DocumentFilePath,
                     null,
-                    new List<AnalysisLanguage> { AnalysisLanguage.CFamily },
+                    detectedLanguages,
                     null,
                     cFamilyAnalyzerOptions,
                     token);

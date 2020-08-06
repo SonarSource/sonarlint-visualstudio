@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Utilities;
@@ -36,11 +37,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     public class CFamilyPreCompiledHeadersEventListenerTests
     {
         private const string FocusedDocumentFilePath = "c:\\myfile.cpp";
+        private IContentType contentTypeMock;
 
         private Mock<ICLangAnalyzer> clangAnalyzerMock;
         private Mock<IDocumentFocusedEventRaiser> documentFocusedEventRaiserMock;
         private Mock<IScheduler> schedulerMock;
-        private IContentType contentTypeMock;
+        private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
 
         private CFamilyPreCompiledHeadersEventListener testSubject;
 
@@ -51,8 +53,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             clangAnalyzerMock = new Mock<ICLangAnalyzer>();
             documentFocusedEventRaiserMock = new Mock<IDocumentFocusedEventRaiser>();
             schedulerMock = new Mock<IScheduler>();
+            languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
 
-            testSubject = new CFamilyPreCompiledHeadersEventListener(clangAnalyzerMock.Object, documentFocusedEventRaiserMock.Object, schedulerMock.Object);
+            testSubject = new CFamilyPreCompiledHeadersEventListener(clangAnalyzerMock.Object, documentFocusedEventRaiserMock.Object, schedulerMock.Object, languageRecognizerMock.Object);
         }
 
         [TestMethod]
@@ -62,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             RaiseDocumentFocusedEvent();
 
-            VerifyJobWasScheduled();
+            languageRecognizerMock.Verify(x => x.Detect(FocusedDocumentFilePath, contentTypeMock), Times.Once);
         }
 
         [TestMethod]
@@ -70,8 +73,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             RaiseDocumentFocusedEvent();
 
-            VerifyJobWasNotScheduled();
-            VerifyAnalyzerWasNotCalled();
+            clangAnalyzerMock.VerifyNoOtherCalls();
+            schedulerMock.VerifyNoOtherCalls();
+            languageRecognizerMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -82,13 +86,55 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             RaiseDocumentFocusedEvent();
 
-            VerifyJobWasNotScheduled();
-            VerifyAnalyzerWasNotCalled();
+            clangAnalyzerMock.VerifyNoOtherCalls();
+            schedulerMock.VerifyNoOtherCalls();
+            languageRecognizerMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void OnDocumentFocused_SchedulePchGeneration()
+        public void OnDocumentFocused_NoLanguagesDetected_PchGenerationNotScheduled()
         {
+            languageRecognizerMock
+                .Setup(x => x.Detect(FocusedDocumentFilePath, contentTypeMock))
+                .Returns(Enumerable.Empty<AnalysisLanguage>());
+
+            testSubject.Listen();
+            RaiseDocumentFocusedEvent();
+
+            schedulerMock.VerifyNoOtherCalls();
+            clangAnalyzerMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void OnDocumentFocused_LanguageIsUnsupported_PchGenerationNotScheduled()
+        {
+            var unsupportedLanguages = new List<AnalysisLanguage> {AnalysisLanguage.Javascript};
+
+            languageRecognizerMock
+                .Setup(x => x.Detect(FocusedDocumentFilePath, contentTypeMock))
+                .Returns(unsupportedLanguages);
+
+            clangAnalyzerMock.Setup(x => x.IsAnalysisSupported(unsupportedLanguages)).Returns(false).Verifiable();
+
+            testSubject.Listen();
+            RaiseDocumentFocusedEvent();
+
+            schedulerMock.VerifyNoOtherCalls();
+            clangAnalyzerMock.Verify();
+            clangAnalyzerMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void OnDocumentFocused_LanguageIsSupported_SchedulePchGeneration()
+        {
+            var supportedLanguages = new List<AnalysisLanguage> { AnalysisLanguage.CFamily };
+
+            languageRecognizerMock
+                .Setup(x => x.Detect(FocusedDocumentFilePath, contentTypeMock))
+                .Returns(supportedLanguages);
+
+            clangAnalyzerMock.Setup(x => x.IsAnalysisSupported(supportedLanguages)).Returns(true);
+
             var cancellationToken = new CancellationTokenSource();
 
             schedulerMock
@@ -100,8 +146,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             clangAnalyzerMock.Verify(x=> 
                 x.ExecuteAnalysis(FocusedDocumentFilePath, 
-                null, 
-                new List<AnalysisLanguage> {AnalysisLanguage.CFamily},
+                null,
+                supportedLanguages,
                 null,
                 It.Is((IAnalyzerOptions options) => 
                     ((CFamilyAnalyzerOptions)options).CreatePreCompiledHeaders &&
@@ -112,21 +158,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private void RaiseDocumentFocusedEvent()
         {
             documentFocusedEventRaiserMock.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(FocusedDocumentFilePath, contentTypeMock));
-        }
-
-        private void VerifyJobWasScheduled()
-        {
-            schedulerMock.Verify(x => x.Schedule(CFamilyPreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), Timeout.Infinite), Times.Once);
-        }
-
-        private void VerifyJobWasNotScheduled()
-        {
-            schedulerMock.VerifyNoOtherCalls();
-        }
-
-        private void VerifyAnalyzerWasNotCalled()
-        {
-            clangAnalyzerMock.VerifyNoOtherCalls();
         }
     }
 }
