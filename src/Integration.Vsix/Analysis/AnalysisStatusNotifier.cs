@@ -18,9 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -30,30 +32,40 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
     internal class AnalysisStatusNotifier : IAnalysisStatusNotifier
     {
         private readonly IStatusBarNotifier statusBarNotifier;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public AnalysisStatusNotifier(IStatusBarNotifier statusBarNotifier)
+        public AnalysisStatusNotifier(IStatusBarNotifier statusBarNotifier, ILogger logger)
         {
             this.statusBarNotifier = statusBarNotifier;
+            this.logger = logger;
         }
 
         public void AnalysisStarted(string filePath)
         {
+            logger.WriteLine($"Analyzing {filePath}");
             Notify(AnalysisStrings.Notifier_AnalysisStarted, filePath, true);
         }
 
-        public void AnalysisFinished(string filePath)
+        public void AnalysisFinished(string filePath, int issueCount, TimeSpan analysisTime)
         {
+            logger.WriteLine(CFamilyStrings.MSG_AnalysisComplete, filePath, Math.Round(analysisTime.TotalSeconds, 3));
+            logger.WriteLine($"Found {issueCount} issue(s) for {filePath}");
+
             Notify(AnalysisStrings.Notifier_AnalysisFinished, filePath, false);
         }
 
         public void AnalysisCancelled(string filePath)
         {
+            logger.WriteLine(CFamilyStrings.MSG_AnalysisAborted, filePath);
+            
             Notify("", "", false);
         }
 
-        public void AnalysisFailed(string filePath)
+        public void AnalysisFailed(string filePath, Exception ex)
         {
+            logger.WriteLine(CFamilyStrings.ERROR_Analysis_Failed, filePath, ex.ToString());
+
             Notify(AnalysisStrings.Notifier_AnalysisFailed, filePath, false);
         }
 

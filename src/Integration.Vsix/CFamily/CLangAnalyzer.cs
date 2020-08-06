@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using Task = System.Threading.Tasks.Task;
@@ -104,21 +105,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // Switch to a background thread
             await TaskScheduler.Default;
 
-            logger.WriteLine($"Analyzing {request.File}");
+            var analysisStartTime = DateTime.Now;
+            analysisStatusNotifier.AnalysisStarted(request.File);
             int issueCount = 0;
             Action<Message> handleMessage = message => HandleMessage(message, request, consumer, ref issueCount);
 
-            // We're tying up a background thread waiting for out-of-process analysis. We could
-            // change the process runner so it works asynchronously. Alternatively, we could change the
-            // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-            CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
+            try
+            {
+                // We're tying up a background thread waiting for out-of-process analysis. We could
+                // change the process runner so it works asynchronously. Alternatively, we could change the
+                // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
+                CallSubProcess(handleMessage, request, analysisStatusNotifier, settings, logger, cancellationToken);
+
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    analysisStatusNotifier.AnalysisCancelled(request.File);
+                }
+                else
+                {
+                    var analysisTime = DateTime.Now - analysisStartTime;
+                    analysisStatusNotifier.AnalysisFinished(request.File, issueCount, analysisTime);
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                analysisStatusNotifier.AnalysisFailed(request.File, ex);
+            }
 
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
-
-            if (!cancellationToken.IsCancellationRequested)
-            {
-                logger.WriteLine($"Found {issueCount} issue(s) for {request.File}");
-            }
         }
 
         private void HandleMessage(Message message, Request request, IIssueConsumer consumer, ref int issueCount)
