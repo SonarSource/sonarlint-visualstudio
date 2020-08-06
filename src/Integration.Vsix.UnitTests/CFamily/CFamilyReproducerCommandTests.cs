@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -227,6 +228,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var documentMock = new Mock<ITextDocument>();
             var textBufferMock = new Mock<ITextBuffer>();
+            var contentTypeMock = new Mock<IContentType>();
+            textBufferMock.Setup(x => x.ContentType).Returns(contentTypeMock.Object);
             documentMock.Setup(x => x.TextBuffer).Returns(textBufferMock.Object);
             documentMock.Setup(x => x.FilePath).Returns(filePath);
             return documentMock.Object;
@@ -237,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             docLocatorMock.Setup(x => x.FindActiveDocument()).Returns(document);
             if (document != null)
             {
-                languageRecognizerMock.Setup(x => x.Detect(document, document.TextBuffer)).Returns(recognizedLanguages);
+                languageRecognizerMock.Setup(x => x.Detect(document.FilePath, document.TextBuffer.ContentType)).Returns(recognizedLanguages);
             }
         }
 
@@ -245,10 +248,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             => docLocatorMock.Verify(x => x.FindActiveDocument(), Times.AtLeastOnce);
 
         private void VerifyLanguageRecognizerNotCalled()
-            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<ITextDocument>(), It.IsAny<ITextBuffer>()), Times.Never);
+            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<string>(), It.IsAny<IContentType>()), Times.Never);
 
         private void VerifyLanguageRecognizerCalled()
-            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<ITextDocument>(), It.IsAny<ITextBuffer>()), Times.AtLeastOnce);
+            => languageRecognizerMock.Verify(x => x.Detect(It.IsAny<string>(), It.IsAny<IContentType>()), Times.AtLeastOnce);
 
         private void VerifyAnalysisNotRequested() =>
             analysisRequesterMock.Verify(x => x.RequestAnalysis(It.IsAny<IAnalyzerOptions>(), It.IsAny<string[]>()), Times.Never);

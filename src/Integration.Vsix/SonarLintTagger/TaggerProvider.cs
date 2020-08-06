@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            var detectedLanguages = languageRecognizer.Detect(textDocument, buffer);
+            var detectedLanguages = languageRecognizer.Detect(textDocument.FilePath, buffer.ContentType);
 
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {

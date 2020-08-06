@@ -19,13 +19,13 @@
  */
 
 using System.Collections.Generic;
-using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface ISonarLanguageRecognizer
     {
-        IEnumerable<AnalysisLanguage> Detect(ITextDocument textDocument, ITextBuffer buffer);
+        IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
     }
 }
