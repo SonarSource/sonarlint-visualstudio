@@ -30,7 +30,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     interface IPreCompiledHeadersEventListener : IDisposable
     {
-        void Listen();
     }
 
     [Export(typeof(IPreCompiledHeadersEventListener))]
@@ -51,7 +50,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         [ImportingConstructor]
         public PreCompiledHeadersEventListener(ICFamilyAnalyzer cFamilyAnalyzer,
-            IActiveDocumentTracker activeDocumentTracker, 
+            IActiveDocumentTracker activeDocumentTracker,
+            IScheduler scheduler,
+            ISonarLanguageRecognizer sonarLanguageRecognizer)
+            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings())
+        {
+        }
+
+        internal PreCompiledHeadersEventListener(ICFamilyAnalyzer cFamilyAnalyzer,
+            IActiveDocumentTracker activeDocumentTracker,
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer,
             IEnvironmentSettings environmentSettings)
@@ -60,12 +67,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.activeDocumentTracker = activeDocumentTracker;
             this.scheduler = scheduler;
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
-            
-            pchJobTimeoutInMilliseconds = environmentSettings.PCHGenerationTimeoutInMs(60 * 1000);
-        }
 
-        public void Listen()
-        {
+            pchJobTimeoutInMilliseconds = environmentSettings.PCHGenerationTimeoutInMs(60 * 1000);
+
             activeDocumentTracker.OnDocumentFocused += OnActiveDocumentFocused;
         }
 
@@ -87,10 +91,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             scheduler.Schedule(PchJobId, token =>
             {
                 cFamilyAnalyzer.ExecuteAnalysis(e.TextDocument.FilePath,
-                    null,
                     detectedLanguages,
                     null,
                     cFamilyAnalyzerOptions,
+                    null,
                     token);
             }, pchJobTimeoutInMilliseconds);
         }

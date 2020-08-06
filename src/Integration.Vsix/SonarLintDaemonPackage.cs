@@ -92,7 +92,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
                 cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
-                cFamilyPreCompiledHeadersEventListener.Listen();
 
                 daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
 

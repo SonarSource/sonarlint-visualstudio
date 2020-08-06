@@ -65,29 +65,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Listen_RegisterToDocumentFocusedEvent()
+        public void Ctor_RegisterToDocumentFocusedEvent()
         {
-            testSubject.Listen();
-
             RaiseDocumentFocusedEvent();
 
             languageRecognizerMock.Verify(x => x.Detect(FocusedDocumentFilePath, focusedDocumentContentType), Times.Once);
         }
 
         [TestMethod]
-        public void ListenNotCalled_ShouldNotRegisterToDocumentFocusedEvent()
-        {
-            RaiseDocumentFocusedEvent();
-
-            cFamilyAnalyzerMock.VerifyNoOtherCalls();
-            schedulerMock.VerifyNoOtherCalls();
-            languageRecognizerMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public void Dispose_UnregisterFromDocumentFocusedEvent()
         {
-            testSubject.Listen();
             testSubject.Dispose();
 
             RaiseDocumentFocusedEvent();
@@ -102,7 +89,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             SetupDetectedLanguages(Enumerable.Empty<AnalysisLanguage>());
 
-            testSubject.Listen();
             RaiseDocumentFocusedEvent();
 
             schedulerMock.VerifyNoOtherCalls();
@@ -118,7 +104,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             cFamilyAnalyzerMock.Setup(x => x.IsAnalysisSupported(unsupportedLanguages)).Returns(false).Verifiable();
 
-            testSubject.Listen();
             RaiseDocumentFocusedEvent();
 
             schedulerMock.VerifyNoOtherCalls();
@@ -141,17 +126,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 .Setup(x=> x.Schedule(PreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), testSubject.pchJobTimeoutInMilliseconds))
                 .Callback((string jobId, Action<CancellationToken> action, int timeout) => action(cancellationToken.Token));
 
-            testSubject.Listen();
             RaiseDocumentFocusedEvent();
 
             cFamilyAnalyzerMock.Verify(x=> 
                 x.ExecuteAnalysis(FocusedDocumentFilePath, 
-                null,
                 supportedLanguages,
                 null,
                 It.Is((IAnalyzerOptions options) => 
                     ((CFamilyAnalyzerOptions)options).CreatePreCompiledHeaders &&
                     ((CFamilyAnalyzerOptions)options).PreCompiledHeadersFilePath == testSubject.pchFilePath),
+                null,
                 cancellationToken.Token));
         }
 
