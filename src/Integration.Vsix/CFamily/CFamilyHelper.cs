@@ -82,6 +82,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
+                Debug.Assert(!(cFamilyAnalyzerOptions.CreateReproducer && cFamilyAnalyzerOptions.CreatePreCompiledHeaders), "Only one flag (CreateReproducer, CreatePreCompiledHeaders) can be set at a time");
+                
                 if (cFamilyAnalyzerOptions.CreateReproducer)
                 {
                     request.Flags |= Request.CreateReproducer;
@@ -89,6 +91,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
                 {
+                    Debug.Assert(!string.IsNullOrWhiteSpace(cFamilyAnalyzerOptions.PreCompiledHeadersFilePath), "Should set PreCompiledHeadersFilePath when flag CreatePreCompiledHeaders is used");
+
                     request.Flags |= Request.BuildPreamble;
                     request.PchFile = cFamilyAnalyzerOptions.PreCompiledHeadersFilePath;
                 }
