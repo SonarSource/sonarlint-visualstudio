@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.IO;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -37,9 +36,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     internal sealed class PreCompiledHeadersEventListener : IPreCompiledHeadersEventListener
     {
         internal const string PchJobId = "pch-generation";
-        internal const string PchFilePathSuffix = "SonarLintPCH.preamble";
-
-        internal string pchFilePath = Path.Combine(Path.GetTempPath(), PchFilePathSuffix);
         internal readonly int pchJobTimeoutInMilliseconds;
 
         private readonly ICFamilyAnalyzer cFamilyAnalyzer;
@@ -84,8 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var cFamilyAnalyzerOptions = new CFamilyAnalyzerOptions
             {
-                CreatePreCompiledHeaders = true,
-                PreCompiledHeadersFilePath = pchFilePath
+                CreatePreCompiledHeaders = true
             };
 
             scheduler.Schedule(PchJobId, token =>

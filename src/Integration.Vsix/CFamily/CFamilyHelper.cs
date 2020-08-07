@@ -35,6 +35,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
+        internal const string PchFilePathSuffix = "SonarLintPCH.preamble";
+
+        internal static readonly string PchFilePath = Path.Combine(Path.GetTempPath(), PchFilePathSuffix);
 
         public static readonly string CFamilyFilesDirectory = Path.Combine(
             Path.GetDirectoryName(typeof(CFamilyHelper).Assembly.Location),
@@ -79,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
             Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
+            request.PchFile = PchFilePath;
 
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
@@ -91,10 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
                 {
-                    Debug.Assert(!string.IsNullOrWhiteSpace(cFamilyAnalyzerOptions.PreCompiledHeadersFilePath), "Should set PreCompiledHeadersFilePath when flag CreatePreCompiledHeaders is used");
-
                     request.Flags |= Request.BuildPreamble;
-                    request.PchFile = cFamilyAnalyzerOptions.PreCompiledHeadersFilePath;
                 }
             }
 
@@ -160,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if ((request.Flags & Request.BuildPreamble) != 0)
                     {
                         reader.ReadToEnd();
-                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.PchFile);
+                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.File, request.PchFile);
                     }
                     else
                     {
