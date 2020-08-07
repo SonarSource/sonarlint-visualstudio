@@ -132,9 +132,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 x.ExecuteAnalysis(FocusedDocumentFilePath, 
                 supportedLanguages,
                 null,
-                It.Is((IAnalyzerOptions options) => 
-                    ((CFamilyAnalyzerOptions)options).CreatePreCompiledHeaders &&
-                    ((CFamilyAnalyzerOptions)options).PreCompiledHeadersFilePath == testSubject.pchFilePath),
+                It.Is((IAnalyzerOptions options) => ((CFamilyAnalyzerOptions)options).CreatePreCompiledHeaders),
                 null,
                 cancellationToken.Token));
         }
