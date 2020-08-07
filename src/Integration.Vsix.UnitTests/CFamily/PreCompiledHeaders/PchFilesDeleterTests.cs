@@ -20,16 +20,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
         }
 
         [TestMethod]
-        public void DeletePchFiles_NoFilesInDirectory_NoException()
+        public void Cleanup_NoFilesInDirectory_NoException()
         {
-            var testSubject = new PchFilesDeleter(fileSystemMock, "c:\\test\\pch\\myPch.abc");
+            var testSubject = new PchCacheCleaner(fileSystemMock, "c:\\test\\pch\\myPch.abc");
 
-            Action act = () => testSubject.DeletePchFiles();
+            Action act = () => testSubject.Cleanup();
             act.Should().NotThrow();
         }
 
         [TestMethod]
-        public void DeletePchFiles_NoMatchingFilesInDirectory_NonMatchingFilesAreNotDeleted()
+        public void Cleanup_NoMatchingFilesInDirectory_NonMatchingFilesAreNotDeleted()
         {
             var nonMatchingFilePaths = new List<string>
             {
@@ -46,14 +46,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
                 fileSystemMock.AddFile(filePath, new MockFileData(""));
             }
 
-            var testSubject = new PchFilesDeleter(fileSystemMock, "c:\\test\\pch\\myPch.abc");
-            testSubject.DeletePchFiles();
+            var testSubject = new PchCacheCleaner(fileSystemMock, "c:\\test\\pch\\myPch.abc");
+            testSubject.Cleanup();
 
             fileSystemMock.AllFiles.Should().BeEquivalentTo(nonMatchingFilePaths);
         }
 
         [TestMethod]
-        public void DeletePchFiles_HasMatchingFilesInDirectory_MatchingFilesAreDeleted()
+        public void Cleanup_HasMatchingFilesInDirectory_MatchingFilesAreDeleted()
         {
             var nonMatchingFilePaths = new List<string>
             {
@@ -67,14 +67,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
                 fileSystemMock.AddFile(filePath, new MockFileData(""));
             }
 
-            var testSubject = new PchFilesDeleter(fileSystemMock, "c:\\test\\pch\\myPch.abc");
-            testSubject.DeletePchFiles();
+            var testSubject = new PchCacheCleaner(fileSystemMock, "c:\\test\\pch\\myPch.abc");
+            testSubject.Cleanup();
 
             fileSystemMock.AllFiles.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void DeletePchFiles_HasMatchingAndNonMatchingFilesInDirectory_OnlyMatchingFilesAreDeleted()
+        public void Cleanup_HasMatchingAndNonMatchingFilesInDirectory_OnlyMatchingFilesAreDeleted()
         {
             var matchingFile = "c:\\test\\pch\\myPch.abc.d";
             var nonMatchingFile = "c:\\test\\pch\\myPch.abcd";
@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
             fileSystemMock.AddFile(matchingFile, new MockFileData(""));
             fileSystemMock.AddFile(nonMatchingFile, new MockFileData(""));
 
-            var testSubject = new PchFilesDeleter(fileSystemMock, "c:\\test\\pch\\myPch.abc");
-            testSubject.DeletePchFiles();
+            var testSubject = new PchCacheCleaner(fileSystemMock, "c:\\test\\pch\\myPch.abc");
+            testSubject.Cleanup();
 
             fileSystemMock.AllFiles.Should().BeEquivalentTo(new List<string>{nonMatchingFile});
         }

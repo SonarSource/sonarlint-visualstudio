@@ -23,23 +23,25 @@ using System.IO.Abstractions;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
-    internal interface IPchFilesDeleter
+    internal interface IPchCacheCleaner
     {
-        void DeletePchFiles();
+        void Cleanup();
     }
 
-    internal class PchFilesDeleter : IPchFilesDeleter
+    internal class PchCacheCleaner : IPchCacheCleaner
     {
         private readonly IFileSystem fileSystem;
         private readonly string pchFilePath;
 
-        public PchFilesDeleter(IFileSystem fileSystem, string pchFilePath)
+        public PchCacheCleaner(IFileSystem fileSystem, string pchFilePath)
         {
             this.fileSystem = fileSystem;
             this.pchFilePath = pchFilePath;
         }
 
-        public void DeletePchFiles()
+        public void Cleanup() => DeletePchFiles();
+        
+        private void DeletePchFiles()
         {
             var pchDirectory = Path.GetDirectoryName(pchFilePath);
             var pchFileName = Path.GetFileName(pchFilePath);
@@ -49,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 fileSystem.File.Delete(pchFile);
             }
+
             fileSystem.File.Delete(pchFilePath);
         }
     }

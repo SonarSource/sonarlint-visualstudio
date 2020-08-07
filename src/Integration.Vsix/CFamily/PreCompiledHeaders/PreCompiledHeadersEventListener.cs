@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IScheduler scheduler;
         private readonly ISonarLanguageRecognizer sonarLanguageRecognizer;
-        private readonly IPchFilesDeleter pchFilesDeleter;
+        private readonly IPchCacheCleaner pchCacheCleaner;
         private bool disposed;
 
         [ImportingConstructor]
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IActiveDocumentTracker activeDocumentTracker,
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer)
-            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings(), new PchFilesDeleter(new FileSystem(), CFamilyHelper.PchFilePath))
+            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings(), new PchCacheCleaner(new FileSystem(), CFamilyHelper.PchFilePath))
         {
         }
 
@@ -60,13 +60,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer,
             IEnvironmentSettings environmentSettings,
-            IPchFilesDeleter pchFilesDeleter)
+            IPchCacheCleaner pchCacheCleaner)
         {
             this.cFamilyAnalyzer = cFamilyAnalyzer;
             this.activeDocumentTracker = activeDocumentTracker;
             this.scheduler = scheduler;
             this.sonarLanguageRecognizer = sonarLanguageRecognizer;
-            this.pchFilesDeleter = pchFilesDeleter;
+            this.pchCacheCleaner = pchCacheCleaner;
 
             pchJobTimeoutInMilliseconds = environmentSettings.PCHGenerationTimeoutInMs(60 * 1000);
 
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 try
                 {
-                    pchFilesDeleter.DeletePchFiles();
+                    pchCacheCleaner.Cleanup();
                 }
                 catch
                 {

@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private Mock<IActiveDocumentTracker> activeDocumentTrackerMock;
         private Mock<IScheduler> schedulerMock;
         private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
-        private Mock<IPchFilesDeleter> filesDeleter;
+        private Mock<IPchCacheCleaner> cacheCleanerMock;
 
         private PreCompiledHeadersEventListener testSubject;
 
@@ -58,14 +58,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             activeDocumentTrackerMock = new Mock<IActiveDocumentTracker>();
             schedulerMock = new Mock<IScheduler>();
             languageRecognizerMock = new Mock<ISonarLanguageRecognizer>();
-            filesDeleter = new Mock<IPchFilesDeleter>();
+            cacheCleanerMock = new Mock<IPchCacheCleaner>();
 
             var environmentSettingsMock = new Mock<IEnvironmentSettings>();
             environmentSettingsMock
                 .Setup(x => x.PCHGenerationTimeoutInMs(It.IsAny<int>()))
                 .Returns(1);
 
-            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object, environmentSettingsMock.Object, filesDeleter.Object);
+            testSubject = new PreCompiledHeadersEventListener(cFamilyAnalyzerMock.Object, activeDocumentTrackerMock.Object, schedulerMock.Object, languageRecognizerMock.Object, environmentSettingsMock.Object, cacheCleanerMock.Object);
         }
 
         [TestMethod]
@@ -89,17 +89,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Dispose_DeletePchFiles()
+        public void Dispose_CleanupPchCache()
         {
             testSubject.Dispose();
 
-            filesDeleter.Verify(x=> x.DeletePchFiles(), Times.Once);
+            cacheCleanerMock.Verify(x=> x.Cleanup(), Times.Once);
         }
 
         [TestMethod]
-        public void Dispose_ExceptionWhenDeletingPchFiles_ExceptionCaught()
+        public void Dispose_ExceptionWhenCleaningCache_ExceptionCaught()
         {
-            filesDeleter.Setup(x => x.DeletePchFiles()).Throws<FileNotFoundException>();
+            cacheCleanerMock.Setup(x => x.Cleanup()).Throws<FileNotFoundException>();
 
             Action act = () => testSubject.Dispose();
             act.Should().NotThrow();
