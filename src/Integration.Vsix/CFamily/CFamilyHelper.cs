@@ -78,11 +78,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
-            Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
-            request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
             request.PchFile = PchFilePath;
 
+            bool isPCHBuild = false;
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
                 Debug.Assert(!(cFamilyAnalyzerOptions.CreateReproducer && cFamilyAnalyzerOptions.CreatePreCompiledHeaders), "Only one flag (CreateReproducer, CreatePreCompiledHeaders) can be set at a time");
@@ -95,7 +93,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
                 {
                     request.Flags |= Request.BuildPreamble;
+                    isPCHBuild = true;
                 }
+            }
+
+            if (!isPCHBuild)
+            {
+                // We don't need to calculate / set the rules configuration for PCH builds
+                request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
+                Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
+                request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
             }
 
             return request;
