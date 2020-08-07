@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, analysisNotifierMock.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the first message to the analyzer
@@ -195,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, analysisNotifierMock.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the inactive rule message to the analyzer
@@ -241,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
                 var filePath = "c:\\test.cpp";
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(new Request{File = filePath}, mockConsumer.Object, analysisNotifierMock.Object, cts.Token));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(new Request{File = filePath}, mockConsumer.Object, cts.Token));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 cts.Cancel();
@@ -276,7 +276,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             testSubject.SetCallSubProcessBehaviour(MockSubProcessCall);
 
             var filePath = "c:\\test.cpp";
-            await testSubject.TriggerAnalysisAsync(new Request{File = filePath }, Mock.Of<IIssueConsumer>(), analysisNotifierMock.Object, CancellationToken.None);
+            await testSubject.TriggerAnalysisAsync(new Request{File = filePath }, Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             analysisNotifierMock.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
             analysisNotifierMock.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 return RequestToReturn;
             }
 
-            protected override void TriggerAnalysis(Request request, IIssueConsumer consumer, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
+            protected override void TriggerAnalysis(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
             {
                 TriggerAnalysisCallCount++;
             }

@@ -89,12 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             scheduler.Schedule(PchJobId, token =>
             {
-                cFamilyAnalyzer.ExecuteAnalysis(e.TextDocument.FilePath,
-                    detectedLanguages,
-                    null,
-                    cFamilyAnalyzerOptions,
-                    null,
-                    token);
+                cFamilyAnalyzer.ExecutePreAnalysis(e.TextDocument.FilePath, detectedLanguages, cFamilyAnalyzerOptions, token);
             }, pchJobTimeoutInMilliseconds);
         }
 

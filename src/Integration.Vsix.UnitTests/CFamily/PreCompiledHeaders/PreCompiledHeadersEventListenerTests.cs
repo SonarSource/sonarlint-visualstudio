@@ -159,11 +159,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             RaiseDocumentFocusedEvent();
 
             cFamilyAnalyzerMock.Verify(x=> 
-                x.ExecuteAnalysis(FocusedDocumentFilePath, 
+                x.ExecutePreAnalysis(FocusedDocumentFilePath, 
                 supportedLanguages,
-                null,
-                It.Is((IAnalyzerOptions options) => ((CFamilyAnalyzerOptions)options).CreatePreCompiledHeaders),
-                null,
+                It.Is((CFamilyAnalyzerOptions options) => options.CreatePreCompiledHeaders),
                 cancellationToken.Token));
         }
 

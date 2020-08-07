@@ -37,11 +37,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal interface ICFamilyAnalyzer : IAnalyzer
     {
-        void ExecuteAnalysis(string path,
-            IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
-            IAnalyzerOptions analyzerOptions,
-            IAnalysisStatusNotifier statusNotifier,
+        void ExecutePreAnalysis(string path, 
+            IEnumerable<AnalysisLanguage> detectedLanguages, 
+            CFamilyAnalyzerOptions analyzerOptions, 
             CancellationToken cancellationToken);
     }
 
@@ -73,42 +71,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return languages.Contains(AnalysisLanguage.CFamily);
         }
 
-        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer, IAnalyzerOptions analyzerOptions,
-            CancellationToken cancellationToken)
+        public void ExecutePreAnalysis(string path, IEnumerable<AnalysisLanguage> detectedLanguages, CFamilyAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
         {
-            ExecuteAnalysis(path, detectedLanguages, consumer, analyzerOptions, analysisStatusNotifier, cancellationToken);
-        }
+            var request = CreateRequest(path, detectedLanguages, analyzerOptions, null);
 
-        public void ExecuteAnalysis(string path,
-            IEnumerable<AnalysisLanguage> detectedLanguages,
-            IIssueConsumer consumer,
-            IAnalyzerOptions analyzerOptions,
-            IAnalysisStatusNotifier statusNotifier,
-            CancellationToken cancellationToken)
-        {
-            var projectItem = dte?.Solution?.FindProjectItem(path);
-            if (projectItem == null)
-            {
-                return;
-            }
-
-            Debug.Assert(IsAnalysisSupported(detectedLanguages));
-
-            var request = CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, analyzerOptions);
             if (request == null)
             {
                 return;
             }
 
-            TriggerAnalysis(request, consumer, statusNotifier, cancellationToken);
+            TriggerPreAnalysisAsync(request, cancellationToken).Forget();
+        }
+
+        public void ExecuteAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer consumer, IAnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
+        {
+            var request = CreateRequest(path, detectedLanguages, analyzerOptions, cFamilyRulesConfigProvider);
+
+            if (request == null)
+            {
+                return;
+            }
+            
+            TriggerAnalysis(request, consumer, cancellationToken);
+        }
+
+        private Request CreateRequest(string path, IEnumerable<AnalysisLanguage> detectedLanguages, IAnalyzerOptions analyzerOptions, ICFamilyRulesConfigProvider rulesConfigProvider)
+        {
+            var projectItem = dte?.Solution?.FindProjectItem(path);
+            if (projectItem == null)
+            {
+                return null;
+            }
+
+            Debug.Assert(IsAnalysisSupported(detectedLanguages));
+
+            var request = CreateRequest(logger, projectItem, path, rulesConfigProvider, analyzerOptions);
+
+            return request;
         }
 
         protected /* for testing */ virtual Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions) =>
             CFamilyHelper.CreateRequest(logger, projectItem, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
 
-        protected /* for testing */ virtual void TriggerAnalysis(Request request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken) =>
-            TriggerAnalysisAsync(request, consumer, statusNotifier, cancellationToken)
+        protected /* for testing */ virtual void TriggerAnalysis(Request request, IIssueConsumer consumer, CancellationToken cancellationToken) =>
+            TriggerAnalysisAsync(request, consumer, cancellationToken)
                 .Forget(); // fire and forget
 
         protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
@@ -116,22 +122,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
         }
 
-        internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
+        private async Task TriggerPreAnalysisAsync(Request request, CancellationToken cancellationToken)
         {
+            await TaskScheduler.Default;
+            try
+            {
+                CallSubProcess(message => { }, request, settings, logger, cancellationToken);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine($"Failed to execute a pre-analysis request for {request.File}, exception: {ex}");
+            }
+        }
+
+        internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, CancellationToken cancellationToken)
+        {
+            var analysisStartTime = DateTime.Now;
+            analysisStatusNotifier.AnalysisStarted(request.File);
+            int issueCount = 0;
+
+            Action<Message> handleMessage = message => HandleMessage(message, request, consumer, ref issueCount);
+
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
             // that are only available in newer versions of VS e.g. [Import] IThreadHandling.          
 
             // Switch to a background thread
             await TaskScheduler.Default;
-
-            var analysisStartTime = DateTime.Now;
-            statusNotifier?.AnalysisStarted(request.File);
-            int issueCount = 0;
-
-            var handleMessage = consumer == null
-                ? (Action<Message>) (message => { })
-                : message => HandleMessage(message, request, consumer, ref issueCount);
 
             try
             {
@@ -142,17 +159,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    statusNotifier?.AnalysisCancelled(request.File);
+                    analysisStatusNotifier.AnalysisCancelled(request.File);
                 }
                 else
                 {
                     var analysisTime = DateTime.Now - analysisStartTime;
-                    statusNotifier?.AnalysisFinished(request.File, issueCount, analysisTime);
+                    analysisStatusNotifier.AnalysisFinished(request.File, issueCount, analysisTime);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                statusNotifier?.AnalysisFailed(request.File, ex);
+                analysisStatusNotifier.AnalysisFailed(request.File, ex);
             }
 
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++

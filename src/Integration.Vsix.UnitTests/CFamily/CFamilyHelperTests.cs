@@ -255,6 +255,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void GetKeyValueOptionsList_NullRulesConfig_EmptyArray()
+        {
+            var options = CFamilyHelper.GetKeyValueOptionsList(null);
+            options.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void GetKeyValueOptionsList_UsingRealEmbeddedRulesJson()
         {
             var sonarWayProvider = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);

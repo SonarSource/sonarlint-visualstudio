@@ -78,8 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
-            Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
+            request.RulesConfiguration = cFamilyRulesConfigProvider?.GetRulesConfiguration(request.CFamilyLanguage);
             request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
             request.PchFile = PchFilePath;
 
@@ -103,6 +102,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal /* for testing */ static string[]GetKeyValueOptionsList(ICFamilyRulesConfig rulesConfiguration)
         {
+            if (rulesConfiguration == null)
+            {
+                return Array.Empty<string>();
+            }
             var options = GetDefaultOptions(rulesConfiguration);
             options.Add("internal.qualityProfile", string.Join(",", rulesConfiguration.ActivePartialRuleKeys));
             var data = options.Select(kv => kv.Key + "=" + kv.Value).ToArray();
