@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        internal static readonly string PchFilePath = Path.Combine(Path.GetTempPath(), "SonarLintPCH.preamble");
+        internal static readonly string PchFilePath = Path.Combine(Path.GetTempPath(), "SonarLintForVisualStudio.PCH.preamble");
 
         public static readonly string CFamilyFilesDirectory = Path.Combine(
             Path.GetDirectoryName(typeof(CFamilyHelper).Assembly.Location),
