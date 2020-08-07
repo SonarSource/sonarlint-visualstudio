@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -45,14 +48,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             var pchDirectory = Path.GetDirectoryName(pchFilePath);
             var pchFileName = Path.GetFileName(pchFilePath);
-            var pchFiles = fileSystem.Directory.GetFiles(pchDirectory, $"{pchFileName}.*");
 
-            foreach (var pchFile in pchFiles)
+            var filesToDelete = fileSystem.Directory.GetFiles(pchDirectory, $"{pchFileName}.*").ToList();
+            filesToDelete.Add(pchFilePath);
+
+            foreach (var fileToDelete in filesToDelete)
             {
-                fileSystem.File.Delete(pchFile);
+                try
+                {
+                    fileSystem.File.Delete(fileToDelete);
+                }
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+                {
+                    // nothing to do if we fail to delete
+                }
             }
-
-            fileSystem.File.Delete(pchFilePath);
         }
     }
 }

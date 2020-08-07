@@ -20,7 +20,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Abstractions.TestingHelpers;
+using System.Security.AccessControl;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
@@ -106,6 +108,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
             testSubject.Cleanup();
 
             fileSystemMock.AllFiles.Should().BeEquivalentTo(new List<string>{nonMatchingFile});
+        }
+
+        [TestMethod]
+        public void Cleanup_FailsToDeleteSomeFiles_DeletesTheOnesThatSucceed()
+        {
+            var matchingFile = "c:\\test\\pch\\myPch.abc.d";
+            fileSystemMock.AddFile(matchingFile, new MockFileData(""));
+
+            var matchingFailingFile = "c:\\test\\pch\\myPch.abc.de";
+            var failingFileMockData = new MockFileData("")
+            {
+                AllowedFileShare = FileShare.None
+            };
+            fileSystemMock.AddFile(matchingFailingFile, failingFileMockData);
+
+            var testSubject = new PchCacheCleaner(fileSystemMock, "c:\\test\\pch\\myPch.abc");
+            testSubject.Cleanup();
+
+            fileSystemMock.AllFiles.Should().BeEquivalentTo(new List<string> { matchingFailingFile });
         }
     }
 }

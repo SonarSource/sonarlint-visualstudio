@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void Dispose_CriticalExceptionWhenCleaningCache_ExceptionNotCaught()
+        {
+            cacheCleanerMock.Setup(x => x.Cleanup()).Throws<StackOverflowException>();
+
+            Action act = () => testSubject.Dispose();
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
         public void OnDocumentFocused_NoLanguagesDetected_PchGenerationNotScheduled()
         {
             SetupDetectedLanguages(Enumerable.Empty<AnalysisLanguage>());

@@ -109,9 +109,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     pchCacheCleaner.Cleanup();
                 }
-                catch
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    // Nothing to do if we failed to delete the files
+                    // Nothing to do if we failed to clear the cache
                 }
 
                 disposed = true;
