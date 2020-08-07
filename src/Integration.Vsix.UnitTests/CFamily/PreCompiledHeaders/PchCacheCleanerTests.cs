@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions.TestingHelpers;
-using System.Security.AccessControl;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
@@ -80,8 +79,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
             var nonMatchingFilePaths = new List<string>
             {
                 "c:\\test\\pch\\myPch.abc",
+                "c:\\test\\pch\\MYpch.aBC",
                 "c:\\test\\pch\\myPch.abc.a",
-                "c:\\test\\pch\\myPch.abc.a.b"
+                "c:\\test\\pch\\myPch.abc.a.b",
+                "c:\\test\\pch\\myPCH.ABC.a.b"
             };
 
             foreach (var filePath in nonMatchingFilePaths)
