@@ -56,7 +56,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
             {
                 "c:\\test\\pch\\test.abc",
                 "c:\\test\\pch\\myPch.ab",
-                "c:\\test\\pch\\myPch.abcd",
+                "c:\\test\\pch\\myPch.ab.c",
+                "c:\\test\\pch\\myPch.abd",
                 "c:\\test\\pch\\amyPch.abc",
                 "c:\\test\\pch\\sub\\myPch.abc",
                 "c:\\test\\myPch.abc"
@@ -76,16 +77,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
         [TestMethod]
         public void Cleanup_HasMatchingFilesInDirectory_MatchingFilesAreDeleted()
         {
-            var nonMatchingFilePaths = new List<string>
+            var matchingFilePaths = new List<string>
             {
                 "c:\\test\\pch\\myPch.abc",
                 "c:\\test\\pch\\MYpch.aBC",
-                "c:\\test\\pch\\myPch.abc.a",
-                "c:\\test\\pch\\myPch.abc.a.b",
-                "c:\\test\\pch\\myPCH.ABC.a.b"
+                "c:\\test\\pch\\myPch.abcd",
+                "c:\\test\\pch\\myPch.abcd.e",
+                "c:\\test\\pch\\myPch.abc.d",
+                "c:\\test\\pch\\myPch.abc.d.e",
+                "c:\\test\\pch\\myPch.abc.de.f",
+                "c:\\test\\pch\\myPCH.ABC.d.E"
             };
 
-            foreach (var filePath in nonMatchingFilePaths)
+            foreach (var filePath in matchingFilePaths)
             {
                 fileSystemMock.AddFile(filePath, new MockFileData(""));
             }
@@ -100,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.PreCompiledHeader
         public void Cleanup_HasMatchingAndNonMatchingFilesInDirectory_OnlyMatchingFilesAreDeleted()
         {
             var matchingFile = "c:\\test\\pch\\myPch.abc.d";
-            var nonMatchingFile = "c:\\test\\pch\\myPch.abcd";
+            var nonMatchingFile = "c:\\test\\pch\\myPch.abd";
 
             fileSystemMock.AddFile(matchingFile, new MockFileData(""));
             fileSystemMock.AddFile(nonMatchingFile, new MockFileData(""));

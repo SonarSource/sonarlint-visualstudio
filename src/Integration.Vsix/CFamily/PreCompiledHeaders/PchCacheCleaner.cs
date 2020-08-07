@@ -50,8 +50,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var pchFileName = Path.GetFileName(pchFilePath);
 
             // CFamily will create PCH files with the same root as the file that we gave them
-            var filesToDelete = fileSystem.Directory.GetFiles(pchDirectory, $"{pchFileName}.*").ToList();
-            filesToDelete.Add(pchFilePath);
+            var filesToDelete = fileSystem.Directory.GetFiles(pchDirectory, $"{pchFileName}*").ToList();
 
             foreach (var fileToDelete in filesToDelete)
             {
