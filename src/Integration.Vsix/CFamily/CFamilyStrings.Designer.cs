@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generated PCH file for {0}, PCH file saved at: {1}.
+        ///   Looks up a localized string similar to Refreshing PCH file for {0}. PCH file location: {1}.
         /// </summary>
         internal static string MSG_PchSaved {
             get {

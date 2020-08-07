@@ -177,6 +177,6 @@
     <value>Cannot run SonarLint CFamily reproducer - no active document.</value>
   </data>
   <data name="MSG_PchSaved" xml:space="preserve">
-    <value>Generated PCH file for {0}, PCH file saved at: {1}</value>
+    <value>Refreshing PCH file for {0}. PCH file location: {1}</value>
   </data>
 </root>
