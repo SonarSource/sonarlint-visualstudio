@@ -37,8 +37,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     [TestClass]
     public class CFamilyHelperTests
     {
-        private const string FileName = @"C:\absolute\path\to\file.cpp";
-
         private const string ValidPlatformName = "Win32";
 
         private static readonly IDictionary<string, string> MandatoryProjectConfigProperties = new Dictionary<string, string>
@@ -124,6 +122,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
+            (request.Flags & Request.BuildPreamble).Should().Be(0);
+            request.RulesConfiguration.Should().NotBeNull();
+            request.Options.Should().NotBeEmpty();
         }
 
         [TestMethod]
@@ -133,6 +134,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
+            (request.Flags & Request.BuildPreamble).Should().Be(0);
+            request.RulesConfiguration.Should().NotBeNull();
+            request.Options.Should().NotBeEmpty();
         }
 
         [TestMethod]
@@ -160,6 +164,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.BuildPreamble).Should().NotBe(0);
+            request.RulesConfiguration.Should().BeNull();
+            request.Options.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -169,6 +175,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.BuildPreamble).Should().Be(0);
+            request.RulesConfiguration.Should().NotBeNull();
+            request.Options.Should().NotBeEmpty();
         }
 
         [TestMethod]
