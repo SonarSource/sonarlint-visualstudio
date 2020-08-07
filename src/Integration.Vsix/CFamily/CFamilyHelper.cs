@@ -51,7 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 // We can't analyze header files currently because we can't get all
                 // of the required configuration information
-                logger.WriteLine($"Cannot analyze header files. File: '{absoluteFilePath}'");
                 return null;
             }
 
