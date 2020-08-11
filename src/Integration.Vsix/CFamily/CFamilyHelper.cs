@@ -195,6 +195,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultSeverity = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].DefaultSeverity;
             var defaultType = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].Type;
 
+            var locations = cfamilyIssue.Parts
+                .Select(x => new AnalysisIssueLocation(
+                    filePath: x.Filename,
+                    message: x.Text,
+                    startLine: x.Line,
+                    endLine: x.EndLine,
+                    startLineOffset: x.Column,
+                    endLineOffset: x.EndColumn
+                ));
+
             return new AnalysisIssue
             (
                 filePath: cfamilyIssue.Filename,
@@ -207,7 +217,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 // We don't care about the columns in the special case EndLine=0
                 startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
-                endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
+                endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1,
+
+                locations: locations
             );
         }
 

@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.Linq;
+
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public class AnalysisIssue : IAnalysisIssue
@@ -26,7 +29,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type,
             string message, string filePath,
             int startLine, int endLine,
-            int startLineOffset, int endLineOffset
+            int startLineOffset, int endLineOffset,
+            IEnumerable<IAnalysisIssueLocation> locations
             )
         {
             RuleKey = ruleKey;
@@ -38,6 +42,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             EndLineOffset = endLineOffset;
             FilePath = filePath;
             Message = message;
+            Locations = locations.Reverse().ToList().AsReadOnly();
         }
 
         public string RuleKey { get; }
@@ -57,5 +62,35 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string Message { get; }
 
         public string FilePath { get; }
+
+        public IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
+    }
+
+    public class AnalysisIssueLocation : IAnalysisIssueLocation
+    {
+        public AnalysisIssueLocation(
+            string message, string filePath,
+            int startLine, int endLine,
+            int startLineOffset, int endLineOffset)
+        {
+            Message = message;
+            FilePath = filePath;
+            StartLine = startLine;
+            EndLine = endLine;
+            StartLineOffset = startLineOffset;
+            EndLineOffset = endLineOffset;
+        }
+
+        public string FilePath { get; }
+
+        public string Message { get; }
+
+        public int StartLine { get; }
+
+        public int EndLine { get; }
+
+        public int StartLineOffset { get; }
+
+        public int EndLineOffset { get; }
     }
 }
