@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <ProjectGuid>{94130D79-3F30-47B1-9C3F-0769E57D1F4D}</ProjectGuid>
+	<RootNamespace>SonarLint.VisualStudio.IssueVisualization</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.IssueVisualization</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
+  </PropertyGroup>
+
+</Project>
