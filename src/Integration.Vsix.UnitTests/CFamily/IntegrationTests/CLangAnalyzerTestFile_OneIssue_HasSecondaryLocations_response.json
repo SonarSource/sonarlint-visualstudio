@@ -7,19 +7,11 @@
       "Parts": [
         {
           "Filename": "",
-          "Line": 2,
-          "Column": 5,
-          "EndLine": 2,
-          "EndColumn": 11,
-          "Text": "'f' initialized to a null pointer value"
-        },
-        {
-          "Filename": "",
-          "Line": 3,
-          "Column": 9,
-          "EndLine": 3,
-          "EndColumn": 10,
-          "Text": "Assuming 'b' is true"
+          "Line": 4,
+          "Column": 12,
+          "EndLine": 4,
+          "EndColumn": 13,
+          "Text": "Dereference of null pointer (loaded from variable 'f')"
         },
         {
           "Filename": "",
@@ -31,11 +23,19 @@
         },
         {
           "Filename": "",
-          "Line": 4,
-          "Column": 12,
-          "EndLine": 4,
-          "EndColumn": 13,
-          "Text": "Dereference of null pointer (loaded from variable 'f')"
+          "Line": 3,
+          "Column": 9,
+          "EndLine": 3,
+          "EndColumn": 10,
+          "Text": "Assuming 'b' is true"
+        },
+        {
+          "Filename": "",
+          "Line": 2,
+          "Column": 5,
+          "EndLine": 2,
+          "EndColumn": 11,
+          "Text": "'f' initialized to a null pointer value"
         }
       ],
       "Line": 4,

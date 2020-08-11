@@ -54,7 +54,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var expectedMessages = GetExpectedMessages(testCaseFileName, testedFile);
 
             var messages = InvokeAnalyzer(request);
-            messages.Should().BeEquivalentTo(expectedMessages);
+
+            messages.Should().BeEquivalentTo(expectedMessages, e => e.WithStrictOrdering());
         }
 
         private Request GetRequest(string testedFile)

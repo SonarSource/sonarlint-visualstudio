@@ -203,7 +203,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     endLine: x.EndLine,
                     startLineOffset: x.Column,
                     endLineOffset: x.EndColumn
-                ));
+                ))
+                .Reverse();
 
             return new AnalysisIssue
             (
