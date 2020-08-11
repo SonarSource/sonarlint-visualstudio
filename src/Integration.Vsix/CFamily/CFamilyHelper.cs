@@ -204,7 +204,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     startLineOffset: x.Column,
                     endLineOffset: x.EndColumn
                 ))
-                .Reverse();
+                .Reverse()
+                .ToArray();
+
+            var flows = locations.Any() ? new [] {new AnalysisIssueFlow(locations)} : null;
 
             return new AnalysisIssue
             (
@@ -220,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
                 endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1,
 
-                locations: locations
+                flows: flows
             );
         }
 

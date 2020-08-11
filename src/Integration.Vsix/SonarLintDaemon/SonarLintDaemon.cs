@@ -379,7 +379,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 endLine: daemonIssue.EndLine,
                 startLineOffset: daemonIssue.StartLineOffset,
                 endLineOffset: daemonIssue.EndLineOffset,
-                locations: null
+                flows: null
                 );
 
         /// <summary>

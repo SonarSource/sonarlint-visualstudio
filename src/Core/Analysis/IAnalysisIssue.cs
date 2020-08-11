@@ -42,6 +42,11 @@ namespace SonarLint.VisualStudio.Core.Analysis
 
         string FilePath { get; }
 
+        IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+    }
+
+    public interface IAnalysisIssueFlow
+    {
         IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
     }
 

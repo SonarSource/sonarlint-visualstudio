@@ -20,20 +20,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
     public class AnalysisIssue : IAnalysisIssue
     {
-        private static readonly IReadOnlyList<IAnalysisIssueLocation> EmptyLocations = Array.Empty<IAnalysisIssueLocation>();
+        private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
         public AnalysisIssue(
             string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type,
             string message, string filePath,
             int startLine, int endLine,
             int startLineOffset, int endLineOffset,
-            IEnumerable<IAnalysisIssueLocation> locations
+            IReadOnlyList<IAnalysisIssueFlow> flows
             )
         {
             RuleKey = ruleKey;
@@ -45,10 +44,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             EndLineOffset = endLineOffset;
             FilePath = filePath;
             Message = message;
-
-            Locations = locations == null || !locations.Any()
-                ? EmptyLocations
-                : locations.ToList().AsReadOnly();
+            Flows = flows ?? EmptyFlows;
         }
 
         public string RuleKey { get; }
@@ -68,6 +64,16 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public string Message { get; }
 
         public string FilePath { get; }
+
+        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
+    }
+
+    public class AnalysisIssueFlow : IAnalysisIssueFlow
+    {
+        public AnalysisIssueFlow(IReadOnlyList<IAnalysisIssueLocation> locations)
+        {
+            Locations = locations ?? throw new ArgumentNullException(nameof(locations));
+        }
 
         public IReadOnlyList<IAnalysisIssueLocation> Locations { get; }
     }

@@ -316,9 +316,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void ToSonarLintIssue_NoMessageParts_IssueWithoutSecondaryLocations()
+        {
+            var ruleConfig = GetDummyRulesConfiguration();
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
+
+            // Act
+            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
+
+            // Assert
+            issue.Flows.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void ToSonarLintIssue_HasMessageParts_IssueWithSecondaryLocations()
         {
             var ruleConfig = GetDummyRulesConfiguration();
+
             var messageParts = new List<MessagePart>
             {
                 new MessagePart("test1.cpp", 1, 2, 3, 4, "this is a test 1"),
@@ -331,13 +346,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 2, 4)
             };
 
+            var expectedFlows = new List<AnalysisIssueFlow>
+            {
+                new AnalysisIssueFlow(expectedLocations)
+            };
+
             var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, messageParts.ToArray());
 
             // Act
             var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
-            //Assert
-            issue.Locations.Should().BeEquivalentTo(expectedLocations);
+            // Assert
+            issue.Flows.Should().BeEquivalentTo(expectedFlows, x=> x.WithStrictOrdering());
         }
 
         [TestMethod]
@@ -349,7 +369,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Act
             var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
-            //Assert
+            // Assert
             issue.StartLine.Should().Be(4);
             issue.StartLineOffset.Should().Be(3 - 1);
 
@@ -371,7 +391,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Act
             var issue = CFamilyHelper.ToSonarLintIssue(message, "cpp", ruleConfig);
 
-            //Assert
+            // Assert
             issue.StartLine.Should().Be(101);
 
             issue.EndLine.Should().Be(0);
