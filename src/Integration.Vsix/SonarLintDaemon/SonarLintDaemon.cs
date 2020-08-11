@@ -370,7 +370,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal /* for testing */ static AnalysisIssue ToAnalysisIssue(Issue daemonIssue) =>
             new AnalysisIssue(
-
                 filePath: daemonIssue.FilePath,
                 message: daemonIssue.Message,
                 ruleKey: daemonIssue.RuleKey,
@@ -379,7 +378,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 startLine: daemonIssue.StartLine,
                 endLine: daemonIssue.EndLine,
                 startLineOffset: daemonIssue.StartLineOffset,
-                endLineOffset: daemonIssue.EndLineOffset
+                endLineOffset: daemonIssue.EndLineOffset,
+                flows: null
                 );
 
         /// <summary>
