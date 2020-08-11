@@ -98,6 +98,12 @@
     <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

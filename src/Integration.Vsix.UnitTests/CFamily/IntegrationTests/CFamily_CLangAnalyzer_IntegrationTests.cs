@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
         [DataRow("CLangAnalyzerTestFile_NoIssues_EmptyFile")]
         [DataRow("CLangAnalyzerTestFile_OneIssue")]
         [DataRow("CLangAnalyzerTestFile_TwoIssues")]
+        [DataRow("CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations")]
         public void CallAnalyzer_IntegrationTest(string testCaseFileName)
         {
             var testedFile = Path.Combine(testsDataDirectory, testCaseFileName + ".txt");
@@ -53,7 +54,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var expectedMessages = GetExpectedMessages(testCaseFileName, testedFile);
 
             var messages = InvokeAnalyzer(request);
-            messages.Should().BeEquivalentTo(expectedMessages);
+
+            messages.Should().BeEquivalentTo(expectedMessages, e => e.WithStrictOrdering());
         }
 
         private Request GetRequest(string testedFile)
@@ -73,6 +75,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             foreach (var expectedResponseMessage in expectedResponse.Messages)
             {
                 expectedResponseMessage.Filename = testedFile;
+
+                foreach (var messagePart in expectedResponseMessage.Parts)
+                {
+                    messagePart.Filename = testedFile;
+                }
             }
 
             return expectedResponse.Messages;

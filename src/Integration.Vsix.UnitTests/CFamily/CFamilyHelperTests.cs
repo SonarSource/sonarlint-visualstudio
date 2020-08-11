@@ -316,15 +316,60 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void ToSonarLintIssue_EndLineIsNotZero()
+        public void ToSonarLintIssue_NoMessageParts_IssueWithoutSecondaryLocations()
         {
             var ruleConfig = GetDummyRulesConfiguration();
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, null);
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
 
             // Act
             var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
-            //Assert
+            // Assert
+            issue.Flows.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void ToSonarLintIssue_HasMessageParts_IssueWithSecondaryLocations()
+        {
+            var ruleConfig = GetDummyRulesConfiguration();
+
+            var messageParts = new List<MessagePart>
+            {
+                new MessagePart("test1.cpp", 1, 2, 3, 4, "this is a test 1"),
+                new MessagePart("test2.cpp", 5, 6, 7, 8, "this is a test 2")
+            };
+
+            var expectedLocations = new List<AnalysisIssueLocation>
+            {
+                new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 6, 8),
+                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 2, 4)
+            };
+
+            var expectedFlows = new List<AnalysisIssueFlow>
+            {
+                new AnalysisIssueFlow(expectedLocations)
+            };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, messageParts.ToArray());
+
+            // Act
+            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
+
+            // Assert
+            issue.Flows.Should().BeEquivalentTo(expectedFlows, x=> x.WithStrictOrdering());
+        }
+
+        [TestMethod]
+        public void ToSonarLintIssue_EndLineIsNotZero()
+        {
+            var ruleConfig = GetDummyRulesConfiguration();
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
+
+            // Act
+            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
+
+            // Assert
             issue.StartLine.Should().Be(4);
             issue.StartLineOffset.Should().Be(3 - 1);
 
@@ -341,12 +386,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             // Special case: ignore column offsets if EndLine is zero
             var ruleConfig = GetDummyRulesConfiguration();
-            var message = new Message("rule3", "ff", 101, 1, 0, 3, "test endline is zero", true, null);
+            var message = new Message("rule3", "ff", 101, 1, 0, 3, "test endline is zero", true, new MessagePart[0]);
 
             // Act
             var issue = CFamilyHelper.ToSonarLintIssue(message, "cpp", ruleConfig);
 
-            //Assert
+            // Assert
             issue.StartLine.Should().Be(101);
 
             issue.EndLine.Should().Be(0);
@@ -359,25 +404,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void ToSonarLintIssue_SeverityAndTypeLookup()
+        [DataRow("rule2", AnalysisIssueSeverity.Info, AnalysisIssueType.CodeSmell)]
+        [DataRow("rule3", AnalysisIssueSeverity.Critical, AnalysisIssueType.Vulnerability)]
+        public void ToSonarLintIssue_SeverityAndTypeLookup(string ruleKey, AnalysisIssueSeverity expectedSeverity, AnalysisIssueType expectedType)
         {
             var ruleConfig = GetDummyRulesConfiguration();
 
-            // 1. Check rule2
-            var message = new Message("rule2", "any", 4, 3, 2, 1, "message", false, null);
+            var message = new Message(ruleKey, "any", 4, 3, 2, 1, "message", false, new MessagePart[0]);
             var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
 
-            issue.RuleKey.Should().Be("lang1:rule2");
-            issue.Severity.Should().Be(AnalysisIssueSeverity.Info);
-            issue.Type.Should().Be(AnalysisIssueType.CodeSmell);
-
-            // 2. Check rule3
-            message = new Message("rule3", "any", 4, 3, 2, 1, "message", false, null);
-            issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
-
-            issue.RuleKey.Should().Be("lang1:rule3");
-            issue.Severity.Should().Be(AnalysisIssueSeverity.Critical);
-            issue.Type.Should().Be(AnalysisIssueType.Vulnerability);
+            issue.RuleKey.Should().Be($"lang1:{ruleKey}");
+            issue.Severity.Should().Be(expectedSeverity);
+            issue.Type.Should().Be(expectedType);
         }
 
         [TestMethod]
