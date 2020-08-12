@@ -29,7 +29,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     internal interface IAnalysisIssueVisualizationConverter
     {
         IAnalysisIssueVisualization Convert(IAnalysisIssue issue);
-
     }
 
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
