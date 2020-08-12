@@ -69,8 +69,8 @@ namespace SonarLint.VisualStudio.IssueVisualization
         public void Dispose()
         {
             SelectedIssueChanged = null;
-            SelectedFlow = null;
-            selectedLocation = null;
+            SelectedFlowChanged = null;
+            SelectedLocationChanged = null;
         }
     }
 }

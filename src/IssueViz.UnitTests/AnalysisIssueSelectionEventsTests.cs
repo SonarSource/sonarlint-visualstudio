@@ -153,5 +153,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             testSubject.SelectedLocation.Should().Be(expectedLocation);
         }
+
+        [TestMethod]
+        public void Dispose_SelectedIssueChangedHasSubscribers_RemovesSubscribers()
+        {
+            var eventHandler = new Mock<EventHandler<IssueChangedEventArgs>>();
+
+            testSubject.SelectedIssueChanged += eventHandler.Object;
+            testSubject.Dispose();
+
+            testSubject.SelectedIssue = Mock.Of<IAnalysisIssue>();
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_SelectedFlowChangedHasSubscribers_RemovesSubscribers()
+        {
+            var eventHandler = new Mock<EventHandler<FlowChangedEventArgs>>();
+
+            testSubject.SelectedFlowChanged += eventHandler.Object;
+            testSubject.Dispose();
+
+            testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlow>();
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_SelectedLocationChangedHasSubscribers_RemovesSubscribers()
+        {
+            var eventHandler = new Mock<EventHandler<LocationChangedEventArgs>>();
+
+            testSubject.SelectedLocationChanged += eventHandler.Object;
+            testSubject.Dispose();
+
+            testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocation>();
+
+            eventHandler.VerifyNoOtherCalls();
+        }
     }
 }
