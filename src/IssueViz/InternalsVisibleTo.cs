@@ -25,4 +25,5 @@ using System.Runtime.CompilerServices;
 #else
 
 [assembly: InternalsVisibleTo("SonarLint.VisualStudio.IssueVisualization.UnitTests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]
 #endif
