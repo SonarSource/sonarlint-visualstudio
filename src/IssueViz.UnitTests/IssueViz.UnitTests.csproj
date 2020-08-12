@@ -27,4 +27,8 @@
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+  </ItemGroup>
+
 </Project>
