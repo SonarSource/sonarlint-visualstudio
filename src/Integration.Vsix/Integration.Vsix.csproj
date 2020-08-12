@@ -409,6 +409,9 @@
        to update the baseline file, then check in the updated baseline with the rest of your changes.
   -->
   <PropertyGroup>
+    <!-- By default update the baseline when building in the IDE (simplifies development when working on new code) -->
+    <AsmRefUpdateBaseline Condition="$(AsmRefUpdateBaseline)=='' AND $(BuildingInsideVisualStudio)=='true'">true</AsmRefUpdateBaseline>
+    
     <!-- Only check the VS2019 build -->
     <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' ">true</AsmRefDisableBaselining>
     
