@@ -193,5 +193,77 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             eventHandler.VerifyNoOtherCalls();
         }
+
+        [TestMethod]
+        public void SelectedFlowChanged_ChangesSelectedLocation()
+        {
+            var eventHandler = new Mock<EventHandler<LocationChangedEventArgs>>();
+            testSubject.SelectedLocationChanged += eventHandler.Object;
+
+            var firstFlow = GetFlowWithLocation(out var firstFlowFirstLocation);
+            testSubject.SelectedFlow = firstFlow;
+            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == firstFlowFirstLocation)), Times.Once());
+            testSubject.SelectedLocation.Should().Be(firstFlowFirstLocation);
+
+            testSubject.SelectedFlow = null;
+            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == null)), Times.Once());
+            testSubject.SelectedLocation.Should().BeNull();
+
+            var secondFlow = GetFlowWithLocation(out var secondFlowFirstLocation);
+            testSubject.SelectedFlow = secondFlow;
+            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == secondFlowFirstLocation)), Times.Once());
+            testSubject.SelectedLocation.Should().Be(secondFlowFirstLocation);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectedIssueChanged_ChangesSelectedFlow()
+        {
+            var eventHandler = new Mock<EventHandler<FlowChangedEventArgs>>();
+            testSubject.SelectedFlowChanged += eventHandler.Object;
+
+            var firstIssue = GetIssueWithFlow(out var firstIssueFirstFlow);
+            testSubject.SelectedIssue = firstIssue;
+            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == firstIssueFirstFlow)), Times.Once());
+            testSubject.SelectedFlow.Should().Be(firstIssueFirstFlow);
+
+            testSubject.SelectedIssue = null;
+            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == null)), Times.Once());
+            testSubject.SelectedFlow.Should().BeNull();
+
+            var secondIssue = GetIssueWithFlow(out var secondIssueFirstFlow);
+            testSubject.SelectedIssue = secondIssue;
+            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == secondIssueFirstFlow)), Times.Once());
+            testSubject.SelectedFlow.Should().Be(secondIssueFirstFlow);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        private static IAnalysisIssueFlowVisualization GetFlowWithLocation(out IAnalysisIssueLocationVisualization firstLocation)
+        {
+            firstLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var otherLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
+
+            var mockFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            mockFlow
+                .Setup(x => x.Locations)
+                .Returns(new[] {firstLocation, otherLocation});
+
+            return mockFlow.Object;
+        }
+
+        private IAnalysisIssueVisualization GetIssueWithFlow(out IAnalysisIssueFlowVisualization firstFlow)
+        {
+            firstFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
+            var otherFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
+
+            var mockIssue = new Mock<IAnalysisIssueVisualization>();
+            mockIssue
+                .Setup(x => x.Flows)
+                .Returns(new[] { firstFlow, otherFlow });
+
+            return mockIssue.Object;
+        }
     }
 }

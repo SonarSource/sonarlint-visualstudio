@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
@@ -43,6 +44,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
             {
                 selectedIssue = value;
                 SelectedIssueChanged?.Invoke(this, new IssueChangedEventArgs(value));
+
+                SelectedFlow = selectedIssue?.Flows?.FirstOrDefault();
             }
         }
 
@@ -53,6 +56,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
             {
                 selectedFlow = value;
                 SelectedFlowChanged?.Invoke(this, new FlowChangedEventArgs(value));
+
+                SelectedLocation = selectedFlow?.Locations?.FirstOrDefault();
             }
         }
 
