@@ -30,6 +30,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ISonarErrorListDataSource))]
     internal class SonarErrorListDataSource : ITableDataSource, ISonarErrorListDataSource
     {
+        public const string DataSourceIdentifier = "SonarLint";
+
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<ITableEntriesSnapshotFactory> factories = new HashSet<ITableEntriesSnapshotFactory>();
 
@@ -55,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public string DisplayName => "SonarLint";
 
-        public string Identifier => "SonarLint";
+        public string Identifier => DataSourceIdentifier;
 
         public string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
 
