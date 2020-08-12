@@ -19,9 +19,9 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization
+namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
 {
     internal interface IAnalysisIssueSelectionEvents : IDisposable
     {
@@ -29,38 +29,38 @@ namespace SonarLint.VisualStudio.IssueVisualization
         event EventHandler<FlowChangedEventArgs> SelectedFlowChanged;
         event EventHandler<LocationChangedEventArgs> SelectedLocationChanged;
 
-        IAnalysisIssue SelectedIssue { get; set; }
-        IAnalysisIssueFlow SelectedFlow { get; set; }
-        IAnalysisIssueLocation SelectedLocation { get; set; }
+        IAnalysisIssueVisualization SelectedIssue { get; set; }
+        IAnalysisIssueFlowVisualization SelectedFlow { get; set; }
+        IAnalysisIssueLocationVisualization SelectedLocation { get; set; }
     }
 
     internal class IssueChangedEventArgs : EventArgs
     {
-        public IssueChangedEventArgs(IAnalysisIssue issue)
+        public IssueChangedEventArgs(IAnalysisIssueVisualization issue)
         {
             Issue = issue;
         }
 
-        public IAnalysisIssue Issue { get; }
+        public IAnalysisIssueVisualization Issue { get; }
     }
 
     internal class FlowChangedEventArgs : EventArgs
     {
-        public FlowChangedEventArgs(IAnalysisIssueFlow flow)
+        public FlowChangedEventArgs(IAnalysisIssueFlowVisualization flow)
         {
             Flow = flow;
         }
 
-        public IAnalysisIssueFlow Flow { get; }
+        public IAnalysisIssueFlowVisualization Flow { get; }
     }
 
     internal class LocationChangedEventArgs : EventArgs
     {
-        public LocationChangedEventArgs(IAnalysisIssueLocation location)
+        public LocationChangedEventArgs(IAnalysisIssueLocationVisualization location)
         {
             Location = location;
         }
 
-        public IAnalysisIssueLocation Location { get; }
+        public IAnalysisIssueLocationVisualization Location { get; }
     }
 }

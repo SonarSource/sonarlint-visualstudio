@@ -22,7 +22,8 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.SelectionEvents;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 {
@@ -40,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SetSelectedIssue_NoSubscribers_NoException()
         {
-            Action act = () => testSubject.SelectedIssue = Mock.Of<IAnalysisIssue>();
+            Action act = () => testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
 
             act.Should().NotThrow();
         }
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SetSelectedFlow_NoSubscribers_NoException()
         {
-            Action act = () => testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlow>();
+            Action act = () => testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
 
             act.Should().NotThrow();
         }
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SetSelectedLocation_NoSubscribers_NoException()
         {
-            Action act = () => testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocation>();
+            Action act = () => testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
 
             act.Should().NotThrow();
         }
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             eventHandler.VerifyNoOtherCalls();
 
-            var expectedIssue = isNewIssueNull ? null : Mock.Of<IAnalysisIssue>();
+            var expectedIssue = isNewIssueNull ? null : Mock.Of<IAnalysisIssueVisualization>();
             testSubject.SelectedIssue = expectedIssue;
 
             eventHandler.Verify(x => x(testSubject, It.Is((IssueChangedEventArgs args) => args.Issue == expectedIssue)), Times.Once());
@@ -89,7 +90,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             eventHandler.VerifyNoOtherCalls();
 
-            var expectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlow>();
+            var expectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlowVisualization>();
             testSubject.SelectedFlow = expectedFlow;
 
             eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == expectedFlow)), Times.Once());
@@ -106,7 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             eventHandler.VerifyNoOtherCalls();
 
-            var expectedLocation = isNewLocationNull ? null : Mock.Of<IAnalysisIssueLocation>();
+            var expectedLocation = isNewLocationNull ? null : Mock.Of<IAnalysisIssueLocationVisualization>();
             testSubject.SelectedLocation = expectedLocation;
 
             eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == expectedLocation)), Times.Once());
@@ -119,7 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         {
             testSubject.SelectedIssue.Should().BeNull();
 
-            var expectedIssue = isNewIssueNull ? null : Mock.Of<IAnalysisIssue>();
+            var expectedIssue = isNewIssueNull ? null : Mock.Of<IAnalysisIssueVisualization>();
 
             testSubject.SelectedIssue = expectedIssue;
 
@@ -133,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         {
             testSubject.SelectedFlow.Should().BeNull();
 
-            var expectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlow>();
+            var expectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlowVisualization>();
 
             testSubject.SelectedFlow = expectedFlow;
 
@@ -147,7 +148,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         {
             testSubject.SelectedLocation.Should().BeNull();
 
-            var expectedLocation = isNewLocationNull ? null : Mock.Of<IAnalysisIssueLocation>();
+            var expectedLocation = isNewLocationNull ? null : Mock.Of<IAnalysisIssueLocationVisualization>();
 
             testSubject.SelectedLocation = expectedLocation;
 
@@ -162,7 +163,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             testSubject.SelectedIssueChanged += eventHandler.Object;
             testSubject.Dispose();
 
-            testSubject.SelectedIssue = Mock.Of<IAnalysisIssue>();
+            testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
 
             eventHandler.VerifyNoOtherCalls();
         }
@@ -175,7 +176,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             testSubject.SelectedFlowChanged += eventHandler.Object;
             testSubject.Dispose();
 
-            testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlow>();
+            testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
 
             eventHandler.VerifyNoOtherCalls();
         }
@@ -188,7 +189,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             testSubject.SelectedLocationChanged += eventHandler.Object;
             testSubject.Dispose();
 
-            testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocation>();
+            testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
 
             eventHandler.VerifyNoOtherCalls();
         }

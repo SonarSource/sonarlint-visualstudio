@@ -20,23 +20,23 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization
+namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
 {
     [Export(typeof(IAnalysisIssueSelectionEvents))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class AnalysisIssueSelectionEvents : IAnalysisIssueSelectionEvents
     {
-        private IAnalysisIssue selectedIssue;
-        private IAnalysisIssueFlow selectedFlow;
-        private IAnalysisIssueLocation selectedLocation;
+        private IAnalysisIssueVisualization selectedIssue;
+        private IAnalysisIssueFlowVisualization selectedFlow;
+        private IAnalysisIssueLocationVisualization selectedLocation;
 
         public event EventHandler<IssueChangedEventArgs> SelectedIssueChanged;
         public event EventHandler<FlowChangedEventArgs> SelectedFlowChanged;
         public event EventHandler<LocationChangedEventArgs> SelectedLocationChanged;
 
-        public IAnalysisIssue SelectedIssue
+        public IAnalysisIssueVisualization SelectedIssue
         {
             get => selectedIssue;
             set
@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
             }
         }
 
-        public IAnalysisIssueFlow SelectedFlow
+        public IAnalysisIssueFlowVisualization SelectedFlow
         {
             get => selectedFlow;
             set
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
             }
         }
 
-        public IAnalysisIssueLocation SelectedLocation
+        public IAnalysisIssueLocationVisualization SelectedLocation
         {
             get => selectedLocation;
             set
