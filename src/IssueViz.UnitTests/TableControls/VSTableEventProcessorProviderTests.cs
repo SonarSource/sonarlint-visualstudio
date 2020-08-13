@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
@@ -29,6 +30,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
     [TestClass]
     public class VSTableEventProcessorProviderTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            // Arrange
+            var monitor = Mock.Of<IIssueTablesSelectionMonitor>();
+            var monitorExport = MefTestHelpers.CreateExport<IIssueTablesSelectionMonitor>(monitor);
+
+            // Act & Assert
+            MefTestHelpers.CheckTypeCanBeImported<VSTableEventProcessorProvider, ITableControlEventProcessorProvider>(null, new[] { monitorExport });
+        }
+
         [TestMethod]
         public void GetProcessor_NullTableControl_ReturnsNull()
         {
