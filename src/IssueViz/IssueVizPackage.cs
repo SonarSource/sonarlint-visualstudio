@@ -18,23 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Threading;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
+using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
+namespace SonarLint.VisualStudio.IssueVisualization
 {
-    [Guid("bb3677d1-3b5c-45a3-8a3a-897108c3ba28")]
-    public class IssueVisualizationToolWindow : ToolWindowPane
+    [ExcludeFromCodeCoverage]
+    [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [Guid(PackageGuidString)]
+    // TODO: change the context of AutoLoad
+    [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
+    public sealed class IssueVizPackage : AsyncPackage
     {
-        public IssueVisualizationToolWindow()
-        {
-            Caption = "SonarLint Issue Visualization";
+        public const string PackageGuidString = "7afd8a4c-7458-4a7d-ad05-1b578a93c3be";
 
-            var viewModel = new IssueVisualizationViewModel(new AnalysisIssueSelectionService());
-            
-            Content = new IssueVisualizationControl(viewModel);
+        protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         }
     }
 }

@@ -21,9 +21,9 @@
 using System;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
+namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
-    internal interface IAnalysisIssueSelectionEvents : IDisposable
+    internal interface IAnalysisIssueSelectionService : IDisposable
     {
         event EventHandler<IssueChangedEventArgs> SelectedIssueChanged;
         event EventHandler<FlowChangedEventArgs> SelectedFlowChanged;

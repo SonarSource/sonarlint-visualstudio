@@ -24,13 +24,13 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.SelectionEvents;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
     internal sealed class IssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
-        private readonly IAnalysisIssueSelectionEvents selectionEvents;
+        private readonly IAnalysisIssueSelectionService selectionEvents;
 
         private IAnalysisIssueVisualization currentIssue;
         private IAnalysisIssueFlowVisualization currentFlow;
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool isBindingUpdatedInControl;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionEvents selectionEvents)
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents)
         {
             this.selectionEvents = selectionEvents;
 

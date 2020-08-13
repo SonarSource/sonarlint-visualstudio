@@ -1,11 +1,26 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project>
+
+  <!-- The VSSDK targets need to be imported after the Net.Sdk targets which means we  have to import the
+       .NET.Sdk targets using Import rather than specifying it as the Sdk in the Project element. -->
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+
+  <PropertyGroup>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <ProjectGuid>{94130D79-3F30-47B1-9C3F-0769E57D1F4D}</ProjectGuid>
-	<RootNamespace>SonarLint.VisualStudio.IssueVisualization</RootNamespace>
+    <RootNamespace>SonarLint.VisualStudio.IssueVisualization</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.IssueVisualization</AssemblyName>
     <RequiresSigning>true</RequiresSigning>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+
+    <!-- Vsix -->
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +37,7 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +52,10 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Drawing" />
     <Reference Include="WindowsBase" />
+    <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 
 </Project>

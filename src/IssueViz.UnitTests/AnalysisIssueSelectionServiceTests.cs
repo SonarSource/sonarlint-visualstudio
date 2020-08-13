@@ -22,20 +22,20 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.SelectionEvents;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 {
     [TestClass]
-    public class AnalysisIssueSelectionEventsTests
+    public class AnalysisIssueSelectionServiceTests
     {
-        private AnalysisIssueSelectionEvents testSubject;
+        private AnalysisIssueSelectionService testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new AnalysisIssueSelectionEvents();
+            testSubject = new AnalysisIssueSelectionService();
         }
 
         [TestMethod]

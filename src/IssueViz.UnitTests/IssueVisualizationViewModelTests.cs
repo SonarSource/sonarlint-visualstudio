@@ -24,20 +24,20 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.SelectionEvents;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 {
     [TestClass]
     public class IssueVisualizationViewModelTests
     {
-        private Mock<IAnalysisIssueSelectionEvents> selectionEventsMock;
+        private Mock<IAnalysisIssueSelectionService> selectionEventsMock;
         private IssueVisualizationViewModel testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            selectionEventsMock = new Mock<IAnalysisIssueSelectionEvents>();
+            selectionEventsMock = new Mock<IAnalysisIssueSelectionService>();
             testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object);
         }
 
