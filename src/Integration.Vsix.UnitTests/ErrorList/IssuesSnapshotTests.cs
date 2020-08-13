@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 using DaemonSeverity = Sonarlint.Issue.Types.Severity;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -67,61 +68,61 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Line()
+        public void GetValue_Line()
         {
             GetValue(StandardTableKeyNames.Line).Should().Be(12);
         }
 
         [TestMethod]
-        public void Column()
+        public void GetValue_Column()
         {
             GetValue(StandardTableKeyNames.Column).Should().Be(25 - 10);
         }
 
         [TestMethod]
-        public void Path()
+        public void GetValue_Path()
         {
             GetValue(StandardTableKeyNames.DocumentName).Should().Be(issue.FilePath);
         }
 
         [TestMethod]
-        public void Message()
+        public void GetValue_Message()
         {
             GetValue(StandardTableKeyNames.Text).Should().Be(issue.Message);
         }
 
         [TestMethod]
-        public void ErrorCode()
+        public void GetValue_ErrorCode()
         {
             GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issue.RuleKey);
         }
 
         [TestMethod]
-        public void Severity()
+        public void GetValue_Severity()
         {
             GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
         }
 
         [TestMethod]
-        public void BuildTool()
+        public void GetValue_BuildTool()
         {
             GetValue(StandardTableKeyNames.BuildTool).Should().Be("SonarLint");
         }
 
         [TestMethod]
-        public void ErrorRank_Other()
+        public void GetValue_ErrorRank_Other()
         {
             GetValue(StandardTableKeyNames.ErrorRank).Should().Be(ErrorRank.Other);
         }
 
         [TestMethod]
-        public void ErrorCategory_Is_CodeSmell_By_Default()
+        public void GetValue_ErrorCategory_Is_CodeSmell_By_Default()
         {
             GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
         }
 
         [TestMethod]
-        public void ErrorCategory_Is_Issue_Type()
+        public void GetValue_ErrorCategory_Is_Issue_Type()
         {
             issue.Type = AnalysisIssueType.Bug;
             issue.Severity = AnalysisIssueSeverity.Blocker;
@@ -133,14 +134,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ErrorCodeToolTip()
+        public void GetValue_ErrorCodeToolTip()
         {
             issue.RuleKey = "javascript:123";
             GetValue(StandardTableKeyNames.ErrorCodeToolTip).Should().Be("Open description of rule javascript:123");
         }
 
         [TestMethod]
-        public void HelpLink()
+        public void GetValue_HelpLink()
         {
             issue.RuleKey = "javascript:123";
             GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
@@ -157,9 +158,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectName()
+        public void GetValue_ProjectName()
         {
             GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
+        }
+
+        [TestMethod]
+        public void GetValue_Issue()
+        {
+            GetValue(SonarLintTableControlConstants.IssueColumnName).Should().BeSameAs(issue);
         }
 
         [TestMethod]
