@@ -18,55 +18,47 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.IssueVisualization.TableControls
 {
     /// <summary>
-    /// Singleton that processes "selected issue changed" events from multiple different
+    /// Handles issue selection changes from table controls
+    /// </summary>
+    internal interface IIssueTablesSelectionMonitor
+    {
+        void SelectionChanged(IAnalysisIssue analysisIssue);
+    }
+
+    /// <summary>
+    /// Singleton that processes "selected issue changed" notifications from multiple different
     /// table sources
     /// </summary>
-    [Export(typeof(IssueTablesSelectionMonitor))]
+    [Export(typeof(IIssueTablesSelectionMonitor))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    public class IssueTablesSelectionMonitor : IIssueTablesSelectionMonitor
+    internal class IssueTablesSelectionMonitor : IIssueTablesSelectionMonitor
     {
         private readonly ILogger logger;
-        private readonly ISet<IIssueTableEventSource> eventSources;
 
         [ImportingConstructor]
         public IssueTablesSelectionMonitor(ILogger logger)
         {
             this.logger = logger;
-            eventSources = new HashSet<IIssueTableEventSource>();
         }
 
-        void IIssueTablesSelectionMonitor.AddEventSource(IIssueTableEventSource source)
+        void IIssueTablesSelectionMonitor.SelectionChanged(IAnalysisIssue selectedIssue)
         {
-            if (source == null)
-            {
-                return;
-            }
-
-            lock(eventSources)
-            {
-                eventSources.Add(source);
-                source.SelectedIssueChanged += OnSelectedIssueChanged;
-            }
-        }
-
-        private void OnSelectedIssueChanged(object sender, IssueTableSelectionChangedEventArgs e)
-        {
-            // TODO - process the selection changed event.
+            // TODO - process the selection changed notification.
             // For now, dump the output
-            if (e.SelectedIssue == null)
+            if (selectedIssue == null)
             {
                 logger.WriteLine("OnSelectedIssueChanged: null");
             }
             else
             {
-                logger.WriteLine($"OnSelectedIssueChanged: RuleKey: {e.SelectedIssue.RuleKey}, Position: [{e.SelectedIssue.StartLine}, {e.SelectedIssue.StartLineOffset}]->[{e.SelectedIssue.EndLine}, {e.SelectedIssue.EndLineOffset}] File: {e.SelectedIssue.FilePath}");
+                logger.WriteLine($"OnSelectedIssueChanged: RuleKey: {selectedIssue.RuleKey}, Position: [{selectedIssue.StartLine}, {selectedIssue.StartLineOffset}]->[{selectedIssue.EndLine}, {selectedIssue.EndLineOffset}] File: {selectedIssue.FilePath}");
             }
         }
     }

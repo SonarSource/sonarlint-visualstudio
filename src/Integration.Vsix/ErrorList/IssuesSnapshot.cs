@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 // Not a visible field - returns the issue object
-                case VSTableEventProcessorProvider.SonarLintIssueColumnName:
+                case SonarLintTableControlConstants.IssueColumnName:
                     content = this.issueMarkers[index].Issue;
                     return true;
                 default:
