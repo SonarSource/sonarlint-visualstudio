@@ -31,6 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid(PackageGuidString)]
+    // TODO: change the context of AutoLoad
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     public sealed class IssueVizPackage : AsyncPackage
     {
