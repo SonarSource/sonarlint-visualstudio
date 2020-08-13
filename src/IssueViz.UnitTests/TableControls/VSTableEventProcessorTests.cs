@@ -185,6 +185,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragEnter(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragLeave(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragOver(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDrop(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessGiveFeedback(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseDown(null, null));
@@ -194,15 +195,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeftButtonUp(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseMove(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonUp(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseUp(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseWheel(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessNavigate(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessNavigateToHelp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessQueryContinueDrag(null, null));
 
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragEnter(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragLeave(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragOver(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDrop(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessGiveFeedback(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseDown(null, null));
@@ -212,11 +215,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeftButtonUp(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseMove(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonUp(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseUp(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseWheel(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessNavigate(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessNavigateToHelp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessQueryContinueDrag(null, null));
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessSelectionChanged(null));
 
             CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreviewKeyDown(null));

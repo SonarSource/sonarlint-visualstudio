@@ -1,5 +1,5 @@
 ﻿/*
- * SonarQube Client
+ * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
