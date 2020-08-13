@@ -8,18 +8,9 @@
     <RequiresSigning>true</RequiresSigning>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="System.ComponentModel.Composition" />
   <ItemGroup Label="Framework references">
     <Reference Include="System.ComponentModel.Composition" />
-    <!--<Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />-->
     <Reference Include="PresentationCore" />
-    <!--<Reference Include="PresentationFramework" />-->
   </ItemGroup>
 
   <ItemGroup>
