@@ -41,17 +41,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         [TestMethod]
         public void GetProcessor_ReturnsNewProcessorInstanceForEachCall()
         {
+            var mockTable = Mock.Of<IWpfTableControl>();
             var monitorMock = new Mock<IIssueTablesSelectionMonitor>();
             var testSubject = (ITableControlEventProcessorProvider)new VSTableEventProcessorProvider(monitorMock.Object);
 
             // First call
-            var processor1 = testSubject.GetAssociatedEventProcessor(Mock.Of<IWpfTableControl>());
+            var processor1 = testSubject.GetAssociatedEventProcessor(mockTable);
             processor1.Should().NotBeNull();
-            monitorMock.Verify(x => x.AddEventSource((IIssueTableEventSource)processor1), Times.Once);
 
-            var processor2 = testSubject.GetAssociatedEventProcessor(Mock.Of<IWpfTableControl>());
+            // Second call
+            var processor2 = testSubject.GetAssociatedEventProcessor(mockTable);
             processor2.Should().NotBeNull();
-            monitorMock.Verify(x => x.AddEventSource((IIssueTableEventSource)processor2), Times.Once);
 
             processor1.Should().NotBeSameAs(processor2);
         }

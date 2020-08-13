@@ -36,15 +36,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     // We can specify multiple data source types and data source i.e. the same provider can be used for
     // multiple table controls/sources
     [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
-    [DataSource("SonarLint")] // Must be the same as SonarErrorListDataSource.Identifier.
-    public class VSTableEventProcessorProvider : ITableControlEventProcessorProvider
+    [DataSource(SonarLintTableControlConstants.ErrorListDataSourceIdentifier)]
+    internal class VSTableEventProcessorProvider : ITableControlEventProcessorProvider
     {
-        public const string SonarLintIssueColumnName = "SonarLintIssue";
-
         private readonly IIssueTablesSelectionMonitor issueTableSelectionMonitor;
 
         [ImportingConstructor]
-        public VSTableEventProcessorProvider(IIssueTablesSelectionMonitor issueTableSelectionMonitor)
+        internal VSTableEventProcessorProvider(IIssueTablesSelectionMonitor issueTableSelectionMonitor)
         {
             this.issueTableSelectionMonitor = issueTableSelectionMonitor;
         }
@@ -56,48 +54,39 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
                 return null;
             }
 
-            var eventProcessor = new EventProcessor(tableControl, issueTableSelectionMonitor);
-            issueTableSelectionMonitor.AddEventSource(eventProcessor);
-
-            return eventProcessor;
+            return new EventProcessor(tableControl, issueTableSelectionMonitor);
         }
 
         /// <summary>
         /// Filters and processes events from a specific WPF table, raising the higher-level "selected issue changed"
         /// changed when appropriate.
         /// </summary>
-        private class EventProcessor :
-            ITableControlEventProcessor, // acts a sink for events from a TableDataControl
-            IIssueTableEventSource      // ... and as a source of events for the issue table selection monitor
+        internal /* for testing */ class EventProcessor : ITableControlEventProcessor
         {
             private readonly IWpfTableControl wpfTableControl;
-            private readonly IIssueTablesSelectionMonitor errorListSelectionMonitor;
-
-            public event System.EventHandler<IssueTableSelectionChangedEventArgs> SelectedIssueChanged;
+            private readonly IIssueTablesSelectionMonitor selectionMonitor;
 
             public EventProcessor(IWpfTableControl wpfTableControl, IIssueTablesSelectionMonitor errorListSelectionMonitor)
             {
                 this.wpfTableControl = wpfTableControl;
-                this.errorListSelectionMonitor = errorListSelectionMonitor;
+                this.selectionMonitor = errorListSelectionMonitor;
             }
 
             void ITableControlEventProcessor.PostprocessSelectionChanged(TableSelectionChangedEventArgs e)
             {
                 try
                 {
-
                     IAnalysisIssue selectedIssue = null;
 
                     if (wpfTableControl.SelectedEntries.Count() == 1 &&
                         wpfTableControl.SelectedEntry.TryGetSnapshot(out var snapshot, out var index) &&
-                        snapshot.TryGetValue(index, SonarLintIssueColumnName, out var issueObject) &&
+                        snapshot.TryGetValue(index, SonarLintTableControlConstants.IssueColumnName, out var issueObject) &&
                         issueObject is IAnalysisIssue issueFromTable)
                     {
                         selectedIssue = issueFromTable;
                     }
 
-                    SelectedIssueChanged?.Invoke(this, new IssueTableSelectionChangedEventArgs(selectedIssue));
-
+                    selectionMonitor.SelectionChanged(selectedIssue);
                 }
                 catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
