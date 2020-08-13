@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -152,6 +153,76 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             SanityCheckSnapshotAccessedOnce();
         }
 
+        [TestMethod]
+        public void SelectionChanged_NonCriticalExceptionIsSuppressed()
+        {
+            mockTable.Setup(x => x.SelectedEntries).Throws(new InvalidOperationException());
+
+            CheckDoesNotThrowOrCallMonitor(SimulatePostProcessEvent);
+        }
+
+        [TestMethod]
+        public void SelectionChanged_CriticalExceptionIsNotSuppressed()
+        {
+            mockTable.Setup(x => x.SelectedEntries).Throws(new StackOverflowException());
+
+            Action act = SimulatePostProcessEvent;
+
+            act.Should().ThrowExactly<StackOverflowException>();
+            CheckMonitorIsNotCalled();
+        }
+
+        [TestMethod]
+        public void UnusedEvent_DoNotCallMonitor()
+        {
+            // ITableControlEventProcessor.PostprocessSelectionChanged should be the only event we handle
+
+            var tableControlProcess = ((ITableControlEventProcessor)testSubject);
+
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.KeyDown(null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.KeyUp(null));
+
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragEnter(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDrop(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessGiveFeedback(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseEnter(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeftButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeftButtonUp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseMove(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseUp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseWheel(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessNavigate(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessNavigateToHelp(null, null));
+
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragEnter(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDrop(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessGiveFeedback(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseEnter(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeave(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeftButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeftButtonUp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseMove(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseUp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseWheel(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessNavigate(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessNavigateToHelp(null, null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessSelectionChanged(null));
+
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreviewKeyDown(null));
+            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreviewKeyUp(null));
+        }
+
         private void SetSelectedEntryCount(int numberOfEntries)
         {
             var dummySelectedEntries = new ITableEntryHandle[numberOfEntries];
@@ -171,7 +242,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             mockSnapshot.Setup(x => x.TryGetValue(ValidRowIndex, SonarLintTableControlConstants.IssueColumnName, out objectToReturn))
                 .Returns(resultToReturn);
 
-
         private void SimulatePostProcessEvent()
         {
             ((ITableControlEventProcessor)testSubject).PostprocessSelectionChanged(new TableSelectionChangedEventArgs(null));
@@ -183,6 +253,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             mockMonitor.VerifyNoOtherCalls();
         }
 
+        private void CheckMonitorIsNotCalled()
+        {
+            mockMonitor.Verify(x => x.SelectionChanged(It.IsAny<IAnalysisIssue>()), Times.Never);
+            mockMonitor.VerifyNoOtherCalls();
+        }
+
         // Sanity check that a test didn't get as far as using the snapshot
         private void SanityCheckSnapshotNotAccessed() =>
             mockSnapshot.Invocations.Count.Should().Be(0);
@@ -190,5 +266,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         // Sanity check that a test at least got as far as using the snapshot
         private void SanityCheckSnapshotAccessedOnce() =>
             mockSnapshot.Invocations.Count.Should().Be(1);
+
+        private void CheckDoesNotThrowOrCallMonitor(Action act)
+        {
+            act.Should().NotThrow();
+            CheckMonitorIsNotCalled();
+        }
     }
 }
