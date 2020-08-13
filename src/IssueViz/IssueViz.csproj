@@ -11,6 +11,7 @@
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <ProjectGuid>{94130D79-3F30-47B1-9C3F-0769E57D1F4D}</ProjectGuid>
+  <RootNamespace>SonarLint.VisualStudio.IssueVisualization</RootNamespace>
     <RootNamespace>SonarLint.VisualStudio.IssueVisualization</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.IssueVisualization</AssemblyName>
     <RequiresSigning>true</RequiresSigning>
@@ -22,6 +23,11 @@
     <CopyVsixManifestToOutput>false</CopyVsixManifestToOutput>
 
   </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="PresentationCore" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Remove="Commands\Resources\CommandIcons.png" />
@@ -43,6 +49,8 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
   </ItemGroup>
 
@@ -59,6 +67,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="WindowsBase" />
     <Reference Include="System.ComponentModel.Composition" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

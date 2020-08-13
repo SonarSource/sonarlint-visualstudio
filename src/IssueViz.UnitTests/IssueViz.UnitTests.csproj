@@ -12,7 +12,13 @@
     <AssemblyName>SonarLint.VisualStudio.IssueVisualization.UnitTests</AssemblyName>
 
   </PropertyGroup>
-  
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+
   <ItemGroup Label="Test framework">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
@@ -21,7 +27,7 @@
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\IssueViz\IssueViz.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
