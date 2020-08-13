@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -28,12 +30,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
     [Guid("bb3677d1-3b5c-45a3-8a3a-897108c3ba28")]
     public class IssueVisualizationToolWindow : ToolWindowPane
     {
-        public IssueVisualizationToolWindow()
+        public IssueVisualizationToolWindow(IServiceProvider serviceProvider) : base(null)
         {
             Caption = "SonarLint Issue Visualization";
 
-            var viewModel = new IssueVisualizationViewModel(new AnalysisIssueSelectionService());
-            
+            var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var selectionService = componentModel.GetService<IAnalysisIssueSelectionService>();
+
+            var viewModel = new IssueVisualizationViewModel(selectionService);
             Content = new IssueVisualizationControl(viewModel);
         }
     }

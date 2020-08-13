@@ -22,24 +22,36 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.IssueVisualization.Commands;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization
 {
     [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [Guid(PackageGuidString)]
-    // TODO: change the context of AutoLoad
-    [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
+    [Guid("4F3D7D24-648B-4F3B-ACB0-B83AFE239210")]
+    [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style=VsDockStyle.Float)]
     public sealed class IssueVizPackage : AsyncPackage
     {
-        public const string PackageGuidString = "7afd8a4c-7458-4a7d-ad05-1b578a93c3be";
-
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await IssueVisualizationToolWindowCommand.InitializeAsync(this);
+            await IssueVisualizationTestCommand.InitializeAsync(this);
+        }
+
+        protected override WindowPane InstantiateToolWindow(Type toolWindowType)
+        {
+            if (toolWindowType == typeof(IssueVisualizationToolWindow))
+            {
+                return new IssueVisualizationToolWindow(this);
+            }
+
+            return base.InstantiateToolWindow(toolWindowType);
         }
     }
 }
