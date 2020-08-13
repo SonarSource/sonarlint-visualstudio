@@ -23,11 +23,11 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.SelectionEvents
+namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
-    [Export(typeof(IAnalysisIssueSelectionEvents))]
+    [Export(typeof(IAnalysisIssueSelectionService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class AnalysisIssueSelectionEvents : IAnalysisIssueSelectionEvents
+    internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionService
     {
         private IAnalysisIssueVisualization selectedIssue;
         private IAnalysisIssueFlowVisualization selectedFlow;
