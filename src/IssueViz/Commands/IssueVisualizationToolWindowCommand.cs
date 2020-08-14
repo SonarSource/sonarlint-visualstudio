@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
@@ -55,7 +56,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
-            var logger = await package.GetServiceAsync(typeof(ILogger)) as ILogger;
+            var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            var logger = componentModel.GetService<ILogger>(); 
 
             Instance = new IssueVisualizationToolWindowCommand(package, commandService, logger);
         }

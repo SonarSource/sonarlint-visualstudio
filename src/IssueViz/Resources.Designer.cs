@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error in displaying Visualization Tool Window: {0}.
+        ///   Looks up a localized string similar to Error displaying Visualization Tool Window: {0}.
         /// </summary>
         internal static string ERR_VisualizationToolWindow_Exception {
             get {
@@ -70,11 +70,20 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error in displaying Visualization Tool Window: cannot create window frame.
+        ///   Looks up a localized string similar to Error displaying Visualization Tool Window: cannot create window frame.
         /// </summary>
         internal static string ERR_VisualizationToolWindow_NoFrame {
             get {
                 return ResourceManager.GetString("ERR_VisualizationToolWindow_NoFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;SonarLint Issue Visualization&quot;.
+        /// </summary>
+        internal static string IssueVisualizationToolWindowCaption {
+            get {
+                return ResourceManager.GetString("IssueVisualizationToolWindowCaption", resourceCulture);
             }
         }
     }
