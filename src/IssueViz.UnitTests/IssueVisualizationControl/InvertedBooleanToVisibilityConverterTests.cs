@@ -24,7 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
 {
     [TestClass]
     public class InvertedBooleanToVisibilityConverterTests

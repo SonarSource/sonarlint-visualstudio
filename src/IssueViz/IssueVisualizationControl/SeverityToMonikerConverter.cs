@@ -22,12 +22,14 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
+    [ValueConversion(typeof(AnalysisIssueSeverity), typeof(ImageMoniker))]
     public class SeverityToMonikerConverter : IValueConverter
     {
         private readonly IAnalysisSeverityToVsSeverityConverter analysisSeverityToVsSeverityConverter;

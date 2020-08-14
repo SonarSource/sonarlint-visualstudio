@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
 {
     [TestClass]
     public class IssueVisualizationViewModelTests
