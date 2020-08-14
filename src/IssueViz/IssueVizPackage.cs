@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("4F3D7D24-648B-4F3B-ACB0-B83AFE239210")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style=VsDockStyle.Float)]
+    [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Float)]
     public sealed class IssueVizPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -41,7 +41,6 @@ namespace SonarLint.VisualStudio.IssueVisualization
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await IssueVisualizationToolWindowCommand.InitializeAsync(this);
-            await IssueVisualizationTestCommand.InitializeAsync(this);
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)

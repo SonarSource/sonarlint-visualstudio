@@ -22,14 +22,6 @@
         </Strings>
       </Button>
 
-      <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationTestCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
-        <Icon guid="guidImages" id="bmpSonarQube" />
-        <Strings>
-          <ButtonText>Populate Visualization ToolWindow</ButtonText>
-        </Strings>
-      </Button>
-
     </Buttons>
 
     <Bitmaps>
@@ -46,7 +38,6 @@
     <GuidSymbol name="guidIssueVizPackageCmdSet" value="{FDEF405A-28C2-4AFD-A37B-49EF2B0D142E}">
       <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
       <IDSymbol name="IssueVisualizationToolWindowCommandId" value="0x0100" />
-      <IDSymbol name="IssueVisualizationTestCommandId" value="0x0101" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{DA8715CC-ADBA-45C7-BBB3-DBAA608EF40A}" >
