@@ -15,7 +15,7 @@
     <Buttons>
 
       <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
+        <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="guidImages" id="bmpSonarQube" />
         <Strings>
           <ButtonText>SonarLint Issue Visualization</ButtonText>

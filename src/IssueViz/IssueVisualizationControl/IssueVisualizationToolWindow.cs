@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
     {
         public IssueVisualizationToolWindow(IServiceProvider serviceProvider) : base(null)
         {
-            Caption = "SonarLint Issue Visualization";
+            Caption = Resources.IssueVisualizationToolWindowCaption;
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var selectionService = componentModel.GetService<IAnalysisIssueSelectionService>();
