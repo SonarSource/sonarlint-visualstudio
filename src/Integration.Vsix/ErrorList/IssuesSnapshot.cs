@@ -20,11 +20,10 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -42,28 +41,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string projectName;
         private readonly string filePath;
         private readonly int versionNumber;
+        private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
-        private readonly IEnvironmentSettings environmentSettings;
 
         public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
 
         internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
-            : this(projectName, filePath, versionNumber, issueMarkers, new EnvironmentSettings())
+            : this(projectName, filePath, versionNumber, issueMarkers, new AnalysisSeverityToVsSeverityConverter())
         {
         }
 
-        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers,
-            IEnvironmentSettings environmentSettings)
+        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter)
         {
             this.projectName = projectName;
             this.filePath = filePath;
             this.versionNumber = versionNumber;
+            this.toVsSeverityConverter = toVsSeverityConverter;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
-
-            this.environmentSettings = environmentSettings;
         }
 
         public override int Count => this.issueMarkers.Count;
@@ -103,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    content = ToVsErrorCategory(this.issueMarkers[index].Issue.Severity);
+                    content = toVsSeverityConverter.Convert(this.issueMarkers[index].Issue.Severity);
                     return true;
 
                 case StandardTableKeyNames.BuildTool:
@@ -142,29 +139,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 default:
                     content = null;
                     return false;
-            }
-        }
-
-        internal /* for testing */ __VSERRORCATEGORY ToVsErrorCategory(AnalysisIssueSeverity severity)
-        {
-            switch (severity)
-            {
-                case AnalysisIssueSeverity.Info:
-                case AnalysisIssueSeverity.Minor:
-                    return __VSERRORCATEGORY.EC_MESSAGE;
-
-                case AnalysisIssueSeverity.Major:
-                case AnalysisIssueSeverity.Critical:
-                    return __VSERRORCATEGORY.EC_WARNING;
-
-                case AnalysisIssueSeverity.Blocker:
-                    return environmentSettings.TreatBlockerSeverityAsError() ? __VSERRORCATEGORY.EC_ERROR : __VSERRORCATEGORY.EC_WARNING;
-
-                default:
-                    // We don't want to throw here - we're being called by VS to populate
-                    // the columns in the error list, and if we're on a UI thread then
-                    // we'll crash VS
-                    return __VSERRORCATEGORY.EC_MESSAGE;
             }
         }
 
