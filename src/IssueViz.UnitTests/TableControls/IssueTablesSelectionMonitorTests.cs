@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         }
 
         [TestMethod]
-        public void SelectionChanged_ValidISsue_SelectedIssueIsSetCorrectly()
+        public void SelectionChanged_ValidIssue_SelectedIssueIsSetCorrectly()
         {
             var mockSelectionService = new Mock<IAnalysisIssueSelectionService>();
             var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
