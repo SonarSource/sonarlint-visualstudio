@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public string DisplayName => "SonarLint";
 
-        public string Identifier => "SonarLint";
+        public string Identifier => SonarLintTableControlConstants.ErrorListDataSourceIdentifier;
 
         public string SourceTypeIdentifier => StandardTableDataSources.ErrorTableDataSource;
 

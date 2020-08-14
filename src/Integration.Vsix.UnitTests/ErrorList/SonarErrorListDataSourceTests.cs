@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
@@ -56,6 +57,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
             mockTableManager.Verify(x => x.AddSource(testSubject, It.IsAny<string[]>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void DataSourceIdentifierIsCorrect()
+        {
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+
+            testSubject.Identifier.Should().Be(SonarLintTableControlConstants.ErrorListDataSourceIdentifier);
         }
 
         [TestMethod]

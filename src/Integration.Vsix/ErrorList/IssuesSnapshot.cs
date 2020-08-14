@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -132,6 +133,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 case StandardTableKeyNames.ProjectName:
                     content = projectName;
+                    return true;
+
+                // Not a visible field - returns the issue object
+                case SonarLintTableControlConstants.IssueColumnName:
+                    content = this.issueMarkers[index].Issue;
                     return true;
                 default:
                     content = null;
