@@ -18,10 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
@@ -33,11 +37,62 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         public void MefCtor_CheckIsExported()
         {
             // Arrange
-            var logger = Mock.Of<ILogger>();
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(logger);
+            var selectionService = Mock.Of<IAnalysisIssueSelectionService>();
+            var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(selectionService);
+
+            var converter = Mock.Of<IAnalysisIssueVisualizationConverter>();
+            var converterExport = MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(converter);
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<IssueTablesSelectionMonitor, IIssueTablesSelectionMonitor>(null, new[] { loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<IssueTablesSelectionMonitor, IIssueTablesSelectionMonitor>(null, new[] { selectionServiceExport, converterExport });
+        }
+
+        [TestMethod]
+        public void SelectionChanged_NullIssue_SelectedIssueIsSetToNull()
+        {
+            var mockSelectionService = new Mock<IAnalysisIssueSelectionService>();
+            var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+
+            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(mockSelectionService.Object, mockConverter.Object);
+            testSubject.SelectionChanged(null);
+
+            CheckExpectedValuePassedToService(mockSelectionService, expectedValue: null);
+            mockConverter.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void SelectionChanged_ValidISsue_SelectedIssueIsSetCorrectly()
+        {
+            var mockSelectionService = new Mock<IAnalysisIssueSelectionService>();
+            var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+
+            var originalAnalysisIssue = Mock.Of<IAnalysisIssue>();
+            var visIssue = Mock.Of<IAnalysisIssueVisualization>();
+            mockConverter.Setup(x => x.Convert(originalAnalysisIssue)).Returns(visIssue);
+
+            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(mockSelectionService.Object, mockConverter.Object);
+            testSubject.SelectionChanged(originalAnalysisIssue);
+
+            CheckExpectedValuePassedToService(mockSelectionService, expectedValue: visIssue);
+            mockConverter.Invocations.Count.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void SelectionChanged_NullIssue_ExceptionsArePropagated()
+        {
+            var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            mockConverter.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>())).Throws<ArgumentOutOfRangeException>();
+            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(Mock.Of<IAnalysisIssueSelectionService>(), mockConverter.Object);
+
+            Action act = () => testSubject.SelectionChanged(Mock.Of<IAnalysisIssue>());
+
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>();
+        }
+
+        private static void CheckExpectedValuePassedToService(Mock<IAnalysisIssueSelectionService> selectionService, IAnalysisIssueVisualization expectedValue)
+        {
+            selectionService.VerifySet(x => x.SelectedIssue = expectedValue, Times.Once);
+            selectionService.VerifyNoOtherCalls();
         }
     }
 }
