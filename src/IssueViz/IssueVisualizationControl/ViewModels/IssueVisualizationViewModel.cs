@@ -23,6 +23,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -31,16 +33,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     internal sealed class IssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly IAnalysisIssueSelectionService selectionEvents;
+        private readonly IVsImageService2 vsImageService;
 
         private IAnalysisIssueVisualization currentIssue;
         private IAnalysisIssueFlowVisualization currentFlow;
         private LocationListItem currentLocation;
 
-        private bool isBindingUpdatedInControl;
+        private bool isBindingUpdatedOutsideOfControl;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents)
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService)
         {
             this.selectionEvents = selectionEvents;
+            this.vsImageService = vsImageService;
 
             selectionEvents.SelectedIssueChanged += SelectionEvents_SelectedIssueChanged;
             selectionEvents.SelectedFlowChanged += SelectionEventsOnSelectedFlowChanged;
@@ -48,6 +52,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         }
 
         public string Description => currentIssue?.Issue?.Message;
+
+        public string RuleKey => currentIssue?.Issue?.RuleKey;
+
+        public bool IsMultiFlow => currentIssue?.Flows?.Count > 1;
+
+        public AnalysisIssueSeverity Severity => currentIssue?.Issue?.Severity ?? AnalysisIssueSeverity.Info;
 
         public IAnalysisIssueVisualization CurrentIssue
         {
@@ -66,16 +76,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 currentFlow = value;
 
-                if (isBindingUpdatedInControl)
-                {
-                    selectionEvents.SelectedFlow = currentFlow;
-                }
-                else
+                if (isBindingUpdatedOutsideOfControl)
                 {
                     OnPropertyChanged(nameof(CurrentFlow));
 
                     LocationListItems = BuildLocationListItems(currentFlow);
                     OnPropertyChanged(nameof(LocationListItems));
+                }
+                else
+                {
+                    selectionEvents.SelectedFlow = currentFlow;
                 }
             }
         }
@@ -89,13 +99,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 currentLocation = value;
 
-                if (isBindingUpdatedInControl)
+                if (isBindingUpdatedOutsideOfControl)
                 {
-                    selectionEvents.SelectedLocation = currentLocation?.Location;
+                    OnPropertyChanged(nameof(CurrentLocationListItem));
                 }
                 else
                 {
-                    OnPropertyChanged(nameof(CurrentLocationListItem));
+                    selectionEvents.SelectedLocation = currentLocation?.Location;
                 }
             }
         }
@@ -107,14 +117,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void SelectionEventsOnSelectedFlowChanged(object sender, FlowChangedEventArgs e)
         {
-            isBindingUpdatedInControl = false;
+            isBindingUpdatedOutsideOfControl = true;
 
             CurrentFlow = e.Flow;
+
+            isBindingUpdatedOutsideOfControl = false;
         }
 
         private void SelectionEvents_SelectedLocationChanged(object sender, LocationChangedEventArgs e)
         {
-            isBindingUpdatedInControl = false;
+            isBindingUpdatedOutsideOfControl = true;
 
             if (e.Location == null)
             {
@@ -128,9 +140,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 CurrentLocationListItem = selectedLocationListItem;
             }
+
+            isBindingUpdatedOutsideOfControl = false;
         }
 
-        private static IReadOnlyList<ILocationListItem> BuildLocationListItems(IAnalysisIssueFlowVisualization flow)
+        private IReadOnlyList<ILocationListItem> BuildLocationListItems(IAnalysisIssueFlowVisualization flow)
         {
             var listItems = new List<ILocationListItem>();
             var flowLocations = flow?.Locations.ToList();
@@ -140,8 +154,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 for (var i = 0; i < flowLocations.Count; i++)
                 {
                     var filePath = flowLocations[i].Location.FilePath;
+                    var fileIcon = vsImageService.GetImageMonikerForFile(filePath);
                     
-                    listItems.Add(new FileNameLocationListItem(Path.GetFileName(filePath)));
+                    listItems.Add(new FileNameLocationListItem(Path.GetFileName(filePath), fileIcon));
 
                     var sequentialLocations = flowLocations.Skip(i).TakeWhile(x => x.Location.FilePath == filePath).ToList();
                     listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem)new LocationListItem(x)));

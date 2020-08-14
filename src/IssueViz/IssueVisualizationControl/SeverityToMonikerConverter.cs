@@ -20,18 +20,42 @@
 
 using System;
 using System.Globalization;
-using System.Windows;
 using System.Windows.Data;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
-    public class InvertedBooleanToVisibilityConverter : IValueConverter
+    public class SeverityToMonikerConverter : IValueConverter
     {
+        private readonly IAnalysisSeverityToVsSeverityConverter analysisSeverityToVsSeverityConverter;
+
+        public SeverityToMonikerConverter()
+            : this(new AnalysisSeverityToVsSeverityConverter())
+        {
+        }
+
+        internal SeverityToMonikerConverter(IAnalysisSeverityToVsSeverityConverter analysisSeverityToVsSeverityConverter)
+        {
+            this.analysisSeverityToVsSeverityConverter = analysisSeverityToVsSeverityConverter;
+        }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var flag = (bool)value;
+            var severity = (AnalysisIssueSeverity)value;
+            var vsSeverity = analysisSeverityToVsSeverityConverter.Convert(severity);
 
-            return flag ? Visibility.Collapsed : Visibility.Visible;
+            switch (vsSeverity)
+            {
+                case __VSERRORCATEGORY.EC_ERROR:
+                    return KnownMonikers.StatusError;
+                case __VSERRORCATEGORY.EC_WARNING:
+                    return KnownMonikers.StatusWarning;
+                default:
+                    return KnownMonikers.StatusInformation;
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

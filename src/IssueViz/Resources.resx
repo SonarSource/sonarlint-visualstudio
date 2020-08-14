@@ -124,6 +124,6 @@
     <value>Error displaying Visualization Tool Window: cannot create window frame</value>
   </data>
   <data name="IssueVisualizationToolWindowCaption" xml:space="preserve">
-    <value>"SonarLint Issue Visualization"</value>
+    <value>SonarLint Issue Visualization</value>
   </data>
 </root>

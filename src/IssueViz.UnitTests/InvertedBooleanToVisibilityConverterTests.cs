@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
     public class InvertedBooleanToVisibilityConverterTests
     {
         [TestMethod]
-        [DataRow(true, Visibility.Hidden)]
+        [DataRow(true, Visibility.Collapsed)]
         [DataRow(false, Visibility.Visible)]
         public void Convert_ConvertsBooleanToInvertedVisibility(bool value, Visibility expectedVisibility)
         {

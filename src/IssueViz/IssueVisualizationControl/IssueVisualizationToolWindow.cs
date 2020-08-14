@@ -22,6 +22,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -36,8 +37,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var selectionService = componentModel.GetService<IAnalysisIssueSelectionService>();
+            var imageService = serviceProvider.GetService(typeof(SVsImageService)) as IVsImageService2;
 
-            var viewModel = new IssueVisualizationViewModel(selectionService);
+            var viewModel = new IssueVisualizationViewModel(selectionService, imageService);
             Content = new IssueVisualizationControl(viewModel);
         }
     }

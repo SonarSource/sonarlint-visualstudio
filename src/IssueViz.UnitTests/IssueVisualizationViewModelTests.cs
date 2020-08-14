@@ -19,6 +19,7 @@
  */
 
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -32,13 +33,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
     public class IssueVisualizationViewModelTests
     {
         private Mock<IAnalysisIssueSelectionService> selectionEventsMock;
+        private Mock<IVsImageService2> imageServiceMock;
+
         private IssueVisualizationViewModel testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
             selectionEventsMock = new Mock<IAnalysisIssueSelectionService>();
-            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object);
+            imageServiceMock = new Mock<IVsImageService2>();
+            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object);
         }
 
         [TestMethod]

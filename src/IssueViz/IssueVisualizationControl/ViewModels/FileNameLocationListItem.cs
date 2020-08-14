@@ -18,15 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
     internal sealed class FileNameLocationListItem : ILocationListItem
     {
         public string FileName { get; }
+        public object Icon { get; }
 
-        public FileNameLocationListItem(string fileName)
+        public FileNameLocationListItem(string fileName, object icon)
         {
             FileName = fileName;
+            Icon = icon;
         }
     }
 }

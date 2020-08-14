@@ -4,9 +4,19 @@
              xmlns:shell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
              xmlns:viewModels="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels"
              xmlns:visualization="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:utilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}" x:ClassModifier="internal">
     <UserControl.Resources>
+        <utilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
         <visualization:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+        <visualization:SeverityToMonikerConverter x:Key="SeverityToMonikerConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+        <!-- Base styles -->
+
         <Style x:Key="BaseTextBlockStyle" TargetType="TextBlock">
             <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
             <Setter Property="TextTrimming" Value="None"/>
@@ -15,37 +25,96 @@
             <Setter Property="FontSize" Value="{DynamicResource {x:Static shell:VsFonts.EnvironmentFontSizeKey}}"/>
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static shell:VsFonts.EnvironmentFontFamilyKey}}"/>
         </Style>
-        <Style x:Key="TitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-            <Setter Property="Margin" Value="5,5,5,5"></Setter>
+
+        <Style x:Key="BaseTitleTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
             <Setter Property="FontSize" Value="{DynamicResource {x:Static shell:VsFonts.CaptionFontSizeKey}}"/>
             <Setter Property="FontFamily" Value="{DynamicResource {x:Static shell:VsFonts.CaptionFontFamilyKey}}"/>
             <Setter Property="FontWeight" Value="{DynamicResource {x:Static shell:VsFonts.EnvironmentBoldFontWeightKey}}"/>
         </Style>
-        <Style x:Key="LocationTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+
+        <Style x:Key="BaseNumberInShapeTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="{DynamicResource {x:Static shell:VsFonts.EnvironmentBoldFontWeightKey}}"/>
+        </Style>
+
+        <Style x:Key="BaseShapeStyle" TargetType="Shape">
+            <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMenuIconBackgroundKey}}"/>
+            <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMenuBorderKey}}"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
-                    <Setter Property="FontStyle" Value="Italic" />
-                    <Setter Property="FontWeight" Value="Regular" />
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarTextInactiveKey}}"/>
+                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedKey}}"/>
+                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedBorderKey}}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Viewbox}}}" Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconKey}}"/>
+                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
+                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconKey}}"/>
+                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="FileNameTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource LocationTextBlockStyle}">
-            <Setter Property="FontWeight" Value="{DynamicResource {x:Static shell:VsFonts.EnvironmentBoldFontWeightKey}}"/>
-        </Style>
-        <Style x:Key="ListViewStyle" TargetType="ListView">
+
+        <Style x:Key="BaseListViewStyle" TargetType="ListView">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Margin" Value="5,0,0,0"/>
             <Setter Property="SelectionMode" Value="Single"/>
         </Style>
-        <Style x:Key="ListViewItemStyle" TargetType="ListViewItem">
+
+        <!-- Overlay and Data grid styles -->
+
+        <Style x:Key="OverlayTextStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTitleTextBlockStyle}">
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.FileTabInactiveTextKey}}" />
+        </Style>
+
+        <Style x:Key="OverlayGridStyle" TargetType="Grid">
+            <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.FileTabInactiveDocumentBorderBackgroundKey}}" />
+            <Setter Property="Visibility" Value="Collapsed" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentIssue, TargetNullValue=1}" Value="1">
+                    <Setter Property="Grid.Visibility" Value="Visible"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DataFlowGridStyle" TargetType="Grid">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding CurrentIssue, TargetNullValue=1}" Value="1">
+                    <Setter Property="Grid.Visibility" Value="Collapsed"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Data grid items styles -->
+
+        <Style x:Key="IssueDescriptionDockPanelStyle" TargetType="DockPanel">
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <Style x:Key="SplitterStyle" TargetType="GridSplitter">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+
+        <Style x:Key="FlowRectangleStyle" TargetType="Rectangle" BasedOn="{StaticResource BaseShapeStyle}">
+            <Setter Property="RadiusX" Value="1"/>
+            <Setter Property="RadiusY" Value="1"/>
+            <Setter Property="StrokeThickness" Value="1"/>
+        </Style>
+
+        <Style x:Key="LocationsListViewItemStyle" TargetType="ListViewItem">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Padding" Value="3"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListViewItem}">
-                        <Border BorderBrush="{DynamicResource {x:Static shell:VsBrushes.ActiveBorderKey}}" 
-                                BorderThickness="0,0.3,0,0.3" 
+                        <Border BorderThickness="0" 
                                 Background="{TemplateBinding Background}" 
                                 Padding="{TemplateBinding Padding}" 
                                 SnapsToDevicePixels="true">
@@ -61,7 +130,7 @@
                 <DataTrigger x:Name="FileNameListItemStyleTrigger" Binding="{Binding Path=Location}" Value="{x:Null}">
                     <Setter Property="IsEnabled" Value="False"/>
                     <Setter Property="IsSelected" Value="False"/>
-                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMenuSeparatorKey}}"/>
+                    <Setter Property="IsHitTestVisible" Value="False"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
                     <Setter Property="IsSelected" Value="False"/>
@@ -71,106 +140,78 @@
                     <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
                 </DataTrigger>
                 <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.DebuggerDataTipInactiveHighlightKey}}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.DebuggerDataTipInactiveHighlightKey}}" />
+                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedBorderKey}}" />
                 </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background">
-                        <Setter.Value>
-                            <SolidColorBrush Color="{DynamicResource {x:Static shell:VsColors.StartPageTextControlLinkSelectedHoverKey}}" Opacity="0.3"/>
-                        </Setter.Value>
-                    </Setter>
+                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="LocationStackPanelStyle" TargetType="StackPanel">
-            <Setter Property="Margin" Value="8,-10,0,0" />
-        </Style>
-        <Style x:Key="IndexTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
-            <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="FontWeight" Value="{DynamicResource {x:Static shell:VsFonts.EnvironmentBoldFontWeightKey}}"/>
-        </Style>
-        <Style x:Key="BaseShapeStyle" TargetType="Shape">
-            <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMenuIconBackgroundKey}}"/>
-            <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.BrandedUIBorderKey}}"/>
-        </Style>
-        <Style x:Key="LocationEllipseStyle" TargetType="Ellipse" BasedOn="{StaticResource BaseShapeStyle}">
+
+        <!-- Location List Item styles -->
+
+        <Style x:Key="BaseLocationItemTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
+            <Setter Property="Margin" Value="5,0,0,0"/>
+            <Setter Property="Padding" Value="1"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceRedMediumKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceRedDarkKey}}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Viewbox}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceRedLightKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceRedDarkKey}}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceRedLightKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceRedDarkKey}}"/>
+                <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
+                    <Setter Property="FontStyle" Value="Italic" />
+                    <Setter Property="FontWeight" Value="Regular" />
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarTextInactiveKey}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="FlowRectangleStyle" TargetType="Rectangle" BasedOn="{StaticResource BaseShapeStyle}">
-            <Setter Property="RadiusX" Value="1"/>
-            <Setter Property="RadiusY" Value="1"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedBorderKey}}"/>
-                    <Setter Property="StrokeThickness" Value="1"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Viewbox}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverKey}}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverKey}}"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="WarningPolygonStyle" TargetType="Polygon">
-            <Setter Property="Stretch" Value="UniformToFill"/>
-            <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.VizSurfaceGoldMediumKey}}"/>
-        </Style>
-        <Style x:Key="SplitterStyle" TargetType="GridSplitter">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-        </Style>
-        <Style x:Key="OverlayTextStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleTextBlockStyle}">
-            <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.FileTabInactiveTextKey}}" />
-        </Style>
-        <Style x:Key="OverlayGridStyle" TargetType="Grid">
-            <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.FileTabInactiveDocumentBorderBackgroundKey}}" />
-            <Setter Property="Visibility" Value="Hidden" />
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding CurrentIssue, TargetNullValue=1}" Value="1">
-                    <Setter Property="Grid.Visibility" Value="Visible"/>
-                </DataTrigger>
-            </Style.Triggers>
+
+        <Style x:Key="FileNameLocationListItemTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTitleTextBlockStyle}">
+            <Setter Property="Margin" Value="5,0,0,0"/>
+            <Setter Property="Padding" Value="1"/>
         </Style>
     </UserControl.Resources>
-    <Grid>
+    <Grid UseLayoutRounding="True" 
+          theming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
         <Grid x:Name="Overlay" Style="{StaticResource OverlayGridStyle}" Panel.ZIndex="1000">
             <TextBlock Style="{StaticResource OverlayTextStyle}" Text="Please select an issue from the Error List" />
         </Grid>
-        <Grid x:Name="DataFlow">
+
+        <Grid x:Name="DataFlow" Style="{StaticResource DataFlowGridStyle}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="30"/>
-                <RowDefinition Height="3" />
-                <RowDefinition Height="*"/>
+                <RowDefinition Name="IssueDescriptionRow" Height="Auto" />
+                <RowDefinition Name="FlowListRow" Height="Auto"/>
+                <RowDefinition Name="SplitterRow" Height="Auto"/>
+                <RowDefinition Name="LocationsListRow" Height="*" />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Style="{StaticResource TitleTextBlockStyle}" Text="{Binding Description}" />
-            <ListView Grid.Row="1" 
-                      Grid.Column="0" 
+
+            <DockPanel Name="IssueDescription" 
+                       Grid.Row="0"
+                       Style="{StaticResource IssueDescriptionDockPanelStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <imaging:CrispImage Grid.Column="0" 
+                                        Height="16" Width="16"
+                                        Moniker="{Binding Severity, Converter={StaticResource SeverityToMonikerConverter}, Mode=OneWay}" 
+                                        Margin="0,0,5,0"/>
+                    <TextBlock Grid.Column="1" Style="{StaticResource BaseTextBlockStyle}">
+                        <Run Text="{Binding Description, Mode=OneWay}"/>
+                        <Hyperlink ToolTip="{Binding RuleKey, StringFormat={}(Open description of rule {0}), Mode=OneWay}">
+                            <Run Text="{Binding RuleKey, StringFormat={}({0}), Mode=OneWay}" />
+                        </Hyperlink>
+                    </TextBlock>
+                </Grid>
+            </DockPanel>
+
+            <ListView Name="FlowsList" 
+                      Grid.Row="1" 
+                      Visibility="{Binding IsMultiFlow, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
                       ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
-                      Style="{StaticResource ListViewStyle}"
+                      Style="{StaticResource BaseListViewStyle}"
                       ItemsSource="{Binding CurrentIssue.Flows}" 
                       SelectedItem="{Binding CurrentFlow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                       SelectedIndex="0">
@@ -184,42 +225,67 @@
                         <Viewbox Width="20" Height="20">
                             <Grid Width="20" Height="20">
                                 <Rectangle Style="{StaticResource FlowRectangleStyle}"/>
-                                <TextBlock Style="{StaticResource IndexTextBlockStyle}" Text="{Binding Locations.Count}" />
+                                <TextBlock Style="{StaticResource BaseNumberInShapeTextBlockStyle}" Text="{Binding FlowNumber}" />
                             </Grid>
                         </Viewbox>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
-            <GridSplitter Grid.Row="2" Style="{StaticResource SplitterStyle}" />
-            <ListView Grid.Row="3"
-                      Grid.Column="0"
-                      Style="{StaticResource ListViewStyle}"
-                      ItemContainerStyle="{StaticResource ListViewItemStyle}"
+
+            <GridSplitter Name="FlowsSplitter" 
+                          Height="2"
+                          Grid.Row="2" 
+                          ResizeDirection="Rows"
+                          Style="{StaticResource SplitterStyle}"
+                          Visibility="{Binding IsMultiFlow, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
+
+            <ListView Name="LocationsList" 
+                      Grid.Row="3"
+                      Style="{StaticResource BaseListViewStyle}"
+                      ItemContainerStyle="{StaticResource LocationsListViewItemStyle}"
                       ItemsSource="{Binding LocationListItems}"
                       SelectedItem="{Binding CurrentLocationListItem, Mode=TwoWay}">
                 <ListBox.Resources>
                     <DataTemplate DataType="{x:Type viewModels:FileNameLocationListItem}">
-                        <TextBlock Style="{StaticResource FileNameTextBlockStyle}" Text="{Binding FileName}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Name="FileType" Width="Auto"/>
+                                <ColumnDefinition Name="FileName" Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <imaging:CrispImage Grid.Column="0" 
+                                            Height="16" Width="16"
+                                            Moniker="{Binding Icon}"/>
+
+                            <TextBlock Grid.Column="1" 
+                                       Style="{StaticResource FileNameLocationListItemTextBlockStyle}" 
+                                       Text="{Binding FileName}" />
+                        </Grid>
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type viewModels:LocationListItem}">
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,10,0,10">
-                            <Viewbox Width="20" Height="20">
-                                <Grid Width="20" Height="20">
-                                    <Ellipse Style="{StaticResource LocationEllipseStyle}"/>
-                                    <TextBlock Style="{StaticResource IndexTextBlockStyle}" Text="{Binding Location.StepNumber}" />
+                        <Grid Margin="10,0,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Name="IndentIcon" Width="Auto"/>
+                                <ColumnDefinition Name="StepNumber" Width="Auto"/>
+                                <ColumnDefinition Name="Description" Width="*"/>
+                                <ColumnDefinition Name="NonNavigableWarningIcon" Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <imaging:CrispImage Grid.Column="0" 
+                                                Height="16" Width="16"
+                                                Moniker="{x:Static catalog:KnownMonikers.ExpandRight}"/>
+                            <Viewbox Grid.Column="1" Width="14" Height="14" Margin="5,0,0,0">
+                                <Grid Width="16" Height="16">
+                                    <Rectangle Style="{StaticResource FlowRectangleStyle}"/>
+                                    <TextBlock Style="{StaticResource BaseNumberInShapeTextBlockStyle}" Text="{Binding Location.StepNumber}" />
                                 </Grid>
                             </Viewbox>
-                            <StackPanel Style="{StaticResource LocationStackPanelStyle}" Orientation="Vertical">
-                                <TextBlock Style="{StaticResource LocationTextBlockStyle}" Text="{Binding Location.Location.Message}"/>
-                                <TextBlock Style="{StaticResource LocationTextBlockStyle}" Text="{Binding Location.Location.StartLine, StringFormat={}line {0}}" />
-                            </StackPanel>
-                            <Viewbox Width="15" Height="15" Visibility="{Binding Location.IsNavigable, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}">
-                                <Grid Width="15" Height="15">
-                                    <Polygon Points="10,110 60,10 110,110" Style="{StaticResource WarningPolygonStyle}"/>
-                                    <TextBlock Style="{StaticResource IndexTextBlockStyle}" Text="!" />
-                                </Grid>
-                            </Viewbox>
-                        </StackPanel>
+                            <TextBlock Grid.Column="2" 
+                                       Style="{StaticResource BaseLocationItemTextBlockStyle}" 
+                                       Text="{Binding Location.Location.Message}"/>
+                            <imaging:CrispImage Grid.Column="3"
+                                                Height="16" Width="16"
+                                                Moniker="{x:Static catalog:KnownMonikers.StatusWarningNoColor}" 
+                                                Visibility="{Binding Location.IsNavigable, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}"/>
+                        </Grid>
                     </DataTemplate>
                 </ListBox.Resources>
             </ListView>
