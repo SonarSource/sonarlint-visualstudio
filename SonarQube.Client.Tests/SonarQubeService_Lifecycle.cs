@@ -23,7 +23,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using Moq.Protected;
 using SonarQube.Client.Helpers;
 
@@ -77,7 +76,9 @@ namespace SonarQube.Client.Tests
             // Regression test for #689 - LoggingMessageHandler is disposed on disconnect
 
             // Arrange
-            messageHandler.Protected().Setup("Dispose", true);
+            var disposed = false;
+            messageHandler.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Callback(() => disposed = true);
+
             await ConnectToSonarQube();
 
             // Act. Disconnect should not throw
@@ -86,14 +87,16 @@ namespace SonarQube.Client.Tests
             // Assert
             service.IsConnected.Should().BeFalse();
             service.SonarQubeVersion.Should().BeNull();
-            messageHandler.Protected().Verify("Dispose", Times.Never(), true);
+            disposed.Should().BeFalse();
         }
 
         [TestMethod]
         public async Task Dispose_Does_Dispose_MessageHandler()
         {
             // Arrange
-            messageHandler.Protected().Setup("Dispose", true);
+            var disposed = false;
+            messageHandler.Protected().Setup("Dispose", ItExpr.IsAny<bool>()).Callback(() => disposed = true);
+
             await ConnectToSonarQube();
 
             // Act
@@ -102,7 +105,7 @@ namespace SonarQube.Client.Tests
             // Assert
             service.IsConnected.Should().BeFalse();
             service.SonarQubeVersion.Should().BeNull();
-            messageHandler.Protected().Verify("Dispose", Times.Once(), true);
+            disposed.Should().BeTrue();
         }
     }
 }
