@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
                 testLogger);
 
             // Assert
-            mockTimerFactory.VerifyAll();
+            mockTimerFactory.Verify(x => x.Create(), Times.Once);
             mockTimer.VerifySet(t => t.AutoReset = true, Times.Once);
             VerifyTimerStart(Times.Once());
             timerRunning.Should().Be(true);
