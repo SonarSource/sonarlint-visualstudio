@@ -24,6 +24,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
     internal sealed partial class IssueVisualizationControl : UserControl
     {
+        public object ViewModel { get; }
+        
         public IssueVisualizationControl()
         {
             InitializeComponent();
