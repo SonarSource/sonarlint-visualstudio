@@ -20,7 +20,8 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.TableControls
 {
@@ -40,26 +41,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class IssueTablesSelectionMonitor : IIssueTablesSelectionMonitor
     {
-        private readonly ILogger logger;
+        private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IAnalysisIssueVisualizationConverter converter;
 
         [ImportingConstructor]
-        public IssueTablesSelectionMonitor(ILogger logger)
+        public IssueTablesSelectionMonitor(IAnalysisIssueSelectionService selectionService, IAnalysisIssueVisualizationConverter converter)
         {
-            this.logger = logger;
+            // Created by VS MEF -> arguments will never be null
+            this.selectionService = selectionService;
+            this.converter = converter;
         }
 
         void IIssueTablesSelectionMonitor.SelectionChanged(IAnalysisIssue selectedIssue)
         {
-            // TODO - process the selection changed notification.
-            // For now, dump the output
-            if (selectedIssue == null)
-            {
-                logger.WriteLine("OnSelectedIssueChanged: null");
-            }
-            else
-            {
-                logger.WriteLine($"OnSelectedIssueChanged: RuleKey: {selectedIssue.RuleKey}, Position: [{selectedIssue.StartLine}, {selectedIssue.StartLineOffset}]->[{selectedIssue.EndLine}, {selectedIssue.EndLineOffset}] File: {selectedIssue.FilePath}");
-            }
+            // Exception handling: assuming the caller is handling exceptions
+            var issueVisualization = selectedIssue == null ? null : converter.Convert(selectedIssue);
+            selectionService.SelectedIssue = issueVisualization;
         }
     }
 }
