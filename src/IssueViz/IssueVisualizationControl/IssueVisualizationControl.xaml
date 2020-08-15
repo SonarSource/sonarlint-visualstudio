@@ -42,9 +42,6 @@
             <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.ComboBoxBackgroundKey}}"/>
             <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.ComboBoxBorderKey}}"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Viewbox}}}" Value="True">
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.ComboBoxMouseOverBorderKey}}"/>
-                </DataTrigger>
                 <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
                     <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageButtonPinHoverKey}}"/>
                 </DataTrigger>
@@ -66,11 +63,11 @@
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.FileTabInactiveTextKey}}" />
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.InactiveCaptionTextKey}}" />
         </Style>
 
         <Style x:Key="OverlayGridStyle" TargetType="Grid">
-            <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.FileTabInactiveDocumentBorderBackgroundKey}}" />
+            <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.BrandedUIBackgroundKey}}" />
             <Setter Property="Visibility" Value="Collapsed" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding CurrentIssue, TargetNullValue=1}" Value="1">
@@ -165,6 +162,7 @@
         </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True" 
+          Background="{DynamicResource {x:Static shell:VsBrushes.BrandedUIBackgroundKey}}"
           theming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
         <Grid x:Name="Overlay" Style="{StaticResource OverlayGridStyle}" Panel.ZIndex="1000">
             <TextBlock Style="{StaticResource OverlayTextStyle}" Text="Please select an issue from the Error List" />
@@ -246,7 +244,7 @@
                                        Text="{Binding Location.Location.Message}"/>
                             <imaging:CrispImage Grid.Column="3"
                                                 Height="16" Width="16"
-                                                Moniker="{x:Static catalog:KnownMonikers.StatusWarningNoColor}" 
+                                                Moniker="{x:Static catalog:KnownMonikers.DocumentWarning}" 
                                                 Visibility="{Binding Location.IsNavigable, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}"/>
                         </Grid>
                     </DataTemplate>
