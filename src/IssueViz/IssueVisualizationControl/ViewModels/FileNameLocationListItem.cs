@@ -23,11 +23,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 {
     internal sealed class FileNameLocationListItem : ILocationListItem
     {
+        public string FullPath { get; }
         public string FileName { get; }
         public object Icon { get; }
 
-        public FileNameLocationListItem(string fileName, object icon)
+        public FileNameLocationListItem(string fullPath, string fileName, object icon)
         {
+            FullPath = fullPath;
             FileName = fileName;
             Icon = icon;
         }

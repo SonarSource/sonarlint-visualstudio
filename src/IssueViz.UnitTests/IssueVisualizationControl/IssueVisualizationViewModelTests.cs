@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using FluentAssertions;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -31,6 +32,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using DescriptionAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute;
+using ImageMoniker = Microsoft.VisualStudio.Imaging.Interop.ImageMoniker;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
 {
@@ -252,20 +254,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             eventHandler.VerifyNoOtherCalls();
         }
 
-        [TestMethod, Ignore]
-        public void SelectionService_OnFlowChanged_LocationsListUpdated()
-        {
-            var locations = new List<IAnalysisIssueLocationVisualization>();
-            var expectedLocationsList = new List<ILocationListItem>();
-
-            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
-            selectedFlow.Setup(x => x.Locations).Returns(locations);
-
-            selectionEventsMock.Raise(x => x.SelectedFlowChanged += null, new FlowChangedEventArgs(selectedFlow.Object));
-
-            testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, c=> c.WithStrictOrdering());
-        }
-
         [TestMethod]
         [Description("Verify that there is no infinite loop")]
         public void SelectionService_OnFlowChanged_SelectionServiceNotCalled()
@@ -302,6 +290,65 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             testSubject.CurrentFlow = selectedFlow;
 
             eventHandler.VerifyNoOtherCalls();
+        }
+
+        #endregion
+
+        #region Locations List
+
+        [TestMethod]
+        public void SelectionService_OnFlowChanged_LocationsListUpdated()
+        {
+            var locations = new List<IAnalysisIssueLocationVisualization>
+            {
+                CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile),
+                CreateMockLocation("c:\\c1.c", KnownMonikers.CFile),
+                CreateMockLocation("c:\\test\\c2.cpp", KnownMonikers.CPPFile),
+                CreateMockLocation("c:\\test\\c2.cpp", KnownMonikers.CPPFile),
+                CreateMockLocation("c:\\c3.h", KnownMonikers.CPPHeaderFile),
+                CreateMockLocation("c:\\c3.h", KnownMonikers.CPPHeaderFile),
+                CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile)
+            };
+
+            var expectedLocationsList = new List<ILocationListItem>
+            {
+                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", KnownMonikers.CFile),
+                new LocationListItem(locations[0]),
+                new FileNameLocationListItem("c:\\c1.c", "c1.c", KnownMonikers.CFile),
+                new LocationListItem(locations[1]),
+                new FileNameLocationListItem("c:\\test\\c2.cpp", "c2.cpp", KnownMonikers.CPPFile),
+                new LocationListItem(locations[2]),
+                new LocationListItem(locations[3]),
+                new FileNameLocationListItem("c:\\c3.h", "c3.h", KnownMonikers.CPPHeaderFile),
+                new LocationListItem(locations[4]),
+                new LocationListItem(locations[5]),
+                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", KnownMonikers.CFile),
+                new LocationListItem(locations[6]),
+            };
+
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x => x.Locations).Returns(locations);
+
+            selectionEventsMock.Raise(x => x.SelectedFlowChanged += null, new FlowChangedEventArgs(selectedFlow.Object));
+
+            testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, assertionOptions =>
+                assertionOptions
+                    .WithStrictOrdering()
+                    .RespectingRuntimeTypes()
+                    .ComparingByMembers<ImageMoniker>());
+        }
+
+        private IAnalysisIssueLocationVisualization CreateMockLocation(string filePath, object imageMoniker)
+        {
+            imageServiceMock.Setup(x => x.GetImageMonikerForFile(filePath)).Returns((ImageMoniker)imageMoniker);
+
+            var location = new Mock<IAnalysisIssueLocation>();
+            location.Setup(x => x.FilePath).Returns(filePath);
+
+            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locationViz.Setup(x => x.Location).Returns(location.Object);
+
+            return locationViz.Object;
         }
 
         #endregion

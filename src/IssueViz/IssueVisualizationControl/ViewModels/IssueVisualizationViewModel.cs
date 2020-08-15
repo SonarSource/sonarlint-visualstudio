@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     var filePath = flowLocations[i].Location.FilePath;
                     var fileIcon = vsImageService.GetImageMonikerForFile(filePath);
                     
-                    listItems.Add(new FileNameLocationListItem(Path.GetFileName(filePath), fileIcon));
+                    listItems.Add(new FileNameLocationListItem(filePath, Path.GetFileName(filePath), fileIcon));
 
                     var sequentialLocations = flowLocations.Skip(i).TakeWhile(x => x.Location.FilePath == filePath).ToList();
                     listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem)new LocationListItem(x)));

@@ -119,7 +119,6 @@
                 <DataTrigger x:Name="FileNameListItemStyleTrigger" Binding="{Binding Path=Location}" Value="{x:Null}">
                     <Setter Property="IsEnabled" Value="False"/>
                     <Setter Property="IsSelected" Value="False"/>
-                    <Setter Property="IsHitTestVisible" Value="False"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
                     <Setter Property="IsSelected" Value="False"/>
@@ -159,6 +158,8 @@
         <Style x:Key="FileNameLocationListItemTextBlockStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTitleTextBlockStyle}">
             <Setter Property="Margin" Value="5,0,0,0"/>
             <Setter Property="Padding" Value="1"/>
+            <Setter Property="ToolTipService.IsEnabled" Value="true"/>
+            <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
         </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True" 
@@ -219,6 +220,7 @@
 
                             <TextBlock Grid.Column="1" 
                                        Style="{StaticResource FileNameLocationListItemTextBlockStyle}" 
+                                       ToolTip="{Binding FullPath}"
                                        Text="{Binding FileName}" />
                         </Grid>
                     </DataTemplate>
