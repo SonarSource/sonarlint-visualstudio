@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -27,6 +30,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using DescriptionAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
 {
@@ -50,18 +54,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object);
         }
 
+        #region Description
+
         [TestMethod]
         public void Description_NoCurrentIssueVisualization_Null()
         {
-            testSubject.CurrentIssue = null;
-
             testSubject.Description.Should().BeNullOrEmpty();
         }
 
         [TestMethod]
         public void Description_CurrentIssueVisualizationHasNoAnalysisIssue_Null()
         {
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
 
             testSubject.Description.Should().BeNullOrEmpty();
         }
@@ -72,23 +77,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.Message).Returns("test message");
 
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(issue.Object);
+
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
 
             testSubject.Description.Should().Be("test message");
         }
 
+        #endregion
+
+        #region RuleKey
+
         [TestMethod]
         public void RuleKey_NoCurrentIssueVisualization_Null()
         {
-            testSubject.CurrentIssue = null;
-
             testSubject.RuleKey.Should().BeNullOrEmpty();
         }
 
         [TestMethod]
         public void RuleKey_CurrentIssueVisualizationHasNoAnalysisIssue_Null()
         {
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
 
             testSubject.RuleKey.Should().BeNullOrEmpty();
         }
@@ -99,23 +110,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.RuleKey).Returns("test RuleKey");
 
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(issue.Object);
+
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
 
             testSubject.RuleKey.Should().Be("test RuleKey");
         }
 
+        #endregion
+
+        #region RuleHelpLink
+
         [TestMethod]
         public void RuleHelpLink_NoCurrentIssueVisualization_Null()
         {
-            testSubject.CurrentIssue = null;
-
             testSubject.RuleHelpLink.Should().BeNullOrEmpty();
         }
 
         [TestMethod]
         public void RuleHelpLink_CurrentIssueVisualizationHasNoAnalysisIssue_Null()
         {
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
 
             testSubject.RuleHelpLink.Should().BeNullOrEmpty();
         }
@@ -128,23 +145,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             helpLinkProviderMock.Setup(x => x.GetHelpLink("test RuleKey")).Returns("test link");
 
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(issue.Object);
+
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
 
             testSubject.RuleHelpLink.Should().Be("test link");
         }
 
+        #endregion
+
+        #region Severity
+
         [TestMethod]
         public void Severity_NoCurrentIssueVisualization_DefaultSeverity()
         {
-            testSubject.CurrentIssue = null;
-
             testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
         }
 
         [TestMethod]
         public void Severity_CurrentIssueVisualizationHasNoAnalysisIssue_DefaultSeverity()
         {
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
 
             testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
         }
@@ -155,9 +178,155 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.Severity).Returns(AnalysisIssueSeverity.Blocker);
 
-            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(issue.Object);
+
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
 
             testSubject.Severity.Should().Be(AnalysisIssueSeverity.Blocker);
         }
+
+        #endregion
+
+        #region Issue changed
+
+        [TestMethod]
+        public void SelectionService_OnIssueChanged_CallsNotifyPropertyChangedWithNullProperty()
+        {
+            testSubject.CurrentIssue.Should().BeNull();
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
+
+            testSubject.CurrentIssue.Should().Be(selectedIssue);
+
+            eventHandler.Verify(x =>
+                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == null)),
+                Times.Once);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [Description("Verify that there is no infinite loop")]
+        public void SelectionService_OnIssueChanged_SelectionServiceNotCalledAgain()
+        {
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+
+            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
+
+            selectionEventsMock.VerifyNoOtherCalls();
+        }
+
+        #endregion
+
+        #region Flow changed
+
+        [TestMethod]
+        public void SelectionService_OnFlowChanged_CallsNotifyPropertyChanged()
+        {
+            testSubject.CurrentFlow.Should().BeNull();
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x=> x.Locations).Returns(Array.Empty<IAnalysisIssueLocationVisualization>());
+
+            selectionEventsMock.Raise(x => x.SelectedFlowChanged += null, new FlowChangedEventArgs(selectedFlow.Object));
+
+            testSubject.CurrentFlow.Should().Be(selectedFlow.Object);
+
+            eventHandler.Verify(x=> 
+                x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == nameof(testSubject.CurrentFlow))), 
+                Times.Once);
+
+            eventHandler.Verify(x =>
+                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == nameof(testSubject.LocationListItems))),
+                Times.Once);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod, Ignore]
+        public void SelectionService_OnFlowChanged_LocationsListUpdated()
+        {
+            var locations = new List<IAnalysisIssueLocationVisualization>();
+            var expectedLocationsList = new List<ILocationListItem>();
+
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x => x.Locations).Returns(locations);
+
+            selectionEventsMock.Raise(x => x.SelectedFlowChanged += null, new FlowChangedEventArgs(selectedFlow.Object));
+
+            testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, c=> c.WithStrictOrdering());
+        }
+
+        [TestMethod]
+        [Description("Verify that there is no infinite loop")]
+        public void SelectionService_OnFlowChanged_SelectionServiceNotCalled()
+        {
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x => x.Locations).Returns(Array.Empty<IAnalysisIssueLocationVisualization>());
+
+            selectionEventsMock.Raise(x => x.SelectedFlowChanged += null, new FlowChangedEventArgs(selectedFlow.Object));
+
+            selectionEventsMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void CurrentFlow_OnFlowChanged_SelectionServiceCalled()
+        {
+            selectionEventsMock.VerifySet(x => x.SelectedFlow = It.IsAny<IAnalysisIssueFlowVisualization>(), Times.Never());
+
+            var selectedFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
+            testSubject.CurrentFlow = selectedFlow;
+
+            selectionEventsMock.VerifySet(x => x.SelectedFlow = selectedFlow, Times.Once());
+
+            selectionEventsMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [Description("Updating the property will call selectionService, which will raise an event that leads to NotifyPropertyChanged")]
+        public void CurrentFlow_OnFlowChanged_DoesNotCallNotifyPropertyChanged()
+        {
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            var selectedFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
+            testSubject.CurrentFlow = selectedFlow;
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        #endregion
+
+        #region Location changed
+
+        #endregion
+
+        #region Dispose
+
+        [TestMethod]
+        public void Dispose_UnregisterFromSelectionServiceEvents()
+        {
+            selectionEventsMock.SetupRemove(m => m.SelectedIssueChanged -= (sender, args) => { });
+            selectionEventsMock.SetupRemove(m => m.SelectedFlowChanged -= (sender, args) => { });
+            selectionEventsMock.SetupRemove(m => m.SelectedLocationChanged -= (sender, args) => { });
+           
+            testSubject.Dispose();
+
+            selectionEventsMock.VerifyRemove(x=> x.SelectedIssueChanged -= It.IsAny<EventHandler<IssueChangedEventArgs>>(), Times.Once);
+            selectionEventsMock.VerifyRemove(x=> x.SelectedFlowChanged -= It.IsAny<EventHandler<FlowChangedEventArgs>>(), Times.Once);
+            selectionEventsMock.VerifyRemove(x=> x.SelectedLocationChanged -= It.IsAny<EventHandler<LocationChangedEventArgs>>(), Times.Once);
+            selectionEventsMock.Verify(x=> x.Dispose(), Times.Once);
+        }
+
+        #endregion
     }
 }

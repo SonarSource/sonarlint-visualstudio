@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public IAnalysisIssueVisualization CurrentIssue
         {
             get => currentIssue;
-            set
+            private set
             {
                 currentIssue = value;
                 OnPropertyChanged(null);
@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             selectionEvents.SelectedIssueChanged -= SelectionEvents_SelectedIssueChanged;
             selectionEvents.SelectedFlowChanged -= SelectionEventsOnSelectedFlowChanged;
             selectionEvents.SelectedLocationChanged -= SelectionEvents_SelectedLocationChanged;
-            selectionEvents?.Dispose();
+            selectionEvents.Dispose();
         }
     }
 }
