@@ -60,8 +60,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public string RuleHelpLink => string.IsNullOrEmpty(RuleKey) ? string.Empty : ruleHelpLinkProvider.GetHelpLink(RuleKey);
 
-        public bool IsMultiFlow => currentIssue?.Flows?.Count > 1;
-
         public AnalysisIssueSeverity Severity => currentIssue?.Issue?.Severity ?? AnalysisIssueSeverity.Info;
 
         public IAnalysisIssueVisualization CurrentIssue

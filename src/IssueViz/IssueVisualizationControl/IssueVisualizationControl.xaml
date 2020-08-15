@@ -13,7 +13,6 @@
         <utilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
         <visualization:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
         <visualization:SeverityToMonikerConverter x:Key="SeverityToMonikerConverter" />
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <!-- Base styles -->
 
@@ -40,20 +39,17 @@
         </Style>
 
         <Style x:Key="BaseShapeStyle" TargetType="Shape">
-            <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMenuIconBackgroundKey}}"/>
-            <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarMenuBorderKey}}"/>
+            <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.ComboBoxBackgroundKey}}"/>
+            <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.ComboBoxBorderKey}}"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedBorderKey}}"/>
-                </DataTrigger>
                 <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Viewbox}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}"/>
+                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.ComboBoxMouseOverBorderKey}}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Fill" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconKey}}"/>
-                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}"/>
+                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageButtonPinHoverKey}}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
+                    <Setter Property="Stroke" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageButtonPinHoverKey}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -98,11 +94,7 @@
             <Setter Property="Margin" Value="5"/>
         </Style>
 
-        <Style x:Key="SplitterStyle" TargetType="GridSplitter">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-        </Style>
-
-        <Style x:Key="FlowRectangleStyle" TargetType="Rectangle" BasedOn="{StaticResource BaseShapeStyle}">
+        <Style x:Key="StepNumberRectangleStyle" TargetType="Rectangle" BasedOn="{StaticResource BaseShapeStyle}">
             <Setter Property="RadiusX" Value="1"/>
             <Setter Property="RadiusY" Value="1"/>
             <Setter Property="StrokeThickness" Value="1"/>
@@ -139,13 +131,13 @@
                     <Setter Property="ToolTipService.IsEnabled" Value="true"/>
                     <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
                 </DataTrigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedKey}}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarSelectedBorderKey}}" />
-                </Trigger>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageSelectedItemBackgroundKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageSelectedItemBackgroundKey}}" />
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -160,6 +152,9 @@
                     <Setter Property="FontStyle" Value="Italic" />
                     <Setter Property="FontWeight" Value="Regular" />
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarTextInactiveKey}}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageSelectedItemStrokeKey}}"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -181,8 +176,6 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Name="IssueDescriptionRow" Height="Auto" />
-                <RowDefinition Name="FlowListRow" Height="Auto"/>
-                <RowDefinition Name="SplitterRow" Height="Auto"/>
                 <RowDefinition Name="LocationsListRow" Height="*" />
             </Grid.RowDefinitions>
 
@@ -209,40 +202,8 @@
                 </Grid>
             </DockPanel>
 
-            <ListView Name="FlowsList" 
-                      Grid.Row="1" 
-                      Visibility="{Binding IsMultiFlow, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"
-                      ScrollViewer.HorizontalScrollBarVisibility="Disabled" 
-                      Style="{StaticResource BaseListViewStyle}"
-                      ItemsSource="{Binding CurrentIssue.Flows}" 
-                      SelectedItem="{Binding CurrentFlow, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                      SelectedIndex="0">
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel />
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <Viewbox Width="20" Height="20">
-                            <Grid Width="20" Height="20">
-                                <Rectangle Style="{StaticResource FlowRectangleStyle}"/>
-                                <TextBlock Style="{StaticResource BaseNumberInShapeTextBlockStyle}" Text="{Binding FlowNumber}" />
-                            </Grid>
-                        </Viewbox>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
-
-            <GridSplitter Name="FlowsSplitter" 
-                          Height="2"
-                          Grid.Row="2" 
-                          ResizeDirection="Rows"
-                          Style="{StaticResource SplitterStyle}"
-                          Visibility="{Binding IsMultiFlow, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
-
             <ListView Name="LocationsList" 
-                      Grid.Row="3"
+                      Grid.Row="1"
                       Style="{StaticResource BaseListViewStyle}"
                       ItemContainerStyle="{StaticResource LocationsListViewItemStyle}"
                       ItemsSource="{Binding LocationListItems}"
@@ -276,7 +237,7 @@
                                                 Moniker="{x:Static catalog:KnownMonikers.ExpandRight}"/>
                             <Viewbox Grid.Column="1" Width="14" Height="14" Margin="5,0,0,0">
                                 <Grid Width="16" Height="16">
-                                    <Rectangle Style="{StaticResource FlowRectangleStyle}"/>
+                                    <Rectangle Style="{StaticResource StepNumberRectangleStyle}"/>
                                     <TextBlock Style="{StaticResource BaseNumberInShapeTextBlockStyle}" Text="{Binding Location.StepNumber}" />
                                 </Grid>
                             </Viewbox>
