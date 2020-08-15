@@ -33,6 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
     [TestClass]
     public class IssueVisualizationViewModelTests
     {
+        private const AnalysisIssueSeverity DefaultNullIssueSeverity = AnalysisIssueSeverity.Info;
+
         private Mock<IAnalysisIssueSelectionService> selectionEventsMock;
         private Mock<IVsImageService2> imageServiceMock;
         private Mock<IRuleHelpLinkProvider> helpLinkProviderMock;
@@ -65,7 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void Description_CurrentIssueVisualizationHasAnalysisIssue_MessageFromAnalysisIssue()
+        public void Description_CurrentIssueVisualizationHasAnalysisIssue_IssueMessage()
         {
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.Message).Returns("test message");
@@ -73,6 +75,89 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
 
             testSubject.Description.Should().Be("test message");
+        }
+
+        [TestMethod]
+        public void RuleKey_NoCurrentIssueVisualization_Null()
+        {
+            testSubject.CurrentIssue = null;
+
+            testSubject.RuleKey.Should().BeNullOrEmpty();
+        }
+
+        [TestMethod]
+        public void RuleKey_CurrentIssueVisualizationHasNoAnalysisIssue_Null()
+        {
+            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+
+            testSubject.RuleKey.Should().BeNullOrEmpty();
+        }
+
+        [TestMethod]
+        public void RuleKey_CurrentIssueVisualizationHasAnalysisIssue_IssueRuleKey()
+        {
+            var issue = new Mock<IAnalysisIssue>();
+            issue.SetupGet(x => x.RuleKey).Returns("test RuleKey");
+
+            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+
+            testSubject.RuleKey.Should().Be("test RuleKey");
+        }
+
+        [TestMethod]
+        public void RuleHelpLink_NoCurrentIssueVisualization_Null()
+        {
+            testSubject.CurrentIssue = null;
+
+            testSubject.RuleHelpLink.Should().BeNullOrEmpty();
+        }
+
+        [TestMethod]
+        public void RuleHelpLink_CurrentIssueVisualizationHasNoAnalysisIssue_Null()
+        {
+            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+
+            testSubject.RuleHelpLink.Should().BeNullOrEmpty();
+        }
+
+        [TestMethod]
+        public void RuleHelpLink_CurrentIssueVisualizationHasAnalysisIssue_RuleHelpLinkFromLinkProvider()
+        {
+            var issue = new Mock<IAnalysisIssue>();
+            issue.SetupGet(x => x.RuleKey).Returns("test RuleKey");
+
+            helpLinkProviderMock.Setup(x => x.GetHelpLink("test RuleKey")).Returns("test link");
+
+            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+
+            testSubject.RuleHelpLink.Should().Be("test link");
+        }
+
+        [TestMethod]
+        public void Severity_NoCurrentIssueVisualization_DefaultSeverity()
+        {
+            testSubject.CurrentIssue = null;
+
+            testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
+        }
+
+        [TestMethod]
+        public void Severity_CurrentIssueVisualizationHasNoAnalysisIssue_DefaultSeverity()
+        {
+            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, null);
+
+            testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
+        }
+
+        [TestMethod]
+        public void Severity_CurrentIssueVisualizationHasAnalysisIssue_IssueSeverity()
+        {
+            var issue = new Mock<IAnalysisIssue>();
+            issue.SetupGet(x => x.Severity).Returns(AnalysisIssueSeverity.Blocker);
+
+            testSubject.CurrentIssue = new AnalysisIssueVisualization(null, issue.Object);
+
+            testSubject.Severity.Should().Be(AnalysisIssueSeverity.Blocker);
         }
     }
 }
