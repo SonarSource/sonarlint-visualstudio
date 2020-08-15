@@ -45,7 +45,6 @@
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="16.0.28729" />
   </ItemGroup>
 
   <ItemGroup Label="Project references">
