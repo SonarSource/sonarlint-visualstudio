@@ -200,7 +200,9 @@
                                         Margin="0,0,5,0"/>
                     <TextBlock Grid.Column="1" Style="{StaticResource BaseTextBlockStyle}">
                         <Run Text="{Binding Description, Mode=OneWay}"/>
-                        <Hyperlink ToolTip="{Binding RuleKey, StringFormat={}(Open description of rule {0}), Mode=OneWay}">
+                        <Hyperlink NavigateUri="{Binding RuleHelpLink}" 
+                                   RequestNavigate="Hyperlink_OnRequestNavigate"
+                                   ToolTip="{Binding RuleKey, StringFormat={}(Open description of rule {0}), Mode=OneWay}">
                             <Run Text="{Binding RuleKey, StringFormat={}({0}), Mode=OneWay}" />
                         </Hyperlink>
                     </TextBlock>

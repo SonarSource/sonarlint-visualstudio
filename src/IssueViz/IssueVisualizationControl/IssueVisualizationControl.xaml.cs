@@ -20,6 +20,8 @@
 
 using System;
 using System.Windows.Controls;
+using System.Windows.Navigation;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
@@ -38,6 +40,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
         public void Dispose()
         {
             ViewModel?.Dispose();
+        }
+
+        private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
+        {
+            if (e.Uri == null)
+            {
+                return;
+            }
+
+            VsShellUtilities.OpenSystemBrowser(e.Uri.AbsoluteUri);
+            e.Handled = true;
         }
     }
 }

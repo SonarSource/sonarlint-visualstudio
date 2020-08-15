@@ -24,6 +24,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -34,6 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     {
         private readonly IAnalysisIssueSelectionService selectionEvents;
         private readonly IVsImageService2 vsImageService;
+        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         private IAnalysisIssueVisualization currentIssue;
         private IAnalysisIssueFlowVisualization currentFlow;
@@ -41,10 +43,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool isBindingUpdatedOutsideOfControl;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService)
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.selectionEvents = selectionEvents;
             this.vsImageService = vsImageService;
+            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
 
             selectionEvents.SelectedIssueChanged += SelectionEvents_SelectedIssueChanged;
             selectionEvents.SelectedFlowChanged += SelectionEventsOnSelectedFlowChanged;
@@ -54,6 +57,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public string Description => currentIssue?.Issue?.Message;
 
         public string RuleKey => currentIssue?.Issue?.RuleKey;
+
+        public string RuleHelpLink => string.IsNullOrEmpty(RuleKey) ? string.Empty : ruleHelpLinkProvider.GetHelpLink(RuleKey);
 
         public bool IsMultiFlow => currentIssue?.Flows?.Count > 1;
 

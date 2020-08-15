@@ -23,6 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             var selectionService = componentModel.GetService<IAnalysisIssueSelectionService>();
             var imageService = serviceProvider.GetService(typeof(SVsImageService)) as IVsImageService2;
 
-            var viewModel = new IssueVisualizationViewModel(selectionService, imageService);
+            var viewModel = new IssueVisualizationViewModel(selectionService, imageService, new RuleHelpLinkProvider());
             Content = new IssueVisualizationControl(viewModel);
         }
     }
