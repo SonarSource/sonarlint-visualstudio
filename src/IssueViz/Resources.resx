@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ERR_NavigationException" xml:space="preserve">
+    <value>Error navigating Analysis Issue location: {0}</value>
+  </data>
   <data name="ERR_VisualizationToolWindow_Exception" xml:space="preserve">
     <value>Error displaying Visualization Tool Window: {0}</value>
   </data>

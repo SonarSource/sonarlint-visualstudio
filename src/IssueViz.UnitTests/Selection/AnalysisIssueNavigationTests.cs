@@ -20,8 +20,10 @@
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 {
@@ -38,6 +40,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
 
             testSubject = new AnalysisIssueNavigation(selectionServiceMock.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            var selectionService = Mock.Of<IAnalysisIssueSelectionService>();
+            var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(selectionService);
+
+            MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueNavigation, IAnalysisIssueNavigation>(null, new[] { selectionServiceExport });
         }
 
         public enum GotoDirection

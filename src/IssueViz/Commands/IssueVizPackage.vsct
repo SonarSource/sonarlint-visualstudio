@@ -22,6 +22,28 @@
         </Strings>
       </Button>
 
+      <Button guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Go to next issue location</ButtonText>
+          <CanonicalName>SonarLintGoToNextLocation</CanonicalName>
+          <LocCanonicalName>SonarLintGoToNextLocation</LocCanonicalName>
+          <CommandName>SonarLint Go to next issue location</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Go to previous issue location</ButtonText>
+          <CanonicalName>SonarLintGoToPreviousLocation</CanonicalName>
+          <LocCanonicalName>SonarLintGoToPreviousLocation</LocCanonicalName>
+          <CommandName>SonarLint Go to previous issue location</CommandName>
+        </Strings>
+      </Button>
+
     </Buttons>
 
     <Bitmaps>
@@ -29,6 +51,15 @@
     </Bitmaps>
 
   </Commands>
+
+  <!-- Short cut keybindings: see https://docs.microsoft.com/en-us/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2019 -->
+  <KeyBindings>
+    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId"
+                editor="guidVSStd97" mod1="Control" key1="VK_NUMPAD6" />
+
+    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId"
+                editor="guidVSStd97" mod1="Control" key1="VK_NUMPAD4" />
+  </KeyBindings>
 
   <Symbols>
     <!-- This is the package guid. -->
@@ -38,6 +69,8 @@
     <GuidSymbol name="guidIssueVizPackageCmdSet" value="{FDEF405A-28C2-4AFD-A37B-49EF2B0D142E}">
       <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
       <IDSymbol name="IssueVisualizationToolWindowCommandId" value="0x0100" />
+      <IDSymbol name="GotoNextLocationCommandId" value="4129" />
+      <IDSymbol name="GotoPreviousLocationCommandId" value="4130" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{DA8715CC-ADBA-45C7-BBB3-DBAA608EF40A}" >
