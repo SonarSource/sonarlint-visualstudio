@@ -28,6 +28,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -44,6 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         private Mock<IAnalysisIssueSelectionService> selectionEventsMock;
         private Mock<IVsImageService2> imageServiceMock;
         private Mock<IRuleHelpLinkProvider> helpLinkProviderMock;
+        private TestLogger logger;
         private Mock<PropertyChangedEventHandler> propertyChangedEventHandler;
 
         private IssueVisualizationViewModel testSubject;
@@ -54,9 +57,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             selectionEventsMock = new Mock<IAnalysisIssueSelectionService>();
             imageServiceMock = new Mock<IVsImageService2>();
             helpLinkProviderMock = new Mock<IRuleHelpLinkProvider>();
+            logger = new TestLogger();
             propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
 
-            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object);
+            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object, logger);
             testSubject.PropertyChanged += propertyChangedEventHandler.Object;
         }
 
@@ -288,7 +292,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         #region Locations List
 
         [TestMethod]
-        public void SelectionService_OnFlowChanged_LocationsListUpdated()
+        public void SelectionService_OnFlowChanged_FlowWithOneLocation_LocationsListUpdated()
+        {
+            var location = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile);
+
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x => x.Locations).Returns(new[]{ location });
+
+            var expectedLocationsList = new List<ILocationListItem>
+            {
+                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", KnownMonikers.CFile),
+                new LocationListItem(location)
+            };
+
+            RaiseFlowChangedEvent(selectedFlow.Object);
+
+            VerifyLocationList(expectedLocationsList);
+        }
+
+        [TestMethod]
+        public void SelectionService_OnFlowChanged_FlowWithMultipleLocations_LocationsListUpdated()
         {
             var locations = new List<IAnalysisIssueLocationVisualization>
             {
@@ -322,12 +345,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseFlowChangedEvent(selectedFlow.Object);
 
-            testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, assertionOptions =>
-                assertionOptions
-                    .WithStrictOrdering()
-                    .RespectingRuntimeTypes()
-                    .ComparingByMembers<ImageMoniker>());
+            VerifyLocationList(expectedLocationsList);
         }
+
+        [TestMethod]
+        public void SelectionService_OnFlowChanged_FailsToRetrieveFileIcon_BlankIcon()
+        {
+            var location = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile, new NotImplementedException("this is a test"));
+
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x => x.Locations).Returns(new[] { location });
+
+            var expectedIcon = KnownMonikers.Blank;
+
+            var expectedLocationsList = new List<ILocationListItem>
+            {
+                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", expectedIcon),
+                new LocationListItem(location)
+            };
+
+            RaiseFlowChangedEvent(selectedFlow.Object);
+
+            VerifyLocationList(expectedLocationsList);
+
+            logger.AssertPartialOutputStringExists("this is a test");
+            logger.OutputStrings.Count.Should().Be(1);
+        }
+
 
         #endregion
 
@@ -472,9 +516,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             propertyChangedEventHandler.VerifyNoOtherCalls();
         }
 
-        private IAnalysisIssueLocationVisualization CreateMockLocation(string filePath, object imageMoniker)
+        private IAnalysisIssueLocationVisualization CreateMockLocation(string filePath, object imageMoniker, Exception failsToRetrieveMoniker = null)
         {
-            imageServiceMock.Setup(x => x.GetImageMonikerForFile(filePath)).Returns((ImageMoniker)imageMoniker);
+            if (failsToRetrieveMoniker != null)
+            {
+                imageServiceMock
+                    .Setup(x => x.GetImageMonikerForFile(filePath))
+                    .Throws(failsToRetrieveMoniker);
+            }
+            else
+            {
+                imageServiceMock.Setup(x => x.GetImageMonikerForFile(filePath)).Returns((ImageMoniker) imageMoniker);
+            }
 
             var location = new Mock<IAnalysisIssueLocation>();
             location.Setup(x => x.FilePath).Returns(filePath);
@@ -483,6 +536,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             locationViz.Setup(x => x.Location).Returns(location.Object);
 
             return locationViz.Object;
+        }
+
+        private void VerifyLocationList(IEnumerable<ILocationListItem> expectedLocationsList)
+        {
+            testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, assertionOptions =>
+                assertionOptions
+                    .WithStrictOrdering()
+                    .RespectingRuntimeTypes()
+                    .ComparingByMembers<ImageMoniker>());
         }
     }
 }

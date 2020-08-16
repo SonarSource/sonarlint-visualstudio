@@ -23,9 +23,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -36,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         private readonly IAnalysisIssueSelectionService selectionEvents;
         private readonly IVsImageService2 vsImageService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
+        private readonly ILogger logger;
 
         private IAnalysisIssueVisualization currentIssue;
         private IAnalysisIssueFlowVisualization currentFlow;
@@ -43,11 +47,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool isBindingUpdatedOutsideOfControl;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider, ILogger logger)
         {
             this.selectionEvents = selectionEvents;
             this.vsImageService = vsImageService;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
+            this.logger = logger;
 
             selectionEvents.SelectedIssueChanged += SelectionEvents_SelectedIssueChanged;
             selectionEvents.SelectedFlowChanged += SelectionEventsOnSelectedFlowChanged;
@@ -157,8 +162,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 for (var i = 0; i < flowLocations.Count; i++)
                 {
                     var filePath = flowLocations[i].Location.FilePath;
-                    var fileIcon = vsImageService.GetImageMonikerForFile(filePath);
-                    
+                    var fileIcon = GetImageMonikerForFile(filePath);
                     listItems.Add(new FileNameLocationListItem(filePath, Path.GetFileName(filePath), fileIcon));
 
                     var sequentialLocations = flowLocations.Skip(i).TakeWhile(x => x.Location.FilePath == filePath).ToList();
@@ -169,6 +173,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
 
             return listItems;
+        }
+
+        private ImageMoniker GetImageMonikerForFile(string filePath)
+        {
+            try
+            {
+                return vsImageService.GetImageMonikerForFile(filePath);
+            }
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(Resources.ERR_FailedToGetFileImageMoniker, filePath, e);
+
+                return KnownMonikers.Blank;
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
