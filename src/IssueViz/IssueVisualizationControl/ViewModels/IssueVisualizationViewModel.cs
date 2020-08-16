@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
             else
             {
-                var selectedLocationListItem = LocationListItems
+                var selectedLocationListItem = LocationListItems?
                     .OfType<LocationListItem>()
                     .FirstOrDefault(x => x.Location == e.Location);
 
