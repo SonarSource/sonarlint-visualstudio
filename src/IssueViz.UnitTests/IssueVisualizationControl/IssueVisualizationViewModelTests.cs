@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -75,8 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestMethod]
         public void Description_CurrentIssueHasNoAnalysisIssue_Null()
         {
-            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
+            RaiseIssueChangedEvent(Mock.Of<IAnalysisIssueVisualization>());
 
             testSubject.Description.Should().BeNullOrEmpty();
         }
@@ -90,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
 
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
+            RaiseIssueChangedEvent(issueViz.Object);
 
             testSubject.Description.Should().Be("test message");
         }
@@ -108,8 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestMethod]
         public void RuleKey_CurrentIssueHasNoAnalysisIssue_Null()
         {
-            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
+            RaiseIssueChangedEvent(Mock.Of<IAnalysisIssueVisualization>());
 
             testSubject.RuleKey.Should().BeNullOrEmpty();
         }
@@ -123,7 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
 
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
+            RaiseIssueChangedEvent(issueViz.Object);
 
             testSubject.RuleKey.Should().Be("test RuleKey");
         }
@@ -141,8 +138,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestMethod]
         public void RuleHelpLink_CurrentIssueHasNoAnalysisIssue_Null()
         {
-            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
+            RaiseIssueChangedEvent(Mock.Of<IAnalysisIssueVisualization>());
 
             testSubject.RuleHelpLink.Should().BeNullOrEmpty();
         }
@@ -158,7 +154,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
 
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
+            RaiseIssueChangedEvent(issueViz.Object);
 
             testSubject.RuleHelpLink.Should().Be("test link");
         }
@@ -176,8 +172,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestMethod]
         public void Severity_CurrentIssueHasNoAnalysisIssue_DefaultSeverity()
         {
-            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(selectedIssue));
+            RaiseIssueChangedEvent(Mock.Of<IAnalysisIssueVisualization>());
 
             testSubject.Severity.Should().Be(DefaultNullIssueSeverity);
         }
@@ -191,7 +186,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
 
-            selectionEventsMock.Raise(x => x.SelectedIssueChanged += null, new IssueChangedEventArgs(issueViz.Object));
+            RaiseIssueChangedEvent(issueViz.Object);
 
             testSubject.Severity.Should().Be(AnalysisIssueSeverity.Blocker);
         }
@@ -371,7 +366,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             logger.AssertPartialOutputStringExists("this is a test");
             logger.OutputStrings.Count.Should().Be(1);
         }
-
 
         #endregion
 
