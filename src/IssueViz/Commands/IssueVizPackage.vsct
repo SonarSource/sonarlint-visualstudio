@@ -22,6 +22,28 @@
         </Strings>
       </Button>
 
+      <Button guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Go to next issue location</ButtonText>
+          <CanonicalName>SonarLintGoToNextLocation</CanonicalName>
+          <LocCanonicalName>SonarLintGoToNextLocation</LocCanonicalName>
+          <CommandName>SonarLint Go to next issue location</CommandName>
+        </Strings>
+      </Button>
+
+      <Button guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <Strings>
+          <ButtonText>Go to previous issue location</ButtonText>
+          <CanonicalName>SonarLintGoToPreviousLocation</CanonicalName>
+          <LocCanonicalName>SonarLintGoToPreviousLocation</LocCanonicalName>
+          <CommandName>SonarLint Go to previous issue location</CommandName>
+        </Strings>
+      </Button>
+
     </Buttons>
 
     <Bitmaps>
@@ -30,14 +52,37 @@
 
   </Commands>
 
+  <!-- Short cut keybindings: see https://docs.microsoft.com/en-us/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2019 -->
+  <KeyBindings>
+
+    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" editor="guidVSStd97"
+                mod1="Control Alt Shift"
+                key1="0x51"
+                mod2="Control Alt Shift"
+                key2="VK_LEFT">
+      <!-- Bind to CTRL + ALT + SHIFT + Q, CTRL + ALT + SHIFT + LeftArrow -->
+    </KeyBinding>
+
+    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" editor="guidVSStd97"
+                mod1="Control Alt Shift"
+                key1="0x51"
+                mod2="Control Alt Shift"
+                key2="VK_RIGHT">
+      <!-- Bind to CTRL + ALT + SHIFT + Q, CTRL + ALT + SHIFT + RightArrow -->
+    </KeyBinding>
+
+  </KeyBindings>
+
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidIssueVizPackage" value="{4F3D7D24-648B-4F3B-ACB0-B83AFE239210}" />
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidIssueVizPackageCmdSet" value="{FDEF405A-28C2-4AFD-A37B-49EF2B0D142E}">
-      <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
       <IDSymbol name="IssueVisualizationToolWindowCommandId" value="0x0100" />
+      <IDSymbol name="SonarLintMenuGroup" value="0x1020" />
+      <IDSymbol name="GotoNextLocationCommandId" value="0x1021" />
+      <IDSymbol name="GotoPreviousLocationCommandId" value="0x1022" />
     </GuidSymbol>
 
     <GuidSymbol name="guidImages" value="{DA8715CC-ADBA-45C7-BBB3-DBAA608EF40A}" >
