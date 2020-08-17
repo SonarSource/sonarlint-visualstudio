@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,9 +23,9 @@ using System.Globalization;
 using System.Windows;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.WPF;
+using SonarLint.VisualStudio.Core.WPF;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
+namespace SonarLint.VisualStudio.Core.UnitTests.WPF
 {
     [TestClass]
     public class BoolToVisibilityConverterTests
@@ -44,10 +44,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
         {
             var converter = new BoolToVisibilityConverter();
 
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                converter.Convert("NotABoolean", typeof(Visibility), null, CultureInfo.InvariantCulture);
-            });
+            Action act = () => converter.Convert("NotABoolean", typeof(Visibility), null, CultureInfo.InvariantCulture);
+
+            act.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
@@ -56,10 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.WPF
             var converter = new BoolToVisibilityConverter();
             var notVisibilityType = typeof(string);
 
-            Exceptions.Expect<ArgumentException>(() =>
-            {
-                converter.Convert(true, notVisibilityType, null, CultureInfo.InvariantCulture);
-            });
+            Action act = () => converter.Convert(true, notVisibilityType, null, CultureInfo.InvariantCulture);
+
+            act.Should().Throw<ArgumentException>();
         }
 
         [TestMethod]
