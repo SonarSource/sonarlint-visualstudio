@@ -2,11 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="clr-namespace:SonarLint.VisualStudio.Integration.Notifications"
-        xmlns:integration="clr-namespace:SonarLint.VisualStudio.Integration.WPF">
+        xmlns:converters="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core">
     <UserControl.Resources>
-        <integration:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <integration:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" TrueValue="Collapsed"
-                FalseValue="Visible" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:BoolToVisibilityConverter x:Key="InvertedBoolToVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
         <ControlTemplate x:Key="ImageButtonTemplate" TargetType="ToggleButton">
             <Grid x:Name="Root" Width="30" Height="16" Background="Transparent">
                 <Grid Margin="3,1,1,1" HorizontalAlignment="Left">
