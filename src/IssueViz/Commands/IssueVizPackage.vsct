@@ -57,18 +57,18 @@
 
     <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" editor="guidVSStd97"
                 mod1="Control Alt Shift"
-                key1="0x49"
+                key1="0x51"
                 mod2="Control Alt Shift"
-                key2="0x50">
-      <!-- Bind to CTRL + ALT + SHIFT + I, CTRL + ALT + SHIFT + P -->
+                key2="VK_LEFT">
+      <!-- Bind to CTRL + ALT + SHIFT + Q, CTRL + ALT + SHIFT + LeftArrow -->
     </KeyBinding>
 
     <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" editor="guidVSStd97"
                 mod1="Control Alt Shift"
-                key1="0x49"
+                key1="0x51"
                 mod2="Control Alt Shift"
-                key2="0x4E">
-      <!-- Bind to CTRL + ALT + SHIFT + I, CTRL + ALT + SHIFT + N -->
+                key2="VK_RIGHT">
+      <!-- Bind to CTRL + ALT + SHIFT + Q, CTRL + ALT + SHIFT + RightArrow -->
     </KeyBinding>
 
   </KeyBindings>
