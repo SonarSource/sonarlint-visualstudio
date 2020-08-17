@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Windows.Controls;
 using System.Windows.Navigation;
 using Microsoft.VisualStudio.Shell;
@@ -26,7 +25,7 @@ using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewMo
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
-    internal sealed partial class IssueVisualizationControl : UserControl, IDisposable
+    internal sealed partial class IssueVisualizationControl : UserControl
     {
         public IssueVisualizationViewModel ViewModel { get; }
 
@@ -35,11 +34,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             ViewModel = viewModel;
 
             InitializeComponent();
-        }
-
-        public void Dispose()
-        {
-            ViewModel?.Dispose();
         }
 
         private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)

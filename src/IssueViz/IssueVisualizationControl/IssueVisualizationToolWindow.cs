@@ -33,6 +33,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
     [Guid("bb3677d1-3b5c-45a3-8a3a-897108c3ba28")]
     public class IssueVisualizationToolWindow : ToolWindowPane
     {
+        private readonly IssueVisualizationViewModel viewModel;
+
         public IssueVisualizationToolWindow(IServiceProvider serviceProvider) : base(null)
         {
             Caption = Resources.IssueVisualizationToolWindowCaption;
@@ -42,8 +44,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             var imageService = serviceProvider.GetService(typeof(SVsImageService)) as IVsImageService2;
             var logger = componentModel.GetService<ILogger>();
 
-            var viewModel = new IssueVisualizationViewModel(selectionService, imageService, new RuleHelpLinkProvider(), logger);
+            viewModel = new IssueVisualizationViewModel(selectionService, imageService, new RuleHelpLinkProvider(), logger);
             Content = new IssueVisualizationControl(viewModel);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                viewModel.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

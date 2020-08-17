@@ -23,8 +23,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -45,6 +45,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         private IAnalysisIssueFlowVisualization currentFlow;
         private LocationListItem currentLocation;
 
+        /// <summary>
+        /// There is a two-way binding between the panel and the selectionService - this is a way to avoid the infinite recursion.
+        /// Value changed in UI --> the view model updates the property in selectionService --> selectionService raises an event of flow/location Changed --> view model listens to it and calls NotifyPropertyChanged
+        /// </summary>
         private bool isBindingUpdatedOutsideOfControl;
 
         public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider, ILogger logger)
@@ -73,7 +77,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             private set
             {
                 currentIssue = value;
-                OnPropertyChanged(null);
+                // Trigger PropertyChanged for all properties
+                OnPropertyChanged(string.Empty);
             }
         }
 
@@ -86,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 if (isBindingUpdatedOutsideOfControl)
                 {
-                    OnPropertyChanged(nameof(CurrentFlow));
+                    OnPropertyChanged();
 
                     LocationListItems = BuildLocationListItems(currentFlow);
                     OnPropertyChanged(nameof(LocationListItems));
@@ -109,7 +114,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 if (isBindingUpdatedOutsideOfControl)
                 {
-                    OnPropertyChanged(nameof(CurrentLocationListItem));
+                    OnPropertyChanged();
                 }
                 else
                 {
@@ -152,6 +157,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             isBindingUpdatedOutsideOfControl = false;
         }
 
+        /// <summary>
+        /// This method groups all sequential locations under the same file path and returns a single list with File nodes and Location nodes.
+        /// This way the UI can use different data templates to make a flat list look like a hierarchical tree.
+        /// </summary>
         private IReadOnlyList<ILocationListItem> BuildLocationListItems(IAnalysisIssueFlowVisualization flow)
         {
             var listItems = new List<ILocationListItem>();
@@ -175,7 +184,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             return listItems;
         }
 
-        private ImageMoniker GetImageMonikerForFile(string filePath)
+        private object GetImageMonikerForFile(string filePath)
         {
             try
             {
@@ -191,7 +200,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnPropertyChanged(string propertyName)
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
@@ -201,7 +210,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             selectionEvents.SelectedIssueChanged -= SelectionEvents_SelectedIssueChanged;
             selectionEvents.SelectedFlowChanged -= SelectionEventsOnSelectedFlowChanged;
             selectionEvents.SelectedLocationChanged -= SelectionEvents_SelectedLocationChanged;
-            selectionEvents.Dispose();
         }
     }
 }

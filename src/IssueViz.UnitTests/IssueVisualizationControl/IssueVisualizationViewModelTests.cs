@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.CurrentIssue.Should().Be(selectedIssue);
 
-            VerifyNotifyPropertyChanged(new string[] {null});
+            VerifyNotifyPropertyChanged("");
         }
 
         [TestMethod]
@@ -478,7 +478,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             selectionEventsMock.VerifyRemove(x=> x.SelectedIssueChanged -= It.IsAny<EventHandler<IssueChangedEventArgs>>(), Times.Once);
             selectionEventsMock.VerifyRemove(x=> x.SelectedFlowChanged -= It.IsAny<EventHandler<FlowChangedEventArgs>>(), Times.Once);
             selectionEventsMock.VerifyRemove(x=> x.SelectedLocationChanged -= It.IsAny<EventHandler<LocationChangedEventArgs>>(), Times.Once);
-            selectionEventsMock.Verify(x=> x.Dispose(), Times.Once);
+            selectionEventsMock.VerifyNoOtherCalls();
         }
 
         #endregion
@@ -537,8 +537,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, assertionOptions =>
                 assertionOptions
                     .WithStrictOrdering()
-                    .RespectingRuntimeTypes()
-                    .ComparingByMembers<ImageMoniker>());
+                    .RespectingRuntimeTypes() // check underlying types rather than ILocationListItem
+                    .ComparingByMembers<ImageMoniker>()); // check struct fields and properties
         }
     }
 }
