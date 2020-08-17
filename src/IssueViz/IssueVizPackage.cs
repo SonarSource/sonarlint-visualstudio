@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await IssueVisualizationToolWindowCommand.InitializeAsync(this);
+            await NavigationCommands.InitializeAsync(this);
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)

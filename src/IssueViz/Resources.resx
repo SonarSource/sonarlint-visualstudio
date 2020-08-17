@@ -120,6 +120,9 @@
   <data name="ERR_FailedToGetFileImageMoniker" xml:space="preserve">
     <value>Failed to get image moniker for file '{0}': {1}</value>
   </data>
+  <data name="ERR_NavigationException" xml:space="preserve">
+    <value>Error navigating to analysis issue location: {0}</value>
+  </data>
   <data name="ERR_VisualizationToolWindow_Exception" xml:space="preserve">
     <value>Error displaying Visualization Tool Window: {0}</value>
   </data>
