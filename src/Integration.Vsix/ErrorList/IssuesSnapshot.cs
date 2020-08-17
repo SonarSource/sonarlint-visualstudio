@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly string filePath;
         private readonly int versionNumber;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
+        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
@@ -49,16 +51,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
 
         internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
-            : this(projectName, filePath, versionNumber, issueMarkers, new AnalysisSeverityToVsSeverityConverter())
+            : this(projectName, filePath, versionNumber, issueMarkers, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
-        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter)
+        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.projectName = projectName;
             this.filePath = filePath;
             this.versionNumber = versionNumber;
             this.toVsSeverityConverter = toVsSeverityConverter;
+            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
         }
@@ -125,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 case StandardTableKeyNames.HelpLink:
                     string ruleKey = this.issueMarkers[index].Issue.RuleKey;
-                    content = GetHelpLink(ruleKey);
+                    content = ruleHelpLinkProvider.GetHelpLink(ruleKey);
                     return true;
 
                 case StandardTableKeyNames.ProjectName:
@@ -140,26 +143,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     content = null;
                     return false;
             }
-        }
-
-        private string GetHelpLink(string ruleKey)
-        {
-            var colonIndex = ruleKey.IndexOf(':');
-            // ruleKey is in format "javascript:S1234" (or javascript:SOMETHING for legacy keys)
-
-            // language is "javascript"
-            var language = ruleKey.Substring(0, colonIndex);
-
-            // ruleId should be "1234" (or SOMETHING for legacy keys)
-            var ruleId = ruleKey.Substring(colonIndex + 1);
-            if (ruleId.Length > 1 &&
-                ruleId[0] == 'S' &&
-                char.IsDigit(ruleId[1]))
-            {
-                ruleId = ruleId.Substring(1);
-            }
-
-            return $"https://rules.sonarsource.com/{language}/RSPEC-{ruleId}";
         }
 
         private object ToString(AnalysisIssueType type)
