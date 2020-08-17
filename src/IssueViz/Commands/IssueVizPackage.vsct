@@ -54,11 +54,23 @@
 
   <!-- Short cut keybindings: see https://docs.microsoft.com/en-us/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2019 -->
   <KeyBindings>
-    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId"
-                editor="guidVSStd97" mod1="Control" key1="VK_NUMPAD6" />
 
-    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId"
-                editor="guidVSStd97" mod1="Control" key1="VK_NUMPAD4" />
+    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" editor="guidVSStd97"
+                mod1="Control Alt Shift"
+                key1="0x49"
+                mod2="Control Alt Shift"
+                key2="0x50">
+      <!-- Bind to CTRL + ALT + SHIFT + I, CTRL + ALT + SHIFT + P -->
+    </KeyBinding>
+
+    <KeyBinding guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" editor="guidVSStd97"
+                mod1="Control Alt Shift"
+                key1="0x49"
+                mod2="Control Alt Shift"
+                key2="0x4E">
+      <!-- Bind to CTRL + ALT + SHIFT + I, CTRL + ALT + SHIFT + N -->
+    </KeyBinding>
+
   </KeyBindings>
 
   <Symbols>
