@@ -141,16 +141,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             issue.RuleKey = "javascript:123";
             GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
-            issue.RuleKey = "javascript:S123";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
-            issue.RuleKey = "javascript:SOMETHING";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-SOMETHING");
-            issue.RuleKey = "c:456";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/c/RSPEC-456");
-            issue.RuleKey = "cpp:789";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/cpp/RSPEC-789");
-            issue.RuleKey = "php:101112";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/php/RSPEC-101112");
         }
 
         [TestMethod]
