@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -23,10 +23,10 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace SonarLint.VisualStudio.Integration.WPF
+namespace SonarLint.VisualStudio.Core.WPF
 {
     [ValueConversion(typeof(bool), typeof(Visibility))]
-    internal class BoolToVisibilityConverter : IValueConverter
+    public class BoolToVisibilityConverter : IValueConverter
     {
         public Visibility TrueValue { get; set; } = Visibility.Visible;
 
