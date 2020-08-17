@@ -50,12 +50,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueNavigation, IAnalysisIssueNavigation>(null, new[] { selectionServiceExport });
         }
 
-        public enum GotoDirection
-        {
-            Next,
-            Previous
-        }
-
         [TestMethod]
         public void GotoNextLocation_NoCurrentFlow_NoNavigation()
         {
