@@ -8,10 +8,11 @@
              xmlns:catalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:theming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:utilities="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Utilities"
+             xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}" x:ClassModifier="internal">
     <UserControl.Resources>
         <utilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
-        <visualization:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+        <wpf:BoolToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
         <visualization:SeverityToMonikerConverter x:Key="SeverityToMonikerConverter" />
 
         <!-- Base styles -->
@@ -120,13 +121,6 @@
                     <Setter Property="IsEnabled" Value="False"/>
                     <Setter Property="IsSelected" Value="False"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
-                    <Setter Property="IsSelected" Value="False"/>
-                    <Setter Property="IsEnabled" Value="False"/>
-                    <Setter Property="ToolTip" Value="Cannot navigate to step. The source code is different from the analyzed version"/>
-                    <Setter Property="ToolTipService.IsEnabled" Value="true"/>
-                    <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
-                </DataTrigger>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
@@ -135,6 +129,14 @@
                     <Setter Property="Background" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageSelectedItemBackgroundKey}}"/>
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static shell:VsBrushes.StartPageSelectedItemBackgroundKey}}" />
                 </Trigger>
+                <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
+                    <Setter Property="IsSelected" Value="False"/>
+                    <Setter Property="IsEnabled" Value="False"/>
+                    <Setter Property="Focusable" Value="false"/>
+                    <Setter Property="ToolTip" Value="Cannot navigate to step. The source code is different from the analyzed version"/>
+                    <Setter Property="ToolTipService.IsEnabled" Value="true"/>
+                    <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
+                </DataTrigger>
             </Style.Triggers>
         </Style>
 
