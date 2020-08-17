@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error navigating Analysis Issue location: {0}.
+        ///   Looks up a localized string similar to Error navigating to analysis issue location: {0}.
         /// </summary>
         internal static string ERR_NavigationException {
             get {

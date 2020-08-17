@@ -23,7 +23,6 @@ using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
-using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 {
@@ -58,63 +57,71 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         }
 
         [TestMethod]
-        [DataRow(GotoDirection.Next)]
-        [DataRow(GotoDirection.Previous)]
-        public void GotoLocation_NoCurrentFlow_NoNavigation(GotoDirection direction)
+        public void GotoNextLocation_NoCurrentFlow_NoNavigation()
+        {
+            SetupCurrentFlow((IAnalysisIssueFlowVisualization) null);
+            SetupCurrentLocation(CreateLocation(1, true));
+
+            testSubject.GotoNextLocation();
+
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void GotoPreviousLocation_NoCurrentFlow_NoNavigation()
         {
             SetupCurrentFlow((IAnalysisIssueFlowVisualization)null);
             SetupCurrentLocation(CreateLocation(1, true));
 
-            if (direction == GotoDirection.Next)
-            {
-                testSubject.GotoNextLocation();
-            }
-            else
-            {
-                testSubject.GotoPreviousLocation();
-            }
+            testSubject.GotoPreviousLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        [DataRow(GotoDirection.Next)]
-        [DataRow(GotoDirection.Previous)]
-        public void GotoLocation_NoCurrentLocation_NoNavigation(GotoDirection direction)
+        public void GotoNextLocation_NoCurrentLocation_NoNavigation()
         {
             SetupCurrentFlow(CreateLocation(1, true));
             SetupCurrentLocation(null);
 
-            if (direction == GotoDirection.Next)
-            {
-                testSubject.GotoNextLocation();
-            }
-            else
-            {
-                testSubject.GotoPreviousLocation();
-            }
+            testSubject.GotoNextLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        [DataRow(GotoDirection.Next)]
-        [DataRow(GotoDirection.Previous)]
-        public void GotoLocation_FlowHasOnlyOneLocation_NoNavigation(GotoDirection direction)
+        public void GotoPreviousLocation_NoCurrentLocation_NoNavigation()
+        {
+            SetupCurrentFlow(CreateLocation(1, true));
+            SetupCurrentLocation(null);
+
+            testSubject.GotoPreviousLocation();
+
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void GotoNextLocation_FlowHasOnlyOneLocation_NoNavigation()
         {
             var location = CreateLocation(1, true);
 
             SetupCurrentFlow(location);
             SetupCurrentLocation(location);
 
-            if (direction == GotoDirection.Next)
-            {
-                testSubject.GotoNextLocation();
-            }
-            else
-            {
-                testSubject.GotoPreviousLocation();
-            }
+            testSubject.GotoNextLocation();
+
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void GotoPreviousLocation_FlowHasOnlyOneLocation_NoNavigation()
+        {
+            var location = CreateLocation(1, true);
+
+            SetupCurrentFlow(location);
+            SetupCurrentLocation(location);
+
+            testSubject.GotoPreviousLocation();
 
             VerifyNoNavigation();
         }

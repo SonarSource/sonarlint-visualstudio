@@ -31,10 +31,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 {
     internal sealed class NavigationCommands
     {
-        internal const int NextLocationCommandId = 4129;
-        internal const int PreviousLocationCommandId = 4130;
+        internal const int NextLocationCommandId = 0x1021;
+        internal const int PreviousLocationCommandId = 0x1022;
 
-        public static readonly Guid CommandSet = new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E");
+        public static readonly Guid CommandSet = Constants.CommandSetGuid;
         public static NavigationCommands Instance { get; private set; }
 
         private readonly IAnalysisIssueNavigation analysisIssueNavigation;

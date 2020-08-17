@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 {
     internal sealed class IssueVisualizationToolWindowCommand
     {
-        public static readonly Guid CommandSet = new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E");
+        public static readonly Guid CommandSet = Constants.CommandSetGuid;
         public const int CommandId = 0x0100;
 
         public static IssueVisualizationToolWindowCommand Instance { get; private set; }
