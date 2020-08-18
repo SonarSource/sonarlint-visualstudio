@@ -202,7 +202,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     startLine: x.Line,
                     endLine: x.EndLine,
                     startLineOffset: x.Column,
-                    endLineOffset: x.EndColumn
+                    endLineOffset: x.EndColumn,
+                    lineHash: null
                 ))
                 .Reverse()
                 .ToArray();
@@ -223,6 +224,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
                 endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1,
 
+                lineHash: null,
                 flows: flows
             );
         }

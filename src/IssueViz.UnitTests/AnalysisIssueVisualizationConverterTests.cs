@@ -139,6 +139,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
+                Guid.NewGuid().ToString(),
                 flows
             );
         }
@@ -156,7 +157,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
-                Guid.NewGuid().GetHashCode()
+                Guid.NewGuid().GetHashCode(),
+                Guid.NewGuid().ToString()
             );
         }
     }

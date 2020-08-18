@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             string message, string filePath,
             int startLine, int endLine,
             int startLineOffset, int endLineOffset,
+            string lineHash,
             IReadOnlyList<IAnalysisIssueFlow> flows
             )
         {
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             EndLineOffset = endLineOffset;
             FilePath = filePath;
             Message = message;
+            LineHash = lineHash;
             Flows = flows ?? EmptyFlows;
         }
 
@@ -60,6 +62,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public int StartLineOffset { get; }
 
         public int EndLineOffset { get; }
+
+        public string LineHash { get; }
 
         public string Message { get; }
 
@@ -83,7 +87,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public AnalysisIssueLocation(
             string message, string filePath,
             int startLine, int endLine,
-            int startLineOffset, int endLineOffset)
+            int startLineOffset, int endLineOffset,
+            string lineHash)
         {
             Message = message;
             FilePath = filePath;
@@ -91,6 +96,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
             EndLine = endLine;
             StartLineOffset = startLineOffset;
             EndLineOffset = endLineOffset;
+            LineHash = lineHash;
         }
 
         public string FilePath { get; }
@@ -104,5 +110,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
         public int StartLineOffset { get; }
 
         public int EndLineOffset { get; }
+
+        public string LineHash { get; }
     }
 }
