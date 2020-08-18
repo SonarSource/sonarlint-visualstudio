@@ -135,8 +135,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
             CurrentFlow = e.SelectedFlow;
 
-            pausePropertyChangeNotifications = false;
-
             if (e.SelectedLocation == null)
             {
                 CurrentLocationListItem = null;
@@ -149,6 +147,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 CurrentLocationListItem = selectedLocationListItem;
             }
+
+            pausePropertyChangeNotifications = false;
 
             CurrentIssue = e.SelectedIssue;
 
