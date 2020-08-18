@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to get image moniker for file &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string ERR_FailedToGetFileImageMoniker {
+            get {
+                return ResourceManager.GetString("ERR_FailedToGetFileImageMoniker", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error navigating to analysis issue location: {0}.
         /// </summary>
         internal static string ERR_NavigationException {
@@ -88,7 +97,7 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;SonarLint Issue Visualization&quot;.
+        ///   Looks up a localized string similar to SonarLint Issue Visualization.
         /// </summary>
         internal static string IssueVisualizationToolWindowCaption {
             get {

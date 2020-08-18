@@ -18,33 +18,20 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
-using System.Windows.Navigation;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
+namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
-    internal sealed partial class IssueVisualizationControl : UserControl
+    internal sealed class FileNameLocationListItem : ILocationListItem
     {
-        public IssueVisualizationViewModel ViewModel { get; }
+        public string FullPath { get; }
+        public string FileName { get; }
+        public object Icon { get; }
 
-        public IssueVisualizationControl(IssueVisualizationViewModel viewModel)
+        public FileNameLocationListItem(string fullPath, string fileName, object icon)
         {
-            ViewModel = viewModel;
-
-            InitializeComponent();
-        }
-
-        private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            if (e.Uri == null)
-            {
-                return;
-            }
-
-            VsShellUtilities.OpenSystemBrowser(e.Uri.AbsoluteUri);
-            e.Handled = true;
+            FullPath = fullPath;
+            FileName = fileName;
+            Icon = icon;
         }
     }
 }
