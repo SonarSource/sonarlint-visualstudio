@@ -26,8 +26,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal interface IIssueSpanCalculator
     {
         /// <summary>
-        /// Returns the text span corresponding to the supplied analysis issue
+        /// Returns the text span corresponding to the supplied analysis issue location
         /// </summary>
-        SnapshotSpan CalculateSpan(IAnalysisIssue issue, ITextSnapshot currentSnapshot);
+        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
     }
 }
