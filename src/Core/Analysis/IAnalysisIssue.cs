@@ -22,25 +22,13 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.Core.Analysis
 {
-    public interface IAnalysisIssue
+    public interface IAnalysisIssue : IAnalysisIssueLocation
     {
         string RuleKey { get; }
 
         AnalysisIssueSeverity Severity { get; }
 
         AnalysisIssueType Type { get; }
-
-        int StartLine { get; }
-
-        int EndLine { get; }
-
-        int StartLineOffset { get; }
-
-        int EndLineOffset { get; }
-
-        string Message { get; }
-
-        string FilePath { get; }
 
         IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
     }

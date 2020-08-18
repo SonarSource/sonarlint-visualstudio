@@ -18,16 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.UnitTests
 {
-    internal interface IIssueSpanCalculator
+    // Properties are settable to simplify creating test instances
+    public class DummyAnalysisIssueLocation : IAnalysisIssueLocation
     {
-        /// <summary>
-        /// Returns the text span corresponding to the supplied analysis issue location
-        /// </summary>
-        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
+        public int StartLine { get; set; }
+
+        public int EndLine { get; set; }
+
+        public int StartLineOffset { get; set; }
+
+        public int EndLineOffset { get; set; }
+
+        public string Message { get; set; }
+
+        public string FilePath { get; set; }
     }
 }
