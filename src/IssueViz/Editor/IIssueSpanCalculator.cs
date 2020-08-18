@@ -22,21 +22,29 @@ using System;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal class IssueSpanCalculator : IIssueSpanCalculator
+    public interface IIssueSpanCalculator
     {
-        public SnapshotSpan CalculateSpan(IAnalysisIssue issue, ITextSnapshot currentSnapshot)
+        /// <summary>
+        /// Returns the text span corresponding to the supplied analysis issue location
+        /// </summary>
+        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
+    }
+
+    public class IssueSpanCalculator : IIssueSpanCalculator
+    {
+        public SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot)
         {
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
 
             var maxLength = currentSnapshot.Length;
 
-            var startLine = currentSnapshot.GetLineFromLineNumber(issue.StartLine - 1);
-            int startPos = startLine.Start.Position + issue.StartLineOffset;
+            var startLine = currentSnapshot.GetLineFromLineNumber(location.StartLine - 1);
+            int startPos = startLine.Start.Position + location.StartLineOffset;
 
             int endPos;
-            if (issue.EndLine == 0          // Special case : EndLine = 0 means "select whole of the start line, ignoring the offset"
+            if (location.EndLine == 0          // Special case : EndLine = 0 means "select whole of the start line, ignoring the offset"
                 || startPos > maxLength)    // Defensive : issue start position is beyond the end of the file. Just select the last line.
             {
                 startPos = startLine.Start.Position;
@@ -44,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             else
             {
-                endPos = currentSnapshot.GetLineFromLineNumber(issue.EndLine - 1).Start.Position + issue.EndLineOffset;
+                endPos = currentSnapshot.GetLineFromLineNumber(location.EndLine - 1).Start.Position + location.EndLineOffset;
                 // Make sure the end position isn't beyond the end of the snapshot either
                 endPos = Math.Min(maxLength, endPos);
             }

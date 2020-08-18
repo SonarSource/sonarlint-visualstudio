@@ -22,9 +22,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 {
     [TestClass]
     public class ISpanCalculatorTests
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void ToMarker_Calculates_Span_Positions()
         {
             // Arrange
-            var issue = new DummyAnalysisIssue
+            var issue = new DummyAnalysisIssueLocation
             {
                 StartLine = 3,
                 StartLineOffset = 10,
@@ -73,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // If issue.EndLine is zero the whole of the start line should be selected
 
             // Arrange
-            var issue = new DummyAnalysisIssue
+            var issue = new DummyAnalysisIssueLocation
             {
                 StartLine = 22,
                 StartLineOffset = 2,
@@ -115,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Rule "cpp:S113 - no newline at end of file" returns an offset after the end of the file.
 
             // Arrange
-            var issue = new DummyAnalysisIssue
+            var issue = new DummyAnalysisIssueLocation
             {
                 StartLine = 53,
                 StartLineOffset = 2,
@@ -157,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // (we have not seen this in practice so far)
 
             // Arrange
-            var issue = new DummyAnalysisIssue
+            var issue = new DummyAnalysisIssueLocation
             {
                 StartLine = 53,
                 StartLineOffset = 2,
