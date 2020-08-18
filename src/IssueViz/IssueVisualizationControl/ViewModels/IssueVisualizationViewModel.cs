@@ -47,9 +47,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         /// <summary>
         /// There is a two-way binding between the panel and the selectionService - this is a way to avoid the infinite recursion.
-        /// Value changed in UI --> the view model updates the property in selectionService --> selectionService raises an event of flow/location Changed --> view model listens to it and calls NotifyPropertyChanged
+        /// Value changed in UI --> the view model updates the property in selectionService --> selectionService raises an event of SelectionChanged --> view model listens to it and calls NotifyPropertyChanged
         /// </summary>
-        private bool isBindingUpdatedOutsideOfControl;
+        private bool isBindingUpdatedByUI = true;
+
+        private bool pausePropertyChangeNotifications;
 
         public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider, ILogger logger)
         {
@@ -58,9 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.logger = logger;
 
-            selectionEvents.SelectedIssueChanged += SelectionEvents_SelectedIssueChanged;
-            selectionEvents.SelectedFlowChanged += SelectionEventsOnSelectedFlowChanged;
-            selectionEvents.SelectedLocationChanged += SelectionEvents_SelectedLocationChanged;
+            selectionEvents.SelectionChanged += SelectionEvents_SelectionChanged;
         }
 
         public string Description => currentIssue?.Issue?.Message;
@@ -76,9 +76,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             get => currentIssue;
             private set
             {
-                currentIssue = value;
-                // Trigger PropertyChanged for all properties
-                OnPropertyChanged(string.Empty);
+                if (currentIssue != value)
+                {
+                    currentIssue = value;
+                    // Trigger PropertyChanged for all properties
+                    OnPropertyChanged(string.Empty);
+                }
             }
         }
 
@@ -87,18 +90,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             get => currentFlow;
             set
             {
-                currentFlow = value;
-
-                if (isBindingUpdatedOutsideOfControl)
+                if (isBindingUpdatedByUI)
                 {
+                    selectionEvents.SelectedFlow = value;
+                }
+                else if (currentFlow != value)
+                {
+                    currentFlow = value;
                     OnPropertyChanged();
 
                     LocationListItems = BuildLocationListItems(currentFlow);
                     OnPropertyChanged(nameof(LocationListItems));
-                }
-                else
-                {
-                    selectionEvents.SelectedFlow = currentFlow;
                 }
             }
         }
@@ -110,38 +112,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             get => currentLocation;
             set
             {
-                currentLocation = value;
-
-                if (isBindingUpdatedOutsideOfControl)
+                if (isBindingUpdatedByUI)
                 {
-                    OnPropertyChanged();
+                    selectionEvents.SelectedLocation = value?.Location;
                 }
-                else
+                else if (currentLocation != value)
                 {
-                    selectionEvents.SelectedLocation = currentLocation?.Location;
+                    currentLocation = value;
+                    OnPropertyChanged();
                 }
             }
         }
 
-        private void SelectionEvents_SelectedIssueChanged(object sender, IssueChangedEventArgs e)
+        private void SelectionEvents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CurrentIssue = e.Issue;
-        }
+            isBindingUpdatedByUI = false;
 
-        private void SelectionEventsOnSelectedFlowChanged(object sender, FlowChangedEventArgs e)
-        {
-            isBindingUpdatedOutsideOfControl = true;
+            if (e.SelectionChangeLevel == SelectionChangeLevel.Issue)
+            {
+                pausePropertyChangeNotifications = true;
+            }
 
-            CurrentFlow = e.Flow;
+            CurrentFlow = e.SelectedFlow;
 
-            isBindingUpdatedOutsideOfControl = false;
-        }
+            pausePropertyChangeNotifications = false;
 
-        private void SelectionEvents_SelectedLocationChanged(object sender, LocationChangedEventArgs e)
-        {
-            isBindingUpdatedOutsideOfControl = true;
-
-            if (e.Location == null)
+            if (e.SelectedLocation == null)
             {
                 CurrentLocationListItem = null;
             }
@@ -149,12 +145,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 var selectedLocationListItem = LocationListItems?
                     .OfType<LocationListItem>()
-                    .FirstOrDefault(x => x.Location == e.Location);
+                    .FirstOrDefault(x => x.Location == e.SelectedLocation);
 
                 CurrentLocationListItem = selectedLocationListItem;
             }
 
-            isBindingUpdatedOutsideOfControl = false;
+            CurrentIssue = e.SelectedIssue;
+
+            isBindingUpdatedByUI = true;
         }
 
         /// <summary>
@@ -202,14 +200,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (!pausePropertyChangeNotifications)
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
         }
 
         public void Dispose()
         {
-            selectionEvents.SelectedIssueChanged -= SelectionEvents_SelectedIssueChanged;
-            selectionEvents.SelectedFlowChanged -= SelectionEventsOnSelectedFlowChanged;
-            selectionEvents.SelectedLocationChanged -= SelectionEvents_SelectedLocationChanged;
+            selectionEvents.SelectionChanged -= SelectionEvents_SelectionChanged;
         }
     }
 }
