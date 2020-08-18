@@ -65,52 +65,55 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void SetSelectedIssue_HasSubscribers_RaisesSelectedIssueChangedEvent(bool isNewIssueNull)
+        public void SetSelectedIssue_HasSubscribers_RaisesSelectionChangedEventWithChangeLevelIssue(bool isNewIssueNull)
         {
-            var eventHandler = new Mock<EventHandler<IssueChangedEventArgs>>();
-
-            testSubject.SelectedIssueChanged += eventHandler.Object;
-
-            eventHandler.VerifyNoOtherCalls();
+            var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
+            testSubject.SelectionChanged += eventHandler.Object;
 
             var expectedIssue = isNewIssueNull ? null : Mock.Of<IAnalysisIssueVisualization>();
             testSubject.SelectedIssue = expectedIssue;
 
-            eventHandler.Verify(x => x(testSubject, It.Is((IssueChangedEventArgs args) => args.Issue == expectedIssue)), Times.Once());
+            eventHandler.Verify(
+                x => x(testSubject,
+                    It.Is((SelectionChangedEventArgs args) => args.SelectedIssue == expectedIssue &&
+                                                              args.SelectionChangeLevel == SelectionChangeLevel.Issue)),
+                Times.Once());
         }
 
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void SetSelectedFlow_HasSubscribers_RaisesSelectedFlowChangedEvent(bool isNewFlowNull)
+        public void SetSelectedFlow_HasSubscribers_RaisesSelectionChangedEventWithChangeLevelFlow(bool isNewFlowNull)
         {
-            var eventHandler = new Mock<EventHandler<FlowChangedEventArgs>>();
-
-            testSubject.SelectedFlowChanged += eventHandler.Object;
-
-            eventHandler.VerifyNoOtherCalls();
+            var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
+            testSubject.SelectionChanged += eventHandler.Object;
 
             var expectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlowVisualization>();
             testSubject.SelectedFlow = expectedFlow;
 
-            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == expectedFlow)), Times.Once());
+            eventHandler.Verify(
+                x => x(testSubject,
+                    It.Is((SelectionChangedEventArgs args) => args.SelectedFlow == expectedFlow &&
+                                                              args.SelectionChangeLevel == SelectionChangeLevel.Flow)),
+                Times.Once());
         }
 
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void SetSelectedLocation_HasSubscribers_RaisesSelectedLocationChangedEvent(bool isNewLocationNull)
+        public void SetSelectedLocation_HasSubscribers_RaisesSelectionChangedEventWithChangeLevelLocation(bool isNewLocationNull)
         {
-            var eventHandler = new Mock<EventHandler<LocationChangedEventArgs>>();
-
-            testSubject.SelectedLocationChanged += eventHandler.Object;
-
-            eventHandler.VerifyNoOtherCalls();
+            var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
+            testSubject.SelectionChanged += eventHandler.Object;
 
             var expectedLocation = isNewLocationNull ? null : Mock.Of<IAnalysisIssueLocationVisualization>();
             testSubject.SelectedLocation = expectedLocation;
 
-            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == expectedLocation)), Times.Once());
+            eventHandler.Verify(
+                x => x(testSubject,
+                    It.Is((SelectionChangedEventArgs args) => args.SelectedLocation == expectedLocation &&
+                                                              args.SelectionChangeLevel ==
+                                                              SelectionChangeLevel.Location)), Times.Once());
         }
 
         [TestMethod]
@@ -156,11 +159,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         }
 
         [TestMethod]
-        public void Dispose_SelectedIssueChangedHasSubscribers_RemovesSubscribers()
+        public void Dispose_HasSubscribers_RemovesSubscribers()
         {
-            var eventHandler = new Mock<EventHandler<IssueChangedEventArgs>>();
+            var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
+            testSubject.SelectionChanged += eventHandler.Object;
 
-            testSubject.SelectedIssueChanged += eventHandler.Object;
             testSubject.Dispose();
 
             testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
@@ -169,49 +172,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         }
 
         [TestMethod]
-        public void Dispose_SelectedFlowChangedHasSubscribers_RemovesSubscribers()
-        {
-            var eventHandler = new Mock<EventHandler<FlowChangedEventArgs>>();
-
-            testSubject.SelectedFlowChanged += eventHandler.Object;
-            testSubject.Dispose();
-
-            testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
-
-            eventHandler.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Dispose_SelectedLocationChangedHasSubscribers_RemovesSubscribers()
-        {
-            var eventHandler = new Mock<EventHandler<LocationChangedEventArgs>>();
-
-            testSubject.SelectedLocationChanged += eventHandler.Object;
-            testSubject.Dispose();
-
-            testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
-
-            eventHandler.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public void SelectedFlowChanged_ChangesSelectedLocation()
         {
-            var eventHandler = new Mock<EventHandler<LocationChangedEventArgs>>();
-            testSubject.SelectedLocationChanged += eventHandler.Object;
+            var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
+            testSubject.SelectionChanged += eventHandler.Object;
 
+            // Set flow to value
             var firstFlow = GetFlowWithLocation(out var firstFlowFirstLocation);
             testSubject.SelectedFlow = firstFlow;
-            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == firstFlowFirstLocation)), Times.Once());
+
+            eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedLocation == firstFlowFirstLocation)), Times.Once());
             testSubject.SelectedLocation.Should().Be(firstFlowFirstLocation);
 
+            // Set flow to null
             testSubject.SelectedFlow = null;
-            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == null)), Times.Once());
+
+            eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedLocation == null)), Times.Once());
             testSubject.SelectedLocation.Should().BeNull();
 
+            // Set flow to a different value
             var secondFlow = GetFlowWithLocation(out var secondFlowFirstLocation);
             testSubject.SelectedFlow = secondFlow;
-            eventHandler.Verify(x => x(testSubject, It.Is((LocationChangedEventArgs args) => args.Location == secondFlowFirstLocation)), Times.Once());
+
+            eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedLocation == secondFlowFirstLocation)), Times.Once());
             testSubject.SelectedLocation.Should().Be(secondFlowFirstLocation);
 
             eventHandler.VerifyNoOtherCalls();
@@ -220,21 +203,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SelectedIssueChanged_ChangesSelectedFlow()
         {
-            var eventHandler = new Mock<EventHandler<FlowChangedEventArgs>>();
-            testSubject.SelectedFlowChanged += eventHandler.Object;
+            var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
+            testSubject.SelectionChanged += eventHandler.Object;
 
+            // Set issue to value
             var firstIssue = GetIssueWithFlow(out var firstIssueFirstFlow);
             testSubject.SelectedIssue = firstIssue;
-            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == firstIssueFirstFlow)), Times.Once());
+
+            eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedFlow == firstIssueFirstFlow)), Times.Once());
             testSubject.SelectedFlow.Should().Be(firstIssueFirstFlow);
 
+            // Set issue to null
             testSubject.SelectedIssue = null;
-            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == null)), Times.Once());
+
+            eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedFlow == null)), Times.Once());
             testSubject.SelectedFlow.Should().BeNull();
 
+            // Set issue to different value
             var secondIssue = GetIssueWithFlow(out var secondIssueFirstFlow);
             testSubject.SelectedIssue = secondIssue;
-            eventHandler.Verify(x => x(testSubject, It.Is((FlowChangedEventArgs args) => args.Flow == secondIssueFirstFlow)), Times.Once());
+            eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedFlow == secondIssueFirstFlow)), Times.Once());
             testSubject.SelectedFlow.Should().Be(secondIssueFirstFlow);
 
             eventHandler.VerifyNoOtherCalls();
