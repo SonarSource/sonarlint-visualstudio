@@ -215,7 +215,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.CurrentIssue.Should().Be(newIssue);
 
-            VerifyNotifyPropertyChanged("");
+            VerifyNotifyPropertyChanged("", nameof(testSubject.CurrentLocationListItem));
         }
 
         [TestMethod]
@@ -231,7 +231,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.CurrentIssue.Should().BeNull();
 
-            VerifyNotifyPropertyChanged("");
+            VerifyNotifyPropertyChanged("", nameof(testSubject.CurrentLocationListItem));
         }
 
         [TestMethod]
@@ -250,7 +250,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             testSubject.CurrentIssue.Should().Be(newIssue);
 
-            VerifyNotifyPropertyChanged("");
+            VerifyNotifyPropertyChanged("", nameof(testSubject.CurrentLocationListItem));
         }
 
         [TestMethod]

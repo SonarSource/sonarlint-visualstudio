@@ -134,13 +134,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
 
             CurrentFlow = e.SelectedFlow;
-            CurrentLocationListItem = GetLocationListItem(e.SelectedLocation);
 
             if (e.SelectionChangeLevel == SelectionChangeLevel.Issue)
             {
                 pausePropertyChangeNotifications = false;
                 CurrentIssue = e.SelectedIssue;
             }
+
+            // Setting the selected location should be done last, after the flow list has been updated, so SelectedItem will be set in the xaml
+            CurrentLocationListItem = GetLocationListItem(e.SelectedLocation);
 
             isBindingUpdatedByUI = true;
         }
