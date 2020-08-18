@@ -22,9 +22,17 @@ using System;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal class IssueSpanCalculator : IIssueSpanCalculator
+    public interface IIssueSpanCalculator
+    {
+        /// <summary>
+        /// Returns the text span corresponding to the supplied analysis issue location
+        /// </summary>
+        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
+    }
+
+    public class IssueSpanCalculator : IIssueSpanCalculator
     {
         public SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot)
         {
