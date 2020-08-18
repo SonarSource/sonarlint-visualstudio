@@ -33,9 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         private IAnalysisIssueFlowVisualization selectedFlow;
         private IAnalysisIssueLocationVisualization selectedLocation;
 
-        public event EventHandler<IssueChangedEventArgs> SelectedIssueChanged;
-        public event EventHandler<FlowChangedEventArgs> SelectedFlowChanged;
-        public event EventHandler<LocationChangedEventArgs> SelectedLocationChanged;
+        public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
 
         public IAnalysisIssueVisualization SelectedIssue
         {
@@ -43,9 +41,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             set
             {
                 selectedIssue = value;
-                SelectedIssueChanged?.Invoke(this, new IssueChangedEventArgs(value));
+                selectedFlow = GetFirstFlowOrDefault();
+                selectedLocation = GetFirstLocationOrDefault();
 
-                SelectedFlow = selectedIssue?.Flows?.FirstOrDefault();
+                RaiseSelectionChanged(SelectionChangeLevel.Issue);
             }
         }
 
@@ -55,9 +54,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             set
             {
                 selectedFlow = value;
-                SelectedFlowChanged?.Invoke(this, new FlowChangedEventArgs(value));
+                selectedLocation = GetFirstLocationOrDefault();
 
-                SelectedLocation = selectedFlow?.Locations?.FirstOrDefault();
+                RaiseSelectionChanged(SelectionChangeLevel.Flow);
             }
         }
 
@@ -67,15 +66,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             set
             {
                 selectedLocation = value;
-                SelectedLocationChanged?.Invoke(this, new LocationChangedEventArgs(value));
+
+                RaiseSelectionChanged(SelectionChangeLevel.Location);
             }
+        }
+
+        private void RaiseSelectionChanged(SelectionChangeLevel changeLevel)
+        {
+            SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(changeLevel, SelectedIssue, SelectedFlow, SelectedLocation));
+        }
+
+        private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault()
+        {
+            return selectedIssue?.Flows?.FirstOrDefault();
+        }
+
+        private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault()
+        {
+            return selectedFlow?.Locations?.FirstOrDefault();
         }
 
         public void Dispose()
         {
-            SelectedIssueChanged = null;
-            SelectedFlowChanged = null;
-            SelectedLocationChanged = null;
+            SelectionChanged = null;
         }
     }
 }

@@ -25,42 +25,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
     internal interface IAnalysisIssueSelectionService : IDisposable
     {
-        event EventHandler<IssueChangedEventArgs> SelectedIssueChanged;
-        event EventHandler<FlowChangedEventArgs> SelectedFlowChanged;
-        event EventHandler<LocationChangedEventArgs> SelectedLocationChanged;
+        event EventHandler<SelectionChangedEventArgs> SelectionChanged; 
 
         IAnalysisIssueVisualization SelectedIssue { get; set; }
         IAnalysisIssueFlowVisualization SelectedFlow { get; set; }
         IAnalysisIssueLocationVisualization SelectedLocation { get; set; }
     }
 
-    internal class IssueChangedEventArgs : EventArgs
+    internal enum SelectionChangeLevel
     {
-        public IssueChangedEventArgs(IAnalysisIssueVisualization issue)
-        {
-            Issue = issue;
-        }
-
-        public IAnalysisIssueVisualization Issue { get; }
+        Issue,
+        Flow,
+        Location
     }
 
-    internal class FlowChangedEventArgs : EventArgs
+    internal class SelectionChangedEventArgs : EventArgs
     {
-        public FlowChangedEventArgs(IAnalysisIssueFlowVisualization flow)
+        public SelectionChangedEventArgs(SelectionChangeLevel selectionChangeLevel, IAnalysisIssueVisualization selectedIssue, IAnalysisIssueFlowVisualization selectedFlow, IAnalysisIssueLocationVisualization selectedLocation)
         {
-            Flow = flow;
+            SelectedIssue = selectedIssue;
+            SelectedFlow = selectedFlow;
+            SelectedLocation = selectedLocation;
+            SelectionChangeLevel = selectionChangeLevel;
         }
 
-        public IAnalysisIssueFlowVisualization Flow { get; }
-    }
-
-    internal class LocationChangedEventArgs : EventArgs
-    {
-        public LocationChangedEventArgs(IAnalysisIssueLocationVisualization location)
-        {
-            Location = location;
-        }
-
-        public IAnalysisIssueLocationVisualization Location { get; }
+        public SelectionChangeLevel SelectionChangeLevel { get; }
+        public IAnalysisIssueVisualization SelectedIssue { get; }
+        public IAnalysisIssueFlowVisualization SelectedFlow { get; }
+        public IAnalysisIssueLocationVisualization SelectedLocation { get; }
     }
 }
