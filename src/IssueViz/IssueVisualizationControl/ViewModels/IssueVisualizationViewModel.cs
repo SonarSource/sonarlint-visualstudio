@@ -63,13 +63,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             selectionEvents.SelectionChanged += SelectionEvents_SelectionChanged;
         }
 
-        public string Description => currentIssue?.Issue?.Message;
+        public string Description => CurrentIssue?.Issue?.Message;
 
-        public string RuleKey => currentIssue?.Issue?.RuleKey;
+        public string RuleKey => CurrentIssue?.Issue?.RuleKey;
 
         public string RuleHelpLink => string.IsNullOrEmpty(RuleKey) ? null : ruleHelpLinkProvider.GetHelpLink(RuleKey);
 
-        public AnalysisIssueSeverity Severity => currentIssue?.Issue?.Severity ?? AnalysisIssueSeverity.Info;
+        public AnalysisIssueSeverity Severity => CurrentIssue?.Issue?.Severity ?? AnalysisIssueSeverity.Info;
 
         public IAnalysisIssueVisualization CurrentIssue
         {
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 {
                     currentIssue = value;
                     // Trigger PropertyChanged for all properties
-                    OnPropertyChanged(string.Empty);
+                    NotifyPropertyChanged(string.Empty);
                 }
             }
         }
@@ -97,10 +97,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 else if (currentFlow != value)
                 {
                     currentFlow = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
 
                     LocationListItems = BuildLocationListItems(currentFlow);
-                    OnPropertyChanged(nameof(LocationListItems));
+                    NotifyPropertyChanged(nameof(LocationListItems));
                 }
             }
         }
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 else if (currentLocation != value)
                 {
                     currentLocation = value;
-                    OnPropertyChanged();
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -134,23 +134,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
 
             CurrentFlow = e.SelectedFlow;
+            CurrentLocationListItem = GetLocationListItem(e.SelectedLocation);
 
-            if (e.SelectedLocation == null)
+            if (e.SelectionChangeLevel == SelectionChangeLevel.Issue)
             {
-                CurrentLocationListItem = null;
+                pausePropertyChangeNotifications = false;
+                CurrentIssue = e.SelectedIssue;
             }
-            else
-            {
-                var selectedLocationListItem = LocationListItems?
-                    .OfType<LocationListItem>()
-                    .FirstOrDefault(x => x.Location == e.SelectedLocation);
-
-                CurrentLocationListItem = selectedLocationListItem;
-            }
-
-            pausePropertyChangeNotifications = false;
-
-            CurrentIssue = e.SelectedIssue;
 
             isBindingUpdatedByUI = true;
         }
@@ -172,8 +162,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     var fileIcon = GetImageMonikerForFile(filePath);
                     listItems.Add(new FileNameLocationListItem(filePath, Path.GetFileName(filePath), fileIcon));
 
-                    var sequentialLocations = flowLocations.Skip(i).TakeWhile(x => x.Location.FilePath == filePath).ToList();
-                    listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem)new LocationListItem(x)));
+                    var sequentialLocations =
+                        flowLocations.Skip(i).TakeWhile(x => x.Location.FilePath == filePath).ToList();
+                    listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem) new LocationListItem(x)));
 
                     i += sequentialLocations.Count - 1;
                 }
@@ -196,9 +187,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
         }
 
+        private LocationListItem GetLocationListItem(IAnalysisIssueLocationVisualization locationViz)
+        {
+            if (locationViz == null)
+            {
+                return null;
+            }
+
+            var selectedLocationListItem = LocationListItems?
+                .OfType<LocationListItem>()
+                .FirstOrDefault(x => x.Location == locationViz);
+
+            return selectedLocationListItem;
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
-        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (!pausePropertyChangeNotifications)
             {
