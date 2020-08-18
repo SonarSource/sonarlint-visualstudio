@@ -22,9 +22,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 {
     [TestClass]
     public class ISpanCalculatorTests
