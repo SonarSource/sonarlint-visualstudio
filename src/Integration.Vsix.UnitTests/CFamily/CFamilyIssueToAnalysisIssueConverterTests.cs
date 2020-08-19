@@ -22,7 +22,6 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -33,27 +32,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class CFamilyIssueToAnalysisIssueConverterTests
     {
-        private IDictionary<string, RuleMetadata> metadataMock;
         private CFamilyIssueToAnalysisIssueConverter testSubject;
-        private Mock<ICFamilyRulesConfig> configMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            metadataMock = new Dictionary<string, RuleMetadata>();
-
-            configMock = new Mock<ICFamilyRulesConfig>();
-            configMock.Setup(x => x.RulesMetadata).Returns(metadataMock);
-
             testSubject = new CFamilyIssueToAnalysisIssueConverter();
         }
 
         [TestMethod]
         public void Convert_NoMessageParts_IssueWithoutFlows()
         {
-            metadataMock.Add("dummy rule", new RuleMetadata());
-
-            var message = new Message("dummy rule",
+            var message = new Message("rule2",
                 "file",
                 4, 3,
                 2,
@@ -72,8 +62,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Convert_HasMessageParts_IssueWithSingleFlow()
         {
-            metadataMock.Add("dummy rule", new RuleMetadata());
-
             var messageParts = new List<MessagePart>
             {
                 new MessagePart("test1.cpp", 1, 2, 3, 4, "this is a test 1"),
@@ -91,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 new AnalysisIssueFlow(expectedLocations)
             };
 
-            var message = new Message("dummy rule", "file", 4, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, messageParts.ToArray());
 
             // Act
             var issue = Convert(message);
@@ -103,9 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Convert_EndLineIsNotZero()
         {
-            metadataMock.Add("dummy rule", new RuleMetadata());
-
-            var message = new Message("dummy rule", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
 
             // Act
             var issue = Convert(message);
@@ -117,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             issue.EndLine.Should().Be(2);
             issue.EndLineOffset.Should().Be(1 - 1);
 
-            issue.RuleKey.Should().Be("lang1:dummy rule");
+            issue.RuleKey.Should().Be("lang1:rule2");
             issue.FilePath.Should().Be("file");
             issue.Message.Should().Be("test endline is not zero");
         }
@@ -125,10 +111,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Convert_EndLineIsZero()
         {
-            metadataMock.Add("dummy rule", new RuleMetadata());
-
             // Special case: ignore column offsets if EndLine is zero
-            var message = new Message("dummy rule", "ff", 101, 1, 0, 3, "test endline is zero", true, new MessagePart[0]);
+            var message = new Message("rule2", "ff", 101, 1, 0, 3, "test endline is zero", true, new MessagePart[0]);
 
             // Act
             var issue = Convert(message);
@@ -140,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             issue.StartLineOffset.Should().Be(0);
             issue.EndLineOffset.Should().Be(0);
 
-            issue.RuleKey.Should().Be("lang1:dummy rule");
+            issue.RuleKey.Should().Be("lang1:rule2");
             issue.FilePath.Should().Be("ff");
             issue.Message.Should().Be("test endline is zero");
         }
@@ -150,10 +134,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [DataRow("rule3", AnalysisIssueSeverity.Critical, AnalysisIssueType.Vulnerability)]
         public void Convert_SeverityAndTypeLookup(string ruleKey, AnalysisIssueSeverity severity, AnalysisIssueType type)
         {
-            var ruleConfig = GetDummyRulesConfiguration();
-
             var message = new Message(ruleKey, "any", 4, 3, 2, 1, "message", false, new MessagePart[0]);
-            var issue = testSubject.Convert(message, "lang1", ruleConfig);
+            var issue = Convert(message);
 
             issue.RuleKey.Should().Be($"lang1:{ruleKey}");
             issue.Severity.Should().Be(severity);
@@ -219,7 +201,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         private IAnalysisIssue Convert(Message message)
         {
-            return testSubject.Convert(message, "lang1", configMock.Object);
+            return testSubject.Convert(message, "lang1", GetDummyRulesConfiguration());
         }
     }
 }
