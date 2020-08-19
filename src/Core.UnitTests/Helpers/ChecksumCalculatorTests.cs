@@ -21,9 +21,10 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Suppression;
+using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
+namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
 {
     [TestClass]
     public class ChecksumCalculatorTests
