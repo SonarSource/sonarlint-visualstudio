@@ -53,16 +53,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             public static Capture[] ToCaptures(FileConfig fileConfig, string path, out string cfamilyLanguage)
             {
-                var p = new Capture()
+                var p = new Capture
                 {
                     Executable = "cl.exe",
-                    Cwd = Path.GetDirectoryName(fileConfig.AbsoluteFilePath),
+                    Cwd = Path.GetDirectoryName(fileConfig.AbsoluteProjectPath),
                     CompilerVersion = fileConfig.CompilerVersion,
                     X64 = IsPlatformX64(fileConfig.PlatformName),
                     StdOut = "",
                 };
 
-                var c = new Capture()
+                var c = new Capture
                 {
                     Executable = p.Executable,
                     Cwd = p.Cwd,
