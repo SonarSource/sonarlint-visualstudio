@@ -48,6 +48,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public string Calculate(string wholeText, int line)
         {
+            if (string.IsNullOrEmpty(wholeText) || line < 1)
+            {
+                return null;
+            }
+
             var lines = GetLines(wholeText);
 
             if (line > lines.Length)
