@@ -196,34 +196,49 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultType = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].Type;
 
             var locations = cfamilyIssue.Parts
-                .Select(x => new AnalysisIssueLocation(
-                    filePath: x.Filename,
-                    message: x.Text,
-                    startLine: x.Line,
-                    endLine: x.EndLine,
-                    startLineOffset: x.Column,
-                    endLineOffset: x.EndColumn
-                ))
+                .Select(ToAnalysisIssueLocation)
                 .Reverse()
                 .ToArray();
 
             var flows = locations.Any() ? new [] {new AnalysisIssueFlow(locations)} : null;
 
+            return ToAnalysisIssue(cfamilyIssue, sqLanguage, defaultSeverity, defaultType, flows);
+        }
+
+        private static IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue, string sqLanguage, IssueSeverity defaultSeverity,
+            IssueType defaultType, AnalysisIssueFlow[] flows)
+        {
             return new AnalysisIssue
             (
-                filePath: cfamilyIssue.Filename,
-                message: cfamilyIssue.Text,
-                ruleKey: sqLanguage + ":" + cfamilyIssue.RuleKey,
+                ruleKey: sqLanguage + ":" + cFamilyIssue.RuleKey,
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
-                startLine: cfamilyIssue.Line,
-                endLine: cfamilyIssue.EndLine,
+
+                filePath: cFamilyIssue.Filename,
+                message: cFamilyIssue.Text,
+                startLine: cFamilyIssue.Line,
+                endLine: cFamilyIssue.EndLine,
 
                 // We don't care about the columns in the special case EndLine=0
-                startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
-                endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1,
+                startLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.Column - 1,
+                endLineOffset: cFamilyIssue.EndLine == 0 ? 0 : cFamilyIssue.EndColumn - 1,
 
                 flows: flows
+            );
+        }
+
+        private static AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation)
+        {
+            return new AnalysisIssueLocation
+            (
+                filePath: cFamilyIssueLocation.Filename,
+                message: cFamilyIssueLocation.Text,
+                startLine: cFamilyIssueLocation.Line,
+                endLine: cFamilyIssueLocation.EndLine,
+
+                // We don't care about the columns in the special case EndLine=0
+                startLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.Column - 1,
+                endLineOffset: cFamilyIssueLocation.EndLine == 0 ? 0 : cFamilyIssueLocation.EndColumn - 1
             );
         }
 
