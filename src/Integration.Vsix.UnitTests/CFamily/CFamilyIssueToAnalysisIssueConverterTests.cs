@@ -20,24 +20,32 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
     public class CFamilyIssueToAnalysisIssueConverterTests
     {
+        private Mock<ILineHashCalculator> lineHashCalculatorMock;
+        private MockFileSystem fileSystemMock;
+
         private CFamilyIssueToAnalysisIssueConverter testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new CFamilyIssueToAnalysisIssueConverter();
+            lineHashCalculatorMock = new Mock<ILineHashCalculator>();
+            fileSystemMock = new MockFileSystem();
+            testSubject = new CFamilyIssueToAnalysisIssueConverter(lineHashCalculatorMock.Object, fileSystemMock);
         }
 
         [TestMethod]

@@ -19,12 +19,15 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO.Abstractions;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -37,6 +40,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CFamilyIssueToAnalysisIssueConverter : ICFamilyIssueToAnalysisIssueConverter
     {
+        private readonly ILineHashCalculator lineHashCalculator;
+        private readonly IFileSystem fileSystem;
+
+        [ImportingConstructor]
+        public CFamilyIssueToAnalysisIssueConverter(ILineHashCalculator lineHashCalculator)
+            : this(lineHashCalculator, new FileSystem())
+        {
+        }
+
+        internal CFamilyIssueToAnalysisIssueConverter(ILineHashCalculator lineHashCalculator, IFileSystem fileSystem)
+        {
+            this.lineHashCalculator = lineHashCalculator;
+            this.fileSystem = fileSystem;
+        }
+
         public IAnalysisIssue Convert(Message cFamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
         {
             // Lines and character positions are 1-based
@@ -51,18 +69,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var defaultSeverity = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].DefaultSeverity;
             var defaultType = rulesConfiguration.RulesMetadata[cFamilyIssue.RuleKey].Type;
 
+            var fileContents = LoadFileContentsOfReportedFiles(cFamilyIssue); 
+
             var locations = cFamilyIssue.Parts
-                .Select(ToAnalysisIssueLocation)
+                .Select(x=> ToAnalysisIssueLocation(x, fileContents))
                 .Reverse()
                 .ToArray();
 
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
 
-            return ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows);
+            return ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents);
         }
 
-        private static IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue, string sqLanguage, IssueSeverity defaultSeverity,
-            IssueType defaultType, AnalysisIssueFlow[] flows)
+        private IDictionary<string, string> LoadFileContentsOfReportedFiles(Message cFamilyIssue)
+        {
+            var filePaths = cFamilyIssue.Parts
+                .Select(x => x.Filename)
+                .Union(new[] {cFamilyIssue.Filename})
+                .Distinct();
+
+            return filePaths.ToDictionary(x => x,
+                path => fileSystem.File.Exists(path) ? fileSystem.File.ReadAllText(path) : null);
+        }
+
+        private IAnalysisIssue ToAnalysisIssue(Message cFamilyIssue, 
+            string sqLanguage,
+            IssueSeverity defaultSeverity,
+            IssueType defaultType,
+            IReadOnlyList<IAnalysisIssueFlow> flows, 
+            IDictionary<string, string> fileContents)
         {
             return new AnalysisIssue
             (
@@ -72,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 filePath: cFamilyIssue.Filename,
                 message: cFamilyIssue.Text,
-                lineHash: null,
+                lineHash: lineHashCalculator.Calculate(fileContents[cFamilyIssue.Filename], cFamilyIssue.Line),
                 startLine: cFamilyIssue.Line,
                 endLine: cFamilyIssue.EndLine,
 
@@ -84,13 +119,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             );
         }
 
-        private static AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation)
+        private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IDictionary<string, string> fileContents)
         {
             return new AnalysisIssueLocation
             (
                 filePath: cFamilyIssueLocation.Filename,
                 message: cFamilyIssueLocation.Text,
-                lineHash: null,
+                lineHash: lineHashCalculator.Calculate(fileContents[cFamilyIssueLocation.Filename], cFamilyIssueLocation.Line),
                 startLine: cFamilyIssueLocation.Line,
                 endLine: cFamilyIssueLocation.EndLine,
 

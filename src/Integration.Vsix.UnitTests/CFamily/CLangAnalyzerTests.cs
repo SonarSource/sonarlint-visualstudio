@@ -20,6 +20,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +33,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
@@ -109,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void TriggerAnalysisAsync_StreamsIssuesFromSubProcessToConsumer()
         {
-            const string fileName = "c:\\data\\aaa\\bbb\file.txt";
+            const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
             var rulesConfig = new DummyCFamilyRulesConfig("c")
                 .AddRule("rule1", isActive: true)
                 .AddRule("rule2", isActive: true);
@@ -171,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void TriggerAnalysisAsync_IssuesForInactiveRulesAreNotStreamed()
         {
-            const string fileName = "c:\\data\\aaa\\bbb\file.txt";
+            const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
             var rulesConfig = new DummyCFamilyRulesConfig("c")
                 .AddRule("inactiveRule", isActive: false)
                 .AddRule("activeRule", isActive: true);
@@ -314,7 +317,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
                 IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger)
-                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, analysisStatusNotifier, logger, new CFamilyIssueToAnalysisIssueConverter())
+                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, analysisStatusNotifier, logger, new CFamilyIssueToAnalysisIssueConverter(Mock.Of<ILineHashCalculator>(), new MockFileSystem()))
             {}
 
             protected override Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
