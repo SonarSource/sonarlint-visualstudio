@@ -26,10 +26,15 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace SonarLint.VisualStudio.Core.Helpers
 {
+    public interface IChecksumCalculator
+    {
+        string Calculate(string text);
+    }
+
     /// <summary>
     /// Calculates the checksum for an issue using the same method as the SonarQube server
     /// </summary>
-    public static class ChecksumCalculator
+    public class ChecksumCalculator : IChecksumCalculator
     {
         public static string Calculate(string text)
         {
@@ -47,5 +52,7 @@ namespace SonarLint.VisualStudio.Core.Helpers
             hash.DoFinal(result, 0);
             return Hex.ToHexString(result);
         }
+
+        string IChecksumCalculator.Calculate(string text) => Calculate(text);
     }
 }
