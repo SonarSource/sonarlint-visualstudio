@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             runner.Execute(args);
         }
-
+  
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
         {
             Debug.Assert(!IsHeaderFile(absoluteFilePath),

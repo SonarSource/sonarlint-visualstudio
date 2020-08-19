@@ -41,6 +41,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public int EndLineOffset { get; set; }
 
+        public string LineHash { get; set; }
+
         public string Message { get; set; }
 
         public string FilePath { get; set; }

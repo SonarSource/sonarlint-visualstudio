@@ -51,6 +51,8 @@ namespace SonarLint.VisualStudio.Core.Analysis
         int StartLineOffset { get; }
 
         int EndLineOffset { get; }
+
+        string LineHash { get; }
     }
 
     public enum AnalysisIssueSeverity
