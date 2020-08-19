@@ -342,8 +342,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 6, 8),
-                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 2, 4)
+                new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 5, 7),
+                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 1, 3)
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
