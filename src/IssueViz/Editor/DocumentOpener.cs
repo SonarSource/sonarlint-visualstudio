@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
@@ -41,6 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.serviceProvider = serviceProvider;
         }
 
+        [ExcludeFromCodeCoverage]
         public void Open(string filePath)
         {
             VsShellUtilities.OpenDocument(serviceProvider, filePath, Guid.Empty, out _, out _, out _, out _);
