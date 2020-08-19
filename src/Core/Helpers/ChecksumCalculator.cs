@@ -24,7 +24,7 @@ using System.Text.RegularExpressions;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities.Encoders;
 
-namespace SonarLint.VisualStudio.Integration.Suppression
+namespace SonarLint.VisualStudio.Core.Helpers
 {
     /// <summary>
     /// Calculates the checksum for an issue using the same method as the SonarQube server

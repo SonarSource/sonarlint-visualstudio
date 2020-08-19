@@ -19,8 +19,8 @@
  */
 
 using System.IO;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
 {
