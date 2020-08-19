@@ -201,8 +201,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     message: x.Text,
                     startLine: x.Line,
                     endLine: x.EndLine,
-                    startLineOffset: x.Column,
-                    endLineOffset: x.EndColumn
+
+                    // We don't care about the columns in the special case EndLine=0
+                    startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
+                    endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
                 ))
                 .Reverse()
                 .ToArray();
