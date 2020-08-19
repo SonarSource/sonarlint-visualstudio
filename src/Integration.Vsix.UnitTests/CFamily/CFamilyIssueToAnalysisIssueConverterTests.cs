@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Convert_IssueEndLineIsNotZero_OffsetsAreSubstructed()
+        public void Convert_IssueEndLineIsNotZero_OffsetsAreCalculatedCorrectly()
         {
             var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
 
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Convert_LocationEndLineIsNotZero_OffsetsAreSubstructed()
+        public void Convert_LocationEndLineIsNotZero_OffsetsAreCalculatedCorrectly()
         {
             var messagePart = new MessagePart("file", 10, 2, 30, 4, "text");
             var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[] { messagePart });
@@ -230,13 +230,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var message = new Message("rule2", "non existing path", 3, 3, 2, 1, "this is a test", false, messageParts.ToArray());
 
             var issue = Convert(message);
-            issue.LineHash.Should().BeNullOrEmpty();
+            issue.LineHash.Should().BeNull();
 
             // converted locations are in reverse order from message parts
             var firstLocation = issue.Flows[0].Locations[1];
             var secondLocation = issue.Flows[0].Locations[0];
 
-            secondLocation.LineHash.Should().BeNullOrEmpty();
+            secondLocation.LineHash.Should().BeNull();
             firstLocation.LineHash.Should().Be(firstLocationHash);
         }
 

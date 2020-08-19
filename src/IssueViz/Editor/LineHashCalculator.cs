@@ -26,7 +26,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
     public interface ILineHashCalculator
     {
-        string Calculate(string wholeText, int line);
+        /// <summary>
+        /// Returns a hash of the given line number inside the documentText
+        /// </summary>
+        /// <param name="documentText">The text from which to extract the line</param>
+        /// <param name="oneBasedLineNumber">1-based line to hash</param>
+        /// <returns>hash of line</returns>
+        string Calculate(string documentText, int oneBasedLineNumber);
     }
 
     [Export(typeof(ILineHashCalculator))]
@@ -46,21 +52,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public string Calculate(string wholeText, int line)
+        public string Calculate(string documentText, int oneBasedLineNumber)
         {
-            if (string.IsNullOrEmpty(wholeText) || line < 1)
+            if (string.IsNullOrEmpty(documentText) || oneBasedLineNumber < 1)
             {
                 return null;
             }
 
-            var lines = GetLines(wholeText);
+            var lines = GetLines(documentText);
 
-            if (line > lines.Length)
+            if (oneBasedLineNumber > lines.Length)
             {
                 return null;
             }
 
-            var lineToHash = lines[line - 1];
+            var lineToHash = lines[oneBasedLineNumber - 1];
 
             var hash = checksumCalculator.Calculate(lineToHash);
 

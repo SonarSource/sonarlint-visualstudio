@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             var result = testSubject.Calculate(text, 10);
 
-            result.Should().BeNullOrEmpty();
+            result.Should().BeNull();
 
             checksumCalculatorMock.VerifyNoOtherCalls();
         }
@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             var result = testSubject.Calculate(text, line);
 
-            result.Should().BeNullOrEmpty();
+            result.Should().BeNull();
 
             checksumCalculatorMock.VerifyNoOtherCalls();
         }
