@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal interface ICFamilyIssueToAnalysisIssueConverter
     {
-        IAnalysisIssue Convert(Message message, string sqLanguage, ICFamilyRulesConfig rulesConfiguration);
+        IAnalysisIssue Convert(Message cFamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration);
     }
 
     [Export(typeof(ICFamilyIssueToAnalysisIssueConverter))]
