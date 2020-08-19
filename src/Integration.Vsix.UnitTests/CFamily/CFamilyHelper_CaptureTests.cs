@@ -29,12 +29,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class CFamilyHelper_CaptureTests
     {
-        private const string FileName = @"C:\absolute\path\to\file.cpp";
+        private const string FileName = @"C:\absolute\file.cpp";
+        private const string ProjectPath = @"C:\absolute\path\project.vcxproj";
 
         [TestMethod]
         public void ToCaptures_Test1()
         {
-            var fileConfig = new CFamilyHelper.FileConfig()
+            var fileConfig = new CFamilyHelper.FileConfig
             {
                 PlatformName = "Win32",
                 PlatformToolset = "v140",
@@ -53,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 BasicRuntimeChecks = "Default",
                 AdditionalOptions = "/a1 /a2",
                 AbsoluteFilePath = FileName,
+                AbsoluteProjectPath = ProjectPath,
                 CompilerVersion = "19.00.00",
             };
 
@@ -63,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             p.Compiler.Should().Be("msvc-cl");
             p.CompilerVersion.Should().Be("19.00.00");
             p.X64.Should().Be(false);
-            p.Cwd.Should().Be(@"C:\absolute\path\to");
+            p.Cwd.Should().Be(@"C:\absolute\path");
             p.Executable.Should().Be("cl.exe");
 
             c.Compiler.Should().Be("msvc-cl");
