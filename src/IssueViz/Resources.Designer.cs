@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error opening file &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string ERR_OpenDocumentException {
+            get {
+                return ResourceManager.GetString("ERR_OpenDocumentException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error displaying Visualization Tool Window: {0}.
         /// </summary>
         internal static string ERR_VisualizationToolWindow_Exception {
