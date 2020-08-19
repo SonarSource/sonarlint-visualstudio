@@ -56,15 +56,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly ILogger logger;
         private readonly DTE dte;
+        private readonly ICFamilyIssueToAnalysisIssueConverter issueConverter;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger)
+        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, ICFamilyIssueToAnalysisIssueConverter issueConverter)
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
             this.cFamilyRulesConfigProvider = cFamilyRulesConfigProvider;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
+            this.issueConverter = issueConverter;
             this.dte = serviceProvider.GetService<DTE>();
         }
 
@@ -167,7 +169,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             issueCount++;
-            var issue = CFamilyHelper.ToSonarLintIssue(message, request.CFamilyLanguage, request.RulesConfiguration);
+            var issue = issueConverter.Convert(message, request.CFamilyLanguage, request.RulesConfiguration);
 
             // Note: the file being analyzed might have been closed by the time the analysis results are 
             // returned. This doesn't cause a crash; all active taggers will have been detached from the
