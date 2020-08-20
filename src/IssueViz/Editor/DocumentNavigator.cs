@@ -65,11 +65,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             return wpfTextView;
         }
 
-        public void Navigate(ITextView wpfTextView, SnapshotSpan snapshotSpan)
+        public void Navigate(ITextView textView, SnapshotSpan snapshotSpan)
         {
-            ExpandSpan(wpfTextView, snapshotSpan);
+            ExpandSpan(textView, snapshotSpan);
 
-            SelectSpan(wpfTextView, snapshotSpan);
+            SelectSpan(textView, snapshotSpan);
         }
 
         private IVsTextView OpenDocument(string filePath)
