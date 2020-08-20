@@ -38,24 +38,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void Ctor_PropertiesSetCorrectly()
         {
-            var testSubject = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan, "hash");
+            var testSubject = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan);
 
             testSubject.Issue.Should().BeSameAs(ValidAnalysisIssue);
             testSubject.Span.Should().Be(ValidSnapshotSpan);
-            testSubject.LineHash.Should().Be("hash");
         }
 
         [TestMethod]
         public void Clone_PropertiesCopiedCorrectly()
         {
-            var original = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan, "hash");
+            var original = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan);
             var testSubject = original.Clone();
 
             testSubject.Should().NotBeSameAs(original);
 
             testSubject.Issue.Should().BeSameAs(original.Issue);
             testSubject.Span.Should().Be(original.Span);
-            testSubject.LineHash.Should().Be(original.LineHash);
         }
 
         [TestMethod]
@@ -65,10 +63,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             {
                 RuleKey = "my key",
                 StartLine = 999,
-                FilePath = "x:\\aaa.foo"
+                FilePath = "x:\\aaa.foo",
+                LineHash = "hash"
             };
 
-            var testSubject = new IssueMarker(analysisIssue, ValidSnapshotSpan, "hash");
+            var testSubject = new IssueMarker(analysisIssue, ValidSnapshotSpan);
 
             testSubject.Should().BeAssignableTo<IFilterableIssue>();
 

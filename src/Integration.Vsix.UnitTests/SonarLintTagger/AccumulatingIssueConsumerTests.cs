@@ -177,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Set up an issue converter that just wraps and returns the supplied issues as IssueMarkers
             var mockIssueConverter = new Mock<IIssueToIssueMarkerConverter>();
             mockIssueConverter.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
-                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => new IssueMarker(issue, new SnapshotSpan(), null));
+                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => new IssueMarker(issue, new SnapshotSpan()));
             return mockIssueConverter.Object;
         }
     }

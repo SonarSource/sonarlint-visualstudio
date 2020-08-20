@@ -98,8 +98,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var snapshotSpan1 = new SnapshotSpan(mockTextSnapshot.Object, span1);
             var snapshotSpan2 = new SnapshotSpan(mockTextSnapshot.Object, span2);
 
-            var marker1 = new IssueMarker(Mock.Of<IAnalysisIssue>(), snapshotSpan1, null);
-            var marker2 = new IssueMarker(Mock.Of<IAnalysisIssue>(), snapshotSpan2, null);
+            var marker1 = new IssueMarker(Mock.Of<IAnalysisIssue>(), snapshotSpan1);
+            var marker2 = new IssueMarker(Mock.Of<IAnalysisIssue>(), snapshotSpan2);
 
             var markerList = new[] { marker1, marker2 };
             var normalizedSpans = new NormalizedSnapshotSpanCollection(snapshotSpan2);
@@ -139,6 +139,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         private static IssueMarker CreateValidMarker() =>
-            new IssueMarker(Mock.Of<IAnalysisIssue>(), ValidSnapshotSpan, null);
+            new IssueMarker(Mock.Of<IAnalysisIssue>(), ValidSnapshotSpan);
     }
 }

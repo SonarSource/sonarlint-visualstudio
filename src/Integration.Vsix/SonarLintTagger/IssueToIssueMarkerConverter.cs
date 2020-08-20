@@ -21,7 +21,6 @@
 using System;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -51,30 +50,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 throw new ArgumentNullException(nameof(issue));
             }
+
             if (textSnapshot == null)
             {
                 throw new ArgumentNullException(nameof(textSnapshot));
             }
 
-            // SonarLint issues line numbers are 1-based, spans lines are 0-based
-
             var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
 
-            // A start line of zero means the issue is file-level i.e. not associated with a particular line
-            if (issue.StartLine == 0)
-            {
-                return new IssueMarker(issue, span, null);
-            }
-
-            if (issue.StartLine > textSnapshot.LineCount)
-            {
-                // Race condition: the line reported in the diagnostic is beyond the end of the file, so presumably
-                // the file has been edited while the analysis was being executed
-                return null;
-            }
-            var text = textSnapshot.GetLineFromLineNumber(issue.StartLine - 1).GetText();
-            var lineHash = ChecksumCalculator.Calculate(text);
-            return new IssueMarker(issue, span, lineHash);
+            return span == null ? null : new IssueMarker(issue, span.Value);
         }
     }
 }
