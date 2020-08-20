@@ -21,6 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
@@ -34,8 +36,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
     [TestClass]
     public class LocationChangedEventListenerTests
     {
-        private Mock<IDocumentOpener> documentOpenerMock;
+        private Mock<IDocumentNavigator> documentOpenerMock;
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
+        private Mock<IIssueSpanCalculator> spanCalculatorMock;
         private TestLogger logger;
 
         private LocationChangedEventListener testSubject;
@@ -43,23 +46,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [TestInitialize]
         public void TestInitialize()
         {
-            documentOpenerMock = new Mock<IDocumentOpener>();
+            documentOpenerMock = new Mock<IDocumentNavigator>();
             selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            spanCalculatorMock = new Mock<IIssueSpanCalculator>();
             logger = new TestLogger();
 
-            testSubject = new LocationChangedEventListener(documentOpenerMock.Object, selectionServiceMock.Object, logger);
+            testSubject = new LocationChangedEventListener(documentOpenerMock.Object, selectionServiceMock.Object, spanCalculatorMock.Object, logger);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             // Arrange
-            var documentOpenerExport = MefTestHelpers.CreateExport<IDocumentOpener>(documentOpenerMock.Object);
+            var documentOpenerExport = MefTestHelpers.CreateExport<IDocumentNavigator>(documentOpenerMock.Object);
             var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(selectionServiceMock.Object);
+            var spanCalculatorExport = MefTestHelpers.CreateExport<IIssueSpanCalculator>(spanCalculatorMock.Object);
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(logger);
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<LocationChangedEventListener, ILocationChangedEventListener>(null, new[] { documentOpenerExport, selectionServiceExport, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<LocationChangedEventListener, ILocationChangedEventListener>(null, new[] { documentOpenerExport, selectionServiceExport, spanCalculatorExport, loggerExport });
         }
 
         [TestMethod]
@@ -104,30 +109,56 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [DataRow(SelectionChangeLevel.Location)]
         [DataRow(SelectionChangeLevel.Flow)]
         [DataRow(SelectionChangeLevel.Issue)]
-        public void OnSelectionChanged_NewLocationHasFilePath_DocumentOpened(SelectionChangeLevel changeLevel)
+        public void OnSelectionChanged_NewLocationHasFilePath_DocumentOpenedAndNavigated(SelectionChangeLevel changeLevel)
         {
             var locationViz = CreateLocationWithFilePath("c:\\test.cpp");
+            var mockSnapshotSpan = new SnapshotSpan();
+            
+            SetupMocks(locationViz, mockSnapshotSpan);
 
             RaiseSelectionChangedEvent(changeLevel, locationViz);
 
-            documentOpenerMock.Verify(x=> x.Open("c:\\test.cpp"), Times.Once);
+            documentOpenerMock.VerifyAll();
             documentOpenerMock.VerifyNoOtherCalls();
+
+            spanCalculatorMock.VerifyAll();
+            spanCalculatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void OnSelectionChanged_FailedToOpenDocument_NoException()
         {
-            const string filePath = "c:\\test.cpp";
-            var locationViz = CreateLocationWithFilePath(filePath);
+            var locationViz = CreateLocationWithFilePath("c:\\test.cpp");
+            var mockSnapshotSpan = new SnapshotSpan();
+            var setupException = new NotImplementedException("this is a test");
 
-            documentOpenerMock
-                .Setup(x => x.Open(filePath))
-                .Throws(new NotImplementedException("this is a test"));
+            SetupMocks(locationViz, mockSnapshotSpan, openDocumentException: setupException);
 
-            Action act = () => RaiseSelectionChangedEvent(SelectionChangeLevel.Location, locationViz);
-            act.Should().NotThrow();
+            VerifyExceptionCaughtAndLogged(setupException, locationViz);
+        }
 
-            logger.AssertPartialOutputStringExists("this is a test");
+        [TestMethod]
+        public void OnSelectionChanged_FailedToCalculateSpan_NoException()
+        {
+            var locationViz = CreateLocationWithFilePath("c:\\test.cpp");
+            var mockSnapshotSpan = new SnapshotSpan();
+            var setupException = new NotImplementedException("this is a test");
+
+            SetupMocks(locationViz, mockSnapshotSpan, calculateSpanException: setupException);
+
+            VerifyExceptionCaughtAndLogged(setupException, locationViz);
+        }
+
+        [TestMethod]
+        public void OnSelectionChanged_FailedToNavigate_NoException()
+        {
+            var locationViz = CreateLocationWithFilePath("c:\\test.cpp");
+            var mockSnapshotSpan = new SnapshotSpan();
+            var setupException = new NotImplementedException("this is a test");
+
+            SetupMocks(locationViz, mockSnapshotSpan, navigateException: setupException);
+
+            VerifyExceptionCaughtAndLogged(setupException, locationViz);
         }
 
         [TestMethod]
@@ -159,6 +190,55 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             locationViz.Setup(x => x.Location).Returns(location.Object);
 
             return locationViz.Object;
+        }
+
+        private void VerifyExceptionCaughtAndLogged(Exception setupException, IAnalysisIssueLocationVisualization locationViz)
+        {
+            Action act = () => RaiseSelectionChangedEvent(SelectionChangeLevel.Location, locationViz);
+            act.Should().NotThrow();
+
+            logger.AssertPartialOutputStringExists(setupException.Message);
+        }
+
+        private void SetupMocks(IAnalysisIssueLocationVisualization locationViz,
+            SnapshotSpan mockSnapshotSpan,
+            Exception openDocumentException = null,
+            Exception calculateSpanException = null,
+            Exception navigateException = null)
+        {
+            var mockSnapshot = Mock.Of<ITextSnapshot>();
+
+            var mockTextView = new Mock<ITextView>();
+            mockTextView.Setup(x => x.TextBuffer.CurrentSnapshot).Returns(mockSnapshot);
+
+            var setupOpenDocument = documentOpenerMock.Setup(x => x.Open("c:\\test.cpp"));
+
+            if (openDocumentException != null)
+            {
+                setupOpenDocument.Throws(openDocumentException);
+            }
+            else
+            {
+                setupOpenDocument.Returns(mockTextView.Object);
+            }
+
+            var setupCalculateSpan = spanCalculatorMock.Setup(x => x.CalculateSpan(locationViz.Location, mockSnapshot));
+
+            if (calculateSpanException != null)
+            {
+                setupCalculateSpan.Throws(calculateSpanException);
+            }
+            else
+            {
+                setupCalculateSpan.Returns(mockSnapshotSpan);
+            }
+
+            var setupNavigate = documentOpenerMock.Setup(x => x.Navigate(mockTextView.Object, mockSnapshotSpan));
+
+            if (navigateException != null)
+            {
+                setupNavigate.Throws(navigateException);
+            }
         }
     }
 }

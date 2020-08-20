@@ -34,15 +34,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class LocationChangedEventListener : ILocationChangedEventListener
     {
-        private readonly IDocumentOpener documentOpener;
+        private readonly IDocumentNavigator documentNavigator;
         private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IIssueSpanCalculator spanCalculator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal LocationChangedEventListener(IDocumentOpener documentOpener, IAnalysisIssueSelectionService selectionService, ILogger logger)
+        internal LocationChangedEventListener(IDocumentNavigator documentNavigator, 
+            IAnalysisIssueSelectionService selectionService, 
+            IIssueSpanCalculator spanCalculator,
+            ILogger logger)
         {
-            this.documentOpener = documentOpener;
+            this.documentNavigator = documentNavigator;
             this.selectionService = selectionService;
+            this.spanCalculator = spanCalculator;
             this.logger = logger;
 
             selectionService.SelectionChanged += SelectionService_SelectionChanged;
@@ -50,17 +55,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 
         private void SelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var locationFilePath = e.SelectedLocation?.Location?.FilePath;
+            var issueLocation = e.SelectedLocation?.Location;
+            var locationFilePath = issueLocation?.FilePath;
 
             if (!string.IsNullOrEmpty(locationFilePath))
             {
                 try
                 {
-                    documentOpener.Open(locationFilePath);
+                    var textView = documentNavigator.Open(locationFilePath);
+                    var locationSpan = spanCalculator.CalculateSpan(issueLocation, textView.TextBuffer.CurrentSnapshot);
+
+                    documentNavigator.Navigate(textView, locationSpan);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    logger.WriteLine(Resources.ERR_OpenDocumentException, locationFilePath, ex);
+                    logger.WriteLine(Resources.ERR_OpenDocumentException, locationFilePath, ex.Message);
                 }
             }
         }
