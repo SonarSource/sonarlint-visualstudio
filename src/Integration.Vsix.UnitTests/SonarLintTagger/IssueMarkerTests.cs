@@ -38,25 +38,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void Ctor_PropertiesSetCorrectly()
         {
-            var testSubject = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan, "text", "hash");
+            var testSubject = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan, "hash");
 
             testSubject.Issue.Should().BeSameAs(ValidAnalysisIssue);
             testSubject.Span.Should().Be(ValidSnapshotSpan);
-            testSubject.WholeLineText.Should().Be("text");
             testSubject.LineHash.Should().Be("hash");
         }
 
         [TestMethod]
         public void Clone_PropertiesCopiedCorrectly()
         {
-            var original = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan, "text", "hash");
+            var original = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan, "hash");
             var testSubject = original.Clone();
 
             testSubject.Should().NotBeSameAs(original);
 
             testSubject.Issue.Should().BeSameAs(original.Issue);
             testSubject.Span.Should().Be(original.Span);
-            testSubject.WholeLineText.Should().Be(original.WholeLineText);
             testSubject.LineHash.Should().Be(original.LineHash);
         }
 
@@ -70,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 FilePath = "x:\\aaa.foo"
             };
 
-            var testSubject = new IssueMarker(analysisIssue, ValidSnapshotSpan, "text", "hash");
+            var testSubject = new IssueMarker(analysisIssue, ValidSnapshotSpan, "hash");
 
             testSubject.Should().BeAssignableTo<IFilterableIssue>();
 
@@ -80,8 +78,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             filterable.StartLine.Should().Be(analysisIssue.StartLine);
             filterable.FilePath.Should().Be(analysisIssue.FilePath);
             filterable.ProjectGuid.Should().BeNull();
-
-            filterable.WholeLineText.Should().Be("text");
             filterable.LineHash.Should().Be("hash");
         }
     }

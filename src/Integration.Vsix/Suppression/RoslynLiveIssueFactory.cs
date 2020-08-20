@@ -24,6 +24,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Helpers;
 
 /* To map from a diagnostic to a SonarQube issue we need to work out the SQ moduleId
  * corresponding to the MSBuild project.
@@ -112,7 +113,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             {
                 var lineText = syntaxTree.GetText().Lines[lineSpan.EndLinePosition.Line].ToString();
                 var sonarQubeLineNumber = lineSpan.StartLinePosition.Line + 1; // Roslyn lines are 0-based, SonarQube lines are 1-based
-                return new LiveIssue(diagnostic.Id, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineText); // Line-level issue
+                var lineHash = ChecksumCalculator.Calculate(lineText);
+                return new LiveIssue(diagnostic.Id, projectGuid, lineSpan.Path, sonarQubeLineNumber, lineHash); // Line-level issue
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

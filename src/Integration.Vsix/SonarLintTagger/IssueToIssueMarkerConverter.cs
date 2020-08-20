@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // A start line of zero means the issue is file-level i.e. not associated with a particular line
             if (issue.StartLine == 0)
             {
-                return new IssueMarker(issue, span, null, null);
+                return new IssueMarker(issue, span, null);
             }
 
             if (issue.StartLine > textSnapshot.LineCount)
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             var text = textSnapshot.GetLineFromLineNumber(issue.StartLine - 1).GetText();
             var lineHash = ChecksumCalculator.Calculate(text);
-            return new IssueMarker(issue, span, text, lineHash);
+            return new IssueMarker(issue, span, lineHash);
         }
     }
 }

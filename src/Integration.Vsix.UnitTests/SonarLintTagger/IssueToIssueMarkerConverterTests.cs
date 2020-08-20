@@ -63,7 +63,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().NotBeNull();
 
-            actual.WholeLineText.Should().Be("some text");
             actual.LineHash.Should().Be(ChecksumCalculator.Calculate("some text"));
         }
 
@@ -81,7 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().NotBeNull();
 
-            actual.WholeLineText.Should().BeNull();
             actual.LineHash.Should().BeNull();
         }
 

@@ -35,7 +35,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public IAnalysisIssue Issue { get; }
         public SnapshotSpan Span { get; }
-        public string WholeLineText { get; set; }
         public string LineHash { get; set; }
 
         string IFilterableIssue.RuleId => Issue.RuleKey;
@@ -48,19 +47,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         int? IFilterableIssue.StartLine => Issue.StartLine;
 
-        string IFilterableIssue.WholeLineText => WholeLineText;
-
-        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span, string wholeLineText, string lineHash)
+        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span, string lineHash)
         {
             Issue = issue;
             Span = span;
-            WholeLineText = wholeLineText;
             LineHash = lineHash;
         }
 
         public IssueMarker Clone()
         {
-            return new IssueMarker(Issue, Span, WholeLineText, LineHash);
+            return new IssueMarker(Issue, Span, LineHash);
         }
 
         public IssueMarker CloneAndTranslateTo(ITextSnapshot newSnapshot)
@@ -72,7 +68,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 return null;
             }
-            return new IssueMarker(Issue, newSpan, WholeLineText, LineHash);
+            return new IssueMarker(Issue, newSpan, LineHash);
         }
     }
 }

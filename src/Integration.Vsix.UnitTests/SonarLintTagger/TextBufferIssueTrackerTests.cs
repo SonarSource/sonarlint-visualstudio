@@ -370,7 +370,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                     EndLine = endLine
                 },
                 new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1),
-                "any text",
                 "any hash"
             );
 
