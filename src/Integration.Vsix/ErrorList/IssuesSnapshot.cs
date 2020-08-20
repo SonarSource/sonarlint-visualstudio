@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
@@ -48,23 +50,69 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
 
+        /// <summary>
+        /// Logical identifier for a set of issues produced by an analysis run.
+        /// Every snapshot that has the same analysis id describes the same set of
+        /// issues in the same order. The implementation of "IndexOf" depends on this.
+        /// </summary>
+        public Guid AnalysisRunId { get; }
+
         public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
 
-        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers)
-            : this(projectName, filePath, versionNumber, issueMarkers, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
+        // Every snapshot has a unique version number. It doesn't matter what it is, as
+        // long as it increments (if two snapshots have the same number or lower, the ErrorList
+        // will assume the data hasn't changed and won't update the rows).
+        private static int nextVersionNumber = 0;
+        private static int GetNextVersionNumber() => ++nextVersionNumber;
+
+        #region Construction methods
+
+        /// <summary>
+        /// Create a snapshot with new set of issues from a new analysis run
+        /// </summary>
+        public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IssueMarker> issueMarkers) =>
+            new IssuesSnapshot(Guid.NewGuid(), projectName, filePath, issueMarkers);
+
+        /// <summary>
+        /// Create and return an updated version of an existing snapshot, where the
+        /// issues are the same but the source file has been renamed
+        /// </summary>
+        public IssuesSnapshot CreateUpdatedSnapshot(string newFilePath) =>
+            new IssuesSnapshot(AnalysisRunId, projectName, newFilePath, issueMarkers);
+
+        /// <summary>
+        /// Create and return an updated version of an existing snapshot, where the
+        /// set of issues are the same but their locations have changed (by the user editing the file)
+        /// </summary>
+        /// <remarks>The number and ordering of issues must be the same</remarks>
+        public IssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IssueMarker> updatedIssueMarkers)
+        {
+            if (updatedIssueMarkers.Count() != IssueMarkers.Count())
+            {
+                throw new ArgumentException("Number of issues should not change when updating a snapshot", nameof(updatedIssueMarkers));
+            }
+
+            return new IssuesSnapshot(AnalysisRunId, projectName, filePath, updatedIssueMarkers);
+        }
+
+        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IssueMarker> issueMarkers)
+            : this(snapshotId, projectName, filePath, issueMarkers,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
-        internal IssuesSnapshot(string projectName, string filePath, int versionNumber, IEnumerable<IssueMarker> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IssueMarker> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
+            this.AnalysisRunId = snapshotId;
             this.projectName = projectName;
             this.filePath = filePath;
-            this.versionNumber = versionNumber;
+            this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
         }
+
+        #endregion
 
         public override int Count => this.issueMarkers.Count;
 
@@ -168,6 +216,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // TODO use the detailed description
             content = this.issueMarkers[index].Issue.Message;
             return true;
+        }
+
+        public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
+        {
+            // Called when a new snapshot has been created and the Error List is trying to
+            // map from a selected item in the previous snapshot to the corresponding item
+            // in the new snapshot.
+            // We can only do this if the snapshots represent the same set of issues i.e.
+            // the AnalysisRunIds are the same.
+            // The Error List will still raise two "selection changed" events - firstly to 
+            // "null", then to the corresponding issue in the new snapshot.
+            if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
+                newIssuesSnapshot.AnalysisRunId == AnalysisRunId)
+            {
+                return currentIndex;
+            }
+            return base.IndexOf(currentIndex, newSnapshot);
         }
     }
 }

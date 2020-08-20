@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(GetProjectName(), FilePath, 0, new List<IssueMarker>()));
+            this.Factory = new SnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IssueMarker>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
         }
@@ -141,7 +141,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // Update and publish a new snapshow with the existing issues so 
                     // that the name change propagates to items in the error list.
                     // No need in this case to translate the tagger spans.
-                    RefreshIssues();
+
+                    var newSnapshot = Factory.CurrentSnapshot.CreateUpdatedSnapshot(FilePath);
+                    SnapToNewSnapshot(newSnapshot);
                 }
                 else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
                     && activeTaggers.Count > 0)
@@ -168,7 +170,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 currentSnapshot = e.After;
 
                 var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
-                UpdateIssues(newMarkers);
+                var newSnapshot = Factory.CurrentSnapshot.CreateUpdatedSnapshot(newMarkers);
+                SnapToNewSnapshot(newSnapshot);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -186,21 +189,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return newMarkers;
         }
 
-        private void SnapToNewSnapshot(IssuesSnapshot newIssues)
+        private void SnapToNewSnapshot(IssuesSnapshot newSnapshot)
         {
             var oldIssues = Factory.CurrentSnapshot;
 
             // Tell our factory to snap to a new snapshot.
-            this.Factory.UpdateSnapshot(newIssues);
+            this.Factory.UpdateSnapshot(newSnapshot);
 
             sonarErrorDataSource.RefreshErrorList();
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes
-            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newIssues);
+            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newSnapshot);
             foreach (var tagger in activeTaggers)
             {
-                tagger.UpdateMarkers(newIssues.IssueMarkers, affectedSpan);
+                tagger.UpdateMarkers(newSnapshot.IssueMarkers, affectedSpan);
             }
         }
 
@@ -252,7 +255,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
             var translatedMarkers = TranslateSpans(filteredMarkers, currentSnapshot);
 
-            UpdateIssues(translatedMarkers);
+            var newSnapshot = IssuesSnapshot.CreateNew(GetProjectName(), FilePath, translatedMarkers);
+            SnapToNewSnapshot(newSnapshot);
         }
 
         private IEnumerable<IssueMarker> RemoveSuppressedIssues(IEnumerable<IssueMarker> issues)
@@ -263,18 +267,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Debug.Assert(filteredIssues.All(x => x is IssueMarker), "Not expecting the issue filter to change the list item type");
 
             return filteredIssues.OfType<IssueMarker>().ToArray();
-        }
-
-        private void RefreshIssues()
-        {
-            UpdateIssues(Factory.CurrentSnapshot.IssueMarkers ?? Enumerable.Empty<IssueMarker>());
-        }
-
-        private void UpdateIssues(IEnumerable<IssueMarker> issueMarkers)
-        {
-            var oldSnapshot = Factory.CurrentSnapshot;
-            var newSnapshot = new IssuesSnapshot(GetProjectName(), FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
-            SnapToNewSnapshot(newSnapshot);
         }
 
         #endregion
