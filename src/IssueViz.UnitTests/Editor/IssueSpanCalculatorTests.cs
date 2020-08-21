@@ -25,11 +25,17 @@ using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
     [TestClass]
-    public class ISpanCalculatorTests
+    public class IssueSpanCalculatorTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<IssueSpanCalculator, IIssueSpanCalculator>(null, null);
+        }
+
         [TestMethod]
         public void ToMarker_Calculates_Span_Positions()
         {

@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         IAnalysisIssueLocationVisualization SelectedLocation { get; set; }
     }
 
-    internal enum SelectionChangeLevel
+    public enum SelectionChangeLevel
     {
         Issue,
         Flow,
