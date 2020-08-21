@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -34,6 +35,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         SnapshotSpan? CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
     }
 
+    [Export(typeof(IIssueSpanCalculator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssueSpanCalculator : IIssueSpanCalculator
     {
         private readonly IChecksumCalculator checksumCalculator;
