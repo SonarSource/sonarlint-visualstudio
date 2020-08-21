@@ -60,13 +60,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 return null;
             }
 
-            // A start line of zero means the issue is file-level i.e. not associated with a particular line
-            var isFileLevelIssue = location.StartLine == 0;
-
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
             var startLine = currentSnapshot.GetLineFromLineNumber(location.StartLine - 1);
 
-            if (!isFileLevelIssue && IsLineHashDifferent(location, startLine))
+            if (IsLineHashDifferent(location, startLine))
             {
                 // Out of sync: the line reported in the diagnostic has been edited, so we can no longer calculate the span
                 return null;
@@ -98,6 +95,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         private bool IsLineHashDifferent(IAnalysisIssueLocation location, ITextSnapshotLine snapshotLine)
         {
+            if (string.IsNullOrEmpty(location.LineHash))
+            {
+                return false;
+            }
+
             var textInSnapshot = snapshotLine.GetText();
             var snapshotLineHash = checksumCalculator.Calculate(textInSnapshot);
 
