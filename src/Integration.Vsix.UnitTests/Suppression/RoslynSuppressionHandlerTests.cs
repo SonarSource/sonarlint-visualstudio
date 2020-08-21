@@ -25,6 +25,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
 
@@ -146,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             LiveIssue liveIssue = new LiveIssue(diagnostic.Id, Guid.NewGuid().ToString(),
                 filePath: "dummy file path",
                 startLine: startLine,
-                wholeLineText: wholeLineText);
+                lineHash: ChecksumCalculator.Calculate(wholeLineText));
 
             SetLiveIssue(liveIssue);
         }

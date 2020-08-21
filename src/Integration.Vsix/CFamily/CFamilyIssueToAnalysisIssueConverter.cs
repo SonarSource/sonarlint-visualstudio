@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 filePath: cFamilyIssue.Filename,
                 message: cFamilyIssue.Text,
-                lineHash: lineHashCalculator.Calculate(fileContents[cFamilyIssue.Filename], cFamilyIssue.Line),
+                lineHash: CalculateLineHash(cFamilyIssue, fileContents),
                 startLine: cFamilyIssue.Line,
                 endLine: cFamilyIssue.EndLine,
 
@@ -119,13 +119,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             );
         }
 
+        private string CalculateLineHash(MessagePart cFamilyIssueLocation, IDictionary<string, string> fileContents)
+        {
+            var isFileLevelLocation = cFamilyIssueLocation.Line == 1 &&
+                                      cFamilyIssueLocation.Column <= 1 &&
+                                      cFamilyIssueLocation.EndColumn == 0 &&
+                                      cFamilyIssueLocation.EndLine == 0;
+
+            return isFileLevelLocation
+                ? null
+                : lineHashCalculator.Calculate(fileContents[cFamilyIssueLocation.Filename], cFamilyIssueLocation.Line);
+        }
+
         private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IDictionary<string, string> fileContents)
         {
             return new AnalysisIssueLocation
             (
                 filePath: cFamilyIssueLocation.Filename,
                 message: cFamilyIssueLocation.Text,
-                lineHash: lineHashCalculator.Calculate(fileContents[cFamilyIssueLocation.Filename], cFamilyIssueLocation.Line),
+                lineHash: CalculateLineHash(cFamilyIssueLocation, fileContents),
                 startLine: cFamilyIssueLocation.Line,
                 endLine: cFamilyIssueLocation.EndLine,
 

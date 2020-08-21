@@ -35,32 +35,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public IAnalysisIssue Issue { get; }
         public SnapshotSpan Span { get; }
-        public string WholeLineText { get; set; }
-        public string LineHash { get; set; }
 
         string IFilterableIssue.RuleId => Issue.RuleKey;
 
         string IFilterableIssue.FilePath => Issue.FilePath;
 
-        string IFilterableIssue.LineHash => LineHash;
+        string IFilterableIssue.LineHash => Issue.LineHash;
 
         string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
 
         int? IFilterableIssue.StartLine => Issue.StartLine;
 
-        string IFilterableIssue.WholeLineText => WholeLineText;
-
-        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span, string wholeLineText, string lineHash)
+        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span)
         {
             Issue = issue;
             Span = span;
-            WholeLineText = wholeLineText;
-            LineHash = lineHash;
         }
 
         public IssueMarker Clone()
         {
-            return new IssueMarker(Issue, Span, WholeLineText, LineHash);
+            return new IssueMarker(Issue, Span);
         }
 
         public IssueMarker CloneAndTranslateTo(ITextSnapshot newSnapshot)
@@ -72,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 return null;
             }
-            return new IssueMarker(Issue, newSpan, WholeLineText, LineHash);
+            return new IssueMarker(Issue, newSpan);
         }
     }
 }

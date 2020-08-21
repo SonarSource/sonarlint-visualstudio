@@ -225,7 +225,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.FilePath.Should().BeNull();
             result.StartLine.Should().BeNull();
-            result.WholeLineText.Should().BeNull();
             result.LineHash.Should().BeNull();
         }
 
@@ -244,7 +243,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.FilePath.Should().Be("C:\\MySource.cs");
             result.StartLine.Should().BeNull();
-            result.WholeLineText.Should().BeNull();
             result.LineHash.Should().BeNull();
         }
 
@@ -266,7 +264,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             result.ProjectGuid.Should().Be("31d0daac-8606-40fe-8df0-01784706ea3e");
             result.FilePath.Should().Be("C:\\MySource.cs");
             result.StartLine.Should().Be(2);
-            result.WholeLineText.Should().Be("    class Foo");
             result.LineHash.Should().Be("e1b4eea6db405a204a21bd5251c5385d");
         }
 

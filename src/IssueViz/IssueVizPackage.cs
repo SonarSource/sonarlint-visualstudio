@@ -22,9 +22,11 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization
@@ -36,12 +38,17 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Float)]
     public sealed class IssueVizPackage : AsyncPackage
     {
+        private ILocationChangedEventListener locationChangedEventListener;
+
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await IssueVisualizationToolWindowCommand.InitializeAsync(this);
             await NavigationCommands.InitializeAsync(this);
+
+            var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            locationChangedEventListener = componentModel.GetService<ILocationChangedEventListener>();
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
@@ -52,6 +59,13 @@ namespace SonarLint.VisualStudio.IssueVisualization
             }
 
             return base.InstantiateToolWindow(toolWindowType);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            locationChangedEventListener?.Dispose();
+
+            base.Dispose(disposing);
         }
     }
 }

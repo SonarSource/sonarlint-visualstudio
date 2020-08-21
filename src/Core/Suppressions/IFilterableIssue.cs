@@ -31,6 +31,5 @@ namespace SonarLint.VisualStudio.Core.Suppression
         string LineHash { get; }
         string ProjectGuid { get; }
         int? StartLine { get; }
-        string WholeLineText { get; }
     }
 }

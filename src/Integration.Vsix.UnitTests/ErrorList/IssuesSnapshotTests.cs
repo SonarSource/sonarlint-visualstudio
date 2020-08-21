@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
             var textSnap = mockTextSnap.Object;
 
-            var marker = new IssueMarker(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)), "whole line text", "line hash");
+            var marker = new IssueMarker(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
             snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IssueMarker>() { marker });
         }

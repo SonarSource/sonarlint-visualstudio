@@ -24,69 +24,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class IssueToIssueMarkerConverterTests
     {
-        [DataTestMethod]
-        [DataRow(100, 1)]
-        [DataRow(101, 100)]
-        public void Convert_IssueLineOutsideSnapshot_ReturnsNull(int issueStartLine, int bufferLineCount)
-        {
-            // Arrange
-            var issue = new DummyAnalysisIssue { StartLine = issueStartLine};
-            var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "unimportant");
-
-            var testSubject = new IssueToIssueMarkerConverter();
-
-            // Act and assert
-            testSubject.Convert(issue, mockSnapshot.Object)
-                .Should().BeNull();
-        }
-
-        [DataTestMethod]
-        [DataRow(2, 100)]
-        [DataRow(100, 100)]
-        public void Convert_IssueLineInSnapshot_ReturnsFilterableIssue(int issueStartLine, int bufferLineCount)
-        {
-            var issue = new DummyAnalysisIssue { StartLine = issueStartLine };
-            var mockSnapshot = CreateMockTextSnapshot(bufferLineCount, "some text");
-            var testSubject = new IssueToIssueMarkerConverter();
-
-            // Act
-            var actual = testSubject.Convert(issue, mockSnapshot.Object);
-
-            // Assert
-            actual.Should().NotBeNull();
-
-            actual.WholeLineText.Should().Be("some text");
-            actual.LineHash.Should().Be(ChecksumCalculator.Calculate("some text"));
-        }
-
         [TestMethod]
-        public void Convert_FileLevelIssue_ReturnsFilterableIssue()
-        {
-            // Arrange
-            var issue = new DummyAnalysisIssue { StartLine = 0 };
-            var mockSnapshot = CreateMockTextSnapshot(10, "anything");
-            var testSubject = new IssueToIssueMarkerConverter();
-
-            // Act
-            var actual = testSubject.Convert(issue, mockSnapshot.Object);
-
-            // Assert
-            actual.Should().NotBeNull();
-
-            actual.WholeLineText.Should().BeNull();
-            actual.LineHash.Should().BeNull();
-        }
-
-        [TestMethod]
-        public void Convert_NullIssues_Throws()
+        public void Convert_NullIssue_Throws()
         {
             // Arrange
             var mockSnapshot = new Mock<ITextSnapshot>();
@@ -108,17 +55,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("textSnapshot");
         }
 
-        private static Mock<ITextSnapshot> CreateMockTextSnapshot(int lineCount, string textToReturn)
+        [TestMethod]
+        public void Convert_NullSpan_Null()
         {
-            var mockSnapshotLine = new Mock<ITextSnapshotLine>();
-            mockSnapshotLine.Setup(x => x.GetText()).Returns(textToReturn);
+            var mockIssue = Mock.Of<IAnalysisIssue>();
+            var mockSnapshot = Mock.Of<ITextSnapshot>();
 
-            var mockSnapshot = new Mock<ITextSnapshot>();
-            mockSnapshot.Setup(x => x.LineCount).Returns(lineCount);
-            mockSnapshot.Setup(x => x.GetLineFromLineNumber(It.IsAny<int>()))
-                .Returns(mockSnapshotLine.Object);
+            var spanCalculator = new Mock<IIssueSpanCalculator>();
+            spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns((SnapshotSpan?) null);
 
-            return mockSnapshot;
+            var testSubject = new IssueToIssueMarkerConverter(spanCalculator.Object);
+            var issueMarker = testSubject.Convert(mockIssue, mockSnapshot);
+
+            issueMarker.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Convert_SpanIsNotNull_ReturnsMarkerWithSpan()
+        {
+            var mockIssue = Mock.Of<IAnalysisIssue>();
+            var mockSnapshot = Mock.Of<ITextSnapshot>();
+            var mockSpan = new SnapshotSpan();
+
+            var spanCalculator = new Mock<IIssueSpanCalculator>();
+            spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns(mockSpan);
+
+            var testSubject = new IssueToIssueMarkerConverter(spanCalculator.Object);
+            var issueMarker = testSubject.Convert(mockIssue, mockSnapshot);
+
+            issueMarker.Should().NotBeNull();
+            issueMarker.Issue.Should().Be(mockIssue);
+            issueMarker.Span.Should().Be(mockSpan);
         }
     }
 }

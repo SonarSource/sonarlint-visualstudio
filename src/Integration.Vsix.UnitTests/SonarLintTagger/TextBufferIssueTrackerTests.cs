@@ -25,7 +25,6 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -380,9 +379,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                     StartLine = startLine,
                     EndLine = endLine
                 },
-                new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1),
-                "any text",
-                "any hash"
+                new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1)
             );
 
         #endregion
