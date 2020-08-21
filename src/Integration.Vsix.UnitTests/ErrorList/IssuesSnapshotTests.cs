@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return (T)content;
         }
 
-        private static IssueMarker CreateMarker(string lineHash = "dummy hash") =>
-            new IssueMarker(Mock.Of<IAnalysisIssue>(), new SnapshotSpan(), "dummy text", lineHash);
+        private static IssueMarker CreateMarker(string ruleKey = "rule key") =>
+            new IssueMarker(new DummyAnalysisIssue { RuleKey = ruleKey }, new SnapshotSpan());
     }
 }
