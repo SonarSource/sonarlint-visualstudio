@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             checksumCalculatorMock.VerifyNoOtherCalls();
         }
 
-        [DataTestMethod]
+        [TestMethod]
         public void CalculateSpan_NonFileLevelIssue_IssueLineHashIsDifferent_ReturnsNull()
         {
             var issue = new DummyAnalysisIssue { StartLine = 10, LineHash = "some hash" };
@@ -249,6 +249,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             result.Should().NotBeNull();
             result.Value.Start.Position.Should().Be(1601); // vsLine.LineStartPosition + issue.StartLineOffset
             result.Value.End.Position.Should().Be(1602); // snapshot length
+        }
+
+        [TestMethod]
+        public void CalculateSpan_FileLevelIssue_HashNotChecked()
+        {
+            var issue = new DummyAnalysisIssue { StartLine = 0 };
+
+            var firstLine = new VSLineDescription
+            {
+                ZeroBasedLineNumber = -1,
+                LineLength = 0,
+                LineStartPosition = 0,
+                Text = "some text"
+            };
+
+            checksumCalculatorMock.Setup(x => x.Calculate(firstLine.Text)).Returns(issue.LineHash);
+
+            var textSnapshotMock = CreateSnapshotMock(lines: new[] { firstLine });
+
+            // Act
+            var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
+
+            result.Should().NotBeNull();
+
+            checksumCalculatorMock.VerifyNoOtherCalls();
         }
 
         private class VSLineDescription
