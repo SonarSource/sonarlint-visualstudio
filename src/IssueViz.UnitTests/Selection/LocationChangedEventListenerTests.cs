@@ -109,7 +109,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [DataRow(SelectionChangeLevel.Location)]
         [DataRow(SelectionChangeLevel.Flow)]
         [DataRow(SelectionChangeLevel.Issue)]
-        public void OnSelectionChanged_NewLocationHasFilePath_DocumentOpenedAndNavigated(SelectionChangeLevel changeLevel)
+        public void OnSelectionChanged_NewLocationHasFilePath_SpanIsInvalid_DocumentNotOpened(SelectionChangeLevel changeLevel)
+        {
+            var locationViz = CreateLocationWithFilePath("c:\\test.cpp");
+
+            SetupMocks(locationViz, null);
+
+            RaiseSelectionChangedEvent(changeLevel, locationViz);
+
+            documentOpenerMock.Verify(x => x.Navigate(It.IsAny<ITextView>(), It.IsAny<SnapshotSpan>()),
+                Times.Never);
+
+            documentOpenerMock.VerifyAll();
+            documentOpenerMock.VerifyNoOtherCalls();
+
+            spanCalculatorMock.VerifyAll();
+            spanCalculatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow(SelectionChangeLevel.Location)]
+        [DataRow(SelectionChangeLevel.Flow)]
+        [DataRow(SelectionChangeLevel.Issue)]
+        public void OnSelectionChanged_NewLocationHasFilePath_SpanIsValid_DocumentOpenedAndNavigated(SelectionChangeLevel changeLevel)
         {
             var locationViz = CreateLocationWithFilePath("c:\\test.cpp");
             var mockSnapshotSpan = new SnapshotSpan();
@@ -201,7 +223,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         }
 
         private void SetupMocks(IAnalysisIssueLocationVisualization locationViz,
-            SnapshotSpan mockSnapshotSpan,
+            SnapshotSpan? mockSnapshotSpan,
             Exception openDocumentException = null,
             Exception calculateSpanException = null,
             Exception navigateException = null)
@@ -233,11 +255,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
                 setupCalculateSpan.Returns(mockSnapshotSpan);
             }
 
-            var setupNavigate = documentOpenerMock.Setup(x => x.Navigate(mockTextView.Object, mockSnapshotSpan));
-
-            if (navigateException != null)
+            if (mockSnapshotSpan != null)
             {
-                setupNavigate.Throws(navigateException);
+                var setupNavigate = documentOpenerMock.Setup(x => x.Navigate(mockTextView.Object, mockSnapshotSpan.Value));
+
+                if (navigateException != null)
+                {
+                    setupNavigate.Throws(navigateException);
+                }
             }
         }
     }

@@ -43,6 +43,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             testSubject = new IssueSpanCalculator(checksumCalculatorMock.Object);
         }
 
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<IssueSpanCalculator, IIssueSpanCalculator>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IChecksumCalculator>(checksumCalculatorMock.Object)
+            });
+        }
+
         [DataTestMethod]
         [DataRow(100, 1)]
         [DataRow(101, 100)]
