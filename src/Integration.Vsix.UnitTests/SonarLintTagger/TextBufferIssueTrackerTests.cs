@@ -128,10 +128,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 mockAnalyzerController.Invocations.Clear();
                 mockSonarErrorDataSource.Invocations.Clear();
 
+                var initialSnapshotVersion = testSubject.Factory.CurrentSnapshot.VersionNumber;
+                var initialAnalysisRunId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
+
                 RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
 
                 CheckAnalysisWasNotRequested();
                 CheckErrorListRefreshWasRequestedOnce();
+
+                testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
+                testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId);
             }
         }
 
@@ -155,7 +161,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void WhenFileRenamed_FileNameIsUpdated_AndAnalysisIsNotRequested()
         {
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(0); // sanity check
+            var initialSnapshotVersion = testSubject.Factory.CurrentSnapshot.VersionNumber;
+            var initialAnalysisRunId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
 
             // Act
             RaiseRenameEvent(mockedJavascriptDocumentFooJs, "newPath.js");
@@ -164,7 +171,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject.FilePath.Should().Be("newPath.js");
 
             // Check the snapshot was updated and the error list notified
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(1);
+            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
+            testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId); // Same set of analysis issues
             CheckErrorListRefreshWasRequestedOnce();
 
             CheckAnalysisWasNotRequested();
@@ -271,6 +279,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
                 mockSonarErrorDataSource.Object, logger);
 
+            var originalId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
+
             var inputIssues = new[]
             {
                 CreateIssueMarker("S111", startLine: 1, endLine: 1),
@@ -288,6 +298,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject.HandleNewIssues(inputIssues);
 
             // Assert
+            // Check the snapshot has changed
+            testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().NotBe(originalId);
+
             // Check the expected issues were passed to the filter
             issuesPassedToFilter.Count.Should().Be(2);
             issuesPassedToFilter[0].RuleId.Should().Be("S111");
