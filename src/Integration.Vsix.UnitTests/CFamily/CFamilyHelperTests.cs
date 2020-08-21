@@ -338,6 +338,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
         {
             var vcProjectMock = new Mock<VCProject>();
+            vcProjectMock.Setup(x => x.ProjectFile).Returns(projectName);
+
             var vcConfig = CreateVCConfigurationWithProperties(ValidPlatformName, MandatoryProjectConfigProperties);
             vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
 
