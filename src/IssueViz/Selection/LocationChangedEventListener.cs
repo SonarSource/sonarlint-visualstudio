@@ -69,10 +69,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                     {
                         documentNavigator.Navigate(textView, locationSpan.Value);
                     }
-                    else
-                    {
-                        // update navigability?
-                    }
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
