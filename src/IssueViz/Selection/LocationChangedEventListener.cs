@@ -65,7 +65,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                     var textView = documentNavigator.Open(locationFilePath);
                     var locationSpan = spanCalculator.CalculateSpan(issueLocation, textView.TextBuffer.CurrentSnapshot);
 
-                    documentNavigator.Navigate(textView, locationSpan);
+                    if (locationSpan.HasValue)
+                    {
+                        documentNavigator.Navigate(textView, locationSpan.Value);
+                    }
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {

@@ -19,7 +19,6 @@
  */
 
 using System.IO;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
@@ -43,8 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         }
 
         // line(s) level issue
-        public LiveIssue(string ruleId, string projectGuid, string filePath, int? startLine,
-            string wholeLineText = "")
+        public LiveIssue(string ruleId, string projectGuid, string filePath, int? startLine, string lineHash = null)
         {
             RuleId = ruleId;
             ProjectGuid = projectGuid;
@@ -57,8 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
             if (startLine != null)
             {
                 StartLine = startLine;
-                WholeLineText = wholeLineText;
-                LineHash = ChecksumCalculator.Calculate(WholeLineText);
+                LineHash = lineHash;
             }
         }
 
@@ -67,6 +64,5 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Suppression
         public string LineHash { get; }
         public string ProjectGuid { get; }
         public int? StartLine { get; }
-        public string WholeLineText { get; }
     }
 }

@@ -25,7 +25,6 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -33,10 +32,8 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using Strings = SonarLint.VisualStudio.Integration.Vsix.Resources.Strings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -369,9 +366,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                     StartLine = startLine,
                     EndLine = endLine
                 },
-                new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1),
-                "any text",
-                "any hash"
+                new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1)
             );
 
         #endregion

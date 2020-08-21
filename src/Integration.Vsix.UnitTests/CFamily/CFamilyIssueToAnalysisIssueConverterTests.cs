@@ -215,6 +215,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void Convert_HasMessageParts_LineHashCalculatedForNonFileLevelLocationsOnly()
+        {
+            const string nonFileLevelLocationFilePath = "file2.cpp";
+            const int nonFileLevelLocationLine = 20;
+            var nonFileLevelLocationHash = SetupLineHash(nonFileLevelLocationFilePath, nonFileLevelLocationLine);
+
+            var messageParts = new List<MessagePart>
+            {
+                new MessagePart(nonFileLevelLocationFilePath, nonFileLevelLocationLine, 2, 3, 4, "this is a test 1"),
+                new MessagePart("file3.cpp", 1, 1, 0, 0, "this is a test 2")
+            };
+
+            var fileLevelIssue = new Message("rule2", "file1.pp", 1, 0, 0, 0, "this is a test", false, messageParts.ToArray());
+
+            var issue = Convert(fileLevelIssue);
+
+            issue.LineHash.Should().BeNull();
+
+            // converted locations are in reverse order from message parts
+            var nonFileLevelLocation = issue.Flows[0].Locations[1];
+            var fileLevelLocation = issue.Flows[0].Locations[0];
+
+            fileLevelLocation.LineHash.Should().BeNull();
+            nonFileLevelLocation.LineHash.Should().Be(nonFileLevelLocationHash);
+        }
+
+        [TestMethod]
         public void Convert_FileDoesNotExist_NullLineHash()
         {
             const string firstLocationPath = "file2.cpp";
