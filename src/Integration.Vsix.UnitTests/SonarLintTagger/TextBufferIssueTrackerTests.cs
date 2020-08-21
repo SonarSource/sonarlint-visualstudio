@@ -33,10 +33,8 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
-using Strings = SonarLint.VisualStudio.Integration.Vsix.Resources.Strings;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -131,10 +129,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 mockAnalyzerController.Invocations.Clear();
                 mockSonarErrorDataSource.Invocations.Clear();
 
+                var initialSnapshotVersion = testSubject.Factory.CurrentSnapshot.VersionNumber;
+                var initialAnalysisRunId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
+
                 RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
 
                 CheckAnalysisWasNotRequested();
                 CheckErrorListRefreshWasRequestedOnce();
+
+                testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
+                testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId);
             }
         }
 
@@ -159,6 +163,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         public void WhenFileRenamed_FileNameIsUpdated_AndAnalysisIsNotRequested()
         {
             var initialSnapshotVersion = testSubject.Factory.CurrentSnapshot.VersionNumber;
+            var initialAnalysisRunId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
 
             // Act
             RaiseRenameEvent(mockedJavascriptDocumentFooJs, "newPath.js");
@@ -168,6 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
+            testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId); // Same set of analysis issues
             CheckErrorListRefreshWasRequestedOnce();
 
             CheckAnalysisWasNotRequested();

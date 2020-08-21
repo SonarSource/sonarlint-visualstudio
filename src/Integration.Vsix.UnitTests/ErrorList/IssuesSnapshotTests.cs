@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class IssuesSnapshotTests
     {
+        private const int IndexOf_NotFoundResult = -1;
         private const string ValidProjectName = "aproject";
         private const string ValidFilePath = "c:\\file.txt";
         private readonly IEnumerable<IssueMarker> ValidMarkerList = new IssueMarker[] { CreateMarker() };
@@ -190,10 +191,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             revised.AnalysisRunId.Should().Be(original.AnalysisRunId);
             revised.VersionNumber.Should().BeGreaterThan(original.VersionNumber);
-            GetFilePath(revised).Should().NotBe(ValidFilePath);
+            GetFilePath(original).Should().Be(ValidFilePath);
             GetFilePath(revised).Should().Be("new path");
 
-            // Unchanged
+            // Other properties
             revised.IssueMarkers.Should().BeEquivalentTo(original.IssueMarkers);
             GetProjectName(revised).Should().Be(GetProjectName(original));
         }
@@ -205,12 +206,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var originalIssues = new IssueMarker[] { CreateMarker("hash1") };
             var newIssues = new IssueMarker[] { CreateMarker("hash2") };
 
+            // Sanity check
+            originalIssues.Should().NotBeEquivalentTo(newIssues);
+
             var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, originalIssues);
             var revised = original.CreateUpdatedSnapshot(newIssues);
 
             revised.AnalysisRunId.Should().Be(original.AnalysisRunId);
             revised.VersionNumber.Should().BeGreaterThan(original.VersionNumber);
-            revised.IssueMarkers.Should().NotBeEquivalentTo(originalIssues);
+            revised.IssueMarkers.Should().BeEquivalentTo(newIssues);
 
             // Unchanged
             GetProjectName(revised).Should().Be(GetProjectName(original));
@@ -250,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Should not be able to map issues between two snapshots with different snapshot ids
             snapshot1.IndexOf(999, snapshot2)
-                .Should().Be(-1);
+                .Should().Be(IndexOf_NotFoundResult);
         }
 
         [TestMethod]
@@ -259,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
 
             original.IndexOf(999, Mock.Of<ITableEntriesSnapshot>())
-                .Should().Be(-1);
+                .Should().Be(IndexOf_NotFoundResult);
         }
 
         private object GetValue(string columnName)
