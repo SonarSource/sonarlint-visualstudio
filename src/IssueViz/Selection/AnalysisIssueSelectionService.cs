@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection
@@ -29,34 +30,52 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionService
     {
+        private readonly ILocationNavigator locationNavigator;
+
         public IAnalysisIssueVisualization SelectedIssue { get; private set; }
         public IAnalysisIssueFlowVisualization SelectedFlow { get; private set; }
         public IAnalysisIssueLocationVisualization SelectedLocation { get; private set; }
 
         public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
 
+        [ImportingConstructor]
+        public AnalysisIssueSelectionService(ILocationNavigator locationNavigator)
+        {
+            this.locationNavigator = locationNavigator;
+        }
+
         public void Select(IAnalysisIssueVisualization issueVisualization)
         {
-            SelectedIssue = issueVisualization;
-            SelectedFlow = GetFirstFlowOrDefault();
-            SelectedLocation = GetFirstLocationOrDefault();
-
-            RaiseSelectionChanged(SelectionChangeLevel.Issue);
+            var flow = GetFirstFlowOrDefault(issueVisualization);
+            SetSelection(SelectionChangeLevel.Issue, issueVisualization, flow, GetFirstLocationOrDefault(flow));
         }
 
-        public void Select(IAnalysisIssueFlowVisualization flowVisualization)
-        {
-            SelectedFlow = flowVisualization;
-            SelectedLocation = GetFirstLocationOrDefault();
+        public void Select(IAnalysisIssueFlowVisualization flowVisualization) =>
+            SetSelection(SelectionChangeLevel.Flow, SelectedIssue, flowVisualization, GetFirstLocationOrDefault(flowVisualization));
 
-            RaiseSelectionChanged(SelectionChangeLevel.Flow);
+        public void Select(IAnalysisIssueLocationVisualization locationVisualization) =>
+            SetSelection(SelectionChangeLevel.Location, SelectedIssue, SelectedFlow, locationVisualization);
+
+        private void SetSelection(SelectionChangeLevel selectionChangeLevel,
+            IAnalysisIssueVisualization issue,
+            IAnalysisIssueFlowVisualization flow,
+            IAnalysisIssueLocationVisualization location)
+        {
+            SelectedIssue = issue;
+            SelectedFlow = flow;
+            SelectedLocation = location;
+
+            NavigateToSelectedLocation();
+
+            RaiseSelectionChanged(selectionChangeLevel);
         }
 
-        public void Select(IAnalysisIssueLocationVisualization locationVisualization)
+        private void NavigateToSelectedLocation()
         {
-            SelectedLocation = locationVisualization;
-
-            RaiseSelectionChanged(SelectionChangeLevel.Location);
+            if (SelectedLocation != null)
+            {
+                locationNavigator.TryNavigate(SelectedLocation.Location);
+            }
         }
 
         private void RaiseSelectionChanged(SelectionChangeLevel changeLevel)
@@ -64,14 +83,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             SelectionChanged?.Invoke(this, new SelectionChangedEventArgs(changeLevel, SelectedIssue, SelectedFlow, SelectedLocation));
         }
 
-        private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault()
+        private static IAnalysisIssueFlowVisualization GetFirstFlowOrDefault(IAnalysisIssueVisualization issue)
         {
-            return SelectedIssue?.Flows?.FirstOrDefault();
+            return issue?.Flows?.FirstOrDefault();
         }
 
-        private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault()
+        private static IAnalysisIssueLocationVisualization GetFirstLocationOrDefault(IAnalysisIssueFlowVisualization flow)
         {
-            return SelectedFlow?.Locations?.FirstOrDefault();
+            return flow?.Locations?.FirstOrDefault();
         }
 
         public void Dispose()

@@ -22,6 +22,9 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -30,12 +33,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
     [TestClass]
     public class AnalysisIssueSelectionServiceTests
     {
+        private Mock<ILocationNavigator> locationNavigatorMock;
+
         private AnalysisIssueSelectionService testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new AnalysisIssueSelectionService();
+            locationNavigatorMock = new Mock<ILocationNavigator>();
+
+            testSubject = new AnalysisIssueSelectionService(locationNavigatorMock.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            // Arrange
+            var locationNavigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(locationNavigatorMock.Object);
+
+            // Act & Assert
+            MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueSelectionService, IAnalysisIssueSelectionService>(null, new[]
+            {
+                locationNavigatorExport
+            });
         }
 
         [TestMethod]
@@ -226,6 +246,56 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             testSubject.SelectedFlow.Should().Be(secondIssueFirstFlow);
 
             eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectedFlowChanged_FlowIsNull_NoLocationNavigation()
+        {
+            testSubject.Select(null as IAnalysisIssueFlowVisualization);
+
+            locationNavigatorMock.Verify(x => x.TryNavigate(It.IsAny<IAnalysisIssueLocation>()), Times.Never);
+            locationNavigatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectedFlowChanged_FlowIsNotNull_FlowHasNoLocations_NoLocationNavigation()
+        {
+            testSubject.Select(Mock.Of<IAnalysisIssueFlowVisualization>());
+
+            locationNavigatorMock.Verify(x => x.TryNavigate(It.IsAny<IAnalysisIssueLocation>()), Times.Never);
+            locationNavigatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectedFlowChanged_FlowIsNotNull_FlowHasLocations_NavigatesToFlowFirstLocation()
+        {
+            var selectedFlow = GetFlowWithLocation(out var flowFirstLocation);
+            testSubject.Select(selectedFlow);
+
+            locationNavigatorMock.Verify(x => x.TryNavigate(flowFirstLocation.Location), Times.Once);
+            locationNavigatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectedLocationChanged_LocationIsNull_NoLocationNavigation()
+        {
+            testSubject.Select(null as IAnalysisIssueLocationVisualization);
+
+            locationNavigatorMock.Verify(x => x.TryNavigate(It.IsAny<IAnalysisIssueLocation>()), Times.Never);
+            locationNavigatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectedLocationChanged_LocationIsNotNull_NavigatesToLocation()
+        {
+            var location = Mock.Of<IAnalysisIssueLocation>();
+            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locationViz.Setup(x => x.Location).Returns(location);
+
+            testSubject.Select(locationViz.Object);
+
+            locationNavigatorMock.Verify(x => x.TryNavigate(location), Times.Once);
+            locationNavigatorMock.VerifyNoOtherCalls();
         }
 
         private static IAnalysisIssueFlowVisualization GetFlowWithLocation(out IAnalysisIssueLocationVisualization firstLocation)
