@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         {
             if (SelectedLocation != null)
             {
-                locationNavigator.TryNavigate(SelectedLocation.Location);
+                SelectedLocation.IsNavigable = locationNavigator.TryNavigate(SelectedLocation.Location);
             }
         }
 

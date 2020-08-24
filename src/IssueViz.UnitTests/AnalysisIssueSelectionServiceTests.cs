@@ -270,6 +270,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         public void SelectedFlowChanged_FlowIsNotNull_FlowHasLocations_NavigatesToFlowFirstLocation()
         {
             var selectedFlow = GetFlowWithLocation(out var flowFirstLocation);
+
             testSubject.Select(selectedFlow);
 
             locationNavigatorMock.Verify(x => x.TryNavigate(flowFirstLocation.Location), Times.Once);
@@ -296,6 +297,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             locationNavigatorMock.Verify(x => x.TryNavigate(location), Times.Once);
             locationNavigatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SelectedLocationChanged_LocationIsNotNull_IsNavigableSetToNavigationResult(bool navigationResult)
+        {
+            var location = Mock.Of<IAnalysisIssueLocation>();
+            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locationViz.Setup(x => x.Location).Returns(location);
+
+            locationNavigatorMock.Setup(x => x.TryNavigate(location)).Returns(navigationResult);
+
+            testSubject.Select(locationViz.Object);
+
+            locationViz.VerifySet(x=> x.IsNavigable = navigationResult, Times.Once);
+            testSubject.SelectedLocation.Should().Be(locationViz.Object);
         }
 
         private static IAnalysisIssueFlowVisualization GetFlowWithLocation(out IAnalysisIssueLocationVisualization firstLocation)

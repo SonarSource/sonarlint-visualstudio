@@ -25,23 +25,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     internal interface IAnalysisIssueLocationVisualization
     {
         int StepNumber { get; }
-
-        bool IsNavigable { get; }
-
         IAnalysisIssueLocation Location { get; }
+        bool IsNavigable { get; set; }
     }
 
     public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
     {
-        public AnalysisIssueLocationVisualization(int stepNumber, bool isNavigable, IAnalysisIssueLocation location)
+        public AnalysisIssueLocationVisualization(int stepNumber, IAnalysisIssueLocation location)
         {
             StepNumber = stepNumber;
-            IsNavigable = isNavigable;
             Location = location;
+            IsNavigable = true;
         }
 
         public int StepNumber { get; }
-        public bool IsNavigable { get; }
         public IAnalysisIssueLocation Location { get; }
+        public bool IsNavigable { get; set; }
     }
 }
