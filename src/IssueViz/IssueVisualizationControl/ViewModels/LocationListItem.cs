@@ -18,17 +18,39 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
-    internal sealed class LocationListItem : ILocationListItem
+    internal sealed class LocationListItem : ILocationListItem, INotifyPropertyChanged
     {
+        private bool isNavigable;
+
+        public bool IsNavigable
+        {
+            get => isNavigable;
+            set
+            {
+                isNavigable = value;
+                NotifyPropertyChanged();
+            }
+        }
+
         public IAnalysisIssueLocationVisualization Location { get; }
 
         public LocationListItem(IAnalysisIssueLocationVisualization location)
         {
             Location = location;
+            IsNavigable = location.IsNavigable;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

@@ -200,6 +200,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 .OfType<LocationListItem>()
                 .FirstOrDefault(x => x.Location == locationViz);
 
+            if (selectedLocationListItem != null)
+            {
+                selectedLocationListItem.IsNavigable = locationViz.IsNavigable;
+            }
+
             return selectedLocationListItem;
         }
 

@@ -129,7 +129,7 @@
                     <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemBackgroundKey}}"/>
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemBackgroundKey}}" />
                 </Trigger>
-                <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
+                <DataTrigger Binding="{Binding IsNavigable}" Value="False">
                     <Setter Property="IsSelected" Value="False"/>
                     <Setter Property="IsEnabled" Value="False"/>
                     <Setter Property="Focusable" Value="false"/>
@@ -146,7 +146,7 @@
             <Setter Property="Margin" Value="5,0,0,0"/>
             <Setter Property="Padding" Value="1"/>
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
+                <DataTrigger Binding="{Binding IsNavigable}" Value="False">
                     <Setter Property="FontStyle" Value="Italic" />
                     <Setter Property="FontWeight" Value="Regular" />
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextInactiveKey}}"/>
@@ -245,7 +245,7 @@
                             <vsImaging:CrispImage Grid.Column="2"
                                                 Height="16" Width="16"
                                                 Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
-                                                Visibility="{Binding Location.IsNavigable, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}"/>
+                                                Visibility="{Binding IsNavigable, Converter={StaticResource InvertedBooleanToVisibilityConverter}, Mode=OneWay}"/>
                         </Grid>
                     </DataTemplate>
                 </ListBox.Resources>
