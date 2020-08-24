@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 
             if (navigateToLocation != null)
             {
-                selectionService.SelectedLocation = navigateToLocation;
+                selectionService.Select(navigateToLocation);
             }
         }
     }

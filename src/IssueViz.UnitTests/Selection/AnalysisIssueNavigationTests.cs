@@ -253,14 +253,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 
         private void VerifyNoNavigation()
         {
-            selectionServiceMock.VerifySet(x => x.SelectedLocation = It.IsAny<IAnalysisIssueLocationVisualization>(),
-                Times.Never);
+            selectionServiceMock.Verify(x => x.Select(It.IsAny<IAnalysisIssueLocationVisualization>()), Times.Never);
         }
 
         private void VerifyNavigation(IAnalysisIssueLocationVisualization expectedNavigation)
         {
-            selectionServiceMock.VerifySet(x => x.SelectedLocation = expectedNavigation,
-                Times.Once);
+            selectionServiceMock.Verify(x => x.Select(expectedNavigation), Times.Once);
         }
     }
 }

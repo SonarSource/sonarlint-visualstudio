@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 {
     internal sealed class IssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
-        private readonly IAnalysisIssueSelectionService selectionEvents;
+        private readonly IAnalysisIssueSelectionService selectionService;
         private readonly IVsImageService2 vsImageService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
         private readonly ILogger logger;
@@ -53,14 +53,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool pausePropertyChangeNotifications;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider, ILogger logger)
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider, ILogger logger)
         {
-            this.selectionEvents = selectionEvents;
+            this.selectionService = selectionService;
             this.vsImageService = vsImageService;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.logger = logger;
 
-            selectionEvents.SelectionChanged += SelectionEvents_SelectionChanged;
+            selectionService.SelectionChanged += SelectionEvents_SelectionChanged;
         }
 
         public string Description => CurrentIssue?.Issue?.Message;
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 if (isBindingUpdatedByUI)
                 {
-                    selectionEvents.SelectedFlow = value;
+                    selectionService.Select(value);
                 }
                 else if (currentFlow != value)
                 {
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 if (isBindingUpdatedByUI)
                 {
-                    selectionEvents.SelectedLocation = value?.Location;
+                    selectionService.Select(value?.Location);
                 }
                 else if (currentLocation != value)
                 {
@@ -215,7 +215,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public void Dispose()
         {
-            selectionEvents.SelectionChanged -= SelectionEvents_SelectionChanged;
+            selectionService.SelectionChanged -= SelectionEvents_SelectionChanged;
         }
     }
 }

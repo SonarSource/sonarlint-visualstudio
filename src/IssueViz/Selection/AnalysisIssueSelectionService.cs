@@ -29,46 +29,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class AnalysisIssueSelectionService : IAnalysisIssueSelectionService
     {
-        private IAnalysisIssueVisualization selectedIssue;
-        private IAnalysisIssueFlowVisualization selectedFlow;
-        private IAnalysisIssueLocationVisualization selectedLocation;
+        public IAnalysisIssueVisualization SelectedIssue { get; private set; }
+        public IAnalysisIssueFlowVisualization SelectedFlow { get; private set; }
+        public IAnalysisIssueLocationVisualization SelectedLocation { get; private set; }
 
         public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
 
-        public IAnalysisIssueVisualization SelectedIssue
+        public void Select(IAnalysisIssueVisualization issueVisualization)
         {
-            get => selectedIssue;
-            set
-            {
-                selectedIssue = value;
-                selectedFlow = GetFirstFlowOrDefault();
-                selectedLocation = GetFirstLocationOrDefault();
+            SelectedIssue = issueVisualization;
+            SelectedFlow = GetFirstFlowOrDefault();
+            SelectedLocation = GetFirstLocationOrDefault();
 
-                RaiseSelectionChanged(SelectionChangeLevel.Issue);
-            }
+            RaiseSelectionChanged(SelectionChangeLevel.Issue);
         }
 
-        public IAnalysisIssueFlowVisualization SelectedFlow
+        public void Select(IAnalysisIssueFlowVisualization flowVisualization)
         {
-            get => selectedFlow;
-            set
-            {
-                selectedFlow = value;
-                selectedLocation = GetFirstLocationOrDefault();
+            SelectedFlow = flowVisualization;
+            SelectedLocation = GetFirstLocationOrDefault();
 
-                RaiseSelectionChanged(SelectionChangeLevel.Flow);
-            }
+            RaiseSelectionChanged(SelectionChangeLevel.Flow);
         }
 
-        public IAnalysisIssueLocationVisualization SelectedLocation
+        public void Select(IAnalysisIssueLocationVisualization locationVisualization)
         {
-            get => selectedLocation;
-            set
-            {
-                selectedLocation = value;
+            SelectedLocation = locationVisualization;
 
-                RaiseSelectionChanged(SelectionChangeLevel.Location);
-            }
+            RaiseSelectionChanged(SelectionChangeLevel.Location);
         }
 
         private void RaiseSelectionChanged(SelectionChangeLevel changeLevel)
@@ -78,12 +66,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 
         private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault()
         {
-            return selectedIssue?.Flows?.FirstOrDefault();
+            return SelectedIssue?.Flows?.FirstOrDefault();
         }
 
         private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault()
         {
-            return selectedFlow?.Locations?.FirstOrDefault();
+            return SelectedFlow?.Locations?.FirstOrDefault();
         }
 
         public void Dispose()

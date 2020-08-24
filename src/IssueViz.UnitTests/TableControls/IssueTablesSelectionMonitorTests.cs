@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
 
         private static void CheckExpectedValuePassedToService(Mock<IAnalysisIssueSelectionService> selectionService, IAnalysisIssueVisualization expectedValue)
         {
-            selectionService.VerifySet(x => x.SelectedIssue = expectedValue, Times.Once);
+            selectionService.Verify(x => x.Select(expectedValue), Times.Once);
             selectionService.VerifyNoOtherCalls();
         }
     }

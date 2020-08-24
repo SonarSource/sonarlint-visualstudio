@@ -25,11 +25,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
     internal interface IAnalysisIssueSelectionService : IDisposable
     {
-        event EventHandler<SelectionChangedEventArgs> SelectionChanged; 
+        event EventHandler<SelectionChangedEventArgs> SelectionChanged;
 
-        IAnalysisIssueVisualization SelectedIssue { get; set; }
-        IAnalysisIssueFlowVisualization SelectedFlow { get; set; }
-        IAnalysisIssueLocationVisualization SelectedLocation { get; set; }
+        IAnalysisIssueVisualization SelectedIssue { get; }
+        IAnalysisIssueFlowVisualization SelectedFlow { get; }
+        IAnalysisIssueLocationVisualization SelectedLocation { get; }
+
+        void Select(IAnalysisIssueVisualization issueVisualization);
+        void Select(IAnalysisIssueFlowVisualization flowVisualization);
+        void Select(IAnalysisIssueLocationVisualization locationVisualization);
     }
 
     public enum SelectionChangeLevel

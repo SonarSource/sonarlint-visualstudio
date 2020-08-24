@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
     {
         private const AnalysisIssueSeverity DefaultNullIssueSeverity = AnalysisIssueSeverity.Info;
 
-        private Mock<IAnalysisIssueSelectionService> selectionEventsMock;
+        private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
         private Mock<IVsImageService2> imageServiceMock;
         private Mock<IRuleHelpLinkProvider> helpLinkProviderMock;
         private TestLogger logger;
@@ -53,13 +53,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestInitialize]
         public void TestInitialize()
         {
-            selectionEventsMock = new Mock<IAnalysisIssueSelectionService>();
+            selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             imageServiceMock = new Mock<IVsImageService2>();
             helpLinkProviderMock = new Mock<IRuleHelpLinkProvider>();
             logger = new TestLogger();
             propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
 
-            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object, logger);
+            testSubject = new IssueVisualizationViewModel(selectionServiceMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object, logger);
             testSubject.PropertyChanged += propertyChangedEventHandler.Object;
         }
 
@@ -259,7 +259,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         {
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, Mock.Of<IAnalysisIssueVisualization>());
 
-            selectionEventsMock.VerifyNoOtherCalls();
+            selectionServiceMock.VerifyNoOtherCalls();
         }
 
         #endregion
@@ -325,7 +325,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object);
 
-            selectionEventsMock.VerifyNoOtherCalls();
+            selectionServiceMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -333,14 +333,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [DataRow(false)]
         public void SetCurrentFlow_SelectionServiceCalled(bool isNewFlowNull)
         {
-            selectionEventsMock.VerifySet(x => x.SelectedFlow = It.IsAny<IAnalysisIssueFlowVisualization>(), Times.Never());
+            selectionServiceMock.Verify(x => x.Select(It.IsAny<IAnalysisIssueFlowVisualization>()), Times.Never());
 
             var selectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlowVisualization>();
             testSubject.CurrentFlow = selectedFlow;
 
-            selectionEventsMock.VerifySet(x => x.SelectedFlow = selectedFlow, Times.Once());
+            selectionServiceMock.Verify(x => x.Select(selectedFlow), Times.Once());
 
-            selectionEventsMock.VerifyNoOtherCalls();
+            selectionServiceMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -510,20 +510,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Location, null, null, location);
 
-            selectionEventsMock.VerifyNoOtherCalls();
+            selectionServiceMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void SetCurrentLocationListItem_SelectionServiceCalled()
         {
-            selectionEventsMock.VerifySet(x => x.SelectedLocation = It.IsAny<IAnalysisIssueLocationVisualization>(), Times.Never);
+            selectionServiceMock.Verify(x => x.Select(It.IsAny<IAnalysisIssueLocationVisualization>()), Times.Never());
 
             var location = Mock.Of<IAnalysisIssueLocationVisualization>();
 
             testSubject.CurrentLocationListItem = new LocationListItem(location);
 
-            selectionEventsMock.VerifySet(x => x.SelectedLocation = location, Times.Once);
-            selectionEventsMock.VerifyNoOtherCalls();
+            selectionServiceMock.Verify(x => x.Select(location), Times.Once());
+
+            selectionServiceMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -544,12 +545,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [TestMethod]
         public void Dispose_UnregisterFromSelectionServiceEvents()
         {
-            selectionEventsMock.SetupRemove(m => m.SelectionChanged -= (sender, args) => { });
+            selectionServiceMock.SetupRemove(m => m.SelectionChanged -= (sender, args) => { });
 
             testSubject.Dispose();
 
-            selectionEventsMock.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
-            selectionEventsMock.VerifyNoOtherCalls();
+            selectionServiceMock.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
+            selectionServiceMock.VerifyNoOtherCalls();
         }
 
         #endregion
@@ -559,7 +560,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             IAnalysisIssueFlowVisualization flow = null,
             IAnalysisIssueLocationVisualization location = null)
         {
-            selectionEventsMock.Raise(x => x.SelectionChanged += null,
+            selectionServiceMock.Raise(x => x.SelectionChanged += null,
                 new SelectionChangedEventArgs(changeLevel, issue, flow, location));
         }
 

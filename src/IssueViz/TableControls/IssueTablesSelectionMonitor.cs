@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
         {
             // Exception handling: assuming the caller is handling exceptions
             var issueVisualization = selectedIssue == null ? null : converter.Convert(selectedIssue);
-            selectionService.SelectedIssue = issueVisualization;
+            selectionService.Select(issueVisualization);
         }
     }
 }
