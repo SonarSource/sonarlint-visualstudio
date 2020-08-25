@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             testSubject.ExecuteGotoNextLocation(null, null);
 
-            navigationService.Verify(x=> x.GotoNextLocation(), Times.Once);
+            navigationService.Verify(x=> x.GotoNextNavigableLocation(), Times.Once);
             navigationService.VerifyNoOtherCalls();
         }
 
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             testSubject.ExecuteGotoPreviousLocation(null, null);
 
-            navigationService.Verify(x => x.GotoPreviousLocation(), Times.Once);
+            navigationService.Verify(x => x.GotoPreviousNavigableLocation(), Times.Once);
             navigationService.VerifyNoOtherCalls();
         }
 
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         public void ExecuteGotoNextLocation_Exception_ExceptionLogged()
         {
             navigationService
-                .Setup(x => x.GotoNextLocation())
+                .Setup(x => x.GotoNextNavigableLocation())
                 .Throws(new NotImplementedException("this is a test"));
 
             var testSubject = new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         public void ExecuteGotoPreviousLocation_Exception_ExceptionLogged()
         {
             navigationService
-                .Setup(x => x.GotoPreviousLocation())
+                .Setup(x => x.GotoPreviousNavigableLocation())
                 .Throws(new NotImplementedException("this is a test"));
 
             var testSubject = new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);

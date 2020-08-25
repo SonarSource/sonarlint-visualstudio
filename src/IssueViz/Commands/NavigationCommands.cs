@@ -69,12 +69,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 
         internal void ExecuteGotoNextLocation(object sender, EventArgs e)
         {
-            SafeNavigate(() => analysisIssueNavigation.GotoNextLocation());
+            SafeNavigate(() => analysisIssueNavigation.GotoNextNavigableLocation());
         }
 
         internal void ExecuteGotoPreviousLocation(object sender, EventArgs e)
         {
-            SafeNavigate(() => analysisIssueNavigation.GotoPreviousLocation());
+            SafeNavigate(() => analysisIssueNavigation.GotoPreviousNavigableLocation());
         }
 
         private void SafeNavigate(Action op)

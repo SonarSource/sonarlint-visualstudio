@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     {
         int StepNumber { get; }
 
-        bool IsNavigable { get; }
+        bool IsNavigable { get; set; }
 
         IAnalysisIssueLocation Location { get; }
     }
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         }
 
         public int StepNumber { get; }
-        public bool IsNavigable { get; }
+        public bool IsNavigable { get; set; }
         public IAnalysisIssueLocation Location { get; }
     }
 }

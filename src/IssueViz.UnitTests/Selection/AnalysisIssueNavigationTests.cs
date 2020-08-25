@@ -18,9 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -30,6 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
     public class AnalysisIssueNavigationTests
     {
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
+        private Mock<ILocationNavigator> locationNavigatorMock;
 
         private AnalysisIssueNavigation testSubject;
 
@@ -37,191 +41,254 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         public void TesInitialize()
         {
             selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            locationNavigatorMock = new Mock<ILocationNavigator>();
 
-            testSubject = new AnalysisIssueNavigation(selectionServiceMock.Object);
+            testSubject = new AnalysisIssueNavigation(selectionServiceMock.Object, locationNavigatorMock.Object);
         }
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            var selectionService = Mock.Of<IAnalysisIssueSelectionService>();
-            var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(selectionService);
+            var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>());
+            var locationNavigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>());
 
-            MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueNavigation, IAnalysisIssueNavigation>(null, new[] { selectionServiceExport });
+            MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueNavigation, IAnalysisIssueNavigation>(null, new[]
+            {
+                selectionServiceExport,
+                locationNavigatorExport
+            });
         }
 
         [TestMethod]
-        public void GotoNextLocation_NoCurrentFlow_NoNavigation()
+        public void GotoNextNavigableLocation_NoCurrentFlow_NoNavigation()
         {
             SetupCurrentFlow((IAnalysisIssueFlowVisualization) null);
-            SetupCurrentLocation(CreateLocation(1, true));
+            SetupCurrentLocation(CreateLocation());
 
-            testSubject.GotoNextLocation();
+            testSubject.GotoNextNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousLocation_NoCurrentFlow_NoNavigation()
+        public void GotoPreviousNavigableLocation_NoCurrentFlow_NoNavigation()
         {
             SetupCurrentFlow((IAnalysisIssueFlowVisualization)null);
-            SetupCurrentLocation(CreateLocation(1, true));
+            SetupCurrentLocation(CreateLocation());
 
-            testSubject.GotoPreviousLocation();
+            testSubject.GotoPreviousNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextLocation_NoCurrentLocation_NoNavigation()
+        public void GotoNextNavigableLocation_NoCurrentLocation_NoNavigation()
         {
-            SetupCurrentFlow(CreateLocation(1, true));
+            SetupCurrentFlow(CreateLocation());
             SetupCurrentLocation(null);
 
-            testSubject.GotoNextLocation();
+            testSubject.GotoNextNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousLocation_NoCurrentLocation_NoNavigation()
+        public void GotoPreviousNavigableLocation_NoCurrentLocation_NoNavigation()
         {
-            SetupCurrentFlow(CreateLocation(1, true));
+            SetupCurrentFlow(CreateLocation());
             SetupCurrentLocation(null);
 
-            testSubject.GotoPreviousLocation();
+            testSubject.GotoPreviousNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextLocation_FlowHasOnlyOneLocation_NoNavigation()
+        public void GotoNextNavigableLocation_FlowHasOnlyOneLocation_NoNavigation()
         {
-            var location = CreateLocation(1, true);
+            var location = CreateLocation();
 
             SetupCurrentFlow(location);
             SetupCurrentLocation(location);
 
-            testSubject.GotoNextLocation();
+            testSubject.GotoNextNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousLocation_FlowHasOnlyOneLocation_NoNavigation()
+        public void GotoPreviousNavigableLocation_FlowHasOnlyOneLocation_NoNavigation()
         {
-            var location = CreateLocation(1, true);
+            var location = CreateLocation();
 
             SetupCurrentFlow(location);
             SetupCurrentLocation(location);
 
-            testSubject.GotoPreviousLocation();
+            testSubject.GotoPreviousNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextLocation_CurrentLocationIsLast_NoNavigation()
+        public void GotoNextNavigableLocation_CurrentLocationIsLast_NoNavigation()
         {
-            var firstLocation = CreateLocation(1, true);
-            var lastLocation = CreateLocation(2, true);
+            var firstLocation = CreateLocation(1);
+            var lastLocation = CreateLocation(2);
 
             SetupCurrentFlow(firstLocation, lastLocation);
             SetupCurrentLocation(lastLocation);
 
-            testSubject.GotoNextLocation();
+            testSubject.GotoNextNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextLocation_CurrentLocationIsLastNavigableLocation_NoNavigation()
+        public void GotoPreviousNavigableLocation_CurrentLocationIsFirst_NoNavigation()
         {
-            var firstLocation = CreateLocation(1, true);
-            var secondLocation = CreateLocation(2, true);
-            var lastLocation = CreateLocation(3, false);
-
-            SetupCurrentFlow(firstLocation, secondLocation, lastLocation);
-            SetupCurrentLocation(secondLocation);
-
-            testSubject.GotoNextLocation();
-
-            VerifyNoNavigation();
-        }
-
-        [TestMethod]
-        public void GotoPreviousLocation_CurrentLocationIsFirst_NoNavigation()
-        {
-            var firstLocation = CreateLocation(1, true);
-            var lastLocation = CreateLocation(2, true);
+            var firstLocation = CreateLocation(1);
+            var lastLocation = CreateLocation(2);
 
             SetupCurrentFlow(firstLocation, lastLocation);
             SetupCurrentLocation(firstLocation);
 
-            testSubject.GotoPreviousLocation();
+            testSubject.GotoPreviousNavigableLocation();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousLocation_CurrentLocationIsFirstNavigableLocation_NoNavigation()
-        {
-            var firstLocation = CreateLocation(1, false);
-            var secondLocation = CreateLocation(2, true);
-            var lastLocation = CreateLocation(3, true);
-
-            SetupCurrentFlow(firstLocation, secondLocation, lastLocation);
-            SetupCurrentLocation(secondLocation);
-
-            testSubject.GotoPreviousLocation();
-
-            VerifyNoNavigation();
-        }
-
-        [TestMethod]
-        public void GotoNextLocation_NavigatesToNextNavigableLocation()
+        public void GotoNextNavigableLocation_CurrentLocationIsLastNavigableLocation_NoNavigation()
         {
             var locations = new[]
             {
-                CreateLocation(1, true),
-                CreateLocation(2, true),
-                CreateLocation(3, false), 
-                CreateLocation(4, true),
-                CreateLocation(5, true)
+                CreateLocation(1, isMarkedAsNavigable:true),
+                CreateLocation(2, isMarkedAsNavigable:true),
+                CreateLocation(3, isMarkedAsNavigable:false),
+                CreateLocation(4, isMarkedAsNavigable:true, isTrulyNavigable:false)
             };
 
             var currentLocation = locations[1];
-            var expectedNavigation = locations[3];
 
             SetupCurrentFlow(locations);
             SetupCurrentLocation(currentLocation);
 
-            testSubject.GotoNextLocation();
+            testSubject.GotoNextNavigableLocation();
+
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void GotoPreviousNavigableLocation_CurrentLocationIsFirstNavigableLocation_NoNavigation()
+        {
+            var locations = new[]
+            {
+                CreateLocation(1, isMarkedAsNavigable:true, isTrulyNavigable:false),
+                CreateLocation(2, isMarkedAsNavigable:false),
+                CreateLocation(3, isMarkedAsNavigable:true),
+                CreateLocation(4, isMarkedAsNavigable:true)
+            };
+
+            var currentLocation = locations[2];
+
+            SetupCurrentFlow(locations);
+            SetupCurrentLocation(currentLocation);
+
+            testSubject.GotoPreviousNavigableLocation();
+
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void GotoNextNavigableLocation_NavigatesToNextNavigableLocation()
+        {
+            var locations = new[]
+            {
+                CreateLocation(1, isMarkedAsNavigable:true),
+                CreateLocation(2, isMarkedAsNavigable:true), // current
+                CreateLocation(3, isMarkedAsNavigable:false), 
+                CreateLocation(4, isMarkedAsNavigable:true, isTrulyNavigable:false),
+                CreateLocation(5, isMarkedAsNavigable:true), // expected
+                CreateLocation(6, isMarkedAsNavigable:true)
+            };
+
+            var currentLocation = locations[1];
+            var expectedNavigation = locations[4];
+
+            SetupCurrentFlow(locations);
+            SetupCurrentLocation(currentLocation);
+
+            testSubject.GotoNextNavigableLocation();
 
             VerifyNavigation(expectedNavigation);
         }
 
         [TestMethod]
-        public void GotoPreviousLocation_NavigatesToPreviousNavigableLocation()
+        public void GotoPreviousNavigableLocation_NavigatesToPreviousNavigableLocation()
         {
             var locations = new[]
             {
-                CreateLocation(1, true),
-                CreateLocation(2, true),
-                CreateLocation(3, false),
-                CreateLocation(4, true),
-                CreateLocation(5, true)
+                CreateLocation(1, isMarkedAsNavigable:true),
+                CreateLocation(2, isMarkedAsNavigable:true), // expected
+                CreateLocation(3, isMarkedAsNavigable:false),
+                CreateLocation(4, isMarkedAsNavigable:true, isTrulyNavigable:false),
+                CreateLocation(5, isMarkedAsNavigable:true), // current
+                CreateLocation(6, isMarkedAsNavigable:true)
             };
 
-            var currentLocation = locations[3];
+            var currentLocation = locations[4];
             var expectedNavigation = locations[1];
 
             SetupCurrentFlow(locations);
             SetupCurrentLocation(currentLocation);
 
-            testSubject.GotoPreviousLocation();
+            testSubject.GotoPreviousNavigableLocation();
 
             VerifyNavigation(expectedNavigation);
+        }
+
+        [TestMethod]
+        public void GotoNextNavigableLocation_LocationIsFalselyNavigable_UpdatesLocationNavigability()
+        {
+            var locations = new[]
+            {
+                CreateLocation(1, isMarkedAsNavigable: true),
+                CreateLocation(2, isMarkedAsNavigable: true, isTrulyNavigable: false)
+            };
+
+            var currentLocation = locations[0];
+            var locationToBeUpdated = locations[1];
+
+            SetupCurrentFlow(locations);
+            SetupCurrentLocation(currentLocation);
+
+            locationToBeUpdated.IsNavigable.Should().BeTrue();
+
+            testSubject.GotoNextNavigableLocation();
+
+            locationToBeUpdated.IsNavigable.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void GotoPreviousNavigableLocation_LocationIsFalselyNavigable_UpdatesLocationNavigability()
+        {
+            var locations = new[]
+            {
+                CreateLocation(1, isMarkedAsNavigable: true, isTrulyNavigable: false),
+                CreateLocation(2, isMarkedAsNavigable: true)
+            };
+
+            var locationToBeUpdated = locations[0];
+            var currentLocation = locations[1];
+
+            SetupCurrentFlow(locations);
+            SetupCurrentLocation(currentLocation);
+
+            locationToBeUpdated.IsNavigable.Should().BeTrue();
+
+            testSubject.GotoPreviousNavigableLocation();
+
+            locationToBeUpdated.IsNavigable.Should().BeFalse();
         }
 
         private void SetupCurrentLocation(IAnalysisIssueLocationVisualization location)
@@ -242,13 +309,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             selectionServiceMock.Setup(x => x.SelectedFlow).Returns(flow.Object);
         }
 
-        private IAnalysisIssueLocationVisualization CreateLocation(int stepNumber, bool isNavigable = true)
+        private IAnalysisIssueLocationVisualization CreateLocation(int stepNumber = 1, bool isMarkedAsNavigable = true, bool isTrulyNavigable = true)
         {
-            var location = new Mock<IAnalysisIssueLocationVisualization>();
-            location.Setup(x => x.StepNumber).Returns(stepNumber);
-            location.Setup(x => x.IsNavigable).Returns(isNavigable);
+            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locationViz.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
+            locationViz.Setup(x => x.StepNumber).Returns(stepNumber);
+            locationViz.SetupProperty(x => x.IsNavigable);
+            locationViz.Object.IsNavigable = isMarkedAsNavigable;
 
-            return location.Object;
+            locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Object.Location)).Returns(isTrulyNavigable);
+
+            return locationViz.Object;
         }
 
         private void VerifyNoNavigation()
@@ -259,8 +330,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 
         private void VerifyNavigation(IAnalysisIssueLocationVisualization expectedNavigation)
         {
-            selectionServiceMock.VerifySet(x => x.SelectedLocation = expectedNavigation,
-                Times.Once);
+            selectionServiceMock.VerifySet(x => x.SelectedLocation = expectedNavigation, Times.Once);
         }
     }
 }
