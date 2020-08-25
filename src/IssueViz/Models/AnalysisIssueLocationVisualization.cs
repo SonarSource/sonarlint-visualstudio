@@ -37,11 +37,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     {
         private bool isNavigable;
 
-        public AnalysisIssueLocationVisualization(int stepNumber, bool isNavigable, IAnalysisIssueLocation location)
+        public AnalysisIssueLocationVisualization(int stepNumber, IAnalysisIssueLocation location)
         {
             StepNumber = stepNumber;
-            IsNavigable = isNavigable;
             Location = location;
+            IsNavigable = true;
         }
 
         public int StepNumber { get; }
