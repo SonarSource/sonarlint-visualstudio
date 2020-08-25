@@ -125,10 +125,16 @@
                     <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedIconBorderKey}}" />
                 </Trigger>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemBackgroundKey}}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemBackgroundKey}}" />
-                </Trigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Mode=Self}}" Value="True"/>
+                        <Condition Binding="{Binding Location.IsNavigable}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.Setters>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemBackgroundKey}}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemBackgroundKey}}" />
+                    </MultiDataTrigger.Setters>
+                </MultiDataTrigger>
                 <DataTrigger Binding="{Binding Location.IsNavigable}" Value="False">
                     <Setter Property="IsSelected" Value="False"/>
                     <Setter Property="IsEnabled" Value="False"/>
@@ -151,9 +157,15 @@
                     <Setter Property="FontWeight" Value="Regular" />
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextInactiveKey}}"/>
                 </DataTrigger>
-                <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemStrokeKey}}"/>
-                </DataTrigger>
+                <MultiDataTrigger>
+                    <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type ListViewItem}}}" Value="True"/>
+                        <Condition Binding="{Binding Location.IsNavigable}" Value="True"/>
+                    </MultiDataTrigger.Conditions>
+                    <MultiDataTrigger.Setters>
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.StartPageSelectedItemStrokeKey}}"/>
+                    </MultiDataTrigger.Setters>
+                </MultiDataTrigger>
             </Style.Triggers>
         </Style>
 

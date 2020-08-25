@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
@@ -31,8 +33,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IAnalysisIssueLocation Location { get; }
     }
 
-    public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
+    public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization, INotifyPropertyChanged
     {
+        private bool isNavigable;
+
         public AnalysisIssueLocationVisualization(int stepNumber, bool isNavigable, IAnalysisIssueLocation location)
         {
             StepNumber = stepNumber;
@@ -41,7 +45,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         }
 
         public int StepNumber { get; }
-        public bool IsNavigable { get; set; }
+
         public IAnalysisIssueLocation Location { get; }
+
+        public bool IsNavigable
+        {
+            get => isNavigable;
+            set
+            {
+                isNavigable = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
