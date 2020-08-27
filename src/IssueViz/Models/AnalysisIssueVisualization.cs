@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    internal interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualization
+    public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualization
     {
         IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
 
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
         public IAnalysisIssue Issue { get; }
         public int StepNumber => 0;
-        public bool IsNavigable { get; }
+        public bool IsNavigable { get; set; }
         public IAnalysisIssueLocation Location => Issue;
         public SnapshotSpan? Span { get; set; }
     }

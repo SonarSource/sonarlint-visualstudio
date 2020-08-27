@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -98,8 +99,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var snapshotSpan1 = new SnapshotSpan(mockTextSnapshot.Object, span1);
             var snapshotSpan2 = new SnapshotSpan(mockTextSnapshot.Object, span2);
 
-            var marker1 = new IssueMarker(Mock.Of<IAnalysisIssue>(), snapshotSpan1);
-            var marker2 = new IssueMarker(Mock.Of<IAnalysisIssue>(), snapshotSpan2);
+            var marker1 = new IssueMarker(CreateIssueViz(), snapshotSpan1);
+            var marker2 = new IssueMarker(CreateIssueViz(), snapshotSpan2);
 
             var markerList = new[] { marker1, marker2 };
             var normalizedSpans = new NormalizedSnapshotSpanCollection(snapshotSpan2);
@@ -108,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var result = testSubject.GetTags(normalizedSpans);
 
-            result.Should().HaveCount(1);            
+            result.Should().HaveCount(1);
             result.First().Span.Should().Be(snapshotSpan2);
         }
 
@@ -139,6 +140,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         private static IssueMarker CreateValidMarker() =>
-            new IssueMarker(Mock.Of<IAnalysisIssue>(), ValidSnapshotSpan);
+            new IssueMarker(Mock.Of<IAnalysisIssueVisualization>(), ValidSnapshotSpan);
+
+
+        private static IAnalysisIssueVisualization CreateIssueViz()
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssue>());
+            issueVizMock.SetupProperty(x => x.Span);
+            return issueVizMock.Object;
+        }
     }
 }
