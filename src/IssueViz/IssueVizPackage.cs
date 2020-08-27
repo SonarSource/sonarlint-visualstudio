@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [Guid("4F3D7D24-648B-4F3B-ACB0-B83AFE239210")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Float)]
+    [ProvideToolWindowVisibility(typeof(IssueVisualizationToolWindow), Constants.UIContextGuid)]
     public sealed class IssueVizPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)

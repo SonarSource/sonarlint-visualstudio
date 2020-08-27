@@ -16,6 +16,8 @@
 
       <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Icon guid="guidImages" id="bmpSonarQube" />
         <Strings>
           <ButtonText>SonarLint Issue Visualization</ButtonText>
@@ -25,6 +27,8 @@
       <Button guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" priority="0x0100" type="Button">
         <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
         <CommandFlag>CommandWellOnly</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Go to next issue location</ButtonText>
           <CanonicalName>SonarLintGoToNextLocation</CanonicalName>
@@ -36,6 +40,8 @@
       <Button guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" priority="0x0100" type="Button">
         <Parent guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" />
         <CommandFlag>CommandWellOnly</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Go to previous issue location</ButtonText>
           <CanonicalName>SonarLintGoToPreviousLocation</CanonicalName>
@@ -73,9 +79,18 @@
 
   </KeyBindings>
 
+  <VisibilityConstraints>
+    <VisibilityItem guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" context="guidUIContext"/>
+    <VisibilityItem guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" context="guidUIContext"/>
+    <VisibilityItem guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" context="guidUIContext"/>
+    <VisibilityItem guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" context="guidUIContext"/>
+  </VisibilityConstraints>
+
   <Symbols>
     <!-- This is the package guid. -->
     <GuidSymbol name="guidIssueVizPackage" value="{4F3D7D24-648B-4F3B-ACB0-B83AFE239210}" />
+
+    <GuidSymbol name="guidUIContext" value="{f83e901e-41cb-4faf-8116-aacb1b385381}" />
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidIssueVizPackageCmdSet" value="{FDEF405A-28C2-4AFD-A37B-49EF2B0D142E}">
