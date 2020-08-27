@@ -37,12 +37,6 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Float)]
     [ProvideToolWindowVisibility(typeof(IssueVisualizationToolWindow), Constants.UIContextGuid)]
-    [ProvideAutoLoad(Constants.UIContextGuid, PackageAutoLoadFlags.BackgroundLoad)]
-    [ProvideUIContextRule(Constants.UIContextGuid,
-        "SonarLintIssueVisualizationPackageActivation",
-        expression: "c | cpp | h",
-        termNames: new[] { "c", "cpp", "h" },
-        termValues: new[] { "HierSingleSelectionName:.c$", "HierSingleSelectionName:.cpp$", "HierSingleSelectionName:.h$" })]
     public sealed class IssueVizPackage : AsyncPackage
     {
         private ILocationChangedEventListener locationChangedEventListener;
