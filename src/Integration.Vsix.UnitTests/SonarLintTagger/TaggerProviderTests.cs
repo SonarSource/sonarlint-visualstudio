@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object, mockAnalysisScheduler.Object);
+                sonarLanguageRecognizer, mockAnalysisRequester.Object, Mock.Of<IIssueToIssueMarkerConverter>(), mockLogger.Object, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
