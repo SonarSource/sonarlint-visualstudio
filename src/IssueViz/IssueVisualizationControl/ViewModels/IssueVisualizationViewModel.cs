@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 {
     internal sealed class IssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
-        private readonly IAnalysisIssueSelectionService selectionEvents;
+        private readonly IAnalysisIssueSelectionService selectionService;
         private readonly IVsImageService2 vsImageService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
         private readonly ILocationNavigator locationNavigator;
@@ -55,19 +55,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool pausePropertyChangeNotifications;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, 
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService, 
             IVsImageService2 vsImageService, 
             IRuleHelpLinkProvider ruleHelpLinkProvider,
             ILocationNavigator locationNavigator,
             ILogger logger)
         {
-            this.selectionEvents = selectionEvents;
+            this.selectionService = selectionService;
             this.vsImageService = vsImageService;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.locationNavigator = locationNavigator;
             this.logger = logger;
 
-            selectionEvents.SelectionChanged += SelectionEvents_SelectionChanged;
+            selectionService.SelectionChanged += SelectionEvents_SelectionChanged;
+
+            UpdateState(SelectionChangeLevel.Issue, 
+                selectionService.SelectedIssue, 
+                selectionService.SelectedFlow,
+                selectionService.SelectedLocation);
         }
 
         public string Description => CurrentIssue?.Issue?.Message;
@@ -99,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 if (isBindingUpdatedByUI)
                 {
-                    selectionEvents.SelectedFlow = value;
+                    selectionService.SelectedFlow = value;
                 }
                 else if (currentFlow != value)
                 {
@@ -121,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 if (isBindingUpdatedByUI)
                 {
-                    selectionEvents.SelectedLocation = value?.Location;
+                    selectionService.SelectedLocation = value?.Location;
                 }
                 else if (currentLocationListItem != value)
                 {
@@ -133,25 +138,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void SelectionEvents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            UpdateState(e.SelectionChangeLevel, e.SelectedIssue, e.SelectedFlow, e.SelectedLocation);
+        }
+
+        private void UpdateState(SelectionChangeLevel selectionChangeLevel, 
+            IAnalysisIssueVisualization selectedIssue, 
+            IAnalysisIssueFlowVisualization selectedFlow,
+            IAnalysisIssueLocationVisualization selectedLocation)
+        {
             isBindingUpdatedByUI = false;
 
-            if (e.SelectionChangeLevel == SelectionChangeLevel.Issue)
+            if (selectionChangeLevel == SelectionChangeLevel.Issue)
             {
                 pausePropertyChangeNotifications = true;
             }
 
-            CurrentFlow = e.SelectedFlow;
+            CurrentFlow = selectedFlow;
 
-            if (e.SelectionChangeLevel == SelectionChangeLevel.Issue)
+            if (selectionChangeLevel == SelectionChangeLevel.Issue)
             {
                 pausePropertyChangeNotifications = false;
-                CurrentIssue = e.SelectedIssue;
+                CurrentIssue = selectedIssue;
             }
 
-            NavigateToLocation(e.SelectedLocation);
+            NavigateToLocation(selectedLocation);
 
             // Setting the selected location should be done last, after the flow list has been updated, so SelectedItem will be set in the xaml
-            CurrentLocationListItem = GetLocationListItem(e.SelectedLocation);
+            CurrentLocationListItem = GetLocationListItem(selectedLocation);
 
             isBindingUpdatedByUI = true;
         }
@@ -234,7 +247,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public void Dispose()
         {
-            selectionEvents.SelectionChanged -= SelectionEvents_SelectionChanged;
+            selectionService.SelectionChanged -= SelectionEvents_SelectionChanged;
         }
     }
 }

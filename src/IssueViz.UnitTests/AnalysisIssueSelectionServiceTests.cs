@@ -20,8 +20,12 @@
 
 using System;
 using FluentAssertions;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -30,12 +34,62 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
     [TestClass]
     public class AnalysisIssueSelectionServiceTests
     {
+        private Mock<IVsMonitorSelection> monitorSelectionMock;
+
         private AnalysisIssueSelectionService testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new AnalysisIssueSelectionService();
+            monitorSelectionMock = new Mock<IVsMonitorSelection>();
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
+                .Returns(monitorSelectionMock.Object);
+
+            testSubject = new AnalysisIssueSelectionService(serviceProviderMock.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueSelectionService, IAnalysisIssueSelectionService>(null,
+                new[]
+                {
+                    MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>())
+                });
+        }
+
+        [TestMethod]
+        public void SetSelectedIssue_IssueIsNull_UiContextIsHidden()
+        {
+            var cookie = SetupContextMock();
+
+            testSubject.SelectedIssue = null;
+
+            monitorSelectionMock.Verify(x=> x.SetCmdUIContext(cookie, 0), Times.Once);
+        }
+
+        [TestMethod]
+        public void SetSelectedIssue_IssueIsNotNull_UiContextIsShown()
+        {
+            var cookie = SetupContextMock();
+
+            testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+
+            monitorSelectionMock.Verify(x => x.SetCmdUIContext(cookie, 1), Times.Once);
+        }
+
+        [TestMethod]
+        public void SetSelectedIssue_FailsToGetContext_NoException()
+        { 
+            SetupContextMock(VSConstants.E_FAIL);
+
+            Action act = () => testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            act.Should().NotThrow();
+
+            monitorSelectionMock.Verify(x => x.SetCmdUIContext(It.IsAny<uint>(), It.IsAny<int>()), Times.Never);
         }
 
         [TestMethod]
@@ -252,6 +306,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 .Returns(new[] { firstFlow, otherFlow });
 
             return mockIssue.Object;
+        }
+
+        private uint SetupContextMock(int result = VSConstants.S_OK)
+        {
+            uint cookie = 0;
+
+            monitorSelectionMock
+                .Setup(x => x.GetCmdUIContextCookie(ref It.Ref<Guid>.IsAny, out cookie))
+                .Returns(result);
+
+            return cookie;
         }
     }
 }
