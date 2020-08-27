@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -39,11 +40,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         private readonly IAnalysisIssueSelectionService selectionEvents;
         private readonly IVsImageService2 vsImageService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
+        private readonly ILocationNavigator locationNavigator;
         private readonly ILogger logger;
 
         private IAnalysisIssueVisualization currentIssue;
         private IAnalysisIssueFlowVisualization currentFlow;
-        private LocationListItem currentLocation;
+        private LocationListItem currentLocationListItem;
 
         /// <summary>
         /// There is a two-way binding between the panel and the selectionService - this is a way to avoid the infinite recursion.
@@ -53,11 +55,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private bool pausePropertyChangeNotifications;
 
-        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, IVsImageService2 vsImageService, IRuleHelpLinkProvider ruleHelpLinkProvider, ILogger logger)
+        public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionEvents, 
+            IVsImageService2 vsImageService, 
+            IRuleHelpLinkProvider ruleHelpLinkProvider,
+            ILocationNavigator locationNavigator,
+            ILogger logger)
         {
             this.selectionEvents = selectionEvents;
             this.vsImageService = vsImageService;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
+            this.locationNavigator = locationNavigator;
             this.logger = logger;
 
             selectionEvents.SelectionChanged += SelectionEvents_SelectionChanged;
@@ -109,16 +116,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public LocationListItem CurrentLocationListItem
         {
-            get => currentLocation;
+            get => currentLocationListItem;
             set
             {
                 if (isBindingUpdatedByUI)
                 {
                     selectionEvents.SelectedLocation = value?.Location;
                 }
-                else if (currentLocation != value)
+                else if (currentLocationListItem != value)
                 {
-                    currentLocation = value;
+                    currentLocationListItem = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -141,10 +148,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 CurrentIssue = e.SelectedIssue;
             }
 
+            NavigateToLocation(e.SelectedLocation);
+
             // Setting the selected location should be done last, after the flow list has been updated, so SelectedItem will be set in the xaml
             CurrentLocationListItem = GetLocationListItem(e.SelectedLocation);
 
             isBindingUpdatedByUI = true;
+        }
+
+        private void NavigateToLocation(IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            if (locationVisualization == null)
+            {
+                return;
+            }
+
+            locationVisualization.IsNavigable = locationNavigator.TryNavigate(locationVisualization.Location);
         }
 
         /// <summary>
