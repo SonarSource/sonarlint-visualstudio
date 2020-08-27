@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    internal interface IAnalysisIssueFlowVisualization
+    public interface IAnalysisIssueFlowVisualization
     {
         int FlowNumber { get; }
 

@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -76,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             logger = new TestLogger();
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
         }
 
         [TestMethod]
@@ -117,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
 
             var beforeSnapshot = CreateMockTextSnapshot(100, "foo");
             var afterSnapshot = CreateMockTextSnapshot(100, "bar");
@@ -277,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
 
             var originalId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
 
@@ -371,16 +372,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Once);
         }
 
-        private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine) =>
-            new IssueMarker(
-                new DummyAnalysisIssue
+        private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(new DummyAnalysisIssue
                 {
                     RuleKey = ruleKey,
                     StartLine = startLine,
                     EndLine = endLine
-                },
+                });
+            issueVizMock.SetupProperty(x => x.Span);
+
+            return new IssueMarker(issueVizMock.Object,
                 new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1)
             );
+        }
 
         #endregion
 
@@ -472,7 +478,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, logger, mockAnalysisScheduler.Object);
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger, mockAnalysisScheduler.Object);
             return provider;
         }
 
@@ -523,8 +529,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
                 IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-                ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
-                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger)
+                ISonarErrorListDataSource sonarErrorDataSource, IIssueToIssueMarkerConverter converter, ILogger logger)
+                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger)
             { }
 
             protected override IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)

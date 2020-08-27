@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -41,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private IssuesSnapshot snapshot;
         private DummyAnalysisIssue issue;
+        private IAnalysisIssueVisualization issueViz;
 
         [TestInitialize]
         public void SetUp()
@@ -64,7 +66,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
             var textSnap = mockTextSnap.Object;
 
-            var marker = new IssueMarker(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
+            issueViz = CreateIssueViz(issue);
+            var marker = new IssueMarker(issueViz, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
             snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IssueMarker>() { marker });
         }
@@ -158,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetValue_Issue()
         {
-            GetValue(SonarLintTableControlConstants.IssueColumnName).Should().BeSameAs(issue);
+            GetValue(SonarLintTableControlConstants.IssueVizColumnName).Should().BeSameAs(issueViz);
         }
 
         [TestMethod]
@@ -289,6 +292,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private static IssueMarker CreateMarker(string ruleKey = "rule key") =>
-            new IssueMarker(new DummyAnalysisIssue { RuleKey = ruleKey }, new SnapshotSpan());
+            new IssueMarker(CreateIssueViz(new DummyAnalysisIssue { RuleKey = ruleKey }), new SnapshotSpan());
+
+        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+
+            issueVizMock.SetupProperty(x => x.Span);
+            return issueVizMock.Object;
+        }
     }
 }

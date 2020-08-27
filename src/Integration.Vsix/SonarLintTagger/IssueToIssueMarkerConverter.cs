@@ -19,9 +19,13 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+
+// TODO: duncanp: combine the functionality of IIssueToIssueMarkerConverter and IAnalysisIssueVisualizationConverter
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -30,17 +34,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         IssueMarker Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
     }
 
+    [Export(typeof(IIssueToIssueMarkerConverter))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class IssueToIssueMarkerConverter :  IIssueToIssueMarkerConverter
     {
+        private readonly IAnalysisIssueVisualizationConverter issueVizConverter;
         private readonly IIssueSpanCalculator issueSpanCalculator;
 
-        public IssueToIssueMarkerConverter()
-            : this(new IssueSpanCalculator())
+        [ImportingConstructor]
+        public IssueToIssueMarkerConverter(IAnalysisIssueVisualizationConverter issueVizConverter, IIssueSpanCalculator issueSpanCalculator)
         {
-        }
-
-        internal /* for testing */ IssueToIssueMarkerConverter(IIssueSpanCalculator issueSpanCalculator)
-        {
+            this.issueVizConverter = issueVizConverter;
             this.issueSpanCalculator = issueSpanCalculator;
         }
 
@@ -58,7 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
 
-            return span == null ? null : new IssueMarker(issue, span.Value);
+            var issueViz = issueVizConverter.Convert(issue);
+            return span == null ? null : new IssueMarker(issueViz, span.Value);
         }
     }
 }

@@ -70,19 +70,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public delegate void OnIssuesChanged(IEnumerable<IssueMarker> issueMarkers);
 
-        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback)
-            : this(analysisSnapshot, analysisFilePath, onIssuesChangedCallback, new IssueToIssueMarkerConverter())
-        {
-        }
-
-        internal /* for testing */ AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback,
-            IIssueToIssueMarkerConverter issueMarkerConverter)
+        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IIssueToIssueMarkerConverter issueMarkerConverter)
         {
             this.analysisSnapshot = analysisSnapshot ?? throw new ArgumentNullException(nameof(analysisSnapshot));
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
             this.onIssuesChanged = onIssuesChangedCallback ?? throw new ArgumentNullException(nameof(onIssuesChangedCallback));
 
-            this.issueMarkerConverter = issueMarkerConverter ?? throw new ArgumentNullException(nameof(analysisSnapshot));
+            this.issueMarkerConverter = issueMarkerConverter ?? throw new ArgumentNullException(nameof(issueMarkerConverter));
 
             allIssueMarkers = new List<IssueMarker>();
         }

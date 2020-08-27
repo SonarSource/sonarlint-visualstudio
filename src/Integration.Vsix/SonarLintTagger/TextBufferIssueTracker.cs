@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
+        private readonly IIssueToIssueMarkerConverter converter;
 
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
+            ISonarErrorListDataSource sonarErrorDataSource, IIssueToIssueMarkerConverter converter, ILogger logger)
         {
             this.dte = dte;
 
@@ -73,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
+            this.converter = converter;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -237,7 +239,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues);
+            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues, converter);
 
             // Call the consumer with no analysis issues to immediately clear issies for this file
             // from the error list
