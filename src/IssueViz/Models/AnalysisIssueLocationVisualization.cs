@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    internal interface IAnalysisIssueLocationVisualization
+    public interface IAnalysisIssueLocationVisualization
     {
         int StepNumber { get; }
 

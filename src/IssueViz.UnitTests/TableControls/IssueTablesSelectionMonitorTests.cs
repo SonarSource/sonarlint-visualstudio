@@ -22,7 +22,6 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -40,51 +39,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             var selectionService = Mock.Of<IAnalysisIssueSelectionService>();
             var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(selectionService);
 
-            var converter = Mock.Of<IAnalysisIssueVisualizationConverter>();
-            var converterExport = MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(converter);
-
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<IssueTablesSelectionMonitor, IIssueTablesSelectionMonitor>(null, new[] { selectionServiceExport, converterExport });
+            MefTestHelpers.CheckTypeCanBeImported<IssueTablesSelectionMonitor, IIssueTablesSelectionMonitor>(null, new[] { selectionServiceExport });
         }
 
         [TestMethod]
         public void SelectionChanged_NullIssue_SelectedIssueIsSetToNull()
         {
             var mockSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
 
-            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(mockSelectionService.Object, mockConverter.Object);
+            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(mockSelectionService.Object);
             testSubject.SelectionChanged(null);
 
             CheckExpectedValuePassedToService(mockSelectionService, expectedValue: null);
-            mockConverter.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
         public void SelectionChanged_ValidIssue_SelectedIssueIsSetCorrectly()
         {
             var mockSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
 
-            var originalAnalysisIssue = Mock.Of<IAnalysisIssue>();
-            var visIssue = Mock.Of<IAnalysisIssueVisualization>();
-            mockConverter.Setup(x => x.Convert(originalAnalysisIssue)).Returns(visIssue);
+            var original = Mock.Of<IAnalysisIssueVisualization>();
 
-            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(mockSelectionService.Object, mockConverter.Object);
-            testSubject.SelectionChanged(originalAnalysisIssue);
+            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(mockSelectionService.Object);
+            testSubject.SelectionChanged(original);
 
-            CheckExpectedValuePassedToService(mockSelectionService, expectedValue: visIssue);
-            mockConverter.Invocations.Count.Should().Be(1);
+            CheckExpectedValuePassedToService(mockSelectionService, expectedValue: original);
         }
 
         [TestMethod]
         public void SelectionChanged_NullIssue_ExceptionsArePropagated()
         {
-            var mockConverter = new Mock<IAnalysisIssueVisualizationConverter>();
-            mockConverter.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>())).Throws<ArgumentOutOfRangeException>();
-            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(Mock.Of<IAnalysisIssueSelectionService>(), mockConverter.Object);
+            var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            selectionServiceMock.SetupSet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>()).Throws<ArgumentOutOfRangeException>();
+            IIssueTablesSelectionMonitor testSubject = new IssueTablesSelectionMonitor(selectionServiceMock.Object);
 
-            Action act = () => testSubject.SelectionChanged(Mock.Of<IAnalysisIssue>());
+            Action act = () => testSubject.SelectionChanged(Mock.Of<IAnalysisIssueVisualization>());
 
             act.Should().ThrowExactly<ArgumentOutOfRangeException>();
         }
