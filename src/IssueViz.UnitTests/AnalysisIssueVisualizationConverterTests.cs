@@ -21,7 +21,6 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -30,37 +29,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
     [TestClass]
     public class AnalysisIssueVisualizationConverterTests
     {
-        private Mock<ILocationNavigationChecker> locationNavigationCheckerMock;
         private AnalysisIssueVisualizationConverter testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            locationNavigationCheckerMock = new Mock<ILocationNavigationChecker>();
-            locationNavigationCheckerMock.Setup(x => x.IsNavigable(It.IsAny<IAnalysisIssueLocation>())).Returns(true);
-
-            testSubject = new AnalysisIssueVisualizationConverter(locationNavigationCheckerMock.Object);
-        }
-
-        [TestMethod]
-        [DataRow(true, true)]
-        [DataRow(false, true)]
-        [DataRow(true, false)]
-        [DataRow(false, false)]
-        public void Convert_IssueWithFlowAndLocations_CalculatesNavigationForEachLocation(bool firstLocationIsNavigable, bool secondLocationIsNavigable)
-        {
-            var firstLocation = CreateLocation();
-            var secondLocation = CreateLocation();
-            var flow = CreateFlow(firstLocation, secondLocation);
-            var issue = CreateIssue(flow);
-
-            locationNavigationCheckerMock.Reset();
-            locationNavigationCheckerMock.Setup(x => x.IsNavigable(firstLocation)).Returns(firstLocationIsNavigable);
-            locationNavigationCheckerMock.Setup(x => x.IsNavigable(secondLocation)).Returns(secondLocationIsNavigable);
-
-            var actualIssueVisualization = testSubject.Convert(issue);
-            actualIssueVisualization.Flows[0].Locations[0].IsNavigable.Should().Be(firstLocationIsNavigable);
-            actualIssueVisualization.Flows[0].Locations[1].IsNavigable.Should().Be(secondLocationIsNavigable);
+            testSubject = new AnalysisIssueVisualizationConverter();
         }
 
         [TestMethod]
@@ -83,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var flow = CreateFlow(location);
             var issue = CreateIssue(flow);
 
-            var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, true, location);
+            var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
             var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedLocationVisualization }, flow);
             var expectedIssueVisualization = new AnalysisIssueVisualization(new[] {expectedFlowVisualization}, issue);
 
@@ -105,12 +79,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 
             var issue = CreateIssue(firstFlow, secondFlow);
 
-            var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, true, firstFlowFirstLocation);
-            var expectedFirstFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, true, firstFlowSecondLocation);
+            var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, firstFlowFirstLocation);
+            var expectedFirstFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, firstFlowSecondLocation);
             var expectedFirstFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedFirstFlowFirstLocationVisualization, expectedFirstFlowSecondLocationVisualization }, firstFlow);
 
-            var expectedSecondFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, true, secondFlowFirstLocation);
-            var expectedSecondFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, true, secondFlowSecondLocation);
+            var expectedSecondFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, secondFlowFirstLocation);
+            var expectedSecondFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, secondFlowSecondLocation);
             var expectedSecondFlowVisualization = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
 
             var expectedIssueVisualization = new AnalysisIssueVisualization(new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization }, issue);

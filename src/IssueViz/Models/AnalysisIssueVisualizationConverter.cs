@@ -37,14 +37,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = Array.Empty<IAnalysisIssueFlowVisualization>();
 
-        private readonly ILocationNavigationChecker navigationChecker;
-
-        [ImportingConstructor]
-        public AnalysisIssueVisualizationConverter(ILocationNavigationChecker navigationChecker)
-        {
-            this.navigationChecker = navigationChecker;
-        }
-
         public IAnalysisIssueVisualization Convert(IAnalysisIssue issue)
         {
             var flows = Convert(issue.Flows);
@@ -74,12 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             var locationNumber = 1;
 
             var convertedLocations = locations
-                .Select(location =>
-                {
-                    var isNavigable = navigationChecker.IsNavigable(location);
-
-                    return new AnalysisIssueLocationVisualization(locationNumber++, isNavigable, location);
-                })
+                .Select(location => new AnalysisIssueLocationVisualization(locationNumber++, location))
                 .Cast<IAnalysisIssueLocationVisualization>()
                 .ToArray();
 

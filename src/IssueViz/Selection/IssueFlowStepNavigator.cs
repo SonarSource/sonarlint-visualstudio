@@ -22,36 +22,39 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
-    internal interface IAnalysisIssueNavigation
+    internal interface IIssueFlowStepNavigator
     {
-        void GotoNextLocation();
-        void GotoPreviousLocation();
+        void GotoNextNavigableFlowStep();
+        void GotoPreviousNavigableFlowStep();
     }
 
-    [Export(typeof(IAnalysisIssueNavigation))]
+    [Export(typeof(IIssueFlowStepNavigator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class AnalysisIssueNavigation : IAnalysisIssueNavigation
+    internal class IssueFlowStepNavigator : IIssueFlowStepNavigator
     {
         private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly ILocationNavigator locationNavigator;
 
         [ImportingConstructor]
-        public AnalysisIssueNavigation(IAnalysisIssueSelectionService selectionService)
+        public IssueFlowStepNavigator(IAnalysisIssueSelectionService selectionService, ILocationNavigator locationNavigator)
         {
             this.selectionService = selectionService;
+            this.locationNavigator = locationNavigator;
         }
 
-        public void GotoNextLocation()
+        public void GotoNextNavigableFlowStep()
         {
             NavigateToMatchingLocation(
                 locations => locations.OrderBy(x => x.StepNumber),
                 (location, currentLocation) => location.StepNumber > currentLocation.StepNumber);
         }
 
-        public void GotoPreviousLocation()
+        public void GotoPreviousNavigableFlowStep()
         {
             NavigateToMatchingLocation(
                 locations => locations.OrderByDescending(x => x.StepNumber),
@@ -74,14 +77,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                 return;
             }
 
-            var navigateToLocation = order(currentFlow.Locations)
-                .FirstOrDefault(x =>
+            var navigableLocations = order(currentFlow.Locations)
+                .Where(x =>
                     x.IsNavigable &&
                     match(x, currentLocation));
 
-            if (navigateToLocation != null)
+            foreach (var locationViz in navigableLocations)
             {
-                selectionService.SelectedLocation = navigateToLocation;
+                locationViz.IsNavigable = locationNavigator.TryNavigate(locationViz.Location);
+
+                if (locationViz.IsNavigable)
+                {
+                    selectionService.SelectedLocation = locationViz;
+                    break;
+                }
             }
         }
     }
