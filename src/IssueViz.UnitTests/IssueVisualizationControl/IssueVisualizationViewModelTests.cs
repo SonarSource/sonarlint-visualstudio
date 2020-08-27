@@ -29,6 +29,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -45,6 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         private Mock<IAnalysisIssueSelectionService> selectionEventsMock;
         private Mock<IVsImageService2> imageServiceMock;
         private Mock<IRuleHelpLinkProvider> helpLinkProviderMock;
+        private Mock<ILocationNavigator> locationNavigatorMock;
         private TestLogger logger;
         private Mock<PropertyChangedEventHandler> propertyChangedEventHandler;
 
@@ -56,10 +58,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             selectionEventsMock = new Mock<IAnalysisIssueSelectionService>();
             imageServiceMock = new Mock<IVsImageService2>();
             helpLinkProviderMock = new Mock<IRuleHelpLinkProvider>();
+            locationNavigatorMock = new Mock<ILocationNavigator>();
             logger = new TestLogger();
             propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
 
-            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object, logger);
+            testSubject = new IssueVisualizationViewModel(selectionEventsMock.Object, imageServiceMock.Object, helpLinkProviderMock.Object, locationNavigatorMock.Object, logger);
             testSubject.PropertyChanged += propertyChangedEventHandler.Object;
         }
 
@@ -537,6 +540,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             propertyChangedEventHandler.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void SelectionService_OnLocationChanged_NewLocationIsNull_NoNavigation()
+        {
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Location, null, null, null);
+
+            locationNavigatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SelectionService_OnLocationChanged_NewLocationIsNotNull_NavigabilityUpdated(bool navigationSucceeded)
+        {
+            var locationViz = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile);
+            locationViz.IsNavigable = !navigationSucceeded;
+
+            locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Location)).Returns(navigationSucceeded);
+
+            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
+            selectedFlow.Setup(x => x.Locations).Returns(new[] {locationViz});
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object, locationViz);
+
+            locationViz.IsNavigable.Should().Be(navigationSucceeded);
+        }
+
         #endregion
 
         #region Dispose
@@ -603,6 +632,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
             locationViz.Setup(x => x.Location).Returns(location.Object);
+            locationViz.SetupProperty(x => x.IsNavigable);
 
             return locationViz.Object;
         }

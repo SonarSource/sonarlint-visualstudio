@@ -37,21 +37,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
         public static readonly Guid CommandSet = Constants.CommandSetGuid;
         public static NavigationCommands Instance { get; private set; }
 
-        private readonly IAnalysisIssueNavigation analysisIssueNavigation;
+        private readonly IIssueFlowStepNavigator issueFlowStepNavigator;
         private readonly ILogger logger;
 
-        internal NavigationCommands(IMenuCommandService commandService, IAnalysisIssueNavigation analysisIssueNavigation, ILogger logger)
+        internal NavigationCommands(IMenuCommandService commandService, IIssueFlowStepNavigator issueFlowStepNavigator, ILogger logger)
         {
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
-            this.analysisIssueNavigation = analysisIssueNavigation ?? throw new ArgumentNullException(nameof(analysisIssueNavigation));
+            this.issueFlowStepNavigator = issueFlowStepNavigator ?? throw new ArgumentNullException(nameof(issueFlowStepNavigator));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             var menuCommandID = new CommandID(CommandSet, NextLocationCommandId);
-            var menuItem = new MenuCommand(ExecuteGotoNextLocation, menuCommandID);
+            var menuItem = new MenuCommand(ExecuteGotoNextNavigableFlowStep, menuCommandID);
             commandService.AddCommand(menuItem);
 
             menuCommandID = new CommandID(CommandSet, PreviousLocationCommandId);
-            menuItem = new MenuCommand(ExecuteGotoPreviousLocation, menuCommandID);
+            menuItem = new MenuCommand(ExecuteGotoPreviousNavigableFlowStep, menuCommandID);
             commandService.AddCommand(menuItem);
         }
 
@@ -61,20 +61,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            var navigationService = componentModel.GetService<IAnalysisIssueNavigation>();
+            var issueFlowStepNavigator = componentModel.GetService<IIssueFlowStepNavigator>();
             var logger = componentModel.GetService<ILogger>();
 
-            Instance = new NavigationCommands(commandService, navigationService, logger);
+            Instance = new NavigationCommands(commandService, issueFlowStepNavigator, logger);
         }
 
-        internal void ExecuteGotoNextLocation(object sender, EventArgs e)
+        internal void ExecuteGotoNextNavigableFlowStep(object sender, EventArgs e)
         {
-            SafeNavigate(() => analysisIssueNavigation.GotoNextLocation());
+            SafeNavigate(() => issueFlowStepNavigator.GotoNextNavigableFlowStep());
         }
 
-        internal void ExecuteGotoPreviousLocation(object sender, EventArgs e)
+        internal void ExecuteGotoPreviousNavigableFlowStep(object sender, EventArgs e)
         {
-            SafeNavigate(() => analysisIssueNavigation.GotoPreviousLocation());
+            SafeNavigate(() => issueFlowStepNavigator.GotoPreviousNavigableFlowStep());
         }
 
         private void SafeNavigate(Action op)

@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -42,9 +43,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var selectionService = componentModel.GetService<IAnalysisIssueSelectionService>();
             var imageService = serviceProvider.GetService(typeof(SVsImageService)) as IVsImageService2;
+            var locationNavigator = componentModel.GetService<ILocationNavigator>();
             var logger = componentModel.GetService<ILogger>();
 
-            viewModel = new IssueVisualizationViewModel(selectionService, imageService, new RuleHelpLinkProvider(), logger);
+            viewModel = new IssueVisualizationViewModel(selectionService, imageService, new RuleHelpLinkProvider(), locationNavigator, logger);
             Content = new IssueVisualizationControl(viewModel);
         }
 

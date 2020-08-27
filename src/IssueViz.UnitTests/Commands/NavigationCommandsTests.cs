@@ -33,16 +33,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
     [TestClass]
     public class NavigationCommandsTests
     {
-        private Mock<IMenuCommandService> commandService;
-        private Mock<ILogger> logger;
-        private Mock<IAnalysisIssueNavigation> navigationService;
+        private Mock<IMenuCommandService> commandServiceMock;
+        private Mock<ILogger> loggerMock;
+        private Mock<IIssueFlowStepNavigator> issueFlowStepNavigatorMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            commandService = new Mock<IMenuCommandService>();
-            navigationService = new Mock<IAnalysisIssueNavigation>();
-            logger = new Mock<ILogger>();
+            commandServiceMock = new Mock<IMenuCommandService>();
+            issueFlowStepNavigatorMock = new Mock<IIssueFlowStepNavigator>();
+            loggerMock = new Mock<ILogger>();
 
             ThreadHelper.SetCurrentThreadAsUIThread();
         }
@@ -50,68 +50,68 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         [TestMethod]
         public void Ctor_ArgsCheck()
         {
-            Action act = () => new NavigationCommands(null, navigationService.Object, logger.Object);
+            Action act = () => new NavigationCommands(null, issueFlowStepNavigatorMock.Object, loggerMock.Object);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 
-            act = () => new NavigationCommands(commandService.Object, null, logger.Object);
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("analysisIssueNavigation");
+            act = () => new NavigationCommands(commandServiceMock.Object, null, loggerMock.Object);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueFlowStepNavigator");
 
-            act = () => new NavigationCommands(commandService.Object, navigationService.Object, null);
+            act = () => new NavigationCommands(commandServiceMock.Object, issueFlowStepNavigatorMock.Object, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void Ctor_CommandsAddedToMenu()
         {
-            new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);
+            new NavigationCommands(commandServiceMock.Object, issueFlowStepNavigatorMock.Object, loggerMock.Object);
 
-            commandService.Verify(x =>
+            commandServiceMock.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
                         c.CommandID.Guid == NavigationCommands.CommandSet &&
                         c.CommandID.ID == NavigationCommands.NextLocationCommandId)),
                 Times.Once);
 
-            commandService.Verify(x =>
+            commandServiceMock.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
                         c.CommandID.Guid == NavigationCommands.CommandSet &&
                         c.CommandID.ID == NavigationCommands.PreviousLocationCommandId)),
                 Times.Once);
 
-            commandService.VerifyNoOtherCalls();
+            commandServiceMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void ExecuteGotoNextLocation_CallsNavigationService()
+        public void ExecuteGotoNextNavigableFlowStep_CallsNavigationService()
         {
-            var testSubject = new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);
+            var testSubject = new NavigationCommands(commandServiceMock.Object, issueFlowStepNavigatorMock.Object, loggerMock.Object);
 
-            testSubject.ExecuteGotoNextLocation(null, null);
+            testSubject.ExecuteGotoNextNavigableFlowStep(null, null);
 
-            navigationService.Verify(x=> x.GotoNextLocation(), Times.Once);
-            navigationService.VerifyNoOtherCalls();
+            issueFlowStepNavigatorMock.Verify(x=> x.GotoNextNavigableFlowStep(), Times.Once);
+            issueFlowStepNavigatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void ExecuteGotoPreviousLocation_CallsNavigationService()
+        public void ExecuteGotoPreviousNavigableFlowStep_CallsNavigationService()
         {
-            var testSubject = new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);
+            var testSubject = new NavigationCommands(commandServiceMock.Object, issueFlowStepNavigatorMock.Object, loggerMock.Object);
 
-            testSubject.ExecuteGotoPreviousLocation(null, null);
+            testSubject.ExecuteGotoPreviousNavigableFlowStep(null, null);
 
-            navigationService.Verify(x => x.GotoPreviousLocation(), Times.Once);
-            navigationService.VerifyNoOtherCalls();
+            issueFlowStepNavigatorMock.Verify(x => x.GotoPreviousNavigableFlowStep(), Times.Once);
+            issueFlowStepNavigatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void ExecuteGotoNextLocation_Exception_ExceptionLogged()
+        public void ExecuteGotoNextNavigableFlowStep_Exception_ExceptionLogged()
         {
-            navigationService
-                .Setup(x => x.GotoNextLocation())
+            issueFlowStepNavigatorMock
+                .Setup(x => x.GotoNextNavigableFlowStep())
                 .Throws(new NotImplementedException("this is a test"));
 
-            var testSubject = new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);
+            var testSubject = new NavigationCommands(commandServiceMock.Object, issueFlowStepNavigatorMock.Object, loggerMock.Object);
 
-            Action act = () => testSubject.ExecuteGotoNextLocation(null, null);
+            Action act = () => testSubject.ExecuteGotoNextNavigableFlowStep(null, null);
             act.Should().NotThrow();
 
             VerifyMessageLogged("this is a test");
@@ -119,15 +119,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
 
         [TestMethod]
-        public void ExecuteGotoPreviousLocation_Exception_ExceptionLogged()
+        public void ExecuteGotoPreviousNavigableFlowStep_Exception_ExceptionLogged()
         {
-            navigationService
-                .Setup(x => x.GotoPreviousLocation())
+            issueFlowStepNavigatorMock
+                .Setup(x => x.GotoPreviousNavigableFlowStep())
                 .Throws(new NotImplementedException("this is a test"));
 
-            var testSubject = new NavigationCommands(commandService.Object, navigationService.Object, logger.Object);
+            var testSubject = new NavigationCommands(commandServiceMock.Object, issueFlowStepNavigatorMock.Object, loggerMock.Object);
 
-            Action act = () => testSubject.ExecuteGotoPreviousLocation(null, null);
+            Action act = () => testSubject.ExecuteGotoPreviousNavigableFlowStep(null, null);
             act.Should().NotThrow();
 
             VerifyMessageLogged("this is a test");
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
         private void VerifyMessageLogged(string expectedMessage)
         {
-            logger.Verify(x =>
+            loggerMock.Verify(x =>
                     x.WriteLine(It.Is((string message) => message.Contains(expectedMessage))),
                 Times.Once);
         }
