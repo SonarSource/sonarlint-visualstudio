@@ -30,12 +30,12 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 {
     [TestClass]
-    public class AnalysisIssueNavigationTests
+    public class IssueFlowStepNavigatorTests
     {
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
         private Mock<ILocationNavigator> locationNavigatorMock;
 
-        private AnalysisIssueNavigation testSubject;
+        private IssueFlowStepNavigator testSubject;
 
         [TestInitialize]
         public void TesInitialize()
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             locationNavigatorMock = new Mock<ILocationNavigator>();
 
-            testSubject = new AnalysisIssueNavigation(selectionServiceMock.Object, locationNavigatorMock.Object);
+            testSubject = new IssueFlowStepNavigator(selectionServiceMock.Object, locationNavigatorMock.Object);
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>());
             var locationNavigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>());
 
-            MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueNavigation, IAnalysisIssueNavigation>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<IssueFlowStepNavigator, IIssueFlowStepNavigator>(null, new[]
             {
                 selectionServiceExport,
                 locationNavigatorExport
@@ -60,77 +60,77 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_NoCurrentFlow_NoNavigation()
+        public void GotoNextNavigableFlowStep_NoCurrentFlow_NoNavigation()
         {
             SetupCurrentFlow((IAnalysisIssueFlowVisualization) null);
             SetupCurrentLocation(CreateLocation());
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_NoCurrentFlow_NoNavigation()
+        public void GotoPreviousNavigableFlowStep_NoCurrentFlow_NoNavigation()
         {
             SetupCurrentFlow((IAnalysisIssueFlowVisualization)null);
             SetupCurrentLocation(CreateLocation());
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_NoCurrentLocation_NoNavigation()
+        public void GotoNextNavigableFlowStep_NoCurrentLocation_NoNavigation()
         {
             SetupCurrentFlow(CreateLocation());
             SetupCurrentLocation(null);
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_NoCurrentLocation_NoNavigation()
+        public void GotoPreviousNavigableFlowStep_NoCurrentLocation_NoNavigation()
         {
             SetupCurrentFlow(CreateLocation());
             SetupCurrentLocation(null);
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_FlowHasOnlyOneLocation_NoNavigation()
+        public void GotoNextNavigableFlowStep_FlowHasOnlyOneLocation_NoNavigation()
         {
             var location = CreateLocation();
 
             SetupCurrentFlow(location);
             SetupCurrentLocation(location);
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_FlowHasOnlyOneLocation_NoNavigation()
+        public void GotoPreviousNavigableFlowStep_FlowHasOnlyOneLocation_NoNavigation()
         {
             var location = CreateLocation();
 
             SetupCurrentFlow(location);
             SetupCurrentLocation(location);
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_CurrentLocationIsLast_NoNavigation()
+        public void GotoNextNavigableFlowStep_CurrentLocationIsLast_NoNavigation()
         {
             var firstLocation = CreateLocation(1);
             var lastLocation = CreateLocation(2);
@@ -138,13 +138,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             SetupCurrentFlow(firstLocation, lastLocation);
             SetupCurrentLocation(lastLocation);
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_CurrentLocationIsFirst_NoNavigation()
+        public void GotoPreviousNavigableFlowStep_CurrentLocationIsFirst_NoNavigation()
         {
             var firstLocation = CreateLocation(1);
             var lastLocation = CreateLocation(2);
@@ -152,13 +152,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             SetupCurrentFlow(firstLocation, lastLocation);
             SetupCurrentLocation(firstLocation);
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_CurrentLocationIsLastNavigableLocation_NoNavigation()
+        public void GotoNextNavigableFlowStep_CurrentLocationIsLastNavigableLocation_NoNavigation()
         {
             var locations = new[]
             {
@@ -173,13 +173,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             SetupCurrentFlow(locations);
             SetupCurrentLocation(currentLocation);
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_CurrentLocationIsFirstNavigableLocation_NoNavigation()
+        public void GotoPreviousNavigableFlowStep_CurrentLocationIsFirstNavigableLocation_NoNavigation()
         {
             var locations = new[]
             {
@@ -194,13 +194,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             SetupCurrentFlow(locations);
             SetupCurrentLocation(currentLocation);
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_NavigatesToNextNavigableLocation()
+        public void GotoNextNavigableFlowStep_NavigatesToNextNavigableLocation()
         {
             var locations = new[]
             {
@@ -218,13 +218,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             SetupCurrentFlow(locations);
             SetupCurrentLocation(currentLocation);
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             VerifyNavigation(expectedNavigation);
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_NavigatesToPreviousNavigableLocation()
+        public void GotoPreviousNavigableFlowStep_NavigatesToPreviousNavigableLocation()
         {
             var locations = new[]
             {
@@ -242,13 +242,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             SetupCurrentFlow(locations);
             SetupCurrentLocation(currentLocation);
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             VerifyNavigation(expectedNavigation);
         }
 
         [TestMethod]
-        public void GotoNextNavigableLocation_LocationIsFalselyNavigable_UpdatesLocationNavigability()
+        public void GotoNextNavigableFlowStep_LocationIsFalselyNavigable_UpdatesLocationNavigability()
         {
             var locations = new[]
             {
@@ -264,13 +264,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 
             locationToBeUpdated.IsNavigable.Should().BeTrue();
 
-            testSubject.GotoNextNavigableLocation();
+            testSubject.GotoNextNavigableFlowStep();
 
             locationToBeUpdated.IsNavigable.Should().BeFalse();
         }
 
         [TestMethod]
-        public void GotoPreviousNavigableLocation_LocationIsFalselyNavigable_UpdatesLocationNavigability()
+        public void GotoPreviousNavigableFlowStep_LocationIsFalselyNavigable_UpdatesLocationNavigability()
         {
             var locations = new[]
             {
@@ -286,7 +286,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 
             locationToBeUpdated.IsNavigable.Should().BeTrue();
 
-            testSubject.GotoPreviousNavigableLocation();
+            testSubject.GotoPreviousNavigableFlowStep();
 
             locationToBeUpdated.IsNavigable.Should().BeFalse();
         }

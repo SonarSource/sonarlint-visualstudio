@@ -27,34 +27,34 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
-    internal interface IAnalysisIssueNavigation
+    internal interface IIssueFlowStepNavigator
     {
-        void GotoNextNavigableLocation();
-        void GotoPreviousNavigableLocation();
+        void GotoNextNavigableFlowStep();
+        void GotoPreviousNavigableFlowStep();
     }
 
-    [Export(typeof(IAnalysisIssueNavigation))]
+    [Export(typeof(IIssueFlowStepNavigator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class AnalysisIssueNavigation : IAnalysisIssueNavigation
+    internal class IssueFlowStepNavigator : IIssueFlowStepNavigator
     {
         private readonly IAnalysisIssueSelectionService selectionService;
         private readonly ILocationNavigator locationNavigator;
 
         [ImportingConstructor]
-        public AnalysisIssueNavigation(IAnalysisIssueSelectionService selectionService, ILocationNavigator locationNavigator)
+        public IssueFlowStepNavigator(IAnalysisIssueSelectionService selectionService, ILocationNavigator locationNavigator)
         {
             this.selectionService = selectionService;
             this.locationNavigator = locationNavigator;
         }
 
-        public void GotoNextNavigableLocation()
+        public void GotoNextNavigableFlowStep()
         {
             NavigateToMatchingLocation(
                 locations => locations.OrderBy(x => x.StepNumber),
                 (location, currentLocation) => location.StepNumber > currentLocation.StepNumber);
         }
 
-        public void GotoPreviousNavigableLocation()
+        public void GotoPreviousNavigableFlowStep()
         {
             NavigateToMatchingLocation(
                 locations => locations.OrderByDescending(x => x.StepNumber),
