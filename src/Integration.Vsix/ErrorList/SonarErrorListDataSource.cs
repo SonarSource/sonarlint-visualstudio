@@ -29,10 +29,12 @@ using SonarLint.VisualStudio.IssueVisualization.TableControls;
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarErrorListDataSource))]
-    internal class SonarErrorListDataSource : ITableDataSource, ISonarErrorListDataSource
+    internal class SonarErrorListDataSource :
+        ITableDataSource,           // Allows us to provide entries to the Error List
+        ISonarErrorListDataSource   // Used by analyzers to push new analysis results to the data source
     {
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
-        private readonly ISet<ITableEntriesSnapshotFactory> factories = new HashSet<ITableEntriesSnapshotFactory>();
+        private readonly ISet<SnapshotFactory> factories = new HashSet<SnapshotFactory>();
 
         [ImportingConstructor]
         internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider)
@@ -102,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void AddFactory(ITableEntriesSnapshotFactory factory)
+        public void AddFactory(SnapshotFactory factory)
         {
             lock (sinks)
             {
@@ -114,7 +116,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveFactory(ITableEntriesSnapshotFactory factory)
+        public void RemoveFactory(SnapshotFactory factory)
         {
             lock (sinks)
             {
