@@ -31,6 +31,12 @@ using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    internal interface IIssuesSnapshot : ITableEntriesSnapshot
+    {
+        Guid AnalysisRunId { get; }
+        IEnumerable<IssueMarker> IssueMarkers { get; }
+    }
+
     /// <summary>
     /// ErrorList plumbing. Contains the issues data for a single analyzed file,
     /// and overrides methods called by the Error List to populate rows with
@@ -39,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    internal class IssuesSnapshot : WpfTableEntriesSnapshotBase
+    internal class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
         private readonly string projectName;
         private readonly string filePath;

@@ -146,13 +146,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
 
-        private static string GetProjectName(IssuesSnapshot snapshot) =>
+        private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
 
-        private static string GetFilePath(IssuesSnapshot snapshot) =>
+        private static string GetFilePath(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.DocumentName);
 
-        private static T GetValue<T>(IssuesSnapshot snapshot, string columnName)
+        private static T GetValue<T>(ITableEntriesSnapshot snapshot, string columnName)
         {
             object content;
             snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
