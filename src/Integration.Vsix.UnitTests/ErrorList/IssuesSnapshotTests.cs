@@ -28,7 +28,6 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -40,141 +39,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const string ValidFilePath = "c:\\file.txt";
         private readonly IEnumerable<IssueMarker> ValidMarkerList = new IssueMarker[] { CreateMarker() };
 
-        private IssuesSnapshot snapshot;
-        private DummyAnalysisIssue issue;
-        private IAnalysisIssueVisualization issueViz;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            var path = "foo.js";
-            issue = new DummyAnalysisIssue()
-            {
-                FilePath = path,
-                Message = "This is dangerous",
-                RuleKey = "javascript:123",
-                Severity = AnalysisIssueSeverity.Blocker,
-            };
-
-            var mockTextSnap = new Mock<ITextSnapshot>();
-            mockTextSnap.Setup(t => t.Length).Returns(50);
-
-            var mockTextSnapLine = new Mock<ITextSnapshotLine>();
-            mockTextSnapLine.Setup(l => l.LineNumber).Returns(12);
-            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, 10));
-
-            mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
-            var textSnap = mockTextSnap.Object;
-
-            issueViz = CreateIssueViz(issue);
-            var marker = new IssueMarker(issueViz, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
-
-            snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IssueMarker>() { marker });
-        }
-
-        [TestMethod]
-        public void GetValue_Line()
-        {
-            GetValue(StandardTableKeyNames.Line).Should().Be(12);
-        }
-
-        [TestMethod]
-        public void GetValue_Column()
-        {
-            GetValue(StandardTableKeyNames.Column).Should().Be(25 - 10);
-        }
-
-        [TestMethod]
-        public void GetValue_Path()
-        {
-            GetValue(StandardTableKeyNames.DocumentName).Should().Be(issue.FilePath);
-        }
-
-        [TestMethod]
-        public void GetValue_Message()
-        {
-            GetValue(StandardTableKeyNames.Text).Should().Be(issue.Message);
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCode()
-        {
-            GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issue.RuleKey);
-        }
-
-        [TestMethod]
-        public void GetValue_Severity()
-        {
-            GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
-        }
-
-        [TestMethod]
-        public void GetValue_BuildTool()
-        {
-            GetValue(StandardTableKeyNames.BuildTool).Should().Be("SonarLint");
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorRank_Other()
-        {
-            GetValue(StandardTableKeyNames.ErrorRank).Should().Be(ErrorRank.Other);
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCategory_Is_CodeSmell_By_Default()
-        {
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCategory_Is_Issue_Type()
-        {
-            issue.Type = AnalysisIssueType.Bug;
-            issue.Severity = AnalysisIssueSeverity.Blocker;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Bug");
-            issue.Type = AnalysisIssueType.CodeSmell;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
-            issue.Type = AnalysisIssueType.Vulnerability;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Vulnerability");
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCodeToolTip()
-        {
-            issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.ErrorCodeToolTip).Should().Be("Open description of rule javascript:123");
-        }
-
-        [TestMethod]
-        public void GetValue_HelpLink()
-        {
-            issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
-        }
-
-        [TestMethod]
-        public void GetValue_ProjectName()
-        {
-            GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
-        }
-
-        [TestMethod]
-        public void GetValue_Issue()
-        {
-            GetValue(SonarLintTableControlConstants.IssueVizColumnName).Should().BeSameAs(issueViz);
-        }
-
         [TestMethod]
         public void Construction_CreateNew_SetsProperties()
         {
-            var snapshot = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
 
-            snapshot.AnalysisRunId.Should().NotBe(Guid.Empty);
-            snapshot.VersionNumber.Should().BeGreaterOrEqualTo(0);
-            GetProjectName(snapshot).Should().BeEquivalentTo(ValidProjectName);
-            GetFilePath(snapshot).Should().BeEquivalentTo(ValidFilePath);
-            snapshot.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
+            testSubject.AnalysisRunId.Should().NotBe(Guid.Empty);
+            testSubject.VersionNumber.Should().BeGreaterOrEqualTo(0);
+            GetProjectName(testSubject).Should().BeEquivalentTo(ValidProjectName);
+            GetFilePath(testSubject).Should().BeEquivalentTo(ValidFilePath);
+            testSubject.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
         }
+
 
         [TestMethod]
         public void Construction_CreateNew_SetsUniqueId()
@@ -269,12 +145,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Should().Be(IndexOf_NotFoundResult);
         }
 
-        private object GetValue(string columnName)
-        {
-            object content;
-            snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
-            return content;
-        }
 
         private static string GetProjectName(IssuesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
