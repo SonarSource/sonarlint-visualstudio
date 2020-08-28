@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const int IndexOf_NotFoundResult = -1;
         private const string ValidProjectName = "aproject";
         private const string ValidFilePath = "c:\\file.txt";
-        private readonly IEnumerable<IssueMarker> ValidMarkerList = new IssueMarker[] { CreateMarker() };
+        private readonly IEnumerable<IssueMarker> ValidMarkerList = new IssueMarker[] { CreateMarkerWithSpan() };
 
         [TestMethod]
         public void Construction_CreateNew_SetsProperties()
@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Construction_UpdateIssues_PreservesIdAndUpdatesVersion()
         {
             // Both snapshots must have same number of issues for this test case
-            var originalIssues = new IssueMarker[] { CreateMarker("hash1") };
-            var newIssues = new IssueMarker[] { CreateMarker("hash2") };
+            var originalIssues = new IssueMarker[] { CreateMarkerWithSpan("hash1") };
+            var newIssues = new IssueMarker[] { CreateMarkerWithSpan("hash2") };
 
             // Sanity check
             originalIssues.Should().NotBeEquivalentTo(newIssues);
@@ -103,8 +103,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Construction_ReviseIssues_NumberOfIssuesChanged_Throws()
         {
-            var originalIssues = new IssueMarker[] { CreateMarker(), CreateMarker() };
-            var newIssues = new IssueMarker[] { CreateMarker() };
+            var originalIssues = new IssueMarker[] { CreateMarkerWithSpan(), CreateMarkerWithSpan() };
+            var newIssues = new IssueMarker[] { CreateMarkerWithSpan() };
 
             var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, originalIssues);
 
@@ -112,6 +112,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             act.Should().ThrowExactly<ArgumentException>()
                 .And.ParamName.Should().Be("updatedIssueMarkers");
+        }
+
+        [TestMethod]
+        public void Construction_CreateNew_FilesInSnapshotIsSetCorrectly()
+        {
+            var marker1 = CreateMarkerWithPath("path1",     // primary location
+                CreateFlowViz("path2"),                     // flow with one secondary location
+                CreateFlowViz("path3", "path4", "PATH1"));  // flow with multiple secondary locations, including one duplicate in a different case
+
+            var marker2 = CreateMarkerWithPath("path5");    // new primary location, no flows
+
+            var marker3 = CreateMarkerWithPath("path2");    // duplicate primary location, no flows
+
+            var markers = new IssueMarker[] { marker1, marker2, marker3 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            testSubject.FilesInSnapshot.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path5");
         }
 
         [TestMethod]
@@ -145,6 +163,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Should().Be(IndexOf_NotFoundResult);
         }
 
+        [TestMethod]
+        public void GetLocationsVizForFile_NoMatches_ReturnsEmpty()
+        {
+            var marker1 = CreateMarkerWithPath("path1.txt");
+            var markers = new IssueMarker[] { marker1 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            var actual = testSubject.GetLocationsVizsForFile("xxx");
+
+            actual.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetLocationsVizForFile_MatchesInPrimaryLocations_ReturnsExpected()
+        {
+            var marker1 = CreateMarkerWithPath("path1.txt");
+            var marker2 = CreateMarkerWithPath("XXX.txt");
+            var marker3 = CreateMarkerWithPath("path1.txt");
+            var markers = new IssueMarker[] { marker1, marker2, marker3 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            var actual = testSubject.GetLocationsVizsForFile("path1.txt");
+
+            actual.Should().BeEquivalentTo(marker1.IssueViz, marker3.IssueViz);
+        }
+
+        [TestMethod]
+        public void GetLocationsVizForFile_MatchesInSecondaryLocations_ReturnsExpected()
+        {
+            var flow1 = CreateFlowViz("match.txt", "MATCH.TXT");
+            var flow2 = CreateFlowViz("miss.txt", "Match.txt");
+            var flow3 = CreateFlowViz("another miss.txt");
+
+            var marker1 = CreateMarkerWithPath("path1.txt", flow1, flow2, flow3);
+            var markers = new IssueMarker[] { marker1 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            var actual = testSubject.GetLocationsVizsForFile("match.txt");
+
+            actual.Should().BeEquivalentTo(flow1.Locations[0], flow1.Locations[1], flow2.Locations[1]);
+        }
 
         private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
@@ -161,16 +223,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return (T)content;
         }
 
-        private static IssueMarker CreateMarker(string ruleKey = "rule key") =>
+        private static IssueMarker CreateMarkerWithSpan(string ruleKey = "rule key") =>
             new IssueMarker(CreateIssueViz(new DummyAnalysisIssue { RuleKey = ruleKey }), new SnapshotSpan());
 
-        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue)
+        private static IssueMarker CreateMarkerWithPath(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
+            new IssueMarker(CreateIssueViz(new DummyAnalysisIssue { FilePath = primaryFilePath }, flowVizs), new SnapshotSpan());
+
+        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, params IAnalysisIssueFlowVisualization[] flowVizs)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Flows).Returns(flowVizs);
 
             issueVizMock.SetupProperty(x => x.Span);
             return issueVizMock.Object;
+        }
+
+        private static IAnalysisIssueFlowVisualization CreateFlowViz(params string[] locationFilePaths)
+        {
+            var locVizs = new List<IAnalysisIssueLocationVisualization>();
+
+            foreach (var path in locationFilePaths)
+            {
+                locVizs.Add(CreateLocViz(path));
+            }
+
+            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
+            flowViz.Setup(x => x.Locations).Returns(locVizs);
+            return flowViz.Object;
+        }
+
+        private static IAnalysisIssueLocationVisualization CreateLocViz(string filePath)
+        {
+            var locViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locViz.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { FilePath = filePath });
+            return locViz.Object;
         }
     }
 }
