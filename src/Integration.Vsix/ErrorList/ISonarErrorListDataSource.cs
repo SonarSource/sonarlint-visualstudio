@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell.TableManager;
-
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     /// <summary>
@@ -29,8 +27,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         void RefreshErrorList();
 
-        void AddFactory(ITableEntriesSnapshotFactory factory);
+        void AddFactory(SnapshotFactory factory);
 
-        void RemoveFactory(ITableEntriesSnapshotFactory factory);
+        void RemoveFactory(SnapshotFactory factory);
     }
 }
