@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -35,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class IssuesSnapshotTests_GetValue
     {
-        private IssuesSnapshot snapshot;
+        private IIssuesSnapshot snapshot;
         private DummyAnalysisIssue issue;
         private IAnalysisIssueVisualization issueViz;
 
