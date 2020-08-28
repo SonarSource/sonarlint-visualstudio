@@ -144,7 +144,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // that the name change propagates to items in the error list.
                     // No need in this case to translate the tagger spans.
 
-                    var newSnapshot = Factory.CurrentSnapshot.CreateUpdatedSnapshot(FilePath);
+
+                    // HACK: duncanp - this code will be removed as part of "Handle file renames" : https://github.com/SonarSource/sonarlint-visualstudio/issues/1662
+                    var oldSnaphost = (IssuesSnapshot)Factory.CurrentSnapshot;
+
+                    var newSnapshot = oldSnaphost.CreateUpdatedSnapshot(FilePath);
                     SnapToNewSnapshot(newSnapshot);
                 }
                 else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
@@ -172,7 +176,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 currentSnapshot = e.After;
 
                 var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
-                var newSnapshot = Factory.CurrentSnapshot.CreateUpdatedSnapshot(newMarkers);
+
+                // HACK: duncanp. This code will be removed as part of "Remove error tagging code from TextBufferIssueTracker" : https://github.com/SonarSource/sonarlint-visualstudio/issues/1659
+                var oldSnapshot = (IssuesSnapshot)Factory.CurrentSnapshot;
+
+                var newSnapshot = oldSnapshot.CreateUpdatedSnapshot(newMarkers);
                 SnapToNewSnapshot(newSnapshot);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -191,7 +199,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return newMarkers;
         }
 
-        private void SnapToNewSnapshot(IssuesSnapshot newSnapshot)
+        private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
         {
             var oldIssues = Factory.CurrentSnapshot;
 
@@ -209,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private SnapshotSpan? CalculateAffectedSpan(IssuesSnapshot oldIssues, IssuesSnapshot newIssues)
+        private SnapshotSpan? CalculateAffectedSpan(IIssuesSnapshot oldIssues, IIssuesSnapshot newIssues)
         {
             // Calculate the whole span affected by the all of the issues, old and new
             int start = int.MaxValue;
