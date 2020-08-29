@@ -95,7 +95,6 @@ namespace SonarLint.VisualStudio.Core.Helpers
                 throw new ArgumentException(CoreStrings.PathHelperAbsolutePathExpected, nameof(fromFullPath));
             }
 
-
             Uri relativeUri = relativeToUri.MakeRelativeUri(absoluteUri);
             return ToFilePathString(relativeUri);
         }
@@ -141,6 +140,9 @@ namespace SonarLint.VisualStudio.Core.Helpers
 
             return expandedPath.StartsWith(expandedRootDirectory, StringComparison.OrdinalIgnoreCase);
         }
+
+        public static bool IsMatchingPath(string path1, string path2) =>
+            Path.GetFullPath(path1).Equals(Path.GetFullPath(path2), StringComparison.OrdinalIgnoreCase);
 
         private static string ToFilePathString(Uri uri)
         {

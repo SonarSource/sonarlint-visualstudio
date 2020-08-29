@@ -130,6 +130,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             eventCount.Should().Be(0);
         }
 
+        [TestMethod]
+        public void LocationsUpdated_NullArg_Throws()
+        {
+            var testSubject = CreateTestSubject();
+            Action act = () => testSubject.LocationsUpdated(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("affectedFilePaths");
+        }
+
+        [TestMethod]
+        public void LocationsUpdated_FactoriesWithMatchingFilesUpdatedAndErrorListRefreshed()
+        {
+            var testSubject = CreateTestSubject();
+
+            var factoryWithMatch1 = CreateFactoryAndSnapshotWithSpecifiedFiles("match.txt");
+            var factoryWithMatch2 = CreateFactoryAndSnapshotWithSpecifiedFiles("MATCH.TXT");
+            var factoryWithoutMatches = CreateFactoryAndSnapshotWithSpecifiedFiles("not a match.txt");
+
+            testSubject.AddFactory(factoryWithMatch1);
+            testSubject.AddFactory(factoryWithoutMatches);
+            testSubject.AddFactory(factoryWithMatch2);
+
+            var sinkMock1 = new Mock<ITableDataSink>();
+            var sinkMock2 = new Mock<ITableDataSink>();
+            testSubject.Subscribe(sinkMock1.Object);
+            testSubject.Subscribe(sinkMock2.Object);
+
+            testSubject.LocationsUpdated(new string[] { "match.txt" });
+
+            CheckSnapshotIncrementVersionCalled(factoryWithMatch1);
+            CheckSnapshotIncrementVersionCalled(factoryWithMatch2);
+            CheckSnapshotIncrementVersionNotCalled(factoryWithoutMatches);
+
+            // All sinks should be notified about updates to only factories with matches
+            CheckSinkNotifiedOfChangeToFactories(sinkMock1, factoryWithMatch1, factoryWithMatch2);
+            CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2);
+        }
+
         private static SnapshotFactory CreateFactoryWithLocationVizs(string filePathToMatch, params IAnalysisIssueLocationVisualization[] locVixsToReturn)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
@@ -160,6 +197,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var snapshotMock = ((Moq.IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
             snapshotMock.Verify(x => x.GetLocationsVizsForFile(It.IsAny<string>()), Times.Once);
+        }
+
+        private static void CheckSnapshotIncrementVersionCalled(SnapshotFactory factory)
+        {
+            var snapshotMock = ((Moq.IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
+            snapshotMock.Verify(x => x.IncrementVersion(), Times.Once);
+        }
+
+        private static void CheckSnapshotIncrementVersionNotCalled(SnapshotFactory factory)
+        {
+            var snapshotMock = ((Moq.IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
+            snapshotMock.Verify(x => x.IncrementVersion(), Times.Never);
+        }
+
+        private void CheckSinkNotifiedOfChangeToFactories(Mock<ITableDataSink> sinkMock, params SnapshotFactory[] factories)
+        {
+            foreach (var factory in factories)
+            {
+                sinkMock.Verify(x => x.FactorySnapshotChanged(factory), Times.Once);
+            }
+            sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Exactly(factories.Length));
         }
     }
 }

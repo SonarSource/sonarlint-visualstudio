@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
@@ -56,6 +57,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         /// <returns></returns>
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath);
+
+        /// <summary>
+        /// Notifies the snapshot that some part of the contained data has changed and that it should
+        /// increment its version so the Error List recognises it as having changed
+        /// </summary>
+        void IncrementVersion();
     }
 
     /// <summary>
@@ -66,16 +73,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    internal class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
+    internal sealed class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
         private readonly string projectName;
         private readonly string filePath;
-        private readonly int versionNumber;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
+
+        private int versionNumber;
 
         // Every snapshot has a unique version number. It doesn't matter what it is, as
         // long as it increments (if two snapshots have the same number or lower, the ErrorList
@@ -274,9 +282,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<string> FilesInSnapshot { get; }
 
+        public void IncrementVersion()
+        {
+            versionNumber = GetNextVersionNumber();
+        }
+
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
         {
-            if (!FilesInSnapshot.Any(x => IsMatchingPath(filePath, x)))
+            if (!FilesInSnapshot.Any(x => PathHelper.IsMatchingPath(filePath, x)))
             {
                 return Array.Empty<IAnalysisIssueLocationVisualization>();
             }
@@ -298,10 +311,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IssueMarker> markers) =>
                 markers.Select(x => x.IssueViz) // primary locations
                 .Union(markers.SelectMany(x => x.IssueViz.Flows.SelectMany(f => f.Locations))); // secondary locations
-
-
-        private static bool IsMatchingPath(string path1, string path2) =>
-            path1.Equals(path2, StringComparison.OrdinalIgnoreCase);
 
         #endregion IIssuesSnapshot implementation
     }
