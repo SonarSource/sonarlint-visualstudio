@@ -21,17 +21,23 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     [Export(typeof(ISonarErrorListDataSource))]
+    [Export(typeof(IIssueLocationStore))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class SonarErrorListDataSource :
         ITableDataSource,           // Allows us to provide entries to the Error List
-        ISonarErrorListDataSource   // Used by analyzers to push new analysis results to the data source
+        ISonarErrorListDataSource,  // Used by analyzers to push new analysis results to the data source
+        IIssueLocationStore         // Used by the taggers to get/update locations for specific files
     {
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<SnapshotFactory> factories = new HashSet<SnapshotFactory>();
@@ -65,18 +71,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // Note: Error List is the only expected subscriber
         public IDisposable Subscribe(ITableDataSink sink)
         {
-            lock(sinks)
+            lock (sinks)
             {
                 sinks.Add(sink);
 
-                foreach(var factory in factories)
+                foreach (var factory in factories)
                 {
                     sink.AddFactory(factory);
                 }
 
                 return new ExecuteOnDispose(() => Unsubscribe(sink));
             }
-
         }
 
         private void Unsubscribe(ITableDataSink sink)
@@ -98,20 +103,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 throw new ArgumentNullException(nameof(factory));
             }
 
-            // Mark all the sinks as dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
-            // from the snapshot factory).
             lock (sinks)
             {
                 // Guard against potential race condition - factory could have been removed
-                if (!(factories.Contains(factory)))
+                if (!factories.Contains(factory))
                 {
                     return;
                 }
 
-                foreach (var sink in sinks)
-                {
-                    SafeOperation(sink, "FactorySnapshotChanged", () => sink.FactorySnapshotChanged(factory));
-                }
+                InternalRefreshErrorList(factory);
+                NotifyLocationServiceListeners(factory);
+            }
+        }
+
+        private void InternalRefreshErrorList(SnapshotFactory factory)
+        {
+            // Mark all the sinks as dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
+            // from the snapshot factory).
+            foreach (var sink in sinks)
+            {
+                SafeOperation(sink, "FactorySnapshotChanged", () => sink.FactorySnapshotChanged(factory));
+            }
+        }
+
+        private void NotifyLocationServiceListeners(SnapshotFactory factory)
+        {
+            if (IssuesChanged != null)
+            {
+                IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(factory.CurrentSnapshot.FilesInSnapshot));
             }
         }
 
@@ -141,7 +160,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion ISonarErrorListDataSource implementation
 
-        private void SafeOperation(ITableDataSink sink, string operationName, Action op)
+        #region IIssueLocationStore implementation
+
+        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
+        {
+            if (filePath == null)
+            {
+                throw new ArgumentNullException(nameof(filePath));
+            }
+
+            // Guard against factories changing while iterating
+            var currentFactories = factories.ToArray();
+
+            // There should be only one factory that has primary locations for the specified file path,
+            // but any factory could have secondary locations
+            var locVizs = new List<IAnalysisIssueLocationVisualization>();
+            foreach (var factory in currentFactories)
+            {
+                locVizs.AddRange(factory.CurrentSnapshot.GetLocationsVizsForFile(filePath));
+            }
+            return locVizs;
+        }
+
+        public void LocationsUpdated(IEnumerable<string> affectedFilePaths)
+        {
+            // TODO
+        }
+
+        #endregion IIssueLocationStore implementation
+
+        private static void SafeOperation(ITableDataSink sink, string operationName, Action op)
         {
             try
             {
