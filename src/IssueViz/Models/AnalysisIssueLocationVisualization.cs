@@ -24,11 +24,13 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    internal interface IAnalysisIssueLocationVisualization
+    internal interface IAnalysisIssueLocationVisualization : INotifyPropertyChanged
     {
         int StepNumber { get; }
 
         bool IsNavigable { get; set; }
+
+        string FilePath { get; set; }
 
         IAnalysisIssueLocation Location { get; }
     }
@@ -36,6 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization, INotifyPropertyChanged
     {
         private bool isNavigable;
+        private string filePath;
 
         public AnalysisIssueLocationVisualization(int stepNumber, IAnalysisIssueLocation location)
         {
@@ -47,6 +50,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         public int StepNumber { get; }
 
         public IAnalysisIssueLocation Location { get; }
+
+        public string FilePath
+        {
+            get => filePath;
+            set
+            {
+                filePath = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public bool IsNavigable
         {

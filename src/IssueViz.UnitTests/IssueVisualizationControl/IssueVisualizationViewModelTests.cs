@@ -22,19 +22,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using FluentAssertions;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using DescriptionAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute;
-using ImageMoniker = Microsoft.VisualStudio.Imaging.Interop.ImageMoniker;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
 {
@@ -44,10 +40,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         private const AnalysisIssueSeverity DefaultNullIssueSeverity = AnalysisIssueSeverity.Info;
 
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
-        private Mock<IVsImageService2> imageServiceMock;
         private Mock<IRuleHelpLinkProvider> helpLinkProviderMock;
         private Mock<ILocationNavigator> locationNavigatorMock;
-        private TestLogger logger;
+        private Mock<IFileNameLocationListItemCreator> fileNameLocationListItemCreatorMock;
+
         private Mock<PropertyChangedEventHandler> propertyChangedEventHandler;
 
         private IssueVisualizationViewModel testSubject;
@@ -56,10 +52,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         public void TestInitialize()
         {
             selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
-            imageServiceMock = new Mock<IVsImageService2>();
             helpLinkProviderMock = new Mock<IRuleHelpLinkProvider>();
             locationNavigatorMock = new Mock<ILocationNavigator>();
-            logger = new TestLogger();
+            fileNameLocationListItemCreatorMock = new Mock<IFileNameLocationListItemCreator>();
             propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
 
             testSubject = CreateTestSubject();
@@ -70,10 +65,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         private IssueVisualizationViewModel CreateTestSubject()
         {
             var viewModel = new IssueVisualizationViewModel(selectionServiceMock.Object,
-                imageServiceMock.Object,
                 helpLinkProviderMock.Object,
                 locationNavigatorMock.Object,
-                logger);
+                fileNameLocationListItemCreatorMock.Object);
 
             viewModel.PropertyChanged += propertyChangedEventHandler.Object;
 
@@ -397,16 +391,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         #region Locations List
 
         [TestMethod]
+        public void SelectionService_OnFlowChanged_PreviousListItemsAreDisposed()
+        {
+            var previousFlow = CreateFlow(out var previousLocation);
+            var previousListItem = CreateMockFileNameListItem(previousLocation);
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, previousFlow);
+
+            Mock.Get(previousListItem).Verify(x=> x.Dispose(), Times.Never);
+
+            var newFlow = CreateFlow(out var newLocation);
+            var newListItem = CreateMockFileNameListItem(newLocation);
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, newFlow);
+
+            Mock.Get(previousListItem).Verify(x => x.Dispose(), Times.Once);
+            Mock.Get(newListItem).Verify(x => x.Dispose(), Times.Never);
+        }
+
+        [TestMethod]
         public void SelectionService_OnFlowChanged_FlowWithOneLocation_LocationsListUpdated()
         {
-            var location = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile);
+            var location = CreateMockLocation("c:\\test\\c1.c");
 
             var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
             selectedFlow.Setup(x => x.Locations).Returns(new[] { location });
 
             var expectedLocationsList = new List<ILocationListItem>
             {
-                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", KnownMonikers.CFile),
+                CreateMockFileNameListItem(location),
                 new LocationListItem(location)
             };
 
@@ -420,13 +433,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         {
             var locations = new List<IAnalysisIssueLocationVisualization>
             {
-                CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile),
-                CreateMockLocation("c:\\c1.c", KnownMonikers.CFile),
-                CreateMockLocation("c:\\test\\c2.cpp", KnownMonikers.CPPFile),
-                CreateMockLocation("c:\\test\\c2.cpp", KnownMonikers.CPPFile),
-                CreateMockLocation("c:\\c3.h", KnownMonikers.CPPHeaderFile),
-                CreateMockLocation("c:\\c3.h", KnownMonikers.CPPHeaderFile),
-                CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile)
+                CreateMockLocation("c:\\test\\c1.c"),
+                CreateMockLocation("c:\\c1.c"),
+                CreateMockLocation("c:\\test\\c2.cpp"),
+                CreateMockLocation("c:\\test\\c2.cpp"),
+                CreateMockLocation("c:\\c3.h"),
+                CreateMockLocation("c:\\c3.h"),
+                CreateMockLocation("c:\\test\\c1.c")
             };
 
             var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
@@ -434,47 +447,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             var expectedLocationsList = new List<ILocationListItem>
             {
-                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", KnownMonikers.CFile),
+                CreateMockFileNameListItem(locations[0]),
                 new LocationListItem(locations[0]),
-                new FileNameLocationListItem("c:\\c1.c", "c1.c", KnownMonikers.CFile),
+                CreateMockFileNameListItem(locations[1]),
                 new LocationListItem(locations[1]),
-                new FileNameLocationListItem("c:\\test\\c2.cpp", "c2.cpp", KnownMonikers.CPPFile),
+                CreateMockFileNameListItem(locations[2]),
                 new LocationListItem(locations[2]),
                 new LocationListItem(locations[3]),
-                new FileNameLocationListItem("c:\\c3.h", "c3.h", KnownMonikers.CPPHeaderFile),
+                CreateMockFileNameListItem(locations[4]),
                 new LocationListItem(locations[4]),
                 new LocationListItem(locations[5]),
-                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", KnownMonikers.CFile),
+                CreateMockFileNameListItem(locations[6]),
                 new LocationListItem(locations[6]),
             };
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object);
 
             VerifyLocationList(expectedLocationsList);
-        }
-
-        [TestMethod]
-        public void SelectionService_OnFlowChanged_FailsToRetrieveFileIcon_BlankIcon()
-        {
-            var location = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile, new NotImplementedException("this is a test"));
-
-            var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
-            selectedFlow.Setup(x => x.Locations).Returns(new[] { location });
-
-            var expectedIcon = KnownMonikers.Blank;
-
-            var expectedLocationsList = new List<ILocationListItem>
-            {
-                new FileNameLocationListItem("c:\\test\\c1.c", "c1.c", expectedIcon),
-                new LocationListItem(location)
-            };
-
-            RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object);
-
-            VerifyLocationList(expectedLocationsList);
-
-            logger.AssertPartialOutputStringExists("this is a test");
-            logger.OutputStrings.Count.Should().Be(1);
         }
 
         #endregion
@@ -524,8 +513,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         {
             var locations = new List<IAnalysisIssueLocationVisualization>
             {
-                CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile),
-                CreateMockLocation("c:\\c1.c", KnownMonikers.CFile),
+                CreateMockLocation("c:\\test\\c1.c"),
+                CreateMockLocation("c:\\c1.c"),
             };
 
             var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
@@ -589,7 +578,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         [DataRow(false)]
         public void SelectionService_OnLocationChanged_NewLocationIsNotNull_NavigabilityUpdated(bool navigationSucceeded)
         {
-            var locationViz = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile);
+            var locationViz = CreateMockLocation("c:\\test\\c1.c");
             locationViz.IsNavigable = !navigationSucceeded;
 
             locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Location)).Returns(navigationSucceeded);
@@ -642,7 +631,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
         private IAnalysisIssueFlowVisualization CreateFlow(out IAnalysisIssueLocationVisualization location)
         {
-            location = CreateMockLocation("c:\\test.cpp", KnownMonikers.Test);
+            location = CreateMockLocation("c:\\test.cpp");
 
             var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
             selectedFlow.Setup(x => x.Locations).Returns(new[] { location });
@@ -650,27 +639,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             return selectedFlow.Object;
         }
 
-        private IAnalysisIssueLocationVisualization CreateMockLocation(string filePath, object imageMoniker, Exception failsToRetrieveMoniker = null)
+        private IAnalysisIssueLocationVisualization CreateMockLocation(string filePath)
         {
-            if (failsToRetrieveMoniker != null)
-            {
-                imageServiceMock
-                    .Setup(x => x.GetImageMonikerForFile(filePath))
-                    .Throws(failsToRetrieveMoniker);
-            }
-            else
-            {
-                imageServiceMock.Setup(x => x.GetImageMonikerForFile(filePath)).Returns((ImageMoniker)imageMoniker);
-            }
-
-            var location = new Mock<IAnalysisIssueLocation>();
-            location.Setup(x => x.FilePath).Returns(filePath);
-
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
-            locationViz.Setup(x => x.Location).Returns(location.Object);
+            locationViz.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
+            locationViz.Setup(x => x.FilePath).Returns(filePath);
             locationViz.SetupProperty(x => x.IsNavigable);
 
             return locationViz.Object;
+        }
+
+        private IFileNameLocationListItem CreateMockFileNameListItem(IAnalysisIssueLocationVisualization location)
+        {
+            var listItem = Mock.Of<IFileNameLocationListItem>();
+
+            fileNameLocationListItemCreatorMock
+                .Setup(x => x.Create(location))
+                .Returns(listItem);
+
+            return listItem;
         }
 
         private void VerifyLocationList(IEnumerable<ILocationListItem> expectedLocationsList)
@@ -678,8 +665,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             testSubject.LocationListItems.Should().BeEquivalentTo(expectedLocationsList, assertionOptions =>
                 assertionOptions
                     .WithStrictOrdering()
-                    .RespectingRuntimeTypes() // check underlying types rather than ILocationListItem
-                    .ComparingByMembers<ImageMoniker>()); // check struct fields and properties
+                    .RespectingRuntimeTypes()); // check underlying types rather than ILocationListItem
         }
     }
 }
