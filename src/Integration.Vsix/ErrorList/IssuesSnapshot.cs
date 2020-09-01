@@ -274,7 +274,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return Array.Empty<IAnalysisIssueLocationVisualization>();
             }
 
-            var locVizs = EnumerateAllLocationVisualizations(IssueMarkers)
+            var locVizs = GetAllLocationVisualizations(IssueMarkers)
                 .Where(locViz => IsMatchingPath(filePath, locViz.Location.FilePath));
 
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
@@ -282,13 +282,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private static IEnumerable<string> CalculateFilesInSnapshot(IEnumerable<IssueMarker> markers)
         {
-            var allFilePaths = EnumerateAllLocationVisualizations(markers)
+            var allFilePaths = GetAllLocationVisualizations(markers)
                 .Select(locViz => locViz.Location.FilePath);
 
             return new HashSet<string>(allFilePaths, StringComparer.OrdinalIgnoreCase);
         }
 
-        private static IEnumerable<IAnalysisIssueLocationVisualization> EnumerateAllLocationVisualizations(IEnumerable<IssueMarker> markers) =>
+        private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IssueMarker> markers) =>
                 markers.Select(x => x.IssueViz) // primary locations
                 .Union(markers.SelectMany(x => x.IssueViz.Flows.SelectMany(f => f.Locations))); // secondary locations
 
