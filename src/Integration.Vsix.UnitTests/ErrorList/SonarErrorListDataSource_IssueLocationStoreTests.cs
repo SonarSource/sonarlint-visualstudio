@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             eventCount.Should().Be(1);
             suppliedArgs.Should().NotBeNull();
-            suppliedArgs.AffectedFiles.Should().BeEquivalentTo("file1.txt", "file2.txt");
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("file1.txt", "file2.txt");
         }
 
         [TestMethod]
@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void LocationsUpdated_NullArg_Throws()
         {
             var testSubject = CreateTestSubject();
-            Action act = () => testSubject.LocationsUpdated(null);
+            Action act = () => testSubject.Refresh(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("affectedFilePaths");
         }
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(sinkMock1.Object);
             testSubject.Subscribe(sinkMock2.Object);
 
-            testSubject.LocationsUpdated(new string[] { "match.txt" });
+            testSubject.Refresh(new string[] { "match.txt" });
 
             CheckSnapshotIncrementVersionCalled(factoryWithMatch1);
             CheckSnapshotIncrementVersionCalled(factoryWithMatch2);

@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return locVizs;
         }
 
-        public void LocationsUpdated(IEnumerable<string> affectedFilePaths)
+        public void Refresh(IEnumerable<string> affectedFilePaths)
         {
             if (affectedFilePaths == null)
             {

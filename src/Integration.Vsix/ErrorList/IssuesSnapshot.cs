@@ -295,7 +295,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var locVizs = GetAllLocationVisualizations(IssueMarkers)
-                .Where(locViz => IsMatchingPath(filePath, locViz.Location.FilePath));
+                .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.Location.FilePath));
 
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
         }
