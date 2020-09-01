@@ -208,6 +208,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actual.Should().BeEquivalentTo(flow1.Locations[0], flow1.Locations[1], flow2.Locations[1]);
         }
 
+        [TestMethod]
+        public void IncrementVersion_VersionIncrement_AnalysisIdAndMarkersUnchanged()
+        {
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidProjectName, ValidMarkerList);
+            var originalVersion = testSubject.VersionNumber;
+            var originalRunId = testSubject.AnalysisRunId;
+
+            testSubject.IncrementVersion();
+
+            testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
+            testSubject.AnalysisRunId.Should().Be(originalRunId);
+            testSubject.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
+        }
+
         private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
 
