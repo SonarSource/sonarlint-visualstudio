@@ -19,11 +19,14 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
@@ -42,6 +45,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             mockTableManagerProvider = new Mock<ITableManagerProvider>();
             mockTableManager = new Mock<ITableManager>();
             mockTableManagerProvider.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(mockTableManager.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            CompositionBatch batch = new CompositionBatch();
+
+            // Set up the exports required by the test subject
+            var tableManagerExport = MefTestHelpers.CreateExport<ITableManagerProvider>(mockTableManagerProvider.Object);
+            batch.AddExport(tableManagerExport);
+
+            // Set up importers for each of the interfaces exported by the test subject
+            var errorDataSourceImporter = new SingleObjectImporter<ISonarErrorListDataSource>();
+            var issueLocationStoreImporter = new SingleObjectImporter<IIssueLocationStore>();
+            batch.AddPart(errorDataSourceImporter);
+            batch.AddPart(issueLocationStoreImporter);
+
+            // Specify the source types that can be used to satify any import requests
+            TypeCatalog catalog = new TypeCatalog(typeof(SonarErrorListDataSource));
+
+            using (CompositionContainer container = new CompositionContainer(catalog))
+            {
+                container.Compose(batch);
+
+                // Both imports should be satisfied...
+                errorDataSourceImporter.Import.Should().NotBeNull();
+                issueLocationStoreImporter.Import.Should().NotBeNull();
+
+                // ... and the the export should be a singleton, so the both importers should
+                // get the same instance
+                errorDataSourceImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
+            }
         }
 
         [TestMethod]
