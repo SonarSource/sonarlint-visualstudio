@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
 
                 CheckAnalysisWasNotRequested();
-                CheckErrorListRefreshWasRequestedOnce();
+                CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
                 testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
                 testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId);
@@ -174,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
             testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId); // Same set of analysis issues
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             CheckAnalysisWasNotRequested();
         }
@@ -307,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             issuesPassedToFilter[0].RuleId.Should().Be("S111");
             issuesPassedToFilter[1].RuleId.Should().Be("S222");
 
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             // Check the post-filter issues
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
@@ -334,7 +334,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput.Count.Should().Be(1);
             capturedFilterInput[0].RuleId.Should().Be("single issue");
 
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             // Check there are no markers
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
@@ -352,7 +352,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Assert
             capturedFilterInput.Should().BeEmpty();
 
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
         }
@@ -367,9 +367,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput = captured;
         }
 
-        private void CheckErrorListRefreshWasRequestedOnce()
+        private void CheckErrorListRefreshWasRequestedOnce(SnapshotFactory factory)
         {
-            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Once);
+            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(factory), Times.Once);
         }
 
         private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine)
