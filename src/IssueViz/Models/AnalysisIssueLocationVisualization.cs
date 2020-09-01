@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IAnalysisIssueLocation Location { get; }
     }
 
-    public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization, INotifyPropertyChanged
+    public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
     {
         private bool isNavigable;
         private string filePath;
@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             StepNumber = stepNumber;
             Location = location;
             IsNavigable = true;
+            FilePath = location.FilePath;
         }
 
         public int StepNumber { get; }
