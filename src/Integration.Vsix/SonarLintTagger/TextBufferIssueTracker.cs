@@ -55,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
+        private readonly IIssueToIssueMarkerConverter converter;
 
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
@@ -63,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
+            ISonarErrorListDataSource sonarErrorDataSource, IIssueToIssueMarkerConverter converter, ILogger logger)
         {
             this.dte = dte;
 
@@ -73,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
+            this.converter = converter;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -142,7 +144,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // that the name change propagates to items in the error list.
                     // No need in this case to translate the tagger spans.
 
-                    var newSnapshot = Factory.CurrentSnapshot.CreateUpdatedSnapshot(FilePath);
+
+                    // HACK: duncanp - this code will be removed as part of "Handle file renames" : https://github.com/SonarSource/sonarlint-visualstudio/issues/1662
+                    var oldSnaphost = (IssuesSnapshot)Factory.CurrentSnapshot;
+
+                    var newSnapshot = oldSnaphost.CreateUpdatedSnapshot(FilePath);
                     SnapToNewSnapshot(newSnapshot);
                 }
                 else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
@@ -170,7 +176,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 currentSnapshot = e.After;
 
                 var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
-                var newSnapshot = Factory.CurrentSnapshot.CreateUpdatedSnapshot(newMarkers);
+
+                // HACK: duncanp. This code will be removed as part of "Remove error tagging code from TextBufferIssueTracker" : https://github.com/SonarSource/sonarlint-visualstudio/issues/1659
+                var oldSnapshot = (IssuesSnapshot)Factory.CurrentSnapshot;
+
+                var newSnapshot = oldSnapshot.CreateUpdatedSnapshot(newMarkers);
                 SnapToNewSnapshot(newSnapshot);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -189,14 +199,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return newMarkers;
         }
 
-        private void SnapToNewSnapshot(IssuesSnapshot newSnapshot)
+        private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
         {
             var oldIssues = Factory.CurrentSnapshot;
 
             // Tell our factory to snap to a new snapshot.
-            this.Factory.UpdateSnapshot(newSnapshot);
+            Factory.UpdateSnapshot(newSnapshot);
 
-            sonarErrorDataSource.RefreshErrorList();
+            sonarErrorDataSource.RefreshErrorList(Factory);
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes
@@ -207,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private SnapshotSpan? CalculateAffectedSpan(IssuesSnapshot oldIssues, IssuesSnapshot newIssues)
+        private SnapshotSpan? CalculateAffectedSpan(IIssuesSnapshot oldIssues, IIssuesSnapshot newIssues)
         {
             // Calculate the whole span affected by the all of the issues, old and new
             int start = int.MaxValue;
@@ -237,7 +247,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues);
+            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues, converter);
 
             // Call the consumer with no analysis issues to immediately clear issies for this file
             // from the error list

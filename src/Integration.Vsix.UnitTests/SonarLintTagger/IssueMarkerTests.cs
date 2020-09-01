@@ -25,20 +25,22 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
     [TestClass]
     public class IssueMarkerTests
     {
-        private readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan(Mock.Of<ITextSnapshot>(), 0, 0);
+        private static readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan(Mock.Of<ITextSnapshot>(), 0, 0);
         private const string ValidFilePath = "c:\\data\\file.txt";
-        private readonly IAnalysisIssue ValidAnalysisIssue = new DummyAnalysisIssue { StartLine = 123, FilePath = ValidFilePath };
+        private static readonly IAnalysisIssue ValidAnalysisIssue = new DummyAnalysisIssue { StartLine = 123, FilePath = ValidFilePath };
+        private static readonly IAnalysisIssueVisualization ValidIssueViz = CreateIssueViz(ValidAnalysisIssue);
 
         [TestMethod]
         public void Ctor_PropertiesSetCorrectly()
         {
-            var testSubject = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan);
+            var testSubject = new IssueMarker(ValidIssueViz, ValidSnapshotSpan);
 
             testSubject.Issue.Should().BeSameAs(ValidAnalysisIssue);
             testSubject.Span.Should().Be(ValidSnapshotSpan);
@@ -47,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void Clone_PropertiesCopiedCorrectly()
         {
-            var original = new IssueMarker(ValidAnalysisIssue, ValidSnapshotSpan);
+            var original = new IssueMarker(ValidIssueViz, ValidSnapshotSpan);
             var testSubject = original.Clone();
 
             testSubject.Should().NotBeSameAs(original);
@@ -67,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 LineHash = "hash"
             };
 
-            var testSubject = new IssueMarker(analysisIssue, ValidSnapshotSpan);
+            var testSubject = new IssueMarker(CreateIssueViz(analysisIssue), ValidSnapshotSpan);
 
             testSubject.Should().BeAssignableTo<IFilterableIssue>();
 
@@ -79,5 +81,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             filterable.ProjectGuid.Should().BeNull();
             filterable.LineHash.Should().Be("hash");
         }
+
+        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.SetupProperty(x => x.Span);
+            return issueVizMock.Object;
+        }
+
     }
 }

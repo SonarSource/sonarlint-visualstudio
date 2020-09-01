@@ -30,14 +30,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal class SnapshotFactory : TableEntriesSnapshotFactoryBase
     {
-        public IssuesSnapshot CurrentSnapshot { get; private set; }
+        public IIssuesSnapshot CurrentSnapshot { get; private set; }
 
-        public SnapshotFactory(IssuesSnapshot snapshot)
+        public SnapshotFactory(IIssuesSnapshot snapshot)
         {
             this.CurrentSnapshot = snapshot;
         }
 
-        public void UpdateSnapshot(IssuesSnapshot snapshot)
+        public void UpdateSnapshot(IIssuesSnapshot snapshot)
         {
             this.CurrentSnapshot = snapshot;
         }

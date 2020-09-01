@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    internal interface IAnalysisIssueVisualizationConverter
+    public interface IAnalysisIssueVisualizationConverter
     {
         IAnalysisIssueVisualization Convert(IAnalysisIssue issue);
     }

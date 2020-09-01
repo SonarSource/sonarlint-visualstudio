@@ -18,31 +18,31 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using SonarLint.VisualStudio.Core.Analysis;
+using System;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Models
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTagging
 {
-    public interface IAnalysisIssueFlowVisualization
+    [TestClass]
+    public class IssueLocationTagTests
     {
-        int FlowNumber { get; }
-
-        IReadOnlyList<IAnalysisIssueLocationVisualization> Locations { get; }
-
-        IAnalysisIssueFlow Flow { get; }
-    }
-
-    internal class AnalysisIssueFlowVisualization : IAnalysisIssueFlowVisualization
-    {
-        public AnalysisIssueFlowVisualization(int flowNumber, IReadOnlyList<IAnalysisIssueLocationVisualization> locations, IAnalysisIssueFlow flow)
+        [TestMethod]
+        public void Ctor_InvalidArgument_Throws()
         {
-            FlowNumber = flowNumber;
-            Locations = locations;
-            Flow = flow;
+            Action act = () => new IssueLocationTag(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("location");
         }
 
-        public int FlowNumber { get; }
-        public IReadOnlyList<IAnalysisIssueLocationVisualization> Locations { get; }
-        public IAnalysisIssueFlow Flow { get; }
+        [TestMethod]
+        public void Ctor_ValidArg_SetsProperty()
+        {
+            var location = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var testSubject = new IssueLocationTag(location);
+            testSubject.Location.Should().BeSameAs(location);
+        }
     }
 }

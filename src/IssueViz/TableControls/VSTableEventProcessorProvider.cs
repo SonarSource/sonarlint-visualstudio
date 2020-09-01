@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.TableControls
 {
@@ -76,17 +76,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
             {
                 try
                 {
-                    IAnalysisIssue selectedIssue = null;
+                    IAnalysisIssueVisualization selected = null;
 
                     if (wpfTableControl.SelectedEntries.Count() == 1 &&
                         wpfTableControl.SelectedEntry.TryGetSnapshot(out var snapshot, out var index) &&
-                        snapshot.TryGetValue(index, SonarLintTableControlConstants.IssueColumnName, out var issueObject) &&
-                        issueObject is IAnalysisIssue issueFromTable)
+                        snapshot.TryGetValue(index, SonarLintTableControlConstants.IssueVizColumnName, out var issueObject) &&
+                        issueObject is IAnalysisIssueVisualization issueFromTable)
                     {
-                        selectedIssue = issueFromTable;
+                        selected = issueFromTable;
                     }
 
-                    selectionMonitor.SelectionChanged(selectedIssue);
+                    selectionMonitor.SelectionChanged(selected);
                 }
                 catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {

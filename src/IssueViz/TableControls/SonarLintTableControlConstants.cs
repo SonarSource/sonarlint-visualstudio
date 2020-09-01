@@ -27,6 +27,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     {
         public const string ErrorListDataSourceIdentifier = "SonarLint";
 
-        public const string IssueColumnName = "SonarLintIssue";
+        public const string IssueVizColumnName = "SonarLintIssueViz";
     }
 }

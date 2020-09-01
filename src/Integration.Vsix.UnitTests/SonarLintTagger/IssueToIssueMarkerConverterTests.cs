@@ -26,6 +26,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             var mockSnapshot = new Mock<ITextSnapshot>();
-            var testSubject = new IssueToIssueMarkerConverter();
+            var testSubject = new IssueToIssueMarkerConverter(Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<IIssueSpanCalculator>());
             Action act = () => testSubject.Convert(null, mockSnapshot.Object);
 
             // Act and assert
@@ -48,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Convert_NullTextSnapshot_Throws()
         {
             // Arrange
-            var testSubject = new IssueToIssueMarkerConverter();
+            var testSubject = new IssueToIssueMarkerConverter(Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<IIssueSpanCalculator>());
             Action act = () => testSubject.Convert(Mock.Of<IAnalysisIssue>(), null);
 
             // Act and assert
@@ -63,8 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var spanCalculator = new Mock<IIssueSpanCalculator>();
             spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns((SnapshotSpan?) null);
-
-            var testSubject = new IssueToIssueMarkerConverter(spanCalculator.Object);
+            
+            var testSubject = new IssueToIssueMarkerConverter(Mock.Of<IAnalysisIssueVisualizationConverter>(), spanCalculator.Object);
             var issueMarker = testSubject.Convert(mockIssue, mockSnapshot);
 
             issueMarker.Should().BeNull();
@@ -79,13 +80,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var spanCalculator = new Mock<IIssueSpanCalculator>();
             spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns(mockSpan);
+            var passThroughConverter = CreatePassthroughConverter();
 
-            var testSubject = new IssueToIssueMarkerConverter(spanCalculator.Object);
+            var testSubject = new IssueToIssueMarkerConverter(passThroughConverter, spanCalculator.Object);
             var issueMarker = testSubject.Convert(mockIssue, mockSnapshot);
 
             issueMarker.Should().NotBeNull();
             issueMarker.Issue.Should().Be(mockIssue);
             issueMarker.Span.Should().Be(mockSpan);
+            issueMarker.IssueViz.Should().NotBeNull();
+            issueMarker.IssueViz.Issue.Should().Be(mockIssue);
+        }
+
+        private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
+        {
+            var converterMock = new Mock<IAnalysisIssueVisualizationConverter>();
+
+            converterMock.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>()))
+                .Returns<IAnalysisIssue>(issue => CreateIssueViz(issue));
+
+            return converterMock.Object;
+
+            IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue)
+            {
+                var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+                issueVizMock.Setup(x => x.Issue).Returns(issue);
+                issueVizMock.SetupProperty(x => x.Span);
+                return issueVizMock.Object;
+            }
+
         }
     }
 }

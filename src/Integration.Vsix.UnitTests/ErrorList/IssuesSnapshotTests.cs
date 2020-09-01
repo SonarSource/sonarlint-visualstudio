@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
-using SonarLint.VisualStudio.IssueVisualization.TableControls;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -39,139 +39,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const string ValidFilePath = "c:\\file.txt";
         private readonly IEnumerable<IssueMarker> ValidMarkerList = new IssueMarker[] { CreateMarker() };
 
-        private IssuesSnapshot snapshot;
-        private DummyAnalysisIssue issue;
-
-        [TestInitialize]
-        public void SetUp()
-        {
-            var path = "foo.js";
-            issue = new DummyAnalysisIssue()
-            {
-                FilePath = path,
-                Message = "This is dangerous",
-                RuleKey = "javascript:123",
-                Severity = AnalysisIssueSeverity.Blocker,
-            };
-
-            var mockTextSnap = new Mock<ITextSnapshot>();
-            mockTextSnap.Setup(t => t.Length).Returns(50);
-
-            var mockTextSnapLine = new Mock<ITextSnapshotLine>();
-            mockTextSnapLine.Setup(l => l.LineNumber).Returns(12);
-            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, 10));
-
-            mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
-            var textSnap = mockTextSnap.Object;
-
-            var marker = new IssueMarker(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
-
-            snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IssueMarker>() { marker });
-        }
-
-        [TestMethod]
-        public void GetValue_Line()
-        {
-            GetValue(StandardTableKeyNames.Line).Should().Be(12);
-        }
-
-        [TestMethod]
-        public void GetValue_Column()
-        {
-            GetValue(StandardTableKeyNames.Column).Should().Be(25 - 10);
-        }
-
-        [TestMethod]
-        public void GetValue_Path()
-        {
-            GetValue(StandardTableKeyNames.DocumentName).Should().Be(issue.FilePath);
-        }
-
-        [TestMethod]
-        public void GetValue_Message()
-        {
-            GetValue(StandardTableKeyNames.Text).Should().Be(issue.Message);
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCode()
-        {
-            GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issue.RuleKey);
-        }
-
-        [TestMethod]
-        public void GetValue_Severity()
-        {
-            GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
-        }
-
-        [TestMethod]
-        public void GetValue_BuildTool()
-        {
-            GetValue(StandardTableKeyNames.BuildTool).Should().Be("SonarLint");
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorRank_Other()
-        {
-            GetValue(StandardTableKeyNames.ErrorRank).Should().Be(ErrorRank.Other);
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCategory_Is_CodeSmell_By_Default()
-        {
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCategory_Is_Issue_Type()
-        {
-            issue.Type = AnalysisIssueType.Bug;
-            issue.Severity = AnalysisIssueSeverity.Blocker;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Bug");
-            issue.Type = AnalysisIssueType.CodeSmell;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
-            issue.Type = AnalysisIssueType.Vulnerability;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Vulnerability");
-        }
-
-        [TestMethod]
-        public void GetValue_ErrorCodeToolTip()
-        {
-            issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.ErrorCodeToolTip).Should().Be("Open description of rule javascript:123");
-        }
-
-        [TestMethod]
-        public void GetValue_HelpLink()
-        {
-            issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
-        }
-
-        [TestMethod]
-        public void GetValue_ProjectName()
-        {
-            GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
-        }
-
-        [TestMethod]
-        public void GetValue_Issue()
-        {
-            GetValue(SonarLintTableControlConstants.IssueColumnName).Should().BeSameAs(issue);
-        }
-
         [TestMethod]
         public void Construction_CreateNew_SetsProperties()
         {
-            var snapshot = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
 
-            snapshot.AnalysisRunId.Should().NotBe(Guid.Empty);
-            snapshot.VersionNumber.Should().BeGreaterOrEqualTo(0);
-            GetProjectName(snapshot).Should().BeEquivalentTo(ValidProjectName);
-            GetFilePath(snapshot).Should().BeEquivalentTo(ValidFilePath);
-            snapshot.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
+            testSubject.AnalysisRunId.Should().NotBe(Guid.Empty);
+            testSubject.VersionNumber.Should().BeGreaterOrEqualTo(0);
+            GetProjectName(testSubject).Should().BeEquivalentTo(ValidProjectName);
+            GetFilePath(testSubject).Should().BeEquivalentTo(ValidFilePath);
+            testSubject.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
         }
+
 
         [TestMethod]
         public void Construction_CreateNew_SetsUniqueId()
@@ -236,6 +115,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Construction_CreateNew_FilesInSnapshotIsSetCorrectly()
+        {
+            var marker1 = CreateMarkerWithSpecificsPaths("path1",     // primary location
+                CreateFlowViz("path2"),                     // flow with one secondary location
+                CreateFlowViz("path3", "path4", "PATH1"));  // flow with multiple secondary locations, including one duplicate in a different case
+
+            var marker2 = CreateMarkerWithSpecificsPaths("path5");    // new primary location, no flows
+
+            var marker3 = CreateMarkerWithSpecificsPaths("path2");    // duplicate primary location, no flows
+
+            var markers = new IssueMarker[] { marker1, marker2, marker3 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            testSubject.FilesInSnapshot.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path5");
+        }
+
+        [TestMethod]
         public void IndexOf_SameSnapshotId_ReturnExpectedIndex()
         {
             var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
@@ -266,20 +163,72 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Should().Be(IndexOf_NotFoundResult);
         }
 
-        private object GetValue(string columnName)
+        [TestMethod]
+        public void GetLocationsVizForFile_NoMatches_ReturnsEmpty()
         {
-            object content;
-            snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
-            return content;
+            var marker1 = CreateMarkerWithSpecificsPaths("path1.txt");
+            var markers = new IssueMarker[] { marker1 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            var actual = testSubject.GetLocationsVizsForFile("xxx");
+
+            actual.Should().BeEmpty();
         }
 
-        private static string GetProjectName(IssuesSnapshot snapshot) =>
+        [TestMethod]
+        public void GetLocationsVizForFile_MatchesInPrimaryLocations_ReturnsExpected()
+        {
+            var marker1 = CreateMarkerWithSpecificsPaths("path1.txt");
+            var marker2 = CreateMarkerWithSpecificsPaths("XXX.txt");
+            var marker3 = CreateMarkerWithSpecificsPaths("path1.txt");
+            var markers = new IssueMarker[] { marker1, marker2, marker3 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            var actual = testSubject.GetLocationsVizsForFile("path1.txt");
+
+            actual.Should().BeEquivalentTo(marker1.IssueViz, marker3.IssueViz);
+        }
+
+        [TestMethod]
+        public void GetLocationsVizForFile_MatchesInSecondaryLocations_ReturnsExpected()
+        {
+            var flow1 = CreateFlowViz("match.txt", "MATCH.TXT");
+            var flow2 = CreateFlowViz("miss.txt", "Match.txt");
+            var flow3 = CreateFlowViz("another miss.txt");
+
+            var marker1 = CreateMarkerWithSpecificsPaths("path1.txt", flow1, flow2, flow3);
+            var markers = new IssueMarker[] { marker1 };
+
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+
+            var actual = testSubject.GetLocationsVizsForFile("match.txt");
+
+            actual.Should().BeEquivalentTo(flow1.Locations[0], flow1.Locations[1], flow2.Locations[1]);
+        }
+
+        [TestMethod]
+        public void IncrementVersion_VersionIncrement_AnalysisIdAndMarkersUnchanged()
+        {
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidProjectName, ValidMarkerList);
+            var originalVersion = testSubject.VersionNumber;
+            var originalRunId = testSubject.AnalysisRunId;
+
+            testSubject.IncrementVersion();
+
+            testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
+            testSubject.AnalysisRunId.Should().Be(originalRunId);
+            testSubject.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
+        }
+
+        private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
 
-        private static string GetFilePath(IssuesSnapshot snapshot) =>
+        private static string GetFilePath(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.DocumentName);
 
-        private static T GetValue<T>(IssuesSnapshot snapshot, string columnName)
+        private static T GetValue<T>(ITableEntriesSnapshot snapshot, string columnName)
         {
             object content;
             snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
@@ -289,6 +238,41 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private static IssueMarker CreateMarker(string ruleKey = "rule key") =>
-            new IssueMarker(new DummyAnalysisIssue { RuleKey = ruleKey }, new SnapshotSpan());
+            new IssueMarker(CreateIssueViz(new DummyAnalysisIssue { RuleKey = ruleKey }), new SnapshotSpan());
+
+        private static IssueMarker CreateMarkerWithSpecificsPaths(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
+            new IssueMarker(CreateIssueViz(new DummyAnalysisIssue { FilePath = primaryFilePath }, flowVizs), new SnapshotSpan());
+
+        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, params IAnalysisIssueFlowVisualization[] flowVizs)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Flows).Returns(flowVizs);
+
+            issueVizMock.SetupProperty(x => x.Span);
+            return issueVizMock.Object;
+        }
+
+        private static IAnalysisIssueFlowVisualization CreateFlowViz(params string[] locationFilePaths)
+        {
+            var locVizs = new List<IAnalysisIssueLocationVisualization>();
+
+            foreach (var path in locationFilePaths)
+            {
+                locVizs.Add(CreateLocViz(path));
+            }
+
+            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
+            flowViz.Setup(x => x.Locations).Returns(locVizs);
+            return flowViz.Object;
+        }
+
+        private static IAnalysisIssueLocationVisualization CreateLocViz(string filePath)
+        {
+            var locViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locViz.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { FilePath = filePath });
+            return locViz.Object;
+        }
     }
 }

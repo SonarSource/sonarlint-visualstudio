@@ -18,13 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using Microsoft.VisualStudio.Text;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    internal interface IAnalysisIssueLocationVisualization : INotifyPropertyChanged
+    public interface IAnalysisIssueLocationVisualization : INotifyPropertyChanged
     {
         int StepNumber { get; }
 
@@ -33,6 +34,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         string FilePath { get; set; }
 
         IAnalysisIssueLocation Location { get; }
+
+        /// <summary>
+        /// Editor span associated with the issue location
+        /// </summary>
+        /// <remarks>
+        /// The span gives the current region in an open editor document for the issue. This can be different
+        /// from the Location of the issue, which is fixed at time of analysis.
+        /// It will be null if the document has not been opened in the editor.
+        /// It will be an empty span if the issue location does not exist in the document due to editing.
+        /// </remarks>
+        SnapshotSpan? Span { get; set; }
     }
 
     public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
@@ -78,5 +90,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        public SnapshotSpan? Span { get; set; }
     }
 }

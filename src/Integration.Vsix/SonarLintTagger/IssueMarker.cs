@@ -21,6 +21,9 @@
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+
+// TODO: duncanp: remove IssueMarker and change IssueSnapshot to use IAnalysisIssueVisualization directly
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -33,8 +36,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal class IssueMarker : IFilterableIssue
     {
-        public IAnalysisIssue Issue { get; }
-        public SnapshotSpan Span { get; }
+        public IAnalysisIssueVisualization IssueViz { get; }
+
+        public IAnalysisIssue Issue => IssueViz.Issue;
+
+        public SnapshotSpan Span => IssueViz.Span.Value;
 
         string IFilterableIssue.RuleId => Issue.RuleKey;
 
@@ -46,15 +52,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         int? IFilterableIssue.StartLine => Issue.StartLine;
 
-        public IssueMarker(IAnalysisIssue issue, SnapshotSpan span)
+        public IssueMarker(IAnalysisIssueVisualization issueViz, SnapshotSpan span)
         {
-            Issue = issue;
-            Span = span;
+            IssueViz = issueViz;
+            IssueViz.Span = span;
         }
 
         public IssueMarker Clone()
         {
-            return new IssueMarker(Issue, Span);
+            return new IssueMarker(IssueViz, Span);
         }
 
         public IssueMarker CloneAndTranslateTo(ITextSnapshot newSnapshot)
@@ -66,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 return null;
             }
-            return new IssueMarker(Issue, newSpan);
+            return new IssueMarker(IssueViz, newSpan);
         }
     }
 }

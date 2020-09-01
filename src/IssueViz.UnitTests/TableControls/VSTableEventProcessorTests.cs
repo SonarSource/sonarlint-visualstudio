@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             SetSelectedEntryCount(1);
             SetupTryGetSnapshot(true);
 
-            // Set up preceeding checks to succeed but not return IAnalysisIssue
+            // Set up preceeding checks to succeed but not return IAnalysisIssueVisualization
             SetupTryGetValue(objectToReturn: new object(), true);
 
             SimulatePostProcessEvent();
@@ -143,12 +143,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             SetSelectedEntryCount(1);
             SetupTryGetSnapshot(true);
 
-            var expectedIssue = Mock.Of<IAnalysisIssue>();
-            SetupTryGetValue(expectedIssue, true);
+            var expected = Mock.Of<IAnalysisIssueVisualization>();
+            SetupTryGetValue(expected, true);
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(expectedIssue);
+            CheckMonitorCalledOnce(expected);
 
             SanityCheckSnapshotAccessedOnce();
         }
@@ -243,7 +243,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         }
 
         private void SetupTryGetValue(object objectToReturn, bool resultToReturn) =>
-            mockSnapshot.Setup(x => x.TryGetValue(ValidRowIndex, SonarLintTableControlConstants.IssueColumnName, out objectToReturn))
+            mockSnapshot.Setup(x => x.TryGetValue(ValidRowIndex, SonarLintTableControlConstants.IssueVizColumnName, out objectToReturn))
                 .Returns(resultToReturn);
 
         private void SimulatePostProcessEvent()
@@ -251,15 +251,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             ((ITableControlEventProcessor)testSubject).PostprocessSelectionChanged(new TableSelectionChangedEventArgs(null));
         }
 
-        private void CheckMonitorCalledOnce(IAnalysisIssue expectedIssue)
+        private void CheckMonitorCalledOnce(IAnalysisIssueVisualization expected)
         {
-            mockMonitor.Verify(x => x.SelectionChanged(expectedIssue), Times.Once);
+            mockMonitor.Verify(x => x.SelectionChanged(expected), Times.Once);
             mockMonitor.VerifyNoOtherCalls();
         }
 
         private void CheckMonitorIsNotCalled()
         {
-            mockMonitor.Verify(x => x.SelectionChanged(It.IsAny<IAnalysisIssue>()), Times.Never);
+            mockMonitor.Verify(x => x.SelectionChanged(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
             mockMonitor.VerifyNoOtherCalls();
         }
 

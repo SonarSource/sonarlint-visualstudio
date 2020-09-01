@@ -26,11 +26,45 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    internal interface IIssuesSnapshot : ITableEntriesSnapshot
+    {
+        /// <summary>
+        /// Logical identifier for a set of issues produced by an analysis run.
+        /// Every snapshot that has the same analysis id describes the same set of
+        /// issues in the same order. The implementation of "IndexOf" depends on this.
+        /// </summary>
+        Guid AnalysisRunId { get; }
+
+        /// <summary>
+        /// The list of issues returned by the analyzer run
+        /// </summary>
+        IEnumerable<IssueMarker> IssueMarkers { get; }
+
+        /// <summary>
+        /// Returns the set of files for which this snapshot contains location information (primary and secondary)
+        /// </summary>
+        IEnumerable<string> FilesInSnapshot { get; }
+
+        /// <summary>
+        /// Returns all of the location visualizations (primary and secondary) that are in the specified file
+        /// </summary>
+        /// <returns></returns>
+        IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath);
+
+        /// <summary>
+        /// Notifies the snapshot that some part of the contained data has changed and that it should
+        /// increment its version so the Error List recognises it as having changed
+        /// </summary>
+        void IncrementVersion();
+    }
+
     /// <summary>
     /// ErrorList plumbing. Contains the issues data for a single analyzed file,
     /// and overrides methods called by the Error List to populate rows with
@@ -39,25 +73,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    internal class IssuesSnapshot : WpfTableEntriesSnapshotBase
+    internal sealed class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
         private readonly string projectName;
         private readonly string filePath;
-        private readonly int versionNumber;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         private readonly IList<IssueMarker> issueMarkers;
         private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
 
-        /// <summary>
-        /// Logical identifier for a set of issues produced by an analysis run.
-        /// Every snapshot that has the same analysis id describes the same set of
-        /// issues in the same order. The implementation of "IndexOf" depends on this.
-        /// </summary>
-        public Guid AnalysisRunId { get; }
-
-        public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
+        private int versionNumber;
 
         // Every snapshot has a unique version number. It doesn't matter what it is, as
         // long as it increments (if two snapshots have the same number or lower, the ErrorList
@@ -110,9 +136,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
+
+            // Optimistation:
+            // Most rules only have a single location, and most multi-location rules only produce locations
+            // for a single file. So most snapshots will only have issues relating to a single file.
+            // However, we still need to notify every tagger when any snapshot has updated, in case there
+            // any of the issues have secondary locations that the tagger needs to handle.
+            // This optimisation gives the tagger a quick way to check that it does not need to do any work
+            // i.e. if the file handled by the tagger is not in the list, do nothing.
+            this.FilesInSnapshot = CalculateFilesInSnapshot(issueMarkers);
         }
 
         #endregion
+
+        #region Overrides
 
         public override int Count => this.issueMarkers.Count;
 
@@ -184,8 +221,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 // Not a visible field - returns the issue object
-                case SonarLintTableControlConstants.IssueColumnName:
-                    content = this.issueMarkers[index].Issue;
+                case SonarLintTableControlConstants.IssueVizColumnName:
+                    content = this.issueMarkers[index].IssueViz;
                     return true;
                 default:
                     content = null;
@@ -234,5 +271,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
             return base.IndexOf(currentIndex, newSnapshot);
         }
+
+        #endregion
+
+        #region IIssuesSnapshot implementation
+
+        public Guid AnalysisRunId { get; }
+
+        public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
+
+        public IEnumerable<string> FilesInSnapshot { get; }
+
+        public void IncrementVersion()
+        {
+            versionNumber = GetNextVersionNumber();
+        }
+
+        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
+        {
+            if (!FilesInSnapshot.Any(x => PathHelper.IsMatchingPath(filePath, x)))
+            {
+                return Array.Empty<IAnalysisIssueLocationVisualization>();
+            }
+
+            var locVizs = GetAllLocationVisualizations(IssueMarkers)
+                .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.Location.FilePath));
+
+            return new List<IAnalysisIssueLocationVisualization>(locVizs);
+        }
+
+        private static IEnumerable<string> CalculateFilesInSnapshot(IEnumerable<IssueMarker> markers)
+        {
+            var allFilePaths = GetAllLocationVisualizations(markers)
+                .Select(locViz => locViz.Location.FilePath);
+
+            return new HashSet<string>(allFilePaths, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IssueMarker> markers) =>
+                markers.Select(x => x.IssueViz) // primary locations
+                .Union(markers.SelectMany(x => x.IssueViz.Flows.SelectMany(f => f.Locations))); // secondary locations
+
+        #endregion IIssuesSnapshot implementation
     }
 }

@@ -19,11 +19,14 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
@@ -34,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         private Mock<ITableManagerProvider> mockTableManagerProvider;
         private Mock<ITableManager> mockTableManager;
 
-        private readonly ITableEntriesSnapshotFactory ValidFactory = Mock.Of<ITableEntriesSnapshotFactory>();
+        private readonly SnapshotFactory ValidFactory = CreateFactory();
 
         [TestInitialize]
         public void TestInitialize()
@@ -42,6 +45,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             mockTableManagerProvider = new Mock<ITableManagerProvider>();
             mockTableManager = new Mock<ITableManager>();
             mockTableManagerProvider.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(mockTableManager.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckExports()
+        {
+            CompositionBatch batch = new CompositionBatch();
+
+            // Set up the exports required by the test subject
+            var tableManagerExport = MefTestHelpers.CreateExport<ITableManagerProvider>(mockTableManagerProvider.Object);
+            batch.AddExport(tableManagerExport);
+
+            // Set up importers for each of the interfaces exported by the test subject
+            var errorDataSourceImporter = new SingleObjectImporter<ISonarErrorListDataSource>();
+            var issueLocationStoreImporter = new SingleObjectImporter<IIssueLocationStore>();
+            batch.AddPart(errorDataSourceImporter);
+            batch.AddPart(issueLocationStoreImporter);
+
+            // Specify the source types that can be used to satify any import requests
+            TypeCatalog catalog = new TypeCatalog(typeof(SonarErrorListDataSource));
+
+            using (CompositionContainer container = new CompositionContainer(catalog))
+            {
+                container.Compose(batch);
+
+                // Both imports should be satisfied...
+                errorDataSourceImporter.Import.Should().NotBeNull();
+                issueLocationStoreImporter.Import.Should().NotBeNull();
+
+                // ... and the the export should be a singleton, so the both importers should
+                // get the same instance
+                errorDataSourceImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
+            }
         }
 
         [TestMethod]
@@ -80,12 +115,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Refresh_NoSubscribedSinksNoError()
+        public void Refresh_NullArg_Throws()
         {
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
-            Action act = () => testSubject.RefreshErrorList();
+            Action act = () => testSubject.RefreshErrorList(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("factory");
+        }
+
+        [TestMethod]
+        public void Refresh_NoSubscribedSinks_NoError()
+        {
+            var testSubject = CreateTestSubjectWithFactory(ValidFactory);
+
+            Action act = () => testSubject.RefreshErrorList(ValidFactory);
             act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void Refresh_FactoryIsNotRegistered_SinksAreNotNotified()
+        {
+            var mockSink = new Mock<ITableDataSink>();
+            var testSubject = CreateTestSubjectWithFactory(ValidFactory);
+            testSubject.Subscribe(mockSink.Object);
+
+            var unknownFactory = CreateFactory();
+
+            testSubject.RefreshErrorList(unknownFactory);
+
+            CheckSinkWasNotNotified(mockSink);
         }
 
         [TestMethod]
@@ -93,26 +151,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var mockSink1 = new Mock<ITableDataSink>();
             var mockSink2 = new Mock<ITableDataSink>();
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var testSubject = CreateTestSubjectWithFactory(ValidFactory);
 
             var sink1Token = testSubject.Subscribe(mockSink1.Object);
             testSubject.Subscribe(mockSink2.Object);
 
             // 1. Refresh -> both sinks notified
-            testSubject.RefreshErrorList();
+            testSubject.RefreshErrorList(ValidFactory);
 
-            CheckSinkWasNotified(mockSink1);
-            CheckSinkWasNotified(mockSink2);
+            CheckSinkWasNotified(mockSink1, ValidFactory);
+            CheckSinkWasNotified(mockSink2, ValidFactory);
 
             // 2. Unregister one sink then refresh
             mockSink1.Reset();
             mockSink2.Reset();
             sink1Token.Dispose();
 
-            testSubject.RefreshErrorList();
+            testSubject.RefreshErrorList(ValidFactory);
 
             CheckSinkWasNotNotified(mockSink1);
-            CheckSinkWasNotified(mockSink2);
+            CheckSinkWasNotified(mockSink2, ValidFactory);
         }
 
         [TestMethod]
@@ -120,8 +178,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
 
-            var factory1 = Mock.Of<ITableEntriesSnapshotFactory>();
-            var factory2 = Mock.Of<ITableEntriesSnapshotFactory>();
+            var factory1 = CreateFactory();
+            var factory2 = CreateFactory();
             testSubject.AddFactory(factory1);
             testSubject.AddFactory(factory2);
 
@@ -143,32 +201,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(mockSink1.Object);
             testSubject.Subscribe(mockSink2.Object);
 
-            var mockFactory = new Mock<ITableEntriesSnapshotFactory>();
+            var factory = CreateFactory();
 
-            testSubject.AddFactory(mockFactory.Object);
+            testSubject.AddFactory(factory);
 
-            CheckFactoryWasAdded(mockSink1, mockFactory.Object);
-            CheckFactoryWasAdded(mockSink2, mockFactory.Object);
+            CheckFactoryWasAdded(mockSink1, factory);
+            CheckFactoryWasAdded(mockSink2, factory);
         }
 
         [TestMethod]
         public void RemoveSink_IsNoLongerNotified()
         {
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var testSubject = CreateTestSubjectWithFactory(ValidFactory);
 
             var mockSink = new Mock<ITableDataSink>();
             var disposeToken = testSubject.Subscribe(mockSink.Object);
 
             // 1. Manager is registered -> should be notified
-            testSubject.RefreshErrorList();
-            testSubject.RefreshErrorList();
+            testSubject.RefreshErrorList(ValidFactory);
+            testSubject.RefreshErrorList(ValidFactory);
 
-            mockSink.Verify(x => x.FactorySnapshotChanged(null), Times.Exactly(2));
+            mockSink.Verify(x => x.FactorySnapshotChanged(ValidFactory), Times.Exactly(2));
 
             // 2. Unsubscribe -> no longer notified
             mockSink.Reset();
             disposeToken.Dispose();
-            testSubject.RefreshErrorList();
+            testSubject.RefreshErrorList(ValidFactory);
 
             mockSink.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Never);
         }
@@ -183,12 +241,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(mockSink1.Object);
             testSubject.Subscribe(mockSink2.Object);
 
-            var mockFactory = new Mock<ITableEntriesSnapshotFactory>();
+            var factory = CreateFactory();
 
-            testSubject.RemoveFactory(mockFactory.Object);
+            testSubject.RemoveFactory(factory);
 
-            CheckFactoryWasRemoved(mockSink1, mockFactory.Object);
-            CheckFactoryWasRemoved(mockSink2, mockFactory.Object);
+            CheckFactoryWasRemoved(mockSink1, factory);
+            CheckFactoryWasRemoved(mockSink2, factory);
         }
 
         #region Exception handling tests
@@ -237,14 +295,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             mockSink.Setup(x => x.FactorySnapshotChanged(null))
                 .Throws(new InvalidCastException("update custom error"));
 
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var testSubject = CreateTestSubjectWithFactory(ValidFactory);
             testSubject.Subscribe(mockSink.Object);
 
             // Act
-            testSubject.RefreshErrorList();
+            testSubject.RefreshErrorList(ValidFactory);
 
             // Assert
-            CheckSinkWasNotified(mockSink);
+            CheckSinkWasNotified(mockSink, ValidFactory);
         }
 
         [TestMethod]
@@ -280,25 +338,38 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void CallsToSink_RefereshErrorList_CriticalException_NotSuppressed()
+        public void CallsToSink_RefreshErrorList_CriticalException_NotSuppressed()
         {
             // Arrange
             var mockSink = new Mock<ITableDataSink>();
-            mockSink.Setup(x => x.FactorySnapshotChanged(null))
+            mockSink.Setup(x => x.FactorySnapshotChanged(ValidFactory))
                 .Throws(new StackOverflowException("update custom error"));
 
-            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            var testSubject = CreateTestSubjectWithFactory(ValidFactory);
             testSubject.Subscribe(mockSink.Object);
 
             // Act & assert
-            Action act = () => testSubject.RefreshErrorList();
+            Action act = () => testSubject.RefreshErrorList(ValidFactory);
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("update custom error");
         }
 
         #endregion
 
-        private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink) =>
-            mockSink.Verify(x => x.FactorySnapshotChanged(null), Times.Once);
+        private SonarErrorListDataSource CreateTestSubjectWithFactory(SnapshotFactory factory)
+        {
+            var testSubject = new SonarErrorListDataSource(mockTableManagerProvider.Object);
+            testSubject.AddFactory(factory);
+            return testSubject;
+        }
+
+        private static SnapshotFactory CreateFactory() =>
+            new SnapshotFactory(CreateEmptySnapshot());
+
+        private static IssuesSnapshot CreateEmptySnapshot() =>
+            IssuesSnapshot.CreateNew("any project", "any.txt", Array.Empty<IssueMarker>());
+
+        private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink, SnapshotFactory expectedFactory) =>
+            mockSink.Verify(x => x.FactorySnapshotChanged(expectedFactory), Times.Once);
 
         private static void CheckSinkWasNotNotified(Mock<ITableDataSink> mockSink) =>
             mockSink.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Never);

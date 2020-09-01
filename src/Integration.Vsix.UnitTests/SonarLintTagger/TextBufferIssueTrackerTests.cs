@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -76,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             logger = new TestLogger();
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
         }
 
         [TestMethod]
@@ -117,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
 
             var beforeSnapshot = CreateMockTextSnapshot(100, "foo");
             var afterSnapshot = CreateMockTextSnapshot(100, "bar");
@@ -134,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
 
                 CheckAnalysisWasNotRequested();
-                CheckErrorListRefreshWasRequestedOnce();
+                CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
                 testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
                 testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId);
@@ -173,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Check the snapshot was updated and the error list notified
             testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
             testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId); // Same set of analysis issues
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             CheckAnalysisWasNotRequested();
         }
@@ -277,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
 
             var originalId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
 
@@ -306,7 +307,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             issuesPassedToFilter[0].RuleId.Should().Be("S111");
             issuesPassedToFilter[1].RuleId.Should().Be("S222");
 
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             // Check the post-filter issues
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
@@ -333,7 +334,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput.Count.Should().Be(1);
             capturedFilterInput[0].RuleId.Should().Be("single issue");
 
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             // Check there are no markers
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
@@ -351,7 +352,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Assert
             capturedFilterInput.Should().BeEmpty();
 
-            CheckErrorListRefreshWasRequestedOnce();
+            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
         }
@@ -366,21 +367,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput = captured;
         }
 
-        private void CheckErrorListRefreshWasRequestedOnce()
+        private void CheckErrorListRefreshWasRequestedOnce(SnapshotFactory factory)
         {
-            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(), Times.Once);
+            mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(factory), Times.Once);
         }
 
-        private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine) =>
-            new IssueMarker(
-                new DummyAnalysisIssue
-                {
-                    RuleKey = ruleKey,
-                    StartLine = startLine,
-                    EndLine = endLine
-                },
+        private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine)
+        {
+            var issue = new DummyAnalysisIssue
+            {
+                RuleKey = ruleKey,
+                StartLine = startLine,
+                EndLine = endLine
+            };
+
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
+            issueVizMock.SetupProperty(x => x.Span);
+
+            return new IssueMarker(issueVizMock.Object,
                 new SnapshotSpan(CreateMockTextSnapshot(1000, "any line text").Object, 0, 1)
             );
+        }
 
         #endregion
 
@@ -472,7 +482,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, logger, mockAnalysisScheduler.Object);
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger, mockAnalysisScheduler.Object);
             return provider;
         }
 
@@ -523,8 +533,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
                 IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-                ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
-                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, logger)
+                ISonarErrorListDataSource sonarErrorDataSource, IIssueToIssueMarkerConverter converter, ILogger logger)
+                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger)
             { }
 
             protected override IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)

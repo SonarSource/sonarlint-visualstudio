@@ -18,17 +18,28 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+using System;
+using Microsoft.VisualStudio.Text.Tagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging
 {
     /// <summary>
-    /// Abstraction over the Error List, consumed by the rest of SLVS
+    /// Marks a span for location relating to a selected issue
     /// </summary>
-    internal interface ISonarErrorListDataSource
+    /// <remarks>Consumed by our view taggers to provide editor visualizations (highlighting and adornments)</remarks>
+    internal interface ISelectedIssueLocationTag : ITag
     {
-        void RefreshErrorList(SnapshotFactory factory);
+        IAnalysisIssueLocationVisualization Location { get; }
+    }
 
-        void AddFactory(SnapshotFactory factory);
+    internal class SelectedIssueLocationTag : ISelectedIssueLocationTag
+    {
+        public SelectedIssueLocationTag(IAnalysisIssueLocationVisualization location)
+        {
+            Location = location ?? throw new ArgumentNullException(nameof(location));
+        }
 
-        void RemoveFactory(SnapshotFactory factory);
+        public IAnalysisIssueLocationVisualization Location { get; }
     }
 }

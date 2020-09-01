@@ -277,6 +277,36 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Helpers
             rootedIsRooted.Should().BeTrue($"Path '{rootedFile}' should be rooted under '{root}'");
         }
 
+        [TestMethod]
+        [DataRow(@"c:\aaa\bbb", @"c:\aaa\bbb")]
+        [DataRow(@"c:\aaa\bbb", @"c:\AAA\BBB")]
+        [DataRow(@"c:\a\b\..\.\x", @"c:\a\x")]
+        [DataRow(@"e:\aaa\file.txt", @"e:\aaa\FILE.TXT")]
+        public void IsMatchingPath_ReturnsTrue(string path1, string path2)
+        {
+            PathHelper.IsMatchingPath(path1, path2).Should().BeTrue();
+        }
+
+        [TestMethod]
+        [DataRow("aaa", "aaaa")]
+        [DataRow(@"c:\aa", @"c:\aa\file.txt")]
+        [DataRow(@"d:\a\b\file.txt.xxx", @"d:\a\b\file.txt.yyy")]
+        public void IsMatchingPath_ReturnsFalse(string path1, string path2)
+        {
+            PathHelper.IsMatchingPath(path1, path2).Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(null, "valid")]
+        [DataRow("", "valid")]
+        [DataRow("valid", null)]
+        [DataRow("valid", "")]
+        public void IsMatchingPath_InvalidPath_Throws(string path1, string path2)
+        {
+            Action act = () => PathHelper.IsMatchingPath(path1, path2);
+            act.Should().Throw<ArgumentException>();
+        }
+
         #region Helpers
 
         private static void VerifyCalculateRelativePath(string expected, string fromPath, string toPath)

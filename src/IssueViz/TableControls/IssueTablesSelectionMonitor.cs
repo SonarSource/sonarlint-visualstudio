@@ -19,7 +19,6 @@
  */
 
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -30,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     /// </summary>
     internal interface IIssueTablesSelectionMonitor
     {
-        void SelectionChanged(IAnalysisIssue selectedIssue);
+        void SelectionChanged(IAnalysisIssueVisualization selectedIssue);
     }
 
     /// <summary>
@@ -42,21 +41,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     internal class IssueTablesSelectionMonitor : IIssueTablesSelectionMonitor
     {
         private readonly IAnalysisIssueSelectionService selectionService;
-        private readonly IAnalysisIssueVisualizationConverter converter;
 
         [ImportingConstructor]
-        public IssueTablesSelectionMonitor(IAnalysisIssueSelectionService selectionService, IAnalysisIssueVisualizationConverter converter)
+        public IssueTablesSelectionMonitor(IAnalysisIssueSelectionService selectionService)
         {
             // Created by VS MEF -> arguments will never be null
             this.selectionService = selectionService;
-            this.converter = converter;
         }
 
-        void IIssueTablesSelectionMonitor.SelectionChanged(IAnalysisIssue selectedIssue)
+        void IIssueTablesSelectionMonitor.SelectionChanged(IAnalysisIssueVisualization selected)
         {
             // Exception handling: assuming the caller is handling exceptions
-            var issueVisualization = selectedIssue == null ? null : converter.Convert(selectedIssue);
-            selectionService.SelectedIssue = issueVisualization;
+            selectionService.SelectedIssue = selected;
         }
     }
 }

@@ -62,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
+        private readonly IIssueToIssueMarkerConverter converter;
         private readonly ILogger logger;
         private readonly IScheduler scheduler;
 
@@ -73,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
+            IIssueToIssueMarkerConverter converter,
             ILogger logger,
             IScheduler scheduler)
         {
@@ -83,6 +85,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.analyzerController = analyzerController;
             this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
+            this.converter = converter;
             this.logger = logger;
             this.scheduler = scheduler;
 
@@ -158,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, logger));
+                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger));
 
                 // Always create a new tagger for each request.
                 // Delegate the actual creation to the tracker for the file.
