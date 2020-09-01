@@ -61,6 +61,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
+        public void Ctor_FailsToRetrieveFileIcon_BlankIcon()
+        {
+            var location = CreateMockLocation("c:\\test\\c1.c", KnownMonikers.CFile, new NotImplementedException("this is a test"));
+
+            var testSubject = CreateTestSubject(location.Object);
+
+            testSubject.Icon.Should().BeEquivalentTo(KnownMonikers.Blank, c => c.ComparingByMembers<ImageMoniker>());
+
+            logger.AssertPartialOutputStringExists("this is a test");
+            logger.OutputStrings.Count.Should().Be(1);
+        }
+
+        [TestMethod]
         public void Dispose_UnregisterFromLocationEvents()
         {
             var location = CreateMockLocation("c:\\test.cpp", KnownMonikers.CPPFile);
