@@ -129,6 +129,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.issueMarkers = new List<IssueMarker>(issueMarkers);
             this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
 
+            // Optimistation:
+            // Most rules only have a single location, and most multi-location rules only produce locations
+            // for a single file. So most snapshots will only have issues relating to a single file.
+            // However, we still need to notify every tagger when any snapshot has updated, in case there
+            // any of the issues have secondary locations that the tagger needs to handle.
+            // This optimisation gives the tagger a quick way to check that it does not need to do any work
+            // i.e. if the file handled by the tagger is not in the list, do nothing.
             this.FilesInSnapshot = CalculateFilesInSnapshot(issueMarkers);
         }
 

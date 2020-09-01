@@ -91,15 +91,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region ISonarErrorListDataSource implementation
 
-        public void RefreshErrorList()
+        public void RefreshErrorList(SnapshotFactory factory)
         {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             // Mark all the sinks as dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
-            // from the snapshot factories).
+            // from the snapshot factory).
             lock (sinks)
             {
+                // Guard against potential race condition - factory could have been removed
+                if (!(factories.Contains(factory)))
+                {
+                    return;
+                }
+
                 foreach (var sink in sinks)
                 {
-                    SafeOperation(sink, "FactorySnapshotChanged", () => sink.FactorySnapshotChanged(null));
+                    SafeOperation(sink, "FactorySnapshotChanged", () => sink.FactorySnapshotChanged(factory));
                 }
             }
         }

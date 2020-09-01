@@ -204,9 +204,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var oldIssues = Factory.CurrentSnapshot;
 
             // Tell our factory to snap to a new snapshot.
-            this.Factory.UpdateSnapshot(newSnapshot);
+            Factory.UpdateSnapshot(newSnapshot);
 
-            sonarErrorDataSource.RefreshErrorList();
+            sonarErrorDataSource.RefreshErrorList(Factory);
 
             // Work out which part of the document has been affected by the changes, and tell
             // the taggers about the changes
