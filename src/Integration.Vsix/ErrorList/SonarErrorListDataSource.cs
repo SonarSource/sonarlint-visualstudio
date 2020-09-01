@@ -25,6 +25,7 @@ using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
@@ -184,9 +185,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return locVizs;
         }
 
-        public void LocationsUpdated(IEnumerable<string> affectedFilePaths)
+        public void Refresh(IEnumerable<string> affectedFilePaths)
         {
-            // TODO
+            if (affectedFilePaths == null)
+            {
+                throw new ArgumentNullException(nameof(affectedFilePaths));
+            }
+
+            lock (sinks)
+            {
+                foreach (var factory in factories)
+                {
+                    var snapshot = factory.CurrentSnapshot;
+                    if (snapshot.FilesInSnapshot.Any(snapshotPath => affectedFilePaths.Any(affected => PathHelper.IsMatchingPath(snapshotPath, affected))))
+                    {
+                        snapshot.IncrementVersion();
+                        InternalRefreshErrorList(factory);
+                    }
+                }
+            }
         }
 
         #endregion IIssueLocationStore implementation

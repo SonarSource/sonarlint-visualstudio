@@ -37,22 +37,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath);
 
         /// <summary>
-        /// Used by callers to notify the service that the locations in the specified
-        /// files have been updated
+        /// Used by callers to notify the service that the data for issues in the specified
+        /// files has been updated
         /// </summary>
-        void LocationsUpdated(IEnumerable<string> affectedFilePaths);
+        /// <remarks>Allows the service to take any necessary action to update the UI.
+        /// This is a batch notification. We don't want to notify for each individual location change as that would be
+        /// too noisy.
+        /// </remarks>
+        void Refresh(IEnumerable<string> affectedFilePaths);
     }
 
     public class IssuesChangedEventArgs : EventArgs
     {
-        public IssuesChangedEventArgs(IEnumerable<string> affectedFiles)
+        public IssuesChangedEventArgs(IEnumerable<string> analyzedFiles)
         {
-            AffectedFiles = affectedFiles ?? Array.Empty<string>();
+            AnalyzedFiles = analyzedFiles ?? Array.Empty<string>();
         }
 
         /// <summary>
         /// The set of files impacted by the new issues
         /// </summary>
-        public IEnumerable<string> AffectedFiles { get; }
+        public IEnumerable<string> AnalyzedFiles { get; }
     }
 }
