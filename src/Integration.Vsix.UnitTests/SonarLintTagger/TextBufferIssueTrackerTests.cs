@@ -374,13 +374,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         private static IssueMarker CreateIssueMarker(string ruleKey, int startLine, int endLine)
         {
+            var issue = new DummyAnalysisIssue
+            {
+                RuleKey = ruleKey,
+                StartLine = startLine,
+                EndLine = endLine
+            };
+
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
-            issueVizMock.Setup(x => x.Issue).Returns(new DummyAnalysisIssue
-                {
-                    RuleKey = ruleKey,
-                    StartLine = startLine,
-                    EndLine = endLine
-                });
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
             issueVizMock.SetupProperty(x => x.Span);
 
             return new IssueMarker(issueVizMock.Object,
