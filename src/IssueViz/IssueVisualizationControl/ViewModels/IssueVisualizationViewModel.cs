@@ -21,14 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -38,10 +34,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     internal sealed class IssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly IAnalysisIssueSelectionService selectionService;
-        private readonly IVsImageService2 vsImageService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
         private readonly ILocationNavigator locationNavigator;
-        private readonly ILogger logger;
+        private readonly IFileNameLocationListItemCreator fileNameLocationListItemCreator;
 
         private IAnalysisIssueVisualization currentIssue;
         private IAnalysisIssueFlowVisualization currentFlow;
@@ -56,16 +51,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         private bool pausePropertyChangeNotifications;
 
         public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService, 
-            IVsImageService2 vsImageService, 
             IRuleHelpLinkProvider ruleHelpLinkProvider,
             ILocationNavigator locationNavigator,
-            ILogger logger)
+            IFileNameLocationListItemCreator fileNameLocationListItemCreator)
         {
             this.selectionService = selectionService;
-            this.vsImageService = vsImageService;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.locationNavigator = locationNavigator;
-            this.logger = logger;
+            this.fileNameLocationListItemCreator = fileNameLocationListItemCreator;
 
             selectionService.SelectionChanged += SelectionEvents_SelectionChanged;
 
@@ -111,8 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     currentFlow = value;
                     NotifyPropertyChanged();
 
-                    LocationListItems = BuildLocationListItems(currentFlow);
-                    NotifyPropertyChanged(nameof(LocationListItems));
+                    UpdateLocationsList();
                 }
             }
         }
@@ -179,6 +171,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             locationVisualization.IsNavigable = locationNavigator.TryNavigate(locationVisualization.Location);
         }
 
+        private void UpdateLocationsList()
+        {
+            if (LocationListItems != null)
+            {
+                foreach (var disposable in LocationListItems.OfType<IDisposable>())
+                {
+                    disposable.Dispose();
+                }
+            }
+
+            LocationListItems = BuildLocationListItems(currentFlow);
+
+            NotifyPropertyChanged(nameof(LocationListItems));
+        }
+
         /// <summary>
         /// This method groups all sequential locations under the same file path and returns a single list with File nodes and Location nodes.
         /// This way the UI can use different data templates to make a flat list look like a hierarchical tree.
@@ -192,12 +199,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 for (var i = 0; i < flowLocations.Count; i++)
                 {
-                    var filePath = flowLocations[i].Location.FilePath;
-                    var fileIcon = GetImageMonikerForFile(filePath);
-                    listItems.Add(new FileNameLocationListItem(filePath, Path.GetFileName(filePath), fileIcon));
+                    var location = flowLocations[i];
 
-                    var sequentialLocations =
-                        flowLocations.Skip(i).TakeWhile(x => x.Location.FilePath == filePath).ToList();
+                    listItems.Add(fileNameLocationListItemCreator.Create(location));
+
+                    var sequentialLocations = flowLocations
+                        .Skip(i)
+                        .TakeWhile(x => x.CurrentFilePath == location.CurrentFilePath)
+                        .ToList();
+
                     listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem) new LocationListItem(x)));
 
                     i += sequentialLocations.Count - 1;
@@ -205,20 +215,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
 
             return listItems;
-        }
-
-        private object GetImageMonikerForFile(string filePath)
-        {
-            try
-            {
-                return vsImageService.GetImageMonikerForFile(filePath);
-            }
-            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
-            {
-                logger.WriteLine(Resources.ERR_FailedToGetFileImageMoniker, filePath, e);
-
-                return KnownMonikers.Blank;
-            }
         }
 
         private LocationListItem GetLocationListItem(IAnalysisIssueLocationVisualization locationViz)

@@ -25,11 +25,19 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    public interface IAnalysisIssueLocationVisualization
+    public interface IAnalysisIssueLocationVisualization : INotifyPropertyChanged
     {
         int StepNumber { get; }
 
         bool IsNavigable { get; set; }
+
+        /// <summary>
+        /// Up-to-date file path associated with the issue location
+        /// </summary>
+        /// <remarks>
+        /// If the file was renamed after the analysis, this property will contain the new value and will be different from the underlying <see cref="IAnalysisIssueLocation.FilePath"/>.
+        /// </remarks>
+        string CurrentFilePath { get; set; }
 
         IAnalysisIssueLocation Location { get; }
 
@@ -45,20 +53,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         SnapshotSpan? Span { get; set; }
     }
 
-    public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization, INotifyPropertyChanged
+    public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
     {
         private bool isNavigable;
+        private string filePath;
 
         public AnalysisIssueLocationVisualization(int stepNumber, IAnalysisIssueLocation location)
         {
             StepNumber = stepNumber;
             Location = location;
             IsNavigable = true;
+            CurrentFilePath = location.FilePath;
         }
 
         public int StepNumber { get; }
 
         public IAnalysisIssueLocation Location { get; }
+        public SnapshotSpan? Span { get; set; }
+
+        public string CurrentFilePath
+        {
+            get => filePath;
+            set
+            {
+                filePath = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public bool IsNavigable
         {
@@ -76,6 +97,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        public SnapshotSpan? Span { get; set; }
     }
 }
