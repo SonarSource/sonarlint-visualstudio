@@ -48,8 +48,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
-        private ITextSnapshot currentSnapshot;
-
         private readonly ITextDocument document;
         private readonly string charset;
         private readonly ILogger logger;
@@ -70,7 +68,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.Provider = provider;
             this.textBuffer = document.TextBuffer;
-            this.currentSnapshot = document.TextBuffer.CurrentSnapshot;
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
@@ -103,9 +100,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (activeTaggers.Count == 1)
             {
                 // First tagger created... start doing stuff
-
-                textBuffer.ChangedLowPriority += SafeOnBufferChange;
-
                 sonarErrorDataSource.AddFactory(this.Factory);
                 Provider.AddIssueTracker(this);
 
@@ -123,7 +117,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // Last tagger was disposed of. This is means there are no longer any open views on the buffer so we can safely shut down
                 // issue tracking for that buffer.
                 document.FileActionOccurred -= SafeOnFileActionOccurred;
-                textBuffer.ChangedLowPriority -= SafeOnBufferChange;
                 textBuffer.Properties.RemoveProperty(typeof(TextBufferIssueTracker));
                 sonarErrorDataSource.RemoveFactory(this.Factory);
                 Provider.RemoveIssueTracker(this);
@@ -136,52 +129,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
-                if (e.FileActionType == FileActionTypes.DocumentRenamed)
-                {
-                    FilePath = e.FilePath;
-
-                    // Update and publish a new snapshow with the existing issues so 
-                    // that the name change propagates to items in the error list.
-                    // No need in this case to translate the tagger spans.
-
-
-                    // HACK: duncanp - this code will be removed as part of "Handle file renames" : https://github.com/SonarSource/sonarlint-visualstudio/issues/1662
-                    var oldSnaphost = (IssuesSnapshot)Factory.CurrentSnapshot;
-
-                    var newSnapshot = oldSnaphost.CreateUpdatedSnapshot(FilePath);
-                    SnapToNewSnapshot(newSnapshot);
-                }
-                else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
+                if (e.FileActionType == FileActionTypes.ContentSavedToDisk
                     && activeTaggers.Count > 0)
                 {
                     RequestAnalysis(null /* no options */);
                 }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
-            }
-        }
-
-        private void SafeOnBufferChange(object sender, TextContentChangedEventArgs e)
-        {
-            // Handles callback from VS. Suppress non-critical errors to prevent them
-            // propagating to VS, which would display a dialogue and disable the extension.
-            try
-            {
-                // The text buffer has been edited (i.e.text added, deleted or modified).
-                // The spans we have stored for issues relate to the previous text buffer and
-                // are no longer valid, so we need to translate them to the equivalent spans
-                // in the new text buffer.
-                currentSnapshot = e.After;
-
-                var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
-
-                // HACK: duncanp. This code will be removed as part of "Remove error tagging code from TextBufferIssueTracker" : https://github.com/SonarSource/sonarlint-visualstudio/issues/1659
-                var oldSnapshot = (IssuesSnapshot)Factory.CurrentSnapshot;
-
-                var newSnapshot = oldSnapshot.CreateUpdatedSnapshot(newMarkers);
-                SnapToNewSnapshot(newSnapshot);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -201,53 +153,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
         {
-            var oldIssues = Factory.CurrentSnapshot;
-
             // Tell our factory to snap to a new snapshot.
             Factory.UpdateSnapshot(newSnapshot);
 
             sonarErrorDataSource.RefreshErrorList(Factory);
-
-            // Work out which part of the document has been affected by the changes, and tell
-            // the taggers about the changes
-            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newSnapshot);
-            foreach (var tagger in activeTaggers)
-            {
-                tagger.UpdateMarkers(newSnapshot.IssueMarkers, affectedSpan);
-            }
-        }
-
-        private SnapshotSpan? CalculateAffectedSpan(IIssuesSnapshot oldIssues, IIssuesSnapshot newIssues)
-        {
-            // Calculate the whole span affected by the all of the issues, old and new
-            int start = int.MaxValue;
-            int end = int.MinValue;
-
-            if (oldIssues != null && oldIssues.Count > 0)
-            {
-                start = oldIssues.IssueMarkers.Select(i => i.Span.Start.TranslateTo(currentSnapshot, PointTrackingMode.Negative)).Min();
-                end = oldIssues.IssueMarkers.Select(i => i.Span.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive)).Max();
-            }
-
-            if (newIssues != null && newIssues.Count > 0)
-            {
-                start = Math.Min(start, newIssues.IssueMarkers.Select(i => i.Span.Start.Position).Min());
-                end = Math.Max(end, newIssues.IssueMarkers.Select(i => i.Span.End.Position).Max());
-            }
-
-            if (start < end)
-            {
-                return new SnapshotSpan(currentSnapshot, Span.FromBounds(start, end));
-            }
-
-            return null;
         }
 
         #region Daemon interaction
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues, converter);
+            FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
+            var issueConsumer = new AccumulatingIssueConsumer(textBuffer.CurrentSnapshot, FilePath, HandleNewIssues, converter);
 
             // Call the consumer with no analysis issues to immediately clear issies for this file
             // from the error list
@@ -263,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // The text buffer might have changed since the analysis was triggered, so translate
             // all issues to the current snapshot.
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
-            var translatedMarkers = TranslateSpans(filteredMarkers, currentSnapshot);
+            var translatedMarkers = TranslateSpans(filteredMarkers, textBuffer.CurrentSnapshot);
 
             var newSnapshot = IssuesSnapshot.CreateNew(GetProjectName(), FilePath, translatedMarkers);
             SnapToNewSnapshot(newSnapshot);
