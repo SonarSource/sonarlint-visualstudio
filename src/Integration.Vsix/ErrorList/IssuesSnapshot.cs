@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // any of the issues have secondary locations that the tagger needs to handle.
             // This optimisation gives the tagger a quick way to check that it does not need to do any work
             // i.e. if the file handled by the tagger is not in the list, do nothing.
-            this.FilesInSnapshot = CalculateFilesInSnapshot(issueMarkers);
+            this.FilesInSnapshot = CalculateFilesInSnapshot(filePath, issueMarkers);
         }
 
         #endregion
@@ -300,12 +300,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
         }
 
-        private static IEnumerable<string> CalculateFilesInSnapshot(IEnumerable<IssueMarker> markers)
+        private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IssueMarker> markers)
         {
-            var allFilePaths = GetAllLocationVisualizations(markers)
+            var allLocationFilePaths = GetAllLocationVisualizations(markers)
                 .Select(locViz => locViz.Location.FilePath);
 
-            return new HashSet<string>(allFilePaths, StringComparer.OrdinalIgnoreCase);
+            var files = new HashSet<string>(allLocationFilePaths, StringComparer.OrdinalIgnoreCase);
+
+            // The list of files should always contain the name of the file being analyzed. This is to handle the case
+            // where the file has been analyzed but doesn't contain any issues.
+            files.Add(analyzedFilePath);
+            return files;
         }
 
         private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IssueMarker> markers) =>
