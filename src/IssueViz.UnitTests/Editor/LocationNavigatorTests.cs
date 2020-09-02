@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
@@ -37,6 +38,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         private Mock<IDocumentNavigator> documentOpenerMock;
         private Mock<IIssueSpanCalculator> spanCalculatorMock;
         private TestLogger logger;
+
+        private Mock<ITextView> textViewMock;
+        private ITextSnapshot textViewCurrentSnapshotMock;
 
         private LocationNavigator testSubject;
 
@@ -48,6 +52,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             logger = new TestLogger();
 
             testSubject = new LocationNavigator(documentOpenerMock.Object, spanCalculatorMock.Object, logger);
+
+            textViewCurrentSnapshotMock = Mock.Of<ITextSnapshot>();
+            textViewMock = new Mock<ITextView>();
+            textViewMock.SetupGet(x => x.TextBuffer.CurrentSnapshot).Returns(textViewCurrentSnapshotMock);
         }
 
         [TestMethod]
@@ -68,116 +76,239 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void TryNavigate_LocationIsNull_DocumentNotOpened()
+        public void TryNavigate_LocationIsNull_ArgumentNullException()
         {
-            var result = testSubject.TryNavigate(null);
+            Action act = () => testSubject.TryNavigate(null);
 
-            result.Should().BeFalse();
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("locationVisualization");
 
             documentOpenerMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        public void TryNavigate_LocationHasNoFilePath_DocumentNotOpened(string filePath)
-        {
-            var location = CreateLocationWithFilePath(filePath);
-
-            var result = testSubject.TryNavigate(location);
-
-            result.Should().BeFalse();
-
-            documentOpenerMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void TryNavigate_LocationHasFilePath_SpanIsInvalid_DocumentNotOpened()
-        {
-            var location = CreateLocationWithFilePath("c:\\test.cpp");
-
-            SetupMocks(location, null);
-
-            var result = testSubject.TryNavigate(location);
-
-            result.Should().BeFalse();
-
-            documentOpenerMock.Verify(x => x.Navigate(It.IsAny<ITextView>(), It.IsAny<SnapshotSpan>()),
-                Times.Never);
-
-            documentOpenerMock.VerifyAll();
-            documentOpenerMock.VerifyNoOtherCalls();
-
-            spanCalculatorMock.VerifyAll();
             spanCalculatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void TryNavigate_LocationHasFilePath_SpanIsValid_DocumentOpenedAndNavigated()
+        public void TryNavigate_ErrorOpeningDocument_NoException()
         {
-            var location = CreateLocationWithFilePath("c:\\test.cpp");
-            var mockSnapshotSpan = new SnapshotSpan();
-            
-            SetupMocks(location, mockSnapshotSpan);
+            var location = CreateLocation("c:\\test.cpp");
+
+            var openDocumentException = new NotImplementedException("this is a test");
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws(openDocumentException);
+
+            VerifyExceptionCaughtAndLogged(openDocumentException, location);
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorOpeningDocument_CriticalException_NotCaught()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<StackOverflowException>();
+
+            Action act = () => testSubject.TryNavigate(location);
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorOpeningDocument_LocationSpanIsInvalidated()
+        {
+            var previousSpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", previousSpan);
+
+            documentOpenerMock.Setup(x => x.Open("c:\\test.cpp")).Throws<NotImplementedException>();
+
+            testSubject.TryNavigate(location);
+
+            location.Span.Value.IsEmpty.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorCalculatingSpan_NoException()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            var calculateSpanException = new NotImplementedException("this is a test");
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location, textViewCurrentSnapshotMock)).Throws(calculateSpanException);
+
+            VerifyExceptionCaughtAndLogged(calculateSpanException, location);
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorCalculatingSpan_CriticalException_NotCaught()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location, textViewCurrentSnapshotMock)).Throws<StackOverflowException>();
+
+            Action act = () => testSubject.TryNavigate(location);
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorCalculatingSpan_LocationSpanIsInvalidated()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            spanCalculatorMock.Setup(x => x.CalculateSpan(location.Location, textViewCurrentSnapshotMock)).Throws<NotImplementedException>();
+
+            testSubject.TryNavigate(location);
+
+            location.Span.Value.IsEmpty.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorNavigating_NoException()
+        {
+            var nonEmptySpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            var navigateException = new NotImplementedException("this is a test");
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, nonEmptySpan)).Throws(navigateException);
+
+            VerifyExceptionCaughtAndLogged(navigateException, location);
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorNavigating_CriticalException_NotCaught()
+        {
+            var nonEmptySpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, nonEmptySpan)).Throws<StackOverflowException>();
+
+            Action act = () => testSubject.TryNavigate(location);
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void TryNavigate_ErrorNavigating_LocationSpanIsInvalidated()
+        {
+            var previousSpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", previousSpan);
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            documentOpenerMock.Setup(x => x.Navigate(textViewMock.Object, previousSpan)).Throws<NotImplementedException>();
+
+            testSubject.TryNavigate(location);
+
+            location.Span.Value.IsEmpty.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void TryNavigate_LocationHasValidSpan_NavigateToExistingSpan()
+        {
+            var nonEmptySpan = CreateNonEmptySpan();
+            var location = CreateLocation("c:\\test.cpp", nonEmptySpan);
+
+            SetupDocumentCanBeOpened(location.CurrentFilePath);
 
             var result = testSubject.TryNavigate(location);
-
             result.Should().BeTrue();
 
-            documentOpenerMock.VerifyAll();
-            documentOpenerMock.VerifyNoOtherCalls();
+            spanCalculatorMock.VerifyNoOtherCalls();
+            VerifyNavigation(nonEmptySpan);
+        }
+
+        [TestMethod]
+        public void TryNavigate_LocationHasEmptySpan_NoNavigation()
+        {
+            var emptySpan = new SnapshotSpan();
+            var location = CreateLocation("c:\\test.cpp", emptySpan);
+
+            SetupDocumentCanBeOpened(location.CurrentFilePath);
+
+            var result = testSubject.TryNavigate(location);
+            result.Should().BeFalse();
+
+            spanCalculatorMock.VerifyNoOtherCalls();
+            VerifyNoNavigation();
+        }
+
+        [TestMethod]
+        public void TryNavigate_LocationHasNoSpan_CalculatedSpanIsEmpty_NoNavigation()
+        {
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
+
+            SetupCalculatedSpan(location.Location, new SnapshotSpan());
+
+            var result = testSubject.TryNavigate(location);
+            result.Should().BeFalse();
 
             spanCalculatorMock.VerifyAll();
-            spanCalculatorMock.VerifyNoOtherCalls();
+            VerifyNoNavigation();
         }
 
         [TestMethod]
-        public void TryNavigate_FailedToOpenDocument_NoException()
+        public void TryNavigate_LocationHasNoSpan_CalculatedSpanIsNotEmpty_NavigateToCalculatedSpan()
         {
-            var location = CreateLocationWithFilePath("c:\\test.cpp");
-            var mockSnapshotSpan = new SnapshotSpan();
-            var setupException = new NotImplementedException("this is a test");
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
 
-            SetupMocks(location, mockSnapshotSpan, openDocumentException: setupException);
+            var nonEmptySpan = CreateNonEmptySpan();
+            SetupCalculatedSpan(location.Location, nonEmptySpan);
 
-            VerifyExceptionCaughtAndLogged(setupException, location);
+            var result = testSubject.TryNavigate(location);
+            result.Should().BeTrue();
+
+            spanCalculatorMock.VerifyAll();
+            VerifyNavigation(nonEmptySpan);
         }
 
         [TestMethod]
-        public void TryNavigate_FailedToCalculateSpan_NoException()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void TryNavigate_LocationHasNoSpan_LocationSpanIsUpdatedToCalculatedSpan(bool newSpanIsEmpty)
         {
-            var location = CreateLocationWithFilePath("c:\\test.cpp");
-            var mockSnapshotSpan = new SnapshotSpan();
-            var setupException = new NotImplementedException("this is a test");
+            var location = CreateLocation("c:\\test.cpp");
+            SetupDocumentCanBeOpened("c:\\test.cpp");
 
-            SetupMocks(location, mockSnapshotSpan, calculateSpanException: setupException);
+            var calculatedSpan = newSpanIsEmpty ? new SnapshotSpan() : CreateNonEmptySpan(); 
+            SetupCalculatedSpan(location.Location, calculatedSpan);
 
-            VerifyExceptionCaughtAndLogged(setupException, location);
+            testSubject.TryNavigate(location);
+
+            location.Span.Should().Be(calculatedSpan);
         }
 
-        [TestMethod]
-        public void TryNavigate_FailedToNavigate_NoException()
+        private SnapshotSpan CreateNonEmptySpan()
         {
-            var location = CreateLocationWithFilePath("c:\\test.cpp");
-            var mockSnapshotSpan = new SnapshotSpan();
-            var setupException = new NotImplementedException("this is a test");
+            var mockTextSnapshot = new Mock<ITextSnapshot>();
+            mockTextSnapshot.SetupGet(x => x.Length).Returns(20);
 
-            SetupMocks(location, mockSnapshotSpan, navigateException: setupException);
-
-            VerifyExceptionCaughtAndLogged(setupException, location);
+            return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
         }
 
-        private static IAnalysisIssueLocation CreateLocationWithFilePath(string filePath)
+        private static IAnalysisIssueLocationVisualization CreateLocation(string filePath, SnapshotSpan? span = null)
         {
-            var location = new Mock<IAnalysisIssueLocation>();
-            location.Setup(x => x.FilePath).Returns(filePath);
+            var location = new Mock<IAnalysisIssueLocationVisualization>();
+            location.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
+            location.Setup(x => x.CurrentFilePath).Returns(filePath);
+            location.SetupProperty(x => x.Span);
+            location.Object.Span = span;
 
             return location.Object;
         }
 
-        private void VerifyExceptionCaughtAndLogged(Exception setupException, IAnalysisIssueLocation location)
+        private void SetupDocumentCanBeOpened(string filePath)
         {
-            bool result = true;
+            documentOpenerMock.Setup(x => x.Open(filePath)).Returns(textViewMock.Object);
+        }
+
+        private void SetupCalculatedSpan(IAnalysisIssueLocation analysisIssueLocation, SnapshotSpan span)
+        {
+            spanCalculatorMock.Setup(x => x.CalculateSpan(analysisIssueLocation, textViewCurrentSnapshotMock)).Returns(span);
+        }
+
+        private void VerifyExceptionCaughtAndLogged(Exception setupException, IAnalysisIssueLocationVisualization location)
+        {
+            var result = true;
             Action act = () => result = testSubject.TryNavigate(location);
             act.Should().NotThrow();
 
@@ -186,48 +317,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             logger.AssertPartialOutputStringExists(setupException.Message);
         }
 
-        private void SetupMocks(IAnalysisIssueLocation location,
-            SnapshotSpan? mockSnapshotSpan,
-            Exception openDocumentException = null,
-            Exception calculateSpanException = null,
-            Exception navigateException = null)
+        private void VerifyNoNavigation()
         {
-            var mockSnapshot = Mock.Of<ITextSnapshot>();
+            documentOpenerMock.Verify(x => x.Navigate(It.IsAny<ITextView>(), It.IsAny<SnapshotSpan>()), Times.Never());
+        }
 
-            var mockTextView = new Mock<ITextView>();
-            mockTextView.Setup(x => x.TextBuffer.CurrentSnapshot).Returns(mockSnapshot);
-
-            var setupOpenDocument = documentOpenerMock.Setup(x => x.Open("c:\\test.cpp"));
-
-            if (openDocumentException != null)
-            {
-                setupOpenDocument.Throws(openDocumentException);
-            }
-            else
-            {
-                setupOpenDocument.Returns(mockTextView.Object);
-            }
-
-            var setupCalculateSpan = spanCalculatorMock.Setup(x => x.CalculateSpan(location, mockSnapshot));
-
-            if (calculateSpanException != null)
-            {
-                setupCalculateSpan.Throws(calculateSpanException);
-            }
-            else
-            {
-                setupCalculateSpan.Returns(mockSnapshotSpan);
-            }
-
-            if (mockSnapshotSpan != null)
-            {
-                var setupNavigate = documentOpenerMock.Setup(x => x.Navigate(mockTextView.Object, mockSnapshotSpan.Value));
-
-                if (navigateException != null)
-                {
-                    setupNavigate.Throws(navigateException);
-                }
-            }
+        private void VerifyNavigation(SnapshotSpan span)
+        {
+            documentOpenerMock.Verify(x => x.Navigate(textViewMock.Object, span), Times.Once);
         }
     }
 }

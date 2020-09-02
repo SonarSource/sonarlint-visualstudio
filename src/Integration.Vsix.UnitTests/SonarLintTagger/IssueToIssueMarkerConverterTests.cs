@@ -57,13 +57,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Convert_NullSpan_Null()
+        public void Convert_EmptySpan_Null()
         {
             var mockIssue = Mock.Of<IAnalysisIssue>();
             var mockSnapshot = Mock.Of<ITextSnapshot>();
 
             var spanCalculator = new Mock<IIssueSpanCalculator>();
-            spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns((SnapshotSpan?) null);
+            spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns(new SnapshotSpan());
             
             var testSubject = new IssueToIssueMarkerConverter(Mock.Of<IAnalysisIssueVisualizationConverter>(), spanCalculator.Object);
             var issueMarker = testSubject.Convert(mockIssue, mockSnapshot);
@@ -72,18 +72,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Convert_SpanIsNotNull_ReturnsMarkerWithSpan()
+        public void Convert_SpanIsNotEmpty_ReturnsMarkerWithSpan()
         {
             var mockIssue = Mock.Of<IAnalysisIssue>();
-            var mockSnapshot = Mock.Of<ITextSnapshot>();
-            var mockSpan = new SnapshotSpan();
+            var mockSnapshot = new Mock<ITextSnapshot>();
+            mockSnapshot.SetupGet(x => x.Length).Returns(20);
+            var mockSpan = new SnapshotSpan(mockSnapshot.Object, 0, 10);
 
             var spanCalculator = new Mock<IIssueSpanCalculator>();
-            spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot)).Returns(mockSpan);
+            spanCalculator.Setup(x => x.CalculateSpan(mockIssue, mockSnapshot.Object)).Returns(mockSpan);
             var passThroughConverter = CreatePassthroughConverter();
 
             var testSubject = new IssueToIssueMarkerConverter(passThroughConverter, spanCalculator.Object);
-            var issueMarker = testSubject.Convert(mockIssue, mockSnapshot);
+            var issueMarker = testSubject.Convert(mockIssue, mockSnapshot.Object);
 
             issueMarker.Should().NotBeNull();
             issueMarker.Issue.Should().Be(mockIssue);

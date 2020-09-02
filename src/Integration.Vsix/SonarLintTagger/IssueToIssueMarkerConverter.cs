@@ -62,8 +62,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
 
+            if (span.IsEmpty)
+            {
+                return null;
+            }
+
             var issueViz = issueVizConverter.Convert(issue);
-            return span == null ? null : new IssueMarker(issueViz, span.Value);
+
+            return new IssueMarker(issueViz, span);
         }
     }
 }
