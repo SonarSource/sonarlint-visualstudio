@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void Location_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(IAnalysisIssueLocationVisualization.FilePath))
+            if (e.PropertyName == nameof(IAnalysisIssueLocationVisualization.CurrentFilePath))
             {
                 UpdateState();
             }
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void UpdateState()
         {
-            FullPath = location.FilePath;
+            FullPath = location.CurrentFilePath;
             FileName = Path.GetFileName(FullPath);
             Icon = GetImageMonikerForFile(FullPath);
 

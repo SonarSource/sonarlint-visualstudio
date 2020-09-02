@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                     var sequentialLocations = flowLocations
                         .Skip(i)
-                        .TakeWhile(x => x.FilePath == location.FilePath)
+                        .TakeWhile(x => x.CurrentFilePath == location.CurrentFilePath)
                         .ToList();
 
                     listItems.AddRange(sequentialLocations.Select(x => (ILocationListItem) new LocationListItem(x)));

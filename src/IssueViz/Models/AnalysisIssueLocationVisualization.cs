@@ -31,7 +31,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         bool IsNavigable { get; set; }
 
-        string FilePath { get; set; }
+        /// <summary>
+        /// Up-to-date file path associated with the issue location
+        /// </summary>
+        /// <remarks>
+        /// If the file was renamed after the analysis, this property will contain the new value and will be different from the underlying <see cref="IAnalysisIssueLocation.FilePath"/>.
+        /// </remarks>
+        string CurrentFilePath { get; set; }
 
         IAnalysisIssueLocation Location { get; }
 
@@ -57,14 +63,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             StepNumber = stepNumber;
             Location = location;
             IsNavigable = true;
-            FilePath = location.FilePath;
+            CurrentFilePath = location.FilePath;
         }
 
         public int StepNumber { get; }
 
         public IAnalysisIssueLocation Location { get; }
+        public SnapshotSpan? Span { get; set; }
 
-        public string FilePath
+        public string CurrentFilePath
         {
             get => filePath;
             set
@@ -90,6 +97,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        public SnapshotSpan? Span { get; set; }
     }
 }

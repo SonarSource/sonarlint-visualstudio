@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var location = CreateMockLocation("c:\\old file.cpp", KnownMonikers.CPPFile);
             var testSubject = CreateTestSubject(location.Object);
 
-            location.Object.FilePath = "c:\\should-not-be-queried.cpp";
+            location.Object.CurrentFilePath = "c:\\should-not-be-queried.cpp";
             location.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs("dummy property"));
 
             testSubject.FileName.Should().Be("old file.cpp");
@@ -117,8 +117,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             imageServiceMock.Setup(x => x.GetImageMonikerForFile(newFilePath)).Returns((ImageMoniker)newIcon);
 
-            location.Object.FilePath = newFilePath;
-            location.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueLocationVisualization.FilePath)));
+            location.Object.CurrentFilePath = newFilePath;
+            location.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueLocationVisualization.CurrentFilePath)));
 
             propertyChangedEventHandler.Verify(x =>
                     x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == string.Empty)),
@@ -143,9 +143,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             }
 
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
-            locationViz.SetupProperty(x => x.FilePath);
+            locationViz.SetupProperty(x => x.CurrentFilePath);
 
-            locationViz.Object.FilePath = filePath;
+            locationViz.Object.CurrentFilePath = filePath;
 
             return locationViz;
         }
@@ -154,7 +154,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         {
             var testSubject = new FileNameLocationListItem(location, imageServiceMock.Object, logger);
             testSubject.PropertyChanged += propertyChangedEventHandler.Object;
-
 
             return testSubject;
         }

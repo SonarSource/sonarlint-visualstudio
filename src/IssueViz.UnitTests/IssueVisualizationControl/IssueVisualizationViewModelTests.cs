@@ -643,7 +643,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         {
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
             locationViz.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
-            locationViz.Setup(x => x.FilePath).Returns(filePath);
+            locationViz.Setup(x => x.CurrentFilePath).Returns(filePath);
             locationViz.SetupProperty(x => x.IsNavigable);
 
             return locationViz.Object;
