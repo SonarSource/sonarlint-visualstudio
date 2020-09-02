@@ -88,32 +88,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void GetTags_HasIntersectingIssues_ReturnsIntersectingIssues()
-        {
-            var mockTextSnapshot = new Mock<ITextSnapshot>();
-            mockTextSnapshot.Setup(x => x.Length).Returns(100);
-
-            var span1 = new Span(0, 0);
-            var span2 = new Span(1, 1);
-
-            var snapshotSpan1 = new SnapshotSpan(mockTextSnapshot.Object, span1);
-            var snapshotSpan2 = new SnapshotSpan(mockTextSnapshot.Object, span2);
-
-            var marker1 = new IssueMarker(CreateIssueViz(), snapshotSpan1);
-            var marker2 = new IssueMarker(CreateIssueViz(), snapshotSpan2);
-
-            var markerList = new[] { marker1, marker2 };
-            var normalizedSpans = new NormalizedSnapshotSpanCollection(snapshotSpan2);
-
-            var testSubject = new IssueTagger(markerList, null);
-
-            var result = testSubject.GetTags(normalizedSpans);
-
-            result.Should().HaveCount(1);
-            result.First().Span.Should().Be(snapshotSpan2);
-        }
-
-        [TestMethod]
         public void Dispose_CallsDelegateOnlyOnce()
         {
             var delegateCallCount = 0;
