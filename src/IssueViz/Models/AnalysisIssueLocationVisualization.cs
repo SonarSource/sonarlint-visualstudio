@@ -98,12 +98,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     public static class AnalysisIssueLocationVisualizationExtensions
     {
         /// <summary>
-        /// Returns true/false if we can navigate to <see cref="Span"/>.
-        /// Returns true if <see cref="Span"/> is null.
+        /// Returns true/false if we can navigate to <see cref="IAnalysisIssueLocationVisualization.Span"/>.
+        /// Returns true if <see cref="IAnalysisIssueLocationVisualization.Span"/> is null.
         /// </summary>
         public static bool IsNavigable(this IAnalysisIssueLocationVisualization locationVisualization)
         {
             return locationVisualization.Span.IsNavigable();
+        }
+
+        /// <summary>
+        /// Sets <see cref="IAnalysisIssueLocationVisualization.Span"/> to an empty span.
+        /// </summary>
+        public static void InvalidateSpan(this IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            locationVisualization.Span = new SnapshotSpan();
         }
 
         public static bool IsNavigable(this SnapshotSpan? span)

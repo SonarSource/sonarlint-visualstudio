@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             try
             {
                 var textView = documentNavigator.Open(locationVisualization.CurrentFilePath);
-                var locationSpan = GetLocationSpan(locationVisualization, textView);
+                var locationSpan = GetOrCalculateLocationSpan(locationVisualization, textView);
 
                 if (!locationSpan.IsEmpty)
                 {
@@ -71,14 +71,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
+                locationVisualization.InvalidateSpan();
             }
 
             return false;
         }
 
-        private SnapshotSpan GetLocationSpan(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
+        private SnapshotSpan GetOrCalculateLocationSpan(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
         {
-            var shouldCalculateSpan = !locationVisualization.Span.HasValue || locationVisualization.Span.Value.IsEmpty;
+            var shouldCalculateSpan = !locationVisualization.Span.HasValue;
 
             if (shouldCalculateSpan)
             {
