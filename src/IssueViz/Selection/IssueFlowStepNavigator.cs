@@ -79,14 +79,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
 
             var navigableLocations = order(currentFlow.Locations)
                 .Where(x =>
-                    x.IsNavigable &&
+                    x.IsNavigable() &&
                     match(x, currentLocation));
 
             foreach (var locationViz in navigableLocations)
             {
-                locationViz.IsNavigable = locationNavigator.TryNavigate(locationViz.Location);
-
-                if (locationViz.IsNavigable)
+                if (locationNavigator.TryNavigate(locationViz))
                 {
                     selectionService.SelectedLocation = locationViz;
                     break;

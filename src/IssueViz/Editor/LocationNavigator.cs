@@ -20,15 +20,17 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
     internal interface ILocationNavigator
     {
-        bool TryNavigate(IAnalysisIssueLocation location);
+        bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization);
     }
 
     [Export(typeof(ILocationNavigator))]
@@ -47,33 +49,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.logger = logger;
         }
 
-        public bool TryNavigate(IAnalysisIssueLocation location)
+        public bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization)
         {
-            var locationFilePath = location?.FilePath;
-
-            if (string.IsNullOrEmpty(locationFilePath))
+            if (locationVisualization == null)
             {
-                return false;
+                throw new ArgumentNullException(nameof(locationVisualization));
             }
 
             try
             {
-                var textView = documentNavigator.Open(locationFilePath);
-                var locationSpan = spanCalculator.CalculateSpan(location, textView.TextBuffer.CurrentSnapshot);
+                var textView = documentNavigator.Open(locationVisualization.CurrentFilePath);
+                var locationSpan = GetOrCalculateLocationSpan(locationVisualization, textView);
 
-                if (locationSpan.HasValue)
+                if (!locationSpan.IsEmpty)
                 {
-                    documentNavigator.Navigate(textView, locationSpan.Value);
+                    documentNavigator.Navigate(textView, locationSpan);
 
                     return true;
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.ERR_OpenDocumentException, locationFilePath, ex.Message);
+                logger.WriteLine(Resources.ERR_OpenDocumentException, locationVisualization.CurrentFilePath, ex.Message);
+                locationVisualization.InvalidateSpan();
             }
 
             return false;
+        }
+
+        private SnapshotSpan GetOrCalculateLocationSpan(IAnalysisIssueLocationVisualization locationVisualization, ITextView textView)
+        {
+            var shouldCalculateSpan = !locationVisualization.Span.HasValue;
+
+            if (shouldCalculateSpan)
+            {
+                locationVisualization.Span = spanCalculator.CalculateSpan(locationVisualization.Location, textView.TextBuffer.CurrentSnapshot);
+            }
+
+            return locationVisualization.Span.Value;
         }
     }
 }

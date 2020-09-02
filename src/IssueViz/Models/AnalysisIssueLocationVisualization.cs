@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     {
         int StepNumber { get; }
 
-        bool IsNavigable { get; set; }
+        IAnalysisIssueLocation Location { get; }
 
         /// <summary>
         /// Up-to-date file path associated with the issue location
@@ -38,8 +38,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         /// If the file was renamed after the analysis, this property will contain the new value and will be different from the underlying <see cref="IAnalysisIssueLocation.FilePath"/>.
         /// </remarks>
         string CurrentFilePath { get; set; }
-
-        IAnalysisIssueLocation Location { get; }
 
         /// <summary>
         /// Editor span associated with the issue location
@@ -55,21 +53,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
     public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
     {
-        private bool isNavigable;
         private string filePath;
+        private SnapshotSpan? span;
 
         public AnalysisIssueLocationVisualization(int stepNumber, IAnalysisIssueLocation location)
         {
             StepNumber = stepNumber;
             Location = location;
-            IsNavigable = true;
             CurrentFilePath = location.FilePath;
         }
 
         public int StepNumber { get; }
 
         public IAnalysisIssueLocation Location { get; }
-        public SnapshotSpan? Span { get; set; }
+
+        public SnapshotSpan? Span
+        {
+            get => span;
+            set 
+            {
+                span = value;
+                NotifyPropertyChanged();
+            }
+        }
 
         public string CurrentFilePath
         {
@@ -81,21 +87,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             }
         }
 
-        public bool IsNavigable
-        {
-            get => isNavigable;
-            set
-            {
-                isNavigable = value;
-                NotifyPropertyChanged();
-            }
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public static class AnalysisIssueLocationVisualizationExtensions
+    {
+        /// <summary>
+        /// Returns true/false if we can navigate to <see cref="IAnalysisIssueLocationVisualization.Span"/>.
+        /// Returns true if <see cref="IAnalysisIssueLocationVisualization.Span"/> is null.
+        /// </summary>
+        public static bool IsNavigable(this IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            return locationVisualization.Span.IsNavigable();
+        }
+
+        /// <summary>
+        /// Sets <see cref="IAnalysisIssueLocationVisualization.Span"/> to an empty span.
+        /// </summary>
+        public static void InvalidateSpan(this IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            locationVisualization.Span = new SnapshotSpan();
+        }
+
+        public static bool IsNavigable(this SnapshotSpan? span)
+        {
+            return !span.HasValue || !span.Value.IsEmpty;
         }
     }
 }

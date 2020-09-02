@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -247,50 +247,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             VerifyNavigation(expectedNavigation);
         }
 
-        [TestMethod]
-        public void GotoNextNavigableFlowStep_LocationIsFalselyNavigable_UpdatesLocationNavigability()
-        {
-            var locations = new[]
-            {
-                CreateLocation(1, isMarkedAsNavigable: true),
-                CreateLocation(2, isMarkedAsNavigable: true, isTrulyNavigable: false)
-            };
-
-            var currentLocation = locations[0];
-            var locationToBeUpdated = locations[1];
-
-            SetupCurrentFlow(locations);
-            SetupCurrentLocation(currentLocation);
-
-            locationToBeUpdated.IsNavigable.Should().BeTrue();
-
-            testSubject.GotoNextNavigableFlowStep();
-
-            locationToBeUpdated.IsNavigable.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void GotoPreviousNavigableFlowStep_LocationIsFalselyNavigable_UpdatesLocationNavigability()
-        {
-            var locations = new[]
-            {
-                CreateLocation(1, isMarkedAsNavigable: true, isTrulyNavigable: false),
-                CreateLocation(2, isMarkedAsNavigable: true)
-            };
-
-            var locationToBeUpdated = locations[0];
-            var currentLocation = locations[1];
-
-            SetupCurrentFlow(locations);
-            SetupCurrentLocation(currentLocation);
-
-            locationToBeUpdated.IsNavigable.Should().BeTrue();
-
-            testSubject.GotoPreviousNavigableFlowStep();
-
-            locationToBeUpdated.IsNavigable.Should().BeFalse();
-        }
-
         private void SetupCurrentLocation(IAnalysisIssueLocationVisualization location)
         {
             selectionServiceMock.Setup(x => x.SelectedLocation).Returns(location);
@@ -314,10 +270,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
             locationViz.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
             locationViz.Setup(x => x.StepNumber).Returns(stepNumber);
-            locationViz.SetupProperty(x => x.IsNavigable);
-            locationViz.Object.IsNavigable = isMarkedAsNavigable;
 
-            locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Object.Location)).Returns(isTrulyNavigable);
+            if (isMarkedAsNavigable)
+            {
+                locationViz.Setup(x => x.Span).Returns((SnapshotSpan?) null);
+            }
+            else
+            {
+                locationViz.Setup(x => x.Span).Returns(new SnapshotSpan());
+            }
+
+            locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Object)).Returns(isTrulyNavigable);
 
             return locationViz.Object;
         }

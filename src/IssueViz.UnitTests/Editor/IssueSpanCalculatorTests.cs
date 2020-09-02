@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [DataTestMethod]
         [DataRow(100, 1)]
         [DataRow(101, 100)]
-        public void CalculateSpan_IssueStartLineIsOutsideOfSnapshot_ReturnsNull(int issueStartLine, int bufferLineCount)
+        public void CalculateSpan_IssueStartLineIsOutsideOfSnapshot_ReturnsEmptySpan(int issueStartLine, int bufferLineCount)
         {
             // Arrange
             var issue = new DummyAnalysisIssue { StartLine = issueStartLine };
@@ -63,13 +63,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             // Act and assert
             var result = testSubject.CalculateSpan(issue, mockSnapshot.Object);
-            result.Should().BeNull();
+            result.IsEmpty.Should().BeTrue();
 
             checksumCalculatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void CalculateSpan_IssueLineHashIsDifferent_ReturnsNull()
+        public void CalculateSpan_IssueLineHashIsDifferent_ReturnsEmptySpan()
         {
             var issue = new DummyAnalysisIssue { StartLine = 10, LineHash = "some hash" };
 
@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             checksumCalculatorMock.Setup(x => x.Calculate(startLine.Text)).Returns("some other hash");
 
             var result = testSubject.CalculateSpan(issue, mockSnapshot.Object);
-            result.Should().BeNull();
+            result.IsEmpty.Should().BeTrue();
 
             checksumCalculatorMock.VerifyAll();
         }
@@ -127,9 +127,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Value.Start.Position.Should().Be(45); // firstLine.LineStartPosition + issue.StartLineOffset
-            result.Value.End.Position.Should().Be(67); // secondLine.LineStartPosition + issue.EndLineOffset
+            result.IsEmpty.Should().BeFalse();
+            result.Start.Position.Should().Be(45); // firstLine.LineStartPosition + issue.StartLineOffset
+            result.End.Position.Should().Be(67); // secondLine.LineStartPosition + issue.EndLineOffset
         }
 
         [TestMethod]
@@ -171,9 +171,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Value.Start.Position.Should().Be(103); // firstLine.LineStartPosition. Ignore issue.StartLineOffset in this case
-            result.Value.End.Position.Should().Be(137); // firstLine.LineStartPosition +  firstLine.LineLength
+            result.IsEmpty.Should().BeFalse();
+            result.Start.Position.Should().Be(103); // firstLine.LineStartPosition. Ignore issue.StartLineOffset in this case
+            result.End.Position.Should().Be(137); // firstLine.LineStartPosition +  firstLine.LineLength
         }
 
         [TestMethod]
@@ -216,9 +216,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Value.Start.Position.Should().Be(1599); // firstLine.LineStartPosition. Ignore offset because that will take us beyond the end of file
-            result.Value.End.Position.Should().Be(1600); // snapshot length
+            result.IsEmpty.Should().BeFalse();
+            result.Start.Position.Should().Be(1599); // firstLine.LineStartPosition. Ignore offset because that will take us beyond the end of file
+            result.End.Position.Should().Be(1600); // snapshot length
         }
 
         [TestMethod]
@@ -255,9 +255,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
 
             // Assert
-            result.Should().NotBeNull();
-            result.Value.Start.Position.Should().Be(1601); // vsLine.LineStartPosition + issue.StartLineOffset
-            result.Value.End.Position.Should().Be(1602); // snapshot length
+            result.IsEmpty.Should().BeFalse();
+            result.Start.Position.Should().Be(1601); // vsLine.LineStartPosition + issue.StartLineOffset
+            result.End.Position.Should().Be(1602); // snapshot length
         }
 
         [TestMethod]
@@ -287,7 +287,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             // Act
             var result = testSubject.CalculateSpan(issue, textSnapshotMock.Object);
 
-            result.Should().NotBeNull();
+            result.IsEmpty.Should().BeFalse();
 
             checksumCalculatorMock.VerifyNoOtherCalls();
         }
