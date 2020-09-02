@@ -115,6 +115,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Construction_CreateNew_NoLocations_FilesInSnapshotIsSetCorrectly()
+        {
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, "analyzedFilePath.txt", Array.Empty<IssueMarker>());
+            testSubject.FilesInSnapshot.Should().BeEquivalentTo("analyzedFilePath.txt");
+        }
+
+        [TestMethod]
         public void Construction_CreateNew_FilesInSnapshotIsSetCorrectly()
         {
             var marker1 = CreateMarkerWithSpecificsPaths("path1",     // primary location
@@ -127,9 +134,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var markers = new IssueMarker[] { marker1, marker2, marker3 };
 
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, "analyzedFilePath.txt", markers);
 
-            testSubject.FilesInSnapshot.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path5");
+            testSubject.FilesInSnapshot.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path5", "analyzedFilePath.txt");
         }
 
         [TestMethod]
