@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -76,14 +75,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(!isDisposed, "Not expecting GetTags to be called after the tagger has been disposed");
 
-            if (issueMarkers == null)
-            {
-                return Enumerable.Empty<ITagSpan<IErrorTag>>();
-            }
-
-            return issueMarkers
-                .Where(marker => spans.IntersectsWith(marker.Span))
-                .Select(marker => new TagSpan<IErrorTag>(marker.Span, new ErrorTag(PredefinedErrorTypeNames.Warning, marker.Issue.Message)));
+            // TODO: remove this class completely
+            // Tagging will be handled by a different set of classes
+            return Enumerable.Empty<ITagSpan<IErrorTag>>();
         }
     }
 }

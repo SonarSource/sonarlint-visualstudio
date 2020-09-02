@@ -112,36 +112,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockSonarErrorDataSource.Verify(x => x.RemoveFactory(factory), times);
         }
 
-        [TestMethod]
-        public void OnBufferChange_ErrorListIsUpdated()
-        {
-            // Use the test version of the text buffer to bypass the span translation code
-            testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
-
-            var beforeSnapshot = CreateMockTextSnapshot(100, "foo");
-            var afterSnapshot = CreateMockTextSnapshot(100, "bar");
-
-            // Need to register a tagger for the buffer to start listening to buffer change events
-            using (testSubject.CreateTagger())
-            {
-                mockAnalyzerController.Invocations.Clear();
-                mockSonarErrorDataSource.Invocations.Clear();
-
-                var initialSnapshotVersion = testSubject.Factory.CurrentSnapshot.VersionNumber;
-                var initialAnalysisRunId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
-
-                RaiseBufferChangedEvent(mockDocumentTextBuffer, beforeSnapshot.Object, afterSnapshot.Object);
-
-                CheckAnalysisWasNotRequested();
-                CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
-
-                testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
-                testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId);
-            }
-        }
-
         #region Triggering analysis tests
 
         [TestMethod]
@@ -157,26 +127,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                     (IAnalyzerOptions)null /* no expecting any options when a new tagger is added */,
                     It.IsAny<CancellationToken>()), Times.Once);
             }
-        }
-
-        [TestMethod]
-        public void WhenFileRenamed_FileNameIsUpdated_AndAnalysisIsNotRequested()
-        {
-            var initialSnapshotVersion = testSubject.Factory.CurrentSnapshot.VersionNumber;
-            var initialAnalysisRunId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
-
-            // Act
-            RaiseRenameEvent(mockedJavascriptDocumentFooJs, "newPath.js");
-
-            // Assert
-            testSubject.FilePath.Should().Be("newPath.js");
-
-            // Check the snapshot was updated and the error list notified
-            testSubject.Factory.CurrentSnapshot.VersionNumber.Should().Be(initialSnapshotVersion + 1);
-            testSubject.Factory.CurrentSnapshot.AnalysisRunId.Should().Be(initialAnalysisRunId); // Same set of analysis issues
-            CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
-
-            CheckAnalysisWasNotRequested();
         }
 
         [TestMethod]
