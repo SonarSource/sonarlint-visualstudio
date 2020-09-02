@@ -42,11 +42,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var selectionService = componentModel.GetService<IAnalysisIssueSelectionService>();
-            var imageService = serviceProvider.GetService(typeof(SVsImageService)) as IVsImageService2;
             var locationNavigator = componentModel.GetService<ILocationNavigator>();
-            var logger = componentModel.GetService<ILogger>();
 
-            viewModel = new IssueVisualizationViewModel(selectionService, imageService, new RuleHelpLinkProvider(), locationNavigator, logger);
+            var imageService = serviceProvider.GetService(typeof(SVsImageService)) as IVsImageService2;
+            var logger = componentModel.GetService<ILogger>();
+            var fileNameLocationListItemCreator = new FileNameLocationListItemCreator(imageService, logger);
+
+            viewModel = new IssueVisualizationViewModel(selectionService, new RuleHelpLinkProvider(), locationNavigator, fileNameLocationListItemCreator);
             Content = new IssueVisualizationControl(viewModel);
         }
 

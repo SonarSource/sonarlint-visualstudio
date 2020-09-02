@@ -18,20 +18,86 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.CompilerServices;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
-    internal sealed class FileNameLocationListItem : ILocationListItem
+    internal interface IFileNameLocationListItem : ILocationListItem, INotifyPropertyChanged, IDisposable
     {
-        public string FullPath { get; }
-        public string FileName { get; }
-        public object Icon { get; }
+        string FullPath { get; }
+        string FileName { get; }
+        object Icon { get; }
+    }
 
-        public FileNameLocationListItem(string fullPath, string fileName, object icon)
+    internal sealed class FileNameLocationListItem : IFileNameLocationListItem
+    {
+        private readonly IVsImageService2 vsImageService;
+        private readonly ILogger logger;
+        private readonly IAnalysisIssueLocationVisualization location;
+
+        public string FullPath { get; private set; }
+        public string FileName { get; private set; }
+        public object Icon { get; private set; }
+
+        public FileNameLocationListItem(IAnalysisIssueLocationVisualization location, IVsImageService2 vsImageService, ILogger logger)
         {
-            FullPath = fullPath;
-            FileName = fileName;
-            Icon = icon;
+            this.location = location;
+            this.vsImageService = vsImageService;
+            this.logger = logger;
+            location.PropertyChanged += Location_PropertyChanged;
+
+            UpdateState();
+        }
+
+        private void Location_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IAnalysisIssueLocationVisualization.CurrentFilePath))
+            {
+                UpdateState();
+            }
+        }
+
+        private void UpdateState()
+        {
+            FullPath = location.CurrentFilePath;
+            FileName = Path.GetFileName(FullPath);
+            Icon = GetImageMonikerForFile(FullPath);
+
+            NotifyPropertyChanged(string.Empty);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            location.PropertyChanged -= Location_PropertyChanged;
+        }
+
+        private object GetImageMonikerForFile(string filePath)
+        {
+            try
+            {
+                return vsImageService.GetImageMonikerForFile(filePath);
+            }
+            catch (Exception e) when (!ErrorHandler.IsCriticalException(e))
+            {
+                logger.WriteLine(Resources.ERR_FailedToGetFileImageMoniker, filePath, e);
+
+                return KnownMonikers.Blank;
+            }
         }
     }
 }

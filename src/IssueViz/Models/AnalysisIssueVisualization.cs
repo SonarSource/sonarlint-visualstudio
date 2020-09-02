@@ -19,6 +19,8 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 
@@ -33,17 +35,48 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
     internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
     {
+        private string currentFilePath;
+        private bool isNavigable;
+
         public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssue issue)
         {
             Flows = flows;
             Issue = issue;
+            IsNavigable = true;
+            CurrentFilePath = issue.FilePath;
         }
 
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
         public IAnalysisIssue Issue { get; }
         public int StepNumber => 0;
-        public bool IsNavigable { get; set; }
         public IAnalysisIssueLocation Location => Issue;
         public SnapshotSpan? Span { get; set; }
+
+        public string CurrentFilePath
+        {
+            get => currentFilePath;
+            set
+            {
+                currentFilePath = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public bool IsNavigable
+        {
+            get => isNavigable;
+            set
+            {
+                isNavigable = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
