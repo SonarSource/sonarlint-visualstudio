@@ -32,13 +32,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// Returns the text span corresponding to the supplied analysis issue location.
         /// Returns null if the location line hash is different from the snapshot line hash
         /// </summary>
-        SnapshotSpan? CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
+        SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot);
     }
 
     [Export(typeof(IIssueSpanCalculator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class IssueSpanCalculator : IIssueSpanCalculator
     {
+        private static SnapshotSpan EmptySpan { get; } = new SnapshotSpan();
+
         private readonly IChecksumCalculator checksumCalculator;
 
         public IssueSpanCalculator()
@@ -51,13 +53,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public SnapshotSpan? CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot)
+        public SnapshotSpan CalculateSpan(IAnalysisIssueLocation location, ITextSnapshot currentSnapshot)
         {
             if (location.StartLine > currentSnapshot.LineCount)
             {
                 // Race condition: the line reported in the diagnostic is beyond the end of the file, so presumably
                 // the file has been edited while the analysis was being executed
-                return null;
+                return EmptySpan;
             }
 
             // SonarLint issues line numbers are 1-based, spans lines are 0-based
@@ -66,7 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             if (IsLineHashDifferent(location, startLine))
             {
                 // Out of sync: the line reported in the diagnostic has been edited, so we can no longer calculate the span
-                return null;
+                return EmptySpan;
             }
 
             var maxLength = currentSnapshot.Length;

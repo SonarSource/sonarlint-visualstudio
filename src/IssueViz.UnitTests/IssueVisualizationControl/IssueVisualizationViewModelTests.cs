@@ -574,21 +574,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void SelectionService_OnLocationChanged_NewLocationIsNotNull_NavigabilityUpdated(bool navigationSucceeded)
+        public void SelectionService_OnLocationChanged_NewLocationIsNotNull_NavigationToLocation()
         {
             var locationViz = CreateMockLocation("c:\\test\\c1.c");
-            locationViz.IsNavigable = !navigationSucceeded;
-
-            locationNavigatorMock.Setup(x => x.TryNavigate(locationViz.Location)).Returns(navigationSucceeded);
 
             var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
             selectedFlow.Setup(x => x.Locations).Returns(new[] {locationViz});
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object, locationViz);
 
-            locationViz.IsNavigable.Should().Be(navigationSucceeded);
+            locationNavigatorMock.Verify(x => x.TryNavigate(locationViz), Times.Once);
         }
 
         #endregion
@@ -644,7 +639,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
             locationViz.Setup(x => x.Location).Returns(Mock.Of<IAnalysisIssueLocation>());
             locationViz.Setup(x => x.CurrentFilePath).Returns(filePath);
-            locationViz.SetupProperty(x => x.IsNavigable);
 
             return locationViz.Object;
         }

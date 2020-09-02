@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 return;
             }
 
-            locationVisualization.IsNavigable = locationNavigator.TryNavigate(locationVisualization.Location);
+            locationNavigator.TryNavigate(locationVisualization);
         }
 
         private void UpdateLocationsList()
