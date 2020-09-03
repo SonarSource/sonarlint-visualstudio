@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         private readonly IIssueSpanCalculator spanCalculator;
         private readonly ILogger logger;
 
-        internal /* for testing */ IList<ITagSpan<IIssueLocationTag>> locationTagSpans;
+        internal /* for testing */ IList<ITagSpan<IIssueLocationTag>> TagSpans { get; private set; }
 
         public LocationTagger(ITextBuffer buffer, IIssueLocationStore locationService, IIssueSpanCalculator spanCalculator, ILogger logger)
         {
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             var locations = locationService.GetLocations(FilePath);
             EnsureSpansExist(locations, textSnapshot);
 
-            locationTagSpans = locations.Select(CreateTagSpan).ToList();
+            TagSpans = locations.Select(CreateTagSpan).ToList();
 
             // Notify the editor that our set of tags has changed
             var wholeSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
@@ -111,16 +111,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
         public IEnumerable<ITagSpan<IIssueLocationTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
-            if (spans.Count == 0 || locationTagSpans.Count == 0) { yield break; }
+            if (spans.Count == 0 || TagSpans.Count == 0) { yield break; }
 
             // If the requested snapshot isn't the same as our tags are on, translate our spans to the expected snapshot 
-            if (spans[0].Snapshot != locationTagSpans[0].Span.Snapshot)
+            if (spans[0].Snapshot != TagSpans[0].Span.Snapshot)
             {
                 TranslateTagSpans(spans[0].Snapshot);
             }
 
             // Find any tags in that overlap with that range
-            foreach (var tagSpan in locationTagSpans)
+            foreach (var tagSpan in TagSpans)
             {
                 if (OverlapsExists(tagSpan.Span, spans))
                 {
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         {
             var translatedTagSpans = new List<ITagSpan<IIssueLocationTag>>();
 
-            foreach (var old in locationTagSpans)
+            foreach (var old in TagSpans)
             {
                 var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
                 old.Tag.Location.Span = newSpan; // update the span stored in the location visualization 
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
             }
 
-            locationTagSpans = translatedTagSpans;
+            TagSpans = translatedTagSpans;
         }
 
         private static bool OverlapsExists(Span span, NormalizedSnapshotSpanCollection spans) =>
