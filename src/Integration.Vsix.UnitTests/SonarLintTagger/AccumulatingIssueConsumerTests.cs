@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     {
         private static readonly IAnalysisIssue ValidIssue = CreateIssue(startLine: 1, endline: 1);
         private static readonly ITextSnapshot ValidTextSnapshot = CreateSnapshot(lineCount: 10);
-        private static readonly IIssueToIssueMarkerConverter ValidConverter = Mock.Of<IIssueToIssueMarkerConverter>();
+        private static readonly IAnalysisIssueVisualizationConverter ValidConverter = Mock.Of<IAnalysisIssueVisualizationConverter>();
 
         private const string ValidFilePath = "c:\\myfile.txt";
 
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("onIssuesChangedCallback");
 
             act = () => new AccumulatingIssueConsumer(ValidTextSnapshot, ValidFilePath, validCallback, null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueMarkerConverter");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueToIssueVisualizationConverter");
         }
 
         [TestMethod]
@@ -178,12 +178,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 Message = "any message"
             };
 
-        private static IIssueToIssueMarkerConverter CreatePassthroughConverter()
+        private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
         {
             // Set up an issue converter that just wraps and returns the supplied issues as IssueMarkers
-            var mockIssueConverter = new Mock<IIssueToIssueMarkerConverter>();
-            mockIssueConverter.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
+            var mockIssueConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            mockIssueConverter
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
                 .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => CreateIssueViz(issue, new SnapshotSpan()));
+            
             return mockIssueConverter.Object;
 
             IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)

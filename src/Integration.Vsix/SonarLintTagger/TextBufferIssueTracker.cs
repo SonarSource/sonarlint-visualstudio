@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
-        private readonly IIssueToIssueMarkerConverter converter;
+        private readonly IAnalysisIssueVisualizationConverter converter;
 
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, IIssueToIssueMarkerConverter converter, ILogger logger)
+            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, ILogger logger)
         {
             this.dte = dte;
 

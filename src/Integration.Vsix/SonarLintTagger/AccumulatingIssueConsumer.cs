@@ -64,20 +64,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         // See bug #1487: this text snapshot should match the content of the file being analysed
         private readonly ITextSnapshot analysisSnapshot;
-        private readonly IIssueToIssueMarkerConverter issueMarkerConverter;
+        private readonly IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter;
         private readonly List<IAnalysisIssueVisualization> allIssueMarkers;
         private readonly string analysisFilePath;
         private readonly OnIssuesChanged onIssuesChanged;
 
         public delegate void OnIssuesChanged(IEnumerable<IAnalysisIssueVisualization> issueMarkers);
 
-        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IIssueToIssueMarkerConverter issueMarkerConverter)
+        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
         {
             this.analysisSnapshot = analysisSnapshot ?? throw new ArgumentNullException(nameof(analysisSnapshot));
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
             this.onIssuesChanged = onIssuesChangedCallback ?? throw new ArgumentNullException(nameof(onIssuesChangedCallback));
-
-            this.issueMarkerConverter = issueMarkerConverter ?? throw new ArgumentNullException(nameof(issueMarkerConverter));
+            this.issueToIssueVisualizationConverter = issueToIssueVisualizationConverter ?? throw new ArgumentNullException(nameof(issueToIssueVisualizationConverter));
 
             allIssueMarkers = new List<IAnalysisIssueVisualization>();
         }
@@ -95,7 +94,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             var newMarkers = issues
                 .Where(IsIssueInAnalysisSnapshot)
-                .Select(x => issueMarkerConverter.Convert(x, analysisSnapshot))
+                .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
                 .ToArray();
 
             allIssueMarkers.AddRange(newMarkers);

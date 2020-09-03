@@ -22,13 +22,15 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
     public interface IAnalysisIssueVisualizationConverter
     {
-        IAnalysisIssueVisualization Convert(IAnalysisIssue issue);
+        IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
     }
 
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
@@ -37,11 +39,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     {
         private static readonly IReadOnlyList<IAnalysisIssueFlowVisualization> EmptyConvertedFlows = Array.Empty<IAnalysisIssueFlowVisualization>();
 
-        public IAnalysisIssueVisualization Convert(IAnalysisIssue issue)
+        private readonly IIssueSpanCalculator issueSpanCalculator;
+
+        [ImportingConstructor]
+        public AnalysisIssueVisualizationConverter(IIssueSpanCalculator issueSpanCalculator)
         {
+            this.issueSpanCalculator = issueSpanCalculator;
+        }
+
+        public IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot)
+        {
+            var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
+
+            if (span.IsEmpty)
+            {
+                return null;
+            }
+
             var flows = Convert(issue.Flows);
 
-            return new AnalysisIssueVisualization(flows, issue);
+            var issueVisualization = new AnalysisIssueVisualization(flows, issue, span);
+
+            return issueVisualization;
         }
 
         private IReadOnlyList<IAnalysisIssueFlowVisualization> Convert(IEnumerable<IAnalysisIssueFlow> flows)

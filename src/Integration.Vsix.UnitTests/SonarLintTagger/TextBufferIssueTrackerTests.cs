@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             logger = new TestLogger();
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
         }
 
         [TestMethod]
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
 
             var originalId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
 
@@ -427,7 +427,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 .Callback((string file, Action<CancellationToken> analyze, int timeout) => analyze(CancellationToken.None));
 
             var provider = new TaggerProvider(mockSonarErrorDataSource.Object, textDocFactoryServiceMock.Object, issuesFilter.Object, mockAnalyzerController.Object,
-                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, Mock.Of<IIssueToIssueMarkerConverter>(), logger, mockAnalysisScheduler.Object);
+                serviceProvider, languageRecognizer, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger, mockAnalysisScheduler.Object);
             return provider;
         }
 
@@ -478,7 +478,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
                 IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-                ISonarErrorListDataSource sonarErrorDataSource, IIssueToIssueMarkerConverter converter, ILogger logger)
+                ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, ILogger logger)
                 : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger)
             { }
 

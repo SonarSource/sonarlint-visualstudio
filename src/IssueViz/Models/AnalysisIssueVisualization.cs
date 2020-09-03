@@ -39,11 +39,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         private string currentFilePath;
         private SnapshotSpan? span;
 
-        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssue issue)
+        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssue issue, SnapshotSpan span)
         {
             Flows = flows;
             Issue = issue;
             CurrentFilePath = issue.FilePath;
+            Span = span;
         }
 
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
