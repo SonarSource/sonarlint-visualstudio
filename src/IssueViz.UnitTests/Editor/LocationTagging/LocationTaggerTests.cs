@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
 
             var newSpan = CreateUniqueSpan();
             var calculatorMock = new Mock<IIssueSpanCalculator>();
-            calculatorMock.Setup(x => x.CalculateSpan(It.IsAny<IAnalysisIssueLocation>(), It.IsAny<ITextSnapshot>())).Returns(newSpan);
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location, It.IsAny<ITextSnapshot>())).Returns(newSpan);
 
             var testSubject = new LocationTagger(ValidBuffer, storeMock.Object, calculatorMock.Object, ValidLogger);
 
@@ -113,13 +113,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var storeMock = new Mock<IIssueLocationStore>();
             var testSubject = new LocationTagger(ValidBuffer, storeMock.Object, ValidSpanCalculator, ValidLogger);
             var initialTags = testSubject.TagSpans;
+            initialTags.Should().NotBeNull(); // sanity check
 
-            SnapshotSpanEventArgs actualTagsChangedArgs = null;
-            testSubject.TagsChanged += (senders, args) => actualTagsChangedArgs = args;
+            var eventCount = 0;
+            testSubject.TagsChanged += (senders, args) => eventCount++;
 
             RaiseIssuesChangedEvent(storeMock, "not the file being tracked.txt");
 
-            actualTagsChangedArgs.Should().BeNull();
+            eventCount.Should().Be(0);
             testSubject.TagSpans.Should().BeSameAs(initialTags);
         }
 

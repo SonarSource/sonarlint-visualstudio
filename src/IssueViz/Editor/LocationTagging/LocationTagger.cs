@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
     // Buffer tagger for Sonar issue locations
     // * adds location tags for primary and secondary locations for a file
     // * tracks buffer edits, re-calculate spans, and notifies the issues location store about the changes
-    internal class LocationTagger : ITagger<IIssueLocationTag>, IDisposable
+    internal sealed class LocationTagger : ITagger<IIssueLocationTag>, IDisposable
     {
         private readonly ITextBuffer buffer;
         private readonly IIssueLocationStore locationService;
@@ -77,14 +77,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
             TagSpans = locations.Select(CreateTagSpan).ToList();
 
-            // Notify the editor that our set of tags has changed
-            var wholeSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(wholeSpan));
+            NotifyTagsChanged(textSnapshot);
         }
 
         private void EnsureSpansExist(IEnumerable<IAnalysisIssueLocationVisualization> locVizs, ITextSnapshot currentSnapshot)
         {
-            // All spans for issues in the primary file should have been calculated already (whether primary or secondary).
+            // All spans for issues in the this file should have been calculated when the file was analysed (whether primary or secondary).
             // However, there could be secondary locations relating to issues in other files that have not been calculated.
             foreach (var locViz in locVizs)
             {
@@ -168,13 +166,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 TranslateTagSpans(newTextSnapshot);
                 locationService.Refresh(new string[] { FilePath });
 
-                var wholeSpan = new SnapshotSpan(newTextSnapshot, 0, newTextSnapshot.Length);
-                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(wholeSpan));
+                NotifyTagsChanged(newTextSnapshot);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Resources.ERR_HandlingBufferChange, ex.Message);
             }
+        }
+
+        private void NotifyTagsChanged(ITextSnapshot newTextSnapshot)
+        {
+            // Notify the editor that our set of tags has changed
+            var wholeSpan = new SnapshotSpan(newTextSnapshot, 0, newTextSnapshot.Length);
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(wholeSpan));
         }
 
         #endregion
