@@ -39,19 +39,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public delegate void OnTaggerDisposed(IssueTagger issueTagger);
 
-        private IEnumerable<IAnalysisIssueVisualization> issueMarkers;
+        private IEnumerable<IAnalysisIssueVisualization> issues;
         private readonly OnTaggerDisposed onTaggerDisposed;
         private bool isDisposed;
 
-        public IssueTagger(IEnumerable<IAnalysisIssueVisualization> issueMarkers, OnTaggerDisposed onTaggerDisposed)
+        public IssueTagger(IEnumerable<IAnalysisIssueVisualization> issues, OnTaggerDisposed onTaggerDisposed)
         {
-            this.issueMarkers = issueMarkers;
+            this.issues = issues;
             this.onTaggerDisposed = onTaggerDisposed;
         }
 
-        public void UpdateMarkers(IEnumerable<IAnalysisIssueVisualization> newMarkers, SnapshotSpan? affectedSpan)
+        public void UpdateIssues(IEnumerable<IAnalysisIssueVisualization> newIssues, SnapshotSpan? affectedSpan)
         {
-            issueMarkers = newMarkers;
+            issues = newIssues;
 
             var handler = this.TagsChanged;
             if (handler != null && affectedSpan.HasValue)

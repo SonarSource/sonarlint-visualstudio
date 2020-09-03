@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             }
             else
             {
-                callbackSpy.LastSuppliedMarkers.Should().BeEmpty();
+                callbackSpy.LastSuppliedIssueVisualizations.Should().BeEmpty();
             }
         }
 
@@ -147,19 +147,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private class OnIssuesChangedCallbackSpy
         {
             public int CallCount { get; private set; }
-            public IList<IAnalysisIssueVisualization> LastSuppliedMarkers { get; private set; }
+            public IList<IAnalysisIssueVisualization> LastSuppliedIssueVisualizations { get; private set; }
             public IList<IAnalysisIssue> LastSuppliedIssues
             {
                 get
                 {
-                    return LastSuppliedMarkers?.Select(x => x.Issue).ToList();
+                    return LastSuppliedIssueVisualizations?.Select(x => x.Issue).ToList();
                 }
             }
 
-            public void Callback(IEnumerable<IAnalysisIssueVisualization> issueMarkers)
+            public void Callback(IEnumerable<IAnalysisIssueVisualization> issues)
             {
                 CallCount++;
-                LastSuppliedMarkers = issueMarkers?.ToList();
+                LastSuppliedIssueVisualizations = issues?.ToList();
             }
         }
 
@@ -180,7 +180,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
         private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
         {
-            // Set up an issue converter that just wraps and returns the supplied issues as IssueMarkers
+            // Set up an issue converter that just wraps and returns the supplied issues as IssueVisualizations
             var mockIssueConverter = new Mock<IAnalysisIssueVisualizationConverter>();
             mockIssueConverter
                 .Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))

@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IssueTagger CreateTagger()
         {
-            var tagger = new IssueTagger(this.Factory.CurrentSnapshot.IssueMarkers, RemoveTagger);
+            var tagger = new IssueTagger(this.Factory.CurrentSnapshot.Issues, RemoveTagger);
             this.AddTagger(tagger);
 
             return tagger;
@@ -142,9 +142,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        protected virtual /* for testing */ IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issueMarkers, ITextSnapshot activeSnapshot)
+        protected virtual /* for testing */ IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
         {
-            var newMarkers = issueMarkers
+            var issuesWithTranslatedSpans = issues
                 .Where(x => x.Span.HasValue)
                 .Select(x =>
                 {
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 .Where(x => x.Span.HasValue)
                 .ToArray();
 
-            return newMarkers;
+            return issuesWithTranslatedSpans;
         }
 
         private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
@@ -181,16 +181,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 
-        internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issueMarkers)
+        internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
         {
-            var filteredMarkers = RemoveSuppressedIssues(issueMarkers);
+            var filteredIssues = RemoveSuppressedIssues(issues);
 
             // The text buffer might have changed since the analysis was triggered, so translate
             // all issues to the current snapshot.
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
-            var translatedMarkers = TranslateSpans(filteredMarkers, textBuffer.CurrentSnapshot);
+            var translatedIssues = TranslateSpans(filteredIssues, textBuffer.CurrentSnapshot);
 
-            var newSnapshot = IssuesSnapshot.CreateNew(GetProjectName(), FilePath, translatedMarkers);
+            var newSnapshot = IssuesSnapshot.CreateNew(GetProjectName(), FilePath, translatedIssues);
             SnapToNewSnapshot(newSnapshot);
         }
 

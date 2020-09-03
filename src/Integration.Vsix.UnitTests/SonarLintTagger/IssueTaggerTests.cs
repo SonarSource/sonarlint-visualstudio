@@ -35,43 +35,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     {
         private static readonly ITextSnapshot ValidTextSnapshot = Mock.Of<ITextSnapshot>();
         private static readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan(ValidTextSnapshot, 0, 0);
-        private static readonly IEnumerable<IAnalysisIssueVisualization> ValidMarkerList = new[] { CreateIssueViz(ValidSnapshotSpan) };
+        private static readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssueViz(ValidSnapshotSpan) };
 
         [TestMethod]
-        public void UpdateMarkers_NoSpan_EventNotRaised()
+        public void UpdateIssues_NoSpan_EventNotRaised()
         {
             var testSubject = new IssueTagger(null, null);
 
             var eventRaised = false;
             testSubject.TagsChanged += (sender, e) => eventRaised = true;
 
-            testSubject.UpdateMarkers(ValidMarkerList, null);
+            testSubject.UpdateIssues(ValidIssueList, null);
 
             eventRaised.Should().BeFalse();
         }
 
         [TestMethod]
-        public void UpdateMarkers_NoIssues_EventRaised()
+        public void UpdateIssues_NoIssues_EventRaised()
         {
-            var testSubject = new IssueTagger(ValidMarkerList, null);
+            var testSubject = new IssueTagger(ValidIssueList, null);
 
             var eventRaised = false;
             testSubject.TagsChanged += (sender, e) => eventRaised = true;
 
-            testSubject.UpdateMarkers(null, ValidSnapshotSpan);
+            testSubject.UpdateIssues(null, ValidSnapshotSpan);
 
             eventRaised.Should().BeTrue();
         }
 
         [TestMethod]
-        public void UpdateMarkers_ValidIssuesAndSpan_EventRaised()
+        public void UpdateIssues_ValidIssuesAndSpan_EventRaised()
         {
             var testSubject = new IssueTagger(null, null);
 
             var eventRaised = false;
             testSubject.TagsChanged += (sender, e) => eventRaised = true;
 
-            testSubject.UpdateMarkers(ValidMarkerList, ValidSnapshotSpan);
+            testSubject.UpdateIssues(ValidIssueList, ValidSnapshotSpan);
 
             eventRaised.Should().BeTrue();
         }

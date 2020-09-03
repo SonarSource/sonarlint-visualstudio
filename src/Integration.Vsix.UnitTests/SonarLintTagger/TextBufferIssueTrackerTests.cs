@@ -234,13 +234,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var inputIssues = new[]
             {
-                CreateIssueMarker("S111", startLine: 1, endLine: 1),
-                CreateIssueMarker("S222", startLine: 2, endLine: 2)
+                CreateIssue("S111", startLine: 1, endLine: 1),
+                CreateIssue("S222", startLine: 2, endLine: 2)
             };
 
             var issuesToReturnFromFilter = new[]
             {
-                CreateIssueMarker("xxx", startLine: 3, endLine: 3)
+                CreateIssue("xxx", startLine: 3, endLine: 3)
             };
 
             SetupIssuesFilter(out var issuesPassedToFilter, issuesToReturnFromFilter);
@@ -259,15 +259,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
             // Check the post-filter issues
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(1);
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.First().Issue.RuleKey.Should().Be("xxx");
+            testSubject.Factory.CurrentSnapshot.Issues.Count().Should().Be(1);
+            testSubject.Factory.CurrentSnapshot.Issues.First().Issue.RuleKey.Should().Be("xxx");
         }
 
         [TestMethod]
         public void WhenNewIssuesAreFound_AndFilterRemovesAllIssues_ListenersAreUpdated()
         {
             // Arrange
-            var filteredIssue = CreateIssueMarker("single issue", startLine: 1, endLine: 1);
+            var filteredIssue = CreateIssue("single issue", startLine: 1, endLine: 1);
 
             var issuesToReturnFromFilter = Enumerable.Empty<IAnalysisIssueVisualization>();
             SetupIssuesFilter(out var capturedFilterInput, issuesToReturnFromFilter);
@@ -282,8 +282,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
-            // Check there are no markers
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
+            // Check there are no issues
+            testSubject.Factory.CurrentSnapshot.Issues.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -300,7 +300,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             CheckErrorListRefreshWasRequestedOnce(testSubject.Factory);
 
-            testSubject.Factory.CurrentSnapshot.IssueMarkers.Count().Should().Be(0);
+            testSubject.Factory.CurrentSnapshot.Issues.Count().Should().Be(0);
         }
 
         private void SetupIssuesFilter(out IList<IFilterableIssue> capturedFilterInput,
@@ -318,7 +318,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(factory), Times.Once);
         }
 
-        private static IAnalysisIssueVisualization CreateIssueMarker(string ruleKey, int startLine, int endLine)
+        private static IAnalysisIssueVisualization CreateIssue(string ruleKey, int startLine, int endLine)
         {
             var issue = new DummyAnalysisIssue
             {
@@ -482,10 +482,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger)
             { }
 
-            protected override IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issueMarkers, ITextSnapshot activeSnapshot)
+            protected override IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
             {
-                // Just pass-through the supplied markers
-                return issueMarkers;
+                // Just pass-through the supplied issues
+                return issues;
             }
         }
     }

@@ -37,26 +37,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const int IndexOf_NotFoundResult = -1;
         private const string ValidProjectName = "aproject";
         private const string ValidFilePath = "c:\\file.txt";
-        private readonly IEnumerable<IAnalysisIssueVisualization> ValidMarkerList = new[] { CreateMarker() };
+        private readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssue() };
 
         [TestMethod]
         public void Construction_CreateNew_SetsProperties()
         {
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
 
             testSubject.AnalysisRunId.Should().NotBe(Guid.Empty);
             testSubject.VersionNumber.Should().BeGreaterOrEqualTo(0);
             GetProjectName(testSubject).Should().BeEquivalentTo(ValidProjectName);
             GetFilePath(testSubject).Should().BeEquivalentTo(ValidFilePath);
-            testSubject.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
+            testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
 
 
         [TestMethod]
         public void Construction_CreateNew_SetsUniqueId()
         {
-            var snapshot1 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
-            var snapshot2 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var snapshot1 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
+            var snapshot2 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
 
             snapshot1.AnalysisRunId.Should().NotBe(snapshot2.AnalysisRunId);
             snapshot2.VersionNumber.Should().BeGreaterThan(snapshot1.VersionNumber);
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Construction_UpdateFilePath_PreservesIdAndUpdatesVersion()
         {
-            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
             var revised = original.CreateUpdatedSnapshot("new path");
 
             revised.AnalysisRunId.Should().Be(original.AnalysisRunId);
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             GetFilePath(revised).Should().Be("new path");
 
             // Other properties
-            revised.IssueMarkers.Should().BeEquivalentTo(original.IssueMarkers);
+            revised.Issues.Should().BeEquivalentTo(original.Issues);
             GetProjectName(revised).Should().Be(GetProjectName(original));
         }
 
@@ -82,8 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Construction_UpdateIssues_PreservesIdAndUpdatesVersion()
         {
             // Both snapshots must have same number of issues for this test case
-            var originalIssues = new[] { CreateMarker("hash1") };
-            var newIssues = new[] { CreateMarker("hash2") };
+            var originalIssues = new[] { CreateIssue("hash1") };
+            var newIssues = new[] { CreateIssue("hash2") };
 
             // Sanity check
             originalIssues.Should().NotBeEquivalentTo(newIssues);
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             revised.AnalysisRunId.Should().Be(original.AnalysisRunId);
             revised.VersionNumber.Should().BeGreaterThan(original.VersionNumber);
-            revised.IssueMarkers.Should().BeEquivalentTo(newIssues);
+            revised.Issues.Should().BeEquivalentTo(newIssues);
 
             // Unchanged
             GetProjectName(revised).Should().Be(GetProjectName(original));
@@ -103,15 +103,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Construction_ReviseIssues_NumberOfIssuesChanged_Throws()
         {
-            var originalIssues = new[] { CreateMarker(), CreateMarker() };
-            var newIssues = new[] { CreateMarker() };
+            var originalIssues = new[] { CreateIssue(), CreateIssue() };
+            var newIssues = new[] { CreateIssue() };
 
             var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, originalIssues);
 
             Action act = () => original.CreateUpdatedSnapshot(newIssues);
 
             act.Should().ThrowExactly<ArgumentException>()
-                .And.ParamName.Should().Be("updatedIssueMarkers");
+                .And.ParamName.Should().Be("updatedIssues");
         }
 
         [TestMethod]
@@ -124,17 +124,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Construction_CreateNew_FilesInSnapshotIsSetCorrectly()
         {
-            var marker1 = CreateMarkerWithSpecificsPaths("path1",     // primary location
+            var issue1 = CreateIssueWithSpecificsPaths("path1",     // primary location
                 CreateFlowViz("path2"),                     // flow with one secondary location
                 CreateFlowViz("path3", "path4", "PATH1"));  // flow with multiple secondary locations, including one duplicate in a different case
 
-            var marker2 = CreateMarkerWithSpecificsPaths("path5");    // new primary location, no flows
+            var issue2 = CreateIssueWithSpecificsPaths("path5");    // new primary location, no flows
 
-            var marker3 = CreateMarkerWithSpecificsPaths("path2");    // duplicate primary location, no flows
+            var issue3 = CreateIssueWithSpecificsPaths("path2");    // duplicate primary location, no flows
 
-            var markers = new[] { marker1, marker2, marker3 };
+            var issues = new[] { issue1, issue2, issue3 };
 
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, "analyzedFilePath.txt", markers);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, "analyzedFilePath.txt", issues);
 
             testSubject.FilesInSnapshot.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path5", "analyzedFilePath.txt");
         }
@@ -142,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IndexOf_SameSnapshotId_ReturnExpectedIndex()
         {
-            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
             var revised = original.CreateUpdatedSnapshot("unimportant change");
 
             // Should be able to map issues between two snapshots with the same snapshot id
@@ -153,8 +153,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IndexOf_DifferentSnapshotId_ReturnMinusOne()
         {
-            var snapshot1 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
-            var snapshot2 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var snapshot1 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
+            var snapshot2 = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
 
             // Should not be able to map issues between two snapshots with different snapshot ids
             snapshot1.IndexOf(999, snapshot2)
@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void IndexOf_NotAnIssuesSnapshot_ReturnsMinusOne()
         {
-            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidMarkerList);
+            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, ValidIssueList);
 
             original.IndexOf(999, Mock.Of<ITableEntriesSnapshot>())
                 .Should().Be(IndexOf_NotFoundResult);
@@ -173,10 +173,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetLocationsVizForFile_NoMatches_ReturnsEmpty()
         {
-            var marker1 = CreateMarkerWithSpecificsPaths("path1.txt");
-            var markers = new IAnalysisIssueVisualization[] { marker1 };
+            var issue1 = CreateIssueWithSpecificsPaths("path1.txt");
+            var issues = new[] { issue1 };
 
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, issues);
 
             var actual = testSubject.GetLocationsVizsForFile("xxx");
 
@@ -186,16 +186,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetLocationsVizForFile_MatchesInPrimaryLocations_ReturnsExpected()
         {
-            var marker1 = CreateMarkerWithSpecificsPaths("path1.txt");
-            var marker2 = CreateMarkerWithSpecificsPaths("XXX.txt");
-            var marker3 = CreateMarkerWithSpecificsPaths("path1.txt");
-            var markers = new[] { marker1, marker2, marker3 };
+            var issue1 = CreateIssueWithSpecificsPaths("path1.txt");
+            var issue2 = CreateIssueWithSpecificsPaths("XXX.txt");
+            var issue3 = CreateIssueWithSpecificsPaths("path1.txt");
+            var issues = new[] { issue1, issue2, issue3 };
 
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, issues);
 
             var actual = testSubject.GetLocationsVizsForFile("path1.txt");
 
-            actual.Should().BeEquivalentTo(marker1, marker3);
+            actual.Should().BeEquivalentTo(issue1, issue3);
         }
 
         [TestMethod]
@@ -205,10 +205,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var flow2 = CreateFlowViz("miss.txt", "Match.txt");
             var flow3 = CreateFlowViz("another miss.txt");
 
-            var marker1 = CreateMarkerWithSpecificsPaths("path1.txt", flow1, flow2, flow3);
-            var markers = new[] { marker1 };
+            var issue1 = CreateIssueWithSpecificsPaths("path1.txt", flow1, flow2, flow3);
+            var issues = new[] { issue1 };
 
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, markers);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, issues);
 
             var actual = testSubject.GetLocationsVizsForFile("match.txt");
 
@@ -216,9 +216,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IncrementVersion_VersionIncrement_AnalysisIdAndMarkersUnchanged()
+        public void IncrementVersion_VersionIncrement_AnalysisIdAndIssuesUnchanged()
         {
-            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidProjectName, ValidMarkerList);
+            var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, ValidProjectName, ValidIssueList);
             var originalVersion = testSubject.VersionNumber;
             var originalRunId = testSubject.AnalysisRunId;
 
@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
             testSubject.AnalysisRunId.Should().Be(originalRunId);
-            testSubject.IssueMarkers.Should().BeEquivalentTo(ValidMarkerList);
+            testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
 
         private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
@@ -244,10 +244,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return (T)content;
         }
 
-        private static IAnalysisIssueVisualization CreateMarker(string ruleKey = "rule key") =>
+        private static IAnalysisIssueVisualization CreateIssue(string ruleKey = "rule key") =>
             CreateIssueViz(new SnapshotSpan(), new DummyAnalysisIssue {RuleKey = ruleKey});
 
-        private static IAnalysisIssueVisualization CreateMarkerWithSpecificsPaths(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
+        private static IAnalysisIssueVisualization CreateIssueWithSpecificsPaths(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
             CreateIssueViz(new SnapshotSpan(), new DummyAnalysisIssue { FilePath = primaryFilePath }, flowVizs);
 
         private static IAnalysisIssueVisualization CreateIssueViz(SnapshotSpan span, IAnalysisIssue issue, params IAnalysisIssueFlowVisualization[] flowVizs)

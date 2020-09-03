@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// The list of issues returned by the analyzer run
         /// </summary>
-        IEnumerable<IAnalysisIssueVisualization> IssueMarkers { get; }
+        IEnumerable<IAnalysisIssueVisualization> Issues { get; }
 
         /// <summary>
         /// Returns the set of files for which this snapshot contains location information (primary and secondary)
@@ -80,8 +80,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
-        private readonly IList<IAnalysisIssueVisualization> issueMarkers;
-        private readonly IReadOnlyCollection<IAnalysisIssueVisualization> readonlyIssueMarkers;
+        private readonly IList<IAnalysisIssueVisualization> issues;
+        private readonly IReadOnlyCollection<IAnalysisIssueVisualization> readonlyIssues;
 
         private int versionNumber;
 
@@ -96,37 +96,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
         /// </summary>
-        public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issueMarkers) =>
-            new IssuesSnapshot(Guid.NewGuid(), projectName, filePath, issueMarkers);
+        public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues) =>
+            new IssuesSnapshot(Guid.NewGuid(), projectName, filePath, issues);
 
         /// <summary>
         /// Create and return an updated version of an existing snapshot, where the
         /// issues are the same but the source file has been renamed
         /// </summary>
         public IssuesSnapshot CreateUpdatedSnapshot(string newFilePath) =>
-            new IssuesSnapshot(AnalysisRunId, projectName, newFilePath, issueMarkers);
+            new IssuesSnapshot(AnalysisRunId, projectName, newFilePath, issues);
 
         /// <summary>
         /// Create and return an updated version of an existing snapshot, where the
         /// set of issues are the same but their locations have changed (by the user editing the file)
         /// </summary>
         /// <remarks>The number and ordering of issues must be the same</remarks>
-        public IssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IAnalysisIssueVisualization> updatedIssueMarkers)
+        public IssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IAnalysisIssueVisualization> updatedIssues)
         {
-            if (updatedIssueMarkers.Count() != IssueMarkers.Count())
+            if (updatedIssues.Count() != Issues.Count())
             {
-                throw new ArgumentException("Number of issues should not change when updating a snapshot", nameof(updatedIssueMarkers));
+                throw new ArgumentException("Number of issues should not change when updating a snapshot", nameof(updatedIssues));
             }
 
-            return new IssuesSnapshot(AnalysisRunId, projectName, filePath, updatedIssueMarkers);
+            return new IssuesSnapshot(AnalysisRunId, projectName, filePath, updatedIssues);
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issueMarkers)
-            : this(snapshotId, projectName, filePath, issueMarkers,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
+        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+            : this(snapshotId, projectName, filePath, issues,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.AnalysisRunId = snapshotId;
             this.projectName = projectName;
@@ -134,8 +134,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
-            this.issueMarkers = new List<IAnalysisIssueVisualization>(issueMarkers);
-            this.readonlyIssueMarkers = new ReadOnlyCollection<IAnalysisIssueVisualization>(this.issueMarkers);
+            this.issues = new List<IAnalysisIssueVisualization>(issues);
+            this.readonlyIssues = new ReadOnlyCollection<IAnalysisIssueVisualization>(this.issues);
 
             // Optimistation:
             // Most rules only have a single location, and most multi-location rules only produce locations
@@ -144,20 +144,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // any of the issues have secondary locations that the tagger needs to handle.
             // This optimisation gives the tagger a quick way to check that it does not need to do any work
             // i.e. if the file handled by the tagger is not in the list, do nothing.
-            this.FilesInSnapshot = CalculateFilesInSnapshot(filePath, issueMarkers);
+            this.FilesInSnapshot = CalculateFilesInSnapshot(filePath, issues);
         }
 
         #endregion
 
         #region Overrides
 
-        public override int Count => this.issueMarkers.Count;
+        public override int Count => this.issues.Count;
 
         public override int VersionNumber => this.versionNumber;
 
         public override bool TryGetValue(int index, string keyName, out object content)
         {
-            if (index < 0 || this.issueMarkers.Count <= index)
+            if (index < 0 || this.issues.Count <= index)
             {
                 content = null;
                 return false;
@@ -173,22 +173,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // Note: the line and column numbers are taken from the SnapshotSpan, not the Issue.
                     // The SnapshotSpan represents the live document, so the text positions could have
                     // changed from those reported from the Issue.
-                    content = this.issueMarkers[index].Span.Value.Start.GetContainingLine().LineNumber;
+                    content = this.issues[index].Span.Value.Start.GetContainingLine().LineNumber;
                     return true;
 
                 case StandardTableKeyNames.Column:
                     // Use the span, not the issue. See comment immediately above.
-                    var position = this.issueMarkers[index].Span.Value.Start;
+                    var position = this.issues[index].Span.Value.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;
                     return true;
 
                 case StandardTableKeyNames.Text:
-                    content = this.issueMarkers[index].Issue.Message;
+                    content = this.issues[index].Issue.Message;
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    content = toVsSeverityConverter.Convert(this.issueMarkers[index].Issue.Severity);
+                    content = toVsSeverityConverter.Convert(this.issues[index].Issue.Severity);
                     return true;
 
                 case StandardTableKeyNames.BuildTool:
@@ -196,7 +196,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCode:
-                    content = this.issueMarkers[index].Issue.RuleKey;
+                    content = this.issues[index].Issue.RuleKey;
                     return true;
 
                 case StandardTableKeyNames.ErrorRank:
@@ -204,15 +204,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCategory:
-                    content = $"{issueMarkers[index].Issue.Severity} {ToString(issueMarkers[index].Issue.Type)}";
+                    content = $"{issues[index].Issue.Severity} {ToString(issues[index].Issue.Type)}";
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
-                    content = $"Open description of rule {this.issueMarkers[index].Issue.RuleKey}";
+                    content = $"Open description of rule {this.issues[index].Issue.RuleKey}";
                     return true;
 
                 case StandardTableKeyNames.HelpLink:
-                    string ruleKey = this.issueMarkers[index].Issue.RuleKey;
+                    string ruleKey = this.issues[index].Issue.RuleKey;
                     content = ruleHelpLinkProvider.GetHelpLink(ruleKey);
                     return true;
 
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 // Not a visible field - returns the issue object
                 case SonarLintTableControlConstants.IssueVizColumnName:
-                    content = this.issueMarkers[index];
+                    content = this.issues[index];
                     return true;
                 default:
                     content = null;
@@ -251,7 +251,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public override bool TryCreateDetailsStringContent(int index, out string content)
         {
             // TODO use the detailed description
-            content = this.issueMarkers[index].Issue.Message;
+            content = this.issues[index].Issue.Message;
             return true;
         }
 
@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public Guid AnalysisRunId { get; }
 
-        public IEnumerable<IAnalysisIssueVisualization> IssueMarkers => readonlyIssueMarkers;
+        public IEnumerable<IAnalysisIssueVisualization> Issues => readonlyIssues;
 
         public IEnumerable<string> FilesInSnapshot { get; }
 
@@ -294,15 +294,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return Array.Empty<IAnalysisIssueLocationVisualization>();
             }
 
-            var locVizs = GetAllLocationVisualizations(IssueMarkers)
+            var locVizs = GetAllLocationVisualizations(Issues)
                 .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.Location.FilePath));
 
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
         }
 
-        private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IAnalysisIssueVisualization> markers)
+        private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IAnalysisIssueVisualization> issues)
         {
-            var allLocationFilePaths = GetAllLocationVisualizations(markers)
+            var allLocationFilePaths = GetAllLocationVisualizations(issues)
                 .Select(locViz => locViz.Location.FilePath);
 
             var files = new HashSet<string>(allLocationFilePaths, StringComparer.OrdinalIgnoreCase);
@@ -310,12 +310,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // The list of files should always contain the name of the file being analyzed. This is to handle the case
             // where the file has been analyzed but doesn't contain any issues.
             files.Add(analyzedFilePath);
+
             return files;
         }
 
-        private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IAnalysisIssueVisualization> markers) =>
-                markers // primary locations
-                .Union(markers.SelectMany(x => x.Flows.SelectMany(f => f.Locations))); // secondary locations
+        private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IAnalysisIssueVisualization> issues) =>
+                issues // primary locations
+                .Union(issues.SelectMany(x => x.Flows.SelectMany(f => f.Locations))); // secondary locations
 
         #endregion IIssuesSnapshot implementation
     }
