@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, new Span(32, 5));
 
             var testSubject = new LocationTagger(ValidBuffer, storeMock, ValidSpanCalculator, ValidLogger);
-            testSubject.TagSpans.Count().Should().Be(3); // sanity check
+            testSubject.TagSpans.Count().Should().Be(2); // sanity check
 
             var matchingTags = testSubject.GetTags(inputSpans);
             matchingTags.Should().BeEmpty();
