@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private class OnIssuesChangedCallbackSpy
         {
             public int CallCount { get; private set; }
-            public IList<IssueMarker> LastSuppliedMarkers { get; private set; }
+            public IList<IAnalysisIssueVisualization> LastSuppliedMarkers { get; private set; }
             public IList<IAnalysisIssue> LastSuppliedIssues
             {
                 get
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 }
             }
 
-            public void Callback(IEnumerable<IssueMarker> issueMarkers)
+            public void Callback(IEnumerable<IAnalysisIssueVisualization> issueMarkers)
             {
                 CallCount++;
                 LastSuppliedMarkers = issueMarkers?.ToList();
@@ -183,13 +183,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Set up an issue converter that just wraps and returns the supplied issues as IssueMarkers
             var mockIssueConverter = new Mock<IIssueToIssueMarkerConverter>();
             mockIssueConverter.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
-                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => new IssueMarker(CreateIssueViz(issue), new SnapshotSpan()));
+                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => CreateIssueViz(issue, new SnapshotSpan()));
             return mockIssueConverter.Object;
 
-            IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue)
+            IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
             {
                 var issueVizMock = new Mock<IAnalysisIssueVisualization>();
                 issueVizMock.Setup(x => x.Issue).Returns(issue);
+                issueVizMock.Setup(x => x.Span).Returns(snapshotSpan);
+
                 return issueVizMock.Object;
             }
         }

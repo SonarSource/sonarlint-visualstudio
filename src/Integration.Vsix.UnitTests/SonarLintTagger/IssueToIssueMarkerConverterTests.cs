@@ -89,8 +89,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issueMarker.Should().NotBeNull();
             issueMarker.Issue.Should().Be(mockIssue);
             issueMarker.Span.Should().Be(mockSpan);
-            issueMarker.IssueViz.Should().NotBeNull();
-            issueMarker.IssueViz.Issue.Should().Be(mockIssue);
         }
 
         private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()

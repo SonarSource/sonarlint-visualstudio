@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -38,17 +39,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public delegate void OnTaggerDisposed(IssueTagger issueTagger);
 
-        private IEnumerable<IssueMarker> issueMarkers;
+        private IEnumerable<IAnalysisIssueVisualization> issueMarkers;
         private readonly OnTaggerDisposed onTaggerDisposed;
         private bool isDisposed;
 
-        public IssueTagger(IEnumerable<IssueMarker> issueMarkers, OnTaggerDisposed onTaggerDisposed)
+        public IssueTagger(IEnumerable<IAnalysisIssueVisualization> issueMarkers, OnTaggerDisposed onTaggerDisposed)
         {
             this.issueMarkers = issueMarkers;
             this.onTaggerDisposed = onTaggerDisposed;
         }
 
-        public void UpdateMarkers(IEnumerable<IssueMarker> newMarkers, SnapshotSpan? affectedSpan)
+        public void UpdateMarkers(IEnumerable<IAnalysisIssueVisualization> newMarkers, SnapshotSpan? affectedSpan)
         {
             issueMarkers = newMarkers;
 

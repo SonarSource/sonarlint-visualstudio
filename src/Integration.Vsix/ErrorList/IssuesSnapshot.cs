@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// The list of issues returned by the analyzer run
         /// </summary>
-        IEnumerable<IssueMarker> IssueMarkers { get; }
+        IEnumerable<IAnalysisIssueVisualization> IssueMarkers { get; }
 
         /// <summary>
         /// Returns the set of files for which this snapshot contains location information (primary and secondary)
@@ -80,8 +80,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
-        private readonly IList<IssueMarker> issueMarkers;
-        private readonly IReadOnlyCollection<IssueMarker> readonlyIssueMarkers;
+        private readonly IList<IAnalysisIssueVisualization> issueMarkers;
+        private readonly IReadOnlyCollection<IAnalysisIssueVisualization> readonlyIssueMarkers;
 
         private int versionNumber;
 
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
         /// </summary>
-        public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IssueMarker> issueMarkers) =>
+        public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issueMarkers) =>
             new IssuesSnapshot(Guid.NewGuid(), projectName, filePath, issueMarkers);
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// set of issues are the same but their locations have changed (by the user editing the file)
         /// </summary>
         /// <remarks>The number and ordering of issues must be the same</remarks>
-        public IssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IssueMarker> updatedIssueMarkers)
+        public IssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IAnalysisIssueVisualization> updatedIssueMarkers)
         {
             if (updatedIssueMarkers.Count() != IssueMarkers.Count())
             {
@@ -121,12 +121,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return new IssuesSnapshot(AnalysisRunId, projectName, filePath, updatedIssueMarkers);
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IssueMarker> issueMarkers)
+        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issueMarkers)
             : this(snapshotId, projectName, filePath, issueMarkers,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IssueMarker> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issueMarkers, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.AnalysisRunId = snapshotId;
             this.projectName = projectName;
@@ -134,8 +134,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
-            this.issueMarkers = new List<IssueMarker>(issueMarkers);
-            this.readonlyIssueMarkers = new ReadOnlyCollection<IssueMarker>(this.issueMarkers);
+            this.issueMarkers = new List<IAnalysisIssueVisualization>(issueMarkers);
+            this.readonlyIssueMarkers = new ReadOnlyCollection<IAnalysisIssueVisualization>(this.issueMarkers);
 
             // Optimistation:
             // Most rules only have a single location, and most multi-location rules only produce locations
@@ -173,12 +173,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // Note: the line and column numbers are taken from the SnapshotSpan, not the Issue.
                     // The SnapshotSpan represents the live document, so the text positions could have
                     // changed from those reported from the Issue.
-                    content = this.issueMarkers[index].Span.Start.GetContainingLine().LineNumber;
+                    content = this.issueMarkers[index].Span.Value.Start.GetContainingLine().LineNumber;
                     return true;
 
                 case StandardTableKeyNames.Column:
                     // Use the span, not the issue. See comment immediately above.
-                    var position = this.issueMarkers[index].Span.Start;
+                    var position = this.issueMarkers[index].Span.Value.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;
                     return true;
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 // Not a visible field - returns the issue object
                 case SonarLintTableControlConstants.IssueVizColumnName:
-                    content = this.issueMarkers[index].IssueViz;
+                    content = this.issueMarkers[index];
                     return true;
                 default:
                     content = null;
@@ -278,7 +278,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public Guid AnalysisRunId { get; }
 
-        public IEnumerable<IssueMarker> IssueMarkers => readonlyIssueMarkers;
+        public IEnumerable<IAnalysisIssueVisualization> IssueMarkers => readonlyIssueMarkers;
 
         public IEnumerable<string> FilesInSnapshot { get; }
 
@@ -300,7 +300,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
         }
 
-        private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IssueMarker> markers)
+        private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IAnalysisIssueVisualization> markers)
         {
             var allLocationFilePaths = GetAllLocationVisualizations(markers)
                 .Select(locViz => locViz.Location.FilePath);
@@ -313,9 +313,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return files;
         }
 
-        private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IssueMarker> markers) =>
-                markers.Select(x => x.IssueViz) // primary locations
-                .Union(markers.SelectMany(x => x.IssueViz.Flows.SelectMany(f => f.Locations))); // secondary locations
+        private static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocationVisualizations(IEnumerable<IAnalysisIssueVisualization> markers) =>
+                markers // primary locations
+                .Union(markers.SelectMany(x => x.Flows.SelectMany(f => f.Locations))); // secondary locations
 
         #endregion IIssuesSnapshot implementation
     }

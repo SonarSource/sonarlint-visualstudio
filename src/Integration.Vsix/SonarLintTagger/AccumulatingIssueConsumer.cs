@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 /* 
  * Instancing: a new instance of this class should be created for each analysis request.
@@ -64,11 +65,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         // See bug #1487: this text snapshot should match the content of the file being analysed
         private readonly ITextSnapshot analysisSnapshot;
         private readonly IIssueToIssueMarkerConverter issueMarkerConverter;
-        private readonly List<IssueMarker> allIssueMarkers;
+        private readonly List<IAnalysisIssueVisualization> allIssueMarkers;
         private readonly string analysisFilePath;
         private readonly OnIssuesChanged onIssuesChanged;
 
-        public delegate void OnIssuesChanged(IEnumerable<IssueMarker> issueMarkers);
+        public delegate void OnIssuesChanged(IEnumerable<IAnalysisIssueVisualization> issueMarkers);
 
         public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IIssueToIssueMarkerConverter issueMarkerConverter)
         {
@@ -78,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             this.issueMarkerConverter = issueMarkerConverter ?? throw new ArgumentNullException(nameof(issueMarkerConverter));
 
-            allIssueMarkers = new List<IssueMarker>();
+            allIssueMarkers = new List<IAnalysisIssueVisualization>();
         }
 
         public void Accept(string path, IEnumerable<IAnalysisIssue> issues)

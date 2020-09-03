@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal interface IIssueToIssueMarkerConverter
     {
-        IssueMarker Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
+        IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
     }
 
     [Export(typeof(IIssueToIssueMarkerConverter))]
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.issueSpanCalculator = issueSpanCalculator;
         }
 
-        public IssueMarker Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot)
+        public IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot)
         {
             if (issue == null)
             {
@@ -68,8 +68,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var issueViz = issueVizConverter.Convert(issue);
+            issueViz.Span = span;
 
-            return new IssueMarker(issueViz, span);
+            return issueViz;
         }
     }
 }

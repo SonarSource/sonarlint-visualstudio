@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new SnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IssueMarker>()));
+            this.Factory = new SnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
         }
@@ -141,11 +142,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        protected virtual /* for testing */ IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)
+        protected virtual /* for testing */ IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issueMarkers, ITextSnapshot activeSnapshot)
         {
             var newMarkers = issueMarkers
-                .Select(marker => marker.CloneAndTranslateTo(activeSnapshot))
-                .Where(clone => clone != null)
+                .Where(x => x.Span.HasValue)
+                .Select(x =>
+                {
+                    var oldSpan = x.Span.Value;
+                    var newSpan = oldSpan.TranslateTo(activeSnapshot, SpanTrackingMode.EdgeExclusive);
+                    x.Span = oldSpan.Length == newSpan.Length ? newSpan : (SnapshotSpan?) null;
+                    return x;
+                })
+                .Where(x => x.Span.HasValue)
                 .ToArray();
 
             return newMarkers;
@@ -173,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 
-        internal /* for testing */ void HandleNewIssues(IEnumerable<IssueMarker> issueMarkers)
+        internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issueMarkers)
         {
             var filteredMarkers = RemoveSuppressedIssues(issueMarkers);
 
@@ -186,14 +194,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             SnapToNewSnapshot(newSnapshot);
         }
 
-        private IEnumerable<IssueMarker> RemoveSuppressedIssues(IEnumerable<IssueMarker> issues)
+        private IEnumerable<IAnalysisIssueVisualization> RemoveSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
         {
             var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
 
             var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is IssueMarker), "Not expecting the issue filter to change the list item type");
+            Debug.Assert(filteredIssues.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
 
-            return filteredIssues.OfType<IssueMarker>().ToArray();
+            return filteredIssues.OfType<IAnalysisIssueVisualization>().ToArray();
         }
 
         #endregion

@@ -33,9 +33,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class IssueTaggerTests
     {
-        private static readonly IEnumerable<IssueMarker> ValidMarkerList = new[] { CreateValidMarker() };
         private static readonly ITextSnapshot ValidTextSnapshot = Mock.Of<ITextSnapshot>();
         private static readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan(ValidTextSnapshot, 0, 0);
+        private static readonly IEnumerable<IAnalysisIssueVisualization> ValidMarkerList = new[] { CreateIssueViz(ValidSnapshotSpan) };
 
         [TestMethod]
         public void UpdateMarkers_NoSpan_EventNotRaised()
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 taggerArgument = x;
             };
 
-            var testSubject = new IssueTagger(Enumerable.Empty<IssueMarker>(), onTaggerDisposed);
+            var testSubject = new IssueTagger(Enumerable.Empty<IAnalysisIssueVisualization>(), onTaggerDisposed);
 
             // 1. Delegate not called before disposal
             taggerArgument.Should().BeNull();
@@ -113,15 +113,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             delegateCallCount.Should().Be(1);
         }
 
-        private static IssueMarker CreateValidMarker() =>
-            new IssueMarker(Mock.Of<IAnalysisIssueVisualization>(), ValidSnapshotSpan);
-
-
-        private static IAnalysisIssueVisualization CreateIssueViz()
+        private static IAnalysisIssueVisualization CreateIssueViz(SnapshotSpan span)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssue>());
             issueVizMock.SetupProperty(x => x.Span);
+
+            issueVizMock.Object.Span = span;
+
             return issueVizMock.Object;
         }
     }
