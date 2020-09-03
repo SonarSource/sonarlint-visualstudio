@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error handling buffer change: {0} .
+        /// </summary>
+        internal static string ERR_HandlingBufferChange {
+            get {
+                return ResourceManager.GetString("ERR_HandlingBufferChange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error navigating to analysis issue location: {0}.
         /// </summary>
         internal static string ERR_NavigationException {
