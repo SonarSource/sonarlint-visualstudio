@@ -24,6 +24,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
@@ -59,6 +60,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             var flows = Convert(issue.Flows);
 
             var issueVisualization = new AnalysisIssueVisualization(flows, issue, span);
+
+            var locationsInSameFile = issueVisualization
+                .Flows
+                .SelectMany(x => x.Locations)
+                .Where(x => PathHelper.IsMatchingPath(x.CurrentFilePath, issueVisualization.CurrentFilePath));
+
+            foreach (var locationVisualization in locationsInSameFile)
+            {
+                locationVisualization.Span = issueSpanCalculator.CalculateSpan(locationVisualization.Location, textSnapshot);
+            }
 
             return issueVisualization;
         }
