@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         private ErrorTagger CreateForBuffer(ITextBuffer buffer)
         {
             var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(buffer);
-            return new ErrorTagger(buffer, aggregator);
+            return new ErrorTagger(aggregator, buffer);
         }
     }
 }
