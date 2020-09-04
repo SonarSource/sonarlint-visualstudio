@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -49,9 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void Convert_EmptySpan_Null()
         {
-            var issue = CreateIssue();
-
-            SetupSpanCalculator(issue, new SnapshotSpan());
+            var issue = CreateIssue(Path.GetRandomFileName(), new SnapshotSpan());
 
             var result = testSubject.Convert(issue, textSnapshotMock);
 
@@ -59,39 +58,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         }
 
         [TestMethod]
-        public void Convert_IssueHasNoFlows_ReturnsIssueVisualizationWithoutFlows()
+        public void Convert_IssueHasNoFlows_IssueVisualizationWithoutFlows()
         {
             var flows = Array.Empty<IAnalysisIssueFlow>();
-            var issue = CreateIssue(flows);
-            var nonEmptySpan = CreateNonEmptySpan();
+            var issueSpan = CreateNonEmptySpan();
+            var issue = CreateIssue(Path.GetRandomFileName(), issueSpan, flows);
 
-            SetupSpanCalculator(issue, nonEmptySpan);
-
-            var expectedIssueVisualization = new AnalysisIssueVisualization(Array.Empty<IAnalysisIssueFlowVisualization>(), issue, nonEmptySpan);
+            var expectedIssueVisualization = new AnalysisIssueVisualization(Array.Empty<IAnalysisIssueFlowVisualization>(), issue, issueSpan);
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
             AssertConversion(expectedIssueVisualization, actualIssueVisualization);
         }
 
-        private void SetupSpanCalculator(IAnalysisIssue issue, SnapshotSpan nonEmptySpan)
-        {
-            issueSpanCalculatorMock.Setup(x => x.CalculateSpan(issue, textSnapshotMock)).Returns(nonEmptySpan);
-        }
-
         [TestMethod]
-        public void Convert_IssueHasOneFlowWithOneLocation_ReturnsIssueVisualizationWithFlowAndLocation()
+        public void Convert_IssueHasOneFlow_IssueVisualizationWithFlow()
         {
-            var location = CreateLocation();
+            var location = CreateLocation(Path.GetRandomFileName());
             var flow = CreateFlow(location);
-            var issue = CreateIssue(flow);
-            var nonEmptySpan = CreateNonEmptySpan();
 
-            SetupSpanCalculator(issue, nonEmptySpan);
+            var issueSpan = CreateNonEmptySpan();
+            var issue = CreateIssue(Path.GetRandomFileName(), issueSpan, flow);
 
             var expectedLocationVisualization = new AnalysisIssueLocationVisualization(1, location);
             var expectedFlowVisualization = new AnalysisIssueFlowVisualization(1, new[] { expectedLocationVisualization }, flow);
-            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] {expectedFlowVisualization}, issue, nonEmptySpan);
+            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] {expectedFlowVisualization}, issue, issueSpan);
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -99,20 +90,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         }
 
         [TestMethod]
-        public void Convert_IssueHasTwoFlowsWithTwoLocation_ReturnsIssueVisualizationWithFlowsAndLocations()
+        public void Convert_IssueHasTwoFlows_IssueVisualizationWithTwoFlows()
         {
-            var firstFlowFirstLocation = CreateLocation();
-            var firstFlowSecondLocation = CreateLocation();
+            var firstFlowFirstLocation = CreateLocation(Path.GetRandomFileName());
+            var firstFlowSecondLocation = CreateLocation(Path.GetRandomFileName());
             var firstFlow = CreateFlow(firstFlowFirstLocation, firstFlowSecondLocation);
 
-            var secondFlowFirstLocation = CreateLocation();
-            var secondFlowSecondLocation = CreateLocation();
+            var secondFlowFirstLocation = CreateLocation(Path.GetRandomFileName());
+            var secondFlowSecondLocation = CreateLocation(Path.GetRandomFileName());
             var secondFlow = CreateFlow(secondFlowFirstLocation, secondFlowSecondLocation);
 
-            var issue = CreateIssue(firstFlow, secondFlow);
-            var nonEmptySpan = CreateNonEmptySpan();
-
-            SetupSpanCalculator(issue, nonEmptySpan);
+            var issueSpan = CreateNonEmptySpan();
+            var issue = CreateIssue(Path.GetRandomFileName(), issueSpan, firstFlow, secondFlow);
 
             var expectedFirstFlowFirstLocationVisualization = new AnalysisIssueLocationVisualization(1, firstFlowFirstLocation);
             var expectedFirstFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, firstFlowSecondLocation);
@@ -122,7 +111,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var expectedSecondFlowSecondLocationVisualization = new AnalysisIssueLocationVisualization(2, secondFlowSecondLocation);
             var expectedSecondFlowVisualization = new AnalysisIssueFlowVisualization(2, new[] { expectedSecondFlowFirstLocationVisualization, expectedSecondFlowSecondLocationVisualization }, secondFlow);
 
-            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization }, issue, nonEmptySpan);
+            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] { expectedFirstFlowVisualization, expectedSecondFlowVisualization }, issue, issueSpan);
+
+            var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
+
+            AssertConversion(expectedIssueVisualization, actualIssueVisualization);
+        }
+
+        [TestMethod]
+        public void Convert_IssueHasLocationsInDifferentFiles_CalculatesSpanForLocationsInSameFile()
+        {
+            var issueFilePath = Path.GetRandomFileName();
+
+            var locationInSameFile = CreateLocation(issueFilePath);
+            var locationInAnotherFile = CreateLocation(Path.GetRandomFileName());
+            var flow = CreateFlow(locationInSameFile, locationInAnotherFile);
+
+            var issueSpan = CreateNonEmptySpan();
+            var issue = CreateIssue(issueFilePath, issueSpan, flow);
+
+            var locationSpan = CreateNonEmptySpan();
+            SetupSpanCalculator(locationInSameFile, locationSpan);
+
+            var expectedLocation1 = new AnalysisIssueLocationVisualization(1, locationInSameFile) {Span = locationSpan};
+            var expectedLocation2 = new AnalysisIssueLocationVisualization(2, locationInAnotherFile) {Span = null};
+            var expectedFlow = new AnalysisIssueFlowVisualization(1, new[] {expectedLocation1, expectedLocation2}, flow);
+            var expectedIssueVisualization = new AnalysisIssueVisualization(new[] { expectedFlow }, issue, issueSpan);
 
             var actualIssueVisualization = testSubject.Convert(issue, textSnapshotMock);
 
@@ -136,14 +150,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             actualIssueVisualization.Flows.Should().BeEquivalentTo(expectedIssueVisualization.Flows, c=> c.WithStrictOrdering());
         }
 
-        private static IAnalysisIssue CreateIssue(params IAnalysisIssueFlow[] flows)
+        private IAnalysisIssue CreateIssue(string filePath, SnapshotSpan span, params IAnalysisIssueFlow[] flows)
         {
-            return new AnalysisIssue(
+            var issue = new AnalysisIssue(
                 Guid.NewGuid().ToString(),
                 AnalysisIssueSeverity.Blocker,
                 AnalysisIssueType.Bug,
                 Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                filePath,
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
@@ -151,6 +165,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 Guid.NewGuid().ToString(),
                 flows
             );
+
+            SetupSpanCalculator(issue, span);
+
+            return issue;
         }
 
         private static IAnalysisIssueFlow CreateFlow(params IAnalysisIssueLocation[] locations)
@@ -158,11 +176,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
            return new AnalysisIssueFlow(locations);
         }
 
-        private static IAnalysisIssueLocation CreateLocation()
+        private static IAnalysisIssueLocation CreateLocation(string filePath)
         {
             return new AnalysisIssueLocation(
                 Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString(),
+                filePath,
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
                 Guid.NewGuid().GetHashCode(),
@@ -177,6 +195,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             mockTextSnapshot.SetupGet(x => x.Length).Returns(20);
 
             return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
+        }
+
+        private void SetupSpanCalculator(IAnalysisIssueLocation issueLocation, SnapshotSpan nonEmptySpan)
+        {
+            issueSpanCalculatorMock.Setup(x => x.CalculateSpan(issueLocation, textSnapshotMock)).Returns(nonEmptySpan);
         }
     }
 }
