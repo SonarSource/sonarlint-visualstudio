@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
@@ -366,7 +367,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             new SnapshotFactory(CreateEmptySnapshot());
 
         private static IssuesSnapshot CreateEmptySnapshot() =>
-            IssuesSnapshot.CreateNew("any project", "any.txt", Array.Empty<IssueMarker>());
+            IssuesSnapshot.CreateNew("any project", "any.txt", Array.Empty<IAnalysisIssueVisualization>());
 
         private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink, SnapshotFactory expectedFactory) =>
             mockSink.Verify(x => x.FactorySnapshotChanged(expectedFactory), Times.Once);

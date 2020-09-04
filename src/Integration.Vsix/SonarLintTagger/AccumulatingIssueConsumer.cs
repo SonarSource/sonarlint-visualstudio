@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 /* 
  * Instancing: a new instance of this class should be created for each analysis request.
@@ -40,7 +41,7 @@ using SonarLint.VisualStudio.Core.Analysis;
  * Then, all of the issues that have been received so far will be passed to the OnIssuesChanged delegate.
  * 
  * However, it's possible that the text buffer could have been edited since the analysis
- * was triggered. It is the responsibity of the callback to translate the supplied IssueMarkers
+ * was triggered. It is the responsibility of the callback to translate the supplied IssueVisualizations
  * to the current text buffer snapshot, if necessary.
  * 
  * 
@@ -63,22 +64,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         // See bug #1487: this text snapshot should match the content of the file being analysed
         private readonly ITextSnapshot analysisSnapshot;
-        private readonly IIssueToIssueMarkerConverter issueMarkerConverter;
-        private readonly List<IssueMarker> allIssueMarkers;
+        private readonly IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter;
+        private readonly List<IAnalysisIssueVisualization> allIssues;
         private readonly string analysisFilePath;
         private readonly OnIssuesChanged onIssuesChanged;
 
-        public delegate void OnIssuesChanged(IEnumerable<IssueMarker> issueMarkers);
+        public delegate void OnIssuesChanged(IEnumerable<IAnalysisIssueVisualization> issues);
 
-        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IIssueToIssueMarkerConverter issueMarkerConverter)
+        public AccumulatingIssueConsumer(ITextSnapshot analysisSnapshot, string analysisFilePath, OnIssuesChanged onIssuesChangedCallback, IAnalysisIssueVisualizationConverter issueToIssueVisualizationConverter)
         {
             this.analysisSnapshot = analysisSnapshot ?? throw new ArgumentNullException(nameof(analysisSnapshot));
             this.analysisFilePath = analysisFilePath ?? throw new ArgumentNullException(nameof(analysisFilePath));
             this.onIssuesChanged = onIssuesChangedCallback ?? throw new ArgumentNullException(nameof(onIssuesChangedCallback));
+            this.issueToIssueVisualizationConverter = issueToIssueVisualizationConverter ?? throw new ArgumentNullException(nameof(issueToIssueVisualizationConverter));
 
-            this.issueMarkerConverter = issueMarkerConverter ?? throw new ArgumentNullException(nameof(issueMarkerConverter));
-
-            allIssueMarkers = new List<IssueMarker>();
+            allIssues = new List<IAnalysisIssueVisualization>();
         }
 
         public void Accept(string path, IEnumerable<IAnalysisIssue> issues)
@@ -92,14 +92,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             Debug.Assert(issues.All(IsIssueInAnalysisSnapshot), "Not all reported issues could be mapped to the analysis snapshot");
 
-            var newMarkers = issues
+            var newIssues = issues
                 .Where(IsIssueInAnalysisSnapshot)
-                .Select(x => issueMarkerConverter.Convert(x, analysisSnapshot))
+                .Select(x => issueToIssueVisualizationConverter.Convert(x, analysisSnapshot))
                 .ToArray();
 
-            allIssueMarkers.AddRange(newMarkers);
+            allIssues.AddRange(newIssues);
 
-            onIssuesChanged.Invoke(allIssueMarkers);
+            onIssuesChanged.Invoke(allIssues);
         }
 
         /// <summary>

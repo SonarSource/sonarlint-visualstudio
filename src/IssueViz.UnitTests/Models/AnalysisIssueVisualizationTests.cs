@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
@@ -49,11 +50,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
-        public void Ctor_InitialSpanIsNull()
+        public void Ctor_InitialSpanIsSetToGivenValue()
         {
-            var testSubject = CreateTestSubject();
+            var span = CreateSpan();
+            var testSubject = CreateTestSubject(span: span);
 
-            testSubject.Span.Should().BeNull();
+            testSubject.Span.Should().Be(span);
         }
 
         [TestMethod]
@@ -118,6 +120,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             testSubject.Span.Should().Be(newSpan);
         }
 
+        [TestMethod]
+        public void IsFilterable()
+        {
+            var issueMock = new Mock<IAnalysisIssue>();
+            issueMock.SetupGet(x => x.RuleKey).Returns("my key");
+            issueMock.SetupGet(x => x.StartLine).Returns(999);
+            issueMock.SetupGet(x => x.FilePath).Returns("x:\\aaa.foo");
+            issueMock.SetupGet(x => x.LineHash).Returns("hash");
+
+            var testSubject = new AnalysisIssueVisualization(null, issueMock.Object, new SnapshotSpan());
+
+            testSubject.Should().BeAssignableTo<IFilterableIssue>();
+
+            var filterable = (IFilterableIssue)testSubject;
+
+            filterable.RuleId.Should().Be(issueMock.Object.RuleKey);
+            filterable.StartLine.Should().Be(issueMock.Object.StartLine);
+            filterable.FilePath.Should().Be(issueMock.Object.FilePath);
+            filterable.LineHash.Should().Be(issueMock.Object.LineHash);
+            filterable.ProjectGuid.Should().BeNull();
+        }
+
         private SnapshotSpan CreateSpan()
         {
             var mockTextSnapshot = new Mock<ITextSnapshot>();
@@ -126,12 +150,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
         }
 
-        private AnalysisIssueVisualization CreateTestSubject(string filePath = null)
+        private AnalysisIssueVisualization CreateTestSubject(string filePath = null, SnapshotSpan span = new SnapshotSpan())
         {
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.FilePath).Returns(filePath);
 
-            return new AnalysisIssueVisualization(null, issue.Object);
+            return new AnalysisIssueVisualization(null, issue.Object, span);
         }
     }
 }

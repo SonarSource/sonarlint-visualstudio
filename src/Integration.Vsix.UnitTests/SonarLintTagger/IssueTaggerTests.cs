@@ -33,45 +33,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     [TestClass]
     public class IssueTaggerTests
     {
-        private static readonly IEnumerable<IssueMarker> ValidMarkerList = new[] { CreateValidMarker() };
         private static readonly ITextSnapshot ValidTextSnapshot = Mock.Of<ITextSnapshot>();
         private static readonly SnapshotSpan ValidSnapshotSpan = new SnapshotSpan(ValidTextSnapshot, 0, 0);
+        private static readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssueViz(ValidSnapshotSpan) };
 
         [TestMethod]
-        public void UpdateMarkers_NoSpan_EventNotRaised()
+        public void UpdateIssues_NoSpan_EventNotRaised()
         {
             var testSubject = new IssueTagger(null, null);
 
             var eventRaised = false;
             testSubject.TagsChanged += (sender, e) => eventRaised = true;
 
-            testSubject.UpdateMarkers(ValidMarkerList, null);
+            testSubject.UpdateIssues(ValidIssueList, null);
 
             eventRaised.Should().BeFalse();
         }
 
         [TestMethod]
-        public void UpdateMarkers_NoIssues_EventRaised()
+        public void UpdateIssues_NoIssues_EventRaised()
         {
-            var testSubject = new IssueTagger(ValidMarkerList, null);
+            var testSubject = new IssueTagger(ValidIssueList, null);
 
             var eventRaised = false;
             testSubject.TagsChanged += (sender, e) => eventRaised = true;
 
-            testSubject.UpdateMarkers(null, ValidSnapshotSpan);
+            testSubject.UpdateIssues(null, ValidSnapshotSpan);
 
             eventRaised.Should().BeTrue();
         }
 
         [TestMethod]
-        public void UpdateMarkers_ValidIssuesAndSpan_EventRaised()
+        public void UpdateIssues_ValidIssuesAndSpan_EventRaised()
         {
             var testSubject = new IssueTagger(null, null);
 
             var eventRaised = false;
             testSubject.TagsChanged += (sender, e) => eventRaised = true;
 
-            testSubject.UpdateMarkers(ValidMarkerList, ValidSnapshotSpan);
+            testSubject.UpdateIssues(ValidIssueList, ValidSnapshotSpan);
 
             eventRaised.Should().BeTrue();
         }
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 taggerArgument = x;
             };
 
-            var testSubject = new IssueTagger(Enumerable.Empty<IssueMarker>(), onTaggerDisposed);
+            var testSubject = new IssueTagger(Enumerable.Empty<IAnalysisIssueVisualization>(), onTaggerDisposed);
 
             // 1. Delegate not called before disposal
             taggerArgument.Should().BeNull();
@@ -113,15 +113,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             delegateCallCount.Should().Be(1);
         }
 
-        private static IssueMarker CreateValidMarker() =>
-            new IssueMarker(Mock.Of<IAnalysisIssueVisualization>(), ValidSnapshotSpan);
-
-
-        private static IAnalysisIssueVisualization CreateIssueViz()
+        private static IAnalysisIssueVisualization CreateIssueViz(SnapshotSpan span)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssue>());
             issueVizMock.SetupProperty(x => x.Span);
+
+            issueVizMock.Object.Span = span;
+
             return issueVizMock.Object;
         }
     }

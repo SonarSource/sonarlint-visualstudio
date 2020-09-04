@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockAnalysisRequester.Object, Mock.Of<IIssueToIssueMarkerConverter>(), mockLogger.Object, mockAnalysisScheduler.Object);
+                sonarLanguageRecognizer, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), mockLogger.Object, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
