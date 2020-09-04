@@ -35,6 +35,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
-        private readonly IIssueToIssueMarkerConverter converter;
+        private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ILogger logger;
         private readonly IScheduler scheduler;
 
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
-            IIssueToIssueMarkerConverter converter,
+            IAnalysisIssueVisualizationConverter converter,
             ILogger logger,
             IScheduler scheduler)
         {

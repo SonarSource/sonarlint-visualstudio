@@ -61,10 +61,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
             var textSnap = mockTextSnap.Object;
 
-            issueViz = CreateIssueViz(issue);
-            var marker = new IssueMarker(issueViz, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
+            issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
-            snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IssueMarker>() { marker });
+            snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IAnalysisIssueVisualization> { issueViz });
         }
 
         [TestMethod]
@@ -166,14 +165,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return content;
         }
 
-        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue)
+        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(issue);
             issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { FilePath = "any.txt" });
             issueVizMock.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
-
             issueVizMock.SetupProperty(x => x.Span);
+            issueVizMock.Object.Span = snapshotSpan;
+
             return issueVizMock.Object;
         }
     }

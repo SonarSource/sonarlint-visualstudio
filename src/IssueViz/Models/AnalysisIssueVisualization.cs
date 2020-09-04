@@ -23,10 +23,11 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
-    public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualization
+    public interface IAnalysisIssueVisualization : IAnalysisIssueLocationVisualization, IFilterableIssue
     {
         IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
 
@@ -38,11 +39,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         private string currentFilePath;
         private SnapshotSpan? span;
 
-        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssue issue)
+        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssue issue, SnapshotSpan span)
         {
             Flows = flows;
             Issue = issue;
             CurrentFilePath = issue.FilePath;
+            Span = span;
         }
 
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
@@ -76,5 +78,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        string IFilterableIssue.RuleId => Issue.RuleKey;
+
+        string IFilterableIssue.FilePath => Issue.FilePath;
+
+        string IFilterableIssue.LineHash => Issue.LineHash;
+
+        string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
+
+        int? IFilterableIssue.StartLine => Issue.StartLine;
     }
 }
