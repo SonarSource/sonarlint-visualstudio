@@ -19,19 +19,15 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
-using System.Text;
-using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -120,6 +116,101 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             actualEventArgs.Span.Start.Position.Should().Be(0);
             actualEventArgs.Span.End.Position.Should().Be(ValidBuffer.CurrentSnapshot.Length);
             actualEventArgs.Span.Snapshot.Should().Be(ValidBuffer.CurrentSnapshot);
+        }
+
+        [TestMethod]
+        public void Filtering_NoSelectedFlow_ReturnsEmpty()
+        {
+            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
+
+            var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            selectionServiceMock.Setup(x => x.SelectedFlow).Returns((IAnalysisIssueFlowVisualization)null); // no selected flow
+
+
+            var locViz = CreateLocationViz(snapshot, new Span(1, 1), "tagged location");
+            var aggregator = CreateLocationAggregator(locViz);
+
+            var testSubject = new SelectedIssueLocationTagger(aggregator, snapshot.TextBuffer, selectionServiceMock.Object);
+
+            // Act
+            var actual = testSubject.GetTags(inputSpans).ToArray();
+
+            actual.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Filtering_NoMatchingLocations_ReturnsEmpty()
+        {
+            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
+
+            var selectedLoc1 = CreateLocationViz(snapshot, new Span(1, 5), "selection 1");
+            var selectedLoc2 = CreateLocationViz(snapshot, new Span(20, 25), "selection 2");
+            var selectionService = CreateSelectionService(selectedLoc1, selectedLoc2);
+
+            var taggedLoc1 = CreateLocationViz(snapshot, new Span(10, 5), "tag 1");
+            var taggedLoc2 = CreateLocationViz(snapshot, new Span(12, 5), "tag 1 ");
+            var aggregator = CreateLocationAggregator(taggedLoc1, taggedLoc2);
+
+            var testSubject = new SelectedIssueLocationTagger(aggregator, snapshot.TextBuffer, selectionService);
+
+            // Act
+            var actual = testSubject.GetTags(inputSpans).ToArray();
+
+            actual.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Filtering_TagsMatchSelectedIssuesLocations_CreatesExpectedTags()
+        {
+            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
+
+            var matchingLoc1 = CreateLocationViz(snapshot, new Span(1, 5), "match 1");
+            var matchingLoc2 = CreateLocationViz(snapshot, new Span(20, 25), "match 2");
+            var noMatch1 = CreateLocationViz(snapshot, new Span(10, 5), "no match 1");
+            var noMatch2 = CreateLocationViz(snapshot, new Span(12, 5), "no match 2");
+
+            var selectionService = CreateSelectionService(matchingLoc1, matchingLoc2, noMatch1);
+            var aggregator = CreateLocationAggregator(noMatch2, matchingLoc1, matchingLoc2);
+
+            var testSubject = new SelectedIssueLocationTagger(aggregator, snapshot.TextBuffer, selectionService);
+
+            // Act
+            var actual = testSubject.GetTags(inputSpans).ToArray();
+
+            actual.Length.Should().Be(2);
+            actual[0].Tag.Location.Should().Be(matchingLoc1);
+            actual[0].Span.Should().Be(matchingLoc1.Span.Value);
+
+            actual[1].Tag.Location.Should().Be(matchingLoc2);
+            actual[1].Tag.Location.Should().Be(matchingLoc2);
+            actual[1].Span.Should().Be(matchingLoc2.Span.Value);
+        }
+
+        private static IAnalysisIssueSelectionService CreateSelectionService(params IAnalysisIssueLocationVisualization[] selectedLocations)
+        {
+            var flow = CreateFlowViz(selectedLocations);
+            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            selectionService.Setup(x => x.SelectedFlow).Returns(flow);
+
+            return selectionService.Object;
+        }
+
+        private static ITagAggregator<IIssueLocationTag> CreateLocationAggregator(params IAnalysisIssueLocationVisualization[] locVizs)
+        {
+            var tagSpans = locVizs
+                .Select(CreateTagSpanWithLocViz)
+                .ToArray();
+
+            return CreateAggregator(tagSpans);
+        }
+
+        private static IMappingTagSpan<IIssueLocationTag> CreateTagSpanWithLocViz(IAnalysisIssueLocationVisualization locViz)
+        {
+            var tag = CreateIssueLocationTag(locViz);
+            return CreateMappingTagSpan(locViz.Span.Value.Snapshot, tag, locViz.Span.Value.Span);
         }
     }
 }

@@ -18,27 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 {
     internal static class TaggerTestHelper
     {
-        public static readonly ITextBuffer ValidBuffer = CreateBufferWithSnapshot();
+        public static readonly ITextBuffer ValidBuffer = CreateBufferMockWithSnapshot().Object;
 
-        public static ITextBuffer CreateBufferWithSnapshot(int length = 999) =>
-            CreateBufferMockWithSnapshot(length).Object;
+        public static ITextSnapshot CreateSnapshotAndBuffer(int length = 999) =>
+            CreateBufferMockWithSnapshot(length).Object.CurrentSnapshot;
 
         public static Mock<ITextBuffer> CreateBufferMockWithSnapshot(int length = 999)
         {
             var snapshotMock = new Mock<ITextSnapshot>();
-            snapshotMock.Setup(x => x.Length).Returns(length);
-
             var bufferMock = new Mock<ITextBuffer>();
+
             bufferMock.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
+            snapshotMock.Setup(x => x.TextBuffer).Returns(bufferMock.Object);
+            snapshotMock.Setup(x => x.Length).Returns(length);
 
             return bufferMock;
         }
@@ -62,6 +65,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             tagSpanMock.Setup(x => x.Span).Returns(mappingSpanMock.Object);
 
             return tagSpanMock.Object;
+        }
+
+        public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span, string locationMessage)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            var snapshotSpan = new SnapshotSpan(snapshot, span);
+            issueVizMock.Setup(x => x.Span).Returns(snapshotSpan);
+            issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssue { Message = locationMessage });
+            return issueVizMock.Object;
+        }
+
+        public static IAnalysisIssueFlowVisualization CreateFlowViz(params IAnalysisIssueLocationVisualization[] locVizs)
+        {
+            var flowVizMock = new Mock<IAnalysisIssueFlowVisualization>();
+            flowVizMock.Setup(x => x.Locations).Returns(locVizs);
+            return flowVizMock.Object;
+        }
+
+        public static IAnalysisIssueLocationVisualization CreateLocationViz(ITextSnapshot snapshot, Span span, string locationMessage)
+        {
+            var locVizMock = new Mock<IAnalysisIssueLocationVisualization>();
+            var snapshotSpan = new SnapshotSpan(snapshot, span);
+            locVizMock.Setup(x => x.Span).Returns(snapshotSpan);
+            locVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { Message = locationMessage });
+            return locVizMock.Object;
+        }
+
+        public static NormalizedSnapshotSpanCollection CreateSpanCollectionSpanningWholeSnapshot(ITextSnapshot snapshot)
+        {
+            // Span that will match everything in the snapshot so will overlap with all other spans
+            var wholeSpan = new Span(0, snapshot.Length);
+            return new NormalizedSnapshotSpanCollection(snapshot, wholeSpan);
+        }
+
+        public static IIssueLocationTag CreateIssueLocationTag(IAnalysisIssueLocationVisualization locViz)
+        {
+            var tagMock = new Mock<IIssueLocationTag>();
+            tagMock.Setup(x => x.Location).Returns(locViz);
+            return tagMock.Object;
         }
     }
 }

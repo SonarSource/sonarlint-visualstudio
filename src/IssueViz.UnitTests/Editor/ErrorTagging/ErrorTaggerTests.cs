@@ -23,11 +23,8 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging
@@ -38,12 +35,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
         [TestMethod]
         public void GetTags_FilterIsApplied_ExpectedTagsCreated()
         {
-            var buffer = CreateBufferWithSnapshot(length: 50);
-            var snapshot = buffer.CurrentSnapshot;
+            var snapshot = CreateSnapshotAndBuffer(length: 50);
 
-            // Input span that will match everything in the snapshot so will overlap with all other spans
-            var wholeSpan = new Span(0, snapshot.Length);
-            var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, wholeSpan);
+            var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var primary1 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(1, 5), "error message 1");
             var primary2 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(10, 5), "error message 2");
@@ -51,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             var secondary2 = CreateTagSpanWithSecondaryLocation(snapshot, new Span(30, 5));
             var aggregator = CreateAggregator(primary1, secondary1, primary2, secondary2);
 
-            var testSubject = new ErrorTagger(aggregator, buffer);
+            var testSubject = new ErrorTagger(aggregator, snapshot.TextBuffer);
 
             // Act
             var actual = testSubject.GetTags(inputSpans).ToArray();
@@ -66,40 +60,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
         private static IMappingTagSpan<IIssueLocationTag> CreateTagSpanWithPrimaryLocation(ITextSnapshot snapshot, Span span, string errorMessage = "")
         {
             var viz = CreateIssueViz(snapshot, span, errorMessage);
-            var tag = CreateTag(viz);
+            var tag = CreateIssueLocationTag(viz);
             return CreateMappingTagSpan(snapshot, tag, span);
         }
 
         private static IMappingTagSpan<IIssueLocationTag> CreateTagSpanWithSecondaryLocation(ITextSnapshot snapshot, Span span, string errorMessage = "")
         {
             var viz = CreateLocationViz(snapshot, span, errorMessage);
-            var tag = CreateTag(viz);
+            var tag = CreateIssueLocationTag(viz);
             return CreateMappingTagSpan(snapshot, tag, span);
-        }
-
-        private static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span, string errorMessage)
-        {
-            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
-            var snapshotSpan = new SnapshotSpan(snapshot, span);
-            issueVizMock.Setup(x => x.Span).Returns(snapshotSpan);
-            issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssue { Message = errorMessage });
-            return issueVizMock.Object;
-        }
-
-        private static IAnalysisIssueLocationVisualization CreateLocationViz(ITextSnapshot snapshot, Span span, string errorMessage)
-        {
-            var locVizMock = new Mock<IAnalysisIssueLocationVisualization>();
-            var snapshotSpan = new SnapshotSpan(snapshot, span);
-            locVizMock.Setup(x => x.Span).Returns(snapshotSpan);
-            locVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { Message = errorMessage });
-            return locVizMock.Object;
-        }
-
-        private static IIssueLocationTag CreateTag(IAnalysisIssueLocationVisualization locViz)
-        {
-            var tagMock = new Mock<IIssueLocationTag>();
-            tagMock.Setup(x => x.Location).Returns(locViz);
-            return tagMock.Object;
         }
     }
 }
