@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Linq;
-using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -31,10 +30,9 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -50,42 +48,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class TaggerProvider : ITaggerProvider
     {
-        internal readonly ISonarErrorListDataSource sonarErrorDataSource;
-        internal readonly ITextDocumentFactoryService textDocumentFactoryService;
-        internal readonly IIssuesFilter issuesFilter;
-        internal readonly DTE dte;
-
         private readonly ISet<IIssueTracker> issueTrackers = new HashSet<IIssueTracker>();
 
+        private readonly IIssueTrackerFactory issueTrackerFactory;
+        private readonly ITextDocumentFactoryService textDocumentFactoryService;
         private readonly IAnalyzerController analyzerController;
         private readonly ISonarLanguageRecognizer languageRecognizer;
         private readonly IVsStatusbar vsStatusBar;
-        private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ILogger logger;
-        private readonly IScheduler scheduler;
 
         [ImportingConstructor]
-        internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
+        internal TaggerProvider(
+            IIssueTrackerFactory issueTrackerFactory,
             ITextDocumentFactoryService textDocumentFactoryService,
-            IIssuesFilter issuesFilter,
             IAnalyzerController analyzerController,
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             ISonarLanguageRecognizer languageRecognizer,
             IAnalysisRequester analysisRequester,
-            IAnalysisIssueVisualizationConverter converter,
-            ILogger logger,
-            IScheduler scheduler)
+            ILogger logger)
         {
-            this.sonarErrorDataSource = sonarErrorDataSource;
+            this.issueTrackerFactory = issueTrackerFactory;
             this.textDocumentFactoryService = textDocumentFactoryService;
-            this.issuesFilter = issuesFilter;
-
             this.analyzerController = analyzerController;
-            this.dte = serviceProvider.GetService<DTE>();
             this.languageRecognizer = languageRecognizer;
-            this.converter = converter;
             this.logger = logger;
-            this.scheduler = scheduler;
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
@@ -133,8 +119,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
-        #region IViewTaggerProvider members
-
         /// <summary>
         /// Create a tagger that will track SonarLint issues on the view/buffer combination.
         /// </summary>
@@ -158,8 +142,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
                     () =>
                     {
-                        var tracker = new TextBufferIssueTracker(dte, textDocument, detectedLanguages, issuesFilter,
-                            sonarErrorDataSource, converter, scheduler, analyzerController, logger);
+                        var tracker = issueTrackerFactory.Create(textDocument, detectedLanguages);
 
                         AddIssueTracker(tracker);
                         tracker.Disposed += (e, args) => RemoveIssueTracker(tracker);
@@ -173,9 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return null;
         }
 
-        #endregion IViewTaggerProvider members
-
-        public void AddIssueTracker(IIssueTracker issueTracker)
+        private void AddIssueTracker(IIssueTracker issueTracker)
         {
             lock (issueTrackers)
             {
@@ -183,7 +164,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveIssueTracker(IIssueTracker issueTracker)
+        private void RemoveIssueTracker(IIssueTracker issueTracker)
         {
             lock (issueTrackers)
             {

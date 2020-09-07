@@ -67,7 +67,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
 
-        public TextBufferIssueTracker(DTE dte, ITextDocument document,
+        public TextBufferIssueTracker(
+            DTE dte, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
             IScheduler scheduler, IAnalyzerController analyzerController, ILogger logger)
