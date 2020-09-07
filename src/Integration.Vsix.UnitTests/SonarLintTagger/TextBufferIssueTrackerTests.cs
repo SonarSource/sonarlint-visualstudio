@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
@@ -76,10 +77,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             logger = new TestLogger();
 
-            return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
-                mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
+            return null;
+
+            //return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
+            //    mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
+            //    mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
         }
+
+        //[TestMethod]
+        //public void RequestAnalysis_Should_NotThrow_When_AnalysisFails()
+        //{
+        //    mockAnalysisScheduler
+        //        .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
+        //        .Throws<Exception>();
+
+        //    Action act = () =>
+        //        provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
+
+        //    act.Should().NotThrow();
+        //}
+
+        [TestMethod]
+        [DataRow(-1, TextBufferIssueTracker.DefaultAnalysisTimeoutMs)]
+        [DataRow(0, TextBufferIssueTracker.DefaultAnalysisTimeoutMs)]
+        [DataRow(1, 1)]
+        [DataRow(999, 999)]
+        public void AnalysisTimeout(int envSettingsResponse, int expectedTimeout)
+        {
+            var envSettingsMock = new Mock<IEnvironmentSettings>();
+            envSettingsMock.Setup(x => x.AnalysisTimeoutInMs()).Returns(envSettingsResponse);
+
+            TextBufferIssueTracker.GetAnalysisTimeoutInMilliseconds(envSettingsMock.Object).Should().Be(expectedTimeout);
+        }
+
+        [TestMethod]
+        public void AnalysisTimeoutInMilliseconds_NoEnvironmentSettings_DefaultTimeout()
+        {
+            TextBufferIssueTracker.GetAnalysisTimeoutInMilliseconds().Should().Be(TextBufferIssueTracker.DefaultAnalysisTimeoutMs);
+        }
+
 
         [TestMethod]
         public void Lifecycle_FactoryIsRegisteredAndUnregisteredWithDataSource()
@@ -435,7 +471,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
                 IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
                 ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, ILogger logger)
-                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger)
+                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, null, null, logger)
             { }
 
             protected override IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)

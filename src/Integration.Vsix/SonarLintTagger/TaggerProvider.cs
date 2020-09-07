@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
@@ -51,8 +50,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class TaggerProvider : ITaggerProvider
     {
-        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
-
         internal readonly ISonarErrorListDataSource sonarErrorDataSource;
         internal readonly ITextDocumentFactoryService textDocumentFactoryService;
         internal readonly IIssuesFilter issuesFilter;
@@ -159,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger));
+                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, scheduler, analyzerController, logger));
 
                 return issueTracker as ITagger<T>;
             }
@@ -168,34 +165,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #endregion IViewTaggerProvider members
-
-        public void RequestAnalysis(string path, string charset, IEnumerable<AnalysisLanguage> detectedLanguages, IIssueConsumer issueConsumer, IAnalyzerOptions analyzerOptions)
-        {
-            // May be called on the UI thread -> unhandled exceptions will crash VS
-            try
-            {
-                var analysisTimeout = GetAnalysisTimeoutInMilliseconds();
-
-                scheduler.Schedule(path,
-                    cancellationToken =>
-                        analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
-                            analyzerOptions, cancellationToken),
-                    analysisTimeout);
-            }
-            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine($"Analysis error: {ex}");
-            }
-        }
-
-        internal static int GetAnalysisTimeoutInMilliseconds(IEnvironmentSettings environmentSettings = null)
-        {
-            environmentSettings = environmentSettings ?? new EnvironmentSettings();
-            var userSuppliedTimeout = environmentSettings.AnalysisTimeoutInMs();
-            var analysisTimeoutInMilliseconds = userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
-
-            return analysisTimeoutInMilliseconds;
-        }
 
         public void AddIssueTracker(IIssueTracker issueTracker)
         {

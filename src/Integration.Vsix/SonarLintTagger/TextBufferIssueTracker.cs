@@ -25,8 +25,10 @@ using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -45,6 +47,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </remarks>
     internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
     {
+        internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
+
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
@@ -56,13 +60,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
         private readonly IAnalysisIssueVisualizationConverter converter;
+        private readonly IScheduler scheduler;
+        private readonly IAnalyzerController analyzerController;
 
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, ILogger logger)
+            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
+            IScheduler scheduler, IAnalyzerController analyzerController, ILogger logger)
         {
             this.dte = dte;
 
@@ -72,6 +79,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.converter = converter;
+            this.scheduler = scheduler;
+            this.analyzerController = analyzerController;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -142,8 +151,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // from the error list
             issueConsumer.Accept(FilePath, Enumerable.Empty<IAnalysisIssue>());
 
-            Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
+            ScheduleAnalysis(FilePath, issueConsumer, options);
         }
+
+        public void ScheduleAnalysis(string path, IIssueConsumer issueConsumer, IAnalyzerOptions analyzerOptions)
+        {
+            // May be called on the UI thread -> unhandled exceptions will crash VS
+            try
+            {
+                var analysisTimeout = GetAnalysisTimeoutInMilliseconds();
+
+                scheduler.Schedule(path,
+                    cancellationToken =>
+                        analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
+                            analyzerOptions, cancellationToken),
+                    analysisTimeout);
+            }
+            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine($"Analysis error: {ex}");
+            }
+        }
+
+        internal static int GetAnalysisTimeoutInMilliseconds(IEnvironmentSettings environmentSettings = null)
+        {
+            environmentSettings = environmentSettings ?? new EnvironmentSettings();
+            var userSuppliedTimeout = environmentSettings.AnalysisTimeoutInMs();
+            var analysisTimeoutInMilliseconds = userSuppliedTimeout > 0 ? userSuppliedTimeout : DefaultAnalysisTimeoutMs;
+
+            return analysisTimeoutInMilliseconds;
+        }
+
 
         internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
         {
