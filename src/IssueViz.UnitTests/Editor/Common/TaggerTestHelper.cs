@@ -29,7 +29,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
     {
         public static readonly ITextBuffer ValidBuffer = CreateBufferWithSnapshot();
 
-        public static ITextBuffer CreateBufferWithSnapshot(int length = 999)
+        public static ITextBuffer CreateBufferWithSnapshot(int length = 999) =>
+            CreateBufferMockWithSnapshot(length).Object;
+
+        public static Mock<ITextBuffer> CreateBufferMockWithSnapshot(int length = 999)
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             snapshotMock.Setup(x => x.Length).Returns(length);
@@ -37,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             var bufferMock = new Mock<ITextBuffer>();
             bufferMock.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
 
-            return bufferMock.Object;
+            return bufferMock;
         }
 
         public static ITagAggregator<T> CreateAggregator<T>(params IMappingTagSpan<T>[] tagSpans) where T: ITag
