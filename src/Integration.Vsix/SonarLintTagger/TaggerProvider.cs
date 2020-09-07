@@ -45,11 +45,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    [Export(typeof(IViewTaggerProvider))]
+    [Export(typeof(ITaggerProvider))]
     [TagType(typeof(IErrorTag))]
     [ContentType("text")]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal sealed class TaggerProvider : IViewTaggerProvider
+    internal sealed class TaggerProvider : ITaggerProvider
     {
         internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
@@ -134,24 +134,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return issueTrackers.Where(it => filePaths.Contains(it.FilePath, StringComparer.OrdinalIgnoreCase));
         }
 
-        internal IEnumerable<IIssueTracker> ActiveTrackersForTesting { get { return this.issueTrackers; } }
+        internal IEnumerable<IIssueTracker> ActiveTrackersForTesting => issueTrackers;
 
         #region IViewTaggerProvider members
 
         /// <summary>
         /// Create a tagger that will track SonarLint issues on the view/buffer combination.
         /// </summary>
-        public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
+        public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         {
             // Only attempt to track the view's edit buffer.
-            if (buffer != textView.TextBuffer ||
-                typeof(T) != typeof(IErrorTag))
+            if (typeof(T) != typeof(IErrorTag))
             {
                 return null;
             }
 
-            ITextDocument textDocument;
-            if (!textDocumentFactoryService.TryGetTextDocument(textView.TextDataModel.DocumentBuffer, out textDocument))
+            if (!textDocumentFactoryService.TryGetTextDocument(buffer, out var textDocument))
             {
                 return null;
             }
@@ -160,13 +158,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
-                // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
                     () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger));
 
-                // Always create a new tagger for each request.
-                // Delegate the actual creation to the tracker for the file.
-                return issueTracker.CreateTagger() as ITagger<T>;
+                return issueTracker as ITagger<T>;
             }
 
             return null;
