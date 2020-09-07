@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             CheckAnalysisWasRequested();
 
-            // Unregister tagger and raise -> analysis not requested
+            // Dispose and raise -> analysis not requested
             testSubject.Dispose();
             mockAnalyzerController.Invocations.Clear();
 

@@ -149,8 +149,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return null;
             }
 
-            ITextDocument textDocument;
-            if (!textDocumentFactoryService.TryGetTextDocument(buffer, out textDocument))
+            if (!textDocumentFactoryService.TryGetTextDocument(buffer, out var textDocument))
             {
                 return null;
             }
@@ -159,12 +158,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
-                // Multiple views could have that buffer open simultaneously, so only create one instance of the tracker.
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
                     () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger));
 
-                // Always create a new tagger for each request.
-                // Delegate the actual creation to the tracker for the file.
                 return issueTracker as ITagger<T>;
             }
 
