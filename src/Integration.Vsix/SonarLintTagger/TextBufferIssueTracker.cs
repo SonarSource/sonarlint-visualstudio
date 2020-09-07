@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
-using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -45,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
+    internal class TextBufferIssueTracker : IIssueTracker
     {
         public event EventHandler Disposed;
 
@@ -62,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
         private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly IScheduler scheduler;
-        private readonly IAnalyzerController analyzerController;
+        private readonly IAnalyzer analyzer;
 
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
@@ -71,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             DTE dte, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
-            IScheduler scheduler, IAnalyzerController analyzerController, ILogger logger)
+            IScheduler scheduler, IAnalyzer analyzer, ILogger logger)
         {
             this.dte = dte;
             this.textBuffer = document.TextBuffer;
@@ -79,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.converter = converter;
             this.scheduler = scheduler;
-            this.analyzerController = analyzerController;
+            this.analyzer = analyzer;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
             this.document = document;
@@ -150,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             ScheduleAnalysis(FilePath, issueConsumer, options);
         }
 
-        public void ScheduleAnalysis(string path, IIssueConsumer issueConsumer, IAnalyzerOptions analyzerOptions)
+        private void ScheduleAnalysis(string path, IIssueConsumer issueConsumer, IAnalyzerOptions analyzerOptions)
         {
             // May be called on the UI thread -> unhandled exceptions will crash VS
             try
@@ -159,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 scheduler.Schedule(path,
                     cancellationToken =>
-                        analyzerController.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
+                        analyzer.ExecuteAnalysis(path, charset, detectedLanguages, issueConsumer,
                             analyzerOptions, cancellationToken),
                     analysisTimeout);
             }

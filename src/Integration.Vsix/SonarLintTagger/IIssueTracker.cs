@@ -19,11 +19,12 @@
  */
 
 using System;
+using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueTracker : IDisposable
+    internal interface IIssueTracker : IDisposable, ITagger<IErrorTag>
     {
         event EventHandler Disposed;
         string FilePath { get; }
