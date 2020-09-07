@@ -72,5 +72,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
         }
 
         #endregion
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing && !disposedValue)
+            {
+                issueSelectionService.SelectionChanged -= OnSelectionChanged;
+                disposedValue = true;
+            }
+        }
     }
 }
