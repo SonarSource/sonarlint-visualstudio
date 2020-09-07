@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void Dispose_UnsubscribesFromEvents()
+        public void Dispose_UnsubscribesFromEventsAndDisposesAggregrator()
         {
             var aggregatorMock = new Mock<ITagAggregator<TrackedTag>>();
             aggregatorMock.SetupAdd(x => x.BatchedTagsChanged += (sender, args) => { });
@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             testSubject.Dispose();
 
             aggregatorMock.VerifyRemove(x => x.BatchedTagsChanged -= It.IsAny<EventHandler<BatchedTagsChangedEventArgs>>(), Times.Once);
+            aggregatorMock.Verify(x => x.Dispose(), Times.Once);
         }
 
         [TestMethod]
@@ -84,8 +85,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             SnapshotSpanEventArgs suppliedArgs = null;
             int eventCount = 0;
-            Span expectedSpan = new Span(0, ValidBuffer.CurrentSnapshot.Length);
-            SnapshotSpan expectedSnapshotSpan = new SnapshotSpan(ValidBuffer.CurrentSnapshot, new Span(0, ValidBuffer.CurrentSnapshot.Length));
+                SnapshotSpan expectedSnapshotSpan = new SnapshotSpan(ValidBuffer.CurrentSnapshot, new Span(0, ValidBuffer.CurrentSnapshot.Length));
             testSubject.TagsChanged += (sender, args) => { eventCount++; suppliedArgs = args; };
 
             // Act

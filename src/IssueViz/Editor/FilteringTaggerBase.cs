@@ -157,6 +157,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 if (disposing)
                 {
                     tagAggregator.BatchedTagsChanged -= OnAggregatorTagsChanged;
+                    tagAggregator.Dispose();
                 }
 
                 disposedValue = true;
