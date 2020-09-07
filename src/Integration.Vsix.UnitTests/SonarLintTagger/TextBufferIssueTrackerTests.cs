@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private TextBufferIssueTracker CreateTextBufferIssueTracker()
         {
             logger = new TestLogger();
+
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
                 mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
@@ -83,22 +84,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void Lifecycle_FactoryIsRegisteredAndUnregisteredWithDataSource()
         {
-            // 1. No taggers to start with -> not registered
-            CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Never());
-
-            // 2. Registered only on creation of first tagger
-            var tagger1 = testSubject.CreateTagger();
+            // 1.Registered on creation
             CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Once());
 
-            var tagger2 = testSubject.CreateTagger();
-            CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Once());
-
-            // 3. Unregistered only on disposal of last tagger
+            // 2. Unregistered on disposal
             CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
-            tagger1.Dispose();
-            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
-
-            tagger2.Dispose();
+            testSubject.Dispose();
             CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Once());
         }
 
@@ -115,50 +106,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         #region Triggering analysis tests
 
         [TestMethod]
-        public void WhenTaggerCreated_AnalysisIsRequested()
+        public void WhenCreated_AnalysisIsRequested()
         {
-            // 1. No tagger -> analysis not requested
-            CheckAnalysisWasNotRequested();
-
-            // 2. Add a tagger -> analysis requested
-            using (testSubject.CreateTagger())
-            {
-                mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8", new AnalysisLanguage[] { AnalysisLanguage.Javascript }, It.IsAny<IIssueConsumer>(),
-                    (IAnalyzerOptions)null /* no expecting any options when a new tagger is added */,
-                    It.IsAny<CancellationToken>()), Times.Once);
-            }
+            mockAnalyzerController.Verify(x => x.ExecuteAnalysis("foo.js", "utf-8",
+                new[] {AnalysisLanguage.Javascript}, It.IsAny<IIssueConsumer>(),
+                null /* no expecting any options when a new tagger is added */,
+                It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [TestMethod]
-        public void WhenFileIsSaved_ButNoTaggers_AnalysisIsNotRequested()
+        public void WhenFileIsSaved_AnalysisIsRequested()
         {
-            // Arrange
-            CheckAnalysisWasNotRequested();
-
-            // Act
-            RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
-
-            // Assert
-            CheckAnalysisWasNotRequested();
-        }
-
-        [TestMethod]
-        public void WhenFileIsSaved_AnalysisIsRequested_ButOnlyIfATaggerIsRegistered()
-        {
-            // 1. No tagger -> analysis not requested
-            RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-            CheckAnalysisWasNotRequested();
-
-            // 2. Add a tagger and raise -> analysis requested
-            var tagger = testSubject.CreateTagger();
             mockAnalyzerController.Invocations.Clear();
-
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
             CheckAnalysisWasRequested();
 
-            // 3. Unregister tagger and raise -> analysis not requested
-            tagger.Dispose();
+            // Dispose and raise -> analysis not requested
+            testSubject.Dispose();
             mockAnalyzerController.Invocations.Clear();
 
             RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
@@ -168,24 +133,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void WhenFileIsLoaded_AnalysisIsNotRequested()
         {
-            using (var tagger = testSubject.CreateTagger())
-            {
-                mockAnalyzerController.Invocations.Clear();
+            mockAnalyzerController.Invocations.Clear();
 
-                // Act
-                RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
-                CheckAnalysisWasNotRequested();
+            // Act
+            RaiseFileLoadedEvent(mockedJavascriptDocumentFooJs);
+            CheckAnalysisWasNotRequested();
 
-                // Sanity check (that the test setup is correct and that events are actually being handled)
-                RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
-                CheckAnalysisWasRequested();
-            }
-        }
-
-        private static void RaiseRenameEvent(Mock<ITextDocument> mockDocument, string newFileName)
-        {
-            var args = new TextDocumentFileActionEventArgs(newFileName, DateTime.UtcNow, FileActionTypes.DocumentRenamed);
-            mockDocument.Raise(x => x.FileActionOccurred += null, args);
+            // Sanity check (that the test setup is correct and that events are actually being handled)
+            RaiseFileSavedEvent(mockedJavascriptDocumentFooJs);
+            CheckAnalysisWasRequested();
         }
 
         private static void RaiseFileSavedEvent(Mock<ITextDocument> mockDocument)
@@ -199,13 +155,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var args = new TextDocumentFileActionEventArgs(mockDocument.Object.FilePath, DateTime.UtcNow, FileActionTypes.ContentLoadedFromDisk);
             mockDocument.Raise(x => x.FileActionOccurred += null, args);
         }
-
-        private static void RaiseBufferChangedEvent(Mock<ITextBuffer> mockTextBuffer, ITextSnapshot beforeSnapshot, ITextSnapshot afterSnapshot)
-        {
-            var args = new TextContentChangedEventArgs(beforeSnapshot, afterSnapshot, EditOptions.None, null);
-            mockTextBuffer.Raise(x => x.ChangedLowPriority += null, args);
-        }
-
+        
         private void CheckAnalysisWasNotRequested()
         {
             mockAnalyzerController.Verify(x => x.ExecuteAnalysis(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<AnalysisLanguage>>(),
@@ -229,6 +179,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
                 mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
+
+            mockSonarErrorDataSource.Invocations.Clear();
 
             var originalId = testSubject.Factory.CurrentSnapshot.AnalysisRunId;
 
@@ -266,6 +218,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void WhenNewIssuesAreFound_AndFilterRemovesAllIssues_ListenersAreUpdated()
         {
+            mockSonarErrorDataSource.Invocations.Clear();
+
             // Arrange
             var filteredIssue = CreateIssue("single issue", startLine: 1, endLine: 1);
 
@@ -289,6 +243,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         [TestMethod]
         public void WhenNoIssuesAreFound_ListenersAreUpdated()
         {
+            mockSonarErrorDataSource.Invocations.Clear();
+
             // Arrange
             SetupIssuesFilter(out var capturedFilterInput, Enumerable.Empty<IFilterableIssue>());
 

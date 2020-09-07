@@ -27,7 +27,6 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
@@ -143,7 +142,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreateTagger_should_return_new_tagger_for_already_tracked_file()
+        public void CreateTagger_should_return_same_tagger_for_already_tracked_file()
         {
             var doc1 = CreateMockedDocument("doc1.js", jsContentType);
 
@@ -153,28 +152,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger2 = CreateTaggerForDocument(doc1);
             tagger2.Should().NotBeNull();
 
-            // Taggers should be different but tracker should be the same
-            tagger1.Should().NotBeSameAs(tagger2);
+            tagger1.Should().BeSameAs(tagger2);
             provider.ActiveTrackersForTesting.Count().Should().Be(1);
         }
 
         [TestMethod]
-        public void CreateTagger_close_last_tagger_should_unregister_tracker()
+        public void CreateTagger_close_tagger_should_unregister_tracker()
         {
             var doc1 = CreateMockedDocument("doc1.js", jsContentType);
 
-            var tracker1 = CreateTaggerForDocument(doc1);
+            var tracker = CreateTaggerForDocument(doc1);
             provider.ActiveTrackersForTesting.Count().Should().Be(1);
 
-            var tracker2 = CreateTaggerForDocument(doc1);
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
-
-            // Remove one tagger -> tracker should still be registered
-            tracker1.Dispose();
-            provider.ActiveTrackersForTesting.Count().Should().Be(1);
-
-            // Remove the last tagger -> tracker should be unregistered
-            tracker2.Dispose();
+            // Remove the tagger -> tracker should be unregistered
+            (tracker as IDisposable).Dispose();
             provider.ActiveTrackersForTesting.Count().Should().Be(0);
         }
 
@@ -201,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Throws<Exception>();
 
             Action act = () =>
-            provider.RequestAnalysis("doc1.js", "", new []{AnalysisLanguage.CFamily}, null, null);
+            provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
 
             act.Should().NotThrow();
         }
@@ -302,25 +293,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return mock.Object;
         }
 
-        private IssueTagger CreateTagger(IContentType bufferContentType = null)
+        private ITagger<IErrorTag> CreateTagger(IContentType bufferContentType = null)
         {
             var doc = CreateMockedDocument("anyname", bufferContentType);
             return CreateTaggerForDocument(doc);
         }
 
-        private IssueTagger CreateTaggerForDocument(ITextDocument document)
+        private ITagger<IErrorTag> CreateTaggerForDocument(ITextDocument document)
         {
             var mockTextDataModel = new Mock<ITextDataModel>();
             mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
-            var textDataModel = mockTextDataModel.Object;
 
-            var mockTextView = new Mock<ITextView>();
-            mockTextView.Setup(t => t.TextBuffer).Returns(document.TextBuffer);
-            mockTextView.Setup(t => t.TextDataModel).Returns(textDataModel);
-
-            ITextView textView = mockTextView.Object;
-
-            return provider.CreateTagger<IErrorTag>(textView, document.TextBuffer) as IssueTagger;
+            return provider.CreateTagger<IErrorTag>(document.TextBuffer);
         }
 
         private ITextDocument CreateMockedDocument(string fileName, IContentType bufferContentType = null)

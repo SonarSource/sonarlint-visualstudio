@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueTracker
+    internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
     {
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
@@ -58,8 +59,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
-
-        private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
@@ -83,45 +82,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.Factory = new SnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
-        }
 
-        public IssueTagger CreateTagger()
-        {
-            var tagger = new IssueTagger(this.Factory.CurrentSnapshot.Issues, RemoveTagger);
-            this.AddTagger(tagger);
+            sonarErrorDataSource.AddFactory(this.Factory);
+            Provider.AddIssueTracker(this);
 
-            return tagger;
-        }
-
-        private void AddTagger(IssueTagger tagger)
-        {
-            Debug.Assert(!activeTaggers.Contains(tagger), "Not expecting the tagger to be already registered");
-            activeTaggers.Add(tagger);
-
-            if (activeTaggers.Count == 1)
-            {
-                // First tagger created... start doing stuff
-                sonarErrorDataSource.AddFactory(this.Factory);
-                Provider.AddIssueTracker(this);
-
-                RequestAnalysis(null /* no options */);
-            }
-        }
-
-        private void RemoveTagger(IssueTagger tagger)
-        {
-            Debug.Assert(activeTaggers.Contains(tagger), "Not expecting RemoveTagger to be called for an unregistered tagger");
-            activeTaggers.Remove(tagger);
-
-            if (activeTaggers.Count == 0)
-            {
-                // Last tagger was disposed of. This is means there are no longer any open views on the buffer so we can safely shut down
-                // issue tracking for that buffer.
-                document.FileActionOccurred -= SafeOnFileActionOccurred;
-                textBuffer.Properties.RemoveProperty(typeof(TextBufferIssueTracker));
-                sonarErrorDataSource.RemoveFactory(this.Factory);
-                Provider.RemoveIssueTracker(this);
-            }
+            RequestAnalysis(null /* no options */);
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -130,8 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
-                if (e.FileActionType == FileActionTypes.ContentSavedToDisk
-                    && activeTaggers.Count > 0)
+                if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
                 {
                     RequestAnalysis(null /* no options */);
                 }
@@ -215,6 +179,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             var projectName = projectItem?.ContainingProject.Name ?? "{none}";
 
             return projectName;
+        }
+
+        public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        {
+            return Enumerable.Empty<ITagSpan<IErrorTag>>();
+        }
+
+        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+        public void Dispose()
+        {
+            document.FileActionOccurred -= SafeOnFileActionOccurred;
+            textBuffer.Properties.RemoveProperty(typeof(IIssueTracker));
+            sonarErrorDataSource.RemoveFactory(this.Factory);
+            Provider.RemoveIssueTracker(this);
         }
     }
 }
