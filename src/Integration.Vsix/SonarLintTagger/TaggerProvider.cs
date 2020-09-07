@@ -156,7 +156,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
                 var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, scheduler, analyzerController, logger));
+                    () =>
+                    {
+                        var tracker = new TextBufferIssueTracker(dte, textDocument, detectedLanguages, issuesFilter,
+                            sonarErrorDataSource, converter, scheduler, analyzerController, logger);
+
+                        AddIssueTracker(tracker);
+                        tracker.Disposed += (e, args) => RemoveIssueTracker(tracker);
+
+                        return tracker;
+                    });
 
                 return issueTracker as ITagger<T>;
             }

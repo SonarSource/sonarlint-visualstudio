@@ -45,12 +45,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
+    internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>
     {
+        public event EventHandler Disposed;
+
         internal /* for testing */ const int DefaultAnalysisTimeoutMs = 60 * 1000;
 
         private readonly DTE dte;
-        internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
@@ -66,16 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public string FilePath { get; private set; }
         internal /* for testing */ SnapshotFactory Factory { get; }
 
-        public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
+        public TextBufferIssueTracker(DTE dte, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
             ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
             IScheduler scheduler, IAnalyzerController analyzerController, ILogger logger)
         {
             this.dte = dte;
-
-            this.Provider = provider;
             this.textBuffer = document.TextBuffer;
-
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.converter = converter;
@@ -83,7 +81,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.analyzerController = analyzerController;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
-
             this.document = document;
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
@@ -93,8 +90,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
             sonarErrorDataSource.AddFactory(this.Factory);
-            Provider.AddIssueTracker(this);
-
             RequestAnalysis(null /* no options */);
         }
 
@@ -228,10 +223,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public void Dispose()
         {
+            Disposed?.Invoke(this, EventArgs.Empty);
             document.FileActionOccurred -= SafeOnFileActionOccurred;
             textBuffer.Properties.RemoveProperty(typeof(IIssueTracker));
             sonarErrorDataSource.RemoveFactory(this.Factory);
-            Provider.RemoveIssueTracker(this);
         }
     }
 }
