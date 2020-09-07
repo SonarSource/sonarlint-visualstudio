@@ -68,37 +68,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             // Filter to any selected locations.
             // There could be multiple secondary issues locations in this file for different issues.
             return trackedTagSpans
-                .Where(tagSpan => selectedSecondaryLocVizs.Contains(tagSpan.Tag.Location, LocVizComparer));
+                .Where(tagSpan => selectedSecondaryLocVizs.Contains(tagSpan.Tag.Location));
         }
 
         #endregion
-
-        private static readonly IssueLocVizComparer LocVizComparer = new IssueLocVizComparer();
-
-        private class IssueLocVizComparer : IEqualityComparer<IAnalysisIssueLocationVisualization>
-        {
-            public bool Equals(IAnalysisIssueLocationVisualization x, IAnalysisIssueLocationVisualization y)
-            {
-                if ((x == null && y != null) || (x != null && y == null)) { return false; }
-                if (x.GetType() != y.GetType()) { return false; }
-
-                return ReferenceEquals(x.Location, y.Location);
-            }
-
-            public int GetHashCode(IAnalysisIssueLocationVisualization obj)
-            {
-                return obj.Location.LineHash.GetHashCode();
-            }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            if (disposing && !disposedValue)
-            {
-                issueSelectionService.SelectionChanged -= OnSelectionChanged;
-                disposedValue = true;
-            }
-        }
     }
 }
