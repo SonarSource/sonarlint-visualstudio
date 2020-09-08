@@ -87,12 +87,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             return flowVizMock.Object;
         }
 
-        public static IAnalysisIssueLocationVisualization CreateLocationViz(ITextSnapshot snapshot, Span span, string locationMessage)
+        public static IAnalysisIssueLocationVisualization CreateLocationViz(ITextSnapshot snapshot, Span span, string locationMessage = null, int stepNumber = -1)
         {
             var locVizMock = new Mock<IAnalysisIssueLocationVisualization>();
             var snapshotSpan = new SnapshotSpan(snapshot, span);
             locVizMock.Setup(x => x.Span).Returns(snapshotSpan);
             locVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { Message = locationMessage });
+            locVizMock.Setup(x => x.StepNumber).Returns(stepNumber);
             return locVizMock.Object;
         }
 
