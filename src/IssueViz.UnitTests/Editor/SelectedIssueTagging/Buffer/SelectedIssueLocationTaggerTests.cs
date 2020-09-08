@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var aggregatorMock = new Mock<ITagAggregator<IIssueLocationTag>>();
             aggregatorMock.SetupAdd(x => x.BatchedTagsChanged += (sender, args) => { });
 
-            var bufferMock = CreateBufferMockWithSnapshot();
+            var bufferMock = CreateBufferMock();
 
             var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             selectionServiceMock.SetupAdd(x => x.SelectionChanged += (sender, args) => { });
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var aggregatorMock = new Mock<ITagAggregator<IIssueLocationTag>>();
             aggregatorMock.SetupRemove(x => x.BatchedTagsChanged -= (sender, args) => { });
 
-            var bufferMock = CreateBufferMockWithSnapshot();
+            var bufferMock = CreateBufferMock();
 
             var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             selectionServiceMock.SetupRemove(x => x.SelectionChanged -= (sender, args) => { });
@@ -121,12 +121,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void GetTags_NoSelectedFlow_ReturnsEmpty()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var snapshot = CreateSnapshot(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             selectionServiceMock.Setup(x => x.SelectedFlow).Returns((IAnalysisIssueFlowVisualization)null); // no selected flow
-
 
             var locViz = CreateLocationViz(snapshot, new Span(1, 1), "tagged location");
             var aggregator = CreateLocationAggregator(locViz);
@@ -142,7 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void GetTags_NoMatchingLocations_ReturnsEmpty()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var snapshot = CreateSnapshot(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var selectedLoc1 = CreateLocationViz(snapshot, new Span(1, 5), "selection 1");
@@ -164,7 +163,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void GetTags_TagsMatchSelectedIssuesLocations_CreatesExpectedTags()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var snapshot = CreateSnapshot(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var matchingLoc1 = CreateLocationViz(snapshot, new Span(1, 5), "match 1");
