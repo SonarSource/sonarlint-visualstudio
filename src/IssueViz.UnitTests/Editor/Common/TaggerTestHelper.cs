@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         public static ITextBuffer CreateBuffer(int length = 999) =>
             CreateBufferMock(length).Object;
 
-        public static Mock<ITextBuffer> CreateBufferMock(int length = 999)
+        public static Mock<ITextBuffer> CreateBufferMock(int length = 999, string filePath = "test.cpp")
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             var bufferMock = new Mock<ITextBuffer>();
@@ -46,6 +46,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             bufferMock.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
             snapshotMock.Setup(x => x.TextBuffer).Returns(bufferMock.Object);
             snapshotMock.Setup(x => x.Length).Returns(length);
+
+            var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();
+            bufferMock.Setup(x => x.Properties).Returns(properties);
+
+            var docMock = new Mock<ITextDocument>();
+            docMock.Setup(x => x.FilePath).Returns(filePath);
+            properties[typeof(ITextDocument)] = docMock.Object;
 
             return bufferMock;
         }

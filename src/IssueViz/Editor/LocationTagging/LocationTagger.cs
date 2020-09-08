@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             this.spanCalculator = spanCalculator;
             this.logger = logger;
 
-            FilePath = GetFileName(buffer);
+            FilePath = buffer.GetFilePath();
             UpdateTags();
 
             locationService.IssuesChanged += OnIssuesChanged;
@@ -95,13 +95,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
         private static ITagSpan<IIssueLocationTag> CreateTagSpan(IAnalysisIssueLocationVisualization locViz) =>
             new TagSpan<IIssueLocationTag>(locViz.Span.Value, new IssueLocationTag(locViz));
-
-        private string GetFileName(ITextBuffer textBuffer)
-        {
-            ITextDocument newTextDocument = null;
-            textBuffer.Properties?.TryGetProperty(typeof(ITextDocument), out newTextDocument);
-            return newTextDocument?.FilePath;
-        }
 
         #region ITagger implementation
 

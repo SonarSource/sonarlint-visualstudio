@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             tagger1.Should().NotBeSameAs(tagger2);
         }
 
-        private static ITextView CreateValidTextView(ITextBuffer buffer = null)
+        protected static ITextView CreateValidTextView(ITextBuffer buffer = null)
         {
             var viewMock = new Mock<ITextView>();
             var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();

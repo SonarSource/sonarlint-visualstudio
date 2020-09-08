@@ -18,28 +18,43 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
-using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Highlight;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Highlighting
 {
     [TestClass]
     public class IssueHighlightViewTaggerProviderTests : CommonViewTaggerProviderTestsBase
     {
+        private Mock<ITaggableBufferIndicator> taggableBufferIndicator;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            taggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
+            taggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             var aggregatorFactoryExport = MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>());
-            var locationServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>());
+            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
 
-            MefTestHelpers.CheckTypeCanBeImported<SelectedIssueLocationTaggerProvider, ITaggerProvider>(null, new[] { aggregatorFactoryExport, locationServiceExport });
+            MefTestHelpers.CheckTypeCanBeImported<IssueHighlightViewTaggerProvider, IViewTaggerProvider>(null, 
+                new[]
+                {
+                    aggregatorFactoryExport, 
+                    taggableBufferIndicatorExport
+                });
         }
 
         protected override IViewTaggerProvider CreateTestSubject()
@@ -48,7 +63,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             aggregatorMock.Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<ISelectedIssueLocationTag>>());
 
-            return new IssueHighlightViewTaggerProvider(aggregatorMock.Object);
+            return new IssueHighlightViewTaggerProvider(aggregatorMock.Object, taggableBufferIndicator.Object);
+        }
+
+        [TestMethod]
+        public void CreateTagger_BufferIsNotTaggable_Null()
+        {
+            var textBuffer = TaggerTestHelper.ValidBuffer;
+            var textView = CreateValidTextView(textBuffer);
+
+            taggableBufferIndicator.Reset();
+            taggableBufferIndicator.Setup(x => x.IsTaggable(textBuffer)).Returns(false);
+
+            var testSubject = CreateTestSubject();
+            var tagger = testSubject.CreateTagger<ITag>(textView, textBuffer);
+
+            tagger.Should().BeNull();
         }
     }
 }

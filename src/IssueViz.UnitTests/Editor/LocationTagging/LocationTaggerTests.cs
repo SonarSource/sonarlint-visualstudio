@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTagging
 {
@@ -335,23 +336,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock2);
         }
 
-        private static Mock<ITextBuffer> CreateBufferMock(string filePath, int length = 999)
-        {
-            var snapshotMock = new Mock<ITextSnapshot>();
-            snapshotMock.Setup(x => x.Length).Returns(length);
-
-            var bufferMock = new Mock<ITextBuffer>();
-            bufferMock.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
-
-            var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();
-            bufferMock.Setup(x => x.Properties).Returns(properties);
-
-            var docMock = new Mock<ITextDocument>();
-            docMock.Setup(x => x.FilePath).Returns(filePath);
-            properties[typeof(ITextDocument)] = docMock.Object;
-
-            return bufferMock;
-        }
+        private static Mock<ITextBuffer> CreateBufferMock(string validBufferDocName, int length = 999) =>
+            TaggerTestHelper.CreateBufferMock(length, validBufferDocName);
 
         private static IAnalysisIssueLocationVisualization CreateLocViz(SnapshotSpan? span)
         {
