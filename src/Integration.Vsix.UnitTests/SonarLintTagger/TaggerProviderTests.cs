@@ -40,12 +40,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<IAnalyzerController> mockAnalyzerController;
         private IAnalyzerController analyzerController;
-        private Mock<ILogger> mockLogger;
         private IContentType jsContentType;
         private DummyTextDocumentFactoryService dummyDocumentFactoryService;
-        private Mock<IIssueTrackerFactory> issueTrackerFactory;
 
         private TaggerProvider testSubject;
+        private Mock<IAnalysisRequestHandlersStore> analysisRequestHandlersStore;
+        private Mock<IAnalysisRequestHandlerFactory> analysisRequestHandlerFactory;
 
         [TestInitialize]
         public void SetUp()
@@ -58,9 +58,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockContentTypeRegistryService.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
             var contentTypeRegistryService = mockContentTypeRegistryService.Object;
 
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            var serviceProvider = mockServiceProvider.Object;
-
             var mockFileExtensionRegistryService = new Mock<IFileExtensionRegistryService>();
             var fileExtensionRegistryService = mockFileExtensionRegistryService.Object;
 
@@ -71,14 +68,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
 
-            mockLogger = new Mock<ILogger>();
-
             var sonarLanguageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryService, fileExtensionRegistryService);
-            var mockAnalysisRequester = new Mock<IAnalysisRequester>();
-            issueTrackerFactory = new Mock<IIssueTrackerFactory>();
 
-            testSubject = new TaggerProvider(issueTrackerFactory.Object, dummyDocumentFactoryService, analyzerController, serviceProvider,
-                sonarLanguageRecognizer, mockAnalysisRequester.Object, mockLogger.Object);
+            analysisRequestHandlersStore = new Mock<IAnalysisRequestHandlersStore>();
+            analysisRequestHandlerFactory = new Mock<IAnalysisRequestHandlerFactory>();
+
+            testSubject = new TaggerProvider(dummyDocumentFactoryService, analyzerController,
+                sonarLanguageRecognizer, analysisRequestHandlersStore.Object, analysisRequestHandlerFactory.Object);
         }
 
         [TestMethod]
@@ -115,20 +111,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             tagger2.Should().NotBeNull();
 
             tagger1.Should().BeSameAs(tagger2);
-            testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
-        }
 
-        [TestMethod]
-        public void CreateTagger_close_tagger_should_unregister_tracker()
-        {
-            var doc1 = CreateMockedDocument("doc1.js", jsContentType);
-
-            var tracker = CreateTaggerForDocument(doc1);
-            testSubject.ActiveTrackersForTesting.Count().Should().Be(1);
-
-            // Remove the tagger -> tracker should be unregistered
-            Mock.Get(tracker).Raise(x => x.Disposed += null, EventArgs.Empty);
-            testSubject.ActiveTrackersForTesting.Count().Should().Be(0);
+            analysisRequestHandlersStore.Verify(x=> x.Add(tagger1), Times.Once());
+            analysisRequestHandlersStore.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -142,85 +127,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger2 = CreateTaggerForDocument(doc2);
             tagger2.Should().NotBeNull();
 
-            testSubject.ActiveTrackersForTesting.Count().Should().Be(2);
             tagger1.Should().NotBe(tagger2);
-        }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow(new string[] { })]
-        public void FilterIssueTrackersByPath_NullOrEmptyPaths_AllTrackersReturned(string[] filePaths)
-        {
-            var trackers = CreateMockedIssueTrackers("any", "any2");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers, filePaths);
-
-            actual.Should().BeEquivalentTo(trackers);
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_NoMatches_EmptyListReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[] { "no matches", "file1.wrongextension" });
-
-            actual.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_SingleMatch_SingleTrackerReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[] { "file1.txt" });
-
-            actual.Should().BeEquivalentTo(trackers[0]);
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_MultipleMatches_MultipleTrackersReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[]
-                {
-                    "file1.txt",
-                    "D:\\BBB\\FILE3.xxx" // match should be case-insensitive
-                });
-
-            actual.Should().BeEquivalentTo(trackers[0], trackers[2]);
-        }
-
-        [TestMethod]
-        public void FilterIssueTrackersByPath_WithPaths_AllMatched_AllTrackersReturned()
-        {
-            var trackers = CreateMockedIssueTrackers("file1.txt", "c:\\aaa\\file2.cpp", "d:\\bbb\\file3.xxx");
-
-            var actual = TaggerProvider.FilterIssuesTrackersByPath(trackers,
-                new string[]
-                {
-                    "unmatchedFile1.cs",
-                    "file1.txt",
-                    "c:\\aaa\\file2.cpp",
-                    "unmatchedfile2.cpp",
-                    "d:\\bbb\\file3.xxx"
-                });
-
-            actual.Should().BeEquivalentTo(trackers);
-        }
-
-        private IIssueTracker[] CreateMockedIssueTrackers(params string[] filePaths) =>
-            filePaths.Select(x => CreateMockedIssueTracker(x)).ToArray();
-
-        private static IIssueTracker CreateMockedIssueTracker(string filePath)
-        {
-            var mock = new Mock<IIssueTracker>();
-            mock.Setup(x => x.FilePath).Returns(filePath);
-            return mock.Object;
+            analysisRequestHandlersStore.Verify(x => x.Add(tagger1), Times.Once());
+            analysisRequestHandlersStore.Verify(x => x.Add(tagger2), Times.Once());
+            analysisRequestHandlersStore.VerifyNoOtherCalls();
         }
 
         private ITagger<IErrorTag> CreateTagger(IContentType bufferContentType = null)
@@ -229,16 +140,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return CreateTaggerForDocument(doc);
         }
 
-        private IIssueTracker CreateTaggerForDocument(ITextDocument document)
+        private IAnalysisRequestHandler CreateTaggerForDocument(ITextDocument document)
         {
-            issueTrackerFactory
+            analysisRequestHandlerFactory
                 .Setup(x => x.Create(document, It.IsAny<IEnumerable<AnalysisLanguage>>()))
-                .Returns(Mock.Of<IIssueTracker>());
+                .Returns(Mock.Of<IAnalysisRequestHandler>());
 
             var mockTextDataModel = new Mock<ITextDataModel>();
             mockTextDataModel.Setup(x => x.DocumentBuffer).Returns(document.TextBuffer);
 
-            return testSubject.CreateTagger<IErrorTag>(document.TextBuffer) as IIssueTracker;
+            return testSubject.CreateTagger<IErrorTag>(document.TextBuffer) as IAnalysisRequestHandler;
         }
 
         private ITextDocument CreateMockedDocument(string fileName, IContentType bufferContentType = null)

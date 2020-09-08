@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueTracker
+    internal class TextBufferIssueTracker : IAnalysisRequestHandler
     {
         public event EventHandler Disposed;
 
@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Disposed?.Invoke(this, EventArgs.Empty);
             document.FileActionOccurred -= SafeOnFileActionOccurred;
-            textBuffer.Properties.RemoveProperty(typeof(IIssueTracker));
+            textBuffer.Properties.RemoveProperty(typeof(IAnalysisRequestHandler));
             sonarErrorDataSource.RemoveFactory(this.Factory);
         }
     }

@@ -31,14 +31,14 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
 {
-    internal interface IIssueTrackerFactory
+    internal interface IAnalysisRequestHandlerFactory
     {
-        IIssueTracker Create(ITextDocument textDocument, IEnumerable<AnalysisLanguage> detectedLanguages);
+        IAnalysisRequestHandler Create(ITextDocument textDocument, IEnumerable<AnalysisLanguage> detectedLanguages);
     }
 
-    [Export(typeof(IIssueTrackerFactory))]
+    [Export(typeof(IAnalysisRequestHandlerFactory))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class IssueTrackerFactory : IIssueTrackerFactory
+    internal class AnalysisRequestHandlerFactory : IAnalysisRequestHandlerFactory
     {
         private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
         private readonly DTE dte;
 
         [ImportingConstructor]
-        public IssueTrackerFactory([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, 
+        public AnalysisRequestHandlerFactory([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, 
             IAnalysisIssueVisualizationConverter converter, 
             ISonarErrorListDataSource sonarErrorDataSource, 
             IIssuesFilter issuesFilter, 
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.SonarLintTagger
             this.dte = serviceProvider.GetService<DTE>();
         }
 
-        public IIssueTracker Create(ITextDocument textDocument, IEnumerable<AnalysisLanguage> detectedLanguages)
+        public IAnalysisRequestHandler Create(ITextDocument textDocument, IEnumerable<AnalysisLanguage> detectedLanguages)
         {
             return new TextBufferIssueTracker(dte, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource,
                 converter, scheduler, analyzerController, logger);

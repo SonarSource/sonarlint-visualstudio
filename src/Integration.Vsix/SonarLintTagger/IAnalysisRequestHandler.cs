@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface IIssueTracker : IDisposable, ITagger<IErrorTag>
+    internal interface IAnalysisRequestHandler : IDisposable, ITagger<IErrorTag>
     {
         event EventHandler Disposed;
         string FilePath { get; }
