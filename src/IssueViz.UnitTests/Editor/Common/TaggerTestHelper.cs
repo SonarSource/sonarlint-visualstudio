@@ -30,15 +30,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 {
     internal static class TaggerTestHelper
     {
-        public static readonly ITextBuffer ValidBuffer = CreateBufferMockWithSnapshot().Object;
+        public static readonly ITextBuffer ValidBuffer = CreateBufferMock().Object;
 
-        public static ITextSnapshot CreateSnapshotAndBuffer(int length = 999) =>
-            CreateBufferMockWithSnapshot(length).Object.CurrentSnapshot;
+        public static ITextSnapshot CreateSnapshot(int length = 999) =>
+            CreateBufferMock(length).Object.CurrentSnapshot;
 
-        public static ITextBuffer CreateBufferWithSnapshot(int length = 999) =>
-            CreateBufferMockWithSnapshot(length).Object;
+        public static ITextBuffer CreateBuffer(int length = 999) =>
+            CreateBufferMock(length).Object;
 
-        public static Mock<ITextBuffer> CreateBufferMockWithSnapshot(int length = 999)
+        public static Mock<ITextBuffer> CreateBufferMock(int length = 999)
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             var bufferMock = new Mock<ITextBuffer>();

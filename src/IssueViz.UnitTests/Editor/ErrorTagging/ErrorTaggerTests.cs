@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
         [TestMethod]
         public void GetTags_FilterIsApplied_ExpectedTagsCreated()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var snapshot = CreateSnapshot(length: 50);
 
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 

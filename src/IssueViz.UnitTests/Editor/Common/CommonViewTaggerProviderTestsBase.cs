@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
             var suppliedBuffer = ValidBuffer;
 
-            var viewBuffer = CreateBufferWithSnapshot();
+            var viewBuffer = CreateBuffer();
             var view = CreateValidTextView(viewBuffer);
 
             var tagger = testSubject.CreateTagger<ITag>(view, suppliedBuffer);
@@ -109,8 +109,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CreateTagger_DifferentBuffers_ReturnsTaggerPerViewBuffer()
         {
-            var buffer1 = CreateBufferWithSnapshot();
-            var buffer2 = CreateBufferWithSnapshot();
+            var buffer1 = CreateBuffer();
+            var buffer2 = CreateBuffer();
 
             var view1 = CreateValidTextView(buffer1);
             var view2 = CreateValidTextView(buffer2);

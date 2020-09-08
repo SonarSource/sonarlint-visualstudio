@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void GetTags_NoSelectedIssueLocationTags_ReturnsEmpty()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var snapshot = CreateSnapshot(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var aggregator = CreateSelectedIssueAggregator();
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void GetTags_HasSelectedIssueLocationTags_ReturnsExpectedHighlightTags()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 50);
+            var snapshot = CreateSnapshot(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var selectedLoc1 = CreateLocationViz(snapshot, new Span(1, 5), "selection 1");

@@ -183,7 +183,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void GetTags_HasTagsButNoOverlappingSpans_ReturnsEmpty()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 100);
+            var snapshot = CreateSnapshot(length: 100);
 
             var inputSpan = new Span(20, 10);
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, inputSpan);
@@ -206,7 +206,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void GetTags_HasTagsWithOverlappingSpans_CreatesExpectedTags()
         {
-            var snapshot = CreateSnapshotAndBuffer(length: 100);
+            var snapshot = CreateSnapshot(length: 100);
 
             var inputSpan = new Span(20, 10);
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, inputSpan);

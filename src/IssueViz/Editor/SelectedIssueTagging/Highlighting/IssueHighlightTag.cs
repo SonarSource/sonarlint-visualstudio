@@ -44,11 +44,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
         public IssueHighlightFormatDefinition()
         {
             BackgroundColor = Colors.LightPink;
-            this.ForegroundColor = Colors.Transparent;
-            this.DisplayName = "Highlight Issue";
-            this.BackgroundCustomizable = true;
-            this.ForegroundCustomizable = true;
-            this.ZOrder = 5;
+            ForegroundColor = Colors.Transparent;
+            DisplayName = "Highlight Issue";
+            BackgroundCustomizable = true;
+            ForegroundCustomizable = true;
+            ZOrder = 5;
         }
     }
 }
