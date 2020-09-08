@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
@@ -116,6 +117,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             var tagMock = new Mock<ISelectedIssueLocationTag>();
             tagMock.Setup(x => x.Location).Returns(locViz);
             return tagMock.Object;
+        }
+
+        public static ITagAggregator<ISelectedIssueLocationTag> CreateSelectedIssueAggregator(params IAnalysisIssueLocationVisualization[] locVizs)
+        {
+            var tagSpans = locVizs
+                .Select(CreateSelectedIssueTagSpan)
+                .ToArray();
+
+            return CreateAggregator(tagSpans);
+        }
+
+        private static IMappingTagSpan<ISelectedIssueLocationTag> CreateSelectedIssueTagSpan(IAnalysisIssueLocationVisualization locViz)
+        {
+            var tag = CreateSelectedLocationTag(locViz);
+            return CreateMappingTagSpan(locViz.Span.Value.Snapshot, tag, locViz.Span.Value.Span);
         }
     }
 }

@@ -26,11 +26,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
-using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Highlighting
@@ -105,21 +102,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             lineSourceMock.Setup(x => x.DefaultTextProperties).Returns(textRunPropertiesMock.Object);
 
             return lineSourceMock.Object;
-        }
-
-        private static ITagAggregator<ISelectedIssueLocationTag> CreateSelectedIssueAggregator(params IAnalysisIssueLocationVisualization[] locVizs)
-        {
-            var tagSpans = locVizs
-                .Select(CreateTagSpanWithLocViz)
-                .ToArray();
-
-            return CreateAggregator(tagSpans);
-        }
-
-        private static IMappingTagSpan<ISelectedIssueLocationTag> CreateTagSpanWithLocViz(IAnalysisIssueLocationVisualization locViz)
-        {
-            var tag = CreateSelectedLocationTag(locViz);
-            return CreateMappingTagSpan(locViz.Span.Value.Snapshot, tag, locViz.Span.Value.Span);
         }
     }
 }
