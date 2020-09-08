@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
     /// <summary>
     /// Common tests that apply to our TaggerProviders

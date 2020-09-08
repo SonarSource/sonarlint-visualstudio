@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// <summary>
         /// Signals to the editor that the set of tags has changed
         /// </summary>
-        protected void UpdateWholeSpan()
+        protected void NotifyTagsChanged()
         {
             var snapshot = GetSnapshot();
 
@@ -111,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             // Note: we're currently reporting the whole snapshot as having changed. We could be more specific
             // if our buffer raised a more specific notification.
-            UpdateWholeSpan();
+            NotifyTagsChanged();
         }
 
         #region ITagger implementation
