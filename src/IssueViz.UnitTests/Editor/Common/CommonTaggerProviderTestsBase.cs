@@ -28,12 +28,11 @@ using Moq;
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
     /// <summary>
-    /// Common tests that apply to our TaggerProviders
+    /// Common tests that apply to our Buffer TaggerProviders
     /// </summary>
     public abstract class CommonTaggerProviderTestsBase
     {
         protected abstract ITaggerProvider CreateTestSubject();
-
 
         [TestMethod]
         public void CreateTagger_BufferIsNull_Throws()

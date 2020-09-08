@@ -23,18 +23,22 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 {
     internal static class TaggerTestHelper
     {
-        public static readonly ITextBuffer ValidBuffer = CreateBufferMockWithSnapshot().Object;
+        public static readonly ITextBuffer ValidBuffer = CreateBufferMock().Object;
 
-        public static ITextSnapshot CreateSnapshotAndBuffer(int length = 999) =>
-            CreateBufferMockWithSnapshot(length).Object.CurrentSnapshot;
+        public static ITextSnapshot CreateSnapshot(int length = 999) =>
+            CreateBufferMock(length).Object.CurrentSnapshot;
 
-        public static Mock<ITextBuffer> CreateBufferMockWithSnapshot(int length = 999)
+        public static ITextBuffer CreateBuffer(int length = 999) =>
+            CreateBufferMock(length).Object;
+
+        public static Mock<ITextBuffer> CreateBufferMock(int length = 999)
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             var bufferMock = new Mock<ITextBuffer>();
@@ -102,6 +106,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         public static IIssueLocationTag CreateIssueLocationTag(IAnalysisIssueLocationVisualization locViz)
         {
             var tagMock = new Mock<IIssueLocationTag>();
+            tagMock.Setup(x => x.Location).Returns(locViz);
+            return tagMock.Object;
+        }
+
+        public static ISelectedIssueLocationTag CreateSelectedLocationTag(IAnalysisIssueLocationVisualization locViz)
+        {
+            var tagMock = new Mock<ISelectedIssueLocationTag>();
             tagMock.Setup(x => x.Location).Returns(locViz);
             return tagMock.Object;
         }
