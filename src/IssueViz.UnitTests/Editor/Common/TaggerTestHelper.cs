@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
@@ -33,6 +34,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 
         public static ITextSnapshot CreateSnapshotAndBuffer(int length = 999) =>
             CreateBufferMockWithSnapshot(length).Object.CurrentSnapshot;
+
+        public static ITextBuffer CreateBufferWithSnapshot(int length = 999) =>
+            CreateBufferMockWithSnapshot(length).Object;
 
         public static Mock<ITextBuffer> CreateBufferMockWithSnapshot(int length = 999)
         {
@@ -102,6 +106,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         public static IIssueLocationTag CreateIssueLocationTag(IAnalysisIssueLocationVisualization locViz)
         {
             var tagMock = new Mock<IIssueLocationTag>();
+            tagMock.Setup(x => x.Location).Returns(locViz);
+            return tagMock.Object;
+        }
+
+        public static ISelectedIssueLocationTag CreateSelectedLocationTag(IAnalysisIssueLocationVisualization locViz)
+        {
+            var tagMock = new Mock<ISelectedIssueLocationTag>();
             tagMock.Setup(x => x.Location).Returns(locViz);
             return tagMock.Object;
         }

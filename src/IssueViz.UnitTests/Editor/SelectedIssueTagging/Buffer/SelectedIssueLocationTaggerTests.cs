@@ -127,7 +127,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             selectionServiceMock.Setup(x => x.SelectedFlow).Returns((IAnalysisIssueFlowVisualization)null); // no selected flow
 
-
             var locViz = CreateLocationViz(snapshot, new Span(1, 1), "tagged location");
             var aggregator = CreateLocationAggregator(locViz);
 
