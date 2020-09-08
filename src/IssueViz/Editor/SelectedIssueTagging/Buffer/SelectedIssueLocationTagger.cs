@@ -24,7 +24,6 @@ using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer
@@ -39,9 +38,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             : base(tagAggregator, textBuffer)
         {
             this.issueSelectionService = issueSelectionService;
-
-            // Changing any of the selected issue/flow/location will always result in the
-            // "SelectedLocationChanged" event being raised
             issueSelectionService.SelectionChanged += OnSelectionChanged;
         }
 
@@ -49,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
         {
             if (e.SelectionChangeLevel == SelectionChangeLevel.Flow || e.SelectionChangeLevel == SelectionChangeLevel.Issue)
             {
-                UpdateWholeSpan();
+                NotifyTagsChanged();
             }
         }
 
@@ -65,8 +61,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             var selectedSecondaryLocVizs = issueSelectionService.SelectedFlow?.Locations;
             if (selectedSecondaryLocVizs == null || selectedSecondaryLocVizs.Count == 0) { return Array.Empty<IMappingTagSpan<IIssueLocationTag>>(); }
 
-            // Filter to any selected locations.
-            // There could be multiple secondary issues locations in this file for different issues.
             return trackedTagSpans
                 .Where(tagSpan => selectedSecondaryLocVizs.Contains(tagSpan.Tag.Location));
         }

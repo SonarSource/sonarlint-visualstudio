@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Buffer
 {
     [TestClass]
     public class SelectedIssueLocationTaggerProviderTests : CommonTaggerProviderTestsBase

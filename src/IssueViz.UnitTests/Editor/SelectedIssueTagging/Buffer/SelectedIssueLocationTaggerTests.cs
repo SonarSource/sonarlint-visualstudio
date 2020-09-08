@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Buffer
 {
     [TestClass]
     public class SelectedIssueLocationTaggerTests
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         }
 
         [TestMethod]
-        public void Filtering_NoSelectedFlow_ReturnsEmpty()
+        public void GetTags_NoSelectedFlow_ReturnsEmpty()
         {
             var snapshot = CreateSnapshotAndBuffer(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         }
 
         [TestMethod]
-        public void Filtering_NoMatchingLocations_ReturnsEmpty()
+        public void GetTags_NoMatchingLocations_ReturnsEmpty()
         {
             var snapshot = CreateSnapshotAndBuffer(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
@@ -162,7 +162,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         }
 
         [TestMethod]
-        public void Filtering_TagsMatchSelectedIssuesLocations_CreatesExpectedTags()
+        public void GetTags_TagsMatchSelectedIssuesLocations_CreatesExpectedTags()
         {
             var snapshot = CreateSnapshotAndBuffer(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
