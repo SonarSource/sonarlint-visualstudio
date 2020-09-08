@@ -111,6 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                 .Should().BeEmpty();
 
             aggregatorMock.Verify(x => x.GetTags(inputSpans), Times.Once);
+            testSubject.FilterCallCount.Should().Be(0); // Performance: shouldn't call the filter if there are no tags
         }
 
         [TestMethod]
@@ -182,8 +183,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void GetTags_HasTagsButNoOverlappingSpans_ReturnsEmpty()
         {
-            var buffer = CreateBufferWithSnapshot(length: 100);
-            var snapshot = buffer.CurrentSnapshot;
+            var snapshot = CreateSnapshotAndBuffer(length: 100);
 
             var inputSpan = new Span(20, 10);
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, inputSpan);
@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var tagSpan3 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(31, 10));
             var aggregator = CreateAggregator(tagSpan1, tagSpan2, tagSpan3);
 
-            var testSubject = new TestableFilteringTagger(aggregator, buffer);
+            var testSubject = new TestableFilteringTagger(aggregator, snapshot.TextBuffer);
 
             // Act
             var actual = testSubject.GetTags(inputSpans).ToArray();
@@ -206,8 +206,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void GetTags_HasTagsWithOverlappingSpans_CreatesExpectedTags()
         {
-            var buffer = CreateBufferWithSnapshot(length: 100);
-            var snapshot = buffer.CurrentSnapshot;
+            var snapshot = CreateSnapshotAndBuffer(length: 100);
 
             var inputSpan = new Span(20, 10);
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, inputSpan);
@@ -218,7 +217,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var tagSpan4 = CreateMappingTagSpan(snapshot, new TrackedTag(), new Span(31, 1));  // no overlap
             var aggregator = CreateAggregator(tagSpan1, tagSpan2, tagSpan3, tagSpan4);
 
-            var testSubject = new TestableFilteringTagger(aggregator, buffer);
+            var testSubject = new TestableFilteringTagger(aggregator, snapshot.TextBuffer);
 
             // Act
             var actual = testSubject.GetTags(inputSpans).ToArray();
