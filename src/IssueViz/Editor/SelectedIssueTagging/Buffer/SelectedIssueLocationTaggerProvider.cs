@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("code")]
+    [ContentType(ContentTypes.CFamily)]
     [TagType(typeof(ISelectedIssueLocationTag))]
     internal class SelectedIssueLocationTaggerProvider : ITaggerProvider
     {

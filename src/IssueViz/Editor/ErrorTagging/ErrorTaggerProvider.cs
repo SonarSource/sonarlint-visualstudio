@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
     [Export(typeof(ITaggerProvider))]
-    [ContentType("code")]
+    [ContentType(ContentTypes.CFamily)]
     [TagType(typeof(IErrorTag))]
     internal class ErrorTaggerProvider : ITaggerProvider
     {
