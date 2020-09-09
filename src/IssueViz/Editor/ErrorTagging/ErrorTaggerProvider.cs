@@ -33,11 +33,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     internal class ErrorTaggerProvider : ITaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
 
         [ImportingConstructor]
-        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService)
+        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, ITaggableBufferIndicator taggableBufferIndicator)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+            this.taggableBufferIndicator = taggableBufferIndicator;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -45,6 +47,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
             if (buffer == null)
             {
                 throw new ArgumentNullException(nameof(buffer));
+            }
+
+            if (!taggableBufferIndicator.IsTaggable(buffer))
+            {
+                return null;
             }
 
             var tagger = buffer.Properties.GetOrCreateSingletonProperty(typeof(ErrorTagger), () => CreateForBuffer(buffer));

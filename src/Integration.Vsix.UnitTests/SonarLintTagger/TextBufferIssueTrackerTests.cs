@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
@@ -350,11 +351,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var textDocFactoryServiceMock = new Mock<ITextDocumentFactoryService>();
 
-            var contentTypeRegistryServiceMock = new Mock<IContentTypeRegistryService>();
-            contentTypeRegistryServiceMock.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
-            var fileExtensionRegistryServiceMock = new Mock<IFileExtensionRegistryService>();
-            var languageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryServiceMock.Object, fileExtensionRegistryServiceMock.Object);
-
+            var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
+                 
             // DTE object setup
             var mockProject = new Mock<Project>();
             mockProject.Setup(p => p.Name).Returns("MyProject");

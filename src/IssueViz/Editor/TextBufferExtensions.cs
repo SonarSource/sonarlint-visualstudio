@@ -18,14 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
-using Microsoft.VisualStudio.Utilities;
-using SonarLint.VisualStudio.Core.Analysis;
+using Microsoft.VisualStudio.Text;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal interface ISonarLanguageRecognizer
+    public static class TextBufferExtensions
     {
-        IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
+        public static string GetFilePath(this ITextBuffer textBuffer)
+        {
+            ITextDocument newTextDocument = null;
+            textBuffer.Properties?.TryGetProperty(typeof(ITextDocument), out newTextDocument);
+            return newTextDocument?.FilePath;
+        }
     }
 }

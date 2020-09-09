@@ -34,11 +34,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
     internal class IssueLocationAdornmentTaggerProvider : IViewTaggerProvider
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
 
         [ImportingConstructor]
-        public IssueLocationAdornmentTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService)
+        public IssueLocationAdornmentTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+            ITaggableBufferIndicator taggableBufferIndicator)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
+            this.taggableBufferIndicator = taggableBufferIndicator;
         }
 
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag
@@ -54,6 +57,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             }
 
             if (buffer != textView.TextBuffer)
+            {
+                return null;
+            }
+
+            if (!taggableBufferIndicator.IsTaggable(buffer))
             {
                 return null;
             }

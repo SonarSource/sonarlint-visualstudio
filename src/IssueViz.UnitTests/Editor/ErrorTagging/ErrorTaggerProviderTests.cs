@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
@@ -35,17 +36,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
         public void MefCtor_CheckIsExported()
         {
             var aggregatorExport = MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>());
+            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
 
-            MefTestHelpers.CheckTypeCanBeImported<ErrorTaggerProvider, ITaggerProvider>(null, new[] { aggregatorExport });
+            MefTestHelpers.CheckTypeCanBeImported<ErrorTaggerProvider, ITaggerProvider>(null,
+                new[]
+                {
+                    aggregatorExport,
+                    taggableBufferIndicatorExport
+                });
         }
 
-        protected override ITaggerProvider CreateTestSubject()
+        internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)
         {
             var aggregatorMock = new Mock<IBufferTagAggregatorFactoryService>();
             aggregatorMock.Setup(x => x.CreateTagAggregator<IIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<IIssueLocationTag>>());
 
-            return new ErrorTaggerProvider(aggregatorMock.Object);
+            return new ErrorTaggerProvider(aggregatorMock.Object, taggableBufferIndicator);
         }
     }
 }
