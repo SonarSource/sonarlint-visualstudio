@@ -280,11 +280,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<IAnalysisIssueVisualization> Issues => readonlyIssues;
 
-        public IEnumerable<string> FilesInSnapshot { get; }
+        public IEnumerable<string> FilesInSnapshot { get; private set; }
 
         public void IncrementVersion()
         {
             versionNumber = GetNextVersionNumber();
+
+            FilesInSnapshot = CalculateFilesInSnapshot(filePath, issues);
         }
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
@@ -295,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var locVizs = GetAllLocationVisualizations(Issues)
-                .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.Location.FilePath));
+                .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.CurrentFilePath));
 
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
         }
@@ -303,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IAnalysisIssueVisualization> issues)
         {
             var allLocationFilePaths = GetAllLocationVisualizations(issues)
-                .Select(locViz => locViz.Location.FilePath);
+                .Select(locViz => locViz.CurrentFilePath);
 
             var files = new HashSet<string>(allLocationFilePaths, StringComparer.OrdinalIgnoreCase);
 

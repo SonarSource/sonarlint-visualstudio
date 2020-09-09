@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         string IFilterableIssue.RuleId => Issue.RuleKey;
 
-        string IFilterableIssue.FilePath => Issue.FilePath;
+        string IFilterableIssue.FilePath => CurrentFilePath;
 
         string IFilterableIssue.LineHash => Issue.LineHash;
 
