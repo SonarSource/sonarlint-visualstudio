@@ -29,8 +29,6 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 {
-    // TODO: track document renames: https://github.com/SonarSource/sonarlint-visualstudio/issues/1662
-
     // Buffer tagger for Sonar issue locations
     // * adds location tags for primary and secondary locations for a file
     // * tracks buffer edits, re-calculate spans, and notifies the issues location store about the changes
