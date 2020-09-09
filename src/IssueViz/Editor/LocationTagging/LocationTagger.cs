@@ -75,9 +75,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             var locations = locationService.GetLocations(FilePath);
             EnsureSpansExist(locations, textSnapshot);
 
+            var oldTags = TagSpans;
             TagSpans = locations.Select(CreateTagSpan).ToList();
 
-            NotifyTagsChanged(textSnapshot);
+            var affectedSpan = CalculateSpanOfAllTags(oldTags, textSnapshot);
+            NotifyTagsChanged(affectedSpan);
         }
 
         private void EnsureSpansExist(IEnumerable<IAnalysisIssueLocationVisualization> locVizs, ITextSnapshot currentSnapshot)
@@ -157,9 +159,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 var newTextSnapshot = e.After;
 
                 TranslateTagSpans(newTextSnapshot);
-                locationService.Refresh(new string[] { FilePath });
+                locationService.Refresh(new[] { FilePath });
 
-                NotifyTagsChanged(newTextSnapshot);
+                var affectedSpan = CalculateSpanOfChanges(e.Changes, newTextSnapshot);
+                NotifyTagsChanged(affectedSpan);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -167,11 +170,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             }
         }
 
-        private void NotifyTagsChanged(ITextSnapshot newTextSnapshot)
+        private void NotifyTagsChanged(SnapshotSpan affectedSpan)
         {
             // Notify the editor that our set of tags has changed
-            var wholeSpan = new SnapshotSpan(newTextSnapshot, 0, newTextSnapshot.Length);
-            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(wholeSpan));
+            TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(affectedSpan));
+        }
+
+        /// <summary>
+        /// Method calculates the span from the start of (old+new) TagSpans and until the end of (old+new) TagSpans
+        /// </summary>
+        private SnapshotSpan CalculateSpanOfAllTags(IList<ITagSpan<IIssueLocationTag>> oldTags, ITextSnapshot textSnapshot)
+        {
+            var allTagSpans = TagSpans
+                .Union(oldTags ?? Array.Empty<ITagSpan<IIssueLocationTag>>())
+                .Select(x => x.Span.Span)
+                .ToArray();
+
+            return CalculateAffectedSpan(textSnapshot, allTagSpans, allTagSpans);
+        }
+
+        /// <summary>
+        /// Method calculates the span from the start of the editor changes and until the end of TagSpans
+        /// </summary>
+        private SnapshotSpan CalculateSpanOfChanges(INormalizedTextChangeCollection changeCollection, ITextSnapshot newTextSnapshot)
+        {
+            var startSpans = changeCollection.Select(x => x.NewSpan).ToArray();
+            var endSpans = TagSpans.Select(x => x.Span.Span);
+            
+            return CalculateAffectedSpan(newTextSnapshot, startSpans, endSpans);
+        }
+
+        private static SnapshotSpan CalculateAffectedSpan(ITextSnapshot textSnapshot, IEnumerable<Span> startSpans, IEnumerable<Span> endSpans)
+        {
+            var start = startSpans.Select(x => x.Start).DefaultIfEmpty().Min();
+            var end = endSpans.Select(x => x.End).DefaultIfEmpty(textSnapshot.Length).Max();
+
+            return start < end
+                ? new SnapshotSpan(textSnapshot, Span.FromBounds(start, end))
+                : new SnapshotSpan(textSnapshot, Span.FromBounds(start, textSnapshot.Length));
         }
 
         #endregion
