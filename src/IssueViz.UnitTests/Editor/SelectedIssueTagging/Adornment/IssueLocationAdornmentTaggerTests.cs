@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         }
 
         [TestMethod]
-        public void GetTags_HasSelectedIssueLocationTags_ReturnsExpectedHighlightTags()
+        public void GetTags_HasSelectedIssueLocationTags_ReturnsExpectedAdornmentTags()
         {
             var snapshot = CreateSnapshot(length: 50);
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
