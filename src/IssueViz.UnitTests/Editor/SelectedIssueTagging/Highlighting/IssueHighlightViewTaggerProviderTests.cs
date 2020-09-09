@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -34,15 +33,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
     [TestClass]
     public class IssueHighlightViewTaggerProviderTests : CommonViewTaggerProviderTestsBase
     {
-        private Mock<ITaggableBufferIndicator> taggableBufferIndicator;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            taggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
-            taggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
-        }
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -57,28 +47,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
                 });
         }
 
-        protected override IViewTaggerProvider CreateTestSubject()
+        internal override IViewTaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)
         {
             var aggregatorMock = new Mock<IBufferTagAggregatorFactoryService>();
+            
             aggregatorMock.Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<ISelectedIssueLocationTag>>());
 
-            return new IssueHighlightViewTaggerProvider(aggregatorMock.Object, taggableBufferIndicator.Object);
-        }
-
-        [TestMethod]
-        public void CreateTagger_BufferIsNotTaggable_Null()
-        {
-            var textBuffer = TaggerTestHelper.ValidBuffer;
-            var textView = CreateValidTextView(textBuffer);
-
-            taggableBufferIndicator.Reset();
-            taggableBufferIndicator.Setup(x => x.IsTaggable(textBuffer)).Returns(false);
-
-            var testSubject = CreateTestSubject();
-            var tagger = testSubject.CreateTagger<ITag>(textView, textBuffer);
-
-            tagger.Should().BeNull();
+            return new IssueHighlightViewTaggerProvider(aggregatorMock.Object, taggableBufferIndicator);
         }
     }
 }

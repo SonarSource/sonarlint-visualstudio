@@ -35,12 +35,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly IAnalysisIssueSelectionService issueSelectionService;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
 
         [ImportingConstructor]
-        public SelectedIssueLocationTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, IAnalysisIssueSelectionService issueSelectionService)
+        public SelectedIssueLocationTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+            IAnalysisIssueSelectionService issueSelectionService, 
+            ITaggableBufferIndicator taggableBufferIndicator)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.issueSelectionService = issueSelectionService;
+            this.taggableBufferIndicator = taggableBufferIndicator;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -48,6 +52,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             if (buffer == null)
             {
                 throw new ArgumentNullException(nameof(buffer));
+            }
+
+            if (!taggableBufferIndicator.IsTaggable(buffer))
+            {
+                return null;
             }
 
             // Tip when debugging/developing: a buffer tagger won't be created until there is something that can consume the tags. In our case,

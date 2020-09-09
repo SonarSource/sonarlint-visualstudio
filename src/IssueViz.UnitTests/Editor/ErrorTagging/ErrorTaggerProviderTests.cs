@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -27,22 +26,12 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging
 {
     [TestClass]
     public class ErrorTaggerProviderTests : CommonTaggerProviderTestsBase
     {
-        private Mock<ITaggableBufferIndicator> taggableBufferIndicator;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            taggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
-            taggableBufferIndicator.Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>())).Returns(true);
-        }
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -57,27 +46,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
                 });
         }
 
-        protected override ITaggerProvider CreateTestSubject()
+        internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)
         {
             var aggregatorMock = new Mock<IBufferTagAggregatorFactoryService>();
             aggregatorMock.Setup(x => x.CreateTagAggregator<IIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<IIssueLocationTag>>());
 
-            return new ErrorTaggerProvider(aggregatorMock.Object, taggableBufferIndicator.Object);
-        }
-
-        [TestMethod]
-        public void CreateTagger_BufferIsNotTaggable_Null()
-        {
-            var textBuffer = TaggerTestHelper.CreateBuffer();
-
-            taggableBufferIndicator.Reset();
-            taggableBufferIndicator.Setup(x => x.IsTaggable(textBuffer)).Returns(false);
-
-            var testSubject = CreateTestSubject();
-            var tagger = testSubject.CreateTagger<ITag>(textBuffer);
-
-            tagger.Should().BeNull();
+            return new ErrorTaggerProvider(aggregatorMock.Object, taggableBufferIndicator);
         }
     }
 }

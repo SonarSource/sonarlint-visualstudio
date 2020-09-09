@@ -22,7 +22,8 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text.Tagging;
-using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
@@ -31,7 +32,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     /// </summary>
     public abstract class CommonTaggerProviderTestsBase
     {
-        protected abstract ITaggerProvider CreateTestSubject();
+        internal abstract ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator);
+
+        private ITaggerProvider CreateTestSubject() => CreateTestSubject(CreateTaggableBufferIndicator());
 
         [TestMethod]
         public void CreateTagger_BufferIsNull_Throws()
@@ -45,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CreateTagger_BufferIsNotNull_ReturnsSingletonTagger()
         {
-            var buffer = TaggerTestHelper.CreateBuffer();
+            var buffer = CreateBuffer();
             var testSubject = CreateTestSubject();
 
             // 1. Request first tagger for buffer
@@ -62,8 +65,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CreateTagger_TwoBuffers_DifferentTaggerPerBuffer()
         {
-            var buffer1 = TaggerTestHelper.CreateBuffer();
-            var buffer2 = TaggerTestHelper.CreateBuffer();
+            var buffer1 = CreateBuffer();
+            var buffer2 = CreateBuffer();
             var testSubject = CreateTestSubject();
 
             // 1. Request tagger for first buffer
@@ -75,6 +78,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             tagger2.Should().NotBeNull();
 
             tagger1.Should().NotBeSameAs(tagger2);
+        }
+
+        [TestMethod]
+        public void CreateTagger_BufferIsNotTaggable_Null()
+        {
+            var textBuffer = CreateBuffer();
+            var taggableBufferIndicator = CreateTaggableBufferIndicator(isTaggable: false);
+
+            var testSubject = CreateTestSubject(taggableBufferIndicator);
+            var tagger = testSubject.CreateTagger<ITag>(textBuffer);
+
+            tagger.Should().BeNull();
         }
     }
 }

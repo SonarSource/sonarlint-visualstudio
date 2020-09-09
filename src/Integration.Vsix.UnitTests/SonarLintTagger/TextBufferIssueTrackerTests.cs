@@ -351,11 +351,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             var textDocFactoryServiceMock = new Mock<ITextDocumentFactoryService>();
 
-            var contentTypeRegistryServiceMock = new Mock<IContentTypeRegistryService>();
-            contentTypeRegistryServiceMock.Setup(c => c.ContentTypes).Returns(Enumerable.Empty<IContentType>());
-            var fileExtensionRegistryServiceMock = new Mock<IFileExtensionRegistryService>();
-            var languageRecognizer = new SonarLanguageRecognizer(contentTypeRegistryServiceMock.Object, fileExtensionRegistryServiceMock.Object);
-
+            var languageRecognizer = Mock.Of<ISonarLanguageRecognizer>();
+                 
             // DTE object setup
             var mockProject = new Mock<Project>();
             mockProject.Setup(p => p.Name).Returns("MyProject");

@@ -22,6 +22,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -122,6 +123,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             var tagMock = new Mock<ISelectedIssueLocationTag>();
             tagMock.Setup(x => x.Location).Returns(locViz);
             return tagMock.Object;
+        }
+
+        public static ITaggableBufferIndicator CreateTaggableBufferIndicator(bool isTaggable = true)
+        {
+            var taggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
+
+            taggableBufferIndicator
+                .Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>()))
+                .Returns(isTaggable);
+
+            return taggableBufferIndicator.Object;
         }
     }
 }

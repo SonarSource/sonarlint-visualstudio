@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -37,17 +38,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         {
             var aggregatorFactoryExport = MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>());
             var locationServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>());
+            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
 
-            MefTestHelpers.CheckTypeCanBeImported<SelectedIssueLocationTaggerProvider, ITaggerProvider>(null, new[] { aggregatorFactoryExport, locationServiceExport });
+            MefTestHelpers.CheckTypeCanBeImported<SelectedIssueLocationTaggerProvider, ITaggerProvider>(null, new[]
+            {
+                aggregatorFactoryExport, locationServiceExport, taggableBufferIndicatorExport
+            });
         }
 
-        protected override ITaggerProvider CreateTestSubject()
+        internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)
         {
             var aggregatorMock = new Mock<IBufferTagAggregatorFactoryService>();
             aggregatorMock.Setup(x => x.CreateTagAggregator<IIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<IIssueLocationTag>>());
 
-            return new SelectedIssueLocationTaggerProvider(aggregatorMock.Object, Mock.Of<IAnalysisIssueSelectionService>());
+            return new SelectedIssueLocationTaggerProvider(aggregatorMock.Object, Mock.Of<IAnalysisIssueSelectionService>(), taggableBufferIndicator);
         }
     }
 }

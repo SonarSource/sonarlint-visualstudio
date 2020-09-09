@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
     }
 
     [Export(typeof(ISonarLanguageRecognizer))]
-    public class SonarLanguageRecognizer : ISonarLanguageRecognizer
+    internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
         private static readonly ISet<string> JavascriptSupportedExtensions = new HashSet<string> { "js", "jsx", "vue" };
 
