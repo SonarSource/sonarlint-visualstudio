@@ -24,19 +24,19 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
-using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Highlight;
+using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Highlighting
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Adornment
 {
     [TestClass]
-    public class IssueHighlightViewTaggerProviderTests : CommonViewTaggerProviderTestsBase
+    public class IssueLocationAdornmentTaggerProviderTests : CommonViewTaggerProviderTestsBase
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             var aggregatorFactoryExport = MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>());
 
-            MefTestHelpers.CheckTypeCanBeImported<IssueHighlightViewTaggerProvider, IViewTaggerProvider>(null, new[] { aggregatorFactoryExport });
+            MefTestHelpers.CheckTypeCanBeImported<IssueLocationAdornmentTaggerProvider, IViewTaggerProvider>(null, new[] { aggregatorFactoryExport });
         }
 
         protected override IViewTaggerProvider CreateTestSubject()
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             aggregatorMock.Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<ISelectedIssueLocationTag>>());
 
-            return new IssueHighlightViewTaggerProvider(aggregatorMock.Object);
+            return new IssueLocationAdornmentTaggerProvider(aggregatorMock.Object);
         }
     }
 }
