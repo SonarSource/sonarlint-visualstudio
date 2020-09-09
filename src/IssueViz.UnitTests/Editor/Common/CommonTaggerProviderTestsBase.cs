@@ -21,9 +21,9 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
@@ -32,7 +32,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     /// </summary>
     public abstract class CommonTaggerProviderTestsBase
     {
-        protected abstract ITaggerProvider CreateTestSubject();
+        internal abstract ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator);
+
+        private ITaggerProvider CreateTestSubject() => CreateTestSubject(CreateTaggableBufferIndicator());
 
         [TestMethod]
         public void CreateTagger_BufferIsNull_Throws()
@@ -46,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CreateTagger_BufferIsNotNull_ReturnsSingletonTagger()
         {
-            var buffer = CreateValidTextBuffer();
+            var buffer = CreateBuffer();
             var testSubject = CreateTestSubject();
 
             // 1. Request first tagger for buffer
@@ -63,8 +65,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void CreateTagger_TwoBuffers_DifferentTaggerPerBuffer()
         {
-            var buffer1 = CreateValidTextBuffer();
-            var buffer2 = CreateValidTextBuffer();
+            var buffer1 = CreateBuffer();
+            var buffer2 = CreateBuffer();
             var testSubject = CreateTestSubject();
 
             // 1. Request tagger for first buffer
@@ -78,17 +80,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             tagger1.Should().NotBeSameAs(tagger2);
         }
 
-        private static ITextBuffer CreateValidTextBuffer()
+        [TestMethod]
+        public void CreateTagger_BufferIsNotTaggable_Null()
         {
-            var bufferMock = new Mock<ITextBuffer>();
-            var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();
-            bufferMock.Setup(x => x.Properties).Returns(properties);
+            var textBuffer = CreateBuffer();
+            var taggableBufferIndicator = CreateTaggableBufferIndicator(isTaggable: false);
 
-            var snapshotMock = new Mock<ITextSnapshot>();
-            snapshotMock.Setup(x => x.Length).Returns(999);
-            bufferMock.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
+            var testSubject = CreateTestSubject(taggableBufferIndicator);
+            var tagger = testSubject.CreateTagger<ITag>(textBuffer);
 
-            return bufferMock.Object;
+            tagger.Should().BeNull();
         }
     }
 }

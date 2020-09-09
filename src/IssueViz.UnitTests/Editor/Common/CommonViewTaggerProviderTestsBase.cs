@@ -25,9 +25,10 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 {
     /// <summary>
     /// Common tests that apply to our View TaggerProviders
@@ -35,7 +36,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     [TestClass]
     public abstract class CommonViewTaggerProviderTestsBase
     {
-        protected abstract IViewTaggerProvider CreateTestSubject();
+        internal abstract IViewTaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator);
+
+        private IViewTaggerProvider CreateTestSubject() => CreateTestSubject(CreateTaggableBufferIndicator());
 
         [TestMethod]
         public void CreateTagger_ViewIsNull_Throws()
@@ -66,6 +69,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var view = CreateValidTextView(viewBuffer);
 
             var tagger = testSubject.CreateTagger<ITag>(view, suppliedBuffer);
+            tagger.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CreateTagger_BufferIsNotTaggable_Null()
+        {
+            var textBuffer = ValidBuffer;
+            var textView = CreateValidTextView(textBuffer);
+            var taggableBufferIndicator = CreateTaggableBufferIndicator(isTaggable: false);
+
+            var testSubject = CreateTestSubject(taggableBufferIndicator);
+            var tagger = testSubject.CreateTagger<ITag>(textView, textBuffer);
+
             tagger.Should().BeNull();
         }
 

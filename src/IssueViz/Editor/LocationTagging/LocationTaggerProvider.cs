@@ -33,14 +33,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
     internal class LocationTaggerProvider : ITaggerProvider
     {
         private readonly IIssueLocationStore locationStore;
-        private readonly ILogger logger;
         private readonly IIssueSpanCalculator spanCalculator;
+        private readonly ITaggableBufferIndicator taggableBufferIndicator;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public LocationTaggerProvider(IIssueLocationStore locationStore, IIssueSpanCalculator spanCalculator, ILogger logger)
+        public LocationTaggerProvider(IIssueLocationStore locationStore, 
+            IIssueSpanCalculator spanCalculator, 
+            ITaggableBufferIndicator taggableBufferIndicator, 
+            ILogger logger)
         {
             this.locationStore = locationStore;
             this.spanCalculator = spanCalculator;
+            this.taggableBufferIndicator = taggableBufferIndicator;
             this.logger = logger;
         }
 
@@ -49,6 +54,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             if (buffer == null)
             {
                 throw new ArgumentNullException(nameof(buffer));
+            }
+
+            if (!taggableBufferIndicator.IsTaggable(buffer))
+            {
+                return null;
             }
 
             // Need to make sure we only create one per buffer

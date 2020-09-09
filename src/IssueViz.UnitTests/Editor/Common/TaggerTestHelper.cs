@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -39,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         public static ITextBuffer CreateBuffer(int length = 999) =>
             CreateBufferMock(length).Object;
 
-        public static Mock<ITextBuffer> CreateBufferMock(int length = 999)
+        public static Mock<ITextBuffer> CreateBufferMock(int length = 999, string filePath = "test.cpp")
         {
             var snapshotMock = new Mock<ITextSnapshot>();
             var bufferMock = new Mock<ITextBuffer>();
@@ -47,6 +48,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             bufferMock.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
             snapshotMock.Setup(x => x.TextBuffer).Returns(bufferMock.Object);
             snapshotMock.Setup(x => x.Length).Returns(length);
+
+            var properties = new Microsoft.VisualStudio.Utilities.PropertyCollection();
+            bufferMock.Setup(x => x.Properties).Returns(properties);
+
+            var docMock = new Mock<ITextDocument>();
+            docMock.Setup(x => x.FilePath).Returns(filePath);
+            properties[typeof(ITextDocument)] = docMock.Object;
 
             return bufferMock;
         }
@@ -132,6 +140,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         {
             var tag = CreateSelectedLocationTag(locViz);
             return CreateMappingTagSpan(locViz.Span.Value.Snapshot, tag, locViz.Span.Value.Span);
+        }
+
+        public static ITaggableBufferIndicator CreateTaggableBufferIndicator(bool isTaggable = true)
+        {
+            var taggableBufferIndicator = new Mock<ITaggableBufferIndicator>();
+
+            taggableBufferIndicator
+                .Setup(x => x.IsTaggable(It.IsAny<ITextBuffer>()))
+                .Returns(isTaggable);
+
+            return taggableBufferIndicator.Object;
         }
     }
 }

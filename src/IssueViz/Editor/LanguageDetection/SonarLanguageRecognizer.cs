@@ -26,8 +26,13 @@ using System.Linq;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 {
+    public interface ISonarLanguageRecognizer
+    {
+        IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType);
+    }
+
     [Export(typeof(ISonarLanguageRecognizer))]
     internal class SonarLanguageRecognizer : ISonarLanguageRecognizer
     {
@@ -37,21 +42,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IFileExtensionRegistryService fileExtensionRegistryService;
 
         [ImportingConstructor]
-        public SonarLanguageRecognizer(IContentTypeRegistryService contentTypeRegistryService,
-            IFileExtensionRegistryService fileExtensionRegistryService)
+        public SonarLanguageRecognizer(IContentTypeRegistryService contentTypeRegistryService, IFileExtensionRegistryService fileExtensionRegistryService)
         {
-            if (contentTypeRegistryService == null)
-            {
-                throw new ArgumentNullException(nameof(contentTypeRegistryService));
-            }
-
-            if (fileExtensionRegistryService == null)
-            {
-                throw new ArgumentNullException(nameof(fileExtensionRegistryService));
-            }
-
-            this.contentTypeRegistryService = contentTypeRegistryService;
-            this.fileExtensionRegistryService = fileExtensionRegistryService;
+            this.contentTypeRegistryService = contentTypeRegistryService ?? throw new ArgumentNullException(nameof(contentTypeRegistryService));
+            this.fileExtensionRegistryService = fileExtensionRegistryService ?? throw new ArgumentNullException(nameof(fileExtensionRegistryService));
         }
 
         public IEnumerable<AnalysisLanguage> Detect(string filePath, IContentType bufferContentType)

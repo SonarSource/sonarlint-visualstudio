@@ -23,8 +23,10 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment;
+using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Adornment
 {
@@ -35,17 +37,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         public void MefCtor_CheckIsExported()
         {
             var aggregatorFactoryExport = MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>());
+            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
 
-            MefTestHelpers.CheckTypeCanBeImported<IssueLocationAdornmentTaggerProvider, IViewTaggerProvider>(null, new[] { aggregatorFactoryExport });
+            MefTestHelpers.CheckTypeCanBeImported<IssueLocationAdornmentTaggerProvider, IViewTaggerProvider>(null, new[]
+            {
+                aggregatorFactoryExport,
+                taggableBufferIndicatorExport
+            });
         }
 
-        protected override IViewTaggerProvider CreateTestSubject()
+        internal override IViewTaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator)
         {
             var aggregatorMock = new Mock<IBufferTagAggregatorFactoryService>();
             aggregatorMock.Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(It.IsAny<ITextBuffer>()))
                 .Returns(Mock.Of<ITagAggregator<ISelectedIssueLocationTag>>());
 
-            return new IssueLocationAdornmentTaggerProvider(aggregatorMock.Object);
+            return new IssueLocationAdornmentTaggerProvider(aggregatorMock.Object, taggableBufferIndicator);
         }
     }
 }

@@ -25,7 +25,6 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTagging
 {
@@ -41,12 +40,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         {
             var storeExport = MefTestHelpers.CreateExport<IIssueLocationStore>(ValidLocationStore);
             var calculatorExport = MefTestHelpers.CreateExport<IIssueSpanCalculator>(ValidSpanCalculator);
+            var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(ValidLogger);
 
-            MefTestHelpers.CheckTypeCanBeImported<LocationTaggerProvider, ITaggerProvider>(null, new[] { storeExport, calculatorExport, loggerExport});
+            MefTestHelpers.CheckTypeCanBeImported<LocationTaggerProvider, ITaggerProvider>(null, new[]
+            {
+                storeExport, calculatorExport, taggableBufferIndicatorExport, loggerExport
+            });
         }
 
-        protected override ITaggerProvider CreateTestSubject() =>
-            (ITaggerProvider) new LocationTaggerProvider(ValidLocationStore, ValidSpanCalculator, ValidLogger);
+        internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator) =>
+            new LocationTaggerProvider(ValidLocationStore, ValidSpanCalculator, taggableBufferIndicator, ValidLogger);
     }
 }
