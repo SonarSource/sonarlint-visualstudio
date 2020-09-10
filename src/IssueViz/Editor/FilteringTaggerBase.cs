@@ -120,8 +120,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public IEnumerable<ITagSpan<TTagType>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            if (disposedValue)
+            {
+                Debug.WriteLine($"  XXXX GetTags called on disposed tagger. AGGREGATOR:  {tagAggregator.GetHashCode()}, caller: {this.GetHashCode()}");
+                Debug.Fail($"  XXXX GetTags called on disposed tagger. AGGREGATOR:  {tagAggregator.GetHashCode()}, caller: {this.GetHashCode()}");
+                yield break;
+            }
+
             if (spans.Count == 0) { yield break; }
 
+            Debug.WriteLine($"  XXXX CALLING AGGREGATOR:  {tagAggregator.GetHashCode()}, caller: {this.GetHashCode()}");
             var trackedTagSpans = tagAggregator.GetTags(spans).ToArray();
             if (trackedTagSpans.Length == 0) { yield break; }
 

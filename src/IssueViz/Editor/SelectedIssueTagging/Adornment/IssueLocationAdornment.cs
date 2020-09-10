@@ -28,37 +28,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
     internal class IssueLocationAdornment : Button
     {
         private readonly TextBlock textBlock;
-        public IAnalysisIssueLocationVisualization Location { get; }
+        public IAnalysisIssueLocationVisualization LocationViz { get; }
 
-        public IssueLocationAdornment(ISelectedIssueLocationTag issueTag, IFormattedLineSource formattedLineSource)
+        public IssueLocationAdornment(IAnalysisIssueLocationVisualization locationViz, IFormattedLineSource formattedLineSource)
         {
             // We can't store the formatted line source since it might change
             // e.g. if the user changes the font size
-            Location = issueTag.Location;
+            LocationViz = locationViz;
 
             Margin = new System.Windows.Thickness(1, 0, 1, 0); // Space between this UI element and the editor text
             Padding = new System.Windows.Thickness(0);  // Space between the side of the control and its content    
 
             Background = Brushes.Pink;
-            BorderBrush = Brushes.Red;
+            BorderBrush = Brushes.LightCoral;
             BorderThickness = new System.Windows.Thickness(1);
 
             // Visible content of the adornment
-            textBlock = new TextBlock();
-            FormatText(formattedLineSource);
+            textBlock = new TextBlock
+            {
+                Text = LocationViz.StepNumber.ToString(),
+                Padding = new System.Windows.Thickness(0.2, 0, 0.2, 0),
+                Margin = new System.Windows.Thickness(0),
+            };
+            Update(formattedLineSource);
+
+            ToolTip = new TextBlock
+            {
+                Text = LocationViz.Location.Message
+            };
+
             Content = textBlock;
         }
 
-        private void FormatText(IFormattedLineSource formattedLineSource)
+        public void Update(IFormattedLineSource formattedLineSource)
         {
-            // Don't need to set the height of this control explicitly -
-            // it will resize to accommodate the child control
-
-            textBlock.Text = Location.StepNumber.ToString();
-            textBlock.FontSize = formattedLineSource.DefaultTextProperties.FontRenderingEmSize;
-            textBlock.FontFamily = formattedLineSource.DefaultTextProperties.Typeface.FontFamily;
-            textBlock.Padding = new System.Windows.Thickness(0.2, 0, 0.2, 0);
-            textBlock.Margin = new System.Windows.Thickness(0);
+            FontSize = formattedLineSource.DefaultTextProperties.FontRenderingEmSize;
+            FontFamily = formattedLineSource.DefaultTextProperties.Typeface.FontFamily;
         }
     }
 }
