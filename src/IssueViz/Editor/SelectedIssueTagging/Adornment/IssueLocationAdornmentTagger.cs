@@ -53,8 +53,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 
         private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
         {
-            // Remove any unnecessary adornments from the cache
-            var allTags = tagAggregator.GetTags(new SnapshotSpan(wpfView.TextSnapshot, 0, wpfView.TextSnapshot.Length));
+            // Remove any unnecessary adornments from the cache. To do that we need to ask the aggregator
+            // for all of its tags.
+            var wholeSpan = new SnapshotSpan(wpfView.TextSnapshot, 0, wpfView.TextSnapshot.Length);
+            var allTags = tagAggregator.GetTags(wholeSpan);
             adornmentCache.RemoveUnused(allTags.Select(x => x.Tag.Location));
         }
 
