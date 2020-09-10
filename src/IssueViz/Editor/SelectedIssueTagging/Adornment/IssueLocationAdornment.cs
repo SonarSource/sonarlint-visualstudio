@@ -27,7 +27,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 {
     internal class IssueLocationAdornment : Button
     {
-        private readonly TextBlock textBlock;
         public IAnalysisIssueLocationVisualization LocationViz { get; }
 
         public IssueLocationAdornment(IAnalysisIssueLocationVisualization locationViz, IFormattedLineSource formattedLineSource)
@@ -44,20 +43,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             BorderThickness = new System.Windows.Thickness(1);
 
             // Visible content of the adornment
-            textBlock = new TextBlock
+            Content = new TextBlock
             {
                 Text = LocationViz.StepNumber.ToString(),
                 Padding = new System.Windows.Thickness(0.2, 0, 0.2, 0),
                 Margin = new System.Windows.Thickness(0),
             };
-            Update(formattedLineSource);
 
             ToolTip = new TextBlock
             {
                 Text = LocationViz.Location.Message
             };
 
-            Content = textBlock;
+            Update(formattedLineSource);
         }
 
         public void Update(IFormattedLineSource formattedLineSource)

@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             /// <param name="currentLocations">The list of locations that are still in use</param>
             void RemoveUnused(IEnumerable<IAnalysisIssueLocationVisualization> currentLocations);
 
-            IssueLocationAdornment CreateOrUpdate(IAnalysisIssueLocationVisualization location);
+            IssueLocationAdornment CreateOrUpdate(IAnalysisIssueLocationVisualization locationViz);
         }
 
         internal class CachingAdornmentFactory : ICachingAdornmentFactory
@@ -137,10 +137,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 
             private IssueLocationAdornment CreateAdornment(IAnalysisIssueLocationVisualization locationViz)
             {
-                // To produce adornments that don't obscure the text, the adornment tags
-                // should have zero length spans. Overriding this method allows control
-                // over the tag spans.
-                var adornmentSpan = new SnapshotSpan(locationViz.Span.Value.Start, 0);
                 var adornment = new IssueLocationAdornment(locationViz, wpfTextView.FormattedLineSource);
 
                 // If we don't call Measure here the tag is positioned incorrectly
