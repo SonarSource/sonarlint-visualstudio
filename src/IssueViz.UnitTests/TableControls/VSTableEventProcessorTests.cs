@@ -137,18 +137,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         }
 
         [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueAndValueIsIssue_PassesIssueToMonitor()
+        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueAndValueIsIssueButWithoutSecondaryLocations_PassesNullToMonitor()
         {
             // Set up all checks to succeed
             SetSelectedEntryCount(1);
             SetupTryGetSnapshot(true);
 
-            var expected = Mock.Of<IAnalysisIssueVisualization>();
-            SetupTryGetValue(expected, true);
+            var issueWithoutLocations = new Mock<IAnalysisIssueVisualization>();
+            issueWithoutLocations.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
+
+            SetupTryGetValue(issueWithoutLocations, true);
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(expected);
+            CheckMonitorCalledOnce(null);
+
+            SanityCheckSnapshotAccessedOnce();
+        }
+
+        [TestMethod]
+        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueAndValueIsIssueWithSecondaryLocations_PassesIssueToMonitor()
+        {
+            // Set up all checks to succeed
+            SetSelectedEntryCount(1);
+            SetupTryGetSnapshot(true);
+
+            var flowWithLocation = new Mock<IAnalysisIssueFlowVisualization>();
+            flowWithLocation.Setup(x => x.Locations).Returns(new[] {Mock.Of<IAnalysisIssueLocationVisualization>()});
+
+            var issueWithLocations = new Mock<IAnalysisIssueVisualization>();
+            issueWithLocations.Setup(x => x.Flows).Returns(new[] {flowWithLocation.Object});
+
+            SetupTryGetValue(issueWithLocations.Object, true);
+
+            SimulatePostProcessEvent();
+
+            CheckMonitorCalledOnce(issueWithLocations.Object);
 
             SanityCheckSnapshotAccessedOnce();
         }
