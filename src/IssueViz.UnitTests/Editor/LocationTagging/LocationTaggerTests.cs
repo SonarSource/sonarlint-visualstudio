@@ -76,10 +76,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void Ctor_SetsFilePath()
+        public void Ctor_GetCurrentFilePath_ReturnsExpectedValue()
         {
-            var testSubject = new LocationTagger(ValidBuffer, ValidStore, ValidSpanCalculator, ValidLogger);
-            testSubject.FilePath.Should().Be(ValidBufferDocName);
+            var bufferMock = CreateBufferMock("original");
+            var testSubject = new LocationTagger(bufferMock.Object, ValidStore, ValidSpanCalculator, ValidLogger);
+            testSubject.GetCurrentFilePath().Should().Be("original");
+
+            // Check the name change is picked up
+            ChangeMockedFileName(bufferMock, "new");
+            testSubject.GetCurrentFilePath().Should().Be("new");
         }
 
         [TestMethod]
@@ -143,6 +148,49 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             actualTagsChangedArgs.Span.End.Position.Should().Be(ValidBuffer.CurrentSnapshot.Length);
 
             testSubject.TagSpans.Should().NotBeSameAs(initialTags);
+        }
+
+        [TestMethod]
+        public void OnIssuesChanged_FileIsRenamed_CurrentFileNameIsUsed()
+        {
+            const string OriginalName = "original file name.txt";
+            const string ChangedName = "new file name.txt";
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            var bufferMock = CreateBufferMock(OriginalName);
+            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+
+            // Check store is called with original name
+            storeMock.Verify(x => x.GetLocations(OriginalName), Times.Once);
+            ChangeMockedFileName(bufferMock, ChangedName);
+
+            // Simulate issues changing
+            RaiseIssuesChangedEvent(storeMock, ChangedName);
+
+            // Check the store was notified using the new name
+            storeMock.Verify(x => x.GetLocations(ChangedName), Times.Once);
+        }
+
+        [TestMethod]
+        public void BufferChanged_FileIsRenamed_CurrentFileNameIsUsed()
+        {
+            const string OriginalName = "original file name.txt";
+            const string ChangedName = "new file name.txt";
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            var bufferMock = CreateBufferMock(OriginalName);
+            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+
+            // Check store is called with original name
+            storeMock.Verify(x => x.GetLocations(OriginalName), Times.Once);
+
+            ChangeMockedFileName(bufferMock, ChangedName);
+
+            // Simulate an edit
+            RaiseBufferChangedEvent(bufferMock, bufferMock.Object.CurrentSnapshot, bufferMock.Object.CurrentSnapshot);
+
+            // Check the store was notified using the new name
+            storeMock.Verify(x => x.Refresh(new[] { ChangedName }), Times.Once);
         }
 
         [TestMethod]
@@ -401,6 +449,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             versionMock.Setup(x => x.Next).Returns(nextVersion);
 
             return versionMock.Object;
+        }
+
+        private static void ChangeMockedFileName(Mock<ITextBuffer> bufferMock, string newName)
+        {
+            var docMocked = (IMocked<ITextDocument>)bufferMock.Object.Properties[typeof(ITextDocument)];
+            docMocked.Mock.Setup(x => x.FilePath).Returns(newName);
         }
 
         private static void RaiseIssuesChangedEvent(Mock<IIssueLocationStore> storeMock, params string[] fileNames) =>
