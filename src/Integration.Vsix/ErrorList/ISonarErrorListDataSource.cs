@@ -25,10 +25,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     internal interface ISonarErrorListDataSource
     {
-        void RefreshErrorList(SnapshotFactory factory);
+        void RefreshErrorList(ISnapshotFactory factory);
 
-        void AddFactory(SnapshotFactory factory);
+        void AddFactory(ISnapshotFactory factory);
 
-        void RemoveFactory(SnapshotFactory factory);
+        void RemoveFactory(ISnapshotFactory factory);
     }
 }

@@ -18,17 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
+    internal interface ISnapshotFactory : ITableEntriesSnapshotFactory
+    {
+        IIssuesSnapshot CurrentSnapshot { get; }
+
+        /// <summary>
+        /// Returns true/false if the factory was updated due to the rename
+        /// </summary>
+        bool HandleFileRename(string oldFilePath, string newFilePath);
+    }
+
     /// <summary>
     /// Plumbing for passing data items to the ErrorList
     /// </summary>
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    internal class SnapshotFactory : TableEntriesSnapshotFactoryBase
+    internal class SnapshotFactory : TableEntriesSnapshotFactoryBase, ISnapshotFactory
     {
         public IIssuesSnapshot CurrentSnapshot { get; private set; }
 
@@ -56,5 +68,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         #endregion
+
+        public bool HandleFileRename(string oldFilePath, string newFilePath)
+        {
+            var locationsInOldFile = CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
+
+            foreach (var location in locationsInOldFile)
+            {
+                location.CurrentFilePath = newFilePath;
+            }
+
+            var factoryChanged = true;
+            var renamedAnalyzedFile = PathHelper.IsMatchingPath(oldFilePath, CurrentSnapshot.AnalyzedFilePath);
+
+            if (renamedAnalyzedFile)
+            {
+                UpdateSnapshot(CurrentSnapshot.CreateUpdatedSnapshot(newFilePath));
+            }
+            else if (locationsInOldFile.Any())
+            {
+                CurrentSnapshot.IncrementVersion();
+            }
+            else
+            {
+                factoryChanged = false;
+            }
+
+            return factoryChanged;
+        }
     }
 }
