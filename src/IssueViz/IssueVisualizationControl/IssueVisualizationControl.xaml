@@ -65,7 +65,14 @@
 
         <!-- Overlay and Data grid styles -->
 
-        <Style x:Key="OverlayTextStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTitleTextBlockStyle}">
+        <Style x:Key="OverlayTitleTextStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTitleTextBlockStyle}">
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.InactiveCaptionTextKey}}" />
+        </Style>
+
+        <Style x:Key="OverlayTextStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextBlockStyle}">
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -185,7 +192,16 @@
           Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
           vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
         <Grid x:Name="Overlay" Style="{StaticResource OverlayGridStyle}" Panel.ZIndex="1000">
-            <TextBlock Style="{StaticResource OverlayTextStyle}" Text="Please select an issue from the Error List" />
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Style="{StaticResource OverlayTitleTextStyle}" Text="Please select a SonarLint issue with secondary locations from the Error List."/>
+                <TextBlock Style="{StaticResource OverlayTextStyle}">
+                    <Hyperlink NavigateUri="https://github.com/SonarSource/sonarlint-visualstudio/wiki" 
+                               RequestNavigate="Hyperlink_OnRequestNavigate">
+                        <LineBreak/>
+                        <Run Text="Click here to go online and find out more about this and other SonarLint features." />
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
         </Grid>
 
         <Grid x:Name="DataFlow" Style="{StaticResource DataFlowGridStyle}">
