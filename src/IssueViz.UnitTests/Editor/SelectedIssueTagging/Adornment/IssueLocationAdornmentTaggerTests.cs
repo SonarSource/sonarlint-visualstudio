@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             // Act
             RaiseBatchedTagsChanged(aggregatorMock);
             aggregatorMock.Verify(x => x.GetTags(wholeSnapshotSpan), Times.Once);
-            cacheMock.Verify(x => x.RemoveUnused(new[] { locViz1, locViz2 }), Times.Once);
+            cacheMock.Verify(x => x.Refresh(new[] { locViz1, locViz2 }), Times.Once);
         }
 
         [TestMethod]

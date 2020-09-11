@@ -106,16 +106,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         }
 
         [TestMethod]
-        public void RemoveUnused_EmptyCache_NoError()
+        public void Refresh_EmptyCache_NoError()
         {
             var testSubject = new CachingAdornmentFactory(ValidTextView);
 
-            Action act = () => testSubject.RemoveUnused(new[] { ValidLocViz });
+            Action act = () => testSubject.Refresh(new[] { ValidLocViz });
             act.Should().NotThrow();
         }
 
         [TestMethod]
-        public void RemoveUnused_NoCurrentLocations_AllRemoved()
+        public void Refresh_NoCurrentLocations_CacheCleared()
         {
             var testSubject = new CachingAdornmentFactory(ValidTextView);
             testSubject.CreateOrUpdate(CreateLocationViz());
@@ -123,29 +123,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             testSubject.CreateOrUpdate(CreateLocationViz());
             testSubject.CachedAdornments.Count.Should().Be(3); // sanity check
 
-            testSubject.RemoveUnused(Array.Empty<IAnalysisIssueLocationVisualization>());
+            testSubject.Refresh(Array.Empty<IAnalysisIssueLocationVisualization>());
             testSubject.CachedAdornments.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void RemoveUnused_AllLocationsAreCurrent_NoAdormentsRemoved()
+        public void Refresh_AllCachedLocationsAreCurrent_NoAdormentsRemoved()
         {
             var testSubject = new CachingAdornmentFactory(ValidTextView);
 
             var locViz1 = CreateLocationViz();
             var locViz2 = CreateLocationViz();
+            var uncachedLocViz = CreateLocationViz(); // new location that doesn't have an adornment yet
 
             var adornment1 = testSubject.CreateOrUpdate(locViz1);
             var adornment2 = testSubject.CreateOrUpdate(locViz2);
             var expectedAdornments = new[] { adornment1, adornment2 };
 
             // Act
-            testSubject.RemoveUnused(new[] { locViz1, locViz2 });
+            testSubject.Refresh(new[] { locViz1, locViz2, uncachedLocViz });
             testSubject.CachedAdornments.Should().BeEquivalentTo(expectedAdornments);
         }
 
         [TestMethod]
-        public void RemoveUnused_NotAllLocationsAreCurrent_ExpectedEntriesRemoved()
+        public void Refresh_NotAllCachedLocationsAreCurrent_ExpectedAdornmentsRemoved()
         {
             var testSubject = new CachingAdornmentFactory(ValidTextView);
 
@@ -159,12 +160,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             testSubject.CachedAdornments.Should().BeEquivalentTo(new[] { adornment1, adornment2, adornment3 }); // sanity check
 
             // Remove multiple items
-            testSubject.RemoveUnused(new[] { locViz3 });
+            testSubject.Refresh(new[] { locViz3 });
             testSubject.CachedAdornments.Should().BeEquivalentTo(new[] { adornment3 });
 
             // Remove the remaining item
             var newLocViz = CreateLocationViz();
-            testSubject.RemoveUnused(new[] { newLocViz });
+            testSubject.Refresh(new[] { newLocViz });
             testSubject.CachedAdornments.Should().BeEmpty();
         }
 
