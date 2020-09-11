@@ -566,24 +566,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void SelectionService_OnLocationChanged_NewLocationIsNull_NoNavigation()
+        public void SetCurrentLocationListItem_NewLocationIsNull_NoNavigation()
         {
-            RaiseSelectionChangedEvent(SelectionChangeLevel.Location, null, null, null);
+            testSubject.CurrentLocationListItem = null;
 
             locationNavigatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void SelectionService_OnLocationChanged_NewLocationIsNotNull_NavigationToLocation()
+        public void SetCurrentLocationListItem_NewLocationIsNotNull_NavigationToLocation()
+        {
+            var locationViz = CreateMockLocation("c:\\test\\c1.c");
+
+            testSubject.CurrentLocationListItem = new LocationListItem(locationViz);
+
+            locationNavigatorMock.Verify(x => x.TryNavigate(locationViz), Times.Once);
+        }
+
+        [TestMethod]
+        public void SelectionService_OnLocationChanged_NoNavigation()
         {
             var locationViz = CreateMockLocation("c:\\test\\c1.c");
 
             var selectedFlow = new Mock<IAnalysisIssueFlowVisualization>();
-            selectedFlow.Setup(x => x.Locations).Returns(new[] {locationViz});
+            selectedFlow.Setup(x => x.Locations).Returns(new[] { locationViz });
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Flow, null, selectedFlow.Object, locationViz);
 
-            locationNavigatorMock.Verify(x => x.TryNavigate(locationViz), Times.Once);
+            locationNavigatorMock.Verify(x => x.TryNavigate(It.IsAny<IAnalysisIssueLocationVisualization>()), Times.Never);
         }
 
         #endregion
