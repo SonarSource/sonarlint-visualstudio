@@ -18,20 +18,42 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment
 {
-    internal sealed class IssueLocationAdornmentTagger : FilteringTaggerBase<ISelectedIssueLocationTag, IntraTextAdornmentTag>
+    internal sealed partial class IssueLocationAdornmentTagger : FilteringTaggerBase<ISelectedIssueLocationTag, IntraTextAdornmentTag>
     {
         private readonly IWpfTextView wpfView;
+        private readonly ICachingAdornmentFactory adornmentCache;
+        private readonly ITagAggregator<ISelectedIssueLocationTag> tagAggregator;
 
         public IssueLocationAdornmentTagger(ITagAggregator<ISelectedIssueLocationTag> tagAggregator, IWpfTextView textView)
-            : base(tagAggregator, textView)
+            : this(tagAggregator, textView, new CachingAdornmentFactory(textView))
         {
-            wpfView = textView;
+        }
+
+        internal /* for testing */ IssueLocationAdornmentTagger(ITagAggregator<ISelectedIssueLocationTag> tagAggregator,
+            IWpfTextView wpfView, ICachingAdornmentFactory adornmentCache)
+            : base(tagAggregator, wpfView)
+        {
+            this.wpfView = wpfView;
+            this.adornmentCache = adornmentCache;
+
+            this.tagAggregator = tagAggregator;
+            tagAggregator.BatchedTagsChanged += OnTagsChanged;
+        }
+
+        private void OnTagsChanged(object sender, BatchedTagsChangedEventArgs e)
+        {
+            // Remove any unnecessary adornments from the cache. To do that we need to ask the aggregator
+            // for all of its tags.
+            var wholeSpan = new SnapshotSpan(wpfView.TextSnapshot, 0, wpfView.TextSnapshot.Length);
+            var allTags = tagAggregator.GetTags(wholeSpan);
+            adornmentCache.Refresh(allTags.Select(x => x.Tag.Location));
         }
 
         protected override TagSpan<IntraTextAdornmentTag> CreateTagSpan(ISelectedIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
@@ -40,11 +62,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             // should have zero length spans. Overriding this method allows control
             // over the tag spans.
             var adornmentSpan = new SnapshotSpan(trackedTag.Location.Span.Value.Start, 0);
-            var adornment = new IssueLocationAdornment(trackedTag, wpfView.FormattedLineSource);
+            var adornment = adornmentCache.CreateOrUpdate(trackedTag.Location);
 
-            // If we don't call Measure here the tag is positioned incorrectly
-            adornment.Measure(new System.Windows.Size(double.PositiveInfinity, double.PositiveInfinity));
             return new TagSpan<IntraTextAdornmentTag>(adornmentSpan, new IntraTextAdornmentTag(adornment, null, PositionAffinity.Predecessor));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                tagAggregator.BatchedTagsChanged -= OnTagsChanged;
+            }
+            base.Dispose(disposing);
         }
     }
 }

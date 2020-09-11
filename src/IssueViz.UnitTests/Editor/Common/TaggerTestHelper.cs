@@ -18,8 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Linq;
+using System.Windows.Media;
+using System.Windows.Media.TextFormatting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Formatting;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -96,10 +101,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             return flowVizMock.Object;
         }
 
-        public static IAnalysisIssueLocationVisualization CreateLocationViz(ITextSnapshot snapshot, Span span, string locationMessage = null, int stepNumber = -1)
+        public static IAnalysisIssueLocationVisualization CreateLocationViz(ITextSnapshot snapshot = null, Span? span = null, string locationMessage = null, int stepNumber = -1)
         {
+            if (snapshot == null)
+            {
+                snapshot = CreateSnapshot();
+            }
+            if (!span.HasValue)
+            {
+                span = new Span(0, snapshot.Length);
+            }
+            if (locationMessage == null)
+            {
+                locationMessage = System.Guid.NewGuid().ToString();
+            }
+
             var locVizMock = new Mock<IAnalysisIssueLocationVisualization>();
-            var snapshotSpan = new SnapshotSpan(snapshot, span);
+            var snapshotSpan = new SnapshotSpan(snapshot, span.Value);
             locVizMock.Setup(x => x.Span).Returns(snapshotSpan);
             locVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssueLocation { Message = locationMessage });
             locVizMock.Setup(x => x.StepNumber).Returns(stepNumber);
@@ -152,5 +170,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 
             return taggableBufferIndicator.Object;
         }
+
+        public static IWpfTextView CreateWpfTextView(ITextSnapshot snapshot = null, IFormattedLineSource formattedLineSource = null)
+        {
+            snapshot = snapshot ?? CreateSnapshot();
+            var lineSource = formattedLineSource ?? CreateFormattedLineSource();
+
+            var viewMock = new Mock<IWpfTextView>();
+            viewMock.Setup(x => x.TextSnapshot).Returns(snapshot);
+            viewMock.Setup(x => x.FormattedLineSource).Returns(lineSource);
+            return viewMock.Object;
+        }
+
+        public static IFormattedLineSource CreateFormattedLineSource(double fontSize = 12d, string fontFamily = "Arial")
+        {
+            var textRunPropertiesMock = new Mock<TextRunProperties>();
+            textRunPropertiesMock.Setup(x => x.FontRenderingEmSize).Returns(fontSize);
+            textRunPropertiesMock.Setup(x => x.Typeface).Returns(new Typeface(fontFamily));
+
+            var lineSourceMock = new Mock<IFormattedLineSource>();
+            lineSourceMock.Setup(x => x.DefaultTextProperties).Returns(textRunPropertiesMock.Object);
+
+            return lineSourceMock.Object;
+        }
+
+        public static void RaiseBatchedTagsChanged(Mock<ITagAggregator<ISelectedIssueLocationTag>> selectedIssuesAggregatorMock) =>
+            selectedIssuesAggregatorMock.Raise(x => x.BatchedTagsChanged += null, new BatchedTagsChangedEventArgs(Array.Empty<IMappingSpan>()));
     }
 }
