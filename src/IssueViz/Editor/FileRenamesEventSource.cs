@@ -28,12 +28,12 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal interface IFileRenamesEventSource : IDisposable
+    public interface IFileRenamesEventSource : IDisposable
     {
         event EventHandler<FilesRenamedEventArgs> FilesRenamed;
     }
 
-    internal class FilesRenamedEventArgs
+    public class FilesRenamedEventArgs
     {
         public IReadOnlyDictionary<string, string> OldNewFilePaths { get; }
 
