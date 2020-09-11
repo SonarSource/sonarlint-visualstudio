@@ -25,28 +25,36 @@ using System.Linq;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal interface IFileRenamesEventHandler : IDisposable
+    internal interface IFileRenamesEventSource : IDisposable
     {
+        event EventHandler<FilesRenamedEventArgs> FilesRenamed;
     }
 
-    [Export(typeof(IFileRenamesEventHandler))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class FileRenamesEventHandler : IFileRenamesEventHandler, IVsTrackProjectDocumentsEvents2
+    internal class FilesRenamedEventArgs
     {
-        private readonly IIssueLocationStore locationStore;
+        public IReadOnlyDictionary<string, string> OldNewFilePaths { get; }
+
+        public FilesRenamedEventArgs(IReadOnlyDictionary<string, string> oldNewFilePaths)
+        {
+            OldNewFilePaths = oldNewFilePaths;
+        }
+    }
+
+    [Export(typeof(IFileRenamesEventSource))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class FileRenamesEventSource : IFileRenamesEventSource, IVsTrackProjectDocumentsEvents2
+    {
+        public event EventHandler<FilesRenamedEventArgs> FilesRenamed;
+
         private readonly IVsTrackProjectDocuments2 trackProjectDocuments;
         private readonly uint trackDocumentEventsCookie;
 
         [ImportingConstructor]
-        public FileRenamesEventHandler([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IIssueLocationStore locationStore)
+        public FileRenamesEventSource([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            this.locationStore = locationStore;
-
             trackProjectDocuments = (IVsTrackProjectDocuments2)serviceProvider.GetService(typeof(SVsTrackProjectDocuments));
             trackProjectDocuments.AdviseTrackProjectDocumentsEvents(this, out trackDocumentEventsCookie);
         }
@@ -54,28 +62,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         int IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles(int cProjects, int cFiles, IVsProject[] rgpProjects, int[] rgFirstIndices,
             string[] rgszMkOldNames, string[] rgszMkNewNames, VSRENAMEFILEFLAGS[] rgFlags)
         {
-            var affectedFiles = new List<string>();
+            var affectedFiles = new Dictionary<string, string>();
 
             for (var i = 0; i < rgszMkOldNames.Length; i++)
             {
                 var oldFileFullPath = rgszMkOldNames[i];
                 var newFileFullPath = rgszMkNewNames[i];
-                var locationsInFile = locationStore.GetLocations(oldFileFullPath);
 
-                if (locationsInFile.Any())
-                {
-                    foreach (var location in locationsInFile)
-                    {
-                        location.CurrentFilePath = newFileFullPath;
-                    }
-
-                    affectedFiles.Add(oldFileFullPath);
-                }
+                affectedFiles.Add(oldFileFullPath, newFileFullPath);
             }
 
             if (affectedFiles.Any())
             {
-                locationStore.Refresh(affectedFiles);
+                FilesRenamed?.Invoke(this, new FilesRenamedEventArgs(affectedFiles));
             }
 
             return VSConstants.S_OK;
