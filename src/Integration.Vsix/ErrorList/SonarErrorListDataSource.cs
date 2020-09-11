@@ -239,28 +239,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                     foreach (var factory in currentFactories)
                     {
-                        var locationsInOldFile = factory.CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
-
-                        foreach (var location in locationsInOldFile)
-                        {
-                            location.CurrentFilePath = newFilePath;
-                        }
-
-                        var factoryChanged = true;
-                        var renamedAnalyzedFile = e.OldNewFilePaths.ContainsKey(factory.CurrentSnapshot.AnalyzedFilePath);
-
-                        if (renamedAnalyzedFile)
-                        {
-                            factory.UpdateSnapshot(factory.CurrentSnapshot.CreateUpdatedSnapshot(newFilePath));
-                        }
-                        else if (locationsInOldFile.Any())
-                        {
-                            factory.CurrentSnapshot.IncrementVersion();
-                        }
-                        else
-                        {
-                            factoryChanged = false;
-                        }
+                        var factoryChanged = HandleFileRenames(factory, oldFilePath, newFilePath);
 
                         if (factoryChanged)
                         {
@@ -269,6 +248,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     }
                 }
             }
+        }
+
+        private static bool HandleFileRenames(SnapshotFactory factory, string oldFilePath, string newFilePath)
+        {
+            var locationsInOldFile = factory.CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
+
+            foreach (var location in locationsInOldFile)
+            {
+                location.CurrentFilePath = newFilePath;
+            }
+
+            var factoryChanged = true;
+            var renamedAnalyzedFile = PathHelper.IsMatchingPath(oldFilePath, factory.CurrentSnapshot.AnalyzedFilePath);
+
+            if (renamedAnalyzedFile)
+            {
+                factory.UpdateSnapshot(factory.CurrentSnapshot.CreateUpdatedSnapshot(newFilePath));
+            }
+            else if (locationsInOldFile.Any())
+            {
+                factory.CurrentSnapshot.IncrementVersion();
+            }
+            else
+            {
+                factoryChanged = false;
+            }
+
+            return factoryChanged;
         }
 
         public void Dispose()
