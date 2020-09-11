@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
                 // disposed. We don't want an exception to be thrown in this case as it causes
                 // a gold bar to appear. To the user, it would look like the bug is in our code,
                 // whereas in fact VS has disposed the tagger but is continuing to call it.
-                Debug.Fail($"GetTags called on disposed tagger. Tagger type: {this.GetType().FullName}. File: { GetSnapshot().TextBuffer.GetFilePath()}");
+                Debug.WriteLine($"ASSERTION FAILED: GetTags called on disposed tagger. Tagger type: {this.GetType().FullName}. File: { GetSnapshot().TextBuffer.GetFilePath()}");
                 yield break;
             }
 
