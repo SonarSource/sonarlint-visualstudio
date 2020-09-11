@@ -120,6 +120,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public IEnumerable<ITagSpan<TTagType>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
+            if (disposedValue)
+            {
+                // See https://github.com/SonarSource/sonarlint-visualstudio/issues/1693
+                // Intermittently GetTags gets called even after the tagger instance has been
+                // disposed. We don't want an exception to be thrown in this case as it causes
+                // a gold bar to appear. To the user, it would look like the bug is in our code,
+                // whereas in fact VS has disposed the tagger but is continuing to call it.
+                Debug.WriteLine($"ASSERTION FAILED: GetTags called on disposed tagger. Tagger type: {this.GetType().FullName}. File: { GetSnapshot().TextBuffer.GetFilePath()}");
+                yield break;
+            }
+
             if (spans.Count == 0) { yield break; }
 
             var trackedTagSpans = tagAggregator.GetTags(spans).ToArray();
