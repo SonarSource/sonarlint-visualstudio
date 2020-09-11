@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -225,6 +226,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             testSubject.FilterCallCount.Should().Be(1);
             testSubject.LastFilterInput.Should().BeEquivalentTo(tagSpan1, tagSpan2, tagSpan3, tagSpan4);
             actual.Select(tagSpan => tagSpan.Tag.SuppliedTrackedTag).Should().BeEquivalentTo(tagSpan2.Tag, tagSpan3.Tag);
+        }
+
+        [TestMethod]
+        public void GetTags_WhenDisposed_ReturnsEmpty()
+        {
+            // See issue #1693: Object disposed exception thrown by tagger
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/1693
+            var aggregatorMock = new Mock<ITagAggregator<TrackedTag>>();
+            aggregatorMock.Setup(x => x.GetTags(It.IsAny<NormalizedSnapshotSpanCollection>()))
+                .Throws(new ObjectDisposedException("this is a test"));
+
+            var snapshot = CreateSnapshot(length: 100);
+            var inputSpan = new Span(20, 10);
+            var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, inputSpan);
+
+            var testSubject = new TestableFilteringTagger(aggregatorMock.Object, ValidBuffer);
+
+            testSubject.Dispose();
+
+            using (new AssertIgnoreScope())
+            {
+                var actual = testSubject.GetTags(inputSpans).ToArray();
+                actual.Should().BeEmpty();
+            }
         }
 
         #region Supporting types
