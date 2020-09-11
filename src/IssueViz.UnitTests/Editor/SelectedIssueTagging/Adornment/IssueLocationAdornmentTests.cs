@@ -19,13 +19,9 @@
  */
 
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.TextFormatting;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Formatting;
-using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -38,30 +34,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         public void Ctor_Initialization()
         {
             var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
-            var selectedTag = CreateSelectedLocationTag(locViz);
             var formattedLineSource = CreateFormattedLineSource(14d, "Times New Roman");
 
             // Act
-            var testSubject = new IssueLocationAdornment(selectedTag, formattedLineSource);
+            var testSubject = new IssueLocationAdornment(locViz, formattedLineSource);
+
+            testSubject.FontSize.Should().Be(14d);
+            testSubject.FontFamily.ToString().Should().Be("Times New Roman");
 
             var textContent = testSubject.Content as TextBlock;
             textContent.Should().NotBeNull();
-
             textContent.Text.Should().Be("99");
-            textContent.FontSize.Should().Be(14d);
-            textContent.FontFamily.ToString().Should().Be("Times New Roman");
         }
 
-        private static IFormattedLineSource CreateFormattedLineSource(double fontSize, string fontFamily)
+        [TestMethod]
+        public void Update_SetsExpectedProperties()
         {
-            var textRunPropertiesMock = new Mock<TextRunProperties>();
-            textRunPropertiesMock.Setup(x => x.FontRenderingEmSize).Returns(fontSize);
-            textRunPropertiesMock.Setup(x => x.Typeface).Returns(new Typeface(fontFamily));
+            var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
+            var originalLineSource = CreateFormattedLineSource(14d, "Times New Roman");
+            var testSubject = new IssueLocationAdornment(locViz, originalLineSource);
 
-            var lineSourceMock = new Mock<IFormattedLineSource>();
-            lineSourceMock.Setup(x => x.DefaultTextProperties).Returns(textRunPropertiesMock.Object);
+            // Act
+            var newLineSource = CreateFormattedLineSource(10d, "Arial");
+            testSubject.Update(newLineSource);
 
-            return lineSourceMock.Object;
+            testSubject.FontSize.Should().Be(10d);
+            testSubject.FontFamily.ToString().Should().Be("Arial");
         }
     }
 }
