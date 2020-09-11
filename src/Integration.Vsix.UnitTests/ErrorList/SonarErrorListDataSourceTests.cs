@@ -55,6 +55,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             CompositionBatch batch = new CompositionBatch();
 
             // Set up the exports required by the test subject
+            var fileRenamesEventSourceExport = MefTestHelpers.CreateExport<IFileRenamesEventSource>(Mock.Of<IFileRenamesEventSource>());
+            batch.AddExport(fileRenamesEventSourceExport);
+
             var tableManagerExport = MefTestHelpers.CreateExport<ITableManagerProvider>(mockTableManagerProvider.Object);
             batch.AddExport(tableManagerExport);
 
