@@ -118,6 +118,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 if (isBindingUpdatedByUI)
                 {
+                    NavigateToLocation(value?.Location);
+
                     selectionService.SelectedLocation = value?.Location;
                 }
                 else if (currentLocationListItem != value)
@@ -152,8 +154,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 pausePropertyChangeNotifications = false;
                 CurrentIssue = selectedIssue;
             }
-
-            NavigateToLocation(selectedLocation);
 
             // Setting the selected location should be done last, after the flow list has been updated, so SelectedItem will be set in the xaml
             CurrentLocationListItem = GetLocationListItem(selectedLocation);

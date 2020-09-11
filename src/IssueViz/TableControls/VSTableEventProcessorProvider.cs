@@ -81,7 +81,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
                     if (wpfTableControl.SelectedEntries.Count() == 1 &&
                         wpfTableControl.SelectedEntry.TryGetSnapshot(out var snapshot, out var index) &&
                         snapshot.TryGetValue(index, SonarLintTableControlConstants.IssueVizColumnName, out var issueObject) &&
-                        issueObject is IAnalysisIssueVisualization issueFromTable)
+                        issueObject is IAnalysisIssueVisualization issueFromTable &&
+                        issueFromTable.Flows.SelectMany(x=> x.Locations).Any())
                     {
                         selected = issueFromTable;
                     }
