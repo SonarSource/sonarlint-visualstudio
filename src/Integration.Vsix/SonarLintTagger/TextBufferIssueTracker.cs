@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new IssuesSnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
+            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
             var translatedIssues = TranslateSpans(filteredIssues, textBuffer.CurrentSnapshot);
 
-            var newSnapshot = IssuesSnapshot.CreateNew(GetProjectName(), FilePath, translatedIssues);
+            var newSnapshot = new IssuesSnapshot(GetProjectName(), FilePath, translatedIssues);
             SnapToNewSnapshot(newSnapshot);
         }
 

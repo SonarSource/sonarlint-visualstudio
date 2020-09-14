@@ -24,7 +24,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
@@ -80,9 +79,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject();
             testSubject.AddFactory(factory.Object);
 
-            factory.Setup(x => x.HandleFileRename("old file", "new file")).Returns(false);
+            var fileRenames = new Dictionary<string, string> {{"old file", "new file"}};
 
-            RaiseFilesRenamedEvent(new Dictionary<string, string> {{"old file", "new file"}});
+            factory.Setup(x => x.HandleFileRenames(fileRenames)).Returns(false);
+
+            RaiseFilesRenamedEvent(fileRenames);
        
             mockTableSync.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Never);
         }
@@ -94,9 +95,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubject();
             testSubject.AddFactory(factory.Object);
 
-            factory.Setup(x => x.HandleFileRename("old file", "new file")).Returns(true);
+            var fileRenames = new Dictionary<string, string> { { "old file", "new file" } };
 
-            RaiseFilesRenamedEvent(new Dictionary<string, string> { { "old file", "new file" } });
+            factory.Setup(x => x.HandleFileRenames(fileRenames)).Returns(true);
+
+            RaiseFilesRenamedEvent(fileRenames);
 
             mockTableSync.Verify(x => x.FactorySnapshotChanged(factory.Object), Times.Once);
         }

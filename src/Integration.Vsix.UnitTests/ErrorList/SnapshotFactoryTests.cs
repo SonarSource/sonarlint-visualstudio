@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,59 +35,107 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void HandleFileRenames_NoReferencesToToRenamedFile_NoChanges()
         {
-            var location = CreateLocation("some other file1");
-            var snapshot = CreateIssuesSnapshot("some other file2", location);
+            var location = CreateLocation("some file1");
+            var snapshot = CreateIssuesSnapshot("some file2", location);
 
             var testSubject = new IssuesSnapshotFactory(snapshot.Object);
 
-            var result = testSubject.HandleFileRename("old file", "new file");
+            var result = testSubject.HandleFileRenames(new Dictionary<string, string>{{ "old file", "new file" } });
             result.Should().BeFalse();
 
             testSubject.CurrentSnapshot.Should().Be(snapshot.Object);
-            location.CurrentFilePath.Should().Be("some other file1");
+            location.CurrentFilePath.Should().Be("some file1");
+
             snapshot.Verify(x=> x.IncrementVersion(), Times.Never);
             snapshot.Verify(x=> x.CreateUpdatedSnapshot(It.IsAny<string>()), Times.Never);
         }
 
         [TestMethod]
-        public void HandleFileRenames_RenameAnalyzedFile_LocationsRenamedAndSnapshotUpdated()
+        public void HandleFileRenames_OnlyAnalyzedFileRenamed_SnapshotUpdated()
         {
-            var location1 = CreateLocation("old file");
-            var location2 = CreateLocation("some other file");
-            var snapshot = CreateIssuesSnapshot("old file", location1, location2);
+            var location1 = CreateLocation("file1");
+            var location2 = CreateLocation("file2");
+            var snapshot = CreateIssuesSnapshot("file3", location1, location2);
 
-            var expectedUpdatedSnapshot = CreateIssuesSnapshot("new file");
-            snapshot.Setup(x => x.CreateUpdatedSnapshot("new file")).Returns(expectedUpdatedSnapshot.Object);
+            var renames = new Dictionary<string, string>
+            {
+                {"file3", "new file3"}
+            };
+
+            var updatedSnapshot = CreateIssuesSnapshot("new file3");
+            snapshot.Setup(x => x.CreateUpdatedSnapshot("new file3")).Returns(updatedSnapshot.Object);
 
             var testSubject = new IssuesSnapshotFactory(snapshot.Object);
 
-            var result = testSubject.HandleFileRename("old file", "new file");
+            var result = testSubject.HandleFileRenames(renames);
             result.Should().BeTrue();
 
-            testSubject.CurrentSnapshot.Should().Be(expectedUpdatedSnapshot.Object);
-            location1.CurrentFilePath.Should().Be("new file");
-            location2.CurrentFilePath.Should().Be("some other file");
+            testSubject.CurrentSnapshot.Should().Be(updatedSnapshot.Object);
+
+            location1.CurrentFilePath.Should().Be("file1");
+            location2.CurrentFilePath.Should().Be("file2");
+
             snapshot.Verify(x => x.IncrementVersion(), Times.Never);
-            expectedUpdatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
+            updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
         }
 
         [TestMethod]
-        public void OnFilesRenamed_RenamedSecondaryLocationFile_LocationsRenamedAndSnapshotVersionIncremented()
+        public void HandleFileRenames_AnalyzedFileAndLocationsRenamed_SnapshotUpdated()
         {
-            var location1 = CreateLocation("old file");
-            var location2 = CreateLocation("some other file");
-            var snapshot = CreateIssuesSnapshot("some other file", location1, location2);
+            var location1 = CreateLocation("file1");
+            var location2 = CreateLocation("file2");
+            var snapshot = CreateIssuesSnapshot("file3", location1, location2);
+
+            var renames = new Dictionary<string, string>
+            {
+                {"file1", "new file1"},
+                {"file3", "new file3"}
+            };
+
+            var updatedSnapshot = CreateIssuesSnapshot("new file3");
+            snapshot.Setup(x => x.CreateUpdatedSnapshot("new file3")).Returns(updatedSnapshot.Object);
 
             var testSubject = new IssuesSnapshotFactory(snapshot.Object);
 
-            var result = testSubject.HandleFileRename("old file", "new file");
+            var result = testSubject.HandleFileRenames(renames);
             result.Should().BeTrue();
 
-            testSubject.CurrentSnapshot.Should().Be(snapshot.Object);
-            location1.CurrentFilePath.Should().Be("new file");
-            location2.CurrentFilePath.Should().Be("some other file");
-            snapshot.Verify(x => x.IncrementVersion(), Times.Once);
-            snapshot.Verify(x => x.CreateUpdatedSnapshot(It.IsAny<string>()), Times.Never);
+            testSubject.CurrentSnapshot.Should().Be(updatedSnapshot.Object);
+
+            location1.CurrentFilePath.Should().Be("new file1");
+            location2.CurrentFilePath.Should().Be("file2");
+
+            snapshot.Verify(x => x.IncrementVersion(), Times.Never);
+            updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
+        }
+
+        [TestMethod]
+        public void OnFilesRenamed_OnlyLocationsRenamed_SnapshotUpdated()
+        {
+            var location1 = CreateLocation("file1");
+            var location2 = CreateLocation("file2");
+            var snapshot = CreateIssuesSnapshot("file3", location1, location2);
+
+            var renames = new Dictionary<string, string>
+            {
+                {"file1", "new file1"}
+            };
+
+            var updatedSnapshot = CreateIssuesSnapshot("file3");
+            snapshot.Setup(x => x.CreateUpdatedSnapshot("file3")).Returns(updatedSnapshot.Object);
+
+            var testSubject = new IssuesSnapshotFactory(snapshot.Object);
+
+            var result = testSubject.HandleFileRenames(renames);
+            result.Should().BeTrue();
+
+            testSubject.CurrentSnapshot.Should().Be(updatedSnapshot.Object);
+
+            location1.CurrentFilePath.Should().Be("new file1");
+            location2.CurrentFilePath.Should().Be("file2");
+
+            snapshot.Verify(x => x.IncrementVersion(), Times.Never);
+            updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
         }
 
         private static Mock<IIssuesSnapshot> CreateIssuesSnapshot(string analyzedFilePath, params IAnalysisIssueLocationVisualization[] locations)

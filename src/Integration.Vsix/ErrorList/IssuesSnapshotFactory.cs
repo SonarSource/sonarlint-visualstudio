@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableManager;
-using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
@@ -29,9 +29,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         IIssuesSnapshot CurrentSnapshot { get; }
 
         /// <summary>
-        /// Returns true/false if the factory was updated due to the rename
+        /// Returns true/false if the factory was updated due to the renames
         /// </summary>
-        bool HandleFileRename(string oldFilePath, string newFilePath);
+        bool HandleFileRenames(IReadOnlyDictionary<string, string> oldNewFilePaths);
     }
 
     /// <summary>
@@ -69,32 +69,47 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 
         #endregion
 
-        public bool HandleFileRename(string oldFilePath, string newFilePath)
+        public bool HandleFileRenames(IReadOnlyDictionary<string, string> oldNewFilePaths)
         {
-            var locationsInOldFile = CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
+            var renamedAnalyzedFile = oldNewFilePaths.ContainsKey(CurrentSnapshot.AnalyzedFilePath);
+            var renamedLocations = RenameLocations(oldNewFilePaths);
 
-            foreach (var location in locationsInOldFile)
+            if (!renamedAnalyzedFile && !renamedLocations)
             {
-                location.CurrentFilePath = newFilePath;
+                return false;
             }
 
-            var factoryChanged = true;
-            var renamedAnalyzedFile = PathHelper.IsMatchingPath(oldFilePath, CurrentSnapshot.AnalyzedFilePath);
+            var analyzedFile = renamedAnalyzedFile
+                ? oldNewFilePaths[CurrentSnapshot.AnalyzedFilePath]
+                : CurrentSnapshot.AnalyzedFilePath;
 
-            if (renamedAnalyzedFile)
+            var updatedSnapshot = CurrentSnapshot.CreateUpdatedSnapshot(analyzedFile);
+            UpdateSnapshot(updatedSnapshot);
+
+            return true;
+        }
+
+        private bool RenameLocations(IReadOnlyDictionary<string, string> oldNewFilePaths)
+        {
+            var renamedLocations = false;
+
+            foreach (var oldFilePath in oldNewFilePaths.Keys)
             {
-                UpdateSnapshot(CurrentSnapshot.CreateUpdatedSnapshot(newFilePath));
-            }
-            else if (locationsInOldFile.Any())
-            {
-                CurrentSnapshot.IncrementVersion();
-            }
-            else
-            {
-                factoryChanged = false;
+                var newFilePath = oldNewFilePaths[oldFilePath];
+                var locationsInOldFile = CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
+
+                foreach (var location in locationsInOldFile)
+                {
+                    location.CurrentFilePath = newFilePath;
+                }
+
+                if (!renamedLocations && locationsInOldFile.Any())
+                {
+                    renamedLocations = true;
+                }
             }
 
-            return factoryChanged;
+            return renamedLocations;
         }
     }
 }

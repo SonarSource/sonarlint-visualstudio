@@ -232,19 +232,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             lock (sinks)
             {
                 var currentFactories = factories.ToArray();
-
-                foreach (var oldFilePath in e.OldNewFilePaths.Keys)
+                
+                foreach (var factory in currentFactories)
                 {
-                    var newFilePath = e.OldNewFilePaths[oldFilePath];
+                    var factoryChanged = factory.HandleFileRenames(e.OldNewFilePaths);
 
-                    foreach (var factory in currentFactories)
+                    if (factoryChanged)
                     {
-                        var factoryChanged = factory.HandleFileRename(oldFilePath, newFilePath);
-
-                        if (factoryChanged)
-                        {
-                            InternalRefreshErrorList(factory);
-                        }
+                        InternalRefreshErrorList(factory);
                     }
                 }
             }
