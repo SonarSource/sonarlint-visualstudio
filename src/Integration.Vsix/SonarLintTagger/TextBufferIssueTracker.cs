@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisIssueVisualizationConverter converter;
 
         public string FilePath { get; private set; }
-        internal /* for testing */ SnapshotFactory Factory { get; }
+        internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new SnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
+            this.Factory = new IssuesSnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 

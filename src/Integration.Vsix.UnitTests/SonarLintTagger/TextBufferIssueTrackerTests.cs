@@ -94,12 +94,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Once());
         }
 
-        private void CheckFactoryWasRegisteredWithDataSource(SnapshotFactory factory, Times times)
+        private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, Times times)
         {
             mockSonarErrorDataSource.Verify(x => x.AddFactory(factory), times);
         }
 
-        private void CheckFactoryWasUnregisteredFromDataSource(SnapshotFactory factory, Times times)
+        private void CheckFactoryWasUnregisteredFromDataSource(IssuesSnapshotFactory factory, Times times)
         {
             mockSonarErrorDataSource.Verify(x => x.RemoveFactory(factory), times);
         }
@@ -270,7 +270,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             capturedFilterInput = captured;
         }
 
-        private void CheckErrorListRefreshWasRequestedOnce(SnapshotFactory factory)
+        private void CheckErrorListRefreshWasRequestedOnce(IssuesSnapshotFactory factory)
         {
             mockSonarErrorDataSource.Verify(x => x.RefreshErrorList(factory), Times.Once);
         }

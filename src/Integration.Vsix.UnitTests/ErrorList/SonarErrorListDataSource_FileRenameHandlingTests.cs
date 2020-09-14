@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void OnFilesRenamed_NoReferencesToRenamedFile_NoChanges()
         {
-            var factory = new Mock<ISnapshotFactory>();
+            var factory = new Mock<IIssuesSnapshotFactory>();
             var testSubject = CreateTestSubject();
             testSubject.AddFactory(factory.Object);
 
@@ -89,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void OnFilesRenamed_HasReferencesToRenamedFile_ErrorListRefreshed()
         {
-            var factory = new Mock<ISnapshotFactory>();
+            var factory = new Mock<IIssuesSnapshotFactory>();
             var testSubject = CreateTestSubject();
             testSubject.AddFactory(factory.Object);
 

@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var location = CreateLocation("some other file1");
             var snapshot = CreateIssuesSnapshot("some other file2", location);
 
-            var testSubject = new SnapshotFactory(snapshot.Object);
+            var testSubject = new IssuesSnapshotFactory(snapshot.Object);
 
             var result = testSubject.HandleFileRename("old file", "new file");
             result.Should().BeFalse();
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var expectedUpdatedSnapshot = CreateIssuesSnapshot("new file");
             snapshot.Setup(x => x.CreateUpdatedSnapshot("new file")).Returns(expectedUpdatedSnapshot.Object);
 
-            var testSubject = new SnapshotFactory(snapshot.Object);
+            var testSubject = new IssuesSnapshotFactory(snapshot.Object);
 
             var result = testSubject.HandleFileRename("old file", "new file");
             result.Should().BeTrue();
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var location2 = CreateLocation("some other file");
             var snapshot = CreateIssuesSnapshot("some other file", location1, location2);
 
-            var testSubject = new SnapshotFactory(snapshot.Object);
+            var testSubject = new IssuesSnapshotFactory(snapshot.Object);
 
             var result = testSubject.HandleFileRename("old file", "new file");
             result.Should().BeTrue();

@@ -24,7 +24,7 @@ using SonarLint.VisualStudio.Core.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    internal interface ISnapshotFactory : ITableEntriesSnapshotFactory
+    internal interface IIssuesSnapshotFactory : ITableEntriesSnapshotFactory
     {
         IIssuesSnapshot CurrentSnapshot { get; }
 
@@ -40,11 +40,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// <remarks>
     /// See the README.md in this folder for more information
     /// </remarks>
-    internal class SnapshotFactory : TableEntriesSnapshotFactoryBase, ISnapshotFactory
+    internal class IssuesSnapshotFactory : TableEntriesSnapshotFactoryBase, IIssuesSnapshotFactory
     {
         public IIssuesSnapshot CurrentSnapshot { get; private set; }
 
-        public SnapshotFactory(IIssuesSnapshot snapshot)
+        public IssuesSnapshotFactory(IIssuesSnapshot snapshot)
         {
             this.CurrentSnapshot = snapshot;
         }

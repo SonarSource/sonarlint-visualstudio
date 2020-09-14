@@ -37,12 +37,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
     {
         private Mock<ITableManagerProvider> mockTableManagerProvider;
         private Mock<ITableManager> mockTableManager;
-        private ISnapshotFactory ValidFactory;
+        private IIssuesSnapshotFactory ValidFactory;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            ValidFactory = Mock.Of<ISnapshotFactory>();
+            ValidFactory = Mock.Of<IIssuesSnapshotFactory>();
             mockTableManagerProvider = new Mock<ITableManagerProvider>();
             mockTableManager = new Mock<ITableManager>();
             mockTableManagerProvider.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(mockTableManager.Object);
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var testSubject = CreateTestSubjectWithFactory(ValidFactory);
             testSubject.Subscribe(mockSink.Object);
 
-            var unknownFactory = Mock.Of<ISnapshotFactory>();
+            var unknownFactory = Mock.Of<IIssuesSnapshotFactory>();
 
             testSubject.RefreshErrorList(unknownFactory);
 
@@ -185,8 +185,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var testSubject = CreateTestSubject();
 
-            var factory1 = Mock.Of<ISnapshotFactory>();
-            var factory2 = Mock.Of<ISnapshotFactory>();
+            var factory1 = Mock.Of<IIssuesSnapshotFactory>();
+            var factory2 = Mock.Of<IIssuesSnapshotFactory>();
             testSubject.AddFactory(factory1);
             testSubject.AddFactory(factory2);
 
@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(mockSink1.Object);
             testSubject.Subscribe(mockSink2.Object);
 
-            var factory = Mock.Of<ISnapshotFactory>();
+            var factory = Mock.Of<IIssuesSnapshotFactory>();
 
             testSubject.AddFactory(factory);
 
@@ -248,7 +248,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.Subscribe(mockSink1.Object);
             testSubject.Subscribe(mockSink2.Object);
 
-            var factory = Mock.Of<ISnapshotFactory>();
+            var factory = Mock.Of<IIssuesSnapshotFactory>();
 
             testSubject.RemoveFactory(factory);
 
@@ -362,7 +362,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         #endregion
 
-        private SonarErrorListDataSource CreateTestSubjectWithFactory(ISnapshotFactory factory)
+        private SonarErrorListDataSource CreateTestSubjectWithFactory(IIssuesSnapshotFactory factory)
         {
             var testSubject = CreateTestSubject();
             testSubject.AddFactory(factory);
@@ -374,7 +374,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             return new SonarErrorListDataSource(mockTableManagerProvider.Object, Mock.Of<IFileRenamesEventSource>());
         }
 
-        private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink, ISnapshotFactory expectedFactory) =>
+        private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink, IIssuesSnapshotFactory expectedFactory) =>
             mockSink.Verify(x => x.FactorySnapshotChanged(expectedFactory), Times.Once);
 
         private static void CheckSinkWasNotNotified(Mock<ITableDataSink> mockSink) =>

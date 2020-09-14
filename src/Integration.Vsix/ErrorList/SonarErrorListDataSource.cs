@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
-        private readonly ISet<ISnapshotFactory> factories = new HashSet<ISnapshotFactory>();
+        private readonly ISet<IIssuesSnapshotFactory> factories = new HashSet<IIssuesSnapshotFactory>();
 
         [ImportingConstructor]
         internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, IFileRenamesEventSource fileRenamesEventSource)
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region ISonarErrorListDataSource implementation
 
-        public void RefreshErrorList(ISnapshotFactory factory)
+        public void RefreshErrorList(IIssuesSnapshotFactory factory)
         {
             if (factory == null)
             {
@@ -133,12 +133,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void NotifyLocationServiceListeners(ISnapshotFactory factory)
+        private void NotifyLocationServiceListeners(IIssuesSnapshotFactory factory)
         {
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(factory.CurrentSnapshot.FilesInSnapshot));
         }
 
-        public void AddFactory(ISnapshotFactory factory)
+        public void AddFactory(IIssuesSnapshotFactory factory)
         {
             lock (sinks)
             {
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveFactory(ISnapshotFactory factory)
+        public void RemoveFactory(IIssuesSnapshotFactory factory)
         {
             lock (sinks)
             {

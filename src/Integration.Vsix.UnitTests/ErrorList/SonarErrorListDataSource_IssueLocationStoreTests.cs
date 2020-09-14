@@ -168,24 +168,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2);
         }
 
-        private static ISnapshotFactory CreateFactoryWithLocationVizs(string filePathToMatch, params IAnalysisIssueLocationVisualization[] locVixsToReturn)
+        private static IIssuesSnapshotFactory CreateFactoryWithLocationVizs(string filePathToMatch, params IAnalysisIssueLocationVisualization[] locVixsToReturn)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
             snapshotMock.Setup(x => x.GetLocationsVizsForFile(filePathToMatch))
                 .Returns(locVixsToReturn);
 
-            var snapshotFactory = new Mock<ISnapshotFactory>();
+            var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
             snapshotFactory.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
 
             return snapshotFactory.Object;
         }
 
-        private static ISnapshotFactory CreateFactoryAndSnapshotWithSpecifiedFiles(params string[] filePaths)
+        private static IIssuesSnapshotFactory CreateFactoryAndSnapshotWithSpecifiedFiles(params string[] filePaths)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
             snapshotMock.Setup(x => x.FilesInSnapshot).Returns(filePaths);
 
-            var snapshotFactory = new Mock<ISnapshotFactory>();
+            var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
             snapshotFactory.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
 
             return snapshotFactory.Object;
@@ -200,25 +200,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>());
         }
 
-        private static void CheckSnapshotGetLocationsCalled(ISnapshotFactory factory)
+        private static void CheckSnapshotGetLocationsCalled(IIssuesSnapshotFactory factory)
         {
             var snapshotMock = ((Moq.IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
             snapshotMock.Verify(x => x.GetLocationsVizsForFile(It.IsAny<string>()), Times.Once);
         }
 
-        private static void CheckSnapshotIncrementVersionCalled(ISnapshotFactory factory)
+        private static void CheckSnapshotIncrementVersionCalled(IIssuesSnapshotFactory factory)
         {
             var snapshotMock = ((Moq.IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
             snapshotMock.Verify(x => x.IncrementVersion(), Times.Once);
         }
 
-        private static void CheckSnapshotIncrementVersionNotCalled(ISnapshotFactory factory)
+        private static void CheckSnapshotIncrementVersionNotCalled(IIssuesSnapshotFactory factory)
         {
             var snapshotMock = ((Moq.IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
             snapshotMock.Verify(x => x.IncrementVersion(), Times.Never);
         }
 
-        private void CheckSinkNotifiedOfChangeToFactories(Mock<ITableDataSink> sinkMock, params ISnapshotFactory[] factories)
+        private void CheckSinkNotifiedOfChangeToFactories(Mock<ITableDataSink> sinkMock, params IIssuesSnapshotFactory[] factories)
         {
             foreach (var factory in factories)
             {
