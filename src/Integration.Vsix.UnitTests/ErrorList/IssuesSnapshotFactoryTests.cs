@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
     [TestClass]
-    public class SnapshotFactoryTests
+    public class IssuesSnapshotFactoryTests
     {
         [TestMethod]
         public void HandleFileRenames_NoReferencesToToRenamedFile_NoChanges()
