@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Convert_HasMessageParts_IssueWithSingleFlowAndLocationsInReverseOrder()
+        public void Convert_HasMessageParts_IssueWithSingleFlowAndLocations()
         {
             var messageParts = new List<MessagePart>
             {
@@ -87,8 +87,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
+                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 1, 3, null),
                 new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 5, 7, null),
-                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 1, 3, null)
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
@@ -206,9 +206,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             issue.LineHash.Should().Be(issueHash);
 
-            // converted locations are in reverse order from message parts
-            var firstLocation = issue.Flows[0].Locations[1];
-            var secondLocation = issue.Flows[0].Locations[0];
+            var firstLocation = issue.Flows[0].Locations[0];
+            var secondLocation = issue.Flows[0].Locations[1];
 
             secondLocation.LineHash.Should().Be(secondLocationHash);
             firstLocation.LineHash.Should().Be(firstLocationHash);
@@ -233,9 +232,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             issue.LineHash.Should().BeNull();
 
-            // converted locations are in reverse order from message parts
-            var nonFileLevelLocation = issue.Flows[0].Locations[1];
-            var fileLevelLocation = issue.Flows[0].Locations[0];
+            var nonFileLevelLocation = issue.Flows[0].Locations[0];
+            var fileLevelLocation = issue.Flows[0].Locations[1];
 
             fileLevelLocation.LineHash.Should().BeNull();
             nonFileLevelLocation.LineHash.Should().Be(nonFileLevelLocationHash);
@@ -259,9 +257,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var issue = Convert(message);
             issue.LineHash.Should().BeNull();
 
-            // converted locations are in reverse order from message parts
-            var firstLocation = issue.Flows[0].Locations[1];
-            var secondLocation = issue.Flows[0].Locations[0];
+            var firstLocation = issue.Flows[0].Locations[0];
+            var secondLocation = issue.Flows[0].Locations[1];
 
             secondLocation.LineHash.Should().BeNull();
             firstLocation.LineHash.Should().Be(firstLocationHash);
