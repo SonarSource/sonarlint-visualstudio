@@ -56,6 +56,12 @@
 
   </Commands>
 
+  <CommandPlacements>
+    <CommandPlacement guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x200">
+      <Parent guid="guidDaemonCmdSet" id="grpDaemonErrorList" />
+    </CommandPlacement>
+  </CommandPlacements>
+
   <!-- Short cut keybindings: see https://docs.microsoft.com/en-us/visualstudio/extensibility/binding-keyboard-shortcuts-to-menu-items?view=vs-2019 -->
   <KeyBindings>
 
@@ -99,6 +105,10 @@
 
     <GuidSymbol name="guidImages" value="{DA8715CC-ADBA-45C7-BBB3-DBAA608EF40A}" >
       <IDSymbol name="bmpSonarQube" value="1"/>
+    </GuidSymbol>
+
+    <GuidSymbol name="guidDaemonCmdSet" value="{1F83EA11-3B07-45B3-BF39-307FD4F42194}">
+      <IDSymbol name="grpDaemonErrorList" value="0x100" />
     </GuidSymbol>
 
   </Symbols>
