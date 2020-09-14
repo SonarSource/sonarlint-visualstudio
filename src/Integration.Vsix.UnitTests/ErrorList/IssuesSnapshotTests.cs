@@ -192,24 +192,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
 
-        [TestMethod]
-        public void IncrementVersion_FilesInSnapshotAreRecalculated()
-        {
-            var issue1 = CreateIssueWithSpecificsPaths("old1.cpp");
-            var issue2 = CreateIssueWithSpecificsPaths("old2.cpp");
-
-            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectName, new[] {issue1, issue2});
-
-            issue1.CurrentFilePath = "new1.cpp";
-            issue2.CurrentFilePath = "new2.cpp";
-
-            testSubject.FilesInSnapshot.Should().BeEquivalentTo("old1.cpp", "old2.cpp", ValidProjectName);
-
-            testSubject.IncrementVersion();
-
-            testSubject.FilesInSnapshot.Should().BeEquivalentTo("new1.cpp", "new2.cpp", ValidProjectName);
-        }
-
         private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
             GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
 
