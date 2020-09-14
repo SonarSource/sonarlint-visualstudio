@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
@@ -34,6 +35,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
     [TestClass]
     public class TaggableBufferIndicatorTests
     {
+        private const string FilePath = "test.cpp";
+
         private Mock<ISonarLanguageRecognizer> languageRecognizerMock;
 
         private TaggableBufferIndicator testSubject;
@@ -47,9 +50,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
+        public void IsTaggable_NoFilePath_False()
+        {
+            var buffer = TaggerTestHelper.CreateBufferMock(filePath: null);
+
+            using (new AssertIgnoreScope())
+            {
+                var result = testSubject.IsTaggable(buffer.Object);
+                result.Should().BeFalse();
+            }
+        }
+
+        [TestMethod]
         public void IsTaggable_NoDetectedLanguages_False()
         {
-            var buffer = TaggerTestHelper.CreateBufferMock(filePath: "test.cpp");
+            var buffer = TaggerTestHelper.CreateBufferMock(filePath: FilePath);
 
             SetupDetectedLanguages(buffer, Enumerable.Empty<AnalysisLanguage>());
 
@@ -61,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestMethod]
         public void IsTaggable_HasDetectedLanguage_True()
         {
-            var buffer = TaggerTestHelper.CreateBufferMock(filePath: "test.cpp");
+            var buffer = TaggerTestHelper.CreateBufferMock(filePath: FilePath);
 
             SetupDetectedLanguages(buffer, new List<AnalysisLanguage> {AnalysisLanguage.Javascript});
 
@@ -73,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         private void SetupDetectedLanguages(Mock<ITextBuffer> buffer, IEnumerable<AnalysisLanguage> detectedLanguages)
         {
             languageRecognizerMock
-                .Setup(x => x.Detect("test.cpp", buffer.Object.ContentType))
+                .Setup(x => x.Detect(FilePath, buffer.Object.ContentType))
                 .Returns(detectedLanguages);
         }
     }

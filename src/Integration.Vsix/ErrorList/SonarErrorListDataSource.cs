@@ -26,6 +26,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
@@ -35,21 +36,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     [Export(typeof(ISonarErrorListDataSource))]
     [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class SonarErrorListDataSource :
+    internal sealed class SonarErrorListDataSource :
         ITableDataSource,           // Allows us to provide entries to the Error List
         ISonarErrorListDataSource,  // Used by analyzers to push new analysis results to the data source
-        IIssueLocationStore         // Used by the taggers to get/update locations for specific files
+        IIssueLocationStore,        // Used by the taggers to get/update locations for specific files
+        IDisposable
     {
+        private readonly IFileRenamesEventSource fileRenamesEventSource;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<SnapshotFactory> factories = new HashSet<SnapshotFactory>();
 
         [ImportingConstructor]
-        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider)
+        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, IFileRenamesEventSource fileRenamesEventSource)
         {
             if (tableManagerProvider == null)
             {
                 throw new ArgumentNullException(nameof(tableManagerProvider));
             }
+
+            this.fileRenamesEventSource = fileRenamesEventSource ?? throw new ArgumentNullException(nameof(fileRenamesEventSource));
+            fileRenamesEventSource.FilesRenamed += OnFilesRenamed;
 
             var errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
             errorTableManager.AddSource(this, StandardTableColumnDefinitions.DetailsExpander,
@@ -117,7 +123,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void InternalRefreshErrorList(SnapshotFactory factory)
+        private void InternalRefreshErrorList(ITableEntriesSnapshotFactory factory)
         {
             // Mark all the sinks as dirty (so, as a side-effect, they will start an update pass that will get the new snapshot
             // from the snapshot factory).
@@ -129,10 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private void NotifyLocationServiceListeners(SnapshotFactory factory)
         {
-            if (IssuesChanged != null)
-            {
-                IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(factory.CurrentSnapshot.FilesInSnapshot));
-            }
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(factory.CurrentSnapshot.FilesInSnapshot));
         }
 
         public void AddFactory(SnapshotFactory factory)
@@ -222,6 +225,62 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 // time a character is typed in the editor.
                 System.Diagnostics.Debug.WriteLine($"Error in sink {sink.GetType().FullName}.{operationName}: {ex.Message}");
             }
+        }
+
+        private void OnFilesRenamed(object sender, FilesRenamedEventArgs e)
+        {
+            lock (sinks)
+            {
+                var currentFactories = factories.ToArray();
+
+                foreach (var oldFilePath in e.OldNewFilePaths.Keys)
+                {
+                    var newFilePath = e.OldNewFilePaths[oldFilePath];
+
+                    foreach (var factory in currentFactories)
+                    {
+                        var factoryChanged = HandleFileRenames(factory, oldFilePath, newFilePath);
+
+                        if (factoryChanged)
+                        {
+                            InternalRefreshErrorList(factory);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool HandleFileRenames(SnapshotFactory factory, string oldFilePath, string newFilePath)
+        {
+            var locationsInOldFile = factory.CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
+
+            foreach (var location in locationsInOldFile)
+            {
+                location.CurrentFilePath = newFilePath;
+            }
+
+            var factoryChanged = true;
+            var renamedAnalyzedFile = PathHelper.IsMatchingPath(oldFilePath, factory.CurrentSnapshot.AnalyzedFilePath);
+
+            if (renamedAnalyzedFile)
+            {
+                factory.UpdateSnapshot(factory.CurrentSnapshot.CreateUpdatedSnapshot(newFilePath));
+            }
+            else if (locationsInOldFile.Any())
+            {
+                factory.CurrentSnapshot.IncrementVersion();
+            }
+            else
+            {
+                factoryChanged = false;
+            }
+
+            return factoryChanged;
+        }
+
+        public void Dispose()
+        {
+            fileRenamesEventSource.FilesRenamed -= OnFilesRenamed;
         }
     }
 }
