@@ -42,6 +42,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// </summary>
         Guid AnalysisRunId { get; }
 
+        string AnalyzedFilePath { get; }
+
         /// <summary>
         /// The list of issues returned by the analyzer run
         /// </summary>
@@ -63,6 +65,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// increment its version so the Error List recognises it as having changed
         /// </summary>
         void IncrementVersion();
+
+        /// <summary>
+        /// Create and return an updated version of an existing snapshot, where the
+        /// issues are the same but the source file has been renamed
+        /// </summary>
+        IIssuesSnapshot CreateUpdatedSnapshot(string newFilePath);
     }
 
     /// <summary>
@@ -76,7 +84,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal sealed class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
         private readonly string projectName;
-        private readonly string filePath;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
@@ -99,27 +106,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues) =>
             new IssuesSnapshot(Guid.NewGuid(), projectName, filePath, issues);
 
-        /// <summary>
-        /// Create and return an updated version of an existing snapshot, where the
-        /// issues are the same but the source file has been renamed
-        /// </summary>
-        public IssuesSnapshot CreateUpdatedSnapshot(string newFilePath) =>
+        public IIssuesSnapshot CreateUpdatedSnapshot(string newFilePath) =>
             new IssuesSnapshot(AnalysisRunId, projectName, newFilePath, issues);
-
-        /// <summary>
-        /// Create and return an updated version of an existing snapshot, where the
-        /// set of issues are the same but their locations have changed (by the user editing the file)
-        /// </summary>
-        /// <remarks>The number and ordering of issues must be the same</remarks>
-        public IssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IAnalysisIssueVisualization> updatedIssues)
-        {
-            if (updatedIssues.Count() != Issues.Count())
-            {
-                throw new ArgumentException("Number of issues should not change when updating a snapshot", nameof(updatedIssues));
-            }
-
-            return new IssuesSnapshot(AnalysisRunId, projectName, filePath, updatedIssues);
-        }
 
         private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
             : this(snapshotId, projectName, filePath, issues,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
@@ -129,8 +117,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.AnalysisRunId = snapshotId;
+            this.AnalyzedFilePath = filePath;
             this.projectName = projectName;
-            this.filePath = filePath;
             this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
@@ -166,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             switch (keyName)
             {
                 case StandardTableKeyNames.DocumentName:
-                    content = filePath;
+                    content = AnalyzedFilePath;
                     return true;
 
                 case StandardTableKeyNames.Line:
@@ -278,13 +266,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public Guid AnalysisRunId { get; }
 
+        public string AnalyzedFilePath { get; }
+
         public IEnumerable<IAnalysisIssueVisualization> Issues => readonlyIssues;
 
-        public IEnumerable<string> FilesInSnapshot { get; }
+        public IEnumerable<string> FilesInSnapshot { get; private set; }
 
         public void IncrementVersion()
         {
             versionNumber = GetNextVersionNumber();
+
+            FilesInSnapshot = CalculateFilesInSnapshot(AnalyzedFilePath, issues);
         }
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
@@ -295,7 +287,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var locVizs = GetAllLocationVisualizations(Issues)
-                .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.Location.FilePath));
+                .Where(locViz => PathHelper.IsMatchingPath(filePath, locViz.CurrentFilePath));
 
             return new List<IAnalysisIssueLocationVisualization>(locVizs);
         }
@@ -303,7 +295,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static IEnumerable<string> CalculateFilesInSnapshot(string analyzedFilePath, IEnumerable<IAnalysisIssueVisualization> issues)
         {
             var allLocationFilePaths = GetAllLocationVisualizations(issues)
-                .Select(locViz => locViz.Location.FilePath);
+                .Select(locViz => locViz.CurrentFilePath);
 
             var files = new HashSet<string>(allLocationFilePaths, StringComparer.OrdinalIgnoreCase);
 
