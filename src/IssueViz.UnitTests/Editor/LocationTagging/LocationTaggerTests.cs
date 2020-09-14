@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -52,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var bufferMock = CreateBufferMock(ValidBufferDocName);
             bufferMock.SetupAdd(x => x.ChangedLowPriority += (sender, args) => { });
 
-            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+            new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
 
             storeMock.VerifyAdd(x => x.IssuesChanged += It.IsAny<EventHandler<IssuesChangedEventArgs>>(), Times.Once);
             bufferMock.VerifyAdd(x => x.ChangedLowPriority += It.IsAny<EventHandler<TextContentChangedEventArgs>>(), Times.Once);
@@ -131,11 +132,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void OnIssuesChanged_BufferFileIsChanged_TagsChangedIsRaised()
+        public void OnIssuesChanged_BufferFileIsChanged_TagsChangedIsRaisedWithAffectedSpan()
         {
+            var snapshot = CreateSnapshot(length: 100);
+            var oldIssue1 = CreateLocViz(new SnapshotSpan(snapshot, 3, 1));
+            var oldIssue2 = CreateLocViz(new SnapshotSpan(snapshot, 20, 2));
+            var oldIssues = new[] {oldIssue1, oldIssue2};
+
             var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(oldIssues);
+
             var testSubject = new LocationTagger(ValidBuffer, storeMock.Object, ValidSpanCalculator, ValidLogger);
-            var initialTags = testSubject.TagSpans;
+
+            var newIssue1 = CreateLocViz(new SnapshotSpan(snapshot, 15, 10));
+            var newIssue2 = CreateLocViz(new SnapshotSpan(snapshot, 25, 5));
+            var newIssues = new[] { newIssue1, newIssue2 };
+
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(newIssues);
 
             SnapshotSpanEventArgs actualTagsChangedArgs = null;
             testSubject.TagsChanged += (senders, args) => actualTagsChangedArgs = args;
@@ -143,11 +156,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             RaiseIssuesChangedEvent(storeMock, ValidBufferDocName);
 
             actualTagsChangedArgs.Should().NotBeNull();
-            // Changed span should be the whole snapshot
-            actualTagsChangedArgs.Span.Start.Position.Should().Be(0);
-            actualTagsChangedArgs.Span.End.Position.Should().Be(ValidBuffer.CurrentSnapshot.Length);
-
-            testSubject.TagSpans.Should().NotBeSameAs(initialTags);
+            actualTagsChangedArgs.Span.Start.Position.Should().Be(3); // oldIssue1.Start
+            actualTagsChangedArgs.Span.End.Position.Should().Be(30); // newIssue2.Start + newIssue2.Length
         }
 
         [TestMethod]
@@ -295,33 +305,69 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void BufferChanged_TagsAreUpdatedAndStoreRefreshed()
+        public void BufferChanged_BufferChangedAboveTagSpans_AffectedSpanIsFromChangeUntilEndOfTagSpans()
         {
-            const int snapshotLength = 40;
-            var bufferMock = CreateBufferMock(ValidBufferDocName);
+            const int bufferLength = 100;
 
-            var snapshot = CreateSnapshot(length: snapshotLength, bufferMock.Object);
-            var locSpan1 = new Span(1, 5);
-            var locSpan2 = new Span(2, 5);
-            var storeMock = CreateStoreWithLocationsWithSpans(snapshot, locSpan1, locSpan2);
+            var tagSpans = new []
+            {
+                new Span(15, 10),
+                new Span(30, 5)
+            };
 
-            var testSubject = new LocationTagger(bufferMock.Object, storeMock, ValidSpanCalculator, ValidLogger);
-            var initialTags = testSubject.TagSpans;
+            var changeSpans = new []
+            {
+                new Span(3, 5),
+                new Span(9, 1)
+            };
 
-            SnapshotSpanEventArgs actualTagsChangedArgs = null;
-            testSubject.TagsChanged += (senders, args) => actualTagsChangedArgs = args;
+            var expectedAffectedSpan = Span.FromBounds(3, 35);
 
-            RaiseBufferChangedEvent(bufferMock, snapshot, snapshot);
+            VerifyTagsRaisedWithCorrectAffectedSpan(bufferLength, tagSpans, changeSpans, expectedAffectedSpan);
+        }
 
-            // TagsChanged event should have been raised
-            actualTagsChangedArgs.Should().NotBeNull();
-            actualTagsChangedArgs.Span.Start.Position.Should().Be(0);
-            actualTagsChangedArgs.Span.End.Position.Should().Be(snapshotLength);
+        [TestMethod]
+        public void BufferChanged_BufferChangedBetweenTagSpans_AffectedSpanIsFromChangeUntilEndOfTagSpans()
+        {
+            const int bufferLength = 100;
 
-            // Location store should have been notified
-            CheckStoreRefreshWasCalled(storeMock, ValidBufferDocName);
+            var tagSpans = new []
+            {
+                new Span(15, 10),
+                new Span(30, 5)
+            };
 
-            testSubject.TagSpans.Should().NotBeSameAs(initialTags);
+            var changeSpans = new []
+            {
+                new Span(20, 5),
+                new Span(27, 1)
+            };
+
+            var expectedAffectedSpan = Span.FromBounds(20, 35);
+
+            VerifyTagsRaisedWithCorrectAffectedSpan(bufferLength, tagSpans, changeSpans, expectedAffectedSpan);
+        }
+
+        [TestMethod]
+        public void BufferChanged_BufferChangedBelowTagSpans_AffectedSpanIsFromChangeUntilEndOfBuffer()
+        {
+            const int bufferLength = 100;
+
+            var tagSpans = new []
+            {
+                new Span(15, 10),
+                new Span(30, 5)
+            };
+
+            var changeSpans = new []
+            {
+                new Span(50, 5),
+                new Span(60, 1)
+            };
+
+            var expectedAffectedSpan = Span.FromBounds(50, bufferLength);
+
+            VerifyTagsRaisedWithCorrectAffectedSpan(bufferLength, tagSpans, changeSpans, expectedAffectedSpan);
         }
 
         [TestMethod]
@@ -331,7 +377,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var snapshot = bufferMock.Object.CurrentSnapshot;
             var storeMock = new Mock<IIssueLocationStore>();
 
-            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+            new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
 
             storeMock.Invocations.Clear();
             storeMock.Setup(x => x.Refresh(It.IsAny<IEnumerable<string>>())).Throws(new InvalidOperationException("this is a test"));
@@ -348,7 +394,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             var snapshot = bufferMock.Object.CurrentSnapshot;
             var storeMock = new Mock<IIssueLocationStore>();
 
-            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
+            new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
 
             storeMock.Setup(x => x.Refresh(It.IsAny<IEnumerable<string>>())).Throws(new StackOverflowException("this is a test"));
 
@@ -437,18 +483,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             return storeMock.Object;
         }
 
-        private static ITextVersion CreateTextVersion(ITextBuffer buffer, int versionNumber, ITextVersion nextVersion = null)
+        private static ITextVersion CreateTextVersion(ITextBuffer buffer, int versionNumber, ITextVersion nextVersion = null, ITextChange[] changeCollection = null)
         {
-            // Create an empty changes collection
-            var changesMock = new Mock<INormalizedTextChangeCollection>();
-            changesMock.Setup(x => x.Count).Returns(0);
-
             var versionMock = new Mock<ITextVersion>();
             versionMock.Setup(x => x.VersionNumber).Returns(versionNumber);
             versionMock.Setup(x => x.Length).Returns(buffer.CurrentSnapshot.Length);
             versionMock.Setup(x => x.TextBuffer).Returns(buffer);
-            versionMock.Setup(x => x.Changes).Returns(changesMock.Object);
             versionMock.Setup(x => x.Next).Returns(nextVersion);
+
+            if (changeCollection != null)
+            {
+                var normalizedTextChangeCollection = new TestableNormalizedTextChangeCollection(changeCollection);
+                versionMock.Setup(x => x.Changes).Returns(normalizedTextChangeCollection);
+            }
+            else
+            {
+                // Create an empty changes collection
+                var changesMock = new Mock<INormalizedTextChangeCollection>();
+                changesMock.Setup(x => x.Count).Returns(0);
+                versionMock.Setup(x => x.Changes).Returns(changesMock.Object);
+            }
 
             return versionMock.Object;
         }
@@ -469,6 +523,72 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         {
             var storeMock = ((IMocked<IIssueLocationStore>)store).Mock;
             storeMock.Verify(x => x.Refresh(expectedFilePaths), Times.Once);
+        }
+
+        private void VerifyTagsRaisedWithCorrectAffectedSpan(int bufferLength, Span[] tagSpans, Span[] changeSpans, Span expectedAffectedSpan)
+        {
+            var bufferMock = CreateBufferMock(ValidBufferDocName);
+
+            var textChanges = changeSpans.Select(s =>
+            {
+                var textChange = new Mock<ITextChange>();
+                textChange.Setup(x => x.NewSpan).Returns(s);
+                return textChange.Object;
+            }).ToArray();
+
+            var versionMock2 = CreateTextVersion(bufferMock.Object, 2);
+            var versionMock1 = CreateTextVersion(bufferMock.Object, 1, nextVersion: versionMock2, changeCollection: textChanges);
+
+            var snapshotMock1 = CreateSnapshot(bufferLength, bufferMock.Object, versionMock1);
+            var snapshotMock2 = CreateSnapshot(bufferLength, bufferMock.Object, versionMock2);
+
+            var storeMock = CreateStoreWithLocationsWithSpans(snapshotMock1, spans: tagSpans);
+
+            var testSubject = new LocationTagger(bufferMock.Object, storeMock, ValidSpanCalculator, ValidLogger);
+
+            SnapshotSpanEventArgs actualTagsChangedArgs = null;
+            testSubject.TagsChanged += (senders, args) => actualTagsChangedArgs = args;
+
+            RaiseBufferChangedEvent(bufferMock, snapshotMock1, snapshotMock2);
+
+            // TagsChanged event should have been raised
+            actualTagsChangedArgs.Should().NotBeNull();
+            actualTagsChangedArgs.Span.Start.Position.Should().Be(expectedAffectedSpan.Start);
+            actualTagsChangedArgs.Span.End.Position.Should().Be(expectedAffectedSpan.End);
+
+            // Location store should have been notified
+            CheckStoreRefreshWasCalled(storeMock, ValidBufferDocName);
+        }
+
+        private class TestableNormalizedTextChangeCollection : INormalizedTextChangeCollection
+        {
+            private readonly IList<ITextChange> changeCollection;
+
+            public TestableNormalizedTextChangeCollection(IList<ITextChange> changeCollection)
+            {
+                this.changeCollection = changeCollection;
+            }
+
+            public IEnumerator<ITextChange> GetEnumerator() => changeCollection.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable) changeCollection).GetEnumerator();
+            public void Add(ITextChange item) => changeCollection.Add(item);
+            public void Clear() => changeCollection.Clear();
+            public bool Contains(ITextChange item) => changeCollection.Contains(item);
+            public void CopyTo(ITextChange[] array, int arrayIndex) => changeCollection.CopyTo(array, arrayIndex);
+            public bool Remove(ITextChange item) => changeCollection.Remove(item);
+            public int Count => changeCollection.Count;
+            public bool IsReadOnly => changeCollection.IsReadOnly;
+            public int IndexOf(ITextChange item) => changeCollection.IndexOf(item);
+            public void Insert(int index, ITextChange item) => changeCollection.Insert(index, item);
+            public void RemoveAt(int index) => changeCollection.RemoveAt(index);
+
+            public ITextChange this[int index]
+            {
+                get => changeCollection[index];
+                set => changeCollection[index] = value;
+            }
+
+            public bool IncludesLineChanges { get; }
         }
     }
 }
