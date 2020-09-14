@@ -79,42 +79,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void Construction_UpdateIssues_PreservesIdAndUpdatesVersion()
-        {
-            // Both snapshots must have same number of issues for this test case
-            var originalIssues = new[] { CreateIssue("hash1") };
-            var newIssues = new[] { CreateIssue("hash2") };
-
-            // Sanity check
-            originalIssues.Should().NotBeEquivalentTo(newIssues);
-
-            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, originalIssues);
-            var revised = original.CreateUpdatedSnapshot(newIssues);
-
-            revised.AnalysisRunId.Should().Be(original.AnalysisRunId);
-            revised.VersionNumber.Should().BeGreaterThan(original.VersionNumber);
-            revised.Issues.Should().BeEquivalentTo(newIssues);
-
-            // Unchanged
-            GetProjectName(revised).Should().Be(GetProjectName(original));
-            GetFilePath(revised).Should().Be(GetFilePath(original));
-        }
-
-        [TestMethod]
-        public void Construction_ReviseIssues_NumberOfIssuesChanged_Throws()
-        {
-            var originalIssues = new[] { CreateIssue(), CreateIssue() };
-            var newIssues = new[] { CreateIssue() };
-
-            var original = IssuesSnapshot.CreateNew(ValidProjectName, ValidFilePath, originalIssues);
-
-            Action act = () => original.CreateUpdatedSnapshot(newIssues);
-
-            act.Should().ThrowExactly<ArgumentException>()
-                .And.ParamName.Should().Be("updatedIssues");
-        }
-
-        [TestMethod]
         public void Construction_CreateNew_NoLocations_FilesInSnapshotIsSetCorrectly()
         {
             var testSubject = IssuesSnapshot.CreateNew(ValidProjectName, "analyzedFilePath.txt", Array.Empty<IAnalysisIssueVisualization>());
