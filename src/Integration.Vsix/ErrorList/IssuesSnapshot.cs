@@ -71,13 +71,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// issues are the same but the source file has been renamed
         /// </summary>
         IIssuesSnapshot CreateUpdatedSnapshot(string newFilePath);
-
-        /// <summary>
-        /// Create and return an updated version of an existing snapshot, where the
-        /// set of issues are the same but their locations have changed (by the user editing the file)
-        /// </summary>
-        /// <remarks>The number and ordering of issues must be the same</remarks>
-        IIssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IAnalysisIssueVisualization> updatedIssues);
     }
 
     /// <summary>
@@ -115,16 +108,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IIssuesSnapshot CreateUpdatedSnapshot(string newFilePath) =>
             new IssuesSnapshot(AnalysisRunId, projectName, newFilePath, issues);
-
-        public IIssuesSnapshot CreateUpdatedSnapshot(IEnumerable<IAnalysisIssueVisualization> updatedIssues)
-        {
-            if (updatedIssues.Count() != Issues.Count())
-            {
-                throw new ArgumentException("Number of issues should not change when updating a snapshot", nameof(updatedIssues));
-            }
-
-            return new IssuesSnapshot(AnalysisRunId, projectName, AnalyzedFilePath, updatedIssues);
-        }
 
         private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
             : this(snapshotId, projectName, filePath, issues,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
