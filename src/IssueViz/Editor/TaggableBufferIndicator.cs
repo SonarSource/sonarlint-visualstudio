@@ -44,6 +44,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         public bool IsTaggable(ITextBuffer buffer)
         {
             var filePath = buffer.GetFilePath();
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return false;
+            }
+
             var analysisLanguages = languageRecognizer.Detect(filePath, buffer.ContentType);
 
             return analysisLanguages.Any();
