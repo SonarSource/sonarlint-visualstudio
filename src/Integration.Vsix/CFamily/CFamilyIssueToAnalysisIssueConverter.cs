@@ -73,7 +73,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var locations = cFamilyIssue.Parts
                 .Select(x=> ToAnalysisIssueLocation(x, fileContents))
-                .Reverse()
                 .ToArray();
 
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
