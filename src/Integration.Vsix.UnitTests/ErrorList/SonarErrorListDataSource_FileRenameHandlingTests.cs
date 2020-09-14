@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList

@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     [Export(typeof(ISonarErrorListDataSource))]
     [Export(typeof(IIssueLocationStore))]

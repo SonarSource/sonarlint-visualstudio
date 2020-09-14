@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     /// <summary>
     /// Abstraction over the Error List, consumed by the rest of SLVS

@@ -22,7 +22,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     internal interface IIssuesSnapshotFactory : ITableEntriesSnapshotFactory
     {
