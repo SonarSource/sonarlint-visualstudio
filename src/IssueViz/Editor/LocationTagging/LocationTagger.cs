@@ -29,8 +29,6 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 {
-    // TODO: track document renames: https://github.com/SonarSource/sonarlint-visualstudio/issues/1662
-
     // Buffer tagger for Sonar issue locations
     // * adds location tags for primary and secondary locations for a file
     // * tracks buffer edits, re-calculate spans, and notifies the issues location store about the changes
@@ -50,16 +48,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             this.spanCalculator = spanCalculator;
             this.logger = logger;
 
-            FilePath = buffer.GetFilePath();
             UpdateTags();
 
             locationService.IssuesChanged += OnIssuesChanged;
             buffer.ChangedLowPriority += SafeOnBufferChange;
         }
 
+        /// <summary>
+        /// We're not tracking file renames so we have to fetch the current
+        /// file name each time we need it.
+        /// </summary>
+        internal /* for testing */ string GetCurrentFilePath() => buffer.GetFilePath();
+
         private void OnIssuesChanged(object sender, IssuesChangedEventArgs e)
         {
-            if (!e.AnalyzedFiles.Contains(FilePath, StringComparer.OrdinalIgnoreCase))
+            if (!e.AnalyzedFiles.Contains(GetCurrentFilePath(), StringComparer.OrdinalIgnoreCase))
             {
                 return; // no changes in this file
             }
@@ -72,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             var textSnapshot = buffer.CurrentSnapshot;
 
             // Get the new locations and calculate the spans if necessary
-            var locations = locationService.GetLocations(FilePath);
+            var locations = locationService.GetLocations(GetCurrentFilePath());
             EnsureSpansExist(locations, textSnapshot);
 
             TagSpans = locations.Select(CreateTagSpan).ToList();
@@ -142,8 +145,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
         #region Buffer change tracking
 
-        internal /* for testing */ string FilePath { get; }
-
         private void SafeOnBufferChange(object sender, TextContentChangedEventArgs e)
         {
             // Handles callback from VS. Suppress non-critical errors to prevent them
@@ -157,7 +158,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 var newTextSnapshot = e.After;
 
                 TranslateTagSpans(newTextSnapshot);
-                locationService.Refresh(new string[] { FilePath });
+                locationService.Refresh(new[] { GetCurrentFilePath() });
 
                 NotifyTagsChanged(newTextSnapshot);
             }

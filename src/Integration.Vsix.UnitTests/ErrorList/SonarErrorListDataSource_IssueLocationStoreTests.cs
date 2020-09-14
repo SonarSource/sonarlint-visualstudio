@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -190,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var providerMock = new Mock<ITableManagerProvider>();
             providerMock.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(managerMock.Object);
 
-            return new SonarErrorListDataSource(providerMock.Object);
+            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>());
         }
 
         private static void CheckSnapshotGetLocationsCalled(SnapshotFactory factory)
