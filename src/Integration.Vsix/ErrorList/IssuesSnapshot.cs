@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public override bool TryGetValue(int index, string keyName, out object content)
         {
-            if (index < 0 || this.issues.Count <= index)
+            if (index < 0 || index >= issues.Count || !issues[index].Span.HasValue || issues[index].Span.Value.IsEmpty)
             {
                 content = null;
                 return false;

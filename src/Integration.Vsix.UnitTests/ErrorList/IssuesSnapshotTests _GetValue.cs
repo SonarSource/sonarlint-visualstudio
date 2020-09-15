@@ -67,6 +67,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        [DataRow(-1)]
+        [DataRow(999)]
+        public void GetValue_IndexOutOfRange_Null(int index)
+        {
+            AssertGetValueReturnsNull(index);
+        }
+
+        [TestMethod]
+        public void GetValue_IssueHasNoSpan_Null()
+        {
+            issueViz.Span = null;
+
+            AssertGetValueReturnsNull();
+        }
+
+        [TestMethod]
+        public void GetValue_IssueHasEmptySpan_Null()
+        {
+            issueViz.InvalidateSpan();
+
+            AssertGetValueReturnsNull();
+        }
+
+        [TestMethod]
         public void GetValue_Line()
         {
             GetValue(StandardTableKeyNames.Line).Should().Be(12);
@@ -163,6 +187,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             object content;
             snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
             return content;
+        }
+
+        private void AssertGetValueReturnsNull(int index = 0)
+        {
+            object content;
+            snapshot.TryGetValue(index, StandardTableKeyNames.Line, out content).Should().BeFalse();
+            content.Should().BeNull();
         }
 
         private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
