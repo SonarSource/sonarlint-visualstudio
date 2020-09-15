@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             // Tip when debugging/developing: a buffer tagger won't be created until there is something that can consume the tags. In our case,
             // it means until one of our view tagger providers is created, because they create a tag aggregator that consumes the those
             // buffer tags.
-            var tagger = buffer.Properties.GetOrCreateSingletonProperty(typeof(SelectedIssueLocationTagger), () => Create(buffer));
+            var tagger = Create(buffer);
             return tagger as ITagger<T>;
         }
 
