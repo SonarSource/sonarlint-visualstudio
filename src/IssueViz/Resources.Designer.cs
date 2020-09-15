@@ -97,6 +97,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error querying status of Visualization Tool Window command: {0}.
+        /// </summary>
+        internal static string ERR_QueryStatusVisualizationToolWindowCommand {
+            get {
+                return ResourceManager.GetString("ERR_QueryStatusVisualizationToolWindowCommand", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error displaying Visualization Tool Window: {0}.
         /// </summary>
         internal static string ERR_VisualizationToolWindow_Exception {
