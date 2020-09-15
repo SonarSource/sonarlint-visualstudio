@@ -20,12 +20,13 @@
 
 using System;
 using System.ComponentModel.Design;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using ErrorHandler = SonarLint.VisualStudio.Core.ErrorHandler;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Commands
@@ -33,22 +34,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
     internal sealed class IssueVisualizationToolWindowCommand
     {
         public static readonly Guid CommandSet = Constants.CommandSetGuid;
-        public const int CommandId = 0x0100;
+        public const int ViewToolWindowCommandId = 0x0100;
+        public const int ErrorListCommandId = 0x0200;
 
         public static IssueVisualizationToolWindowCommand Instance { get; private set; }
 
         private readonly AsyncPackage package;
+        private readonly IVsMonitorSelection monitorSelection;
         private readonly ILogger logger;
+        private readonly uint uiContextCookie;
 
-        internal IssueVisualizationToolWindowCommand(AsyncPackage package, IMenuCommandService commandService, ILogger logger)
+        internal readonly OleMenuCommand ErrorListMenuItem;
+
+        internal IssueVisualizationToolWindowCommand(AsyncPackage package, IMenuCommandService commandService, IVsMonitorSelection monitorSelection, ILogger logger)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
+            this.monitorSelection = monitorSelection ?? throw new ArgumentNullException(nameof(monitorSelection));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
-            var menuCommandID = new CommandID(CommandSet, CommandId);
-            var menuItem = new MenuCommand(Execute, menuCommandID);
+            if (commandService == null)
+            {
+                throw new ArgumentNullException(nameof(commandService));
+            }
+
+            var menuCommandId = new CommandID(CommandSet, ViewToolWindowCommandId);
+            var menuItem = new MenuCommand(Execute, menuCommandId);
             commandService.AddCommand(menuItem);
+
+            menuCommandId = new CommandID(CommandSet, ErrorListCommandId);
+            // We're showing the command in two places in the UI, but we only do a status check when it's called from the Error List context menu.
+            ErrorListMenuItem = new OleMenuCommand(Execute, null, ErrorListQueryStatus, menuCommandId);
+            commandService.AddCommand(ErrorListMenuItem);
+
+            var uiContextGuid = new Guid(Constants.UIContextGuid);
+            monitorSelection.GetCmdUIContextCookie(ref uiContextGuid, out uiContextCookie);
         }
 
         public static async Task InitializeAsync(AsyncPackage package)
@@ -57,9 +76,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            var monitorSelection = await package.GetServiceAsync(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
             var logger = componentModel.GetService<ILogger>(); 
 
-            Instance = new IssueVisualizationToolWindowCommand(package, commandService, logger);
+            Instance = new IssueVisualizationToolWindowCommand(package, commandService, monitorSelection, logger);
+        }
+
+        internal void ErrorListQueryStatus(object sender, EventArgs e)
+        {
+            try
+            {
+                if (monitorSelection.IsCmdUIContextActive(uiContextCookie, out var isActive) == VSConstants.S_OK)
+                {
+                    ErrorListMenuItem.Visible = isActive == 1;
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(string.Format(Resources.ERR_QueryStatusVisualizationToolWindowCommand, ex));
+            }
         }
 
         internal void Execute(object sender, EventArgs e)
