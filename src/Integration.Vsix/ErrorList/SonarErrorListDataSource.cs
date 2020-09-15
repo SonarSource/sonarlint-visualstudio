@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     [Export(typeof(ISonarErrorListDataSource))]
     [Export(typeof(IIssueLocationStore))]
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
-        private readonly ISet<SnapshotFactory> factories = new HashSet<SnapshotFactory>();
+        private readonly ISet<IIssuesSnapshotFactory> factories = new HashSet<IIssuesSnapshotFactory>();
 
         [ImportingConstructor]
         internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, IFileRenamesEventSource fileRenamesEventSource)
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region ISonarErrorListDataSource implementation
 
-        public void RefreshErrorList(SnapshotFactory factory)
+        public void RefreshErrorList(IIssuesSnapshotFactory factory)
         {
             if (factory == null)
             {
@@ -133,12 +133,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void NotifyLocationServiceListeners(SnapshotFactory factory)
+        private void NotifyLocationServiceListeners(IIssuesSnapshotFactory factory)
         {
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(factory.CurrentSnapshot.FilesInSnapshot));
         }
 
-        public void AddFactory(SnapshotFactory factory)
+        public void AddFactory(IIssuesSnapshotFactory factory)
         {
             lock (sinks)
             {
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        public void RemoveFactory(SnapshotFactory factory)
+        public void RemoveFactory(IIssuesSnapshotFactory factory)
         {
             lock (sinks)
             {
@@ -232,50 +232,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             lock (sinks)
             {
                 var currentFactories = factories.ToArray();
-
-                foreach (var oldFilePath in e.OldNewFilePaths.Keys)
+                
+                foreach (var factory in currentFactories)
                 {
-                    var newFilePath = e.OldNewFilePaths[oldFilePath];
+                    var factoryChanged = factory.HandleFileRenames(e.OldNewFilePaths);
 
-                    foreach (var factory in currentFactories)
+                    if (factoryChanged)
                     {
-                        var factoryChanged = HandleFileRenames(factory, oldFilePath, newFilePath);
-
-                        if (factoryChanged)
-                        {
-                            InternalRefreshErrorList(factory);
-                        }
+                        InternalRefreshErrorList(factory);
                     }
                 }
             }
-        }
-
-        private static bool HandleFileRenames(SnapshotFactory factory, string oldFilePath, string newFilePath)
-        {
-            var locationsInOldFile = factory.CurrentSnapshot.GetLocationsVizsForFile(oldFilePath);
-
-            foreach (var location in locationsInOldFile)
-            {
-                location.CurrentFilePath = newFilePath;
-            }
-
-            var factoryChanged = true;
-            var renamedAnalyzedFile = PathHelper.IsMatchingPath(oldFilePath, factory.CurrentSnapshot.AnalyzedFilePath);
-
-            if (renamedAnalyzedFile)
-            {
-                factory.UpdateSnapshot(factory.CurrentSnapshot.CreateUpdatedSnapshot(newFilePath));
-            }
-            else if (locationsInOldFile.Any())
-            {
-                factory.CurrentSnapshot.IncrementVersion();
-            }
-            else
-            {
-                factoryChanged = false;
-            }
-
-            return factoryChanged;
         }
 
         public void Dispose()
