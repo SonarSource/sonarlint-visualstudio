@@ -16,8 +16,6 @@
 
       <Button guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" priority="0x0100" type="Button">
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Icon guid="guidImages" id="bmpSonarQube" />
         <Strings>
           <ButtonText>SonarLint Issue Visualization</ButtonText>
@@ -80,7 +78,6 @@
   </KeyBindings>
 
   <VisibilityConstraints>
-    <VisibilityItem guid="guidIssueVizPackageCmdSet" id="IssueVisualizationToolWindowCommandId" context="guidUIContext"/>
     <VisibilityItem guid="guidIssueVizPackageCmdSet" id="SonarLintMenuGroup" context="guidUIContext"/>
     <VisibilityItem guid="guidIssueVizPackageCmdSet" id="GotoNextLocationCommandId" context="guidUIContext"/>
     <VisibilityItem guid="guidIssueVizPackageCmdSet" id="GotoPreviousLocationCommandId" context="guidUIContext"/>
