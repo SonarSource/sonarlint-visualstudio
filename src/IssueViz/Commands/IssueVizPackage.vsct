@@ -27,7 +27,7 @@
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>SonarLint Issue Visualization</ButtonText>
+          <ButtonText>Show SonarLint Issue Visualization</ButtonText>
         </Strings>
       </Button>
 

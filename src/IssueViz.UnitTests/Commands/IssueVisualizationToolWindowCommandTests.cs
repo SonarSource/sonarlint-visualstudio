@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
             commandService.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
                         c.CommandID.Guid == IssueVisualizationToolWindowCommand.CommandSet &&
-                        c.CommandID.ID == IssueVisualizationToolWindowCommand.CommandId)),
+                        c.CommandID.ID == IssueVisualizationToolWindowCommand.ViewToolWindowCommandId)),
                 Times.Once);
 
             commandService.Verify(x =>
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         }
 
         [TestMethod]
-        public void QueryStatus_FailsToQuery_NoException()
+        public void ErrorListQueryStatus_NonCriticalException_IsSuppressed()
         {
             var result = 1;
             monitorSelection
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.QueryStatus(null, EventArgs.Empty);
+            Action act = () => testSubject.ErrorListQueryStatus(null, EventArgs.Empty);
             act.Should().NotThrow();
 
             VerifyMessageLogged("this is a test");
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void QueryStatus_CommandVisibilityIsSetToContextActivation(bool isContextActive)
+        public void ErrorListQueryStatus_CommandVisibilityIsSetToContextActivation(bool isContextActive)
         {
             var isActive = isContextActive ? 1 : 0;
             monitorSelection.Setup(x => x.IsCmdUIContextActive(uiContextCookie, out isActive)).Returns(VSConstants.S_OK);
@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             testSubject.ErrorListMenuItem.Visible = !isContextActive;
 
-            testSubject.QueryStatus(null, EventArgs.Empty);
+            testSubject.ErrorListQueryStatus(null, EventArgs.Empty);
 
             testSubject.ErrorListMenuItem.Visible.Should().Be(isContextActive);
         }
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         }
 
         [TestMethod]
-        public void Execute_ExceptionInCreatingWindow_NoException()
+        public void Execute_NonCriticalExceptionInCreatingWindow_IsSuppressed()
         {
             SetupWindowCreation(new ToolWindowPane { Frame = Mock.Of<IVsWindowFrame>() }, new NotImplementedException("this is a test"));
 
