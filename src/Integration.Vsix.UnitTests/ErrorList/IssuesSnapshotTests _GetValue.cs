@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
-            snapshot = IssuesSnapshot.CreateNew("MyProject", path, new List<IAnalysisIssueVisualization> { issueViz });
+            snapshot = new IssuesSnapshot("MyProject", path, new List<IAnalysisIssueVisualization> { issueViz });
         }
 
         [TestMethod]

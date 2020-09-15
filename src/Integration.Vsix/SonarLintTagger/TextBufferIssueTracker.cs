@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
@@ -58,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisIssueVisualizationConverter converter;
 
         public string FilePath { get; private set; }
-        internal /* for testing */ SnapshotFactory Factory { get; }
+        internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new SnapshotFactory(IssuesSnapshot.CreateNew(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
+            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
@@ -154,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
             var translatedIssues = TranslateSpans(filteredIssues, textBuffer.CurrentSnapshot);
 
-            var newSnapshot = IssuesSnapshot.CreateNew(GetProjectName(), FilePath, translatedIssues);
+            var newSnapshot = new IssuesSnapshot(GetProjectName(), FilePath, translatedIssues);
             SnapToNewSnapshot(newSnapshot);
         }
 

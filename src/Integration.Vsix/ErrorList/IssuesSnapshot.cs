@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// Create and return an updated version of an existing snapshot, where the
         /// issues are the same but the source file has been renamed
         /// </summary>
-        IIssuesSnapshot CreateUpdatedSnapshot(string newFilePath);
+        IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath);
     }
 
     /// <summary>
@@ -99,18 +99,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static int GetNextVersionNumber() => ++nextVersionNumber;
 
         #region Construction methods
+        
+        public IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath) =>
+            new IssuesSnapshot(AnalysisRunId, projectName, analyzedFilePath, issues);
 
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
         /// </summary>
-        public static IssuesSnapshot CreateNew(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues) =>
-            new IssuesSnapshot(Guid.NewGuid(), projectName, filePath, issues);
-
-        public IIssuesSnapshot CreateUpdatedSnapshot(string newFilePath) =>
-            new IssuesSnapshot(AnalysisRunId, projectName, newFilePath, issues);
+        public IssuesSnapshot(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+            : this(Guid.NewGuid(), projectName, filePath, issues)
+        {
+        }
 
         private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
-            : this(snapshotId, projectName, filePath, issues,  new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
+            : this(snapshotId, projectName, filePath, issues, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
@@ -270,13 +272,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<IAnalysisIssueVisualization> Issues => readonlyIssues;
 
-        public IEnumerable<string> FilesInSnapshot { get; private set; }
+        public IEnumerable<string> FilesInSnapshot { get; }
 
         public void IncrementVersion()
         {
             versionNumber = GetNextVersionNumber();
-
-            FilesInSnapshot = CalculateFilesInSnapshot(AnalyzedFilePath, issues);
         }
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
