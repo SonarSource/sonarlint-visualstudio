@@ -60,47 +60,66 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void BufferChanged_BufferChangedAboveTagSpans_AffectedSpanIsFromChangeUntilEndOfTagSpans()
+        public void BufferChanged_BufferChangedInsideTagSpan_TagSpanInvalidated()
         {
-            const int bufferLength = 100;
-
             var tagSpans = new[]
             {
                 new Span(15, 10),
                 new Span(30, 5)
             };
 
-            var changeSpans = new[]
+            var deletedSpan = new Span(17, 3);
+
+            const string validBufferDocName = "a.cpp";
+            const int bufferLength = 100;
+
+            var buffer = CreateBufferMock(bufferLength, validBufferDocName);
+            var (beforeSnapshot, afterSnapshot) = CreateSnapshotChange(buffer.Object, bufferLength, deletedSpan);
+
+            var locations = tagSpans.Select(span => CreateLocationViz(beforeSnapshot, span)).ToArray();
+            var store = CreateLocationStore(validBufferDocName, locations);
+
+            var testSubject = CreateTestSubject(buffer.Object, store);
+            RaiseBufferChangedEvent(buffer, beforeSnapshot, afterSnapshot);
+
+            testSubject.TagSpans.Count.Should().Be(1);
+            testSubject.TagSpans[0].Tag.Location.Should().Be(locations[1]);
+            locations[0].Span.Value.IsEmpty.Should().BeTrue();
+
+            var postDeletionTranslatedSpan = new Span(tagSpans[1].Start - deletedSpan.Length, tagSpans[1].Length);
+            locations[1].Span.Value.Span.Should().Be(postDeletionTranslatedSpan);
+        }
+
+        [TestMethod]
+        public void BufferChanged_BufferChangedAboveTagSpans_AffectedSpanIsFromChangeUntilEndOfTagSpans()
+        {
+            var tagSpans = new[]
             {
-                new Span(3, 5),
-                new Span(9, 1)
+                new Span(15, 10),
+                new Span(30, 5)
             };
 
-            var expectedAffectedSpan = Span.FromBounds(3, 35);
+            var deletedSpan = new Span(9, 4);
 
-            VerifyTagsRaisedWithCorrectAffectedSpan(bufferLength, tagSpans, changeSpans, expectedAffectedSpan);
+            var expectedAffectedSpan = Span.FromBounds(deletedSpan.Start, tagSpans[1].Start + tagSpans[1].Length - deletedSpan.Length);
+
+            VerifyTagsRaisedWithCorrectAffectedSpan(tagSpans, deletedSpan, expectedAffectedSpan);
         }
 
         [TestMethod]
         public void BufferChanged_BufferChangedBetweenTagSpans_AffectedSpanIsFromChangeUntilEndOfTagSpans()
         {
-            const int bufferLength = 100;
-
             var tagSpans = new[]
             {
                 new Span(15, 10),
                 new Span(30, 5)
             };
 
-            var changeSpans = new[]
-            {
-                new Span(20, 5),
-                new Span(27, 1)
-            };
+            var deletedSpan = new Span(20, 3);
 
-            var expectedAffectedSpan = Span.FromBounds(20, 35);
+            var expectedAffectedSpan = Span.FromBounds(deletedSpan.Start, tagSpans[1].Start + tagSpans[1].Length - deletedSpan.Length);
 
-            VerifyTagsRaisedWithCorrectAffectedSpan(bufferLength, tagSpans, changeSpans, expectedAffectedSpan);
+            VerifyTagsRaisedWithCorrectAffectedSpan(tagSpans, deletedSpan, expectedAffectedSpan);
         }
 
         [TestMethod]
@@ -114,15 +133,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
                 new Span(30, 5)
             };
 
-            var changeSpans = new[]
-            {
-                new Span(50, 5),
-                new Span(60, 1)
-            };
+            var deletedSpan = new Span(50, 5);
 
-            var expectedAffectedSpan = Span.FromBounds(50, bufferLength);
+            var expectedAffectedSpan = Span.FromBounds(deletedSpan.Start, bufferLength);
 
-            VerifyTagsRaisedWithCorrectAffectedSpan(bufferLength, tagSpans, changeSpans, expectedAffectedSpan);
+            VerifyTagsRaisedWithCorrectAffectedSpan(tagSpans, deletedSpan, expectedAffectedSpan, bufferLength);
         }
 
         [TestMethod]
@@ -162,76 +177,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         public void BufferChanged_SnapshotsAreTranslated()
         {
             const int length = 100;
-            var filePath = "test.cpp";
-            var bufferMock = CreateBufferMock(length, filePath);
+            const string filePath = "test.cpp";
 
-            var versionMock2 = CreateTextVersion(bufferMock.Object, 2);
-            var versionMock1 = CreateTextVersion(bufferMock.Object, 1, nextVersion: versionMock2);
+            var buffer = CreateBufferMock(length, filePath);
+            var (beforeSnapshot, afterSnapshot) = CreateSnapshotChange(buffer.Object, length, new SnapshotSpan());
 
-            var snapshotMock1 = CreateSnapshot(bufferMock.Object, length, versionMock1);
-            var snapshotMock2 = CreateSnapshot(bufferMock.Object, length, versionMock2);
-
-            var location = CreateLocationViz(snapshotMock1, new Span(1, 10));
-            var storeMock = CreateLocationStore(filePath, location);
-
-            var testSubject = CreateTestSubject(bufferMock.Object, storeMock);
+            var location = CreateLocationViz(beforeSnapshot, new Span(1, 10));
+            var store = CreateLocationStore(filePath, location);
+            var testSubject = CreateTestSubject(buffer.Object, store);
 
             // Sanity checks
             testSubject.TagSpans.Count.Should().Be(1);
-            testSubject.TagSpans[0].Span.Snapshot.Should().Be(snapshotMock1);
-            testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock1);
+            testSubject.TagSpans[0].Span.Snapshot.Should().Be(beforeSnapshot);
+            testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(beforeSnapshot);
 
-            RaiseBufferChangedEvent(bufferMock, snapshotMock1, snapshotMock2);
+            RaiseBufferChangedEvent(buffer, beforeSnapshot, afterSnapshot);
 
             testSubject.TagSpans.Count.Should().Be(1);
-            testSubject.TagSpans[0].Span.Snapshot.Should().Be(snapshotMock2);
-            testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock2);
-        }
-
-        private IIssueLocationStore CreateLocationStore(string filePath, params IAnalysisIssueLocationVisualization[] locations)
-        {
-            var storeMock = new Mock<IIssueLocationStore>();
-
-            storeMock.Setup(x => x.GetLocations(filePath)).Returns(locations);
-
-            return storeMock.Object;
-        }
-
-        private void VerifyTagsRaisedWithCorrectAffectedSpan(int bufferLength, Span[] tagSpans, Span[] changeSpans, Span expectedAffectedSpan)
-        {
-            const string validBufferDocName = "test.cpp";
-            var bufferMock = CreateBufferMock(filePath: validBufferDocName);
-
-            var textChanges = changeSpans.Select(s =>
-            {
-                var textChange = new Mock<ITextChange>();
-                textChange.Setup(x => x.NewSpan).Returns(s);
-                return textChange.Object;
-            }).ToArray();
-
-            var versionMock2 = CreateTextVersion(bufferMock.Object, 2);
-            var versionMock1 = CreateTextVersion(bufferMock.Object, 1, nextVersion: versionMock2, changeCollection: textChanges);
-
-            var snapshotMock1 = CreateSnapshot(bufferMock.Object, bufferLength, versionMock1);
-            var snapshotMock2 = CreateSnapshot(bufferMock.Object, bufferLength, versionMock2);
-
-            var locations = tagSpans.Select(x => CreateLocationViz(snapshotMock1, x)).ToArray();
-            var storeMock = CreateLocationStore(validBufferDocName, locations);
-
-            var testSubject = CreateTestSubject(bufferMock.Object, storeMock);
-
-            SnapshotSpanEventArgs actualTagsChangedArgs = null;
-            testSubject.TagsChanged += (senders, args) => actualTagsChangedArgs = args;
-
-            RaiseBufferChangedEvent(bufferMock, snapshotMock1, snapshotMock2);
-
-            // TagsChanged event should have been raised
-            actualTagsChangedArgs.Should().NotBeNull();
-            actualTagsChangedArgs.Span.Start.Position.Should().Be(expectedAffectedSpan.Start);
-            actualTagsChangedArgs.Span.End.Position.Should().Be(expectedAffectedSpan.End);
-
-            // Location store should have been notified
-            CheckStoreRefreshWasCalled(storeMock, validBufferDocName);
+            testSubject.TagSpans[0].Span.Snapshot.Should().Be(afterSnapshot);
+            testSubject.TagSpans[0].Tag.Location.Span.Value.Snapshot.Should().Be(afterSnapshot);
         }
 
         private static void CheckStoreRefreshWasCalled(IIssueLocationStore store, params string[] expectedFilePaths)
@@ -243,14 +207,73 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         private static void RaiseBufferChangedEvent(Mock<ITextBuffer> bufferMock, ITextSnapshot before, ITextSnapshot after) =>
             bufferMock.Raise(x => x.ChangedLowPriority += null, new TextContentChangedEventArgs(before, after, EditOptions.DefaultMinimalChange, null));
 
-        private static LocationTagger CreateTestSubject(ITextBuffer buffer = null, IIssueLocationStore store = null, IIssueSpanCalculator spanCalculator = null)
-        {
-            buffer = buffer ?? CreateBufferMock().Object;
-            store = store ?? Mock.Of<IIssueLocationStore>();
-            spanCalculator = spanCalculator ?? Mock.Of<IIssueSpanCalculator>();
-            var logger = Mock.Of<ILogger>();
+        private static LocationTagger CreateTestSubject(ITextBuffer buffer, IIssueLocationStore store) =>
+            new LocationTagger(buffer, store, Mock.Of<IIssueSpanCalculator>(), Mock.Of<ILogger>());
 
-            return new LocationTagger(buffer, store, spanCalculator, logger);
+        private static IIssueLocationStore CreateLocationStore(string filePath, params IAnalysisIssueLocationVisualization[] locations)
+        {
+            var storeMock = new Mock<IIssueLocationStore>();
+
+            storeMock.Setup(x => x.GetLocations(filePath)).Returns(locations);
+
+            return storeMock.Object;
+        }
+
+        private static Tuple<ITextSnapshot, ITextSnapshot> CreateSnapshotChange(ITextBuffer buffer, int bufferLength, Span deletedSpan)
+        {
+            var textChanges = new[] {CreateTextChange(deletedSpan)};
+
+            var versionMock2 = CreateTextVersion(buffer, 2);
+            var versionMock1 = CreateTextVersion(buffer, 1, nextVersion: versionMock2, changeCollection: textChanges);
+
+            var beforeSnapshot = CreateSnapshot(buffer, bufferLength, versionMock1);
+            var afterSnapshot = CreateSnapshot(buffer, bufferLength, versionMock2);
+
+            return new Tuple<ITextSnapshot, ITextSnapshot>(beforeSnapshot, afterSnapshot);
+        }
+
+        private static ITextChange CreateTextChange(Span oldSpan)
+        {
+            var newSpan = new Span(oldSpan.Start, 0); // simulate that the text in span was deleted
+            var textChange = new Mock<ITextChange>();
+
+            textChange.Setup(x => x.OldSpan).Returns(oldSpan);
+            textChange.Setup(x => x.OldPosition).Returns(oldSpan.Start);
+            textChange.Setup(x => x.OldEnd).Returns(oldSpan.End);
+            textChange.Setup(x => x.OldLength).Returns(oldSpan.Length);
+
+            textChange.Setup(x => x.NewSpan).Returns(newSpan);
+            textChange.Setup(x => x.NewPosition).Returns(newSpan.Start);
+            textChange.Setup(x => x.NewEnd).Returns(newSpan.End);
+            textChange.Setup(x => x.NewLength).Returns(newSpan.Length);
+
+            return textChange.Object;
+        }
+
+        private void VerifyTagsRaisedWithCorrectAffectedSpan(Span[] tagSpans, Span deletedSpans, Span expectedAffectedSpan, int bufferLength = 100)
+        {
+            const string validBufferDocName = "a.cpp";
+
+            var buffer = CreateBufferMock(bufferLength, validBufferDocName);
+            var (beforeSnapshot, afterSnapshot) = CreateSnapshotChange(buffer.Object, bufferLength, deletedSpans);
+
+            var locations = tagSpans.Select(span => CreateLocationViz(beforeSnapshot, span));
+            var store = CreateLocationStore(validBufferDocName, locations.ToArray());
+
+            var testSubject = CreateTestSubject(buffer.Object, store);
+
+            SnapshotSpanEventArgs actualTagsChangedArgs = null;
+            testSubject.TagsChanged += (sender, args) => actualTagsChangedArgs = args;
+
+            RaiseBufferChangedEvent(buffer, beforeSnapshot, afterSnapshot);
+
+            // TagsChanged event should have been raised
+            actualTagsChangedArgs.Should().NotBeNull();
+            actualTagsChangedArgs.Span.Start.Position.Should().Be(expectedAffectedSpan.Start);
+            actualTagsChangedArgs.Span.End.Position.Should().Be(expectedAffectedSpan.End);
+
+            // Location store should have been notified
+            CheckStoreRefreshWasCalled(store, validBufferDocName);
         }
     }
 }
