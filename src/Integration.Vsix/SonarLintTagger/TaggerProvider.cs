@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -160,14 +161,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             if (detectedLanguages.Any() && analyzerController.IsAnalysisSupported(detectedLanguages))
             {
-                var issueTracker = buffer.Properties.GetOrCreateSingletonProperty(typeof(IIssueTracker),
-                    () => new TextBufferIssueTracker(dte, this, textDocument, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger));
+                // We only want one TBIT per buffer and we don't want it be disposed until
+                // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
+                var singletonTaggerManager = buffer.Properties.GetOrCreateSingletonProperty(typeof(SingletonDisposableTaggerManager<IErrorTag>),
+                    () => new SingletonDisposableTaggerManager<IErrorTag>(_ => InternalCreateTextBufferIssueTracker(textDocument, detectedLanguages)));
 
-                return issueTracker as ITagger<T>;
+                var tagger = singletonTaggerManager.CreateTagger(buffer);
+                return tagger as ITagger<T>;
             }
 
             return null;
         }
+
+        private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
+            new TextBufferIssueTracker(dte, this, textDocument, analysisLanguages, issuesFilter, sonarErrorDataSource, converter, logger);
 
         #endregion IViewTaggerProvider members
 
