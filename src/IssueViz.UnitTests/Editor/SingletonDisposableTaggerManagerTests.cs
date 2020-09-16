@@ -50,6 +50,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
+        public void SingletonTagger_MultipleRequests_ReturnsSameSingleton()
+        {
+            var factoryMock = CreateSingletonFactoryMock();
+
+            var testSubject = CreateTestSubject(factoryMock.Object);
+
+            // First request
+            testSubject.CreateTagger(ValidBuffer);
+            var originalSingleton = testSubject.Singleton;
+
+            // Second request
+            testSubject.CreateTagger(ValidBuffer);
+            testSubject.Singleton.Should().Be(originalSingleton);
+
+            CheckCreateFactoryCallCount(factoryMock, 1);
+        }
+
+        [TestMethod]
         public void SingletonTagger_DestroyedWhenNoActiveTaggers()
         {
             var testSubject = CreateTestSubject();

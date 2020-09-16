@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void CreateTagger_BufferIsNotNull_ReturnsUniqueTaggerPerRequest()
+        public void CreateTagger_BufferIsNotNull_ReturnsNewTaggerPerRequest()
         {
             var buffer = CreateBuffer();
             var testSubject = CreateTestSubject();
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void CreateTagger_TwoBuffers_ReturnsUniqueTaggerPerRequest()
+        public void CreateTagger_TwoBuffers_ReturnsNewTaggerPerRequest()
         {
             var buffer1 = CreateBuffer();
             var buffer2 = CreateBuffer();

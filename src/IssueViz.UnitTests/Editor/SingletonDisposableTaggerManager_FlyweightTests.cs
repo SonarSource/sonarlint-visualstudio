@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
+using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 using TypedSingleton = SonarLint.VisualStudio.IssueVisualization.Editor.SingletonDisposableTaggerManager<SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SingletonDisposableTaggerManager_FlyweightTests.IDummyTagType>;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
@@ -58,12 +59,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         {
             var singletonMock = CreateSingletonTaggerMock();
             var inputSpans = new NormalizedSnapshotSpanCollection();
+            var expectedTags = new[] { CreateNewTagSpan(), CreateNewTagSpan() };
+            singletonMock.Setup(x => x.GetTags(inputSpans)).Returns(expectedTags);
 
             var testSubject = CreateTestSubject(singletonMock.Object, ValidOnDisposedDelegate);
 
-            testSubject.GetTags(inputSpans);
+            var actualTags = testSubject.GetTags(inputSpans);
 
             singletonMock.Verify(x => x.GetTags(inputSpans), Times.Once);
+            actualTags.Should().BeEquivalentTo(expectedTags);
         }
 
         [TestMethod]
@@ -102,5 +106,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 
         private static Mock<TypedSingleton.OnTaggerDisposed> CreateOnDisposedMock() =>
             new Mock<TypedSingleton.OnTaggerDisposed>();
+
+        private static ITagSpan<IDummyTagType> CreateNewTagSpan()
+        {
+            var snapshot = CreateSnapshot(length: 10);
+            var snapshotSpan = new SnapshotSpan(snapshot, Span.FromBounds(1, 2));
+            return new TagSpan<IDummyTagType>(snapshotSpan, Mock.Of<IDummyTagType>());
+        }
     }
 }
