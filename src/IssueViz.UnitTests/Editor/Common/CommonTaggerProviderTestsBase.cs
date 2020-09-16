@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void CreateTagger_BufferIsNotNull_ReturnsSingletonTagger()
+        public void CreateTagger_BufferIsNotNull_ReturnsNewTaggerPerRequest()
         {
             var buffer = CreateBuffer();
             var testSubject = CreateTestSubject();
@@ -55,15 +55,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             var tagger1 = testSubject.CreateTagger<ITag>(buffer);
             tagger1.Should().NotBeNull();
 
-            // 2. Request second tagger - expecting the same instance
+            // 2. Request second tagger - expecting a different instance
             var tagger2 = testSubject.CreateTagger<ITag>(buffer);
             tagger2.Should().NotBeNull();
 
-            tagger1.Should().BeSameAs(tagger2);
+            tagger1.Should().NotBeSameAs(tagger2);
         }
 
         [TestMethod]
-        public void CreateTagger_TwoBuffers_DifferentTaggerPerBuffer()
+        public void CreateTagger_TwoBuffers_ReturnsNewTaggerPerRequest()
         {
             var buffer1 = CreateBuffer();
             var buffer2 = CreateBuffer();

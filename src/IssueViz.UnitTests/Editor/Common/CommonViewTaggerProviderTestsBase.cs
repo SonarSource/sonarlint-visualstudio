@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
         }
 
         [TestMethod]
-        public void CreateTagger_BufferMatchesTextView_ReturnsSingletonTaggerPerView()
+        public void CreateTagger_BufferMatchesTextView_ReturnsUniqueTaggerPerRequest()
         {
             var testSubject = CreateTestSubject();
 
@@ -96,15 +96,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             var tagger1 = testSubject.CreateTagger<ITag>(view, view.TextBuffer);
             tagger1.Should().NotBeNull();
 
-            // 2. Request second tagger - expecting the same instance
+            // 2. Request second tagger - expecting a different instance
             var tagger2 = testSubject.CreateTagger<ITag>(view, view.TextBuffer);
             tagger2.Should().NotBeNull();
 
-            tagger1.Should().BeSameAs(tagger2);
+            tagger1.Should().NotBeSameAs(tagger2);
         }
 
         [TestMethod]
-        public void CreateTagger_SameBufferDifferentViews_ReturnsTaggerPerView()
+        public void CreateTagger_SameBufferDifferentViews_ReturnsUniqueTaggerPerRequest()
         {
             var view1 = CreateValidTextView(ValidBuffer);
             var view2 = CreateValidTextView(ValidBuffer);

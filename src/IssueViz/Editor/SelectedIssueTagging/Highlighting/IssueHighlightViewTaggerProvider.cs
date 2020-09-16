@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
                 return null;
             }
 
-            var tagger = textView.Properties.GetOrCreateSingletonProperty(typeof(IssueHighlightTagger), () => Create(textView as IWpfTextView));
+            var tagger = Create(textView as IWpfTextView);
             return tagger as ITagger<T>;
         }
 

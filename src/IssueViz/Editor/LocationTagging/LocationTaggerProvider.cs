@@ -61,10 +61,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 return null;
             }
 
-            // Need to make sure we only create one per buffer
-            var tagger = buffer.Properties.GetOrCreateSingletonProperty(typeof(LocationTagger),
-                () => new LocationTagger(buffer, locationStore, spanCalculator, logger));
+            // We only want one location tagger per buffer and we don't want it be disposed until
+            // it is not being used by any tag aggregators, so we're wrapping it in a SingletonDisposableTaggerManager
+            var taggerManager = buffer.Properties.GetOrCreateSingletonProperty(typeof(SingletonDisposableTaggerManager<IIssueLocationTag>),
+                () => new SingletonDisposableTaggerManager<IIssueLocationTag>(InternalCreateTagger));
+
+            var tagger = taggerManager.CreateTagger(buffer);
             return tagger as ITagger<T>;
         }
+
+        private ITagger<IIssueLocationTag> InternalCreateTagger(ITextBuffer buffer)
+            => new LocationTagger(buffer, locationStore, spanCalculator, logger);
     }
 }
