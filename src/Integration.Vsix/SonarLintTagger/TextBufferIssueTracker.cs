@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 

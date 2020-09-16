@@ -104,13 +104,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Sanity checks
             var singletonManager = new SingletonDisposableTaggerManager<IErrorTag>(null);
             mockDocumentTextBuffer.Object.Properties.AddProperty(TaggerProvider.SingletonManagerPropertyCollectionKey, singletonManager);
-            CheckPresenceOfSingletonManagerInPropertyCollection(shouldExist: true);
+            VerifySingletonManagerExists(mockDocumentTextBuffer.Object);
             CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
 
             // Act
             testSubject.Dispose();
 
-            CheckPresenceOfSingletonManagerInPropertyCollection(shouldExist: false);
+            VerifySingletonManagerDoesNotExist(mockDocumentTextBuffer.Object);
 
             CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Once());
 
@@ -119,9 +119,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockedJavascriptDocumentFooJs.VerifyRemove(x => x.FileActionOccurred -= It.IsAny<EventHandler<TextDocumentFileActionEventArgs>>(), Times.Once);
         }
 
-        private void CheckPresenceOfSingletonManagerInPropertyCollection(bool shouldExist) =>
-            mockDocumentTextBuffer.Object.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var _)
-                .Should().Be(shouldExist);
+        private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
+            FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
+
+        private static void VerifySingletonManagerExists(ITextBuffer buffer) =>
+            FindSingletonManagerInPropertyCollection(buffer).Should().NotBeNull();
+
+        private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
+        {
+            buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue);
+            return propertyValue;
+        }
 
         private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, Times times)
         {

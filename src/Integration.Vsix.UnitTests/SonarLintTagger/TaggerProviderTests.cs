@@ -133,17 +133,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var doc1 = CreateMockedDocument("doc1.js");
             var buffer = doc1.TextBuffer;
 
-            CheckPresenceOfSingletonManagerInPropertyCollection(buffer, false);
+            VerifySingletonManagerDoesNotExist(buffer);
 
             // 1. Create first tagger for doc
             var tagger1 = CreateTaggerForDocument(doc1);
-            var firstRequestManger = CheckPresenceOfSingletonManagerInPropertyCollection(buffer, true);
+            var firstRequestManager = VerifySingletonManagerExists(buffer);
 
             // 2. Create second tagger for doc
             var tagger2 = CreateTaggerForDocument(doc1);
-            var secondRequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(buffer, true);
+            var secondRequestManager = VerifySingletonManagerExists(buffer);
 
-            firstRequestManger.Should().BeSameAs(secondRequestManager);
+            firstRequestManager.Should().BeSameAs(secondRequestManager);
         }
 
         [TestMethod]
@@ -154,11 +154,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 1. Create tagger for first doc
             var tagger1 = CreateTaggerForDocument(doc1);
-            var doc1Manager = CheckPresenceOfSingletonManagerInPropertyCollection(doc1.TextBuffer, true);
+            var doc1Manager = VerifySingletonManagerExists(doc1.TextBuffer);
 
             // 2. Create tagger for second doc
             var tagger2 = CreateTaggerForDocument(doc2);
-            var doc2Manager = CheckPresenceOfSingletonManagerInPropertyCollection(doc2.TextBuffer, true);
+            var doc2Manager = VerifySingletonManagerExists(doc2.TextBuffer);
 
             doc1Manager.Should().NotBeSameAs(doc2Manager);
         }
@@ -369,10 +369,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Returns(detectedLanguages);
         }
 
-        private SingletonDisposableTaggerManager<IErrorTag> CheckPresenceOfSingletonManagerInPropertyCollection(ITextBuffer buffer, bool shouldExist)
+        private static void VerifySingletonManagerDoesNotExist(ITextBuffer buffer) =>
+            FindSingletonManagerInPropertyCollection(buffer).Should().BeNull();
+
+        private static SingletonDisposableTaggerManager<IErrorTag> VerifySingletonManagerExists(ITextBuffer buffer)
         {
-            buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue)
-                .Should().Be(shouldExist);
+            var manager = FindSingletonManagerInPropertyCollection(buffer);
+            manager.Should().NotBeNull();
+            return manager;
+        }
+
+        private static SingletonDisposableTaggerManager<IErrorTag> FindSingletonManagerInPropertyCollection(ITextBuffer buffer)
+        {
+            buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue);
             return propertyValue;
         }
 
