@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public override bool TryGetValue(int index, string keyName, out object content)
         {
-            if (index < 0 || this.issues.Count <= index)
+            if (index < 0 || index >= issues.Count || ShouldHideIssue(issues[index]))
             {
                 content = null;
                 return false;
@@ -218,6 +218,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     content = null;
                     return false;
             }
+        }
+
+        /// <summary>
+        /// Returns true/false if the ErrorList should hide the requested issue.
+        /// </summary>
+        /// <returns>Returns true if the issue doesn't have a valid span.</returns>
+        private bool ShouldHideIssue(IAnalysisIssueVisualization issue)
+        {
+            return !issue.Span.HasValue || issue.Span.Value.IsEmpty;
         }
 
         private object ToString(AnalysisIssueType type)

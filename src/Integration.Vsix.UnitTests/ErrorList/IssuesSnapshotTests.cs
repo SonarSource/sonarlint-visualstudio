@@ -208,10 +208,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         private static IAnalysisIssueVisualization CreateIssue(string ruleKey = "rule key") =>
-            CreateIssueViz("filePath", new SnapshotSpan(), new DummyAnalysisIssue {RuleKey = ruleKey});
+            CreateIssueViz("filePath", CreateNonEmptySpan(), new DummyAnalysisIssue {RuleKey = ruleKey});
 
         private static IAnalysisIssueVisualization CreateIssueWithSpecificsPaths(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
-            CreateIssueViz(primaryFilePath, new SnapshotSpan(), Mock.Of<IAnalysisIssue>(), flowVizs);
+            CreateIssueViz(primaryFilePath, CreateNonEmptySpan(), Mock.Of<IAnalysisIssue>(), flowVizs);
+
+        private static SnapshotSpan CreateNonEmptySpan()
+        {
+            var textSnapshot = new Mock<ITextSnapshot>();
+            textSnapshot.SetupGet(x => x.Length).Returns(999);
+
+            return new SnapshotSpan(textSnapshot.Object, new Span(0, 1));
+        }
 
         private static IAnalysisIssueVisualization CreateIssueViz(string filePath, SnapshotSpan span, IAnalysisIssue issue, params IAnalysisIssueFlowVisualization[] flowVizs)
         {

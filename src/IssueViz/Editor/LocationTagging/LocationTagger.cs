@@ -132,9 +132,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             foreach (var old in TagSpans)
             {
                 var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
-                old.Tag.Location.Span = newSpan; // update the span stored in the location visualization 
+                var hasSpanBeenEdited = newSpan.Length != old.Span.Length;
 
-                translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
+                if (hasSpanBeenEdited)
+                {
+                    // If the user has typed inside the tagged region we'll stop showing a Tag for that span
+                    old.Tag.Location.InvalidateSpan();
+                }
+                else
+                {
+                    old.Tag.Location.Span = newSpan;
+                    translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
+                }
             }
 
             TagSpans = translatedTagSpans;
