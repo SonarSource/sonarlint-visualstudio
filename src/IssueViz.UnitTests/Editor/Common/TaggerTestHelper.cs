@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using Color = System.Windows.Media.Color;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
 {
@@ -199,11 +200,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             return viewMock.Object;
         }
 
-        public static IFormattedLineSource CreateFormattedLineSource(double fontSize = 12d, string fontFamily = "Arial")
+        public static IFormattedLineSource CreateFormattedLineSource(double fontSize = 12d, string fontFamily = "Arial", Color? textColor = null)
         {
             var textRunPropertiesMock = new Mock<TextRunProperties>();
             textRunPropertiesMock.Setup(x => x.FontRenderingEmSize).Returns(fontSize);
             textRunPropertiesMock.Setup(x => x.Typeface).Returns(new Typeface(fontFamily));
+            textRunPropertiesMock.Setup(x => x.ForegroundBrush).Returns(new SolidColorBrush(textColor ?? Colors.Black));
 
             var lineSourceMock = new Mock<IFormattedLineSource>();
             lineSourceMock.Setup(x => x.DefaultTextProperties).Returns(textRunPropertiesMock.Object);

@@ -19,9 +19,11 @@
  */
 
 using System.Windows.Controls;
+using System.Windows.Media;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -33,17 +35,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
         [TestMethod]
         public void Ctor_Initialization()
         {
+            var fontSize = 14d;
             var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
-            var formattedLineSource = CreateFormattedLineSource(14d, "Times New Roman");
+            var formattedLineSource = CreateFormattedLineSource(fontSize, "Times New Roman");
 
             // Act
             var testSubject = new IssueLocationAdornment(locViz, formattedLineSource);
+            var textContent = testSubject.Child as TextBlock;
 
-            testSubject.FontSize.Should().Be(14d);
-            testSubject.FontFamily.ToString().Should().Be("Times New Roman");
-
-            var textContent = testSubject.Content as TextBlock;
             textContent.Should().NotBeNull();
+
+            var expectedFontSize = fontSize - 2;
+            textContent.FontSize.Should().Be(expectedFontSize);
+            textContent.FontFamily.ToString().Should().Be("Times New Roman");
             textContent.Text.Should().Be("99");
         }
 
@@ -55,11 +59,37 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var testSubject = new IssueLocationAdornment(locViz, originalLineSource);
 
             // Act
-            var newLineSource = CreateFormattedLineSource(10d, "Arial");
+            var newFontSize = 10d;
+            var newLineSource = CreateFormattedLineSource(newFontSize, "Arial");
             testSubject.Update(newLineSource);
 
-            testSubject.FontSize.Should().Be(10d);
-            testSubject.FontFamily.ToString().Should().Be("Arial");
+            var textContent = testSubject.Child as TextBlock;
+
+            var expectedFontSize = newFontSize - 2;
+            textContent.FontSize.Should().Be(expectedFontSize);
+            textContent.FontFamily.ToString().Should().Be("Arial");
+        }
+
+        [TestMethod]
+        public void Ctor_TextIsDark_CorrectLightThemeColors()
+        {
+            VerifyThemeColors(Colors.Black, ThemeColors.LightTheme);
+        }
+
+        [TestMethod]
+        public void Ctor_TextIsLight_CorrectDarkThemeColors()
+        {
+            VerifyThemeColors(Colors.White, ThemeColors.DarkTheme);
+        }
+
+        private void VerifyThemeColors(Color textColor, IThemeColors expectedTheme)
+        {
+            var originalLineSource = CreateFormattedLineSource(14d, "Times New Roman", textColor);
+            var locViz = CreateLocationViz(CreateSnapshot(), new Span(0, 1), stepNumber: 99);
+            var testSubject = new IssueLocationAdornment(locViz, originalLineSource);
+
+            testSubject.Background.Should().Be(expectedTheme.BackgroundBrush);
+            testSubject.BorderBrush.Should().Be(expectedTheme.BorderBrush);
         }
     }
 }

@@ -18,36 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Formatting;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Adornment
 {
-    internal class IssueLocationAdornment : Button
+    internal class IssueLocationAdornment : Border
     {
         public IAnalysisIssueLocationVisualization LocationViz { get; }
 
-        public IssueLocationAdornment(IAnalysisIssueLocationVisualization locationViz, IFormattedLineSource formattedLineSource)
+        public IssueLocationAdornment(IAnalysisIssueLocationVisualization locationViz, IFormattedLineSource formattedLineSource) 
         {
             // We can't store the formatted line source since it might change
             // e.g. if the user changes the font size
             LocationViz = locationViz;
 
-            Margin = new System.Windows.Thickness(1, 0, 1, 0); // Space between this UI element and the editor text
-            Padding = new System.Windows.Thickness(0);  // Space between the side of the control and its content    
-
-            Background = Brushes.Pink;
-            BorderBrush = Brushes.LightCoral;
-            BorderThickness = new System.Windows.Thickness(1);
+            Margin = new Thickness(3, 0, 3, 0); // Space between this UI element and the editor text
+            Padding = new Thickness(0);  // Space between the side of the control and its content    
+            BorderThickness = new Thickness(1);
+            CornerRadius = new CornerRadius(1);
 
             // Visible content of the adornment
-            Content = new TextBlock
+            Child = new TextBlock
             {
                 Text = LocationViz.StepNumber.ToString(),
-                Padding = new System.Windows.Thickness(0.2, 0, 0.2, 0),
-                Margin = new System.Windows.Thickness(0),
+                FontWeight = FontWeights.SemiBold,
+                Padding = new Thickness(4, 0, 4, 0)
             };
 
             ToolTip = new TextBlock
@@ -60,8 +58,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 
         public void Update(IFormattedLineSource formattedLineSource)
         {
-            FontSize = formattedLineSource.DefaultTextProperties.FontRenderingEmSize;
-            FontFamily = formattedLineSource.DefaultTextProperties.Typeface.FontFamily;
+            var textBlock = Child as TextBlock;
+
+            textBlock.Foreground = formattedLineSource.DefaultTextProperties.ForegroundBrush;
+            textBlock.FontSize = formattedLineSource.DefaultTextProperties.FontRenderingEmSize - 2;
+            textBlock.FontFamily = formattedLineSource.DefaultTextProperties.Typeface.FontFamily;
+
+            var themeColors = ThemeColors.BasedOnText(textBlock.Foreground);
+            Background = themeColors.BackgroundBrush;
+            BorderBrush = themeColors.BorderBrush;
         }
     }
 }
