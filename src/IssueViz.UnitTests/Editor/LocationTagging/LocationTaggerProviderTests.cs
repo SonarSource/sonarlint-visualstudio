@@ -18,13 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTagging
 {
@@ -51,5 +54,52 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
 
         internal override ITaggerProvider CreateTestSubject(ITaggableBufferIndicator taggableBufferIndicator) =>
             new LocationTaggerProvider(ValidLocationStore, ValidSpanCalculator, taggableBufferIndicator, ValidLogger);
+
+        [TestMethod]
+        public void SingletonManagement_OneBuffer_CreatesOneSingletonManager()
+        {
+            var buffer = CreateBuffer();
+            var testSubject = CreateTestSubject(CreateTaggableBufferIndicator());
+            GetSingletonManager(buffer).Should().BeNull();
+
+            // 1. Request first tagger for buffer
+            testSubject.CreateTagger<ITag>(buffer);
+            var manager1 = GetSingletonManager(buffer);
+
+            // 2. Request second tagger - expecting same singleton manager
+            testSubject.CreateTagger<ITag>(buffer);
+            var manager2 = GetSingletonManager(buffer);
+
+            manager1.Should().NotBeNull();
+            manager2.Should().NotBeNull();
+            manager1.Should().BeSameAs(manager2);
+        }
+
+        [TestMethod]
+        public void CreateTagger_SingletonManagement_TwoBuffer_CreatesSingletonManagerPerBuffer()
+        {
+            var buffer1 = CreateBuffer();
+            var buffer2 = CreateBuffer();
+            var testSubject = CreateTestSubject(CreateTaggableBufferIndicator());
+
+            // 1. Request tagger for first buffer
+            testSubject.CreateTagger<ITag>(buffer1);
+            var manager1 = GetSingletonManager(buffer1);
+
+            // 2. Request tagger for second buffer - expecting a different instance
+            testSubject.CreateTagger<ITag>(buffer2);
+            var manager2 = GetSingletonManager(buffer2);
+
+            manager1.Should().NotBeNull();
+            manager2.Should().NotBeNull();
+            manager1.Should().NotBeSameAs(manager2);
+        }
+
+        private static SingletonDisposableTaggerManager<IIssueLocationTag> GetSingletonManager(ITextBuffer buffer)
+        {
+            buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IIssueLocationTag>>(
+                typeof(SingletonDisposableTaggerManager<IIssueLocationTag>), out var manager);
+            return manager;
+        }
     }
 }
