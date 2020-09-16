@@ -193,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public void Dispose()
         {
             document.FileActionOccurred -= SafeOnFileActionOccurred;
-            textBuffer.Properties.RemoveProperty(typeof(SingletonDisposableTaggerManager<IErrorTag>));
+            textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
             sonarErrorDataSource.RemoveFactory(this.Factory);
             Provider.RemoveIssueTracker(this);
         }

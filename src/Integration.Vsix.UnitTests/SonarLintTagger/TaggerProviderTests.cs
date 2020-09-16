@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger1 = CreateTaggerForDocument(doc1);
             var firstRequestManger = CheckPresenceOfSingletonManagerInPropertyCollection(buffer, true);
 
-            // 1. Create second tagger for doc
+            // 2. Create second tagger for doc
             var tagger2 = CreateTaggerForDocument(doc1);
             var secondRequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(buffer, true);
 
@@ -154,13 +154,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // 1. Create tagger for first doc
             var tagger1 = CreateTaggerForDocument(doc1);
-            var doc1RequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(doc1.TextBuffer, true);
+            var doc1Manager = CheckPresenceOfSingletonManagerInPropertyCollection(doc1.TextBuffer, true);
 
             // 2. Create tagger for second doc
             var tagger2 = CreateTaggerForDocument(doc2);
-            var doc2RequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(doc2.TextBuffer, true);
+            var doc2Manager = CheckPresenceOfSingletonManagerInPropertyCollection(doc2.TextBuffer, true);
 
-            doc1RequestManager.Should().NotBeSameAs(doc2RequestManager);
+            doc1Manager.Should().NotBeSameAs(doc2Manager);
         }
 
         [TestMethod]
