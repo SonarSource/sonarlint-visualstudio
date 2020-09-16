@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -127,7 +128,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void CreateTagger_should_return_same_tagger_for_already_tracked_file()
+        public void CreateTagger_SameDocument_ShouldUseSameSingletonManager()
+        {
+            var doc1 = CreateMockedDocument("doc1.js");
+            var buffer = doc1.TextBuffer;
+
+            CheckPresenceOfSingletonManagerInPropertyCollection(buffer, false);
+
+            // 1. Create first tagger for doc
+            var tagger1 = CreateTaggerForDocument(doc1);
+            var firstRequestManger = CheckPresenceOfSingletonManagerInPropertyCollection(buffer, true);
+
+            // 1. Create second tagger for doc
+            var tagger2 = CreateTaggerForDocument(doc1);
+            var secondRequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(buffer, true);
+
+            firstRequestManger.Should().BeSameAs(secondRequestManager);
+        }
+
+        [TestMethod]
+        public void CreateTagger_DifferentDocuments_ShouldUseDifferentSingletonManagers()
+        {
+            var doc1 = CreateMockedDocument("doc1.js");
+            var doc2 = CreateMockedDocument("doc2.js");
+
+            // 1. Create tagger for first doc
+            var tagger1 = CreateTaggerForDocument(doc1);
+            var doc1RequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(doc1.TextBuffer, true);
+
+            // 2. Create tagger for second doc
+            var tagger2 = CreateTaggerForDocument(doc2);
+            var doc2RequestManager = CheckPresenceOfSingletonManagerInPropertyCollection(doc2.TextBuffer, true);
+
+            doc1RequestManager.Should().NotBeSameAs(doc2RequestManager);
+        }
+
+        [TestMethod]
+        public void CreateTagger_should_return_new_tagger_for_already_tracked_file()
         {
             var doc1 = CreateMockedDocument("doc1.js");
 
@@ -137,20 +174,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var tagger2 = CreateTaggerForDocument(doc1);
             tagger2.Should().NotBeNull();
 
-            tagger1.Should().BeSameAs(tagger2);
+            // Taggers should be different but tracker should be the same
+            tagger1.Should().NotBeSameAs(tagger2);
             provider.ActiveTrackersForTesting.Count().Should().Be(1);
         }
 
         [TestMethod]
-        public void CreateTagger_close_tagger_should_unregister_tracker()
+        public void CreateTagger_close_last_tagger_should_unregister_tracker()
         {
             var doc1 = CreateMockedDocument("doc1.js");
 
-            var tracker = CreateTaggerForDocument(doc1);
+            var tracker1 = CreateTaggerForDocument(doc1);
             provider.ActiveTrackersForTesting.Count().Should().Be(1);
 
-            // Remove the tagger -> tracker should be unregistered
-            (tracker as IDisposable).Dispose();
+            var tracker2 = CreateTaggerForDocument(doc1);
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+            // Remove one tagger -> tracker should still be registered
+            ((IDisposable)tracker1).Dispose();
+            provider.ActiveTrackersForTesting.Count().Should().Be(1);
+
+            // Remove the last tagger -> tracker should be unregistered
+            ((IDisposable)tracker2).Dispose();
             provider.ActiveTrackersForTesting.Count().Should().Be(0);
         }
 
@@ -322,6 +367,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             mockSonarLanguageRecognizer
                 .Setup(x => x.Detect(fileName, bufferContentType))
                 .Returns(detectedLanguages);
+        }
+
+        private SingletonDisposableTaggerManager<IErrorTag> CheckPresenceOfSingletonManagerInPropertyCollection(ITextBuffer buffer, bool shouldExist)
+        {
+            buffer.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var propertyValue)
+                .Should().Be(shouldExist);
+            return propertyValue;
         }
 
         private class DummyTextDocumentFactoryService : ITextDocumentFactoryService

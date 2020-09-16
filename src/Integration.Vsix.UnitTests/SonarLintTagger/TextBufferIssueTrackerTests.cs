@@ -28,6 +28,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -35,6 +36,7 @@ using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -84,16 +86,42 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void Lifecycle_FactoryIsRegisteredAndUnregisteredWithDataSource()
+        public void Ctor_RegistersEventsTrackerAndFactory()
         {
-            // 1.Registered on creation
             CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Once());
 
-            // 2. Unregistered on disposal
-            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
-            testSubject.Dispose();
-            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Once());
+            taggerProvider.ActiveTrackersForTesting.Should().BeEquivalentTo(testSubject);
+
+            mockedJavascriptDocumentFooJs.VerifyAdd(x => x.FileActionOccurred += It.IsAny<EventHandler<TextDocumentFileActionEventArgs>>(), Times.Once);
+
+            // Note: the test subject isn't responsible for adding the entry to the buffer.Properties
+            // - that's done by the TaggerProvider.
         }
+
+        [TestMethod]
+        public void Dispose_CleansUpEventsAndRegistrations()
+        {
+            // Sanity checks
+            var singletonManager = new SingletonDisposableTaggerManager<IErrorTag>(null);
+            mockDocumentTextBuffer.Object.Properties.AddProperty(TaggerProvider.SingletonManagerPropertyCollectionKey, singletonManager);
+            CheckPresenceOfSingletonManagerInPropertyCollection(shouldExist: true);
+            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Never());
+
+            // Act
+            testSubject.Dispose();
+
+            CheckPresenceOfSingletonManagerInPropertyCollection(shouldExist: false);
+
+            CheckFactoryWasUnregisteredFromDataSource(testSubject.Factory, Times.Once());
+
+            taggerProvider.ActiveTrackersForTesting.Should().BeEmpty();
+
+            mockedJavascriptDocumentFooJs.VerifyRemove(x => x.FileActionOccurred -= It.IsAny<EventHandler<TextDocumentFileActionEventArgs>>(), Times.Once);
+        }
+
+        private void CheckPresenceOfSingletonManagerInPropertyCollection(bool shouldExist) =>
+            mockDocumentTextBuffer.Object.Properties.TryGetProperty<SingletonDisposableTaggerManager<IErrorTag>>(TaggerProvider.SingletonManagerPropertyCollectionKey, out var _)
+                .Should().Be(shouldExist);
 
         private void CheckFactoryWasRegisteredWithDataSource(IssuesSnapshotFactory factory, Times times)
         {
@@ -406,6 +434,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var mockTextDocument = new Mock<ITextDocument>();
             mockTextDocument.Setup(d => d.FilePath).Returns(fileName);
             mockTextDocument.Setup(d => d.Encoding).Returns(Encoding.UTF8);
+            mockTextDocument.SetupAdd(d => d.FileActionOccurred += (sender, args) => { });
 
             mockTextDocument.Setup(x => x.TextBuffer).Returns(textBuffer);
 
