@@ -57,6 +57,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             if (disposing)
             {
                 viewModel.Dispose();
+
+                var vsWindowFrame = Frame as IVsWindowFrame;
+                vsWindowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
             }
 
             base.Dispose(disposing);
