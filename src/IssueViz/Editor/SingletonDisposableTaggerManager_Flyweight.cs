@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// </summary>
         internal sealed class FlyweightTaggerWrapper : ITagger<TTagType>, IDisposable
         {
-            private ITagger<TTagType> wrappedTagger;
+            private readonly ITagger<TTagType> wrappedTagger;
             private readonly OnTaggerDisposed onTaggerDisposed;
             private bool disposedValue;
 
