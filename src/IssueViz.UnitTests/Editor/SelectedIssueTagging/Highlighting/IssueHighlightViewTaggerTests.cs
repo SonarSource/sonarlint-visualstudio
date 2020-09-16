@@ -22,8 +22,6 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Highlight;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
@@ -39,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
             var aggregator = CreateSelectedIssueAggregator();
-            var viewMock = CreateValidTextView(snapshot);
+            var viewMock = CreateWpfTextView(snapshot);
 
             var testSubject = new IssueHighlightTagger(aggregator, viewMock);
 
@@ -58,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var selectedLoc2 = CreateLocationViz(snapshot, new Span(20, 25), "selection 2");
             var aggregator = CreateSelectedIssueAggregator(selectedLoc1, selectedLoc2);
 
-            var viewMock = CreateValidTextView(snapshot);
+            var viewMock = CreateWpfTextView(snapshot);
 
             var testSubject = new IssueHighlightTagger(aggregator, viewMock);
 
@@ -68,13 +66,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             actual.Length.Should().Be(2);
             actual[0].Span.Span.Should().Be(selectedLoc1.Span.Value.Span);
             actual[1].Span.Span.Should().Be(selectedLoc2.Span.Value.Span);
-        }
-
-        private static IWpfTextView CreateValidTextView(ITextSnapshot snapshot)
-        {
-            var viewMock = new Mock<IWpfTextView>();
-            viewMock.Setup(x => x.TextSnapshot).Returns(snapshot);
-            return viewMock.Object;
         }
     }
 }
