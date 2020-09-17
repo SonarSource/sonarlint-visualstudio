@@ -30,14 +30,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
     /// <remarks>Note: this tagger doesn't do any filtering</remarks>
     internal sealed class IssueHighlightTagger : FilteringTaggerBase<ISelectedIssueLocationTag, IssueHighlightTag>
     {
-        public IssueHighlightTagger(ITagAggregator<ISelectedIssueLocationTag> tagAggregator, IWpfTextView view)
-            : base(tagAggregator, view)
+        private readonly IWpfTextView wpfTextView;
+
+        public IssueHighlightTagger(ITagAggregator<ISelectedIssueLocationTag> tagAggregator, IWpfTextView wpfTextView)
+            : base(tagAggregator, wpfTextView)
         {
+            this.wpfTextView = wpfTextView;
         }
 
         protected override TagSpan<IssueHighlightTag> CreateTagSpan(ISelectedIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
-            return new TagSpan<IssueHighlightTag>(trackedTag.Location.Span.Value, new IssueHighlightTag());
+            var textBrush = wpfTextView.FormattedLineSource.DefaultTextProperties.ForegroundBrush;
+
+            return new TagSpan<IssueHighlightTag>(trackedTag.Location.Span.Value, new IssueHighlightTag(textBrush));
         }
     }
 }

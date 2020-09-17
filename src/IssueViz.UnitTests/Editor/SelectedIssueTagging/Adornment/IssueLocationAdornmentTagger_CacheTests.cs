@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Windows.Controls;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -96,13 +97,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
             var locViz = CreateLocationViz();
 
             var actual1 = testSubject.CreateOrUpdate(locViz);
-            actual1.FontSize.Should().Be(12d); // sanity check
+
+            (actual1.Child as TextBlock).FontSize.Should().Be(10d); // sanity check
 
             ChangedMockedLineSource(textView, lineSource2);
 
             // Act
             var actual2 = testSubject.CreateOrUpdate(locViz);
-            actual2.FontSize.Should().Be(18d);
+            (actual2.Child as TextBlock).FontSize.Should().Be(16d);
         }
 
         [TestMethod]
