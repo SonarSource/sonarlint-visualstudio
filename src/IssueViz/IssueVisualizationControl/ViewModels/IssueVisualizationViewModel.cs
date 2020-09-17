@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.Core;
@@ -66,6 +67,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 selectionService.SelectedIssue, 
                 selectionService.SelectedFlow,
                 selectionService.SelectedLocation);
+        }
+
+        public string IssueLocation
+        {
+            get
+            {
+                var issueSpan = CurrentIssue?.Span;
+
+                if (issueSpan == null || issueSpan.Value.IsEmpty)
+                {
+                    return null;
+                }
+
+                var position = issueSpan.Value.Start;
+                var line = position.GetContainingLine();
+                var fileName = Path.GetFileName(CurrentIssue.CurrentFilePath);
+
+                return $"{fileName}:{line.LineNumber}";
+            }
         }
 
         public string Description => CurrentIssue?.Issue?.Message;
