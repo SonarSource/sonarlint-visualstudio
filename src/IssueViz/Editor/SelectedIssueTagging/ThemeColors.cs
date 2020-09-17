@@ -56,9 +56,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging
 
     internal class DarkThemeColors : IThemeColors
     {
-        public Brush BackgroundBrush { get; } = new SolidColorBrush(Colors.DarkRed);
-        public Brush BorderBrush { get; } = new SolidColorBrush(Colors.Red);
-        public Brush Highlight { get; } = new SolidColorBrush(Colors.DarkRed) { Opacity = 0.5 };
+        public Brush BackgroundBrush { get; } = new SolidColorBrush(Color.FromRgb(0x74, 0x23, 0x2f));
+        public Brush BorderBrush { get; } = new SolidColorBrush(Color.FromRgb(0x6F, 0x22, 0x2C));
+        public Brush Highlight { get; } = new SolidColorBrush(Color.FromRgb(0x74, 0x23, 0x2f)) { Opacity = 0.5 };
     }
 
     internal interface IThemeColors
