@@ -25,7 +25,6 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
@@ -166,7 +165,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    logger.LogDebug($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {ex}");
+                    logger.WriteLine($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {ex}");
                 }
             }
 
