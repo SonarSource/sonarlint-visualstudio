@@ -164,9 +164,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                         translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
                     }
                 }
-                catch (Exception e)
+                catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    logger.LogDebug($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {e}");
+                    logger.LogDebug($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {ex}");
                 }
             }
 
