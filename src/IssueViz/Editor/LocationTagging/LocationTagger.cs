@@ -129,7 +129,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             // If the requested snapshot isn't the same as our tags are on, translate our spans to the expected snapshot 
             if (spans[0].Snapshot != TagSpans[0].Span.Snapshot)
             {
+                logger.WriteLine("********* TranslateTagSpans");
+
                 TranslateTagSpans(spans[0].Snapshot);
+            }
+            else
+            {
+                logger.WriteLine("********* NO CALL TO TranslateTagSpans");
             }
 
             // Find any tags in that overlap with that range
@@ -150,7 +156,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             {
                 try
                 {
+                    logger.WriteLine("********* TranslateTagSpans, old span: " + old.Span.Span.Start);
+
                     var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
+
+                    logger.WriteLine("********* TranslateTagSpans, newSpan: " + newSpan.Span.Start);
+
                     var hasSpanBeenEdited = newSpan.Length != old.Span.Length;
 
                     if (hasSpanBeenEdited)
@@ -166,7 +177,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
-                    logger.LogDebug($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {ex}");
+                    logger.WriteLine($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {ex}");
                 }
             }
 
