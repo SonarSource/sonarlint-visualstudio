@@ -25,6 +25,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
@@ -73,25 +74,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         private void UpdateTags()
         {
             var textSnapshot = buffer.CurrentSnapshot;
-
-            // Get the new locations and calculate the spans if necessary
-            var locations = locationService.GetLocations(GetCurrentFilePath());
-            EnsureSpansExist(locations, textSnapshot);
-
             var oldTags = TagSpans;
-            TagSpans = locations.Select(CreateTagSpan).ToList();
+            TagSpans = CreateTagSpans(textSnapshot);
 
             var affectedSpan = CalculateSpanOfAllTags(oldTags, textSnapshot);
             NotifyTagsChanged(affectedSpan);
         }
 
-        private void EnsureSpansExist(IEnumerable<IAnalysisIssueLocationVisualization> locVizs, ITextSnapshot currentSnapshot)
+        private List<ITagSpan<IIssueLocationTag>> CreateTagSpans(ITextSnapshot textSnapshot)
         {
-            // All spans for issues in the this file should have been calculated when the file was analysed (whether primary or secondary).
-            // However, there could be secondary locations relating to issues in other files that have not been calculated.
+            // Get the new locations and calculate the spans if necessary
+            var locations = locationService.GetLocations(GetCurrentFilePath());
+
+            EnsureUpdatedSpansExist(locations, textSnapshot);
+
+            var tagSpans = locations
+                .Where(x => x.Span.HasValue && !x.Span.Value.IsEmpty)
+                .Select(CreateTagSpan)
+                .ToList();
+
+            return tagSpans;
+        }
+
+        /// <summary>
+        /// Calculate spans for locations that don't have a span, or have a span in a different text buffer. 
+        /// </summary>
+        /// <remarks>
+        /// All spans for issues in the this file should have been calculated when the file was analysed (whether primary or secondary).
+        /// However, there could be secondary locations relating to issues in other files that have not been calculated.
+        /// Also, if a file has been closed and re-opened, a new text buffer would've been created. So we need to recalculate the spans since the locations would have spans that belong to the old text buffer.
+        /// </remarks>
+        private void EnsureUpdatedSpansExist(IEnumerable<IAnalysisIssueLocationVisualization> locVizs, ITextSnapshot currentSnapshot)
+        {
             foreach (var locViz in locVizs)
             {
-                if (!locViz.Span.HasValue)
+                if (!locViz.Span.HasValue || locViz.Span.Value.IsEmpty || locViz.Span.Value.Snapshot.TextBuffer != currentSnapshot.TextBuffer)
                 {
                     locViz.Span = spanCalculator.CalculateSpan(locViz.Location, currentSnapshot);
                 }
@@ -131,18 +148,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
 
             foreach (var old in TagSpans)
             {
-                var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
-                var hasSpanBeenEdited = newSpan.Length != old.Span.Length;
+                try
+                {
+                    var newSpan = old.Span.TranslateTo(newSnapshot, SpanTrackingMode.EdgeExclusive);
+                    var hasSpanBeenEdited = newSpan.Length != old.Span.Length;
 
-                if (hasSpanBeenEdited)
-                {
-                    // If the user has typed inside the tagged region we'll stop showing a Tag for that span
-                    old.Tag.Location.InvalidateSpan();
+                    if (hasSpanBeenEdited)
+                    {
+                        // If the user has typed inside the tagged region we'll stop showing a Tag for that span
+                        old.Tag.Location.InvalidateSpan();
+                    }
+                    else
+                    {
+                        old.Tag.Location.Span = newSpan;
+                        translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    old.Tag.Location.Span = newSpan;
-                    translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
+                    logger.LogDebug($"Failed to translate tag span for file `{GetCurrentFilePath()}`: {e}");
                 }
             }
 
