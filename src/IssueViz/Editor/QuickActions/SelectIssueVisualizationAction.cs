@@ -26,20 +26,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 {
     internal class SelectIssueVisualizationAction : BaseSuggestedAction
     {
+        internal IAnalysisIssueVisualization Issue { get; }
+
         private readonly IAnalysisIssueSelectionService selectionService;
-        private readonly IAnalysisIssueVisualization issueVisualization;
 
         public SelectIssueVisualizationAction(IAnalysisIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization)
         {
             this.selectionService = selectionService;
-            this.issueVisualization = issueVisualization;
+            Issue = issueVisualization;
         }
 
-        public override string DisplayText => $"{issueVisualization.RuleId}: Show SonarLint Issue Visualization";
+        public override string DisplayText => $"{Issue.RuleId}: Show SonarLint Issue Visualization";
 
         public override void Invoke(CancellationToken cancellationToken)
         {
-            selectionService.SelectedIssue = issueVisualization;
+            selectionService.SelectedIssue = Issue;
         }
     }
 }

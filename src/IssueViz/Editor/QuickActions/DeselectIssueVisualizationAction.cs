@@ -27,12 +27,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
     {
         private readonly IAnalysisIssueSelectionService selectionService;
 
+        /// <summary>
+        /// <see cref="IssueLocationActionsSource.GetSuggestedActions"/> can return a cached version of the actions, which will show a deselect action even though the issue has already been deselected.
+        /// Which is why we need to cache the data of the issue that was selected at the time this action was created.
+        /// </summary>
+        private readonly string cachedSelectedIssueRuleId;
+
         public DeselectIssueVisualizationAction(IAnalysisIssueSelectionService selectionService)
         {
             this.selectionService = selectionService;
+            cachedSelectedIssueRuleId = selectionService.SelectedIssue.RuleId;
         }
 
-        public override string DisplayText => $"{selectionService.SelectedIssue.RuleId}: Hide SonarLint Issue Visualization";
+        public override string DisplayText => $"{cachedSelectedIssueRuleId}: Hide SonarLint Issue Visualization";
 
         public override void Invoke(CancellationToken cancellationToken)
         {

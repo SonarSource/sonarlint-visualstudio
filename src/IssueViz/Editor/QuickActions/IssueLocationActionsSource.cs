@@ -54,18 +54,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
+            var allActions = new List<ISuggestedAction>();
+
             if (IsOnIssueVisualization(range, out var issueVisualizations))
             {
                 var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(selectionService, x));
-
-                return new[] {new SuggestedActionSet(actions)};
+                allActions.AddRange(actions);
             } 
 
             if (IsOnSelectedVisualization(range))
             {
-                var actions = new[] {new DeselectIssueVisualizationAction(selectionService)};
-                
-                return new[] { new SuggestedActionSet(actions) };
+                allActions.Add(new DeselectIssueVisualizationAction(selectionService));
+            }
+
+            if (allActions.Any())
+            {
+                return new[] {new SuggestedActionSet(allActions)};
             }
 
             return Enumerable.Empty<SuggestedActionSet>();
