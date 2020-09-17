@@ -17,6 +17,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
+
+using System.Windows.Media;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text.Classification;
@@ -29,16 +31,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIss
     public class IssueHighlightTagTests
     {
         [TestMethod]
-        public void Ctor_Tag()
+        public void Ctor_TagWithCorrectDefinition()
         {
-            var actual = new IssueHighlightTag();
-            actual.Type.Should().Be(IssueHighlightFormatDefinition.FormatName);
+            var lightThemeTag = new IssueHighlightTag(Brushes.Black);
+            lightThemeTag.Type.Should().Be(LightIssueHighlightFormatDefinition.FormatName);
+
+            var darkThemeTag = new IssueHighlightTag(Brushes.White);
+            darkThemeTag.Type.Should().Be(DarkIssueHighlightFormatDefinition.FormatName);
         }
 
         [TestMethod]
         public void FormatDefinition_MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<IssueHighlightFormatDefinition, EditorFormatDefinition>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<LightIssueHighlightFormatDefinition, EditorFormatDefinition>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<DarkIssueHighlightFormatDefinition, EditorFormatDefinition>(null, null);
         }
     }
 }

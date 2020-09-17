@@ -28,8 +28,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 {
     internal class IssueHighlightTag : TextMarkerTag
     {
-        public IssueHighlightTag()
-            :base(IssueHighlightFormatDefinition.FormatName)
+        public IssueHighlightTag(Brush textBrush)
+            : base(ThemeColors.IsLightTheme(textBrush)
+                ? LightIssueHighlightFormatDefinition.FormatName
+                : DarkIssueHighlightFormatDefinition.FormatName)
         {
         }
     }
@@ -37,13 +39,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
     [Export(typeof(EditorFormatDefinition))]
     [Name(FormatName)]
     [UserVisible(true)]
-    internal class IssueHighlightFormatDefinition : MarkerFormatDefinition
+    internal class LightIssueHighlightFormatDefinition : BaseIssueHighlightFormatDefinition
     {
-        public const string FormatName = "MarkerFormatDefinition/SLVS_IssueHighlightFormatDefinition";
+        public const string FormatName = "MarkerFormatDefinition/SLVS_Light_IssueHighlightFormatDefinition";
 
-        public IssueHighlightFormatDefinition()
+        public LightIssueHighlightFormatDefinition()
+            : base(ThemeColors.LightTheme.Highlight)
         {
-            BackgroundColor = Colors.LightPink;
+        }
+    }
+
+    [Export(typeof(EditorFormatDefinition))]
+    [Name(FormatName)]
+    [UserVisible(true)]
+    internal class DarkIssueHighlightFormatDefinition : BaseIssueHighlightFormatDefinition
+    {
+        public const string FormatName = "MarkerFormatDefinition/SLVS_Dark_IssueHighlightFormatDefinition";
+
+        public DarkIssueHighlightFormatDefinition()
+            : base(ThemeColors.DarkTheme.Highlight)
+        {
+        }
+    }
+
+    internal abstract class BaseIssueHighlightFormatDefinition : MarkerFormatDefinition
+    {
+        protected BaseIssueHighlightFormatDefinition(Brush fillBrush)
+        {
+            Fill = fillBrush;
             ForegroundColor = Colors.Transparent;
             DisplayName = "Highlight Issue";
             BackgroundCustomizable = true;
