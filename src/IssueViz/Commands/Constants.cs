@@ -26,5 +26,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
     {
         public static readonly Guid CommandSetGuid = new Guid("FDEF405A-28C2-4AFD-A37B-49EF2B0D142E");
         public const string UIContextGuid = "f83e901e-41cb-4faf-8116-aacb1b385381";
+
+        // EnvDTE.Constants.vsWindowKindProperties
+        public const string DefaultDockWindowGuid = "EEFA5220-E298-11D0-8F78-00A0C9110057";
     }
 }
