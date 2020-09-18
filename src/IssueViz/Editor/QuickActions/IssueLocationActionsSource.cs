@@ -52,11 +52,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public event EventHandler<EventArgs> SuggestedActionsChanged;
 
+        /// <summary>
+        /// Method returns a "show" lightbulb for each issue in the range that has secondary locations
+        /// and a single "hide" lightbulb if the range contains any selected locations
+        /// </summary>
         public IEnumerable<SuggestedActionSet> GetSuggestedActions(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
             var allActions = new List<ISuggestedAction>();
 
-            if (IsOnIssueVisualization(range, out var issueVisualizations))
+            if (IsOnIssueWithSecondaryLocations(range, out var issueVisualizations))
             {
                 var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(selectionService, x));
                 allActions.AddRange(actions);
@@ -77,11 +81,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew(() => IsOnIssueVisualization(range, out _) || IsOnSelectedVisualization(range),
+            return Task.Factory.StartNew(() => IsOnIssueWithSecondaryLocations(range, out _) || IsOnSelectedVisualization(range),
                 cancellationToken);
         }
 
-        private bool IsOnIssueVisualization(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issueVisualizationsWithSecondaryLocations)
+        private bool IsOnIssueWithSecondaryLocations(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issueVisualizationsWithSecondaryLocations)
         {
             var tagSpans = issueLocationsTagAggregator.GetTags(range);
 
@@ -117,7 +121,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            SuggestedActionsChanged?.Invoke(sender, e);
+            SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }
