@@ -100,11 +100,9 @@
 
         <!-- Data grid items styles -->
 
-        <Style x:Key="PrimaryLocationLabelStyle" TargetType="Label">
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"/>
-            <Setter Property="FontSize" Value="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontSizeKey}}"/>
-            <Setter Property="FontFamily" Value="{DynamicResource {x:Static vsShell:VsFonts.EnvironmentFontFamilyKey}}"/>
-            <Setter Property="FontWeight" Value="Bold"/>
+        <Style x:Key="IssueDescriptionBorderStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ForceCursor" Value="true"/>
             <Setter Property="ToolTip" Value="Click to navigate to issue location" />
@@ -113,10 +111,6 @@
                     <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
                 </Trigger>
             </Style.Triggers>
-        </Style>
-
-        <Style x:Key="IssueDescriptionDockPanelStyle" TargetType="DockPanel">
-            <Setter Property="Margin" Value="5"/>
         </Style>
 
         <Style x:Key="StepNumberRectangleStyle" TargetType="Rectangle" BasedOn="{StaticResource BaseShapeStyle}">
@@ -228,9 +222,9 @@
                 <RowDefinition Name="LocationsListRow" Height="*" />
             </Grid.RowDefinitions>
 
-            <DockPanel Name="IssueDescription" 
+            <Border Name="IssueDescription" 
                        Grid.Row="0"
-                       Style="{StaticResource IssueDescriptionDockPanelStyle}">
+                       Style="{StaticResource IssueDescriptionBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -240,17 +234,20 @@
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <Label Grid.Row="0" 
-                           Grid.Column="0" 
-                           Grid.ColumnSpan="2" 
-                           Style="{StaticResource PrimaryLocationLabelStyle}"
-                           Content="{Binding IssueLocation}"
-                           MouseLeftButtonDown="PrimaryLocationLabel_OnMouseLeftButtonDown"/>
-                    <vsImaging:CrispImage Grid.Row="1" 
+                    <vsImaging:CrispImage Grid.Row="0"
+                                          Grid.RowSpan="2"
                                           Grid.Column="0" 
                                           Height="16" Width="16"
                                           Moniker="{Binding Severity, Converter={StaticResource SeverityToMonikerConverter}, Mode=OneWay}" 
                                           Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="0" 
+                               Grid.Column="1" 
+                               Margin="0,0,0,5"
+                               Style="{StaticResource BaseTitleTextBlockStyle}"
+                               MouseLeftButtonDown="PrimaryLocationLabel_OnMouseLeftButtonDown">
+                        <Run Text="{Binding FileName, Mode=OneWay}"/>
+                        <Run Text="{Binding LineNumber, StringFormat=(line {0}), Mode=OneWay}"/>
+                    </TextBlock>
                     <TextBlock Grid.Row="1" 
                                Grid.Column="1" 
                                Style="{StaticResource BaseTextBlockStyle}">
@@ -264,7 +261,7 @@
                         </Hyperlink>
                     </TextBlock>
                 </Grid>
-            </DockPanel>
+            </Border>
 
             <ListView Name="LocationsList" 
                       Grid.Row="1"

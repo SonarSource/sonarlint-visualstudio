@@ -98,12 +98,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
         #endregion
 
-        #region IssueLocation
+        #region LineNumber
 
         [TestMethod]
         public void IssueLocation_CurrentIssueIsNull_Null()
         {
-            testSubject.IssueLocation.Should().BeNullOrEmpty();
+            testSubject.LineNumber.Should().Be(0);
         }
 
         [TestMethod]
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
-            testSubject.IssueLocation.Should().BeNullOrEmpty();
+            testSubject.LineNumber.Should().Be(0);
         }
 
         [TestMethod]
@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
-            testSubject.IssueLocation.Should().BeNullOrEmpty();
+            testSubject.LineNumber.Should().Be(0);
         }
 
         [TestMethod]
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
-            testSubject.IssueLocation.Should().Be("test.cpp:" + mockLineNumber);
+            testSubject.LineNumber.Should().Be(mockLineNumber + 1);
         }
 
         #endregion

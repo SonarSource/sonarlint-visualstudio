@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 selectionService.SelectedLocation);
         }
 
-        public string IssueLocation
+        public int LineNumber
         {
             get
             {
@@ -77,16 +77,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 if (issueSpan == null || issueSpan.Value.IsEmpty)
                 {
-                    return null;
+                    return 0;
                 }
 
                 var position = issueSpan.Value.Start;
                 var line = position.GetContainingLine();
-                var fileName = Path.GetFileName(CurrentIssue.CurrentFilePath);
 
-                return $"{fileName} (line {line.LineNumber + 1})";
+                return line.LineNumber + 1;
             }
         }
+
+        public string FileName => Path.GetFileName(CurrentIssue?.CurrentFilePath);
 
         public string Description => CurrentIssue?.Issue?.Message;
 
