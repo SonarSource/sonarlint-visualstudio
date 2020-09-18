@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         {
             var allActions = new List<ISuggestedAction>();
 
-            if (IsOnIssueWithSecondaryLocations(range, out var issueVisualizations))
+            if (IsOnNonSelectedIssueWithSecondaryLocations(range, out var issueVisualizations))
             {
                 var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(selectionService, x));
                 allActions.AddRange(actions);
@@ -81,20 +81,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public Task<bool> HasSuggestedActionsAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
         {
-            return Task.Factory.StartNew(() => IsOnIssueWithSecondaryLocations(range, out _) || IsOnSelectedVisualization(range),
+            return Task.Factory.StartNew(() => IsOnNonSelectedIssueWithSecondaryLocations(range, out _) || IsOnSelectedVisualization(range),
                 cancellationToken);
         }
 
-        private bool IsOnIssueWithSecondaryLocations(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> issueVisualizationsWithSecondaryLocations)
+        private bool IsOnNonSelectedIssueWithSecondaryLocations(SnapshotSpan range, out IEnumerable<IAnalysisIssueVisualization> nonSelectedIssuesWithSecondaryLocations)
         {
             var tagSpans = issueLocationsTagAggregator.GetTags(range);
 
-            issueVisualizationsWithSecondaryLocations = tagSpans
+            nonSelectedIssuesWithSecondaryLocations = tagSpans
                 .Select(x => x.Tag.Location)
                 .OfType<IAnalysisIssueVisualization>()
-                .Where(x=> x.Flows.SelectMany(f => f.Locations).Any());
+                .Where(x => x.Flows.SelectMany(f => f.Locations).Any())
+                .Where(x => selectionService.SelectedIssue != x);
 
-            return issueVisualizationsWithSecondaryLocations.Any();
+            return nonSelectedIssuesWithSecondaryLocations.Any();
         }
 
         private bool IsOnSelectedVisualization(SnapshotSpan range)
