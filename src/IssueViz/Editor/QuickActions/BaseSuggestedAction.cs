@@ -39,16 +39,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         public string InputGestureText => null;
         public bool HasPreview => false;
         public bool HasActionSets => false;
-
-        public Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult(Enumerable.Empty<SuggestedActionSet>());
-        }
-
-        public Task<object> GetPreviewAsync(CancellationToken cancellationToken)
-        {
-            return Task.FromResult<object>(null);
-        }
+        public Task<IEnumerable<SuggestedActionSet>> GetActionSetsAsync(CancellationToken cancellationToken) => Task.FromResult(Enumerable.Empty<SuggestedActionSet>());
+        public Task<object> GetPreviewAsync(CancellationToken cancellationToken)=> Task.FromResult<object>(null);
 
         public bool TryGetTelemetryId(out Guid telemetryId)
         {
