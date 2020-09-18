@@ -23,8 +23,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization
@@ -33,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("4F3D7D24-648B-4F3B-ACB0-B83AFE239210")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Float, Width = 325, Height = 400)]
+    [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     [ProvideToolWindowVisibility(typeof(IssueVisualizationToolWindow), Constants.UIContextGuid)]
     public sealed class IssueVizPackage : AsyncPackage
     {

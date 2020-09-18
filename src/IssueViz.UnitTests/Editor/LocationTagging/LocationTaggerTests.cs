@@ -260,7 +260,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void GetTags_NoOverlappingSpans_ReturnsEmpty()
+        public void GetTags_NoIntersectingSpans_ReturnsEmpty()
         {
             // Make sure the tagger and NormalizedSpanCollection use the same snapshot
             // so we don't attempt to translate the spans
@@ -279,7 +279,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void GetTags_HasOverlappingSpans_ReturnsExpectedTags()
+        public void GetTags_HasIntersectingSpans_ReturnsExpectedTags()
         {
             // Make sure the tagger and NormalizedSpanCollection use the same snapshot
             // so we don't attempt to translate the spans
@@ -296,6 +296,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
 
             var matchingTags = testSubject.GetTags(inputSpans);
             matchingTags.Select(x => x.Span.Span).Should().BeEquivalentTo(locSpan2, locSpan3);
+        }
+
+        [TestMethod]
+        [DataRow(4, false)] // before -> no match
+        [DataRow(5, true)]  // start of the span
+        [DataRow(7, true)]  // middle of span
+        [DataRow(10, true)] // end of the span
+        [DataRow(11, false)] // after -> no match
+        public void GetTags_RequestedSpansAreZeroLength_ReturnsExpectedTags(int inputSpanStart, bool shouldMatch)
+        {
+            // Regression test for #1720: Tooltips do not appear for primary locations
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/1720
+
+            var tagSpan = Span.FromBounds(5, 10);
+            var inputSpan = Span.FromBounds(inputSpanStart, inputSpanStart);
+
+            // Make sure the tagger and NormalizedSpanCollection use the same snapshot
+            // so we don't attempt to translate the spans
+            var buffer = CreateBufferMock();
+            var storeMock = CreateStoreWithLocationsWithSpans(buffer.Object.CurrentSnapshot, out _, tagSpan);
+
+            var inputSpans = new NormalizedSnapshotSpanCollection(buffer.Object.CurrentSnapshot, inputSpan);
+            var testSubject = new LocationTagger(buffer.Object, storeMock, ValidSpanCalculator, ValidLogger);
+
+            var matchingTags = testSubject.GetTags(inputSpans);
+
+            var expectedCount = shouldMatch ? 1 : 0;
+
+            matchingTags.Count().Should().Be(expectedCount);
         }
 
         [TestMethod]

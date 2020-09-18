@@ -39,8 +39,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
 
             var inputSpans = CreateSpanCollectionSpanningWholeSnapshot(snapshot);
 
-            var primary1 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(1, 5), "error message 1");
-            var primary2 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(10, 5), "error message 2");
+            var primary1 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(1, 5), message: "error message 1", ruleKey: "cpp:S5350");
+            var primary2 = CreateTagSpanWithPrimaryLocation(snapshot, new Span(10, 5), message: "error message 2", ruleKey: "cpp:emptyCompoundStatement");
             var secondary1 = CreateTagSpanWithSecondaryLocation(snapshot, new Span(20, 5));
             var secondary2 = CreateTagSpanWithSecondaryLocation(snapshot, new Span(30, 5));
             var aggregator = CreateAggregator(primary1, secondary1, primary2, secondary2);
@@ -50,16 +50,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             // Act
             var actual = testSubject.GetTags(inputSpans).ToArray();
 
-            actual[0].Tag.ToolTipContent.Should().Be((object)"error message 1");
+            actual[0].Tag.ToolTipContent.Should().Be((object)"cpp:S5350: error message 1");
             actual[0].Span.Span.Should().Be(primary1.Tag.Location.Span.Value.Span);
 
-            actual[1].Tag.ToolTipContent.Should().Be((object)"error message 2");
+            actual[1].Tag.ToolTipContent.Should().Be((object)"cpp:emptyCompoundStatement: error message 2");
             actual[1].Span.Span.Should().Be(primary2.Tag.Location.Span.Value.Span);
         }
 
-        private static IMappingTagSpan<IIssueLocationTag> CreateTagSpanWithPrimaryLocation(ITextSnapshot snapshot, Span span, string errorMessage = "")
+        private static IMappingTagSpan<IIssueLocationTag> CreateTagSpanWithPrimaryLocation(ITextSnapshot snapshot, Span span, string message = "", string ruleKey = "")
         {
-            var viz = CreateIssueViz(snapshot, span, errorMessage);
+            var viz = CreateIssueViz(snapshot, span, message, ruleKey);
             var tag = CreateIssueLocationTag(viz);
             return CreateMappingTagSpan(snapshot, tag, span);
         }
