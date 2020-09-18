@@ -98,12 +98,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             return tagSpanMock.Object;
         }
 
-        public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span, string locationMessage)
+        public static IAnalysisIssueVisualization CreateIssueViz(ITextSnapshot snapshot, Span span, string locationMessage, string ruleKey = null)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             var snapshotSpan = new SnapshotSpan(snapshot, span);
             issueVizMock.Setup(x => x.Span).Returns(snapshotSpan);
-            issueVizMock.Setup(x => x.Location).Returns(new DummyAnalysisIssue {Message = locationMessage});
+            issueVizMock.Setup(x => x.Issue).Returns(new DummyAnalysisIssue {Message = locationMessage, RuleKey = ruleKey});
             return issueVizMock.Object;
         }
 

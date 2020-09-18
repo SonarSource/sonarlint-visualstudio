@@ -26,6 +26,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -37,7 +38,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
     public class LocationTaggerTests
     {
         private const string ValidBufferDocName = "doc.txt";
-        private readonly ITextBuffer ValidBuffer = CreateBufferMock(filePath: ValidBufferDocName).Object;
         private readonly IIssueLocationStore ValidStore = Mock.Of<IIssueLocationStore>();
         private readonly IIssueSpanCalculator ValidSpanCalculator = Mock.Of<IIssueSpanCalculator>();
         private readonly ILogger ValidLogger = Mock.Of<ILogger>();
@@ -89,27 +89,83 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         [TestMethod]
         public void Ctor_InitialisesTags()
         {
-            var existingSpan = CreateUniqueSpan();
+            var bufferMock = CreateBufferMock(filePath: ValidBufferDocName);
+            var existingSpan = new SnapshotSpan(bufferMock.Object.CurrentSnapshot, new Span(1, 10));
+            var locVizWithSpan = CreateLocViz(existingSpan);
+            var locVizWithoutSpan = CreateLocViz(null);
+            var locVizWithEmptySpan = CreateLocViz(new SnapshotSpan?());
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { locVizWithSpan, locVizWithoutSpan, locVizWithEmptySpan });
+
+            var newSpan1 = new SnapshotSpan(bufferMock.Object.CurrentSnapshot, new Span(1, 10));
+            var newSpan2 = new SnapshotSpan(bufferMock.Object.CurrentSnapshot, new Span(5, 3));
+            var calculatorMock = new Mock<IIssueSpanCalculator>();
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location, It.IsAny<ITextSnapshot>())).Returns(newSpan1);
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithEmptySpan.Location, It.IsAny<ITextSnapshot>())).Returns(newSpan2);
+
+            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, calculatorMock.Object, ValidLogger);
+
+            testSubject.TagSpans.Should().NotBeNull();
+            testSubject.TagSpans.Count.Should().Be(3);
+            testSubject.TagSpans[0].Tag.Location.Should().BeSameAs(locVizWithSpan);
+            testSubject.TagSpans[1].Tag.Location.Should().BeSameAs(locVizWithoutSpan);
+            testSubject.TagSpans[2].Tag.Location.Should().BeSameAs(locVizWithEmptySpan);
+
+            // Locations without spans should have one calculated for them
+            testSubject.TagSpans[0].Tag.Location.Span.Value.Should().Be(existingSpan);
+            testSubject.TagSpans[1].Tag.Location.Span.Value.Should().Be(newSpan1);
+            testSubject.TagSpans[2].Tag.Location.Span.Value.Should().Be(newSpan2);
+        }
+
+        [TestMethod]
+        public void Ctor_LocationsHaveNoSpans_TagsNotCreated()
+        {
+            var bufferMock = CreateBufferMock(filePath: ValidBufferDocName);
+            var existingSpan = new SnapshotSpan(bufferMock.Object.CurrentSnapshot, new Span(1, 10));
             var locVizWithSpan = CreateLocViz(existingSpan);
             var locVizWithoutSpan = CreateLocViz(null);
 
             var storeMock = new Mock<IIssueLocationStore>();
             storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { locVizWithSpan, locVizWithoutSpan });
 
-            var newSpan = CreateUniqueSpan();
             var calculatorMock = new Mock<IIssueSpanCalculator>();
-            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location, It.IsAny<ITextSnapshot>())).Returns(newSpan);
+            calculatorMock.Setup(x => x.CalculateSpan(locVizWithoutSpan.Location, It.IsAny<ITextSnapshot>())).Returns(new SnapshotSpan());
 
-            var testSubject = new LocationTagger(ValidBuffer, storeMock.Object, calculatorMock.Object, ValidLogger);
+            var testSubject = new LocationTagger(bufferMock.Object, storeMock.Object, calculatorMock.Object, ValidLogger);
 
             testSubject.TagSpans.Should().NotBeNull();
-            testSubject.TagSpans.Count.Should().Be(2);
+            testSubject.TagSpans.Count.Should().Be(1);
             testSubject.TagSpans[0].Tag.Location.Should().BeSameAs(locVizWithSpan);
-            testSubject.TagSpans[1].Tag.Location.Should().BeSameAs(locVizWithoutSpan);
-
-            // Locations without spans should have one calculated for them
             testSubject.TagSpans[0].Tag.Location.Span.Value.Should().Be(existingSpan);
-            testSubject.TagSpans[1].Tag.Location.Span.Value.Should().Be(newSpan);
+
+            locVizWithoutSpan.Span.Should().NotBeNull();
+            locVizWithoutSpan.Span.Value.IsEmpty.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Ctor_LocationsHaveSpansThatBelongToAnotherBuffer_SpansRecalculated()
+        {
+            var oldBufferMock = CreateBufferMock(filePath: ValidBufferDocName);
+            var oldBufferSpan = new SnapshotSpan(oldBufferMock.Object.CurrentSnapshot, new Span(1, 10));
+            var location = CreateLocViz(oldBufferSpan);
+
+            var storeMock = new Mock<IIssueLocationStore>();
+            storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(new[] { location });
+
+            var newBufferMock = CreateBufferMock(filePath: ValidBufferDocName);
+            var newSpan = new SnapshotSpan(newBufferMock.Object.CurrentSnapshot, new Span(1, 10));
+
+            var calculatorMock = new Mock<IIssueSpanCalculator>();
+            calculatorMock.Setup(x => x.CalculateSpan(location.Location, newBufferMock.Object.CurrentSnapshot)).Returns(newSpan);
+
+            var testSubject = new LocationTagger(newBufferMock.Object, storeMock.Object, calculatorMock.Object, ValidLogger);
+
+            testSubject.TagSpans.Should().NotBeNull();
+            testSubject.TagSpans.Count.Should().Be(1);
+            testSubject.TagSpans[0].Span.Should().Be(newSpan);
+            testSubject.TagSpans[0].Tag.Location.Should().BeSameAs(location);
+            testSubject.TagSpans[0].Tag.Location.Span.Should().Be(newSpan);
         }
 
         [TestMethod]
@@ -132,18 +188,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         [TestMethod]
         public void OnIssuesChanged_BufferFileIsChanged_TagsChangedIsRaisedWithAffectedSpan()
         {
-            var snapshot = CreateSnapshot(length: 100);
-            var oldIssue1 = CreateLocViz(new SnapshotSpan(snapshot, 3, 1));
-            var oldIssue2 = CreateLocViz(new SnapshotSpan(snapshot, 20, 2));
-            var oldIssues = new[] {oldIssue1, oldIssue2};
+            var buffer = CreateBufferMock(filePath: ValidBufferDocName);
+            var oldIssue1 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 3, 1));
+            var oldIssue2 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 20, 2));
+            var oldIssues = new[] { oldIssue1, oldIssue2 };
 
             var storeMock = new Mock<IIssueLocationStore>();
             storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(oldIssues);
 
-            var testSubject = new LocationTagger(ValidBuffer, storeMock.Object, ValidSpanCalculator, ValidLogger);
+            var testSubject = new LocationTagger(buffer.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
 
-            var newIssue1 = CreateLocViz(new SnapshotSpan(snapshot, 15, 10));
-            var newIssue2 = CreateLocViz(new SnapshotSpan(snapshot, 25, 5));
+            var newIssue1 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 15, 10));
+            var newIssue2 = CreateLocViz(new SnapshotSpan(buffer.Object.CurrentSnapshot, 25, 5));
             var newIssues = new[] { newIssue1, newIssue2 };
 
             storeMock.Setup(x => x.GetLocations(ValidBufferDocName)).Returns(newIssues);
@@ -166,7 +222,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
 
             var storeMock = new Mock<IIssueLocationStore>();
             var bufferMock = CreateBufferMock(filePath: originalName);
-            
+
             new LocationTagger(bufferMock.Object, storeMock.Object, ValidSpanCalculator, ValidLogger);
 
             // Check store is called with original name
@@ -204,42 +260,71 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
         }
 
         [TestMethod]
-        public void GetTags_NoOverlappingSpans_ReturnsEmpty()
+        public void GetTags_NoIntersectingSpans_ReturnsEmpty()
         {
             // Make sure the tagger and NormalizedSpanCollection use the same snapshot
             // so we don't attempt to translate the spans
-            var snapshot = CreateSnapshot(length: 40);
+            var buffer = CreateBufferMock();
             var locSpan1 = new Span(1, 10);
             var locSpan2 = new Span(11, 10);
-            var storeMock = CreateStoreWithLocationsWithSpans(snapshot, locSpan1, locSpan2);
+            var storeMock = CreateStoreWithLocationsWithSpans(buffer.Object.CurrentSnapshot, out _, locSpan1, locSpan2);
 
-            var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, new Span(32, 5));
+            var inputSpans = new NormalizedSnapshotSpanCollection(buffer.Object.CurrentSnapshot, new Span(32, 5));
 
-            var testSubject = new LocationTagger(ValidBuffer, storeMock, ValidSpanCalculator, ValidLogger);
-            testSubject.TagSpans.Count().Should().Be(2); // sanity check
+            var testSubject = new LocationTagger(buffer.Object, storeMock, ValidSpanCalculator, ValidLogger);
+            testSubject.TagSpans.Count.Should().Be(2); // sanity check
 
             var matchingTags = testSubject.GetTags(inputSpans);
             matchingTags.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void GetTags_HasOverlappingSpans_ReturnsExpectedTags()
+        public void GetTags_HasIntersectingSpans_ReturnsExpectedTags()
         {
             // Make sure the tagger and NormalizedSpanCollection use the same snapshot
             // so we don't attempt to translate the spans
-            var snapshot = CreateSnapshot(length: 40);
+            var buffer = CreateBufferMock();
             var locSpan1 = new Span(1, 10);
             var locSpan2 = new Span(11, 10);
             var locSpan3 = new Span(21, 10);
-            var storeMock = CreateStoreWithLocationsWithSpans(snapshot, locSpan1, locSpan2, locSpan3);
+            var storeMock = CreateStoreWithLocationsWithSpans(buffer.Object.CurrentSnapshot, out _, locSpan1, locSpan2, locSpan3);
 
-            var inputSpans = new NormalizedSnapshotSpanCollection(snapshot, new Span(18, 22));
+            var inputSpans = new NormalizedSnapshotSpanCollection(buffer.Object.CurrentSnapshot, new Span(18, 22));
 
-            var testSubject = new LocationTagger(ValidBuffer, storeMock, ValidSpanCalculator, ValidLogger);
+            var testSubject = new LocationTagger(buffer.Object, storeMock, ValidSpanCalculator, ValidLogger);
             testSubject.TagSpans.Count().Should().Be(3); // sanity check
 
             var matchingTags = testSubject.GetTags(inputSpans);
             matchingTags.Select(x => x.Span.Span).Should().BeEquivalentTo(locSpan2, locSpan3);
+        }
+
+        [TestMethod]
+        [DataRow(4, false)] // before -> no match
+        [DataRow(5, true)]  // start of the span
+        [DataRow(7, true)]  // middle of span
+        [DataRow(10, true)] // end of the span
+        [DataRow(11, false)] // after -> no match
+        public void GetTags_RequestedSpansAreZeroLength_ReturnsExpectedTags(int inputSpanStart, bool shouldMatch)
+        {
+            // Regression test for #1720: Tooltips do not appear for primary locations
+            // https://github.com/SonarSource/sonarlint-visualstudio/issues/1720
+
+            var tagSpan = Span.FromBounds(5, 10);
+            var inputSpan = Span.FromBounds(inputSpanStart, inputSpanStart);
+
+            // Make sure the tagger and NormalizedSpanCollection use the same snapshot
+            // so we don't attempt to translate the spans
+            var buffer = CreateBufferMock();
+            var storeMock = CreateStoreWithLocationsWithSpans(buffer.Object.CurrentSnapshot, out _, tagSpan);
+
+            var inputSpans = new NormalizedSnapshotSpanCollection(buffer.Object.CurrentSnapshot, inputSpan);
+            var testSubject = new LocationTagger(buffer.Object, storeMock, ValidSpanCalculator, ValidLogger);
+
+            var matchingTags = testSubject.GetTags(inputSpans);
+
+            var expectedCount = shouldMatch ? 1 : 0;
+
+            matchingTags.Count().Should().Be(expectedCount);
         }
 
         [TestMethod]
@@ -256,11 +341,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
 
             var locSpan1 = new Span(1, 10);
             var locSpan2 = new Span(11, 5);
-            var storeMock = CreateStoreWithLocationsWithSpans(snapshotMock1, locSpan1, locSpan2);
+            var storeMock = CreateStoreWithLocationsWithSpans(snapshotMock1, out _, locSpan1, locSpan2);
 
             var inputSpans = new NormalizedSnapshotSpanCollection(snapshotMock2, new Span(18, 22));
 
-            var testSubject = new LocationTagger(ValidBuffer, storeMock, ValidSpanCalculator, ValidLogger);
+            var testSubject = new LocationTagger(buffer, storeMock, ValidSpanCalculator, ValidLogger);
 
             // Sanity checks
             testSubject.TagSpans.Count().Should().Be(2);
@@ -279,6 +364,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             testSubject.TagSpans[1].Tag.Location.Span.Value.Snapshot.Should().Be(snapshotMock2);
         }
 
+        [TestMethod]
+        public void GetTags_ExceptionInTranslatingSpan_ExceptionSuppressedAndLogged()
+        {
+            const int length = 100;
+            var buffer = CreateBufferMock(length, ValidBufferDocName).Object;
+            var snapshot = CreateSnapshot(buffer, length);
+            var storeMock = CreateStoreWithLocationsWithSpans(snapshot, out _, new Span(1, 10));
+
+            var logger = new TestLogger();
+            var testSubject = new LocationTagger(buffer, storeMock, ValidSpanCalculator, logger);
+            testSubject.TagSpans.Count.Should().Be(1);
+
+            var snapshotForAnotherBuffer = CreateSnapshot(CreateBuffer(), length);
+            var inputSpans = new NormalizedSnapshotSpanCollection(snapshotForAnotherBuffer, new Span(18, 22));
+
+            Action act = () => testSubject.GetTags(inputSpans).ToArray();
+            act.Should().NotThrow();
+
+            testSubject.TagSpans.Count.Should().Be(0);
+            logger.AssertPartialOutputStringExists(ValidBufferDocName, "The specified ITextSnapshot doesn't belong to the correct TextBuffer.");
+        }
+
         private static IAnalysisIssueLocationVisualization CreateLocViz(SnapshotSpan? span)
         {
             var locVizMock = new Mock<IAnalysisIssueLocationVisualization>();
@@ -289,26 +396,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
             return locVizMock.Object;
         }
 
-        private static int spanCounter;
-
-        private static SnapshotSpan CreateUniqueSpan()
-        {
-            // NB SnapshotSpans are value types, so any "new SpanshotSpan() == new SpanshotSpan()"
-            // If we want to differentiate between spans we can do so by creating
-            // them with different lengths.
-            var length = ++spanCounter;
-            var snapshotMock = new Mock<ITextSnapshot>();
-            snapshotMock.Setup(x => x.Length).Returns(length);
-
-            return new SnapshotSpan(snapshotMock.Object, 0, length);
-        }
-
         private static IIssueLocationStore CreateStoreWithLocationsWithSpans(ITextSnapshot snapshot,
-            params Span[] spans)
+            out IAnalysisIssueLocationVisualization[] locVizs, params Span[] spans)
         {
             var storeMock = new Mock<IIssueLocationStore>();
 
-            var locVizs = spans.Select(x =>
+            locVizs = spans.Select(x =>
             {
                 var snapshotSpan = new SnapshotSpan(snapshot, x);
                 return CreateLocViz(snapshotSpan);
