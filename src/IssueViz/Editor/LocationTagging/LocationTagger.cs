@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             // Find any tags in that overlap with that range
             foreach (var tagSpan in TagSpans)
             {
-                if (OverlapsExists(tagSpan.Span, spans))
+                if (IntersectionExists(tagSpan.Span, spans))
                 {
                     yield return tagSpan;
                 }
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                         // If the user has typed inside the tagged region we'll stop showing a Tag for that span
                         old.Tag.Location.InvalidateSpan();
                     }
-                    else
+                    else 
                     {
                         old.Tag.Location.Span = newSpan;
                         translatedTagSpans.Add(new TagSpan<IIssueLocationTag>(newSpan, old.Tag));
@@ -172,8 +172,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
             TagSpans = translatedTagSpans;
         }
 
-        private static bool OverlapsExists(Span span, NormalizedSnapshotSpanCollection spans) =>
-            spans.Any(x => x.OverlapsWith(span));
+        private static bool IntersectionExists(Span span, NormalizedSnapshotSpanCollection spans) =>
+            // We're using "IntersectsWith" rather than "OverlapsWith" so that zero-length spans are handled correctly.
+            // Given two spans A = [10 -> 15] and B = [12 -> 12],
+            // * A.IntersectsWith(B) == true
+            // * A.OverlapsWith(B) == false.
+            // This matters because when VS is requesting tags to show tooltips it uses a zero-length span.
+            spans.Any(x => x.IntersectsWith(span));
 
         #endregion ITagger implementation
 
