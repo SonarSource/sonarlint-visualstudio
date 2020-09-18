@@ -29,7 +29,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 {
-    [TestClass]
+    [TestClass, Ignore]
     public class IssueFlowStepNavigatorTests
     {
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;

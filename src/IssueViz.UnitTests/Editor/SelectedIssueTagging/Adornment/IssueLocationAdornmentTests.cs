@@ -29,7 +29,7 @@ using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.T
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Adornment
 {
-    [TestClass]
+    [TestClass, Ignore]
     public class IssueLocationAdornmentTests
     {
         [TestMethod]

@@ -33,7 +33,7 @@ using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.T
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.SelectedIssueTagging.Buffer
 {
-    [TestClass]
+    [TestClass, Ignore]
     public class SelectedIssueLocationTaggerTests
     {
         private readonly ITagAggregator<IIssueLocationTag> ValidAggregator = new Mock<ITagAggregator<IIssueLocationTag>>().Object;

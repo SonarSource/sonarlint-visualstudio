@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
 {
-    [TestClass]
+    [TestClass, Ignore]
     public class AnalysisIssueSelectionServiceTests
     {
         private Mock<IVsMonitorSelection> monitorSelectionMock;
