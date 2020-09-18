@@ -61,23 +61,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                 (location, currentLocation) => location.StepNumber < currentLocation.StepNumber);
         }
 
-        private void NavigateToMatchingLocation(Func<IReadOnlyList<IAnalysisIssueLocationVisualization>, IOrderedEnumerable<IAnalysisIssueLocationVisualization>> order, Func<IAnalysisIssueLocationVisualization, IAnalysisIssueLocationVisualization, bool> match)
+        private void NavigateToMatchingLocation(Func<IEnumerable<IAnalysisIssueLocationVisualization>, IOrderedEnumerable<IAnalysisIssueLocationVisualization>> order, Func<IAnalysisIssueLocationVisualization, IAnalysisIssueLocationVisualization, bool> match)
         {
             var currentLocation = selectionService.SelectedLocation;
-
-            if (currentLocation == null)
-            {
-                return;
-            }
-
             var currentFlow = selectionService.SelectedFlow;
+            var currentIssue = selectionService.SelectedIssue;
 
-            if (currentFlow == null)
+            if (currentLocation == null || currentFlow == null || currentIssue == null)
             {
                 return;
             }
 
-            var navigableLocations = order(currentFlow.Locations)
+            var allLocations = new List<IAnalysisIssueLocationVisualization> { currentIssue };
+            allLocations.AddRange(currentFlow.Locations);
+
+            var navigableLocations = order(allLocations)
                 .Where(x =>
                     x.IsNavigable() &&
                     match(x, currentLocation));

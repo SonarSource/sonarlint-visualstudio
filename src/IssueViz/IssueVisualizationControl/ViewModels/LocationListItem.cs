@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
@@ -25,10 +27,59 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
     internal sealed class LocationListItem : ILocationListItem
     {
         public IAnalysisIssueLocationVisualization Location { get; }
+        public string DisplayMessage { get; }
+        public int LineNumber { get; private set; }
 
         public LocationListItem(IAnalysisIssueLocationVisualization location)
         {
+            DisplayMessage = location is IAnalysisIssueVisualization
+                ? "root"
+                : location.Location.Message;
+
             Location = location;
+            location.PropertyChanged += Location_PropertyChanged;
+
+            UpdateState();
+        }
+
+        private void Location_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IAnalysisIssueLocationVisualization.Span))
+            {
+                UpdateState();
+            }
+        }
+
+        private void UpdateState()
+        {
+            if (!Location.Span.HasValue)
+            {
+                LineNumber = Location.Location.StartLine;
+            } 
+            else if (!Location.Span.IsNavigable())
+            {
+                LineNumber = 0;
+            }
+            else
+            {
+                var position = Location.Span.Value.Start;
+                var line = position.GetContainingLine();
+                LineNumber = line.LineNumber + 1;
+            }
+
+            NotifyPropertyChanged(nameof(LineNumber));
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            Location.PropertyChanged -= Location_PropertyChanged;
         }
     }
 }

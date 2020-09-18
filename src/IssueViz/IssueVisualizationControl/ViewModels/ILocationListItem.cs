@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
     /// <summary>
     ///  Marker interface for different data template styling
     /// </summary>
-    internal interface ILocationListItem
+    internal interface ILocationListItem : IDisposable
     {
     }
 }

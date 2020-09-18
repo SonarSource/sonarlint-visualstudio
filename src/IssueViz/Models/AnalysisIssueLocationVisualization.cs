@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
     public interface IAnalysisIssueLocationVisualization : INotifyPropertyChanged
     {
+        string Label { get; }
+
         int StepNumber { get; }
 
         IAnalysisIssueLocation Location { get; }
@@ -62,6 +64,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             Location = location;
             CurrentFilePath = location.FilePath;
         }
+
+        public string Label => StepNumber.ToString();
 
         public int StepNumber { get; }
 

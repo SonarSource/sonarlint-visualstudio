@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             {
                 selectedIssue = value;
                 selectedFlow = GetFirstFlowOrDefault();
-                selectedLocation = GetFirstLocationOrDefault();
+                selectedLocation = selectedIssue;
 
                 UpdateUiContext();
 
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             set
             {
                 selectedFlow = value;
-                selectedLocation = GetFirstLocationOrDefault();
+                selectedLocation = selectedIssue;
 
                 RaiseSelectionChanged(SelectionChangeLevel.Flow);
             }
@@ -103,11 +103,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         private IAnalysisIssueFlowVisualization GetFirstFlowOrDefault()
         {
             return selectedIssue?.Flows?.FirstOrDefault();
-        }
-
-        private IAnalysisIssueLocationVisualization GetFirstLocationOrDefault()
-        {
-            return selectedFlow?.Locations?.FirstOrDefault();
         }
 
         public void Dispose()

@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
-    internal interface IFileNameLocationListItem : ILocationListItem, INotifyPropertyChanged, IDisposable
+    internal interface IFileNameLocationListItem : ILocationListItem, INotifyPropertyChanged
     {
         string FullPath { get; }
         string FileName { get; }

@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
             // Visible content of the adornment
             Child = new TextBlock
             {
-                Text = LocationViz.StepNumber.ToString(),
+                Text = locationViz.Label,
                 FontWeight = FontWeights.SemiBold,
                 Padding = new Thickness(4, 0, 4, 0)
             };

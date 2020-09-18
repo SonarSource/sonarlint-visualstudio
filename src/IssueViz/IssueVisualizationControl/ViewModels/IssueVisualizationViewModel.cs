@@ -48,8 +48,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         /// </summary>
         private bool isBindingUpdatedByUI = true;
 
-        private bool pausePropertyChangeNotifications;
-
         public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService, 
             IRuleHelpLinkProvider ruleHelpLinkProvider,
             ILocationNavigator locationNavigator,
@@ -62,8 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
             selectionService.SelectionChanged += SelectionEvents_SelectionChanged;
 
-            UpdateState(SelectionChangeLevel.Issue, 
-                selectionService.SelectedIssue, 
+            UpdateState(selectionService.SelectedIssue, 
                 selectionService.SelectedFlow,
                 selectionService.SelectedLocation);
         }
@@ -132,28 +129,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void SelectionEvents_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            UpdateState(e.SelectionChangeLevel, e.SelectedIssue, e.SelectedFlow, e.SelectedLocation);
+            UpdateState(e.SelectedIssue, e.SelectedFlow, e.SelectedLocation);
         }
 
-        private void UpdateState(SelectionChangeLevel selectionChangeLevel, 
-            IAnalysisIssueVisualization selectedIssue, 
+        private void UpdateState(IAnalysisIssueVisualization selectedIssue, 
             IAnalysisIssueFlowVisualization selectedFlow,
             IAnalysisIssueLocationVisualization selectedLocation)
         {
             isBindingUpdatedByUI = false;
 
-            if (selectionChangeLevel == SelectionChangeLevel.Issue)
-            {
-                pausePropertyChangeNotifications = true;
-            }
-
+            CurrentIssue = selectedIssue;
             CurrentFlow = selectedFlow;
-
-            if (selectionChangeLevel == SelectionChangeLevel.Issue)
-            {
-                pausePropertyChangeNotifications = false;
-                CurrentIssue = selectedIssue;
-            }
 
             // Setting the selected location should be done last, after the flow list has been updated, so SelectedItem will be set in the xaml
             CurrentLocationListItem = GetLocationListItem(selectedLocation);
@@ -180,8 +166,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     disposable.Dispose();
                 }
             }
+            if (CurrentIssue == null || CurrentFlow?.Locations == null)
+            {
+                return;
+            }
 
-            LocationListItems = BuildLocationListItems(currentFlow);
+            var locations = new List<IAnalysisIssueLocationVisualization>{CurrentIssue};
+            locations.AddRange(currentFlow.Locations);
+
+            LocationListItems = BuildLocationListItems(locations);
 
             NotifyPropertyChanged(nameof(LocationListItems));
         }
@@ -190,20 +183,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         /// This method groups all sequential locations under the same file path and returns a single list with File nodes and Location nodes.
         /// This way the UI can use different data templates to make a flat list look like a hierarchical tree.
         /// </summary>
-        private IReadOnlyList<ILocationListItem> BuildLocationListItems(IAnalysisIssueFlowVisualization flow)
+        private IReadOnlyList<ILocationListItem> BuildLocationListItems(IList<IAnalysisIssueLocationVisualization> locations)
         {
             var listItems = new List<ILocationListItem>();
-            var flowLocations = flow?.Locations.ToList();
 
-            if (flowLocations != null && flowLocations.Any())
+            if (locations != null && locations.Any())
             {
-                for (var i = 0; i < flowLocations.Count; i++)
+                for (var i = 0; i < locations.Count; i++)
                 {
-                    var location = flowLocations[i];
+                    var location = locations[i];
 
                     listItems.Add(fileNameLocationListItemCreator.Create(location));
 
-                    var sequentialLocations = flowLocations
+                    var sequentialLocations = locations
                         .Skip(i)
                         .TakeWhile(x => x.CurrentFilePath == location.CurrentFilePath)
                         .ToList();
@@ -235,10 +227,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            if (!pausePropertyChangeNotifications)
-            {
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            }
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         public void Dispose()

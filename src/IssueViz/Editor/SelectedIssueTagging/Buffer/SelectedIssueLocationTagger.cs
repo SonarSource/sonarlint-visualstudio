@@ -24,6 +24,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.Buffer
@@ -58,11 +59,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging.
 
         protected override IEnumerable<IMappingTagSpan<IIssueLocationTag>> Filter(IEnumerable<IMappingTagSpan<IIssueLocationTag>> trackedTagSpans)
         {
-            var selectedSecondaryLocVizs = issueSelectionService.SelectedFlow?.Locations;
-            if (selectedSecondaryLocVizs == null || selectedSecondaryLocVizs.Count == 0) { return Array.Empty<IMappingTagSpan<IIssueLocationTag>>(); }
+            if (issueSelectionService.SelectedIssue == null || issueSelectionService.SelectedFlow?.Locations == null)
+            {
+                return Enumerable.Empty<IMappingTagSpan<IIssueLocationTag>>();
+            }
 
-            return trackedTagSpans
-                .Where(tagSpan => selectedSecondaryLocVizs.Contains(tagSpan.Tag.Location));
+            var allLocVizs = new List<IAnalysisIssueLocationVisualization> {issueSelectionService.SelectedIssue};
+            allLocVizs.AddRange(issueSelectionService.SelectedFlow.Locations);
+
+            return trackedTagSpans.Where(tagSpan => allLocVizs.Contains(tagSpan.Tag.Location));
         }
 
         #endregion

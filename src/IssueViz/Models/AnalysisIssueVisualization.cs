@@ -49,6 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
         public IAnalysisIssue Issue { get; }
+        public string Label => Issue.RuleKey;
         public int StepNumber => 0;
         public IAnalysisIssueLocation Location => Issue;
 
