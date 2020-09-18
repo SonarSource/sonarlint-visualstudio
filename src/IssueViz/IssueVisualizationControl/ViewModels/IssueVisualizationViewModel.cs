@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 var line = position.GetContainingLine();
                 var fileName = Path.GetFileName(CurrentIssue.CurrentFilePath);
 
-                return $"{fileName}:{line.LineNumber}";
+                return $"{fileName} (line {line.LineNumber + 1})";
             }
         }
 
