@@ -19,18 +19,23 @@
  */
 
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Navigation;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
     internal sealed partial class IssueVisualizationControl : UserControl
     {
+        private readonly ILocationNavigator locationNavigator;
+
         public IssueVisualizationViewModel ViewModel { get; }
 
-        public IssueVisualizationControl(IssueVisualizationViewModel viewModel)
+        public IssueVisualizationControl(IssueVisualizationViewModel viewModel, ILocationNavigator locationNavigator)
         {
+            this.locationNavigator = locationNavigator;
             ViewModel = viewModel;
 
             InitializeComponent();
@@ -45,6 +50,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 
             VsShellUtilities.OpenSystemBrowser(e.Uri.AbsoluteUri);
             e.Handled = true;
+        }
+
+        private void PrimaryLocationLabel_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            locationNavigator.TryNavigate(ViewModel.CurrentIssue);
         }
     }
 }
