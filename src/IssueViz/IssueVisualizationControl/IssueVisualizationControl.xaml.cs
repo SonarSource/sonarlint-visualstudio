@@ -24,6 +24,7 @@ using System.Windows.Navigation;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
@@ -52,9 +53,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             e.Handled = true;
         }
 
-        private void PrimaryLocationLabel_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void IssueDescription_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            locationNavigator.TryNavigate(ViewModel.CurrentIssue);
+            NavigateToLocation(ViewModel.CurrentIssue);
+        }
+
+        private void IssueDescription_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                NavigateToLocation(ViewModel.CurrentIssue);
+            }
+        }
+
+        private void LocationsList_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.OriginalSource is TextBlock container && 
+                container.DataContext is LocationListItem listItem)
+            {
+                NavigateToLocation(listItem.Location);
+            }
+        }
+
+        private void LocationsList_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && 
+                e.OriginalSource is ListViewItem container && 
+                container.Content is LocationListItem listItem)
+            {
+                NavigateToLocation(listItem.Location);
+            }
+        }
+
+        private void NavigateToLocation(IAnalysisIssueLocationVisualization locationVisualization)
+        {
+            locationNavigator.TryNavigate(locationVisualization);
         }
     }
 }
