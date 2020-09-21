@@ -19,6 +19,7 @@
  */
 
 using System.Threading;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -29,9 +30,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         internal IAnalysisIssueVisualization Issue { get; }
 
         private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IVsUIShell vsUiShell;
 
-        public SelectIssueVisualizationAction(IAnalysisIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization)
+        public SelectIssueVisualizationAction(IVsUIShell vsUiShell, IAnalysisIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization)
         {
+            this.vsUiShell = vsUiShell;
             this.selectionService = selectionService;
             Issue = issueVisualization;
         }
@@ -40,6 +43,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         public override void Invoke(CancellationToken cancellationToken)
         {
+            vsUiShell.PostExecCommand(
+                Commands.IssueVisualizationToolWindowCommand.CommandSet,
+                Commands.IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
+                0,
+                0);
+
             selectionService.SelectedIssue = Issue;
         }
     }

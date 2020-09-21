@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
@@ -35,12 +36,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 {
     internal sealed class IssueLocationActionsSource : ISuggestedActionsSource
     {
+        private readonly IVsUIShell vsUiShell;
         private readonly IAnalysisIssueSelectionService selectionService;
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
         private readonly ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator;
 
-        public IssueLocationActionsSource(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, ITextBuffer textBuffer, IAnalysisIssueSelectionService selectionService)
+        public IssueLocationActionsSource(IVsUIShell vsUiShell, IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, ITextBuffer textBuffer, IAnalysisIssueSelectionService selectionService)
         {
+            this.vsUiShell = vsUiShell;
             this.selectionService = selectionService;
 
             issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textBuffer);
@@ -62,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
             if (IsOnNonSelectedIssueWithSecondaryLocations(range, out var issueVisualizations))
             {
-                var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(selectionService, x));
+                var actions = issueVisualizations.Select(x => new SelectIssueVisualizationAction(vsUiShell, selectionService, x));
                 allActions.AddRange(actions);
             } 
 

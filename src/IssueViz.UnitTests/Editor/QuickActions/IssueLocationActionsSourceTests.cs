@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -292,6 +293,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
         private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator, IAnalysisIssueSelectionService selectionService = null)
         {
+            var vsUiShell = Mock.Of<IVsUIShell>();
             var buffer = Mock.Of<ITextBuffer>();
             var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
 
@@ -310,7 +312,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 selectionService = analysisIssueSelectionServiceMock.Object;
             }
 
-            return new IssueLocationActionsSource(bufferTagAggregatorFactoryService.Object, buffer, selectionService);
+            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService.Object, buffer, selectionService);
         }
     }
 }
