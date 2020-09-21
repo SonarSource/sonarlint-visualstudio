@@ -32,7 +32,21 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels
 {
-    internal sealed class IssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
+    internal interface IIssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
+    {
+        int LineNumber { get; }
+        string FileName { get; }
+        string Description { get; }
+        string RuleKey { get; }
+        string RuleHelpLink { get; }
+        AnalysisIssueSeverity Severity { get; }
+        IAnalysisIssueVisualization CurrentIssue { get; }
+        IAnalysisIssueFlowVisualization CurrentFlow { get; set; }
+        IReadOnlyList<ILocationListItem> LocationListItems { get; }
+        LocationListItem CurrentLocationListItem { get; set; }
+    }
+
+    internal sealed class IssueVisualizationViewModel : IIssueVisualizationViewModel
     {
         private readonly IAnalysisIssueSelectionService selectionService;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;

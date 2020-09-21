@@ -32,9 +32,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
     {
         private readonly ILocationNavigator locationNavigator;
 
-        public IssueVisualizationViewModel ViewModel { get; }
+        public IIssueVisualizationViewModel ViewModel { get; }
 
-        public IssueVisualizationControl(IssueVisualizationViewModel viewModel, ILocationNavigator locationNavigator)
+        public IssueVisualizationControl(IIssueVisualizationViewModel viewModel, ILocationNavigator locationNavigator)
         {
             this.locationNavigator = locationNavigator;
             ViewModel = viewModel;
@@ -53,12 +53,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             e.Handled = true;
         }
 
-        private void IssueDescription_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        internal void IssueDescription_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             NavigateToLocation(ViewModel.CurrentIssue);
         }
 
-        private void IssueDescription_OnKeyDown(object sender, KeyEventArgs e)
+        internal void IssueDescription_OnKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             }
         }
 
-        private void LocationsList_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        internal void LocationsList_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.OriginalSource is TextBlock container && 
                 container.DataContext is LocationListItem listItem)
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             }
         }
 
-        private void LocationsList_OnKeyDown(object sender, KeyEventArgs e)
+        internal void LocationsList_OnKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter && 
                 e.OriginalSource is ListViewItem container && 
