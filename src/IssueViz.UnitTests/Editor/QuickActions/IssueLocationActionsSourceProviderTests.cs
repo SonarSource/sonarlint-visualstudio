@@ -18,8 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -41,6 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         {
             MefTestHelpers.CheckTypeCanBeImported<IssueLocationActionsSourceProvider, ISuggestedActionsSourceProvider>(null, new[]
             {
+                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
                 MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>()),
                 MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>())
             });
@@ -80,8 +83,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 .Returns(Mock.Of<ITagAggregator<IIssueLocationTag>>());
 
             var analysisIssueSelectionService = Mock.Of<IAnalysisIssueSelectionService>();
+            var serviceProvider = Mock.Of<IServiceProvider>();
 
-            return new IssueLocationActionsSourceProvider(bufferTagAggregatorFactoryService.Object, analysisIssueSelectionService);
+            return new IssueLocationActionsSourceProvider(serviceProvider, bufferTagAggregatorFactoryService.Object, analysisIssueSelectionService);
         }
     }
 }
