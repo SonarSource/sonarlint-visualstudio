@@ -101,16 +101,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         #region LineNumber
 
         [TestMethod]
-        public void IssueLocation_CurrentIssueIsNull_Null()
+        public void LineNumber_CurrentIssueIsNull_Zero()
         {
             testSubject.LineNumber.Should().Be(0);
         }
 
         [TestMethod]
-        public void IssueLocation_CurrentIssueHasNoSpan_Null()
+        public void LineNumber_CurrentIssueHasNoSpan_Zero()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.CurrentFilePath).Returns("test.cpp");
             issueViz.Setup(x => x.Span).Returns((SnapshotSpan?)null);
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
@@ -119,10 +118,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void IssueLocation_CurrentIssueHasEmptySpan_Null()
+        public void LineNumber_CurrentIssueHasEmptySpan_Zero()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.CurrentFilePath).Returns("test.cpp");
             issueViz.Setup(x => x.Span).Returns(new SnapshotSpan());
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
@@ -131,11 +129,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void IssueLocation_CurrentIssueHasValidSpan_LocationMessage()
+        public void LineNumber_CurrentIssueHasValidSpan_OneBasedLineNumber()
         {
-            const int mockLineNumber = 10;
+            const int zeroBasedLineNumber = 10;
             var textLine = new Mock<ITextSnapshotLine>();
-            textLine.Setup(x => x.LineNumber).Returns(mockLineNumber);
+            textLine.Setup(x => x.LineNumber).Returns(zeroBasedLineNumber);
 
             const int mockPosition = 5;
             var textSnapshot = Mock.Get(TaggerTestHelper.CreateSnapshot());
@@ -149,7 +147,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
-            testSubject.LineNumber.Should().Be(mockLineNumber + 1);
+            var expectedOneBasedLineNumber = zeroBasedLineNumber + 1;
+            testSubject.LineNumber.Should().Be(expectedOneBasedLineNumber);
+        }
+
+        #endregion
+
+        #region FileName
+
+        [TestMethod]
+        public void FileName_CurrentIssueIsNull_Null()
+        {
+            testSubject.FileName.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void FileName_CurrentIssueIsNotNull_FileNameIsTakenFromCurrentFilePath()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.CurrentFilePath).Returns("c:\\a\\b\\test.cpp");
+            
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+
+            testSubject.FileName.Should().Be("test.cpp");
         }
 
         #endregion

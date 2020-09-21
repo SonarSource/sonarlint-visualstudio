@@ -223,8 +223,9 @@
             </Grid.RowDefinitions>
 
             <Border Name="IssueDescription" 
-                       Grid.Row="0"
-                       Style="{StaticResource IssueDescriptionBorderStyle}">
+                    Grid.Row="0"
+                    Style="{StaticResource IssueDescriptionBorderStyle}" 
+                    MouseLeftButtonDown="PrimaryLocationLabel_OnMouseLeftButtonDown" >
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -243,8 +244,7 @@
                     <TextBlock Grid.Row="0" 
                                Grid.Column="1" 
                                Margin="0,0,0,5"
-                               Style="{StaticResource BaseTitleTextBlockStyle}"
-                               MouseLeftButtonDown="PrimaryLocationLabel_OnMouseLeftButtonDown">
+                               Style="{StaticResource BaseTitleTextBlockStyle}">
                         <Run Text="{Binding FileName, Mode=OneWay}"/>
                         <Run Text="{Binding LineNumber, StringFormat=(line {0}), Mode=OneWay}"/>
                     </TextBlock>
