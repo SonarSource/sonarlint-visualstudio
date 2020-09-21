@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             var fileNameLocationListItemCreator = new FileNameLocationListItemCreator(imageService, logger);
 
             viewModel = new IssueVisualizationViewModel(selectionService, new RuleHelpLinkProvider(), locationNavigator, fileNameLocationListItemCreator);
-            Content = new IssueVisualizationControl(viewModel);
+            Content = new IssueVisualizationControl(viewModel, locationNavigator);
         }
 
         protected override void Dispose(bool disposing)

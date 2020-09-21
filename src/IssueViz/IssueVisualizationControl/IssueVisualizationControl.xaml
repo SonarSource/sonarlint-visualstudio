@@ -100,8 +100,17 @@
 
         <!-- Data grid items styles -->
 
-        <Style x:Key="IssueDescriptionDockPanelStyle" TargetType="DockPanel">
-            <Setter Property="Margin" Value="5"/>
+        <Style x:Key="IssueDescriptionBorderStyle" TargetType="Border">
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="ForceCursor" Value="true"/>
+            <Setter Property="ToolTip" Value="Click to navigate to issue location" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
+                </Trigger>
+            </Style.Triggers>
         </Style>
 
         <Style x:Key="StepNumberRectangleStyle" TargetType="Rectangle" BasedOn="{StaticResource BaseShapeStyle}">
@@ -213,28 +222,46 @@
                 <RowDefinition Name="LocationsListRow" Height="*" />
             </Grid.RowDefinitions>
 
-            <DockPanel Name="IssueDescription" 
-                       Grid.Row="0"
-                       Style="{StaticResource IssueDescriptionDockPanelStyle}">
+            <Border Name="IssueDescription" 
+                    Grid.Row="0"
+                    Style="{StaticResource IssueDescriptionBorderStyle}" 
+                    MouseLeftButtonDown="PrimaryLocationLabel_OnMouseLeftButtonDown" >
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
-                    <vsImaging:CrispImage Grid.Column="0" 
-                                        Height="16" Width="16"
-                                        Moniker="{Binding Severity, Converter={StaticResource SeverityToMonikerConverter}, Mode=OneWay}" 
-                                        Margin="0,0,5,0"/>
-                    <TextBlock Grid.Column="1" Style="{StaticResource BaseTextBlockStyle}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <vsImaging:CrispImage Grid.Row="0"
+                                          Grid.RowSpan="2"
+                                          Grid.Column="0" 
+                                          Height="16" Width="16"
+                                          Moniker="{Binding Severity, Converter={StaticResource SeverityToMonikerConverter}, Mode=OneWay}" 
+                                          Margin="0,0,5,0"/>
+                    <TextBlock Grid.Row="0" 
+                               Grid.Column="1" 
+                               Margin="0,0,0,5"
+                               Style="{StaticResource BaseTitleTextBlockStyle}">
+                        <Run Text="{Binding FileName, Mode=OneWay}"/>
+                        <Run Text="{Binding LineNumber, StringFormat=(line {0}), Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock Grid.Row="1" 
+                               Grid.Column="1" 
+                               Style="{StaticResource BaseTextBlockStyle}">
                         <Run Text="{Binding Description, Mode=OneWay}"/>
                         <Hyperlink NavigateUri="{Binding RuleHelpLink}" 
-                                   RequestNavigate="Hyperlink_OnRequestNavigate"
-                                   ToolTip="{Binding RuleKey, StringFormat={}(Open description of rule {0}), Mode=OneWay}">
+                                   RequestNavigate="Hyperlink_OnRequestNavigate">
+                            <Hyperlink.ToolTip>
+                                <TextBlock Text="{Binding Path=RuleKey, StringFormat=Open description of rule {0}}" />
+                            </Hyperlink.ToolTip>
                             <Run Text="{Binding RuleKey, StringFormat={}({0}), Mode=OneWay}" />
                         </Hyperlink>
                     </TextBlock>
                 </Grid>
-            </DockPanel>
+            </Border>
 
             <ListView Name="LocationsList" 
                       Grid.Row="1"

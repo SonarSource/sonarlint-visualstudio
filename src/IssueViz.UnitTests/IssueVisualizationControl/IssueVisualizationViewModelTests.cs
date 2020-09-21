@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -30,6 +31,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
 using DescriptionAttribute = Microsoft.VisualStudio.TestTools.UnitTesting.DescriptionAttribute;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualizationControl
@@ -92,6 +94,82 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             testSubject.CurrentFlow.Should().Be(newFlow);
             testSubject.CurrentLocationListItem.Should().NotBeNull();
             testSubject.CurrentLocationListItem.Location.Should().Be(newLocation);
+        }
+
+        #endregion
+
+        #region LineNumber
+
+        [TestMethod]
+        public void LineNumber_CurrentIssueIsNull_Zero()
+        {
+            testSubject.LineNumber.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void LineNumber_CurrentIssueHasNoSpan_Zero()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Span).Returns((SnapshotSpan?)null);
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+
+            testSubject.LineNumber.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void LineNumber_CurrentIssueHasEmptySpan_Zero()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Span).Returns(new SnapshotSpan());
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+
+            testSubject.LineNumber.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void LineNumber_CurrentIssueHasValidSpan_OneBasedLineNumber()
+        {
+            const int zeroBasedLineNumber = 10;
+            var textLine = new Mock<ITextSnapshotLine>();
+            textLine.Setup(x => x.LineNumber).Returns(zeroBasedLineNumber);
+
+            const int mockPosition = 5;
+            var textSnapshot = Mock.Get(TaggerTestHelper.CreateSnapshot());
+            textSnapshot.Setup(x => x.GetLineFromPosition(mockPosition)).Returns(textLine.Object);
+
+            var snapshotSpan = new SnapshotSpan(textSnapshot.Object, new Span(mockPosition, 1));
+
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.CurrentFilePath).Returns("test.cpp");
+            issueViz.Setup(x => x.Span).Returns(snapshotSpan);
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+
+            var expectedOneBasedLineNumber = zeroBasedLineNumber + 1;
+            testSubject.LineNumber.Should().Be(expectedOneBasedLineNumber);
+        }
+
+        #endregion
+
+        #region FileName
+
+        [TestMethod]
+        public void FileName_CurrentIssueIsNull_Null()
+        {
+            testSubject.FileName.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void FileName_CurrentIssueIsNotNull_FileNameIsTakenFromCurrentFilePath()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.CurrentFilePath).Returns("c:\\a\\b\\test.cpp");
+            
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+
+            testSubject.FileName.Should().Be("test.cpp");
         }
 
         #endregion
