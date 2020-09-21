@@ -20,8 +20,10 @@
 
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
@@ -38,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionServiceMock.SetupSet(x => x.SelectedIssue = null);
 
             var expectedIssue = Mock.Of<IAnalysisIssueVisualization>();
-            var testSubject = new SelectIssueVisualizationAction(selectionServiceMock.Object, expectedIssue);
+            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), selectionServiceMock.Object, expectedIssue);
 
             selectionServiceMock.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never());
 
@@ -48,12 +50,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void Invoke_IssueVisualizationToolWindowOpened()
+        {
+            var vsUiShell = new Mock<IVsUIShell>();
+            var testSubject = new SelectIssueVisualizationAction(vsUiShell.Object, Mock.Of<IAnalysisIssueSelectionService>(), Mock.Of<IAnalysisIssueVisualization>());
+
+            vsUiShell.VerifyNoOtherCalls();
+
+            testSubject.Invoke(CancellationToken.None);
+
+            object inputArgs = 0;
+            var guid = IssueVisualizationToolWindowCommand.CommandSet;
+
+            vsUiShell.Verify(x => x.PostExecCommand(
+                    ref guid,
+                    IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
+                    0,
+                    ref inputArgs),
+                Times.Once);
+        }
+
+        [TestMethod]
         public void DisplayText_UsesIssueRuleKey()
         {
             var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
             selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
 
-            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IAnalysisIssueSelectionService>(), selectedIssueMock.Object);
+            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IAnalysisIssueSelectionService>(), selectedIssueMock.Object);
             testSubject.DisplayText.Should().StartWith("test rule id");
         }
     }
