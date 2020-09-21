@@ -18,8 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -35,12 +38,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IVsUIShell vsUiShell;
 
         [ImportingConstructor]
-        public IssueLocationActionsSourceProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, IAnalysisIssueSelectionService selectionService)
+        public IssueLocationActionsSourceProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+            IAnalysisIssueSelectionService selectionService)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.selectionService = selectionService;
+            vsUiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
@@ -50,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
                 return null;
             }
 
-            return new IssueLocationActionsSource(bufferTagAggregatorFactoryService, textBuffer, selectionService);
+            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService, textBuffer, selectionService);
         }
     }
 }
