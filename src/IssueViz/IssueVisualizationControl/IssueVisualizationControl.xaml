@@ -101,11 +101,14 @@
         <!-- Data grid items styles -->
 
         <Style x:Key="IssueDescriptionBorderStyle" TargetType="Border">
+            <EventSetter Event="MouseLeftButtonDown" Handler="IssueDescription_OnMouseLeftButtonDown"/>
+            <EventSetter Event="KeyDown" Handler="IssueDescription_OnKeyDown"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ForceCursor" Value="true"/>
             <Setter Property="ToolTip" Value="Click to navigate to issue location" />
+            <Setter Property="Focusable" Value="True" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
@@ -120,6 +123,8 @@
         </Style>
 
         <Style x:Key="LocationsListViewItemStyle" TargetType="ListViewItem">
+            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="LocationsList_OnMouseLeftButtonDown"/>
+            <EventSetter Event="KeyDown" Handler="LocationsList_OnKeyDown"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="3"/>
             <Setter Property="Template">
@@ -224,8 +229,7 @@
 
             <Border Name="IssueDescription" 
                     Grid.Row="0"
-                    Style="{StaticResource IssueDescriptionBorderStyle}" 
-                    MouseLeftButtonDown="PrimaryLocationLabel_OnMouseLeftButtonDown" >
+                    Style="{StaticResource IssueDescriptionBorderStyle}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
