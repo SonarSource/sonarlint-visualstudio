@@ -38,26 +38,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly ILightBulbBroker lightBulbBroker;
         private readonly IVsUIShell vsUiShell;
 
         [ImportingConstructor]
         public IssueLocationActionsSourceProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
-            IAnalysisIssueSelectionService selectionService)
+            IAnalysisIssueSelectionService selectionService,
+            ILightBulbBroker lightBulbBroker)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.selectionService = selectionService;
+            this.lightBulbBroker = lightBulbBroker;
             vsUiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell;
         }
 
         public ISuggestedActionsSource CreateSuggestedActionsSource(ITextView textView, ITextBuffer textBuffer)
         {
-            if (textBuffer == null)
+            if (textView == null || textBuffer == null)
             {
                 return null;
             }
 
-            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService, textBuffer, selectionService);
+            return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService, textView, selectionService);
         }
     }
 }

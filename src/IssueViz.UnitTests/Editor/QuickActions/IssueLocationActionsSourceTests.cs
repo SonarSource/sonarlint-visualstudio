@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
@@ -85,6 +86,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             selectedIssueLocationsTagAggregator.Verify(x=> x.Dispose(), Times.Once);
             issueLocationsTagAggregator.Verify(x=> x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnTagsChanged_DismissLightBulbSession()
+        {
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var lightBulbBroker = new Mock<ILightBulbBroker>();
+            var textView = CreateWpfTextView();
+
+            CreateTestSubject(selectedIssueLocationsTagAggregator.Object, 
+                issueLocationsTagAggregator.Object, 
+                lightBulbBroker: lightBulbBroker.Object, 
+                textView: textView);
+
+            lightBulbBroker.VerifyNoOtherCalls();
+
+            selectedIssueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            lightBulbBroker.Verify(x=> x.DismissSession(textView), Times.Once);
+
+            issueLocationsTagAggregator.Raise(x => x.TagsChanged += null, new TagsChangedEventArgs(Mock.Of<IMappingSpan>()));
+            lightBulbBroker.Verify(x => x.DismissSession(textView), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -252,26 +275,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return issueViz.Object;
         }
 
-        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator, IAnalysisIssueSelectionService selectionService = null)
+        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, 
+            ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator, 
+            IAnalysisIssueSelectionService selectionService = null, 
+            ILightBulbBroker lightBulbBroker = null, 
+            ITextView textView = null)
         {
+            textView = textView ?? CreateWpfTextView();
             var vsUiShell = Mock.Of<IVsUIShell>();
-            var buffer = Mock.Of<ITextBuffer>();
             var bufferTagAggregatorFactoryService = new Mock<IBufferTagAggregatorFactoryService>();
 
             bufferTagAggregatorFactoryService
-                .Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(buffer))
+                .Setup(x => x.CreateTagAggregator<ISelectedIssueLocationTag>(textView.TextBuffer))
                 .Returns(selectedIssueLocationsTagAggregator);
 
             bufferTagAggregatorFactoryService
-                .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(buffer))
+                .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer))
                 .Returns(issueLocationsTagAggregator);
 
             var analysisIssueSelectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             analysisIssueSelectionServiceMock.Setup(x => x.SelectedIssue).Returns(Mock.Of<IAnalysisIssueVisualization>());
 
             selectionService = selectionService ?? analysisIssueSelectionServiceMock.Object;
+            lightBulbBroker = lightBulbBroker ?? Mock.Of<ILightBulbBroker>();
 
-            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService.Object, buffer, selectionService);
+            return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService.Object, textView, selectionService);
         }
 
         private IList<SuggestedActionSet> GetSuggestedActions(IEnumerable<IAnalysisIssueVisualization> primaryIssues,
