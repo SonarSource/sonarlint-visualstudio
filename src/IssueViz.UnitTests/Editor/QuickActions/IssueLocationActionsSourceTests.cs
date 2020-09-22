@@ -187,6 +187,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
+        public void GetSuggestedActions_NoSelectionTags_HasSelectedIssueTag_SelectAndDeselectIssueAction()
+        {
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var mockSpan = new SnapshotSpan();
+            var selectedIssue = CreateIssueViz(CreateFlowViz(CreateLocationViz()));
+
+            var locations = new[]
+            {
+                selectedIssue
+            };
+
+            SetupIssueLocationTags(locations, issueLocationsTagAggregator, mockSpan);
+
+            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            selectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue);
+
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
+            var suggestedActionSets = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
+
+            suggestedActionSets.Count().Should().Be(1);
+            var suggestedActions = suggestedActionSets.First().Actions.ToArray();
+            suggestedActions.Length.Should().Be(2);
+            suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
+            (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(selectedIssue);
+            suggestedActions[1].Should().BeOfType<DeselectIssueVisualizationAction>();
+        }
+
+        [TestMethod]
         public void GetSuggestedActions_HasSelectionTags_NoIssueTags_DeselectIssueAction()
         {
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
@@ -212,7 +241,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void GetSuggestedActions_HasSelectionTags_HasIssueTagsWithSecondaryLocations_DeselectAndSelectIssueActions()
+        public void GetSuggestedActions_HasSelectionTags_HasIssueTagsWithSecondaryLocations_SelectAndDeselectIssueActions()
         {
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
 
@@ -236,7 +265,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             SetupIssueLocationTags(issueLocations, issueLocationsTagAggregator, mockSpan);
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            selectionService.SetupGet(x => x.SelectedIssue).Returns(issueLocations[0]);
+
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
             var suggestedActionSets = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
 
             suggestedActionSets.Count().Should().Be(1);
@@ -273,7 +305,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectedIssueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(mappingTagSpans);
         }
 
-        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator)
+        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator, IAnalysisIssueSelectionService selectionService = null)
         {
             var vsUiShell = Mock.Of<IVsUIShell>();
             var buffer = Mock.Of<ITextBuffer>();
@@ -290,7 +322,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var analysisIssueSelectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             analysisIssueSelectionServiceMock.Setup(x => x.SelectedIssue).Returns(Mock.Of<IAnalysisIssueVisualization>());
 
-            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService.Object, buffer, analysisIssueSelectionServiceMock.Object);
+            selectionService = selectionService ?? analysisIssueSelectionServiceMock.Object;
+
+            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService.Object, buffer, selectionService);
         }
     }
 }

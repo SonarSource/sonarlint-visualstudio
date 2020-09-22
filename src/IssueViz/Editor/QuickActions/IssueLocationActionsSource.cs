@@ -102,9 +102,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private bool IsOnSelectedVisualization(SnapshotSpan range)
         {
-            var tagSpans = selectedIssueLocationsTagAggregator.GetTags(range);
+            var primaryLocationsTagSpans = issueLocationsTagAggregator.GetTags(range);
+            var isOnSelectedPrimaryLocation = primaryLocationsTagSpans.Select(x => x.Tag.Location)
+                .OfType<IAnalysisIssueVisualization>()
+                .Any(x => x == selectionService.SelectedIssue);
 
-            return tagSpans.Any();
+            var selectedLocationsTagSpans = selectedIssueLocationsTagAggregator.GetTags(range);
+            var isOnSelectedSecondaryLocation = selectedLocationsTagSpans.Any();
+
+            return isOnSelectedPrimaryLocation || isOnSelectedSecondaryLocation;
         }
 
         public bool TryGetTelemetryId(out Guid telemetryId)
