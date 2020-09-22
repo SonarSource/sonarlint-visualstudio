@@ -197,6 +197,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common
             var viewMock = new Mock<IWpfTextView>();
             viewMock.Setup(x => x.TextSnapshot).Returns(snapshot);
             viewMock.Setup(x => x.FormattedLineSource).Returns(lineSource);
+            viewMock.Setup(x => x.TextBuffer).Returns(CreateBuffer());
             return viewMock.Object;
         }
 
