@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -94,6 +95,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
                         args.OldNewFilePaths.Count == renamedFiles.Count &&
                         args.OldNewFilePaths.All(arg => renamedFiles.ContainsKey(arg.Key) && renamedFiles[arg.Key] == arg.Value))),
                     Times.Once());
+        }
+
+        [TestMethod]
+        public void IVsTrackProjectDocumentsEvents2_AllMethodsReturnOkStatus()
+        {
+            var vsTrackProjectDocumentsEvents2 = testSubject as IVsTrackProjectDocumentsEvents2;
+
+            var notImplementedMethods = typeof(IVsTrackProjectDocumentsEvents2)
+                .GetMethods()
+                .Where(x => !x.Name.Equals(nameof(IVsTrackProjectDocumentsEvents2.OnAfterRenameFiles)));
+
+            foreach (var notImplementedMethod in notImplementedMethods)
+            {
+                var defaultValues = notImplementedMethod.GetParameters().Select(x => GetDefaultValue(x.ParameterType));
+                var result = notImplementedMethod.Invoke(vsTrackProjectDocumentsEvents2, defaultValues.ToArray());
+                result.Should().Be(VSConstants.S_OK, $"Method {notImplementedMethod.Name} should return VSConstants.S_OK");
+            }
+        }
+
+        public static object GetDefaultValue(Type type)
+        {
+            return type.IsValueType ? Activator.CreateInstance(type) : null;
         }
 
         private void RaiseDocumentsRenamed(IDictionary<string, string> oldNewFilePaths)
