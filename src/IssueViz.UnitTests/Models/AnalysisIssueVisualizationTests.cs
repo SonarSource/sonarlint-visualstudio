@@ -59,6 +59,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
+        public void Location_ReturnsUnderlyingIssue()
+        {
+            var testSubject = CreateTestSubject();
+            testSubject.Location.Should().Be(testSubject.Issue);
+        }
+
+        [TestMethod]
         public void SetCurrentFilePath_NoSubscribers_NoException()
         {
             var testSubject = CreateTestSubject();

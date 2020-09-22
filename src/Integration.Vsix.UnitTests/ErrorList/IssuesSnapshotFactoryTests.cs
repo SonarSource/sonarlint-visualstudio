@@ -33,6 +33,37 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
     public class IssuesSnapshotFactoryTests
     {
         [TestMethod]
+        public void GetCurrentSnapshot_ReturnsCurrentSnapshot()
+        {
+            var location = CreateLocation("some file1");
+            var snapshot = CreateIssuesSnapshot("some file2", location);
+            var testSubject = new IssuesSnapshotFactory(snapshot.Object);
+
+            testSubject.GetCurrentSnapshot().Should().Be(snapshot.Object);
+
+            var updatedSnapshot = CreateIssuesSnapshot("new file3");
+            testSubject.UpdateSnapshot(updatedSnapshot.Object);
+
+            testSubject.GetCurrentSnapshot().Should().Be(updatedSnapshot.Object);
+        }
+
+        [TestMethod]
+        public void CurrentVersionNumber_ReturnsCurrentSnapshotVersion()
+        {
+            var location = CreateLocation("some file1");
+            var snapshot = CreateIssuesSnapshot("some file2", location);
+            snapshot.SetupGet(x => x.VersionNumber).Returns(1234);
+
+            var testSubject = new IssuesSnapshotFactory(snapshot.Object);
+
+            testSubject.CurrentVersionNumber.Should().Be(1234);
+
+            snapshot.SetupGet(x => x.VersionNumber).Returns(5678);
+
+            testSubject.CurrentVersionNumber.Should().Be(5678);
+        }
+
+        [TestMethod]
         public void HandleFileRenames_NoReferencesToToRenamedFile_NoChanges()
         {
             var location = CreateLocation("some file1");

@@ -86,6 +86,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
+        [Description("TextBufferIssueTracker is no longer used as a real tagger and therefore should not produce any tags")]
+        public void GetTags_EmptyArray()
+        {
+            testSubject.GetTags(null).Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void Ctor_RegistersEventsTrackerAndFactory()
         {
             CheckFactoryWasRegisteredWithDataSource(testSubject.Factory, Times.Once());

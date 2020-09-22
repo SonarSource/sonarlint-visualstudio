@@ -49,10 +49,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
             this.selectionService = selectionService;
         }
 
-        void IIssueTablesSelectionMonitor.SelectionChanged(IAnalysisIssueVisualization selected)
+        void IIssueTablesSelectionMonitor.SelectionChanged(IAnalysisIssueVisualization selectedIssue)
         {
             // Exception handling: assuming the caller is handling exceptions
-            selectionService.SelectedIssue = selected;
+            selectionService.SelectedIssue = selectedIssue;
         }
     }
 }
