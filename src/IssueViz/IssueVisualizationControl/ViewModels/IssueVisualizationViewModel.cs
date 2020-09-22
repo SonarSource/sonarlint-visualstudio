@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             this.locationNavigator = locationNavigator;
             this.fileNameLocationListItemCreator = fileNameLocationListItemCreator;
 
-            selectionService.SelectionChanged += SelectionEvents_SelectionChanged;
+            selectionService.SelectionChanged += SelectionEvents_OnSelectionChanged;
 
             UpdateState(SelectionChangeLevel.Issue, 
                 selectionService.SelectedIssue, 
@@ -91,6 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 if (issueSpan == null || issueSpan.Value.IsEmpty)
                 {
+                    selectionService.SelectedIssue = null;
                     return 0;
                 }
 
@@ -118,10 +119,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 if (currentIssue != value)
                 {
+                    if (currentIssue != null)
+                    {
+                        currentIssue.PropertyChanged -= CurrentIssue_OnPropertyChanged;
+                    }
+
                     currentIssue = value;
+
+                    if (currentIssue != null)
+                    {
+                        currentIssue.PropertyChanged += CurrentIssue_OnPropertyChanged;
+                    }
+
                     // Trigger PropertyChanged for all properties
                     NotifyPropertyChanged(string.Empty);
                 }
+            }
+        }
+
+        private void CurrentIssue_OnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(IAnalysisIssueVisualization.Span):
+                    NotifyPropertyChanged(nameof(LineNumber));
+                    break;
+                case nameof(IAnalysisIssueVisualization.CurrentFilePath):
+                    NotifyPropertyChanged(nameof(FileName));
+                    break;
             }
         }
 
@@ -165,7 +190,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             }
         }
 
-        private void SelectionEvents_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SelectionEvents_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateState(e.SelectionChangeLevel, e.SelectedIssue, e.SelectedFlow, e.SelectedLocation);
         }
@@ -278,7 +303,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public void Dispose()
         {
-            selectionService.SelectionChanged -= SelectionEvents_SelectionChanged;
+            if (currentIssue != null)
+            {
+                currentIssue.PropertyChanged -= CurrentIssue_OnPropertyChanged;
+            }
+
+            selectionService.SelectionChanged -= SelectionEvents_OnSelectionChanged;
         }
     }
 }

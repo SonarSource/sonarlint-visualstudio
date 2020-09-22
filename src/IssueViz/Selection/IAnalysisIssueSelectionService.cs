@@ -23,7 +23,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
-    internal interface IAnalysisIssueSelectionService : IDisposable
+    public interface IAnalysisIssueSelectionService : IDisposable
     {
         event EventHandler<SelectionChangedEventArgs> SelectionChanged; 
 
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         Location
     }
 
-    internal class SelectionChangedEventArgs : EventArgs
+    public class SelectionChangedEventArgs : EventArgs
     {
         public SelectionChangedEventArgs(SelectionChangeLevel selectionChangeLevel, IAnalysisIssueVisualization selectedIssue, IAnalysisIssueFlowVisualization selectedFlow, IAnalysisIssueLocationVisualization selectedLocation)
         {
