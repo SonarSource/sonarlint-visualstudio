@@ -98,6 +98,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
         #endregion
 
+        #region CurrentIssue PropertyChanged
+
+        [TestMethod]
+        [DataRow(nameof(IAnalysisIssueVisualization.CurrentFilePath), nameof(IIssueVisualizationViewModel.FileName))]
+        [DataRow(nameof(IAnalysisIssueVisualization.Span), nameof(IIssueVisualizationViewModel.LineNumber))]
+        [DataRow(nameof(IAnalysisIssueVisualization.RuleId), null)]
+        public void CurrentIssuePropertyChanged_NotifyPropertyChanged(string issueChangedProperty, string expectedNotifiedProperty)
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+            propertyChangedEventHandler.Reset();
+
+            issueViz.Raise(x => x.PropertyChanged += null, null, new PropertyChangedEventArgs(issueChangedProperty));
+
+            if (expectedNotifiedProperty == null)
+            {
+                VerifyNotifyPropertyChanged();
+            }
+            else
+            {
+                VerifyNotifyPropertyChanged(expectedNotifiedProperty);
+            }
+        }
+
+        #endregion
+
         #region LineNumber
 
         [TestMethod]
@@ -107,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void LineNumber_CurrentIssueHasNoSpan_Zero()
+        public void LineNumber_CurrentIssueHasNoSpan_SelectionServiceIssueSetToNull()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Span).Returns((SnapshotSpan?)null);
@@ -115,10 +142,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
             testSubject.LineNumber.Should().Be(0);
+            selectionServiceMock.VerifySet(x=> x.SelectedIssue = null, Times.Once);
         }
 
         [TestMethod]
-        public void LineNumber_CurrentIssueHasEmptySpan_Zero()
+        public void LineNumber_CurrentIssueHasEmptySpan_SelectionServiceIssueSetToNull()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Span).Returns(new SnapshotSpan());
@@ -126,6 +154,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
             testSubject.LineNumber.Should().Be(0);
+            selectionServiceMock.VerifySet(x => x.SelectedIssue = null, Times.Once);
         }
 
         [TestMethod]
@@ -149,6 +178,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             var expectedOneBasedLineNumber = zeroBasedLineNumber + 1;
             testSubject.LineNumber.Should().Be(expectedOneBasedLineNumber);
+
+            selectionServiceMock.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), 
+                Times.Never);
         }
 
         #endregion
@@ -371,6 +403,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, Mock.Of<IAnalysisIssueVisualization>());
 
             selectionServiceMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectionService_OnIssueChanged_PreviousIssueIsNotNull_NewIssueIsNotNull_UnregisterFromPreviousIssueAndRegisterToNewIssue()
+        {
+            var previousIssue = new Mock<IAnalysisIssueVisualization>();
+            previousIssue.SetupAdd(x => x.PropertyChanged += null);
+
+            var previousFlow = CreateFlow(out var previousLocation);
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, previousIssue.Object, previousFlow, previousLocation);
+
+            previousIssue.VerifyAdd(x=> x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
+
+            var newIssue = new Mock<IAnalysisIssueVisualization>();
+            newIssue.SetupAdd(x => x.PropertyChanged += null);
+
+            var newFlow = CreateFlow(out var newLocation);
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, newIssue.Object, newFlow, newLocation);
+
+            previousIssue.VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
+            newIssue.VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
 
         #endregion
@@ -679,7 +732,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         #region Dispose
 
         [TestMethod]
-        public void Dispose_UnregisterFromSelectionServiceEvents()
+        public void Dispose_UnregisterFromEvents()
         {
             selectionServiceMock.SetupRemove(m => m.SelectionChanged -= (sender, args) => { });
 
@@ -687,6 +740,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             selectionServiceMock.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
             selectionServiceMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_CurrentIssueIsNotNull_UnregisterFromPropertyChangedEvent()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.SetupRemove(m => m.PropertyChanged -= (sender, args) => { });
+
+            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
+
+            issueViz.VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Never);
+
+            testSubject.Dispose();
+
+            issueViz.VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
 
         #endregion
