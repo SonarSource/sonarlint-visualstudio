@@ -40,6 +40,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
     public class IssueLocationActionsSourceTests
     {
         [TestMethod]
+        public void TryGetTelemetryId_False()
+        {
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
+
+            testSubject.TryGetTelemetryId(out var guid).Should().BeFalse();
+            guid.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void Ctor_RegisterToTagAggregatorEvents()
         {
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();

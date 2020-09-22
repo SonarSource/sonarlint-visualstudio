@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class IssuesSnapshotTests_GetValue
     {
-        private IIssuesSnapshot snapshot;
+        private IssuesSnapshot snapshot;
         private DummyAnalysisIssue issue;
         private IAnalysisIssueVisualization issueViz;
 
@@ -43,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void SetUp()
         {
             var path = "foo.js";
-            issue = new DummyAnalysisIssue()
+            issue = new DummyAnalysisIssue
             {
                 FilePath = path,
                 Message = "This is dangerous",
@@ -64,6 +65,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
             snapshot = new IssuesSnapshot("MyProject", path, new List<IAnalysisIssueVisualization> { issueViz });
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(1)]
+        [DataRow(2)]
+        public void Count_ReturnsNumberOfIssues(int numberOfIssues)
+        {
+            var analysisIssueVisualizations = Enumerable.Repeat(issueViz, numberOfIssues);
+            
+            var testSubject = new IssuesSnapshot("MyProject", "foo.js", analysisIssueVisualizations);
+            testSubject.Count.Should().Be(numberOfIssues);
+        }
+
+        [TestMethod]
+        public void TryCreateDetailsStringContent_ReturnsIssueMessage()
+        {
+            snapshot.TryCreateDetailsStringContent(0, out var content);
+            content.Should().Be("This is dangerous");
+        }
+
+        [TestMethod]
+        public void GetValue_UnknownColumn_Null()
+        {
+            AssertGetValueReturnsNull(columnName: "asdsdgdsgrgddfgfg");
         }
 
         [TestMethod]
@@ -189,10 +215,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return content;
         }
 
-        private void AssertGetValueReturnsNull(int index = 0)
+        private void AssertGetValueReturnsNull(int index = 0, string columnName = StandardTableKeyNames.Line)
         {
             object content;
-            snapshot.TryGetValue(index, StandardTableKeyNames.Line, out content).Should().BeFalse();
+            snapshot.TryGetValue(index, columnName, out content).Should().BeFalse();
             content.Should().BeNull();
         }
 

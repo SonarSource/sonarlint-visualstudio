@@ -87,5 +87,19 @@ namespace SonarLint.VisualStudio.Core.UnitTests.WPF
             result.Should().BeAssignableTo<Visibility>();
             Visibility.Visible.Should().Be(result);
         }
+
+        [TestMethod]
+        public void ConvertBack_NotImplementedException()
+        {
+            var converter = new BoolToVisibilityConverter
+            {
+                TrueValue = Visibility.Hidden,
+                FalseValue = Visibility.Visible
+            };
+
+            Action act = () => converter.ConvertBack(null, null, null, null);
+
+            act.Should().Throw<NotImplementedException>("ConvertBack is not required");
+        }
     }
 }
