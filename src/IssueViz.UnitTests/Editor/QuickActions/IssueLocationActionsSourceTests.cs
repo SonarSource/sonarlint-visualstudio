@@ -19,9 +19,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -123,130 +125,123 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void GetSuggestedActions_NoSelectionTags_NoIssueTags_NoActions()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            var actionSets = GetSuggestedActions(
+                primaryIssues:Enumerable.Empty<IAnalysisIssueVisualization>(),
+                secondaryLocations:Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
+                selectedIssue: null);
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
-            var suggestedActionSets = testSubject.GetSuggestedActions(null, new SnapshotSpan(), CancellationToken.None);
-
-            suggestedActionSets.Should().BeEmpty();
+            actionSets.Should().BeEmpty();
         }
 
         [TestMethod]
         public void GetSuggestedActions_NoSelectionTags_NoIssueTagsWithSecondaryLocations_NoActions()
         {
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-
-            var mockSpan = new SnapshotSpan();
-
-            var locations = new[]
+            var issuesWithoutSecondaryLocations = new[]
             {
                 CreateIssueViz(),
                 CreateIssueViz()
             };
 
-            SetupIssueLocationTags(locations, issueLocationsTagAggregator, mockSpan);
+            var actionSets = GetSuggestedActions(
+                primaryIssues: issuesWithoutSecondaryLocations,
+                secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
+                selectedIssue: null);
 
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
-            var suggestedActionSets = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-
-            suggestedActionSets.Should().BeEmpty();
+            actionSets.Should().BeEmpty();
         }
 
         [TestMethod]
         public void GetSuggestedActions_NoSelectionTags_HasIssueTagsWithSecondaryLocations_SelectIssueActions()
         {
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-
-            var mockSpan = new SnapshotSpan();
-
-            var issueVizWithoutFlows = CreateIssueViz();
-            var firstIssueVizWithFlows = CreateIssueViz(CreateFlowViz(CreateLocationViz()));
-            var secondIssueVizWithFlows = CreateIssueViz(CreateFlowViz(CreateLocationViz()));
-
-            var locations = new[]
+            var issues = new[]
             {
-                firstIssueVizWithFlows,
-                issueVizWithoutFlows,
-                secondIssueVizWithFlows
+                CreateIssueViz(CreateFlowViz(CreateLocationViz())),
+                CreateIssueViz(),
+                CreateIssueViz(CreateFlowViz(CreateLocationViz()))
             };
 
-            SetupIssueLocationTags(locations, issueLocationsTagAggregator, mockSpan);
+            var actionSets = GetSuggestedActions(
+                primaryIssues: issues,
+                secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
+                selectedIssue: null);
 
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
-            var suggestedActionSets = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-            
-            suggestedActionSets.Count().Should().Be(1);
-            var suggestedActions = suggestedActionSets.First().Actions.ToArray();
+            actionSets.Count.Should().Be(1);
+            var suggestedActions = actionSets[0].Actions.ToArray();
             suggestedActions.Length.Should().Be(2);
             suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
-            (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(firstIssueVizWithFlows);
-            (suggestedActions[1] as SelectIssueVisualizationAction).Issue.Should().Be(secondIssueVizWithFlows);
+            (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(issues[0]);
+            (suggestedActions[1] as SelectIssueVisualizationAction).Issue.Should().Be(issues[2]);
+        }
+
+        [TestMethod]
+        public void GetSuggestedActions_NoSelectionTags_HasSelectedIssueTag_SelectAndDeselectIssueAction()
+        {
+            var issues = new[]
+            {
+                CreateIssueViz(CreateFlowViz(CreateLocationViz()))
+            };
+
+            var actionSets = GetSuggestedActions(
+                primaryIssues: issues,
+                secondaryLocations: Enumerable.Empty<IAnalysisIssueLocationVisualization>(),
+                selectedIssue: issues[0]);
+
+            actionSets.Count.Should().Be(1);
+            var suggestedActions = actionSets[0].Actions.ToArray();
+            suggestedActions.Length.Should().Be(2);
+            suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
+            (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(issues[0]);
+            suggestedActions[1].Should().BeOfType<DeselectIssueVisualizationAction>();
         }
 
         [TestMethod]
         public void GetSuggestedActions_HasSelectionTags_NoIssueTags_DeselectIssueAction()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-
-            var mockSpan = new SnapshotSpan();
-
-            var locations = new[]
+            var secondaryLocations = new[]
             {
-                Mock.Of<IAnalysisIssueLocationVisualization>(),
-                Mock.Of<IAnalysisIssueLocationVisualization>()
+                CreateLocationViz(),
+                CreateLocationViz()
             };
 
-            SetupSelectedLocationTags(locations, selectedIssueLocationsTagAggregator, mockSpan);
+            var actionSets = GetSuggestedActions(
+                primaryIssues: Enumerable.Empty<IAnalysisIssueVisualization>(),
+                secondaryLocations: secondaryLocations,
+                selectedIssue: CreateIssueViz());
 
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
-            var suggestedActionSets = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-
-            suggestedActionSets.Count().Should().Be(1);
-            var suggestedActions = suggestedActionSets.First().Actions.ToArray();
+            actionSets.Count.Should().Be(1);
+            var suggestedActions = actionSets[0].Actions.ToArray();
             suggestedActions.Length.Should().Be(1);
             suggestedActions[0].Should().BeOfType<DeselectIssueVisualizationAction>();
         }
 
         [TestMethod]
-        public void GetSuggestedActions_HasSelectionTags_HasIssueTagsWithSecondaryLocations_DeselectAndSelectIssueActions()
+        public void GetSuggestedActions_HasSelectionTags_HasIssueTagsWithSecondaryLocations_SelectAndDeselectIssueActions()
         {
-            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
-
-            var mockSpan = new SnapshotSpan();
-
-            var selectedLocations = new[]
+            var secondaryLocations = new[]
             {
-                Mock.Of<IAnalysisIssueLocationVisualization>(),
-                Mock.Of<IAnalysisIssueLocationVisualization>()
+                CreateLocationViz(),
+                CreateLocationViz()
             };
 
-            SetupSelectedLocationTags(selectedLocations, selectedIssueLocationsTagAggregator, mockSpan);
-
-            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
-
-            var issueLocations = new[]
+            var issues = new[]
             {
                 CreateIssueViz(CreateFlowViz(CreateLocationViz())),
                 CreateIssueViz(CreateFlowViz(CreateLocationViz()))
             };
 
-            SetupIssueLocationTags(issueLocations, issueLocationsTagAggregator, mockSpan);
+            var actionSets = GetSuggestedActions(
+                primaryIssues: issues,
+                secondaryLocations: secondaryLocations,
+                selectedIssue: issues[1]);
 
-            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object);
-            var suggestedActionSets = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
-
-            suggestedActionSets.Count().Should().Be(1);
-            var suggestedActions = suggestedActionSets.First().Actions.ToArray();
+            actionSets.Count.Should().Be(1);
+            var suggestedActions = actionSets.First().Actions.ToArray();
             suggestedActions.Length.Should().Be(3);
             suggestedActions[0].Should().BeOfType<SelectIssueVisualizationAction>();
             suggestedActions[1].Should().BeOfType<SelectIssueVisualizationAction>();
             suggestedActions[2].Should().BeOfType<DeselectIssueVisualizationAction>();
-            (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(issueLocations[0]);
-            (suggestedActions[1] as SelectIssueVisualizationAction).Issue.Should().Be(issueLocations[1]);
+            (suggestedActions[0] as SelectIssueVisualizationAction).Issue.Should().Be(issues[0]);
+            (suggestedActions[1] as SelectIssueVisualizationAction).Issue.Should().Be(issues[1]);
         }
 
         private static IAnalysisIssueVisualization CreateIssueViz(params IAnalysisIssueFlowVisualization[] flows)
@@ -257,23 +252,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             return issueViz.Object;
         }
 
-        private static void SetupIssueLocationTags(IAnalysisIssueLocationVisualization[] locations, Mock<ITagAggregator<IIssueLocationTag>> issueLocationsTagAggregator, SnapshotSpan mockSpan)
-        {
-            var snapshot = CreateSnapshot();
-            var mappingTagSpans = locations.Select(x => CreateMappingTagSpan(snapshot, CreateIssueLocationTag(x)));
-
-            issueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(mappingTagSpans);
-        }
-
-        private void SetupSelectedLocationTags(IAnalysisIssueLocationVisualization[] locations, Mock<ITagAggregator<ISelectedIssueLocationTag>> selectedIssueLocationsTagAggregator, SnapshotSpan mockSpan)
-        {
-            var snapshot = CreateSnapshot();
-            var mappingTagSpans = locations.Select(x => CreateMappingTagSpan(snapshot, CreateSelectedLocationTag(x)));
-
-            selectedIssueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(mappingTagSpans);
-        }
-
-        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator)
+        private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator, IAnalysisIssueSelectionService selectionService = null)
         {
             var vsUiShell = Mock.Of<IVsUIShell>();
             var buffer = Mock.Of<ITextBuffer>();
@@ -290,7 +269,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var analysisIssueSelectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
             analysisIssueSelectionServiceMock.Setup(x => x.SelectedIssue).Returns(Mock.Of<IAnalysisIssueVisualization>());
 
-            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService.Object, buffer, analysisIssueSelectionServiceMock.Object);
+            selectionService = selectionService ?? analysisIssueSelectionServiceMock.Object;
+
+            return new IssueLocationActionsSource(vsUiShell, bufferTagAggregatorFactoryService.Object, buffer, selectionService);
+        }
+
+        private IList<SuggestedActionSet> GetSuggestedActions(IEnumerable<IAnalysisIssueVisualization> primaryIssues,
+            IEnumerable<IAnalysisIssueLocationVisualization> secondaryLocations,
+            IAnalysisIssueVisualization selectedIssue)
+        {
+            var mockSpan = new SnapshotSpan();
+            var snapshot = CreateSnapshot();
+
+            var primaryTagSpans = primaryIssues.Select(x => CreateMappingTagSpan(snapshot, CreateIssueLocationTag(x), mockSpan));
+            var secondaryTagSpans = secondaryLocations.Select(x => CreateMappingTagSpan(snapshot, CreateSelectedLocationTag(x), mockSpan));
+
+            var issueLocationsTagAggregator = new Mock<ITagAggregator<IIssueLocationTag>>();
+            issueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(primaryTagSpans);
+
+            var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
+            selectedIssueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(secondaryTagSpans);
+
+            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
+
+            var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);
+            var actualActionsSet = testSubject.GetSuggestedActions(null, mockSpan, CancellationToken.None);
+
+            return actualActionsSet.ToList();
         }
     }
 }
