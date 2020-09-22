@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
@@ -36,20 +37,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 {
     internal sealed class IssueLocationActionsSource : ISuggestedActionsSource
     {
+        private readonly ILightBulbBroker lightBulbBroker;
         private readonly IVsUIShell vsUiShell;
+        private readonly ITextView textView;
         private readonly IAnalysisIssueSelectionService selectionService;
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
         private readonly ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator;
 
-        public IssueLocationActionsSource(IVsUIShell vsUiShell, IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, ITextBuffer textBuffer, IAnalysisIssueSelectionService selectionService)
+        public IssueLocationActionsSource(ILightBulbBroker lightBulbBroker, 
+            IVsUIShell vsUiShell, 
+            IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+            ITextView textView, 
+            IAnalysisIssueSelectionService selectionService)
         {
+            this.lightBulbBroker = lightBulbBroker;
             this.vsUiShell = vsUiShell;
+            this.textView = textView;
             this.selectionService = selectionService;
 
-            issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textBuffer);
+            issueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer);
             issueLocationsTagAggregator.TagsChanged += TagAggregator_TagsChanged;
 
-            selectedIssueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<ISelectedIssueLocationTag>(textBuffer);
+            selectedIssueLocationsTagAggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<ISelectedIssueLocationTag>(textView.TextBuffer);
             selectedIssueLocationsTagAggregator.TagsChanged += TagAggregator_TagsChanged;
         }
 
@@ -130,6 +139,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
+            lightBulbBroker.DismissSession(textView);
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
     }

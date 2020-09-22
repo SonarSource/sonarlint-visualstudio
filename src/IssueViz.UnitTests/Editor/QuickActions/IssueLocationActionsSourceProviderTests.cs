@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
+using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickActions
 {
@@ -45,8 +46,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             {
                 MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
                 MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>()),
-                MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>())
+                MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>()),
+                MefTestHelpers.CreateExport<ILightBulbBroker>(Mock.Of<ILightBulbBroker>())
             });
+        }
+
+        [TestMethod]
+        public void CreateSuggestedActionsSource_TextViewIsNull_Null()
+        {
+            var buffer = Mock.Of<ITextBuffer>();
+            var testSubject = CreateTestSubject(buffer);
+
+            var actionsSource = testSubject.CreateSuggestedActionsSource(null, buffer);
+            actionsSource.Should().BeNull();
         }
 
         [TestMethod]
@@ -60,12 +72,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         [TestMethod]
-        public void CreateSuggestedActionsSource_TextBufferIsNotNull_IssueLocationActionsSource()
+        public void CreateSuggestedActionsSource_TextViewIsNotNull_IssueLocationActionsSource()
         {
-            var buffer = Mock.Of<ITextBuffer>();
-            var testSubject = CreateTestSubject(buffer);
+            var textView = CreateWpfTextView();
+            var testSubject = CreateTestSubject(textView.TextBuffer);
 
-            var actionsSource = testSubject.CreateSuggestedActionsSource(Mock.Of<ITextView>(), buffer);
+            var actionsSource = testSubject.CreateSuggestedActionsSource(textView, textView.TextBuffer);
             actionsSource.Should().NotBeNull();
             actionsSource.Should().BeOfType<IssueLocationActionsSource>();
         }
@@ -84,8 +96,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
 
             var analysisIssueSelectionService = Mock.Of<IAnalysisIssueSelectionService>();
             var serviceProvider = Mock.Of<IServiceProvider>();
+            var lightBulbBroker = Mock.Of<ILightBulbBroker>();
 
-            return new IssueLocationActionsSourceProvider(serviceProvider, bufferTagAggregatorFactoryService.Object, analysisIssueSelectionService);
+            return new IssueLocationActionsSourceProvider(serviceProvider, bufferTagAggregatorFactoryService.Object, analysisIssueSelectionService, lightBulbBroker);
         }
     }
 }
