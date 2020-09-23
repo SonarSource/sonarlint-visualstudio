@@ -71,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisIssueVisualizationConverter converter;
         private readonly ILogger logger;
         private readonly IScheduler scheduler;
+        private readonly IVsSolution5 vsSolution;
 
         [ImportingConstructor]
         internal TaggerProvider(ISonarErrorListDataSource sonarErrorDataSource,
@@ -97,6 +98,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             vsStatusBar = serviceProvider.GetService(typeof(IVsStatusbar)) as IVsStatusbar;
             analysisRequester.AnalysisRequested += OnAnalysisRequested;
+
+            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
         }
 
         private readonly object reanalysisLockObject = new object();
@@ -176,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private TextBufferIssueTracker InternalCreateTextBufferIssueTracker(ITextDocument textDocument, IEnumerable<AnalysisLanguage> analysisLanguages) =>
-            new TextBufferIssueTracker(dte, this, textDocument, analysisLanguages, issuesFilter, sonarErrorDataSource, converter, logger);
+            new TextBufferIssueTracker(dte, this, textDocument, analysisLanguages, issuesFilter, sonarErrorDataSource, converter, vsSolution, logger);
 
         #endregion IViewTaggerProvider members
 

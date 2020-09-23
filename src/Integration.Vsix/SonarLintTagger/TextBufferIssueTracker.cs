@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -57,13 +58,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
         private readonly IAnalysisIssueVisualizationConverter converter;
+        private readonly IVsSolution5 vsSolution;
 
         public string FilePath { get; private set; }
         internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, ILogger logger)
+            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
+            IVsSolution5 vsSolution, ILogger logger)
         {
             this.dte = dte;
 
@@ -73,6 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
             this.converter = converter;
+            this.vsSolution = vsSolution;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -80,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), FilePath, new List<IAnalysisIssueVisualization>()));
+            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
 
@@ -155,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
             var translatedIssues = TranslateSpans(filteredIssues, textBuffer.CurrentSnapshot);
 
-            var newSnapshot = new IssuesSnapshot(GetProjectName(), FilePath, translatedIssues);
+            var newSnapshot = new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath, translatedIssues);
             SnapToNewSnapshot(newSnapshot);
         }
 
@@ -171,15 +175,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #endregion
 
-        private string GetProjectName()
+        private string GetProjectName() => GetProject()?.Name ?? "{none}";
+
+        private Project GetProject()
         {
             // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
             // It's possible to have a ProjectItem that doesn't have a ContainingProject
             // e.g. files under the "External Dependencies" project folder in the Solution Explorer
             var projectItem = dte.Solution.FindProjectItem(this.FilePath);
-            var projectName = projectItem?.ContainingProject.Name ?? "{none}";
+            return projectItem?.ContainingProject;
+        }
 
-            return projectName;
+        private Guid GetProjectGuid()
+        {
+            var project = GetProject();
+
+            if (project == null)
+            {
+                return Guid.Empty;
+            }
+
+            return vsSolution.GetGuidOfProjectFile(project.FileName);
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)

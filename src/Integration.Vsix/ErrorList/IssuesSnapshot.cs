@@ -84,6 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal sealed class IssuesSnapshot : WpfTableEntriesSnapshotBase, IIssuesSnapshot
     {
         private readonly string projectName;
+        private readonly Guid projectGuid;
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
@@ -101,26 +102,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         #region Construction methods
         
         public IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath) =>
-            new IssuesSnapshot(AnalysisRunId, projectName, analyzedFilePath, issues);
+            new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, analyzedFilePath, issues);
 
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
         /// </summary>
-        public IssuesSnapshot(string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
-            : this(Guid.NewGuid(), projectName, filePath, issues)
+        public IssuesSnapshot(string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+            : this(Guid.NewGuid(), projectName, projectGuid, filePath, issues)
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
-            : this(snapshotId, projectName, filePath, issues, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
+        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+            : this(snapshotId, projectName, projectGuid, filePath, issues, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.AnalysisRunId = snapshotId;
             this.AnalyzedFilePath = filePath;
             this.projectName = projectName;
+            this.projectGuid = projectGuid;
             this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
@@ -208,6 +210,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 case StandardTableKeyNames.ProjectName:
                     content = projectName;
+                    return true;
+
+                case StandardTableKeyNames.ProjectGuid:
+                    content = projectGuid;
                     return true;
 
                 // Not a visible field - returns the issue object

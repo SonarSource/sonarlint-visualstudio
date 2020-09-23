@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -61,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private TextBufferIssueTracker testSubject;
         private Mock<Solution> mockSolution;
         private TestLogger logger;
+        private Guid projectGuid;
 
         [TestInitialize]
         public void SetUp()
@@ -72,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             mockDocumentTextBuffer = CreateTextBufferMock();
             mockedJavascriptDocumentFooJs = CreateDocumentMock("foo.js", mockDocumentTextBuffer.Object);
             javascriptLanguage = new[] { AnalysisLanguage.Javascript };
+            projectGuid = Guid.NewGuid();
 
             testSubject = CreateTextBufferIssueTracker();
         }
@@ -82,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<IVsSolution5>(), logger);
         }
 
         [TestMethod]
@@ -103,6 +106,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             // Note: the test subject isn't responsible for adding the entry to the buffer.Properties
             // - that's done by the TaggerProvider.
+        }
+
+        [TestMethod]
+        public void Ctor_CreatesFactoryWithCorrectData()
+        {
+            var issuesSnapshot = testSubject.Factory.CurrentSnapshot;
+            issuesSnapshot.Should().NotBeNull();
+
+            issuesSnapshot.AnalyzedFilePath.Should().Be(mockedJavascriptDocumentFooJs.Object.FilePath);
+            issuesSnapshot.Issues.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -223,7 +236,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Use the test version of the text buffer to bypass the span translation code
             testSubject = new TestableTextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), 
+                Mock.Of<IVsSolution5>(), logger);
 
             mockSonarErrorDataSource.Invocations.Clear();
 
@@ -258,6 +272,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // Check the post-filter issues
             testSubject.Factory.CurrentSnapshot.Issues.Count().Should().Be(1);
             testSubject.Factory.CurrentSnapshot.Issues.First().Issue.RuleKey.Should().Be("xxx");
+
+            testSubject.Factory.CurrentSnapshot.TryGetValue(0, StandardTableKeyNames.ProjectName, out var projectName).Should().BeTrue();
+            projectName.Should().Be("MyProject");
+
+            testSubject.Factory.CurrentSnapshot.TryGetValue(0, StandardTableKeyNames.ProjectGuid, out var projectGuid).Should().BeTrue();
+            projectGuid.Should().Be(projectGuid);
         }
 
         [TestMethod]
@@ -400,6 +420,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             // DTE object setup
             var mockProject = new Mock<Project>();
             mockProject.Setup(p => p.Name).Returns("MyProject");
+            mockProject.Setup(p => p.FileName).Returns("MyProject.csproj");
             var project = mockProject.Object;
 
             var mockProjectItem = new Mock<ProjectItem>();
@@ -407,16 +428,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var projectItem = mockProjectItem.Object;
 
             mockSolution = new Mock<Solution>();
-            mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItem);
+            mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>()))
+                .Returns(projectItem);
 
             var mockDTE = new Mock<DTE>();
             mockDTE.Setup(d => d.Solution).Returns(mockSolution.Object);
 
-            var mockVsStatusBar = new Mock<Microsoft.VisualStudio.Shell.Interop.IVsStatusbar>();
+            var mockVsSolution = new Mock<IVsSolution5>();
+            mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
+                .Returns(projectGuid);
 
             var serviceProvider = new ConfigurableServiceProvider();
             serviceProvider.RegisterService(typeof(DTE), mockDTE.Object);
-            serviceProvider.RegisterService(typeof(Microsoft.VisualStudio.Shell.Interop.IVsStatusbar), mockVsStatusBar.Object);
+            serviceProvider.RegisterService(typeof(IVsStatusbar), Mock.Of<IVsStatusbar>());
+            serviceProvider.RegisterService(typeof(SVsSolution), mockVsSolution.Object);
 
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
 
@@ -477,8 +502,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             public TestableTextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
                 IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-                ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, ILogger logger)
-                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, logger)
+                ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter, IVsSolution5 vsSolution, ILogger logger)
+                : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, vsSolution, logger)
             { }
 
             protected override IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
