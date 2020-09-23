@@ -60,12 +60,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
 
             var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object);
-            testSubject.DisplayText.Should().StartWith("test rule id");
+            testSubject.DisplayText.Should().Contain("test rule id");
 
             selectionServiceMock.Reset();
             selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns((IAnalysisIssueVisualization) null);
 
-            testSubject.DisplayText.Should().StartWith("test rule id");
+            testSubject.DisplayText.Should().Contain("test rule id");
         }
     }
 }
