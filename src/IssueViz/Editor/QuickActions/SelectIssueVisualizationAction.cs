@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
             Issue = issueVisualization;
         }
 
-        public override string DisplayText => $"{Issue.RuleId}: show SonarLint issue visualization";
+        public override string DisplayText => $"SonarLint: show issue visualization ({Issue.RuleId})";
 
         public override void Invoke(CancellationToken cancellationToken)
         {

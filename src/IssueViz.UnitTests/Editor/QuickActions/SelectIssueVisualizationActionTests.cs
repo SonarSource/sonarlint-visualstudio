@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
 
             var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IAnalysisIssueSelectionService>(), selectedIssueMock.Object);
-            testSubject.DisplayText.Should().StartWith("test rule id");
+            testSubject.DisplayText.Should().Contain("test rule id");
         }
     }
 }
