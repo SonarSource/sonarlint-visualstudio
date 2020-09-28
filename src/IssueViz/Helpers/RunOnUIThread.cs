@@ -21,9 +21,9 @@
 using System;
 using Microsoft.VisualStudio.Shell;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers
+namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 {
-    internal static class RunOnUIThread
+    public static class RunOnUIThread
     {
         public static void Run(Action op)
         {

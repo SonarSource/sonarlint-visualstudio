@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.SelectedIssueTagging;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -139,7 +140,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 
         private void TagAggregator_TagsChanged(object sender, TagsChangedEventArgs e)
         {
-            lightBulbBroker.DismissSession(textView);
+            RunOnUIThread.Run(() => lightBulbBroker.DismissSession(textView));
+
             SuggestedActionsChanged?.Invoke(this, EventArgs.Empty);
         }
     }
