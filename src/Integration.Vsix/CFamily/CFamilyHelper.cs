@@ -51,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             {
                 // We can't analyze header files currently because we can't get all
                 // of the required configuration information
+                logger.WriteLine($"Cannot analyze header files. File: '{absoluteFilePath}'");
                 return null;
             }
 
@@ -266,7 +267,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return FileConfig.TryGet(projectItem, absoluteFilePath);
+                return FileConfig.TryGet(logger, projectItem, absoluteFilePath);
             }
             catch (Exception e)
             {

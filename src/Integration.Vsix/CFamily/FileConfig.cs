@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         internal class FileConfig
         {
-            public static FileConfig TryGet(ProjectItem dteProjectItem, string absoluteFilePath)
+            public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
             {
                 var vcProject = dteProjectItem.ContainingProject.Object as VCProject;
                 var file = dteProjectItem.Object as VCFile;
@@ -38,11 +38,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     return null;
                 }
-
                 var vcConfig = vcProject.ActiveConfiguration;
+                var projectKind = vcConfig.ConfigurationType;
+                // Unknown projects represent all the unspported project type like makefile projects
+                if (projectKind == ConfigurationTypes.typeUnknown)
+                {
+                    logger.WriteLine(@"Project's ""Configuration type"" is not supported.");
+                    return null;
+                }
+                // "ClCompile" for source files and "ClCompile" for header files
+                if (file.ItemType != "ClCompile")
+                {
+                    logger.WriteLine($"File's \"Item type\" is not supported. File: '{absoluteFilePath}'");
+                    return null;
+                }
                 var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
                 var vcFileConfig = file.GetFileConfigurationForProjectConfiguration(vcConfig);
-
+                // We don't support custom build tools. VCCLCompilerTool is needed for all the necessary compilation options to be present
+                if (!(vcFileConfig.Tool is VCCLCompilerTool))
+                {
+                    logger.WriteLine($"Custom built files are not supported. File: '{absoluteFilePath}'");
+                    return null;
+                }
                 // The Tool property is typed as Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool, and
                 // we could use it to fetch most of the properties we need, rather than fetching them via the
                 // IVCRulePropertyStorage interface. However, not all of the properties are exposed directly by
