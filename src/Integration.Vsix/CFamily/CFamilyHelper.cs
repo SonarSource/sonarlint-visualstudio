@@ -44,8 +44,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private static readonly string analyzerExeFilePath = Path.Combine(
             CFamilyFilesDirectory, "subprocess.exe");
 
+        internal class PCHRequestLogger : ILogger
+        {
+            public void WriteLine(string message)
+            {
+                // We don't log in PCH request to avoid noise while navigating files
+            }
+
+            public void WriteLine(string messageFormat, params object[] args)
+            {
+                // We don't log in PCH request to avoid noise while navigating files
+            }
+        }
+
+        private static readonly PCHRequestLogger pchLogger = new PCHRequestLogger();
+
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
+            if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions && cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
+            {
+                logger = pchLogger;
+            }
+
             if (IsHeaderFile(absoluteFilePath))
             {
                 // We can't analyze header files currently because we can't get all
