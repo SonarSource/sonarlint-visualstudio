@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class FileConfigTests
     {
+        private TestLogger testLogger = new TestLogger();
+
         [TestMethod]
         public void TryGet_NoVCProject_ReturnsNull()
         {
@@ -41,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             dteProjectItemMock.Setup(x => x.Object).Returns(Mock.Of<VCFile>());
             dteProjectItemMock.Setup(x => x.ContainingProject).Returns(dteProjectMock.Object);
 
-            CFamilyHelper.FileConfig.TryGet(dteProjectItemMock.Object, "c:\\path")
+            CFamilyHelper.FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
                 .Should().BeNull();
         }
 
@@ -55,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             dteProjectItemMock.Setup(x => x.Object).Returns(null);
             dteProjectItemMock.Setup(x => x.ContainingProject).Returns(dteProjectMock.Object);
 
-            CFamilyHelper.FileConfig.TryGet(dteProjectItemMock.Object, "c:\\path")
+            CFamilyHelper.FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
                 .Should().BeNull();
         }
 
