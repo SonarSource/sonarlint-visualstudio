@@ -67,14 +67,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 logger = pchLogger;
             }
 
-            if (IsHeaderFile(absoluteFilePath))
-            {
-                // We can't analyze header files currently because we can't get all
-                // of the required configuration information
-                logger.WriteLine($"Cannot analyze header files. File: '{absoluteFilePath}'");
-                return null;
-            }
-
             if (!IsFileInSolution(projectItem))
             {
                 logger.WriteLine($"Unable to retrieve the configuration for file '{absoluteFilePath}'. Check the file is part of a project in the current solution.");
@@ -276,8 +268,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
         {
-            Debug.Assert(!IsHeaderFile(absoluteFilePath),
-                $"Not expecting TryGetConfig to be called for header files: {absoluteFilePath}");
 
             Debug.Assert(IsFileInSolution(projectItem),
                 $"Not expecting to be called for files that are not in the solution: {absoluteFilePath}");
@@ -294,12 +284,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 logger.WriteLine($"Unable to collect C/C++ configuration for {absoluteFilePath}: {e}");
                 return null;
             }
-        }
-
-        internal static bool IsHeaderFile(string absoluteFilePath)
-        {
-            var fileInfo = new FileInfo(absoluteFilePath);
-            return fileInfo.Extension.Equals(".h", StringComparison.OrdinalIgnoreCase);
         }
 
         internal static bool IsFileInSolution(ProjectItem projectItem)

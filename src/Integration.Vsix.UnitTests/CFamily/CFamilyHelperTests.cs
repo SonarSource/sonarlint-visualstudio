@@ -39,21 +39,74 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     {
 
         [TestMethod]
-        public void CreateRequest_HeaderFile_IsNotProcessed()
+        public void CreateRequest_HeaderFile_IsSupported()
         {
             // Arrange
             var loggerMock = new Mock<ILogger>();
-
-            var projectItemMock = new Mock<ProjectItem>();
+            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
+            projectItemConfig.itemType = "ClInclude";
+            var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
+            rulesConfigProviderMock
+                .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
+                .Returns(rulesConfig);
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
             var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h",
                 rulesConfigProviderMock.Object, null);
 
             // Assert
-            AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
-            request.Should().BeNull();
+            loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Never);
+            request.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void CreateRequest_HeaderFileOptions()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
+            projectItemConfig.itemType = "ClInclude";
+            projectItemConfig.fileConfigProperties = new Dictionary<string, string>
+            {
+                ["PrecompiledHeader"] = "NotUsing",
+                ["CompileAs"] = "Default",
+                ["CompileAsManaged"] = "false",
+                ["EnableEnhancedInstructionSet"] = "",
+                ["RuntimeLibrary"] = "",
+                ["LanguageStandard"] = "",
+                ["ExceptionHandling"] = "Sync",
+                ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
+                ["ForcedIncludeFiles"] = "",
+                ["PrecompiledHeader"] = "Use",
+                ["PrecompiledHeaderFile"] = "pch.h",
+            };
+            var rulesConfig = GetDummyRulesConfiguration();
+            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
+            rulesConfigProviderMock
+                .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
+                .Returns(rulesConfig);
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = CFamilyHelper.TryGetConfig(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h");
+
+            // Assert
+            Assert.AreEqual("pch.h", request.ForcedIncludeFiles);
+            Assert.AreEqual("CompileAsCpp", request.CompileAs);
+            request.Should().NotBeNull();
+            
+            // Arrange
+            projectItemConfig.fileConfigProperties["CompileAs"] = "CompileAsC";
+            projectItemConfig.fileConfigProperties["ForcedIncludeFiles"] = "FHeader.h";
+            
+            // Act
+            request = CFamilyHelper.TryGetConfig(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h");
+
+            // Assert
+            Assert.AreEqual("FHeader.h", request.ForcedIncludeFiles);
+            Assert.AreEqual("CompileAsC", request.CompileAs);
         }
 
         [TestMethod]
@@ -243,6 +296,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CreateRequest_UnsupportedHeaderCustomBuild()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
+            projectItemConfig.isVCCLCompilerTool = false;
+            projectItemConfig.itemType = "ClInclude";
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h",
+                null, null);
+
+            // Assert
+            AssertMessageLogged(loggerMock,
+                "Custom built files are not supported. File: 'c:\\dummy\\file.h'");
+            request.Should().BeNull();
+        }
+
+        [TestMethod]
         public void CreateRequest_PCHRequestDoesntLog()
         {
             // Arrange
@@ -297,23 +370,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Assert
             result.Should().BeFalse();
             projectItemMock.Verify(x => x.ContainingProject, Times.Once); // check the test hit the expected path
-        }
-
-        [TestMethod]
-        public void IsHeaderFile_DotHExtension_ReturnsTrue()
-        {
-            // Act and Assert
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.h").Should().Be(true);
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.H").Should().Be(true);
-        }
-
-        [TestMethod]
-        public void IsHeaderFile_NotDotHExtension_ReturnsFalse()
-        {
-            // Act and Assert
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
         }
 
         [TestMethod]
@@ -561,6 +617,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             return request;
         }
+        private static void SetUpProperties(ProjectItemConfig projectItemConfig, Mock<IVCRulePropertyStorage> toolPropertiesMock)
+        {
+            toolPropertiesMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
+                .Returns<string>(s =>
+                {
+                    string propertyValue = null;
+                    projectItemConfig.fileConfigProperties?.TryGetValue(s, out propertyValue);
+                    return propertyValue ?? string.Empty;
+                });
+        }
 
         private static VCConfiguration CreateVCConfigurationWithProperties(ProjectItemConfig projectItemConfig)
         {
@@ -570,6 +636,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var vcConfigMock = new Mock<VCConfiguration>();
             vcConfigMock.SetupGet(x => x.Platform).Returns(vcPlatformMock.Object);
             vcConfigMock.SetupGet(x => x.ConfigurationType).Returns(projectItemConfig.configurationType);
+            // Project VCCLCompilerTool needed for header files analysis
+            var ivcCollection = new Mock<IVCCollection>();
+            vcConfigMock.SetupGet(x => x.Tools).Returns(ivcCollection.Object);
+            var toolPropertiesMock = new Mock<IVCRulePropertyStorage>();
+            SetUpProperties(projectItemConfig, toolPropertiesMock);
+            ivcCollection.Setup(x => x.Item("VCCLCompilerTool")).Returns(projectItemConfig.isVCCLCompilerTool ? toolPropertiesMock.Object : null);
 
             vcConfigMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
                 .Returns<string>(s =>
@@ -590,14 +662,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 toolPropertiesMock.As<VCCLCompilerTool>();
             }
 
-            toolPropertiesMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
-                .Returns<string>(s =>
-                {
-                    string propertyValue = null;
-                    projectItemConfig.fileConfigProperties?.TryGetValue(s, out propertyValue);
-                    return propertyValue ?? string.Empty;
-                });
-
+            SetUpProperties(projectItemConfig, toolPropertiesMock);
             var vcFileConfigMock = new Mock<VCFileConfiguration>();
             vcFileConfigMock.SetupGet(x => x.Tool).Returns(toolPropertiesMock.Object);
 
