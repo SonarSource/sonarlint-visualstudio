@@ -25,6 +25,7 @@ using System.Text;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -91,6 +92,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var mockServiceProvider = new Mock<IServiceProvider>();
             mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(dte);
+            mockServiceProvider.Setup(s=> s.GetService(typeof(SVsSolution))).Returns(Mock.Of<IVsSolution5>());
+
             var serviceProvider = mockServiceProvider.Object;
 
             dummyDocumentFactoryService = new DummyTextDocumentFactoryService();

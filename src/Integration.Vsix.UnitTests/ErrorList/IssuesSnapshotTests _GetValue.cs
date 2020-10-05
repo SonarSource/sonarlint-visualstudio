@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private IssuesSnapshot snapshot;
         private DummyAnalysisIssue issue;
         private IAnalysisIssueVisualization issueViz;
+        private Guid projectGuid;
 
         [TestInitialize]
         public void SetUp()
@@ -51,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 RuleKey = "javascript:123",
                 Severity = AnalysisIssueSeverity.Blocker,
             };
+            projectGuid = Guid.NewGuid();
 
             var mockTextSnap = new Mock<ITextSnapshot>();
             mockTextSnap.Setup(t => t.Length).Returns(50);
@@ -64,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
 
-            snapshot = new IssuesSnapshot("MyProject", path, new List<IAnalysisIssueVisualization> { issueViz });
+            snapshot = new IssuesSnapshot("MyProject", projectGuid, path, new List<IAnalysisIssueVisualization> { issueViz });
         }
 
         [TestMethod]
@@ -74,8 +76,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void Count_ReturnsNumberOfIssues(int numberOfIssues)
         {
             var analysisIssueVisualizations = Enumerable.Repeat(issueViz, numberOfIssues);
-            
-            var testSubject = new IssuesSnapshot("MyProject", "foo.js", analysisIssueVisualizations);
+
+            var testSubject = new IssuesSnapshot("MyProject", Guid.Empty, "foo.js", analysisIssueVisualizations);
             testSubject.Count.Should().Be(numberOfIssues);
         }
 
@@ -200,6 +202,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void GetValue_ProjectName()
         {
             GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
+        }
+
+        [TestMethod]
+        public void GetValue_ProjectGuid()
+        {
+            GetValue(StandardTableKeyNames.ProjectGuid).Should().Be(projectGuid);
         }
 
         [TestMethod]
