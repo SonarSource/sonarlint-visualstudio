@@ -138,18 +138,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
             var filteredTagSpans = Filter(trackedTagSpans);
 
-            var currentSnapshot = GetSnapshot();
             var callerSnapshot = spans[0].Snapshot;
-
-            if (callerSnapshot.Version != currentSnapshot.Version)
-            {
-                Debug.Fail($"Expecting the tags to reference the correct snapshot. Caller snapshot version: {callerSnapshot.Version}, tag snapshot version: {currentSnapshot.Version}");
-                yield break;
-            }
 
             foreach (var dataTagSpan in filteredTagSpans)
             {
-                var filterSpans = dataTagSpan.Span.GetSpans(currentSnapshot);
+                var filterSpans = dataTagSpan.Span.GetSpans(callerSnapshot);
                 if (spans.IntersectsWith(filterSpans))
                 {
                     yield return CreateTagSpan(dataTagSpan.Tag, spans);
