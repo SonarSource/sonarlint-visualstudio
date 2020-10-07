@@ -74,7 +74,7 @@
     <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
     <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
 
-    <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="Moq" Version="4.14.5" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
   </ItemGroup>
 
@@ -96,6 +96,12 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations_response.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_HasSecondaryLocations.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="CFamily\IntegrationTests\CLangAnalyzerTestFile_OneIssue_response.json">

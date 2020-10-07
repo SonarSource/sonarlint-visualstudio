@@ -21,181 +21,247 @@
 using System;
 using System.Collections.Generic;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
-using DaemonSeverity = Sonarlint.Issue.Types.Severity;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class IssuesSnapshotTests
     {
-        private IssuesSnapshot snapshot;
-        private DummyAnalysisIssue issue;
+        private const int IndexOf_NotFoundResult = -1;
+        private const string ValidProjectName = "aproject";
+        private const string ValidFilePath = "c:\\file.txt";
+        private readonly Guid ValidProjectGuid = Guid.NewGuid();
+        private readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssue() };
 
-        [TestInitialize]
-        public void SetUp()
+        [TestMethod]
+        public void Construction_CreateNew_SetsProperties()
         {
-            var path = "foo.js";
-            issue = new DummyAnalysisIssue()
-            {
-                FilePath = path,
-                Message = "This is dangerous",
-                RuleKey = "javascript:123",
-                Severity = AnalysisIssueSeverity.Blocker,
-            };
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
 
-            var mockTextSnap = new Mock<ITextSnapshot>();
-            mockTextSnap.Setup(t => t.Length).Returns(50);
-
-            var mockTextSnapLine = new Mock<ITextSnapshotLine>();
-            mockTextSnapLine.Setup(l => l.LineNumber).Returns(12);
-            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, 10));
-
-            mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
-            var textSnap = mockTextSnap.Object;
-
-            var marker = new IssueMarker(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)), "whole line text", "line hash");
-
-            snapshot = new IssuesSnapshot("MyProject", path, 1, new List<IssueMarker>() { marker });
+            testSubject.AnalysisRunId.Should().NotBe(Guid.Empty);
+            testSubject.VersionNumber.Should().BeGreaterOrEqualTo(0);
+            GetProjectName(testSubject).Should().BeEquivalentTo(ValidProjectName);
+            GetProjectGuid(testSubject).Should().Be(ValidProjectGuid);
+            GetFilePath(testSubject).Should().BeEquivalentTo(ValidFilePath);
+            testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
 
         [TestMethod]
-        public void Line()
+        public void Construction_CreateNew_SetsUniqueId()
         {
-            GetValue(StandardTableKeyNames.Line).Should().Be(12);
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+            var snapshot2 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+
+            snapshot1.AnalysisRunId.Should().NotBe(snapshot2.AnalysisRunId);
+            snapshot2.VersionNumber.Should().BeGreaterThan(snapshot1.VersionNumber);
         }
 
         [TestMethod]
-        public void Column()
+        public void Construction_UpdateFilePath_PreservesIdAndUpdatesVersion()
         {
-            GetValue(StandardTableKeyNames.Column).Should().Be(25 - 10);
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+            var revised = original.CreateUpdatedSnapshot("new path");
+
+            revised.AnalysisRunId.Should().Be(original.AnalysisRunId);
+            revised.VersionNumber.Should().BeGreaterThan(original.VersionNumber);
+            GetFilePath(original).Should().Be(ValidFilePath);
+            GetFilePath(revised).Should().Be("new path");
+
+            // Other properties
+            revised.Issues.Should().BeEquivalentTo(original.Issues);
+            GetProjectName(revised).Should().Be(GetProjectName(original));
+            GetProjectGuid(revised).Should().Be(GetProjectGuid(original));
         }
 
         [TestMethod]
-        public void Path()
+        public void Construction_CreateNew_NoLocations_FilesInSnapshotIsSetCorrectly()
         {
-            GetValue(StandardTableKeyNames.DocumentName).Should().Be(issue.FilePath);
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, "analyzedFilePath.txt", Array.Empty<IAnalysisIssueVisualization>());
+            testSubject.FilesInSnapshot.Should().BeEquivalentTo("analyzedFilePath.txt");
         }
 
         [TestMethod]
-        public void Message()
+        public void Construction_CreateNew_FilesInSnapshotIsSetCorrectly()
         {
-            GetValue(StandardTableKeyNames.Text).Should().Be(issue.Message);
+            var issue1 = CreateIssueWithSpecificsPaths("path1",     // primary location
+                CreateFlowViz("path2"),                     // flow with one secondary location
+                CreateFlowViz("path3", "path4", "PATH1"));  // flow with multiple secondary locations, including one duplicate in a different case
+
+            var issue2 = CreateIssueWithSpecificsPaths("path5");    // new primary location, no flows
+
+            var issue3 = CreateIssueWithSpecificsPaths("path2");    // duplicate primary location, no flows
+
+            var issues = new[] { issue1, issue2, issue3 };
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, "analyzedFilePath.txt", issues);
+
+            testSubject.FilesInSnapshot.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path5", "analyzedFilePath.txt");
         }
 
         [TestMethod]
-        public void ErrorCode()
+        public void IndexOf_SameSnapshotId_ReturnExpectedIndex()
         {
-            GetValue(StandardTableKeyNames.ErrorCode).Should().Be(issue.RuleKey);
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+            var revised = original.CreateUpdatedSnapshot("unimportant change");
+
+            // Should be able to map issues between two snapshots with the same snapshot id
+            original.IndexOf(999, revised)
+                .Should().Be(999);
         }
 
         [TestMethod]
-        public void Severity()
+        public void IndexOf_DifferentSnapshotId_ReturnMinusOne()
         {
-            GetValue(StandardTableKeyNames.ErrorSeverity).Should().NotBeNull();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+            var snapshot2 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+
+            // Should not be able to map issues between two snapshots with different snapshot ids
+            snapshot1.IndexOf(999, snapshot2)
+                .Should().Be(IndexOf_NotFoundResult);
         }
 
         [TestMethod]
-        public void BuildTool()
+        public void IndexOf_NotAnIssuesSnapshot_ReturnsMinusOne()
         {
-            GetValue(StandardTableKeyNames.BuildTool).Should().Be("SonarLint");
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
+
+            original.IndexOf(999, Mock.Of<ITableEntriesSnapshot>())
+                .Should().Be(IndexOf_NotFoundResult);
         }
 
         [TestMethod]
-        public void ErrorRank_Other()
+        public void GetLocationsVizForFile_NoMatches_ReturnsEmpty()
         {
-            GetValue(StandardTableKeyNames.ErrorRank).Should().Be(ErrorRank.Other);
+            var issue1 = CreateIssueWithSpecificsPaths("path1.txt");
+            var issues = new[] { issue1 };
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, issues);
+
+            var actual = testSubject.GetLocationsVizsForFile("xxx");
+
+            actual.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void ErrorCategory_Is_CodeSmell_By_Default()
+        public void GetLocationsVizForFile_MatchesInPrimaryLocations_ReturnsExpected()
         {
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
+            var issue1 = CreateIssueWithSpecificsPaths("path1.txt");
+            var issue2 = CreateIssueWithSpecificsPaths("XXX.txt");
+            var issue3 = CreateIssueWithSpecificsPaths("path1.txt");
+            var issues = new[] { issue1, issue2, issue3 };
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, issues);
+
+            var actual = testSubject.GetLocationsVizsForFile("path1.txt");
+
+            actual.Should().BeEquivalentTo(issue1, issue3);
         }
 
         [TestMethod]
-        public void ErrorCategory_Is_Issue_Type()
+        public void GetLocationsVizForFile_MatchesInSecondaryLocations_ReturnsExpected()
         {
-            issue.Type = AnalysisIssueType.Bug;
-            issue.Severity = AnalysisIssueSeverity.Blocker;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Bug");
-            issue.Type = AnalysisIssueType.CodeSmell;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Code Smell");
-            issue.Type = AnalysisIssueType.Vulnerability;
-            GetValue(StandardTableKeyNames.ErrorCategory).Should().Be("Blocker Vulnerability");
+            var flow1 = CreateFlowViz("match.txt", "MATCH.TXT");
+            var flow2 = CreateFlowViz("miss.txt", "Match.txt");
+            var flow3 = CreateFlowViz("another miss.txt");
+
+            var issue1 = CreateIssueWithSpecificsPaths("path1.txt", flow1, flow2, flow3);
+            var issues = new[] { issue1 };
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, issues);
+
+            var actual = testSubject.GetLocationsVizsForFile("match.txt");
+
+            actual.Should().BeEquivalentTo(flow1.Locations[0], flow1.Locations[1], flow2.Locations[1]);
         }
 
         [TestMethod]
-        public void ErrorCodeToolTip()
+        public void IncrementVersion_VersionIncrement_AnalysisIdAndIssuesUnchanged()
         {
-            issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.ErrorCodeToolTip).Should().Be("Open description of rule javascript:123");
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, ValidIssueList);
+            var originalVersion = testSubject.VersionNumber;
+            var originalRunId = testSubject.AnalysisRunId;
+
+            testSubject.IncrementVersion();
+
+            testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
+            testSubject.AnalysisRunId.Should().Be(originalRunId);
+            testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
 
-        [TestMethod]
-        public void HelpLink()
-        {
-            issue.RuleKey = "javascript:123";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
-            issue.RuleKey = "javascript:S123";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-123");
-            issue.RuleKey = "javascript:SOMETHING";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/javascript/RSPEC-SOMETHING");
-            issue.RuleKey = "c:456";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/c/RSPEC-456");
-            issue.RuleKey = "cpp:789";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/cpp/RSPEC-789");
-            issue.RuleKey = "php:101112";
-            GetValue(StandardTableKeyNames.HelpLink).Should().Be("https://rules.sonarsource.com/php/RSPEC-101112");
-        }
+        private static Guid GetProjectGuid(ITableEntriesSnapshot snapshot) =>
+            GetValue<Guid>(snapshot, StandardTableKeyNames.ProjectGuid);
 
-        [TestMethod]
-        public void ProjectName()
-        {
-            GetValue(StandardTableKeyNames.ProjectName).Should().Be("MyProject");
-        }
+        private static string GetProjectName(ITableEntriesSnapshot snapshot) =>
+            GetValue<string>(snapshot, StandardTableKeyNames.ProjectName);
 
-        [TestMethod]
-        [DataRow(DaemonSeverity.Info, __VSERRORCATEGORY.EC_MESSAGE)]
-        [DataRow(DaemonSeverity.Minor, __VSERRORCATEGORY.EC_MESSAGE)]
-        [DataRow(DaemonSeverity.Major, __VSERRORCATEGORY.EC_WARNING)]
-        [DataRow(DaemonSeverity.Critical, __VSERRORCATEGORY.EC_WARNING)]
-        public void ToVsErrorCategory_NotBlocker_CorrectlyMapped(AnalysisIssueSeverity severity, __VSERRORCATEGORY expectedVsErrorCategory)
-        {
-            snapshot.ToVsErrorCategory(severity).Should().Be(expectedVsErrorCategory);
-        }
+        private static string GetFilePath(ITableEntriesSnapshot snapshot) =>
+            GetValue<string>(snapshot, StandardTableKeyNames.DocumentName);
 
-        [TestMethod]
-        [DataRow(true, __VSERRORCATEGORY.EC_ERROR)]
-        [DataRow(false, __VSERRORCATEGORY.EC_WARNING)]
-        public void ToVsErrorCategory_Blocker_CorrectlyMapped(bool shouldTreatBlockerAsError, __VSERRORCATEGORY expectedVsErrorCategory)
-        {
-            var envSettingsMock = new Mock<IEnvironmentSettings>();
-            envSettingsMock.Setup(x => x.TreatBlockerSeverityAsError()).Returns(shouldTreatBlockerAsError);
-
-            var testSubject = new IssuesSnapshot("any", "any", 0, Array.Empty<IssueMarker>(), envSettingsMock.Object);
-
-            testSubject.ToVsErrorCategory(AnalysisIssueSeverity.Blocker).Should().Be(expectedVsErrorCategory);
-        }
-
-        [TestMethod]
-        public void ToVsErrorCategory_InvalidDaemonSeverity_DoesNotThrow()
-        {
-            snapshot.ToVsErrorCategory((AnalysisIssueSeverity)(-999)).Should().Be(__VSERRORCATEGORY.EC_MESSAGE);
-        }
-
-        private object GetValue(string columnName)
+        private static T GetValue<T>(ITableEntriesSnapshot snapshot, string columnName)
         {
             object content;
             snapshot.TryGetValue(0, columnName, out content).Should().BeTrue();
-            return content;
+
+            content.Should().BeOfType<T>();
+            return (T)content;
+        }
+
+        private static IAnalysisIssueVisualization CreateIssue(string ruleKey = "rule key") =>
+            CreateIssueViz("filePath", CreateNonEmptySpan(), new DummyAnalysisIssue { RuleKey = ruleKey });
+
+        private static IAnalysisIssueVisualization CreateIssueWithSpecificsPaths(string primaryFilePath, params IAnalysisIssueFlowVisualization[] flowVizs) =>
+            CreateIssueViz(primaryFilePath, CreateNonEmptySpan(), Mock.Of<IAnalysisIssue>(), flowVizs);
+
+        private static SnapshotSpan CreateNonEmptySpan()
+        {
+            var textSnapshot = new Mock<ITextSnapshot>();
+            textSnapshot.SetupGet(x => x.Length).Returns(999);
+
+            return new SnapshotSpan(textSnapshot.Object, new Span(0, 1));
+        }
+
+        private static IAnalysisIssueVisualization CreateIssueViz(string filePath, SnapshotSpan span, IAnalysisIssue issue, params IAnalysisIssueFlowVisualization[] flowVizs)
+        {
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(issue);
+            issueVizMock.Setup(x => x.Location).Returns(issue);
+            issueVizMock.Setup(x => x.Flows).Returns(flowVizs);
+
+            issueVizMock.SetupProperty(x => x.CurrentFilePath);
+            issueVizMock.Object.CurrentFilePath = filePath;
+
+            issueVizMock.SetupProperty(x => x.Span);
+            issueVizMock.Object.Span = span;
+
+            return issueVizMock.Object;
+        }
+
+        private static IAnalysisIssueFlowVisualization CreateFlowViz(params string[] locationFilePaths)
+        {
+            var locVizs = new List<IAnalysisIssueLocationVisualization>();
+
+            foreach (var path in locationFilePaths)
+            {
+                locVizs.Add(CreateLocViz(path));
+            }
+
+            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
+            flowViz.Setup(x => x.Locations).Returns(locVizs);
+            return flowViz.Object;
+        }
+
+        private static IAnalysisIssueLocationVisualization CreateLocViz(string filePath)
+        {
+            var locViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locViz.Setup(x => x.CurrentFilePath).Returns(filePath);
+            return locViz.Object;
         }
     }
 }

@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return new FileConfig
                 {
                     AbsoluteFilePath = absoluteFilePath,
+                    AbsoluteProjectPath = vcProject.ProjectFile,
 
                     PlatformName = platformName,
                     PlatformToolset = platformToolset,
@@ -116,9 +117,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return result;
             }
 
+            #region Properties
+
             public string AbsoluteFilePath { get; set; }
 
-            #region Properties
+            public string AbsoluteProjectPath { get; set; }
 
             public string PlatformName { get; set; }
 

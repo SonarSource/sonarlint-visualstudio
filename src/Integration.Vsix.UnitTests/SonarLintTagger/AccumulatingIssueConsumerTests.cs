@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 {
@@ -35,6 +36,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
     {
         private static readonly IAnalysisIssue ValidIssue = CreateIssue(startLine: 1, endline: 1);
         private static readonly ITextSnapshot ValidTextSnapshot = CreateSnapshot(lineCount: 10);
+        private static readonly IAnalysisIssueVisualizationConverter ValidConverter = Mock.Of<IAnalysisIssueVisualizationConverter>();
+
         private const string ValidFilePath = "c:\\myfile.txt";
 
         [TestMethod]
@@ -42,14 +45,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             AccumulatingIssueConsumer.OnIssuesChanged validCallback = _ => { };
 
-            Action act = () => new AccumulatingIssueConsumer(null, ValidFilePath, validCallback);
+            Action act = () => new AccumulatingIssueConsumer(null, ValidFilePath, validCallback, ValidConverter);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisSnapshot");
 
-            act = () => new AccumulatingIssueConsumer(ValidTextSnapshot, null, validCallback);
+            act = () => new AccumulatingIssueConsumer(ValidTextSnapshot, null, validCallback, ValidConverter);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analysisFilePath");
 
-            act = () => new AccumulatingIssueConsumer(ValidTextSnapshot, ValidFilePath, null);
+            act = () => new AccumulatingIssueConsumer(ValidTextSnapshot, ValidFilePath, null, ValidConverter);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("onIssuesChangedCallback");
+
+            act = () => new AccumulatingIssueConsumer(ValidTextSnapshot, ValidFilePath, validCallback, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueToIssueVisualizationConverter");
         }
 
         [TestMethod]
@@ -58,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             var callbackSpy = new OnIssuesChangedCallbackSpy();
             var issues = new IAnalysisIssue[] { ValidIssue };
 
-            var testSubject = new AccumulatingIssueConsumer(ValidTextSnapshot, "c:\\file1.txt", callbackSpy.Callback);
+            var testSubject = new AccumulatingIssueConsumer(ValidTextSnapshot, "c:\\file1.txt", callbackSpy.Callback, ValidConverter);
 
             using (new AssertIgnoreScope())
             {
@@ -102,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             }
             else
             {
-                callbackSpy.LastSuppliedMarkers.Should().BeEmpty();
+                callbackSpy.LastSuppliedIssueVisualizations.Should().BeEmpty();
             }
         }
 
@@ -141,19 +147,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         private class OnIssuesChangedCallbackSpy
         {
             public int CallCount { get; private set; }
-            public IList<IssueMarker> LastSuppliedMarkers { get; private set; }
+            public IList<IAnalysisIssueVisualization> LastSuppliedIssueVisualizations { get; private set; }
             public IList<IAnalysisIssue> LastSuppliedIssues
             {
                 get
                 {
-                    return LastSuppliedMarkers?.Select(x => x.Issue).ToList();
+                    return LastSuppliedIssueVisualizations?.Select(x => x.Issue).ToList();
                 }
             }
 
-            public void Callback(IEnumerable<IssueMarker> issueMarkers)
+            public void Callback(IEnumerable<IAnalysisIssueVisualization> issues)
             {
                 CallCount++;
-                LastSuppliedMarkers = issueMarkers?.ToList();
+                LastSuppliedIssueVisualizations = issues?.ToList();
             }
         }
 
@@ -172,13 +178,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 Message = "any message"
             };
 
-        private static IIssueToIssueMarkerConverter CreatePassthroughConverter()
+        private static IAnalysisIssueVisualizationConverter CreatePassthroughConverter()
         {
-            // Set up an issue converter that just wraps and returns the supplied issues as IssueMarkers
-            var mockIssueConverter = new Mock<IIssueToIssueMarkerConverter>();
-            mockIssueConverter.Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
-                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => new IssueMarker(issue, new SnapshotSpan(), null, null));
+            // Set up an issue converter that just wraps and returns the supplied issues as IssueVisualizations
+            var mockIssueConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            mockIssueConverter
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssue>(), It.IsAny<ITextSnapshot>()))
+                .Returns<IAnalysisIssue, ITextSnapshot>((issue, snapshot) => CreateIssueViz(issue, new SnapshotSpan()));
+            
             return mockIssueConverter.Object;
+
+            IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
+            {
+                var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+                issueVizMock.Setup(x => x.Issue).Returns(issue);
+                issueVizMock.Setup(x => x.Span).Returns(snapshotSpan);
+
+                return issueVizMock.Object;
+            }
         }
     }
 }

@@ -18,19 +18,17 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell.TableManager;
-
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
 {
     /// <summary>
     /// Abstraction over the Error List, consumed by the rest of SLVS
     /// </summary>
     internal interface ISonarErrorListDataSource
     {
-        void RefreshErrorList();
+        void RefreshErrorList(IIssuesSnapshotFactory factory);
 
-        void AddFactory(ITableEntriesSnapshotFactory factory);
+        void AddFactory(IIssuesSnapshotFactory factory);
 
-        void RemoveFactory(ITableEntriesSnapshotFactory factory);
+        void RemoveFactory(IIssuesSnapshotFactory factory);
     }
 }

@@ -315,108 +315,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
         }
 
-        [TestMethod]
-        public void ToSonarLintIssue_EndLineIsNotZero()
-        {
-            var ruleConfig = GetDummyRulesConfiguration();
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, null);
-
-            // Act
-            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
-
-            //Assert
-            issue.StartLine.Should().Be(4);
-            issue.StartLineOffset.Should().Be(3 - 1);
-
-            issue.EndLine.Should().Be(2);
-            issue.EndLineOffset.Should().Be(1 - 1);
-
-            issue.RuleKey.Should().Be("lang1:rule2");
-            issue.FilePath.Should().Be("file");
-            issue.Message.Should().Be("test endline is not zero");
-        }
-
-        [TestMethod]
-        public void ToSonarLintIssue_EndLineIsZero()
-        {
-            // Special case: ignore column offsets if EndLine is zero
-            var ruleConfig = GetDummyRulesConfiguration();
-            var message = new Message("rule3", "ff", 101, 1, 0, 3, "test endline is zero", true, null);
-
-            // Act
-            var issue = CFamilyHelper.ToSonarLintIssue(message, "cpp", ruleConfig);
-
-            //Assert
-            issue.StartLine.Should().Be(101);
-
-            issue.EndLine.Should().Be(0);
-            issue.StartLineOffset.Should().Be(0);
-            issue.EndLineOffset.Should().Be(0);
-
-            issue.RuleKey.Should().Be("cpp:rule3");
-            issue.FilePath.Should().Be("ff");
-            issue.Message.Should().Be("test endline is zero");
-        }
-
-        [TestMethod]
-        public void ToSonarLintIssue_SeverityAndTypeLookup()
-        {
-            var ruleConfig = GetDummyRulesConfiguration();
-
-            // 1. Check rule2
-            var message = new Message("rule2", "any", 4, 3, 2, 1, "message", false, null);
-            var issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
-
-            issue.RuleKey.Should().Be("lang1:rule2");
-            issue.Severity.Should().Be(AnalysisIssueSeverity.Info);
-            issue.Type.Should().Be(AnalysisIssueType.CodeSmell);
-
-            // 2. Check rule3
-            message = new Message("rule3", "any", 4, 3, 2, 1, "message", false, null);
-            issue = CFamilyHelper.ToSonarLintIssue(message, "lang1", ruleConfig);
-
-            issue.RuleKey.Should().Be("lang1:rule3");
-            issue.Severity.Should().Be(AnalysisIssueSeverity.Critical);
-            issue.Type.Should().Be(AnalysisIssueType.Vulnerability);
-        }
-
-        [TestMethod]
-        [DataRow(IssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
-        [DataRow(IssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
-        [DataRow(IssueSeverity.Info, AnalysisIssueSeverity.Info)]
-        [DataRow(IssueSeverity.Major, AnalysisIssueSeverity.Major)]
-        [DataRow(IssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
-        public void ConvertFromIssueSeverity(IssueSeverity cfamilySeverity, AnalysisIssueSeverity analysisIssueSeverity)
-        {
-            CFamilyHelper.Convert(cfamilySeverity).Should().Be(analysisIssueSeverity);
-        }
-
-        [TestMethod]
-        public void ConvertFromIssueSeverity_InvalidValue_Throws()
-        {
-            Action act = () => CFamilyHelper.Convert((IssueSeverity)(-1));
-            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
-        }
-
-        [TestMethod]
-        [DataRow(IssueType.Bug, AnalysisIssueType.Bug)]
-        [DataRow(IssueType.CodeSmell, AnalysisIssueType.CodeSmell)]
-        [DataRow(IssueType.Vulnerability, AnalysisIssueType.Vulnerability)]
-        public void ConvertFromIssueType(IssueType cfamilyIssueType, AnalysisIssueType analysisIssueType)
-        {
-            CFamilyHelper.Convert(cfamilyIssueType).Should().Be(analysisIssueType);
-
-            Action act = () => CFamilyHelper.Convert((IssueType) (-1));
-            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
-        }
-
-        [TestMethod]
-        public void ConvertFromIssueType_InvalidValue_Throws()
-        {
-            Action act = () => CFamilyHelper.Convert((IssueType)(-1));
-            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
-        }
-
         private static ICFamilyRulesConfig GetDummyRulesConfiguration()
         {
             var config = new DummyCFamilyRulesConfig("any")
@@ -440,6 +338,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
         {
             var vcProjectMock = new Mock<VCProject>();
+            vcProjectMock.Setup(x => x.ProjectFile).Returns(projectName);
+
             var vcConfig = CreateVCConfigurationWithProperties(ValidPlatformName, MandatoryProjectConfigProperties);
             vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
 

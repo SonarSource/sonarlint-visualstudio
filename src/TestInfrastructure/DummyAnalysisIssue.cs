@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -39,8 +41,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public int EndLineOffset { get; set; }
 
+        public string LineHash { get; set; }
+
         public string Message { get; set; }
 
         public string FilePath { get; set; }
+
+        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; } = Array.Empty<IAnalysisIssueFlow>();
     }
 }

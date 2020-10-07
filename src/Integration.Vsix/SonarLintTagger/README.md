@@ -30,7 +30,7 @@ The `TaggerProvider` is the glue that holds everthing together:
 The other classes are largely notification plumbing:
 - SinkManager, SnapshotFactory: plumbing to pass data and notifications to the Error List
 - IssueTagger: plumbing to pass data and notifications to the editor
-- IssueMarker: data class to associate a SonarQube `Issue` with a location (`SnapshotSpan`) in a text buffer (`ITextSnapshot`)
+- AnalysisIssueVisualization: data class to associate `IAnalysisIssue` with a location (`SnapshotSpan`) in a text buffer (`ITextSnapshot`)
 
 
 Editor integration:
@@ -109,12 +109,12 @@ A) Processing issues returned by an analyzer
 --------------------------------------------
 When a file is analysed a list of issues is returned. This contains the error code etc plus the text position data
 (start line, end line, start pos and end pos). The text position returned by the analyzer needs to be mapped to a
-SnapshotSpan in the current ITextSnapshot. This is what the IssueMarker does - associates an analyser issue with a text span.
+SnapshotSpan in the current ITextSnapshot. This is what the AnalysisIssueVisualization does - associates an analyser issue with a text span.
 From this point on, we are only interested in the SnapshotSpan. The original text position returned by the analyzer is 
 no longer relevant.
 
 NOTE: there is a possibility that the buffer could have changed between the analysis started and the resulting issues
-being mapped to spans in the ITextSnapshot. Once analyzer issues have been mapped to IssueMarkers against the 
+being mapped to spans in the ITextSnapshot. Once analyzer issues have been mapped to AnalysisIssueVisualizations against the 
 analysis-snapshot, the spans should be translated to spans in the current snapshot. Otherwise, the spans could be
 wrong if the document has been edited in the interval between the analysis being triggered and the analysis issues
 being processed. See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
@@ -122,7 +122,7 @@ being processed. See bug #1487: https://github.com/SonarSource/sonarlint-visuals
 B) Handling edits to the document
 ---------------------------------
 When the buffer is changed (i.e. the document is edited), we need to:
-1) translate all of the spans in the IssueMarkers to spans in the ITextSnapshot;
+1) translate all of the spans in the AnalysisIssueVisualizations to spans in the ITextSnapshot;
 2) tell our tagger it needs to update the squigglies; and
 3) tell the Error List it needs to refresh the list of errors for this file.
 We need to do (3) so that the Error List shows the up-to-date line and column numbers, but also so that issues on lines

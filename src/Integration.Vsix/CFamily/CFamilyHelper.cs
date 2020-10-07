@@ -25,7 +25,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 
@@ -180,79 +179,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             runner.Execute(args);
         }
-
-        internal /* for testing */ static IAnalysisIssue ToSonarLintIssue(Message cfamilyIssue, string sqLanguage, ICFamilyRulesConfig rulesConfiguration)
-        {
-            // Lines and character positions are 1-based
-            Debug.Assert(cfamilyIssue.Line > 0);
-
-            // BUT special case of EndLine=0, Column=0, EndColumn=0 meaning "select the whole line"
-            Debug.Assert(cfamilyIssue.EndLine >= 0);
-            Debug.Assert(cfamilyIssue.Column > 0 || cfamilyIssue.Column == 0);
-            Debug.Assert(cfamilyIssue.EndColumn > 0 || cfamilyIssue.EndLine == 0);
-
-            // Look up default severity and type
-            var defaultSeverity = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].DefaultSeverity;
-            var defaultType = rulesConfiguration.RulesMetadata[cfamilyIssue.RuleKey].Type;
-
-            return new AnalysisIssue
-            (
-                filePath: cfamilyIssue.Filename,
-                message: cfamilyIssue.Text,
-                ruleKey: sqLanguage + ":" + cfamilyIssue.RuleKey,
-                severity: Convert(defaultSeverity),
-                type: Convert(defaultType),
-                startLine: cfamilyIssue.Line,
-                endLine: cfamilyIssue.EndLine,
-
-                // We don't care about the columns in the special case EndLine=0
-                startLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.Column - 1,
-                endLineOffset: cfamilyIssue.EndLine == 0 ? 0 : cfamilyIssue.EndColumn - 1
-            );
-        }
-
-        /// <summary>
-        /// Converts from the CFamily issue severity enum to the standard AnalysisIssueSeverity
-        /// </summary>
-        internal /* for testing */ static AnalysisIssueSeverity Convert(IssueSeverity issueSeverity)
-        {
-            switch (issueSeverity)
-            {
-                case IssueSeverity.Blocker:
-                    return AnalysisIssueSeverity.Blocker;
-                case IssueSeverity.Critical:
-                    return AnalysisIssueSeverity.Critical;
-                case IssueSeverity.Info:
-                    return AnalysisIssueSeverity.Info;
-                case IssueSeverity.Major:
-                    return AnalysisIssueSeverity.Major;
-                case IssueSeverity.Minor:
-                    return AnalysisIssueSeverity.Minor;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(issueSeverity));
-            }
-        }
-
-        /// <summary>
-        /// Converts from the CFamily issue type enum to the standard AnalysisIssueType
-        /// </summary>
-        internal /* for testing */static AnalysisIssueType Convert(IssueType issueType)
-        {
-            switch (issueType)
-            {
-                case IssueType.Bug:
-                    return AnalysisIssueType.Bug;
-                case IssueType.CodeSmell:
-                    return AnalysisIssueType.CodeSmell;
-                case IssueType.Vulnerability:
-                    return AnalysisIssueType.Vulnerability;
-
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(issueType));
-            }
-        }
-
+  
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
         {
             Debug.Assert(!IsHeaderFile(absoluteFilePath),

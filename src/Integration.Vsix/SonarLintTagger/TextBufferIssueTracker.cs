@@ -23,10 +23,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -41,38 +45,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// See the README.md in this folder for more information
     /// </para>
     /// </remarks>
-    internal class TextBufferIssueTracker : IIssueTracker
+    internal class TextBufferIssueTracker : IIssueTracker, ITagger<IErrorTag>, IDisposable
     {
         private readonly DTE dte;
         internal /* for testing */ TaggerProvider Provider { get; }
         private readonly ITextBuffer textBuffer;
         private readonly IEnumerable<AnalysisLanguage> detectedLanguages;
 
-        private ITextSnapshot currentSnapshot;
-
         private readonly ITextDocument document;
         private readonly string charset;
         private readonly ILogger logger;
         private readonly IIssuesFilter issuesFilter;
         private readonly ISonarErrorListDataSource sonarErrorDataSource;
+        private readonly IAnalysisIssueVisualizationConverter converter;
+        private readonly IVsSolution5 vsSolution;
 
         public string FilePath { get; private set; }
-        internal /* for testing */ SnapshotFactory Factory { get; }
-
-        private readonly ISet<IssueTagger> activeTaggers = new HashSet<IssueTagger>();
+        internal /* for testing */ IssuesSnapshotFactory Factory { get; }
 
         public TextBufferIssueTracker(DTE dte, TaggerProvider provider, ITextDocument document,
             IEnumerable<AnalysisLanguage> detectedLanguages, IIssuesFilter issuesFilter,
-            ISonarErrorListDataSource sonarErrorDataSource, ILogger logger)
+            ISonarErrorListDataSource sonarErrorDataSource, IAnalysisIssueVisualizationConverter converter,
+            IVsSolution5 vsSolution, ILogger logger)
         {
             this.dte = dte;
 
             this.Provider = provider;
             this.textBuffer = document.TextBuffer;
-            this.currentSnapshot = document.TextBuffer.CurrentSnapshot;
 
             this.detectedLanguages = detectedLanguages;
             this.sonarErrorDataSource = sonarErrorDataSource;
+            this.converter = converter;
+            this.vsSolution = vsSolution;
             this.logger = logger;
             this.issuesFilter = issuesFilter;
 
@@ -80,52 +84,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.FilePath = document.FilePath;
             this.charset = document.Encoding.WebName;
 
-            this.Factory = new SnapshotFactory(new IssuesSnapshot(GetProjectName(), FilePath, 0, new List<IssueMarker>()));
+            this.Factory = new IssuesSnapshotFactory(new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath, new List<IAnalysisIssueVisualization>()));
 
             document.FileActionOccurred += SafeOnFileActionOccurred;
-        }
 
-        public IssueTagger CreateTagger()
-        {
-            var tagger = new IssueTagger(this.Factory.CurrentSnapshot.IssueMarkers, RemoveTagger);
-            this.AddTagger(tagger);
+            sonarErrorDataSource.AddFactory(this.Factory);
+            Provider.AddIssueTracker(this);
 
-            return tagger;
-        }
-
-        private void AddTagger(IssueTagger tagger)
-        {
-            Debug.Assert(!activeTaggers.Contains(tagger), "Not expecting the tagger to be already registered");
-            activeTaggers.Add(tagger);
-
-            if (activeTaggers.Count == 1)
-            {
-                // First tagger created... start doing stuff
-
-                textBuffer.ChangedLowPriority += SafeOnBufferChange;
-
-                sonarErrorDataSource.AddFactory(this.Factory);
-                Provider.AddIssueTracker(this);
-
-                RequestAnalysis(null /* no options */);
-            }
-        }
-
-        private void RemoveTagger(IssueTagger tagger)
-        {
-            Debug.Assert(activeTaggers.Contains(tagger), "Not expecting RemoveTagger to be called for an unregistered tagger");
-            activeTaggers.Remove(tagger);
-
-            if (activeTaggers.Count == 0)
-            {
-                // Last tagger was disposed of. This is means there are no longer any open views on the buffer so we can safely shut down
-                // issue tracking for that buffer.
-                document.FileActionOccurred -= SafeOnFileActionOccurred;
-                textBuffer.ChangedLowPriority -= SafeOnBufferChange;
-                textBuffer.Properties.RemoveProperty(typeof(TextBufferIssueTracker));
-                sonarErrorDataSource.RemoveFactory(this.Factory);
-                Provider.RemoveIssueTracker(this);
-            }
+            RequestAnalysis(null /* no options */);
         }
 
         private void SafeOnFileActionOccurred(object sender, TextDocumentFileActionEventArgs e)
@@ -134,17 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // propagating to VS, which would display a dialogue and disable the extension.
             try
             {
-                if (e.FileActionType == FileActionTypes.DocumentRenamed)
-                {
-                    FilePath = e.FilePath;
-
-                    // Update and publish a new snapshow with the existing issues so 
-                    // that the name change propagates to items in the error list.
-                    // No need in this case to translate the tagger spans.
-                    RefreshIssues();
-                }
-                else if (e.FileActionType == FileActionTypes.ContentSavedToDisk
-                    && activeTaggers.Count > 0)
+                if (e.FileActionType == FileActionTypes.ContentSavedToDisk)
                 {
                     RequestAnalysis(null /* no options */);
                 }
@@ -155,86 +111,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        private void SafeOnBufferChange(object sender, TextContentChangedEventArgs e)
+        protected virtual /* for testing */ IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
         {
-            // Handles callback from VS. Suppress non-critical errors to prevent them
-            // propagating to VS, which would display a dialogue and disable the extension.
-            try
-            {
-                // The text buffer has been edited (i.e.text added, deleted or modified).
-                // The spans we have stored for issues relate to the previous text buffer and
-                // are no longer valid, so we need to translate them to the equivalent spans
-                // in the new text buffer.
-                currentSnapshot = e.After;
-
-                var newMarkers = TranslateSpans(Factory.CurrentSnapshot.IssueMarkers, currentSnapshot);
-                UpdateIssues(newMarkers);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.Daemon_Editor_ERROR, ex);
-            }
-        }
-
-        protected virtual /* for testing */ IEnumerable<IssueMarker> TranslateSpans(IEnumerable<IssueMarker> issueMarkers, ITextSnapshot activeSnapshot)
-        {
-            var newMarkers = issueMarkers
-                .Select(marker => marker.CloneAndTranslateTo(activeSnapshot))
-                .Where(clone => clone != null)
+            var issuesWithTranslatedSpans = issues
+                .Where(x => x.Span.HasValue)
+                .Select(x =>
+                {
+                    var oldSpan = x.Span.Value;
+                    var newSpan = oldSpan.TranslateTo(activeSnapshot, SpanTrackingMode.EdgeExclusive);
+                    x.Span = oldSpan.Length == newSpan.Length ? newSpan : (SnapshotSpan?) null;
+                    return x;
+                })
+                .Where(x => x.Span.HasValue)
                 .ToArray();
 
-            return newMarkers;
+            return issuesWithTranslatedSpans;
         }
 
-        private void SnapToNewSnapshot(IssuesSnapshot newIssues)
+        private void SnapToNewSnapshot(IIssuesSnapshot newSnapshot)
         {
-            var oldIssues = Factory.CurrentSnapshot;
-
             // Tell our factory to snap to a new snapshot.
-            this.Factory.UpdateSnapshot(newIssues);
+            Factory.UpdateSnapshot(newSnapshot);
 
-            sonarErrorDataSource.RefreshErrorList();
-
-            // Work out which part of the document has been affected by the changes, and tell
-            // the taggers about the changes
-            SnapshotSpan? affectedSpan = CalculateAffectedSpan(oldIssues, newIssues);
-            foreach (var tagger in activeTaggers)
-            {
-                tagger.UpdateMarkers(newIssues.IssueMarkers, affectedSpan);
-            }
-        }
-
-        private SnapshotSpan? CalculateAffectedSpan(IssuesSnapshot oldIssues, IssuesSnapshot newIssues)
-        {
-            // Calculate the whole span affected by the all of the issues, old and new
-            int start = int.MaxValue;
-            int end = int.MinValue;
-
-            if (oldIssues != null && oldIssues.Count > 0)
-            {
-                start = oldIssues.IssueMarkers.Select(i => i.Span.Start.TranslateTo(currentSnapshot, PointTrackingMode.Negative)).Min();
-                end = oldIssues.IssueMarkers.Select(i => i.Span.End.TranslateTo(currentSnapshot, PointTrackingMode.Positive)).Max();
-            }
-
-            if (newIssues != null && newIssues.Count > 0)
-            {
-                start = Math.Min(start, newIssues.IssueMarkers.Select(i => i.Span.Start.Position).Min());
-                end = Math.Max(end, newIssues.IssueMarkers.Select(i => i.Span.End.Position).Max());
-            }
-
-            if (start < end)
-            {
-                return new SnapshotSpan(currentSnapshot, Span.FromBounds(start, end));
-            }
-
-            return null;
+            sonarErrorDataSource.RefreshErrorList(Factory);
         }
 
         #region Daemon interaction
 
         public void RequestAnalysis(IAnalyzerOptions options)
         {
-            var issueConsumer = new AccumulatingIssueConsumer(currentSnapshot, FilePath, HandleNewIssues);
+            FilePath = document.FilePath; // Refresh the stored file path in case the document has been renamed
+            var issueConsumer = new AccumulatingIssueConsumer(textBuffer.CurrentSnapshot, FilePath, HandleNewIssues, converter);
 
             // Call the consumer with no analysis issues to immediately clear issies for this file
             // from the error list
@@ -243,51 +150,67 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             Provider.RequestAnalysis(FilePath, charset, detectedLanguages, issueConsumer, options);
         }
 
-        internal /* for testing */ void HandleNewIssues(IEnumerable<IssueMarker> issueMarkers)
+        internal /* for testing */ void HandleNewIssues(IEnumerable<IAnalysisIssueVisualization> issues)
         {
-            var filteredMarkers = RemoveSuppressedIssues(issueMarkers);
+            var filteredIssues = RemoveSuppressedIssues(issues);
 
             // The text buffer might have changed since the analysis was triggered, so translate
             // all issues to the current snapshot.
             // See bug #1487: https://github.com/SonarSource/sonarlint-visualstudio/issues/1487
-            var translatedMarkers = TranslateSpans(filteredMarkers, currentSnapshot);
+            var translatedIssues = TranslateSpans(filteredIssues, textBuffer.CurrentSnapshot);
 
-            UpdateIssues(translatedMarkers);
+            var newSnapshot = new IssuesSnapshot(GetProjectName(), GetProjectGuid(), FilePath, translatedIssues);
+            SnapToNewSnapshot(newSnapshot);
         }
 
-        private IEnumerable<IssueMarker> RemoveSuppressedIssues(IEnumerable<IssueMarker> issues)
+        private IEnumerable<IAnalysisIssueVisualization> RemoveSuppressedIssues(IEnumerable<IAnalysisIssueVisualization> issues)
         {
             var filterableIssues = issues.OfType<IFilterableIssue>().ToArray();
 
             var filteredIssues = issuesFilter.Filter(filterableIssues);
-            Debug.Assert(filteredIssues.All(x => x is IssueMarker), "Not expecting the issue filter to change the list item type");
+            Debug.Assert(filteredIssues.All(x => x is IAnalysisIssueVisualization), "Not expecting the issue filter to change the list item type");
 
-            return filteredIssues.OfType<IssueMarker>().ToArray();
-        }
-
-        private void RefreshIssues()
-        {
-            UpdateIssues(Factory.CurrentSnapshot.IssueMarkers ?? Enumerable.Empty<IssueMarker>());
-        }
-
-        private void UpdateIssues(IEnumerable<IssueMarker> issueMarkers)
-        {
-            var oldSnapshot = Factory.CurrentSnapshot;
-            var newSnapshot = new IssuesSnapshot(GetProjectName(), FilePath, oldSnapshot.VersionNumber + 1, issueMarkers);
-            SnapToNewSnapshot(newSnapshot);
+            return filteredIssues.OfType<IAnalysisIssueVisualization>().ToArray();
         }
 
         #endregion
 
-        private string GetProjectName()
+        private string GetProjectName() => GetProject()?.Name ?? "{none}";
+
+        private Project GetProject()
         {
             // Bug #676: https://github.com/SonarSource/sonarlint-visualstudio/issues/676
             // It's possible to have a ProjectItem that doesn't have a ContainingProject
             // e.g. files under the "External Dependencies" project folder in the Solution Explorer
             var projectItem = dte.Solution.FindProjectItem(this.FilePath);
-            var projectName = projectItem?.ContainingProject.Name ?? "{none}";
+            return projectItem?.ContainingProject;
+        }
 
-            return projectName;
+        private Guid GetProjectGuid()
+        {
+            var project = GetProject();
+
+            if (project == null)
+            {
+                return Guid.Empty;
+            }
+
+            return vsSolution.GetGuidOfProjectFile(project.FileName);
+        }
+
+        public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        {
+            return Enumerable.Empty<ITagSpan<IErrorTag>>();
+        }
+
+        public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
+
+        public void Dispose()
+        {
+            document.FileActionOccurred -= SafeOnFileActionOccurred;
+            textBuffer.Properties.RemoveProperty(TaggerProvider.SingletonManagerPropertyCollectionKey);
+            sonarErrorDataSource.RemoveFactory(this.Factory);
+            Provider.RemoveIssueTracker(this);
         }
     }
 }

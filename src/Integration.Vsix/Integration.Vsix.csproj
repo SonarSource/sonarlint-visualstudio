@@ -133,6 +133,11 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\IssueViz\IssueViz.csproj">
+      <Name>IssueViz</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3bPkgdefProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
     <ProjectReference Include="..\Progress\Progress.csproj">
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
       <Name>Progress</Name>
@@ -406,6 +411,9 @@
        to update the baseline file, then check in the updated baseline with the rest of your changes.
   -->
   <PropertyGroup>
+    <!-- By default update the baseline when building in the IDE (simplifies development when working on new code) -->
+    <AsmRefUpdateBaseline Condition="$(AsmRefUpdateBaseline)=='' AND $(BuildingInsideVisualStudio)=='true'">true</AsmRefUpdateBaseline>
+    
     <!-- Only check the VS2019 build -->
     <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' ">true</AsmRefDisableBaselining>
     

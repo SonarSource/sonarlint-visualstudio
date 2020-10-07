@@ -11,12 +11,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="BouncyCastle" Version="1.8.6.1" />
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
   </ItemGroup>
 
   <ItemGroup>

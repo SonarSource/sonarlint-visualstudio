@@ -6,7 +6,7 @@
   -->
   <Metadata>
     <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-    <Identity Id="SonarLint.8c442ec8-0208-4840-b83f-acd24f41acf7" Version="4.25.0.0" Language="en-US" Publisher="SonarSource" />
+    <Identity Id="SonarLint.8c442ec8-0208-4840-b83f-acd24f41acf7" Version="4.27.0.0" Language="en-US" Publisher="SonarSource" />
     <DisplayName>SonarLint for Visual Studio 2015</DisplayName>
     <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
     <MoreInfo>http://vs.sonarlint.org</MoreInfo>
@@ -37,5 +37,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="Google.Protobuf.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz;PkgdefProjectOutputGroup|" />
   </Assets>
 </PackageManifest>
