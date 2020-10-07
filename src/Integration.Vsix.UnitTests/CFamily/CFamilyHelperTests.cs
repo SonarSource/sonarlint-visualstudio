@@ -276,7 +276,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CheckHasOption("S1578.format=^[A-Za-z_-][A-Za-z0-9_-]+\\.(c|m|cpp|cc|cxx)$");
 
             options.Count().Should()
-                .BeGreaterOrEqualTo(37); // basic sanity check: v6.13 has 37 - not expecting options to be removed
+                .BeGreaterOrEqualTo(37); // basic sanity check: v6.13 has 37
 
             string CheckHasOption(string optionName)
             {
