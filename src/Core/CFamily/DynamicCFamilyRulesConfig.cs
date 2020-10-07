@@ -44,6 +44,10 @@ namespace SonarLint.VisualStudio.Core.CFamily
             "cpp:S5815", "c:S5815",
             "cpp:S5816", "c:S5816",
             "cpp:S5824", "c:S5824",
+            "cpp:S2612", "c:S2612",
+            "cpp:S5802", "c:S5802",
+            "cpp:S5849", "c:S5849",
+            "cpp:S5982", "c:S5982",
         };
 
         public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)
