@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         internal class FileConfig
         {
-            private static (VCProject, VCConfiguration, IVCRulePropertyStorage)? getProjectAndFileConfig(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
+            private static Tuple<VCProject, VCConfiguration, IVCRulePropertyStorage> getProjectAndFileConfig(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
             {
                 var vcProject = dteProjectItem.ContainingProject.Object as VCProject;
                 var file = dteProjectItem.Object as VCFile;
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // VCCLCompilerTool (e.g. LanguageStandard). Also, quite a few of the Tool properties are exposed
                 // as enums, so we'd need to change our code to handle them.
                 var vcFileSettings = vcFileConfig.Tool as IVCRulePropertyStorage;
-                return (vcProject, vcConfig, vcFileSettings);
+                return new Tuple<VCProject, VCConfiguration, IVCRulePropertyStorage>(vcProject, vcConfig, vcFileSettings);
             }
 
             public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
@@ -77,8 +77,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     // Not supported
                     return null;
                 }
-
-                var (vcProject, vcConfig, vcFileSettings) = loadedConfig.Value;
+                VCProject vcProject = loadedConfig.Item1;
+                VCConfiguration vcConfig = loadedConfig.Item2;
+                IVCRulePropertyStorage vcFileSettings = loadedConfig.Item3;
                 var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
                 // Fetch properties that can't be set at file level from the configuration object
                 var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
