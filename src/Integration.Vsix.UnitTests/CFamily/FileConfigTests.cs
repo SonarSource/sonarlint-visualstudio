@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -146,6 +147,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             action = () => CFamilyHelper.FileConfig.GetCompilerVersion("", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
                 ("The file cannot be analyzed because the platform toolset has not been specified.");
+        }
+
+        [TestMethod]
+        public void TryGet_UnsupportedItemType()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
+            projectItemConfig.itemType = "None";
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var fileConfig = CFamilyHelper.FileConfig.TryGet(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            AssertMessageLogged(loggerMock,
+                "File's \"Item type\" is not supported. File: 'c:\\dummy\\file.cpp'");
+            fileConfig.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryGet_UnsupportedConfigurationType()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
+            projectItemConfig.configurationType = ConfigurationTypes.typeUnknown;
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var fileConfig = CFamilyHelper.FileConfig.TryGet(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            AssertMessageLogged(loggerMock,
+                "Project's \"Configuration type\" is not supported.");
+            fileConfig.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryGet_UnsupportedCustomBuild()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
+            projectItemConfig.isVCCLCompilerTool = false;
+            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var fileConfig = CFamilyHelper.FileConfig.TryGet(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+
+            // Assert
+            AssertMessageLogged(loggerMock,
+                "Custom build tools aren't supported. Custom-built file: 'c:\\dummy\\file.cpp'");
+            fileConfig.Should().BeNull();
         }
     }
 }

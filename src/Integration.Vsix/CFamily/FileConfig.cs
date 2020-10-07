@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         internal class FileConfig
         {
-            public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
+            private static (VCProject, VCConfiguration, IVCRulePropertyStorage)? getProjectAndFileConfig(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
             {
                 var vcProject = dteProjectItem.ContainingProject.Object as VCProject;
                 var file = dteProjectItem.Object as VCFile;
@@ -46,18 +46,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     logger.WriteLine(@"Project's ""Configuration type"" is not supported.");
                     return null;
                 }
-                // "ClCompile" for source files and "ClCompile" for header files
+                // "ClCompile" for source files and "ClInclude" for header files
                 if (file.ItemType != "ClCompile")
                 {
                     logger.WriteLine($"File's \"Item type\" is not supported. File: '{absoluteFilePath}'");
                     return null;
                 }
-                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
                 var vcFileConfig = file.GetFileConfigurationForProjectConfiguration(vcConfig);
                 // We don't support custom build tools. VCCLCompilerTool is needed for all the necessary compilation options to be present
                 if (!(vcFileConfig.Tool is VCCLCompilerTool))
                 {
-                    logger.WriteLine($"Custom built files are not supported. File: '{absoluteFilePath}'");
+                    logger.WriteLine($"Custom build tools aren't supported. Custom-built file: '{absoluteFilePath}'");
                     return null;
                 }
                 // The Tool property is typed as Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool, and
@@ -66,7 +65,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // VCCLCompilerTool (e.g. LanguageStandard). Also, quite a few of the Tool properties are exposed
                 // as enums, so we'd need to change our code to handle them.
                 var vcFileSettings = vcFileConfig.Tool as IVCRulePropertyStorage;
+                return (vcProject, vcConfig, vcFileSettings);
+            }
 
+            public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
+            {
+
+                var loadedConfig = getProjectAndFileConfig(logger, dteProjectItem, absoluteFilePath);
+                if (loadedConfig == null)
+                {
+                    // Not supported
+                    return null;
+                }
+
+                var (vcProject, vcConfig, vcFileSettings) = loadedConfig.Value;
+                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
                 // Fetch properties that can't be set at file level from the configuration object
                 var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
                 var platformToolset = vcConfig.GetEvaluatedPropertyValue("PlatformToolset");
