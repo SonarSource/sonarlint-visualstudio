@@ -56,56 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfigProviderMock.Object, null);
 
             // Assert
-            loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Never);
             request.Should().NotBeNull();
-        }
-
-        [TestMethod]
-        public void CreateRequest_HeaderFileOptions()
-        {
-            // Arrange
-            var loggerMock = new Mock<ILogger>();
-            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
-            projectItemConfig.ItemType = "ClInclude";
-            projectItemConfig.FileConfigProperties = new Dictionary<string, string>
-            {
-                ["PrecompiledHeader"] = "NotUsing",
-                ["CompileAs"] = "Default",
-                ["CompileAsManaged"] = "false",
-                ["EnableEnhancedInstructionSet"] = "",
-                ["RuntimeLibrary"] = "",
-                ["LanguageStandard"] = "",
-                ["ExceptionHandling"] = "Sync",
-                ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-                ["ForcedIncludeFiles"] = "",
-                ["PrecompiledHeader"] = "Use",
-                ["PrecompiledHeaderFile"] = "pch.h",
-            };
-            var rulesConfig = GetDummyRulesConfiguration();
-            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
-            rulesConfigProviderMock
-                .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
-                .Returns(rulesConfig);
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
-
-            // Act
-            var request = CFamilyHelper.TryGetConfig(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h");
-
-            // Assert
-            Assert.AreEqual("pch.h", request.ForcedIncludeFiles);
-            Assert.AreEqual("CompileAsCpp", request.CompileAs);
-            request.Should().NotBeNull();
-
-            // Arrange
-            projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";
-            projectItemConfig.FileConfigProperties["ForcedIncludeFiles"] = "FHeader.h";
-
-            // Act
-            request = CFamilyHelper.TryGetConfig(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h");
-
-            // Assert
-            Assert.AreEqual("FHeader.h", request.ForcedIncludeFiles);
-            Assert.AreEqual("CompileAsC", request.CompileAs);
         }
 
         [TestMethod]
