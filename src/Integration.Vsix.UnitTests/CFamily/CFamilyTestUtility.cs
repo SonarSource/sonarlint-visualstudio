@@ -10,6 +10,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     {
         internal class ProjectItemConfig
         {
+            public string PlatformName { get; set; } = "Win32";
+
             public IDictionary<string, string> ProjectConfigProperties { get; set; } = new Dictionary<string, string>
             {
                 ["PlatformToolset"] = "v140_xp"
@@ -41,12 +43,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
             vcProjectMock.Setup(x => x.ProjectFile).Returns(projectName);
 
-            var projectMock = new ProjectMock(projectName) { Project = vcProjectMock.Object };
+            var toolPropertiesMock = GetToolPropertiesMock(projectItemConfig);
+            var vcFileConfigMock = new Mock<VCFileConfiguration>();
+            vcFileConfigMock.SetupGet(x => x.Tool).Returns(toolPropertiesMock.Object);
 
             var vcFileMock = new Mock<VCFile>();
             vcFileMock.SetupGet(x => x.ItemType).Returns(projectItemConfig.ItemType);
-            var vcFileConfig = CreateVCFileConfigurationWithToolProperties(projectItemConfig);
-            vcFileMock.Setup(x => x.GetFileConfigurationForProjectConfiguration(vcConfig)).Returns(vcFileConfig);
+            vcFileMock.Setup(x => x.GetFileConfigurationForProjectConfiguration(vcConfig)).Returns(vcFileConfigMock.Object);
+
+            var projectMock = new ProjectMock(projectName) { Project = vcProjectMock.Object };
             var projectItemMock = new Mock<ProjectItem>();
             projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
             projectItemMock.Setup(i => i.Object).Returns(vcFileMock.Object);
@@ -64,7 +69,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static VCConfiguration CreateVCConfigurationWithProperties(ProjectItemConfig projectItemConfig)
         {
             var vcPlatformMock = new Mock<VCPlatform>();
-            vcPlatformMock.SetupGet(x => x.Name).Returns("Win32");
+            vcPlatformMock.SetupGet(x => x.Name).Returns(projectItemConfig.PlatformName);
 
             var vcConfigMock = new Mock<VCConfiguration>();
             vcConfigMock.SetupGet(x => x.Platform).Returns(vcPlatformMock.Object);
@@ -78,12 +83,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     return propertyValue ?? string.Empty;
                 });
 
+            // Project VCCLCompilerTool needed for header files analysis
+            var ivcCollection = new Mock<IVCCollection>();
+            vcConfigMock.SetupGet(x => x.Tools).Returns(ivcCollection.Object);
+
+            var toolPropertiesMock = GetToolPropertiesMock(projectItemConfig);
+            ivcCollection.Setup(x => x.Item("VCCLCompilerTool")).Returns(projectItemConfig.IsVCCLCompilerTool ? toolPropertiesMock.Object : null);
+
             return vcConfigMock.Object;
         }
 
-        private static VCFileConfiguration CreateVCFileConfigurationWithToolProperties(ProjectItemConfig projectItemConfig)
+        private static Mock<IVCRulePropertyStorage> GetToolPropertiesMock(ProjectItemConfig projectItemConfig)
         {
             var toolPropertiesMock = new Mock<IVCRulePropertyStorage>();
+
             if (projectItemConfig.IsVCCLCompilerTool)
             {
                 toolPropertiesMock.As<VCCLCompilerTool>();
@@ -97,10 +110,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     return propertyValue ?? string.Empty;
                 });
 
-            var vcFileConfigMock = new Mock<VCFileConfiguration>();
-            vcFileConfigMock.SetupGet(x => x.Tool).Returns(toolPropertiesMock.Object);
-
-            return vcFileConfigMock.Object;
+            return toolPropertiesMock;
         }
     }
 }

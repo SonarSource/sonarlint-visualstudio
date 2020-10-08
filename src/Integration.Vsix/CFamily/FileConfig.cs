@@ -39,6 +39,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 var vcConfig = vcProject.ActiveConfiguration;
+                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
+                var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
+                var platformToolset = vcConfig.GetEvaluatedPropertyValue("PlatformToolset");
+                var vcToolsVersion = vcConfig.GetEvaluatedPropertyValue("VCToolsVersion");
+                var compilerVersion = GetCompilerVersion(platformToolset, vcToolsVersion);
+
                 var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
 
                 if (vcFileSettings == null)
@@ -47,11 +53,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     return null;
                 }
 
-                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
-                var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
-                var platformToolset = vcConfig.GetEvaluatedPropertyValue("PlatformToolset");
-                var vcToolsVersion = vcConfig.GetEvaluatedPropertyValue("VCToolsVersion");
-                var compilerVersion = GetCompilerVersion(platformToolset, vcToolsVersion);
+                // Fetch properties that can be set differently for header files
+                var compileAs = vcFileSettings.GetEvaluatedPropertyValue("CompileAs");
+                var forcedIncludeFiles = vcFileSettings.GetEvaluatedPropertyValue("ForcedIncludeFiles");
+                var precompiledHeader = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeader");
+                var precompiledHeaderFile = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeaderFile");
+                
+                if (vcFile.ItemType == "ClInclude")
+                {
+                    // If the project language is not specified. Headers are compiled as CPP
+                    compileAs = (compileAs == "Default") ? "CompileAsCpp" : compileAs;
+                    // Use PCH in header files if project PCH is configured and not enforced through force include
+                    // In normal code, it should be self to assume this since PCH should be used on every CPP file
+                    if (string.IsNullOrEmpty(forcedIncludeFiles) && precompiledHeader == "Use")
+                    {
+                        forcedIncludeFiles = precompiledHeaderFile;
+                    }
+                }
 
                 return new FileConfig
                 {
@@ -69,11 +87,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     PreprocessorDefinitions = vcFileSettings.GetEvaluatedPropertyValue("PreprocessorDefinitions"),
                     UndefinePreprocessorDefinitions = vcFileSettings.GetEvaluatedPropertyValue("UndefinePreprocessorDefinitions"),
 
-                    ForcedIncludeFiles = vcFileSettings.GetEvaluatedPropertyValue("ForcedIncludeFiles"),
-                    PrecompiledHeader = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeader"),
-                    PrecompiledHeaderFile = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeaderFile"),
+                    ForcedIncludeFiles = forcedIncludeFiles,
+                    PrecompiledHeader = precompiledHeader,
+                    PrecompiledHeaderFile = precompiledHeaderFile,
 
-                    CompileAs = vcFileSettings.GetEvaluatedPropertyValue("CompileAs"),
+                    CompileAs = compileAs,
                     CompileAsManaged = vcFileSettings.GetEvaluatedPropertyValue("CompileAsManaged"),
                     CompileAsWinRT = vcFileSettings.GetEvaluatedPropertyValue("CompileAsWinRT"),
                     DisableLanguageExtensions = vcFileSettings.GetEvaluatedPropertyValue("DisableLanguageExtensions"),
@@ -96,7 +114,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             private static IVCRulePropertyStorage GetVcFileSettings(ILogger logger, string absoluteFilePath, VCConfiguration vcConfig, VCFile vcFile)
             {
                 var projectKind = vcConfig.ConfigurationType;
-                // Unknown projects represent all the unspported project type like makefile projects
+
+                // Unknown projects represent all the unsupported project type like makefile projects
                 if (projectKind == ConfigurationTypes.typeUnknown)
                 {
                     logger.WriteLine(@"Project's ""Configuration type"" is not supported.");
@@ -104,15 +123,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 // "ClCompile" for source files and "ClInclude" for header files
-                if (vcFile.ItemType != "ClCompile")
+                if (vcFile.ItemType != "ClCompile" && vcFile.ItemType != "ClInclude")
                 {
                     logger.WriteLine($"File's \"Item type\" is not supported. File: '{absoluteFilePath}'");
                     return null;
                 }
 
-                var vcFileConfig = vcFile.GetFileConfigurationForProjectConfiguration(vcConfig);
+                object toolItem;
+
+                if (vcFile.ItemType == "ClCompile")
+                {
+                    var vcFileConfig = vcFile.GetFileConfigurationForProjectConfiguration(vcConfig);
+                    toolItem = vcFileConfig.Tool;
+                }
+                else
+                {
+                    var tools = vcConfig.Tools as IVCCollection;
+                    toolItem = tools.Item("VCCLCompilerTool");
+                }
+
                 // We don't support custom build tools. VCCLCompilerTool is needed for all the necessary compilation options to be present
-                if (!(vcFileConfig.Tool is VCCLCompilerTool))
+                if (!(toolItem is VCCLCompilerTool))
                 {
                     logger.WriteLine($"Custom build tools aren't supported. Custom-built file: '{absoluteFilePath}'");
                     return null;
@@ -123,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // IVCRulePropertyStorage interface. However, not all of the properties are exposed directly by
                 // VCCLCompilerTool (e.g. LanguageStandard). Also, quite a few of the Tool properties are exposed
                 // as enums, so we'd need to change our code to handle them.
-                var vcFileSettings = vcFileConfig.Tool as IVCRulePropertyStorage;
+                var vcFileSettings = toolItem as IVCRulePropertyStorage;
 
                 return vcFileSettings;
             }
