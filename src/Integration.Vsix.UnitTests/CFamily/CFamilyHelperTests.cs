@@ -37,23 +37,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     [TestClass]
     public class CFamilyHelperTests
     {
-
         [TestMethod]
-        public void CreateRequest_HeaderFile_IsNotProcessed()
+        public void CreateRequest_HeaderFile_IsSupported()
         {
             // Arrange
             var loggerMock = new Mock<ILogger>();
-
-            var projectItemMock = new Mock<ProjectItem>();
+            var projectItemConfig = new ProjectItemConfig {ItemType = "ClInclude"};
+            var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
+            rulesConfigProviderMock
+                .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
+                .Returns(rulesConfig);
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
             var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h",
                 rulesConfigProviderMock.Object, null);
 
             // Assert
-            AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
-            request.Should().BeNull();
+            request.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -228,23 +230,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void IsHeaderFile_DotHExtension_ReturnsTrue()
-        {
-            // Act and Assert
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.h").Should().Be(true);
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.H").Should().Be(true);
-        }
-
-        [TestMethod]
-        public void IsHeaderFile_NotDotHExtension_ReturnsFalse()
-        {
-            // Act and Assert
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\file.hh").Should().Be(false);
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\FILE.cpp").Should().Be(false);
-            CFamilyHelper.IsHeaderFile("c:\\aaa\\bbbb\\noextension").Should().Be(false);
-        }
-
-        [TestMethod]
         public void GetKeyValueOptionsList_UsingRealEmbeddedRulesJson()
         {
             var sonarWayProvider = new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory);
@@ -334,7 +319,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             return request;
         }
-
         internal static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(

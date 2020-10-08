@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -192,6 +193,51 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Assert
             fileConfig.Should().BeNull();
             testLogger.AssertOutputStringExists("Custom build tools aren't supported. Custom-built file: 'c:\\dummy\\file.cpp'");
+        }
+
+        [TestMethod]
+        public void TryGet_HeaderFileOptions_ReturnsValidConfig()
+        {
+            // Arrange
+            var projectItemConfig = new ProjectItemConfig
+            {
+                ItemType = "ClInclude",
+                FileConfigProperties = new Dictionary<string, string>
+                {
+                    ["PrecompiledHeader"] = "NotUsing",
+                    ["CompileAs"] = "Default",
+                    ["CompileAsManaged"] = "false",
+                    ["EnableEnhancedInstructionSet"] = "",
+                    ["RuntimeLibrary"] = "",
+                    ["LanguageStandard"] = "",
+                    ["ExceptionHandling"] = "Sync",
+                    ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
+                    ["ForcedIncludeFiles"] = "",
+                    ["PrecompiledHeader"] = "Use",
+                    ["PrecompiledHeaderFile"] = "pch.h",
+                }
+            };
+         
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            // Act
+            var request = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+
+            // Assert
+            request.Should().NotBeNull();
+            Assert.AreEqual("pch.h", request.ForcedIncludeFiles);
+            Assert.AreEqual("CompileAsCpp", request.CompileAs);
+
+            // Arrange
+            projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";
+            projectItemConfig.FileConfigProperties["ForcedIncludeFiles"] = "FHeader.h";
+
+            // Act
+            request = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+
+            // Assert
+            Assert.AreEqual("FHeader.h", request.ForcedIncludeFiles);
+            Assert.AreEqual("CompileAsC", request.CompileAs);
         }
     }
 }
