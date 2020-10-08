@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class FileConfigTests
     {
-        private TestLogger testLogger = new TestLogger();
+        private readonly TestLogger testLogger = new TestLogger();
 
         [TestMethod]
         public void TryGet_NoVCProject_ReturnsNull()
@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void GetPotentiallyUnsuppertedPropertyValue_CriticalException_IsNotSuppressed()
+        public void GetPotentiallyUnsupportedPropertyValue_CriticalException_IsNotSuppressed()
         {
             // Arrange
             var settingsMock = new Mock<IVCRulePropertyStorage>();
@@ -150,57 +150,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_UnsupportedItemType()
+        public void TryGet_UnsupportedItemType_ReturnsNull()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
-            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
-            projectItemConfig.itemType = "None";
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+            var projectItemConfig = new ProjectItemConfig {ItemType = "None"};
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = CFamilyHelper.FileConfig.TryGet(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
-            AssertMessageLogged(loggerMock,
-                "File's \"Item type\" is not supported. File: 'c:\\dummy\\file.cpp'");
             fileConfig.Should().BeNull();
+            testLogger.AssertOutputStringExists("File's \"Item type\" is not supported. File: 'c:\\dummy\\file.cpp'");
         }
 
         [TestMethod]
-        public void TryGet_UnsupportedConfigurationType()
+        public void TryGet_UnsupportedConfigurationType_ReturnsNull()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
-            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
-            projectItemConfig.configurationType = ConfigurationTypes.typeUnknown;
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+            var projectItemConfig = new ProjectItemConfig {ConfigurationType = ConfigurationTypes.typeUnknown};
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = CFamilyHelper.FileConfig.TryGet(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
-            AssertMessageLogged(loggerMock,
-                "Project's \"Configuration type\" is not supported.");
             fileConfig.Should().BeNull();
+            testLogger.AssertOutputStringExists("Project's \"Configuration type\" is not supported.");
         }
 
         [TestMethod]
-        public void TryGet_UnsupportedCustomBuild()
+        public void TryGet_UnsupportedCustomBuild_ReturnsNull()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
-            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
-            projectItemConfig.isVCCLCompilerTool = false;
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj", projectItemConfig);
+            var projectItemConfig = new ProjectItemConfig {IsVCCLCompilerTool = false};
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = CFamilyHelper.FileConfig.TryGet(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
-            AssertMessageLogged(loggerMock,
-                "Custom build tools aren't supported. Custom-built file: 'c:\\dummy\\file.cpp'");
             fileConfig.Should().BeNull();
+            testLogger.AssertOutputStringExists("Custom build tools aren't supported. Custom-built file: 'c:\\dummy\\file.cpp'");
         }
     }
 }

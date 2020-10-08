@@ -10,12 +10,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     {
         internal class ProjectItemConfig
         {
-            public string platformName { get; set; } = "Win32";
-            public IDictionary<string, string> projectConfigProperties { get; set; } = new Dictionary<string, string>
+            public IDictionary<string, string> ProjectConfigProperties { get; set; } = new Dictionary<string, string>
             {
                 ["PlatformToolset"] = "v140_xp"
             };
-            public IDictionary<string, string> fileConfigProperties { get; set; } = new Dictionary<string, string>
+            public IDictionary<string, string> FileConfigProperties { get; set; } = new Dictionary<string, string>
             {
                 ["PrecompiledHeader"] = "NotUsing",
                 ["CompileAs"] = "CompileAsCpp",
@@ -26,25 +25,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 ["ExceptionHandling"] = "Sync",
                 ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
             };
-            public bool isVCCLCompilerTool { get; set; } = true;
-            public string itemType { get; set; } = "ClCompile";
-            public ConfigurationTypes configurationType { get; set; } = ConfigurationTypes.typeApplication;
+            public bool IsVCCLCompilerTool { get; set; } = true;
+            public string ItemType { get; set; } = "ClCompile";
+            public ConfigurationTypes ConfigurationType { get; set; } = ConfigurationTypes.typeApplication;
         }
 
-        private static readonly ProjectItemConfig defaultSetting = new ProjectItemConfig();
+        private static readonly ProjectItemConfig DefaultSetting = new ProjectItemConfig();
 
-        internal static Mock<ProjectItem> CreateProjectItemWithProject(string projectName, ProjectItemConfig projectItemConfig = null)
+        internal static Mock<ProjectItem> CreateMockProjectItem(string projectName, ProjectItemConfig projectItemConfig = null)
         {
-            projectItemConfig = projectItemConfig ?? defaultSetting;
+            projectItemConfig ??= DefaultSetting;
 
             var vcProjectMock = new Mock<VCProject>();
             var vcConfig = CreateVCConfigurationWithProperties(projectItemConfig);
             vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
+            vcProjectMock.Setup(x => x.ProjectFile).Returns(projectName);
 
             var projectMock = new ProjectMock(projectName) { Project = vcProjectMock.Object };
 
             var vcFileMock = new Mock<VCFile>();
-            vcFileMock.SetupGet(x => x.ItemType).Returns(projectItemConfig.itemType);
+            vcFileMock.SetupGet(x => x.ItemType).Returns(projectItemConfig.ItemType);
             var vcFileConfig = CreateVCFileConfigurationWithToolProperties(projectItemConfig);
             vcFileMock.Setup(x => x.GetFileConfigurationForProjectConfiguration(vcConfig)).Returns(vcFileConfig);
             var projectItemMock = new Mock<ProjectItem>();
@@ -64,17 +64,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static VCConfiguration CreateVCConfigurationWithProperties(ProjectItemConfig projectItemConfig)
         {
             var vcPlatformMock = new Mock<VCPlatform>();
-            vcPlatformMock.SetupGet(x => x.Name).Returns(projectItemConfig.platformName);
+            vcPlatformMock.SetupGet(x => x.Name).Returns("Win32");
 
             var vcConfigMock = new Mock<VCConfiguration>();
             vcConfigMock.SetupGet(x => x.Platform).Returns(vcPlatformMock.Object);
-            vcConfigMock.SetupGet(x => x.ConfigurationType).Returns(projectItemConfig.configurationType);
+            vcConfigMock.SetupGet(x => x.ConfigurationType).Returns(projectItemConfig.ConfigurationType);
 
             vcConfigMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
                 .Returns<string>(s =>
                 {
                     string propertyValue = null;
-                    projectItemConfig.projectConfigProperties?.TryGetValue(s, out propertyValue);
+                    projectItemConfig.ProjectConfigProperties?.TryGetValue(s, out propertyValue);
                     return propertyValue ?? string.Empty;
                 });
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static VCFileConfiguration CreateVCFileConfigurationWithToolProperties(ProjectItemConfig projectItemConfig)
         {
             var toolPropertiesMock = new Mock<IVCRulePropertyStorage>();
-            if (projectItemConfig.isVCCLCompilerTool)
+            if (projectItemConfig.IsVCCLCompilerTool)
             {
                 toolPropertiesMock.As<VCCLCompilerTool>();
             }
@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .Returns<string>(s =>
                 {
                     string propertyValue = null;
-                    projectItemConfig.fileConfigProperties?.TryGetValue(s, out propertyValue);
+                    projectItemConfig.FileConfigProperties?.TryGetValue(s, out propertyValue);
                     return propertyValue ?? string.Empty;
                 });
 
@@ -101,18 +101,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             vcFileConfigMock.SetupGet(x => x.Tool).Returns(toolPropertiesMock.Object);
 
             return vcFileConfigMock.Object;
-        }
-
-        internal static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
-        {
-            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
-                s => s.Equals(message))), Times.Once);
-        }
-
-        internal static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
-        {
-            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
-                s => s.Contains(message))), Times.Once);
         }
     }
 }

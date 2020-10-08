@@ -24,7 +24,6 @@ using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             var loggerMock = new Mock<ILogger>();
 
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
@@ -82,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             var loggerMock = new Mock<ILogger>();
 
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
             // Note: we want the exception to be thrown from inside the FileConfig::TryGet
             projectItemMock.Setup(x => x.Object).Throws(new InvalidOperationException("xxx"));
 
@@ -203,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void IsFileInSolution_SingleFileIntelliSense_ReturnsFalse()
         {
             // Arrange
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
             var result = CFamilyHelper.IsFileInSolution(projectItemMock.Object);
@@ -328,12 +327,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                 .Returns(rulesConfig);
 
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\file.cpp");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\file.cpp");
 
             var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp",
                 rulesConfigProviderMock.Object, analyzerOptions);
 
             return request;
+        }
+
+        internal static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
+        {
+            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
+                s => s.Equals(message))), Times.Once);
+        }
+
+        internal static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
+        {
+            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
+                s => s.Contains(message))), Times.Once);
         }
     }
 }
