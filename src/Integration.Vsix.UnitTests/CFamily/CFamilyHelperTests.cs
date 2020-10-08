@@ -42,8 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             // Arrange
             var loggerMock = new Mock<ILogger>();
-            ProjectItemConfig projectItemConfig = new ProjectItemConfig();
-            projectItemConfig.ItemType = "ClInclude";
+            var projectItemConfig = new ProjectItemConfig {ItemType = "ClInclude"};
             var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
             rulesConfigProviderMock

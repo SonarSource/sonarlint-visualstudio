@@ -224,9 +224,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var request = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
+            request.Should().NotBeNull();
             Assert.AreEqual("pch.h", request.ForcedIncludeFiles);
             Assert.AreEqual("CompileAsCpp", request.CompileAs);
-            request.Should().NotBeNull();
 
             // Arrange
             projectItemConfig.FileConfigProperties["CompileAs"] = "CompileAsC";

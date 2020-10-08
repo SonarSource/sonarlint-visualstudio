@@ -39,6 +39,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
 
                 var vcConfig = vcProject.ActiveConfiguration;
+                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
+                var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
+                var platformToolset = vcConfig.GetEvaluatedPropertyValue("PlatformToolset");
+                var vcToolsVersion = vcConfig.GetEvaluatedPropertyValue("VCToolsVersion");
+                var compilerVersion = GetCompilerVersion(platformToolset, vcToolsVersion);
+
                 var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
 
                 if (vcFileSettings == null)
@@ -47,11 +53,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     return null;
                 }
 
-                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
-                var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
-                var platformToolset = vcConfig.GetEvaluatedPropertyValue("PlatformToolset");
-                var vcToolsVersion = vcConfig.GetEvaluatedPropertyValue("VCToolsVersion");
-                var compilerVersion = GetCompilerVersion(platformToolset, vcToolsVersion);
+                // Fetch properties that can be set differently for header files
+                var compileAs = vcFileSettings.GetEvaluatedPropertyValue("CompileAs");
+                var forcedIncludeFiles = vcFileSettings.GetEvaluatedPropertyValue("ForcedIncludeFiles");
+                var precompiledHeader = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeader");
+                var precompiledHeaderFile = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeaderFile");
+                
+                if (vcFile.ItemType == "ClInclude")
+                {
+                    // If the project language is not specified. Headers are compiled as CPP
+                    compileAs = (compileAs == "Default") ? "CompileAsCpp" : compileAs;
+                    // Use PCH in header files if project PCH is configured and not enforced through force include
+                    // In normal code, it should be self to assume this since PCH should be used on every CPP file
+                    if (string.IsNullOrEmpty(forcedIncludeFiles) && precompiledHeader == "Use")
+                    {
+                        forcedIncludeFiles = precompiledHeaderFile;
+                    }
+                }
 
                 return new FileConfig
                 {
@@ -69,11 +87,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     PreprocessorDefinitions = vcFileSettings.GetEvaluatedPropertyValue("PreprocessorDefinitions"),
                     UndefinePreprocessorDefinitions = vcFileSettings.GetEvaluatedPropertyValue("UndefinePreprocessorDefinitions"),
 
-                    ForcedIncludeFiles = vcFileSettings.GetEvaluatedPropertyValue("ForcedIncludeFiles"),
-                    PrecompiledHeader = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeader"),
-                    PrecompiledHeaderFile = vcFileSettings.GetEvaluatedPropertyValue("PrecompiledHeaderFile"),
+                    ForcedIncludeFiles = forcedIncludeFiles,
+                    PrecompiledHeader = precompiledHeader,
+                    PrecompiledHeaderFile = precompiledHeaderFile,
 
-                    CompileAs = vcFileSettings.GetEvaluatedPropertyValue("CompileAs"),
+                    CompileAs = compileAs,
                     CompileAsManaged = vcFileSettings.GetEvaluatedPropertyValue("CompileAsManaged"),
                     CompileAsWinRT = vcFileSettings.GetEvaluatedPropertyValue("CompileAsWinRT"),
                     DisableLanguageExtensions = vcFileSettings.GetEvaluatedPropertyValue("DisableLanguageExtensions"),
