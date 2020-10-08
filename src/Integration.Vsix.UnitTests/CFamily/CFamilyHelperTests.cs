@@ -173,6 +173,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CreateRequest_PCHRequestDoesntLog()
+        {
+            // Arrange
+            var loggerMock = new Mock<ILogger>();
+            var projectItemConfig = new ProjectItemConfig {IsVCCLCompilerTool = false};
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+            var analyzerOption = new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true };
+            // Act
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp",
+                null, analyzerOption);
+
+            // Assert
+            loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Never);
+            request.Should().BeNull();
+        }
+
+        [TestMethod]
         public void TryGetConfig_ErrorsAreLogged()
         {
             // Arrange
