@@ -24,37 +24,19 @@ using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
+using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
     [TestClass]
     public class CFamilyHelperTests
     {
-        private const string ValidPlatformName = "Win32";
-
-        private static readonly IDictionary<string, string> MandatoryProjectConfigProperties = new Dictionary<string, string>
-        {
-            ["PlatformToolset"] = "v140_xp"
-        };
-
-        private static readonly IDictionary<string, string> MandatoryFileConfigProperties = new Dictionary<string, string>
-        {
-            ["PrecompiledHeader"] = "NotUsing",
-            ["CompileAs"] = "CompileAsCpp",
-            ["CompileAsManaged"] = "false",
-            ["EnableEnhancedInstructionSet"] = "",
-            ["RuntimeLibrary"] = "",
-            ["LanguageStandard"] = "",
-            ["ExceptionHandling"] = "Sync",
-            ["BasicRuntimeChecks"] = "UninitializedLocalUsageCheck",
-        };
 
         [TestMethod]
         public void CreateRequest_HeaderFile_IsNotProcessed()
@@ -70,6 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfigProviderMock.Object, null);
 
             // Assert
+            AssertMessageLogged(loggerMock, "Cannot analyze header files. File: 'c:\\dummy\\file.h'");
             request.Should().BeNull();
         }
 
@@ -79,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             var loggerMock = new Mock<ILogger>();
 
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
@@ -98,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Arrange
             var loggerMock = new Mock<ILogger>();
 
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\xxx.vcxproj");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
             // Note: we want the exception to be thrown from inside the FileConfig::TryGet
             projectItemMock.Setup(x => x.Object).Throws(new InvalidOperationException("xxx"));
 
@@ -219,7 +202,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void IsFileInSolution_SingleFileIntelliSense_ReturnsFalse()
         {
             // Arrange
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\SingleFileISense\\xxx.vcxproj");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
 
             // Act
             var result = CFamilyHelper.IsFileInSolution(projectItemMock.Object);
@@ -335,34 +318,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return config;
         }
 
-        private Mock<ProjectItem> CreateProjectItemWithProject(string projectName)
-        {
-            var vcProjectMock = new Mock<VCProject>();
-            vcProjectMock.Setup(x => x.ProjectFile).Returns(projectName);
-
-            var vcConfig = CreateVCConfigurationWithProperties(ValidPlatformName, MandatoryProjectConfigProperties);
-            vcProjectMock.SetupGet(x => x.ActiveConfiguration).Returns(vcConfig);
-
-            var projectMock = new ProjectMock(projectName) {Project = vcProjectMock.Object};
-
-            var vcFileMock = new Mock<VCFile>();
-            var vcFileConfig = CreateVCFileConfigurationWithToolProperties(MandatoryFileConfigProperties);
-            vcFileMock.Setup(x => x.GetFileConfigurationForProjectConfiguration(vcConfig)).Returns(vcFileConfig);
-
-            var projectItemMock = new Mock<ProjectItem>();
-            projectItemMock.Setup(i => i.ContainingProject).Returns(projectMock);
-            projectItemMock.Setup(i => i.Object).Returns(vcFileMock.Object);
-
-            // Set the project item to have a valid DTE configuration
-            // - used to check whether the project item is in a solution or not
-            var dteConfigManagerMock = new Mock<ConfigurationManager>();
-            var dteConfigMock = new Mock<Configuration>();
-            dteConfigManagerMock.Setup(x => x.ActiveConfiguration).Returns(dteConfigMock.Object);
-            projectItemMock.Setup(i => i.ConfigurationManager).Returns(dteConfigManagerMock.Object);
-
-            return projectItemMock;
-        }
-
         private Request GetSuccessfulRequest(IAnalyzerOptions analyzerOptions)
         {
             var loggerMock = new Mock<ILogger>();
@@ -372,7 +327,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                 .Returns(rulesConfig);
 
-            var projectItemMock = CreateProjectItemWithProject("c:\\foo\\file.cpp");
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\file.cpp");
 
             var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp",
                 rulesConfigProviderMock.Object, analyzerOptions);
@@ -380,50 +335,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return request;
         }
 
-        private static VCConfiguration CreateVCConfigurationWithProperties(string platformName, IDictionary<string, string> propertyMap = null)
-        {
-            var vcPlatformMock = new Mock<VCPlatform>();
-            vcPlatformMock.SetupGet(x => x.Name).Returns(platformName);
-
-            var vcConfigMock = new Mock<VCConfiguration>();
-            vcConfigMock.SetupGet(x => x.Platform).Returns(vcPlatformMock.Object);
-
-            vcConfigMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
-                .Returns<string>(s =>
-                {
-                    string propertyValue = null;
-                    propertyMap?.TryGetValue(s, out propertyValue);
-                    return propertyValue ?? string.Empty;
-                });
-
-            return vcConfigMock.Object;
-        }
-
-        private static VCFileConfiguration CreateVCFileConfigurationWithToolProperties(IDictionary<string, string> toolPropertyMap = null)
-        {
-            var toolPropertiesMock = new Mock<IVCRulePropertyStorage>();
-
-            toolPropertiesMock.Setup(x => x.GetEvaluatedPropertyValue(It.IsAny<string>()))
-                .Returns<string>(s =>
-                {
-                    string propertyValue = null;
-                    toolPropertyMap?.TryGetValue(s, out propertyValue);
-                    return propertyValue ?? string.Empty;
-                });
-
-            var vcFileConfigMock = new Mock<VCFileConfiguration>();
-            vcFileConfigMock.SetupGet(x => x.Tool).Returns(toolPropertiesMock.Object);
-
-            return vcFileConfigMock.Object;
-        }
-
-        private static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
+        internal static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Equals(message))), Times.Once);
         }
 
-        private static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
+        internal static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
         {
             loggerMock.Verify(x => x.WriteLine(It.Is<string>(
                 s => s.Contains(message))), Times.Once);
