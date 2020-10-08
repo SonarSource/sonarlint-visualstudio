@@ -20,11 +20,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -131,12 +133,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithReproducerEnabled_FileConfigIsLogged()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
+            request.Should().NotBeNull();
+
+            var mockFileSystem = CFamilyHelper.FileSystem as MockFileSystem;
+            mockFileSystem.AllFiles.Count().Should().Be(1);
+
+            var fileConfigFile = mockFileSystem.GetFile(CFamilyHelper.RequestConfigFilePath);
+            fileConfigFile.Should().NotBeNull();
+            fileConfigFile.TextContents.Should().NotBeEmpty();
+
+            var deserializedConfig = JsonConvert.DeserializeObject<CFamilyHelper.FileConfig>(fileConfigFile.TextContents);
+            deserializedConfig.Should().NotBeNull();
+        }
+
+        [TestMethod]
         public void CreateRequest_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
         {
             var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions {CreateReproducer = false});
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
+        }
+
+        [TestMethod]
+        public void CreateRequest_AnalyzerOptionsWithoutReproducerEnabled_FileConfigIsNotLogged()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = false });
+            request.Should().NotBeNull();
+
+            var mockFileSystem = CFamilyHelper.FileSystem as MockFileSystem;
+            mockFileSystem.AllFiles.Count().Should().Be(0);
         }
 
         [TestMethod]
@@ -323,14 +352,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var loggerMock = new Mock<ILogger>();
             var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
+           
             rulesConfigProviderMock
                 .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                 .Returns(rulesConfig);
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\file.cpp");
 
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp",
-                rulesConfigProviderMock.Object, analyzerOptions);
+            CFamilyHelper.FileSystem = new MockFileSystem();
+            CFamilyHelper.FileSystem.Directory.CreateDirectory(CFamilyHelper.WorkingDirectory);
+
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp", rulesConfigProviderMock.Object, analyzerOptions);
 
             return request;
         }

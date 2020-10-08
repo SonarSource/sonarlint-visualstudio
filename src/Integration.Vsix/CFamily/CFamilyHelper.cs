@@ -22,9 +22,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using EnvDTE;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
 
@@ -35,7 +37,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        internal static readonly string PchFilePath = Path.Combine(Path.GetTempPath(), "SonarLintForVisualStudio.PCH.preamble");
+        internal static string WorkingDirectory { get; } = Path.GetTempPath();
+        internal static readonly string PchFilePath = Path.Combine(WorkingDirectory, "SonarLintForVisualStudio.PCH.preamble");
+        internal static readonly string RequestConfigFilePath = Path.Combine(WorkingDirectory, "sonar-cfamily.request.config");
+        internal static readonly string ReproducerFilePath = Path.Combine(WorkingDirectory, "sonar-cfamily.reproducer");
+
+        internal static IFileSystem FileSystem { get; set; } = new FileSystem();
 
         public static readonly string CFamilyFilesDirectory = Path.Combine(
             Path.GetDirectoryName(typeof(CFamilyHelper).Assembly.Location),
@@ -66,10 +73,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
+            return CreateRequest(fileConfig, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions, logger);
         }
 
-        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
+        private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions, ILogger logger)
         {
             var request = ToRequest(fileConfig, absoluteFilePath);
             if (request?.File == null || request?.CFamilyLanguage == null)
@@ -80,6 +87,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             request.PchFile = PchFilePath;
 
             bool isPCHBuild = false;
+
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
                 Debug.Assert(!(cFamilyAnalyzerOptions.CreateReproducer && cFamilyAnalyzerOptions.CreatePreCompiledHeaders), "Only one flag (CreateReproducer, CreatePreCompiledHeaders) can be set at a time");
@@ -87,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 if (cFamilyAnalyzerOptions.CreateReproducer)
                 {
                     request.Flags |= Request.CreateReproducer;
+                    SaveFileConfig(fileConfig, logger);
                 }
 
                 if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
@@ -105,6 +114,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             return request;
+        }
+
+        private static void SaveFileConfig(FileConfig fileConfig, ILogger logger)
+        {
+            var serializedFileConfig = JsonConvert.SerializeObject(fileConfig);
+            FileSystem.File.WriteAllText(RequestConfigFilePath, serializedFileConfig);
+            logger.WriteLine(CFamilyStrings.MSG_RequestConfigSaved, RequestConfigFilePath);
         }
 
         internal /* for testing */ static string[]GetKeyValueOptionsList(ICFamilyRulesConfig rulesConfiguration)
@@ -141,14 +157,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return;
             }
 
-            var workingDirectory = Path.GetTempPath();
             const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
 
             var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
             {
                 CmdLineArgs = new[] { communicateViaStreaming },
                 CancellationToken = cancellationToken,
-                WorkingDirectory = workingDirectory,
+                WorkingDirectory = WorkingDirectory,
                 HandleInputStream = writer =>
                 {
                     using (var binaryWriter = new BinaryWriter(writer.BaseStream))
@@ -161,7 +176,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     if ((request.Flags & Request.CreateReproducer) != 0)
                     {
                         reader.ReadToEnd();
-                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, Path.Combine(workingDirectory, "sonar-cfamily.reproducer"));
+                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, ReproducerFilePath);
                     }
                     else if ((request.Flags & Request.BuildPreamble) != 0)
                     {

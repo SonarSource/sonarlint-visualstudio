@@ -163,6 +163,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Request config saved at: {0} .
+        /// </summary>
+        internal static string MSG_RequestConfigSaved {
+            get {
+                return ResourceManager.GetString("MSG_RequestConfigSaved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Overwriting the value of environment variable &apos;{0}&apos;. Old value: {1}, new value: {2}.
         /// </summary>
         internal static string MSG_Runner_OverwritingEnvVar {
