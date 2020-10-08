@@ -32,42 +32,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
             {
-                var vcProject = dteProjectItem.ContainingProject.Object as VCProject;
-                var file = dteProjectItem.Object as VCFile;
-                if (vcProject == null || file == null)
+                if (!(dteProjectItem.ContainingProject.Object is VCProject vcProject) ||
+                    !(dteProjectItem.Object is VCFile vcFile))
                 {
                     return null;
                 }
-                var vcConfig = vcProject.ActiveConfiguration;
-                var projectKind = vcConfig.ConfigurationType;
-                // Unknown projects represent all the unspported project type like makefile projects
-                if (projectKind == ConfigurationTypes.typeUnknown)
-                {
-                    logger.WriteLine(@"Project's ""Configuration type"" is not supported.");
-                    return null;
-                }
-                // "ClCompile" for source files and "ClCompile" for header files
-                if (file.ItemType != "ClCompile")
-                {
-                    logger.WriteLine($"File's \"Item type\" is not supported. File: '{absoluteFilePath}'");
-                    return null;
-                }
-                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
-                var vcFileConfig = file.GetFileConfigurationForProjectConfiguration(vcConfig);
-                // We don't support custom build tools. VCCLCompilerTool is needed for all the necessary compilation options to be present
-                if (!(vcFileConfig.Tool is VCCLCompilerTool))
-                {
-                    logger.WriteLine($"Custom built files are not supported. File: '{absoluteFilePath}'");
-                    return null;
-                }
-                // The Tool property is typed as Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool, and
-                // we could use it to fetch most of the properties we need, rather than fetching them via the
-                // IVCRulePropertyStorage interface. However, not all of the properties are exposed directly by
-                // VCCLCompilerTool (e.g. LanguageStandard). Also, quite a few of the Tool properties are exposed
-                // as enums, so we'd need to change our code to handle them.
-                var vcFileSettings = vcFileConfig.Tool as IVCRulePropertyStorage;
 
-                // Fetch properties that can't be set at file level from the configuration object
+                var vcConfig = vcProject.ActiveConfiguration;
+                var vcFileSettings = GetVcFileSettings(logger, absoluteFilePath, vcConfig, vcFile);
+
+                if (vcFileSettings == null)
+                {
+                    // Not supported
+                    return null;
+                }
+
+                var platformName = ((VCPlatform)vcConfig.Platform).Name; // "Win32" or "x64"
                 var includeDirs = vcConfig.GetEvaluatedPropertyValue("IncludePath");
                 var platformToolset = vcConfig.GetEvaluatedPropertyValue("PlatformToolset");
                 var vcToolsVersion = vcConfig.GetEvaluatedPropertyValue("VCToolsVersion");
@@ -113,6 +93,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 };
             }
 
+            private static IVCRulePropertyStorage GetVcFileSettings(ILogger logger, string absoluteFilePath, VCConfiguration vcConfig, VCFile vcFile)
+            {
+                var projectKind = vcConfig.ConfigurationType;
+                // Unknown projects represent all the unspported project type like makefile projects
+                if (projectKind == ConfigurationTypes.typeUnknown)
+                {
+                    logger.WriteLine(@"Project's ""Configuration type"" is not supported.");
+                    return null;
+                }
+
+                // "ClCompile" for source files and "ClInclude" for header files
+                if (vcFile.ItemType != "ClCompile")
+                {
+                    logger.WriteLine($"File's \"Item type\" is not supported. File: '{absoluteFilePath}'");
+                    return null;
+                }
+
+                var vcFileConfig = vcFile.GetFileConfigurationForProjectConfiguration(vcConfig);
+                // We don't support custom build tools. VCCLCompilerTool is needed for all the necessary compilation options to be present
+                if (!(vcFileConfig.Tool is VCCLCompilerTool))
+                {
+                    logger.WriteLine($"Custom build tools aren't supported. Custom-built file: '{absoluteFilePath}'");
+                    return null;
+                }
+
+                // The Tool property is typed as Microsoft.VisualStudio.VCProjectEngine.VCCLCompilerTool, and
+                // we could use it to fetch most of the properties we need, rather than fetching them via the
+                // IVCRulePropertyStorage interface. However, not all of the properties are exposed directly by
+                // VCCLCompilerTool (e.g. LanguageStandard). Also, quite a few of the Tool properties are exposed
+                // as enums, so we'd need to change our code to handle them.
+                var vcFileSettings = vcFileConfig.Tool as IVCRulePropertyStorage;
+
+                return vcFileSettings;
+            }
+
             /// <summary>
             /// Returns the value of a property that might not be supported by the current version of the compiler.
             /// If the property is not supported the default value is returned.
@@ -121,17 +136,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             /// We don't want the analysis to fail in that case so we'll catch the exception and return the default.</remarks>
             internal /* for testing */ static string GetPotentiallyUnsupportedPropertyValue(IVCRulePropertyStorage settings, string propertyName, string defaultValue)
             {
-                string result = null;
                 try
                 {
-                    result = settings.GetEvaluatedPropertyValue(propertyName);
+                    return settings.GetEvaluatedPropertyValue(propertyName);
                 }
                 catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {
                     // Property was not found
-                    result = defaultValue;
+                    return defaultValue;
                 }
-                return result;
             }
 
             #region Properties

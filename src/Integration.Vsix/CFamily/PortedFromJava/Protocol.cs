@@ -50,6 +50,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Write(writer, request.Macros);
             WriteUTF(writer, request.TargetTriple);
             WriteUTF(writer, request.File);
+            WriteUTF(writer, /* pchDir */ "");
+            WriteUTF(writer, /* pchThroughHeader */ "");
             WriteUTF(writer, request.PchFile);
             WriteInt(writer, /* sourceDirs */ 0);
             WriteUTF(writer, "END");
