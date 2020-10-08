@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RuleSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="SonarQube - SonarLint for Visual Studio C# QP for SonarLint" Description="This rule set was automatically generated from SonarQube https://sonarcloud.io/profiles/show?key=AXMj64MpNLR31yYOjFOv" ToolsVersion="14.0">
   <Rules AnalyzerId="SonarAnalyzer.CSharp" RuleNamespace="SonarAnalyzer.CSharp">
-    <Rule Id="S100" Action="None" />
+    <Rule Id="S100" Action="Info" />
     <Rule Id="S1006" Action="Warning" />
     <Rule Id="S101" Action="Info" />
     <Rule Id="S103" Action="None" />
@@ -17,7 +17,7 @@
     <Rule Id="S109" Action="None" />
     <Rule Id="S110" Action="Warning" />
     <Rule Id="S1104" Action="Info" />
-    <Rule Id="S1109" Action="None" />
+    <Rule Id="S1109" Action="Info" />
     <Rule Id="S1110" Action="Warning" />
     <Rule Id="S1116" Action="Info" />
     <Rule Id="S1117" Action="Warning" />
@@ -44,7 +44,7 @@
     <Rule Id="S1199" Action="Info" />
     <Rule Id="S1200" Action="None" />
     <Rule Id="S1206" Action="Info" />
-    <Rule Id="S121" Action="None" />
+    <Rule Id="S121" Action="Warning" />
     <Rule Id="S1210" Action="Info" />
     <Rule Id="S1215" Action="Warning" />
     <Rule Id="S122" Action="None" />
@@ -70,7 +70,7 @@
     <Rule Id="S1643" Action="Info" />
     <Rule Id="S1656" Action="Warning" />
     <Rule Id="S1659" Action="None" />
-    <Rule Id="S1694" Action="None" />
+    <Rule Id="S1694" Action="Info" />
     <Rule Id="S1696" Action="None" />
     <Rule Id="S1697" Action="None" />
     <Rule Id="S1698" Action="None" />
@@ -114,7 +114,7 @@
     <Rule Id="S2290" Action="Warning" />
     <Rule Id="S2291" Action="Warning" />
     <Rule Id="S2292" Action="Info" />
-    <Rule Id="S2302" Action="None" />
+    <Rule Id="S2302" Action="Warning" />
     <Rule Id="S2306" Action="Warning" />
     <Rule Id="S2325" Action="None" />
     <Rule Id="S2326" Action="Warning" />
@@ -127,7 +127,7 @@
     <Rule Id="S2344" Action="Info" />
     <Rule Id="S2345" Action="Info" />
     <Rule Id="S2346" Action="Warning" />
-    <Rule Id="S2357" Action="None" />
+    <Rule Id="S2357" Action="Warning" />
     <Rule Id="S2360" Action="None" />
     <Rule Id="S2365" Action="Warning" />
     <Rule Id="S2368" Action="Warning" />
@@ -231,7 +231,7 @@
     <Rule Id="S3459" Action="Info" />
     <Rule Id="S3464" Action="Warning" />
     <Rule Id="S3466" Action="Warning" />
-    <Rule Id="S3532" Action="None" />
+    <Rule Id="S3532" Action="Info" />
     <Rule Id="S3597" Action="Warning" />
     <Rule Id="S3598" Action="Warning" />
     <Rule Id="S3600" Action="Warning" />
@@ -273,7 +273,7 @@
     <Rule Id="S3937" Action="None" />
     <Rule Id="S3949" Action="Warning" />
     <Rule Id="S3956" Action="None" />
-    <Rule Id="S3962" Action="None" />
+    <Rule Id="S3962" Action="Info" />
     <Rule Id="S3963" Action="Info" />
     <Rule Id="S3966" Action="Warning" />
     <Rule Id="S3967" Action="None" />
