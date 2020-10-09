@@ -270,6 +270,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     cpp = files.All(f => !f.EndsWith(".c"));
                 }
 
+                switch (files.Count)
+                {
+                    case 1:
+                        request.File = files[0];
+                        break;
+                    case 0:
+                        throw new InvalidOperationException("No files to analyze");
+                    default:
+                        throw new InvalidOperationException("Cannot analyze more than 1 file. Detected files: " + string.Join(";", files));
+                }
+
                 if (!ignoreStandardIncludePaths)
                 {
                     foreach (string env in capture.Env
@@ -422,18 +433,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   // TODO can be passed directly to Clang as PreprocessorOptions.Includes
                   + includes.ToString();
                 request.TargetTriple = probe.Isx64 ? "x86_64-pc-windows" : "i686-pc-windows";
-
-             
-                switch (files.Count)
-                {
-                    case 1:
-                        request.File = files[0];
-                        break;
-                    case 0:
-                        throw new InvalidOperationException("No files to analyze");
-                    default:
-                        throw new InvalidOperationException("Cannot analyze more than 1 file. Detected files: " + string.Join(";", files));
-                }
             }
 
             return request;
