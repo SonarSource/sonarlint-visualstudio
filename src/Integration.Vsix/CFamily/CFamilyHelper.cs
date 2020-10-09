@@ -37,10 +37,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const string CPP_LANGUAGE_KEY = "cpp";
         public const string C_LANGUAGE_KEY = "c";
 
-        internal static string WorkingDirectory { get; } = Path.GetTempPath();
-        internal static readonly string PchFilePath = Path.Combine(WorkingDirectory, "SonarLintForVisualStudio.PCH.preamble");
-        internal static readonly string RequestConfigFilePath = Path.Combine(WorkingDirectory, "sonar-cfamily.request.config");
-        internal static readonly string ReproducerFilePath = Path.Combine(WorkingDirectory, "sonar-cfamily.reproducer");
+        internal static string WorkingDirectory => Path.GetTempPath();
+        internal static string PchFilePath => Path.Combine(WorkingDirectory, "SonarLintForVisualStudio.PCH.preamble");
+        internal static string RequestConfigFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.request.reproducer");
+        internal static string ReproducerFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.reproducer");
 
         internal static IFileSystem FileSystem { get; set; } = new FileSystem();
 
