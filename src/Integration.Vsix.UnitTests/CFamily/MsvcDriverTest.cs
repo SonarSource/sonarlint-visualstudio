@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -115,31 +116,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Should_Skip_Cx_And_Cli()
+        [DataRow("/ZW")]
+        [DataRow("/clr")]
+        [DataRow("/Tc")]
+        [DataRow("/Tp")]
+        public void UnsupportedOptions_InvalidOperationException(string option)
         {
-            Request reqCx = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            Action action = () => MsvcDriver.ToRequest(new[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
                     Cwd = "",
                     Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "/ZW", "file.cpp" },
+                    Cmd = new List<string> { "cl.exe", option, "file.cpp" },
                 }
             });
-            reqCx.File.Should().Be("");
 
-            Request reqCli = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
-                compiler,
-                new CFamilyHelper.Capture()
-                {
-                    Executable = "",
-                    Cwd = "",
-                    Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "/clr", "file.cpp" },
-                }
-            });
-            reqCli.File.Should().Be("");
+            action.Should().ThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
