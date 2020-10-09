@@ -124,9 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/ZW") || arg.StartsWith("/clr"))
                     {
                         // C++/CX or C++/CLI
-                        files.Clear();
-                        break;
-
+                        throw new InvalidOperationException($"{arg}: CX and CLI are not supported");
                     }
                     else if (arg.StartsWith("/MT"))
                     {
@@ -228,17 +226,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         args.Index++;
 
                     }
-                    else if (arg.StartsWith("/Tc"))
+                    else if (arg.StartsWith("/Tc") || arg.StartsWith("/Tp"))
                     {
-                        // TODO completely skipped for now - used in ReactOS only for compilation of resources
-                        files.Clear();
-                        break;
-
-                    }
-                    else if (arg.StartsWith("/Tp"))
-                    {
-                        throw new InvalidOperationException(arg);
-
+                        throw new InvalidOperationException($"{arg} is not supported");
                     }
                     else if (arg == "/Yc" || arg == "/Yu")
                     {
@@ -282,6 +272,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 if (cpp == null)
                 {
                     cpp = files.All(f => !f.EndsWith(".c"));
+                }
+
+                switch (files.Count)
+                {
+                    case 1:
+                        request.File = files[0];
+                        break;
+                    case 0:
+                        throw new InvalidOperationException("No files to analyze");
+                    default:
+                        throw new InvalidOperationException("Cannot analyze more than 1 file. Detected files: " + string.Join(";", files));
                 }
 
                 if (!ignoreStandardIncludePaths)
@@ -436,10 +437,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   // TODO can be passed directly to Clang as PreprocessorOptions.Includes
                   + includes.ToString();
                 request.TargetTriple = probe.Isx64 ? "x86_64-pc-windows" : "i686-pc-windows";
-                if (files.Count == 1)
-                {
-                    request.File = files[0];
-                }
             }
 
             return request;

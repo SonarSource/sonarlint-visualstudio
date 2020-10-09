@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -115,31 +116,59 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Should_Skip_Cx_And_Cli()
+        [DataRow("/ZW")]
+        [DataRow("/clr")]
+        [DataRow("/Tc")]
+        [DataRow("/Tp")]
+        public void UnsupportedOptions_InvalidOperationException(string option)
         {
-            Request reqCx = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            Action action = () => MsvcDriver.ToRequest(new[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "/ZW", "file.cpp" },
+                    Cmd = new List<string> { "cl.exe", option },
                 }
             });
-            reqCx.File.Should().Be("");
 
-            Request reqCli = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Contain(option);
+        }
+
+        [TestMethod]
+        public void NoAnalyzedFiles_InvalidOperationException()
+        {
+            Action action = () => MsvcDriver.ToRequest(new[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "/clr", "file.cpp" },
+                    Cmd = new List<string> { "cl.exe" },
                 }
             });
-            reqCli.File.Should().Be("");
+
+            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Be("No files to analyze");
+        }
+
+        [TestMethod]
+        public void MoreThanOneAnalyzedFile_InvalidOperationException()
+        {
+            Action action = () => MsvcDriver.ToRequest(new[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = new List<string> { "cl.exe", "c:\\file1.cpp", "c:\\file2.cpp" },
+                }
+            });
+
+            
+            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().StartWith("Cannot analyze more than 1 file");
         }
 
         [TestMethod]
@@ -152,7 +181,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Executable = "",
                     Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
-                    Cmd = new List<string>() { "cl.exe", "/I", "c:/user" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "c:/user", "c:\\file.cpp" },
                 }
             });
             req.IncludeDirs.Should().BeEquivalentTo("c:/user", "basePath/system");
@@ -164,7 +193,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Executable = "",
                     Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
-                    Cmd = new List<string>() { "cl.exe", "/I", "\"c:/user\"" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "\"c:/user\"", "c:\\file.cpp" },
                 }
             });
             req.IncludeDirs.Should().BeEquivalentTo("c:/user", "basePath/system");
@@ -176,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Executable = "",
                     Cwd = "basePath",
                     Env = new List<string>() { "INCLUDE=system" },
-                    Cmd = new List<string>() { "cl.exe", "/I", "d:\\user", "/X" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "d:\\user", "/X", "c:\\file.cpp" },
                 }
             });
             req.IncludeDirs.Should().BeEquivalentTo("d:\\user");
@@ -188,7 +217,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Executable = "",
                     Cwd = "cwd",
                     Env = new List<string>() { "INCLUDE=system" },
-                    Cmd = new List<string>() { "cl.exe", "/I", "user" },
+                    Cmd = new List<string>() { "cl.exe", "/I", "user", "c:\\file.cpp" },
                 }
             });
             req.IncludeDirs.Should().BeEquivalentTo("cwd/user", "cwd/system");
@@ -214,7 +243,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                         "INCLUDE=subDir1\\subdir2\\relativePath1.txt", // \ should be converted to /
                         "INCLUDE=c:\\absPath1"                      // Absolute path should not be changed
                     },
-                    Cmd = new List<string>(), // no /I parameters
+                    Cmd = new List<string>
+                    {
+                        // no /I parameters
+                        "cl.exe",
+                        "c:\\file.cpp"
+                    }
                 }
             });
 
@@ -229,7 +263,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void Include_Directories_SlashIArgs()
         {
-            var req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+            var req = MsvcDriver.ToRequest(new[] {
                 compiler,
                 new CFamilyHelper.Capture()
                 {
@@ -242,11 +276,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Cmd = new List<string>() { "cl.exe",
                         "/I", "\r\tuser  \n", // leading and training whitespace should be stripped
                         "/I", "foo",
-                        "i", "should be ignored - case-sensitive",
+                        "/i", "should be ignored - case-sensitive",
                         "/I", "bar",
                         "/I", "subdir2\\relativePath1.txt", // \ should be converted to /
-                        "/I", "c:\\absPath1"                // Absolute path should not be changed
-
+                        "/I", "c:\\absPath1",                // Absolute path should not be changed
                     }
                 }
             });
@@ -274,11 +307,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string> {
                       "cl.exe",
-                      input
+                      input,
+                      "c:\\file.cpp"
                     }
                 }
             });
@@ -293,11 +327,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "-Uname"
+                      "-Uname",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -315,11 +350,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string> {
                         "cl.exe",
-                        "/U", arg
+                        "/U", arg,
+                        "c:\\file.cpp"
                     },
                 }
             });
@@ -336,11 +372,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string> {
                       "cl.exe",
-                      "/FI", includePath
+                      "/FI", includePath,
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -355,11 +392,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "/arch:IA32"
+                      "/arch:IA32",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -371,11 +409,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "/arch:SSE"
+                      "/arch:SSE",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -387,11 +426,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "/arch:AVX2"
+                      "/arch:AVX2",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -402,11 +442,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "/arch:AVX"
+                      "/arch:AVX",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -428,10 +469,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
-                      "cl.exe"
+                      "cl.exe",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -455,10 +497,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
-                      "cl.exe"
+                      "cl.exe",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -492,10 +535,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
-                      "cl.exe"
+                      "cl.exe",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -511,12 +555,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
                       "/std:c++14",
-                      "/J"
+                      "/J",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -529,10 +574,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
-                      "cl.exe"
+                      "cl.exe",
+                      "c:\\file.cpp"
                     },
                 }
             });
@@ -590,7 +636,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 new CFamilyHelper.Capture()
                 {
                     Executable = "",
-                    Cwd = "",
+                    Cwd = "basePath",
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                     "cl.exe",
