@@ -427,9 +427,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   + includes.ToString();
                 request.TargetTriple = probe.Isx64 ? "x86_64-pc-windows" : "i686-pc-windows";
 
-                if (files.Count == 1)
+             
+                switch (files.Count)
                 {
-                    request.File = files[0];
+                    case 1:
+                        request.File = files[0];
+                        break;
+                    case 0:
+                        throw new InvalidOperationException("No files to analyze");
+                    default:
+                        throw new InvalidOperationException("Cannot analyze more than 1 file. Detected files: " + string.Join(";", files));
                 }
             }
 
