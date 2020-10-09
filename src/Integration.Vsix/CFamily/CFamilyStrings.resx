@@ -150,6 +150,9 @@
   <data name="MSG_ReproducerSaved" xml:space="preserve">
     <value>Reproducer file saved at: {0} </value>
   </data>
+  <data name="MSG_RequestConfigSaved" xml:space="preserve">
+    <value>Request config saved at: {0} </value>
+  </data>
   <data name="MSG_Runner_OverwritingEnvVar" xml:space="preserve">
     <value>Overwriting the value of environment variable '{0}'. Old value: {1}, new value: {2}</value>
   </data>
