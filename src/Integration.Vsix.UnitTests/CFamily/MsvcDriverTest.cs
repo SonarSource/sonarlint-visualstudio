@@ -66,28 +66,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             });
             req.File.Should().Be("basePath/file.c");
             req.Flags.Should().Be(Request.MS | Request.C99 | Request.C11 | Request.SonarLint);
+        }
 
-            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+        [TestMethod]
+        [DataRow("/TP")]
+        [DataRow("/Tp")]
+        public void TP(string option)
+        {
+            var req = MsvcDriver.ToRequest(new[] {
                 compiler,
-                new CFamilyHelper.Capture()
+                new CFamilyHelper.Capture
                 {
                     Executable = "",
                     Cwd = "basePath",
                     Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "/TP", "file.c" },
+                    Cmd = new List<string> { "cl.exe", option, "file.c" },
                 }
             });
+
             req.File.Should().Be("basePath/file.c");
             req.Flags.Should().Be(Request.MS | Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 | Request.SonarLint);
+        }
 
-            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+        [TestMethod]
+        [DataRow("/TC")]
+        [DataRow("/Tc")]
+        public void TC(string option)
+        {
+            var req = MsvcDriver.ToRequest(new[] {
                 compiler,
-                new CFamilyHelper.Capture()
+                new CFamilyHelper.Capture
                 {
                     Executable = "",
                     Cwd = "basePath",
                     Env = new List<string>(),
-                    Cmd = new List<string>() { "cl.exe", "/TC", "file.cpp" },
+                    Cmd = new List<string> { "cl.exe", option, "file.cpp" },
                 }
             });
             req.File.Should().Be("basePath/file.cpp");
@@ -118,9 +131,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         [DataRow("/ZW")]
         [DataRow("/clr")]
-        [DataRow("/Tc")]
-        [DataRow("/Tp")]
-        public void UnsupportedOptions_InvalidOperationException(string option)
+        public void Should_Skip_Cx_And_Cli(string option)
         {
             Action action = () => MsvcDriver.ToRequest(new[] {
                 compiler,
@@ -133,7 +144,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
 
-            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Contain(option);
+            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Contain("CX and CLI are not supported");
         }
 
         [TestMethod]
