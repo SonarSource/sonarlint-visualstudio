@@ -208,7 +208,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Act
             using (new AssertIgnoreScope())
             {
-                var request = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy");
+                var request = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy", null);
 
                 // Assert
                 AssertPartialMessageLogged(loggerMock,

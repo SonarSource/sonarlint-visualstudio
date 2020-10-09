@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            var fileConfig = TryGetConfig(logger, projectItem, absoluteFilePath);
+            var fileConfig = TryGetConfig(logger, projectItem, absoluteFilePath, analyzerOptions);
             if (fileConfig == null)
             {
                 return null;
@@ -95,7 +95,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 if (cFamilyAnalyzerOptions.CreateReproducer)
                 {
                     request.Flags |= Request.CreateReproducer;
-                    SaveFileConfig(fileConfig, logger);
                 }
 
                 if (cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
@@ -196,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             runner.Execute(args);
         }
   
-        internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
+        internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath, IAnalyzerOptions analyzerOptions)
         {
             Debug.Assert(!IsHeaderFile(absoluteFilePath),
                 $"Not expecting TryGetConfig to be called for header files: {absoluteFilePath}");
@@ -209,7 +208,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return FileConfig.TryGet(logger, projectItem, absoluteFilePath);
+                var fileConfig = FileConfig.TryGet(logger, projectItem, absoluteFilePath);
+
+                if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions &&
+                    cFamilyAnalyzerOptions.CreateReproducer)
+                {
+                    SaveFileConfig(fileConfig, logger);
+                }
+
+                return fileConfig;
             }
             catch (Exception e)
             {
