@@ -212,23 +212,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         args.Index++;
 
                     }
-                    else if ("/TP" == arg)
+                    else if ("/TP" == arg || "/Tp" == arg)
                     {
                         // all files are CPP
                         cpp = true;
                         args.Index++;
 
                     }
-                    else if ("/TC" == arg)
+                    else if ("/TC" == arg || "/Tc" == arg)
                     {
                         // all files are C
                         cpp = false;
                         args.Index++;
 
-                    }
-                    else if (arg.StartsWith("/Tc") || arg.StartsWith("/Tp"))
-                    {
-                        throw new InvalidOperationException($"{arg} is not supported");
                     }
                     else if (arg == "/Yc" || arg == "/Yu")
                     {
