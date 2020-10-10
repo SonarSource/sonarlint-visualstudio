@@ -317,6 +317,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 .Be("/arch:AVX");
             CFamilyHelper.Capture.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions2").Should()
                 .Be("/arch:AVX2");
+            CFamilyHelper.Capture.ConvertEnableEnhancedInstructionSet("AdvancedVectorExtensions512").Should()
+                .Be("/arch:AVX512");
             CFamilyHelper.Capture.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions").Should()
                 .Be("/arch:SSE");
             CFamilyHelper.Capture.ConvertEnableEnhancedInstructionSet("StreamingSIMDExtensions2").Should()

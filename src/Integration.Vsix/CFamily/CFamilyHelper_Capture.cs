@@ -206,6 +206,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return "/arch:AVX";
                     case "AdvancedVectorExtensions2":
                         return "/arch:AVX2";
+                    case "AdvancedVectorExtensions512":
+                        return "/arch:AVX512";
                     case "StreamingSIMDExtensions":
                         return "/arch:SSE";
                     case "StreamingSIMDExtensions2":
