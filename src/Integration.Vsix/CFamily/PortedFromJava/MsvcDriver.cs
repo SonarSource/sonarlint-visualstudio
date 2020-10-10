@@ -334,6 +334,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     case "SSE":
                         predefines.Append("#define _M_IX86_FP 1\n");
                         break;
+                    case "AVX512":
+                        predefines.Append("#define __AVX512BW__ 1\n");
+                        predefines.Append("#define __AVX512CD__ 1\n");
+                        predefines.Append("#define __AVX512DQ__ 1\n");
+                        predefines.Append("#define __AVX512F__ 1\n");
+                        predefines.Append("#define __AVX512VL__ 1\n");
+                        // fallthrough
+                        goto case "AVX2";
                     case "AVX2":
                         predefines.Append("#define __AVX2__ 1\n");
                         // fallthrough
