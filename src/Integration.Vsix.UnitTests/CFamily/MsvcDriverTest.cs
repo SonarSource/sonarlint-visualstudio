@@ -441,6 +441,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
+                      "/arch:AVX512",
+                      "c:\\file.cpp"
+                    },
+                }
+            });
+            req.Predefines.Should().ContainAll(
+                "#define __AVX512BW__ 1\n",
+                "#define __AVX512CD__ 1\n",
+                "#define __AVX512DQ__ 1\n",
+                "#define __AVX512F__ 1\n",
+                "#define __AVX512VL__ 1\n",
+                "#define _M_IX86_FP 2\n",
+                "#define __AVX__ 1\n",
+                "#define __AVX2__ 1\n");
+
+            req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() {
+                      "cl.exe",
                       "/arch:AVX2",
                       "c:\\file.cpp"
                     },
