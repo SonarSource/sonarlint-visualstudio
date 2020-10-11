@@ -256,10 +256,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                     else
                     {
-                        string file = Absolute(capture.Cwd, arg);
-                        if (file != null)
+                        // We know that the file to be analyzed is the last element.
+                        // If it is not the last element, it is the argument of an ignored option and it shouldn't be treated as a file
+                        if (args.Index == (capture.Cmd.Count - 1))
                         {
-                            files.Add(file);
+                            string file = Absolute(capture.Cwd, arg);
+                            if (file != null)
+                            {
+                                files.Add(file);
+                            }
                         }
                         args.Index++;
                     }
@@ -277,8 +282,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         break;
                     case 0:
                         throw new InvalidOperationException("No files to analyze");
-                    default:
-                        throw new InvalidOperationException("Cannot analyze more than 1 file. Detected files: " + string.Join(";", files));
                 }
 
                 if (!ignoreStandardIncludePaths)
