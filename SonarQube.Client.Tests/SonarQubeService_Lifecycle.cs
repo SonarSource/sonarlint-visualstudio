@@ -25,6 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq.Protected;
 using SonarQube.Client.Helpers;
+using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
 {
@@ -42,7 +43,7 @@ namespace SonarQube.Client.Tests
             service.SonarQubeVersion.Should().BeNull();
 
             await service.ConnectAsync(
-                new Models.ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
+                new ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
             service.IsConnected.Should().BeTrue();
@@ -60,7 +61,7 @@ namespace SonarQube.Client.Tests
             service.SonarQubeVersion.Should().BeNull();
 
             Func<Task> action = async () => await service.ConnectAsync(
-                new Models.ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
+                new ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
             action.Should().ThrowExactly<InvalidOperationException>()
