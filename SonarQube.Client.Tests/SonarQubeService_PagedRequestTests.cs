@@ -27,17 +27,16 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Moq.Protected;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Requests;
+using static SonarQube.Client.Tests.Infra.MocksHelper;
 
 namespace SonarQube.Client.Tests
 {
     [TestClass]
     public class SonarQubeService_PagedRequestTests
     {
-        private static readonly Uri BasePath = new Uri("http://localhost");
         private Mock<HttpMessageHandler> messageHandler;
         private TestLogger logger;
         private HttpClient client;
@@ -48,7 +47,7 @@ namespace SonarQube.Client.Tests
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             client = new HttpClient(messageHandler.Object)
             {
-                BaseAddress = BasePath
+                BaseAddress = new Uri(ValidBaseAddress)
             };
             logger = new TestLogger();
         }
@@ -218,19 +217,8 @@ namespace SonarQube.Client.Tests
             result.Should().HaveCount(10);
         }
 
-        private void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK)
-        {
-            messageHandler.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(m =>
-                        m.RequestUri == new Uri(BasePath, relativePath)),
-                    ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = statusCode,
-                    Content = new StringContent(response)
-                }));
-        }
+        private void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK) =>
+            SetupHttpRequest(messageHandler, relativePath, response, statusCode, ValidBaseAddress);
 
         #region Dummy request and response objects
 

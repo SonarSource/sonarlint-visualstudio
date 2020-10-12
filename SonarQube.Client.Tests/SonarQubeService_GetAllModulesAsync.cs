@@ -24,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarQube.Client.Models;
 
 namespace SonarQube.Client.Tests
 {
@@ -181,7 +182,7 @@ namespace SonarQube.Client.Tests
             // No calls to Connect
             // No need to setup request, the operation should fail
 
-            Func<Task<IList<Models.SonarQubeModule>>> func = async () =>
+            Func<Task<IList<SonarQubeModule>>> func = async () =>
                 await service.GetAllModulesAsync("myProject", CancellationToken.None);
 
             func.Should().ThrowExactly<InvalidOperationException>().And
