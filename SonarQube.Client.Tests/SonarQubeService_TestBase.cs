@@ -32,6 +32,7 @@ using Moq.Protected;
 using SonarQube.Client.Api;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
+using SonarQube.Client.Tests.Infra;
 
 namespace SonarQube.Client.Tests
 {
@@ -64,20 +65,8 @@ namespace SonarQube.Client.Tests
             ResetService();
         }
 
-        protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK, string serverUrl = DefaultBasePath)
-        {
-            messageHandler.Protected()
-                .Setup<Task<HttpResponseMessage>>("SendAsync",
-                    ItExpr.Is<HttpRequestMessage>(m =>
-                        m.RequestUri == new Uri(new Uri(serverUrl), relativePath) &&
-                        m.Headers.UserAgent.ToString() == UserAgent), // UserAgent should be always sent
-                    ItExpr.IsAny<CancellationToken>())
-                .Returns(Task.FromResult(new HttpResponseMessage
-                {
-                    StatusCode = statusCode,
-                    Content = new StringContent(response)
-                }));
-        }
+        protected void SetupRequest(string relativePath, string response, HttpStatusCode statusCode = HttpStatusCode.OK, string serverUrl = DefaultBasePath) =>
+            MocksHelper.SetupHttpRequest(messageHandler, relativePath, response, statusCode, serverUrl);
 
         protected void SetupRequestWithOperation(string relativePath, Func<Task<HttpResponseMessage>> op, string serverUrl = DefaultBasePath)
         {

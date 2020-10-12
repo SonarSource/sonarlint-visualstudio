@@ -18,12 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 namespace SonarQube.Client.Models
 {
     public class SonarQubeIssue
     {
-        public SonarQubeIssue(string filePath, string hash, int? line, string message, string moduleKey, string ruleId, 
-            bool isResolved)
+        private static readonly IReadOnlyList<IssueFlow> EmptyFlows = new List<IssueFlow>().AsReadOnly();
+
+        public SonarQubeIssue(string filePath, string hash, int? line, string message, string moduleKey, string ruleId,
+            bool isResolved, List<IssueFlow> flows)
         {
             FilePath = filePath?.Trim('/', '\\');
             Hash = hash;
@@ -32,6 +35,7 @@ namespace SonarQube.Client.Models
             ModuleKey = moduleKey;
             RuleId = ruleId;
             IsResolved = isResolved;
+            Flows = flows ?? EmptyFlows;
         }
 
         public string FilePath { get; }
@@ -41,5 +45,48 @@ namespace SonarQube.Client.Models
         public string ModuleKey { get; }
         public string RuleId { get; }
         public bool IsResolved { get; }
+        public IReadOnlyList<IssueFlow> Flows { get; }
+    }
+
+    public class IssueFlow
+    {
+        private static readonly IReadOnlyList<IssueLocation> EmptyLocations = new List<IssueLocation>().AsReadOnly();
+
+        public IssueFlow(List<IssueLocation> locations)
+        {
+            Locations = locations ?? EmptyLocations;
+        }
+
+        public IReadOnlyList<IssueLocation> Locations { get; }
+    }
+
+    public class IssueLocation
+    {
+        public IssueLocation(string component, IssueTextRange textRange, string message)
+        {
+            Component = component;
+            TextRange = textRange;
+            Message = message;
+        }
+
+        public string Component { get; }
+        public IssueTextRange TextRange { get; }
+        public string Message { get; }
+    }
+
+    public class IssueTextRange
+    {
+        public IssueTextRange(int startLine, int endLine, int startOffset, int endOffset)
+        {
+            StartLine = startLine;
+            EndLine = endLine;
+            StartOffset = startOffset;
+            EndOffset = endOffset;
+        }
+
+        public int StartLine { get; }
+        public int EndLine { get; }
+        public int StartOffset { get; }
+        public int EndOffset { get; }
     }
 }

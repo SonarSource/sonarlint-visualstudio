@@ -88,6 +88,6 @@ namespace SonarQube.Client.Api.V5_10
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
             new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey,
-                issue.Status == "RESOLVED");
+                issue.Status == "RESOLVED", flows: null);
     }
 }
