@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 StringBuilder predefines = new StringBuilder();
                 string arch = "";
                 StringBuilder includes = new StringBuilder();
-                List<string> files = new List<string>();
+                string fileToBeAnalyzed = null;
                 bool? cpp = null;
                 string std = "c++14";
                 bool ignoreStandardIncludePaths = false;
@@ -256,29 +256,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     }
                     else
                     {
-                        string file = Absolute(capture.Cwd, arg);
-                        if (file != null)
+                        // We know that the file to be analyzed is the last element.
+                        // If it is not the last element, it is the argument of an ignored option and it shouldn't be treated as a file
+                        if (args.Index == (capture.Cmd.Count - 1))
                         {
-                            files.Add(file);
+                            string file = Absolute(capture.Cwd, arg);
+                            if (file != null)
+                            {
+                                fileToBeAnalyzed = file;
+                            }
                         }
                         args.Index++;
                     }
                 }
 
-                if (cpp == null)
+                if (fileToBeAnalyzed == null)
                 {
-                    cpp = files.All(f => !f.EndsWith(".c"));
+                    throw new InvalidOperationException("No files to analyze");
+                }
+                else
+                {
+                    request.File = fileToBeAnalyzed;
                 }
 
-                switch (files.Count)
+                if (cpp == null)
                 {
-                    case 1:
-                        request.File = files[0];
-                        break;
-                    case 0:
-                        throw new InvalidOperationException("No files to analyze");
-                    default:
-                        throw new InvalidOperationException("Cannot analyze more than 1 file. Detected files: " + string.Join(";", files));
+                    cpp = !fileToBeAnalyzed.EndsWith(".c");
                 }
 
                 if (!ignoreStandardIncludePaths)

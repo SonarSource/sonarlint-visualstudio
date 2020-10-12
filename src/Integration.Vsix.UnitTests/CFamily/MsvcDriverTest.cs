@@ -165,24 +165,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void MoreThanOneAnalyzedFile_InvalidOperationException()
-        {
-            Action action = () => MsvcDriver.ToRequest(new[] {
-                compiler,
-                new CFamilyHelper.Capture()
-                {
-                    Executable = "",
-                    Cwd = "basePath",
-                    Env = new List<string>(),
-                    Cmd = new List<string> { "cl.exe", "c:\\file1.cpp", "c:\\file2.cpp" },
-                }
-            });
-
-            
-            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().StartWith("Cannot analyze more than 1 file");
-        }
-
-        [TestMethod]
         public void Include_Directories()
         {
             Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
@@ -291,6 +273,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                         "/I", "bar",
                         "/I", "subdir2\\relativePath1.txt", // \ should be converted to /
                         "/I", "c:\\absPath1",                // Absolute path should not be changed
+                        "c:\\file.cpp"
                     }
                 }
             });
@@ -680,6 +663,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     },
                 }
             });
+        }
+
+        [TestMethod]
+        public void unsupported_option_with_argument()
+        {
+            var req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() {
+                    "cl.exe",
+                    "/AI",
+                    "c:\\Desktop",
+                    "c:\\file.cpp"
+                    },
+                }
+            });
+            req.File.Should().Be("c:\\file.cpp");
         }
 
         [TestMethod]
