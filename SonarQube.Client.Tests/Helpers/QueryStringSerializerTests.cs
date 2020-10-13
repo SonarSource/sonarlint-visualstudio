@@ -23,8 +23,9 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using SonarQube.Client.Helpers;
 
-namespace SonarQube.Client.Helpers
+namespace SonarQube.Client.Tests.Helpers
 {
     [TestClass]
     public class QueryStringSerializerTests

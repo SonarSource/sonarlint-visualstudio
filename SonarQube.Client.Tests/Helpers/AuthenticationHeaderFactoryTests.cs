@@ -21,9 +21,9 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarQube.Client.Tests;
+using SonarQube.Client.Helpers;
 
-namespace SonarQube.Client.Helpers.Tests
+namespace SonarQube.Client.Tests.Helpers
 {
     [TestClass]
     public class AuthenticationHeaderFactoryTests

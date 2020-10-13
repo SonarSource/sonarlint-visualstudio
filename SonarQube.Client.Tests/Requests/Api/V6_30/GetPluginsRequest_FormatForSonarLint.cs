@@ -22,7 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Api.V6_30;
 
-namespace SonarQube.Client.Tests.Api.Requests.V6_30
+namespace SonarQube.Client.Tests.Requests.Api.V6_30
 {
     [TestClass]
     public class GetPluginsRequest_FormatForSonarLint
