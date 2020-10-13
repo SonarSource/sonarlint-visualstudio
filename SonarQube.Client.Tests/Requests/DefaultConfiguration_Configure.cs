@@ -22,8 +22,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Api;
+using SonarQube.Client.Tests.Infra;
 
-namespace SonarQube.Client.Tests.Api
+namespace SonarQube.Client.Tests.Requests
 {
     [TestClass]
     public class DefaultConfiguration_Configure

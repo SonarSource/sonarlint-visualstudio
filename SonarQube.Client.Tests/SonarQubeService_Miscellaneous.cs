@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Requests;
+using SonarQube.Client.Tests.Infra;
 
 namespace SonarQube.Client.Tests
 {

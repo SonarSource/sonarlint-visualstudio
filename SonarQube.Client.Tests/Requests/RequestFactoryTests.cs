@@ -23,8 +23,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Logging;
+using SonarQube.Client.Tests.Infra;
 
-namespace SonarQube.Client.Tests.Services
+namespace SonarQube.Client.Tests.Requests
 {
     [TestClass]
     public class RequestFactoryTests
@@ -78,7 +79,7 @@ namespace SonarQube.Client.Tests.Services
             logger.DebugMessages.Should().ContainInOrder(
                 new[]
                 {
-                    "Registered SonarQube.Client.Tests.Services.RequestFactoryTests+TestRequest1 for 1.0.0",
+                    "Registered SonarQube.Client.Tests.Requests.RequestFactoryTests+TestRequest1 for 1.0.0",
                 });
 
             factory.Create<ITestRequest>(new Version(1, 0, 0)).Should().BeOfType<TestRequest1>();
