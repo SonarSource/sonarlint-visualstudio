@@ -21,7 +21,7 @@
 using System.Collections.Generic;
 using SonarQube.Client.Logging;
 
-namespace SonarQube.Client.Tests
+namespace SonarQube.Client.Tests.Infra
 {
     public class TestLogger : ILogger
     {
