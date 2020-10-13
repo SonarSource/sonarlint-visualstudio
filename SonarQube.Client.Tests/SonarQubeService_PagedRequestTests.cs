@@ -30,6 +30,7 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Requests;
+using SonarQube.Client.Tests.Infra;
 using static SonarQube.Client.Tests.Infra.MocksHelper;
 
 namespace SonarQube.Client.Tests
