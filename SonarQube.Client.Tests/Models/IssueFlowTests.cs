@@ -41,8 +41,8 @@ namespace SonarQube.Client.Tests.Models
         {
             var locations = new List<IssueLocation>
             {
-                new IssueLocation("component1", null, "message1"),
-                new IssueLocation("component2", null, "message2")
+                new IssueLocation("file1", "component1", null, "message1"),
+                new IssueLocation("file2", "component2", null, "message2")
             };
 
             var testSubject = new IssueFlow(locations);
