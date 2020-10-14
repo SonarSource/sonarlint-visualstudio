@@ -62,14 +62,16 @@ namespace SonarQube.Client.Models
 
     public class IssueLocation
     {
-        public IssueLocation(string component, IssueTextRange textRange, string message)
+        public IssueLocation(string filePath, string moduleKey, IssueTextRange textRange, string message)
         {
-            Component = component;
+            FilePath = filePath;
+            ModuleKey = moduleKey;
             TextRange = textRange;
             Message = message;
         }
 
-        public string Component { get; }
+        public string FilePath { get; }
+        public string ModuleKey { get; }
         public IssueTextRange TextRange { get; }
         public string Message { get; }
     }
