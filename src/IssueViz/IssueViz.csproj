@@ -53,10 +53,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Commands\Resources\CommandIcons.png" />
+    <None Remove="Hotspots\HotspotsControl\HotspotsControl.xaml" />
+    <None Remove="Resources\CommandIcons.png" />
     <None Remove="IssueVisualizationControl\IssueVisualizationControl.xaml" />
-
-    <Content Include="Commands\Resources\CommandIcons.png" />
+    <Page Include="Hotspots\HotspotsControl\HotspotsControl.xaml">
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
 
     <Page Include="IssueVisualizationControl\IssueVisualizationControl.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
@@ -78,6 +81,7 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+
   </ItemGroup>
 
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
