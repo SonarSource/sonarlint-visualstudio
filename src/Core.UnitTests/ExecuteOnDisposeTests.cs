@@ -21,9 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.Vsix;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
+namespace SonarLint.VisualStudio.Core.UnitTests
 {
     [TestClass]
     public class ExecuteOnDisposeTests
