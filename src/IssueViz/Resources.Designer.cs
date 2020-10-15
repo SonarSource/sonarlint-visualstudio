@@ -79,6 +79,24 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error displaying Hotspots Tool Window: {0}.
+        /// </summary>
+        internal static string ERR_HotspotsToolWindow_Exception {
+            get {
+                return ResourceManager.GetString("ERR_HotspotsToolWindow_Exception", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error displaying Hotspots Tool Window: cannot create window frame.
+        /// </summary>
+        internal static string ERR_HotspotsToolWindow_NoFrame {
+            get {
+                return ResourceManager.GetString("ERR_HotspotsToolWindow_NoFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error navigating to analysis issue location: {0}.
         /// </summary>
         internal static string ERR_NavigationException {
@@ -120,6 +138,15 @@ namespace SonarLint.VisualStudio.IssueVisualization {
         internal static string ERR_VisualizationToolWindow_NoFrame {
             get {
                 return ResourceManager.GetString("ERR_VisualizationToolWindow_NoFrame", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint Hotspots.
+        /// </summary>
+        internal static string HotspotsToolWindowCaption {
+            get {
+                return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
             }
         }
         
