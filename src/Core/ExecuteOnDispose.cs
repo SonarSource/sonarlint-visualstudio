@@ -20,12 +20,12 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
     /// Disposable class that executes a specified action on Dispose().
     /// </summary>
-    internal sealed class ExecuteOnDispose : IDisposable
+    public sealed class ExecuteOnDispose : IDisposable
     {
         private bool alreadyDisposed;
         private readonly Action onDispose;
