@@ -25,6 +25,8 @@ using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Hotspots.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Hotspots.HotspotsControl;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
 using Task = System.Threading.Tasks.Task;
@@ -37,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(IssueVisualizationToolWindow), MultiInstances = false, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     [ProvideToolWindowVisibility(typeof(IssueVisualizationToolWindow), Constants.UIContextGuid)]
+    [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     public sealed class IssueVizPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -45,6 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization
 
             await IssueVisualizationToolWindowCommand.InitializeAsync(this);
             await NavigationCommands.InitializeAsync(this);
+            await HotspotsToolWindowCommand.InitializeAsync(this);
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
@@ -52,6 +56,11 @@ namespace SonarLint.VisualStudio.IssueVisualization
             if (toolWindowType == typeof(IssueVisualizationToolWindow))
             {
                 return new IssueVisualizationToolWindow(this);
+            }
+
+            if (toolWindowType == typeof(HotspotsToolWindow))
+            {
+                return new HotspotsToolWindow();
             }
 
             return base.InstantiateToolWindow(toolWindowType);
