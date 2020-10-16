@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Api;
 using SonarQube.Client.Tests.Infra;
+using System.Diagnostics;
 
 namespace SonarQube.Client.Tests.Requests
 {
@@ -34,10 +35,7 @@ namespace SonarQube.Client.Tests.Requests
         {
             var logger = new TestLogger();
 
-            DefaultConfiguration.Configure(new RequestFactory(logger));
-
-            logger.DebugMessages.Should().ContainInOrder(
-                new[]
+            var expected = new string[]
                 {
                     "Registered SonarQube.Client.Api.V2_10.GetPluginsRequest for 2.1",
                     "Registered SonarQube.Client.Api.V2_10.GetProjectsRequest for 2.1",
@@ -45,10 +43,13 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V2_60.GetPropertiesRequest for 2.6",
                     "Registered SonarQube.Client.Api.V3_30.ValidateCredentialsRequest for 3.3",
                     "Registered SonarQube.Client.Api.V5_10.GetIssuesRequest for 5.1",
+                    "Registered SonarQube.Client.Api.V5_10.GetLanguagesRequest for 5.1",
                     "Registered SonarQube.Client.Api.V5_20.GetQualityProfileChangeLogRequest for 5.2",
                     "Registered SonarQube.Client.Api.V5_20.GetQualityProfilesRequest for 5.2",
                     "Registered SonarQube.Client.Api.V5_20.GetRoslynExportProfileRequest for 5.2",
                     "Registered SonarQube.Client.Api.V5_40.GetModulesRequest for 5.4",
+                    "Registered SonarQube.Client.Api.V5_50.GetRulesRequest for 5.5",
+                    "Registered SonarQube.Client.Api.V5_50.DownloadStaticFile for 5.5",
                     "Registered SonarQube.Client.Api.V6_20.GetOrganizationsRequest for 6.2",
                     "Registered SonarQube.Client.Api.V6_20.GetProjectsRequest for 6.2",
                     "Registered SonarQube.Client.Api.V6_30.GetPluginsRequest for 6.3",
@@ -59,7 +60,24 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V6_60.GetRoslynExportProfileRequest for 6.6",
                     "Registered SonarQube.Client.Api.V7_00.GetOrganizationsRequest for 7.0",
                     "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper for 7.2",
-                });
+                    "Registered SonarQube.Client.Api.V8_1.GetHotspotRequest for 8.1"
+                };
+
+            DefaultConfiguration.Configure(new RequestFactory(logger));
+
+            DumpDebugMessages(logger);
+
+            logger.DebugMessages.Should().ContainInOrder(expected);
+            logger.DebugMessages.Count.Should().Be(expected.Length);
+        }
+
+        private static void DumpDebugMessages(TestLogger logger)
+        {
+            Debug.WriteLine("Actual registered requests:");
+            foreach (var message in logger.DebugMessages)
+            {
+                Debug.WriteLine(message);
+            }
         }
     }
 }
