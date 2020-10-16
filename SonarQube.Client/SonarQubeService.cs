@@ -314,6 +314,14 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetHotspotRequest, SonarQubeHotspot>(
+                request =>
+                {
+                    request.HotspotKey = hotspotKey;
+                },
+                token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
@@ -357,5 +365,6 @@ namespace SonarQube.Client
             }
             return organizationKey;
         }
+
     }
 }
