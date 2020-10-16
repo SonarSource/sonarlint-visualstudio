@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+
+    <ProjectGuid>{35AB5B51-BC2A-44A6-BE46-EF41CDF1398D}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.IssueVisualization.Security.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.IssueVisualization.Security.UnitTests</AssemblyName>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+
+    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\IssueViz.Security\IssueViz.Security.csproj" />
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+  </ItemGroup>
+
+</Project>
