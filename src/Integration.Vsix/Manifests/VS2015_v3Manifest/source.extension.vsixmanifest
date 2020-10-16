@@ -40,6 +40,8 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security;PkgdefProjectOutputGroup|" />
   </Assets>
   <Prerequisites>
     <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0.25420.00,15.0)" DisplayName="Visual Studio core editor" />
