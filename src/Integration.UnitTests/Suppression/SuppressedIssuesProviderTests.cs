@@ -250,8 +250,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             var expectedIssues = new List<SonarQubeIssue>
             {
-                new SonarQubeIssue("file path", "hash", 1, "message", "module", "rule id", true),
-                new SonarQubeIssue("file path2", "hash2", 2, "message2", "module2", "rule id2", false)
+                new SonarQubeIssue("file path", "hash", 1, "message", "module", "rule id", true, flows: null),
+                new SonarQubeIssue("file path2", "hash2", 2, "message2", "module2", "rule id2", false, flows: null)
             };
 
             var issuesProvider = new Mock<ISonarQubeIssuesProvider>();
