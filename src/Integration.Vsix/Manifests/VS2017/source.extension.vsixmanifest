@@ -1,44 +1,46 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-    <Metadata>
-        <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-        <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="4.28.0.0" Language="en-US" Publisher="SonarSource" />
-        <DisplayName>SonarLint for Visual Studio 2017</DisplayName>
-        <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
-        <MoreInfo>http://vs.sonarlint.org</MoreInfo>
-        <License>LICENSE</License>
-        <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
-        <Icon>Resources\sonarlint_wave_128px.png</Icon>
-        <PreviewImage>Resources\sonarlint_200.png</PreviewImage>
-      <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality</Tags>
-    </Metadata>
-    <Installation>
-        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,16.0)" />
-    </Installation>
-    <Dependencies>
-        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
-    </Dependencies>
-    <Assets>
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
-        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Progress" Path="|Progress|" AssemblyName="|Progress;AssemblyName|" />
-        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="ProgressVS" Path="|ProgressVS|" AssemblyName="|ProgressVS;AssemblyName|" />
-        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.dll" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.dll" />
-        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
-        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
-        <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="Google.Protobuf.dll" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
-        <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz|" />
-      <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz;PkgdefProjectOutputGroup|" />
-    </Assets>
-    <Prerequisites>
-        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
-        <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.Compiler" Version="[15.0,16.0)" DisplayName="C# and Visual Basic Roslyn compilers" />
-        <Prerequisite Id="Microsoft.VisualStudio.Component.Static.Analysis.Tools" Version="[15.0,16.0)" DisplayName="Static analysis tools" />
-    </Prerequisites>
+  <Metadata>
+    <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
+    <Identity Id="SonarLint.36871a7b-4853-481f-bb52-1835a874e81b" Version="4.28.0.0" Language="en-US" Publisher="SonarSource" />
+    <DisplayName>SonarLint for Visual Studio 2017</DisplayName>
+    <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
+    <MoreInfo>http://vs.sonarlint.org</MoreInfo>
+    <License>LICENSE</License>
+    <GettingStartedGuide>http://vs.sonarlint.org</GettingStartedGuide>
+    <Icon>Resources\sonarlint_wave_128px.png</Icon>
+    <PreviewImage>Resources\sonarlint_200.png</PreviewImage>
+    <Tags>SonarLint;SonarQube;Analysis;Roslyn;CodeAnalysis;Analyzer;Code analysis;Sonar;Debt;Technical;Tech;Quality</Tags>
+  </Metadata>
+  <Installation>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,16.0)" />
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
+  </Dependencies>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="Progress" Path="|Progress|" AssemblyName="|Progress;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="Project" d:ProjectName="ProgressVS" Path="|ProgressVS|" AssemblyName="|ProgressVS;AssemblyName|" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.CSharp.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="SonarAnalyzer.VisualBasic.dll" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="File" Path="Google.Protobuf.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="File" Path="Google.Protobuf.dll" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration.TeamExplorer" Path="|Integration.TeamExplorer|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz" Path="|IssueViz;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="IssueViz.Security" Path="|IssueViz.Security;PkgdefProjectOutputGroup|" />
+  </Assets>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,16.0)" DisplayName="Visual Studio core editor" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Roslyn.Compiler" Version="[15.0,16.0)" DisplayName="C# and Visual Basic Roslyn compilers" />
+    <Prerequisite Id="Microsoft.VisualStudio.Component.Static.Analysis.Tools" Version="[15.0,16.0)" DisplayName="Static analysis tools" />
+  </Prerequisites>
 </PackageManifest>
