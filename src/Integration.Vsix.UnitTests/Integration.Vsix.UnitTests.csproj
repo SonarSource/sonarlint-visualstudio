@@ -3,6 +3,7 @@
   <PropertyGroup Label="Specify which VS-specific refs are required">
     <IsTestProject>true</IsTestProject>
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
+    <RequiresShell>true</RequiresShell>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
   <Import Project="..\EmbeddedSonarAnalyzer.props" />

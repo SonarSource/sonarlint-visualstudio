@@ -62,6 +62,7 @@
     <RootNamespace>SonarLint.VisualStudio.Integration.Vsix</RootNamespace>
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
     <RequiresSigning>true</RequiresSigning>
+    <RequiresShell>true</RequiresShell>
     <TargetVsixContainerName>SonarLint.VSIX-$(VsixVersion)-$(VersionSpecificSuffix).vsix</TargetVsixContainerName>
     
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
@@ -109,6 +110,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="14.0.23205" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="14.0.50702" />
     <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
@@ -119,8 +121,8 @@
     <!-- Workaround for NuGet bug https://github.com/NuGet/Home/issues/2365 
          EmbedInteropAssemblies isn't set for PackagReferences. -->
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
-  </ItemGroup>  
-  
+  </ItemGroup>
+
   <ItemGroup Label="Project references">
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
       <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>

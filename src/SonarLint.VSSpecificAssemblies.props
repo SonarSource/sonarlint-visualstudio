@@ -155,4 +155,36 @@
 
   </ItemGroup>
 
+  <!-- ******************************************************************************* -->
+  <!-- Microsoft.VisualStudio.Shell assembly -->
+  <!-- ******************************************************************************* -->
+  <Target Name="AddShellAssemblies" AfterTargets="CheckVsTargetVersionSetting" Condition="$(RequiresShell)=='true'">
+
+    <ItemGroup Label="Microsoft.VisualStudio.Shell - VS 2015" Condition="$(VsTargetVersion) == '2015'">
+      <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407">
+        <Aliases>shell</Aliases>
+      </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Label="Microsoft.VisualStudio.Shell - VS 2017/2019" Condition="$(VsTargetVersion) != '2015'">
+      <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="15.0.26201">
+        <Aliases>shell</Aliases>
+      </PackageReference>
+
+      <!-- ******************************************************************************* -->
+      <!-- Microsoft.VisualStudio.Shell ignored dependencies -->
+      <!-- 
+        Microsoft.VisualStudio.Shell.15.0 nuget package brings with it dependencies that clash with existing Shell 14 dependencies. 
+        Since we don't actually need to use them, we can tell the compiler to ignore them by wrapping them with an alias. 
+        This way, the code will continue to fetch Shell 14 assemblies, unless an alias is used.
+      -->
+      <!-- ******************************************************************************* -->
+      <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="15.0.26201">
+        <Aliases>shellframework</Aliases>
+      </PackageReference>
+
+    </ItemGroup>
+
+  </Target>
+
 </Project>

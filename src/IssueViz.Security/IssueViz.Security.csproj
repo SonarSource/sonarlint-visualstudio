@@ -8,6 +8,15 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
   </PropertyGroup>
 
+  <PropertyGroup Label="Specify which VS-specific refs are required">
+    <RequiresShell>true</RequiresShell>
+    <!-- Conditional compilation constant for VS2019-specific code.
+         We'd prefer to set this the shared SonarLint.VSSpecificAssemblies.props file, but
+         the IDE isn't picking up the setting if we do that. -->
+    <DefineConstants Condition="($(VisualStudioVersion)=='16.0' AND $(BuildingInsideVisualStudio)=='true') OR $(VSTargetVersion)=='2019'">$(DefineConstants);VS2019</DefineConstants>
+  </PropertyGroup>
+  <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
+
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     <ProjectGuid>{8D0D5AF0-D5B7-41ED-9EC6-9E10C66B37E0}</ProjectGuid>
@@ -36,6 +45,7 @@
   <ItemGroup Label="Package references">
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="14.0.23205" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407"/>
   </ItemGroup>
 
   <ItemGroup Label="Project references">
