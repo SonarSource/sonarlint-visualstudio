@@ -152,7 +152,17 @@
       <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.VCProjectEngine.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
+  </ItemGroup>
 
+  <!-- ******************************************************************************* -->
+  <!-- Microsoft.VisualStudio.Shell assembly -->
+  <!-- ******************************************************************************* -->
+  <ItemGroup Label="Shell versioned references" Condition="$(RequiresShell)=='true'">
+    <ReferencePath Include="$(ThirdPartyPath)\Microsoft.VisualStudio.Shell.dll">
+      <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.Shell.dll</HintPath>
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>shell</Aliases>
+    </ReferencePath>
   </ItemGroup>
 
 </Project>
