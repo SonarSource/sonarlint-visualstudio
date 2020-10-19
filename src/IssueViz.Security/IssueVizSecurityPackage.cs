@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-extern alias shell;
+extern alias versionSpecificShell;
 
 using System;
 using System.Diagnostics.CodeAnalysis;
