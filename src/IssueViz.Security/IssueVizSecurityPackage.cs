@@ -23,6 +23,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
@@ -31,11 +34,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
+    [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Style = VsDockStyle.Tabbed, Window = ToolWindowGuids.SolutionExplorer, Width = 325, Height = 400)]
     public sealed class IssueVizSecurityPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            await HotspotsToolWindowCommand.InitializeAsync(this);
+        }
+
+        protected override WindowPane InstantiateToolWindow(Type toolWindowType)
+        {
+            if (toolWindowType == typeof(HotspotsToolWindow))
+            {
+                return new HotspotsToolWindow();
+            }
+
+            return base.InstantiateToolWindow(toolWindowType);
         }
     }
 }

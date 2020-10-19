@@ -25,11 +25,11 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.IssueVisualization.Hotspots.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Hotspots.HotspotsControl;
-using SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Hotspots
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 {
     [TestClass]
     public class HotspotsToolWindowCommandTests : ToolWindowCommandTests<HotspotsToolWindow>

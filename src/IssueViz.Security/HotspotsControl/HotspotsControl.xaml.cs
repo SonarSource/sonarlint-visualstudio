@@ -18,12 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Hotspots.Commands
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
 {
-    internal static class Constants
+    internal sealed partial class HotspotsControl : UserControl
     {
-        public static readonly Guid CommandSetGuid = new Guid("97856422-20A2-4DB5-A468-1BAA9B6EEC38");
+        internal HotspotsViewModel ViewModel { get; }
+
+        public HotspotsControl(HotspotsViewModel viewModel)
+        {
+            ViewModel = viewModel;
+
+            InitializeComponent();
+        }
     }
 }
