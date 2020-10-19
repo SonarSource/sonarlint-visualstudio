@@ -166,7 +166,7 @@
     </PackageReference>
     <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
-      <Aliases>shell</Aliases>
+      <Aliases>global, shell</Aliases>
     </ReferencePath>
   </ItemGroup>
   <ItemGroup Label="Shell versioned references" Condition="$(RequiresShell)=='true' AND '$(VsTargetVersion)'!='2015'">
