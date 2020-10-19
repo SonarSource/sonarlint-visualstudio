@@ -72,7 +72,7 @@
     <StartProgram>$(DevEnvDir)\devenv.exe</StartProgram>
     <StartArguments>/rootsuffix Exp</StartArguments>
   </PropertyGroup>
-    
+
   <ItemGroup Label="Framework references">
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -416,8 +416,8 @@
        to update the baseline file, then check in the updated baseline with the rest of your changes.
   -->
   <PropertyGroup>
-    <!-- By default update the baseline when building in the IDE (simplifies development when working on new code) -->
-    <AsmRefUpdateBaseline Condition="$(AsmRefUpdateBaseline)=='' AND $(BuildingInsideVisualStudio)=='true'">true</AsmRefUpdateBaseline>
+    <!-- Automatically update the baseline when necessary if building in the IDE (simplifies development when working on new code) -->
+    <AsmRefUpdateBaselineIfChanged Condition="$(AsmRefUpdateBaseline)=='' AND $(BuildingInsideVisualStudio)=='true'">true</AsmRefUpdateBaselineIfChanged>
     
     <!-- Only check the VS2019 build -->
     <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' ">true</AsmRefDisableBaselining>
@@ -446,7 +446,7 @@
     <AsmRefIgnoreSourcePublicKeyToken>true</AsmRefIgnoreSourcePublicKeyToken>
   </PropertyGroup>
   <ItemGroup>  
-    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.10.0-rc">
+    <PackageReference Include="Devtility.CheckAsmRefs" Version="0.11.0-rc">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -461,7 +461,7 @@
     <Exec Command="fc $(AsmRefBaselineFilePath) $(AsmRefOutputFilePath)" IgnoreExitCode="true" />
   </Target>
 
-  <Target Name="UpdateBaselineWithStrongNames" AfterTargets="Build" Condition=" $(AsmRefUpdateBaseline) == 'true' AND $(SignAssembly) != 'true' ">
+  <Target Name="UpdateBaselineWithStrongNames" AfterTargets="Build" Condition="$(SignAssembly) != 'true' AND (($(AsmRefUpdateBaseline) == 'true') OR ($(AsmRefUpdateBaselineIfChanged) == 'true' AND $(_ReportsAreSame) != 'true')) ">
     <!-- When the dev runs a local build with /p:AsmRefUpdateBaseline=true, the AsmRef NuGet package will generate a new baseline file
          that will not contain PKTs for our assemblies.
          This target runs afterwards to update the strong-named baseline to include our PKTs. We do this so we can check against a strongly-named
