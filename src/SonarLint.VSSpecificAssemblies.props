@@ -157,9 +157,26 @@
   <!-- ******************************************************************************* -->
   <!-- Microsoft.VisualStudio.Shell assembly -->
   <!-- ******************************************************************************* -->
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresShell)=='true'">
-    <ReferencePath Include="$(ThirdPartyPath)\Microsoft.VisualStudio.Shell.dll">
-      <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.Shell.dll</HintPath>
+  <ItemGroup Label="Shell versioned references" Condition="$(RequiresShell)=='true' AND '$(VsTargetVersion)'=='2015'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0"
+                      Version="14.3.25407"
+                      GeneratePathProperty="true"
+                      ExcludeAssets="all"
+                      PrivateAssets="all">
+    </PackageReference>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>shell</Aliases>
+    </ReferencePath>
+  </ItemGroup>
+  <ItemGroup Label="Shell versioned references" Condition="$(RequiresShell)=='true' AND '$(VsTargetVersion)'!='2015'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0"
+                      Version="15.0.26201"
+                      GeneratePathProperty="true"
+                      ExcludeAssets="all"
+                      PrivateAssets="all">
+    </PackageReference>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.15.0\15.0.26201\lib\Microsoft.VisualStudio.Shell.15.0.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>shell</Aliases>
     </ReferencePath>
