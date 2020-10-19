@@ -152,7 +152,34 @@
       <HintPath>$(ThirdPartyPath)\Microsoft.VisualStudio.VCProjectEngine.dll</HintPath>
       <Private>$(CopyVSAssembliesToOutput)</Private>
     </Reference>
+  </ItemGroup>
 
+  <!-- ******************************************************************************* -->
+  <!-- Microsoft.VisualStudio.Shell assembly -->
+  <!-- ******************************************************************************* -->
+  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'=='2015'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0"
+                      Version="14.3.25407"
+                      GeneratePathProperty="true"
+                      ExcludeAssets="all"
+                      PrivateAssets="all">
+    </PackageReference>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>global, versionSpecificShell</Aliases>
+    </ReferencePath>
+  </ItemGroup>
+  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'!='2015'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0"
+                      Version="15.0.26201"
+                      GeneratePathProperty="true"
+                      ExcludeAssets="all"
+                      PrivateAssets="all">
+    </PackageReference>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.15.0\15.0.26201\lib\Microsoft.VisualStudio.Shell.15.0.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>versionSpecificShell</Aliases>
+    </ReferencePath>
   </ItemGroup>
 
 </Project>
