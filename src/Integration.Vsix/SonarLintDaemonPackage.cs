@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private ILogger logger;
         private StatusBarDownloadProgressHandler statusBarDownloadProgressHandler;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
-
+        private Microsoft.Build.Logging.ColorResetter colorResetter;
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
         /// </summary>
