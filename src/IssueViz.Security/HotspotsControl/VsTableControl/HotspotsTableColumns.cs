@@ -22,8 +22,8 @@ extern alias versionSpecificShellFramework;
 
 using System.Collections.Generic;
 using System.Linq;
-using ColumnState2 = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl.ColumnState2;
-using StandardTableColumnDefinitions = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl.StandardTableColumnDefinitions;
+
+using versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
 {

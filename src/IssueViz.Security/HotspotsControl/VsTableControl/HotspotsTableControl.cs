@@ -21,22 +21,28 @@
 extern alias versionSpecificShell;
 extern alias versionSpecificShellFramework;
 
+using System;
 using System.Windows.Controls;
-using WpfTableControlProvider = versionSpecificShell::Microsoft.Internal.VisualStudio.Shell.TableControl.IWpfTableControlProvider;
-using WpfTableControl = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl.IWpfTableControl;
-using TableManagerProvider = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableManager.ITableManagerProvider;
-using TableManager = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableManager.ITableManager;
+
+using versionSpecificShell::Microsoft.Internal.VisualStudio.Shell.TableControl;
+using versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl;
+using versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
 {
-    internal class HotspotsTableControl
+    internal interface IHotspotsTableControl : IDisposable
+    {
+        IWpfTableControl TableControl { get; }
+    }
+
+    internal class HotspotsTableControl : IHotspotsTableControl
     {
         private readonly HotspotsTableDataSource dataSource;
-        private readonly TableManager tableManager;
+        private readonly ITableManager tableManager;
 
-        public WpfTableControl TableControl { get; }
+        public IWpfTableControl TableControl { get; }
 
-        public HotspotsTableControl(TableManagerProvider tableManagerProvider, WpfTableControlProvider wpfTableControlProvider)
+        public HotspotsTableControl(ITableManagerProvider tableManagerProvider, IWpfTableControlProvider wpfTableControlProvider)
         {
             dataSource = new HotspotsTableDataSource();
 
