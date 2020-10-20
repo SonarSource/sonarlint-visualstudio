@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -30,23 +32,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public abstract class ToolWindowCommandTests<T> where T : ToolWindowPane
     {
-        private readonly Action<AsyncPackage, ILogger> executeCommand;
+        protected abstract Guid CommandSetId { get; }
+        protected abstract IEnumerable<int> CommandIds { get; }
+        protected abstract void ExecuteCommand(AsyncPackage package, ILogger logger);
+        protected abstract object CreateCommand(IMenuCommandService commandService);
 
         private Mock<AsyncPackage> package;
         private Mock<ILogger> logger;
-
-        protected ToolWindowCommandTests(Action<AsyncPackage, ILogger> executeCommand)
-        {
-            this.executeCommand = executeCommand;
-
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
 
         [TestInitialize]
         public void TestInitialize()
         {
             package = new Mock<AsyncPackage>();
             logger = new Mock<ILogger>();
+
+            ThreadHelper.SetCurrentThreadAsUIThread();
+        }
+
+        [TestMethod]
+        public void Ctor_CommandAddedToMenu()
+        {
+            var commandService = new Mock<IMenuCommandService>();
+
+            CreateCommand(commandService.Object);
+
+            foreach (var commandId in CommandIds)
+            {
+                commandService.Verify(x =>
+                        x.AddCommand(It.Is((MenuCommand c) =>
+                            c.CommandID.Guid == CommandSetId &&
+                            c.CommandID.ID == commandId)),
+                    Times.Once);
+            }
+
+            commandService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -130,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void VerifyExecutionDoesNotThrow()
         {
-            Action act = () => executeCommand(package.Object, logger.Object);
+            Action act = () => ExecuteCommand(package.Object, logger.Object);
             act.Should().NotThrow();
         }
     }
