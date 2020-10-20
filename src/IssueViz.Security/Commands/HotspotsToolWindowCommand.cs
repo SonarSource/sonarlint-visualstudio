@@ -25,10 +25,10 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.IssueVisualization.Hotspots.HotspotsControl;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Hotspots.Commands
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 {
     internal sealed class HotspotsToolWindowCommand
     {

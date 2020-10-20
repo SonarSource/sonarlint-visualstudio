@@ -53,13 +53,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Hotspots\HotspotsControl\HotspotsControl.xaml" />
-    <None Remove="Resources\CommandIcons.png" />
+    <None Remove="Commands\Resources\CommandIcons.png" />
     <None Remove="IssueVisualizationControl\IssueVisualizationControl.xaml" />
-    <Page Include="Hotspots\HotspotsControl\HotspotsControl.xaml">
-      <Generator>XamlIntelliSenseFileGenerator</Generator>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Page>
 
     <Page Include="IssueVisualizationControl\IssueVisualizationControl.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>

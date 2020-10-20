@@ -4,7 +4,7 @@
   <Extern href="stdidcmd.h"/>
   <Extern href="vsshlids.h"/>
 
-  <Commands package="guidIssueVizPackage">
+  <Commands package="guidIssueVizSecurityPackage">
 
     <Buttons>
 
@@ -19,14 +19,14 @@
     </Buttons>
 
     <Bitmaps>
-      <Bitmap guid="guidImages" href="..\..\Resources\sonarlint.png"/>
+      <Bitmap guid="guidImages" href=".\Resources\sonarlint.png"/>
     </Bitmaps>
 
   </Commands>
 
   <Symbols>
     <!-- This is the package guid. -->
-    <GuidSymbol name="guidIssueVizPackage" value="{4F3D7D24-648B-4F3B-ACB0-B83AFE239210}" />
+    <GuidSymbol name="guidIssueVizSecurityPackage" value="{D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC}" />
 
     <!-- This is the guid used to group the menu commands together -->
     <GuidSymbol name="guidHotspotsCmdSet" value="{97856422-20A2-4DB5-A468-1BAA9B6EEC38}">
