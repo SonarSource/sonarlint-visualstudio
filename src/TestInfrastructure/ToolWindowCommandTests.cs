@@ -32,29 +32,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public abstract class ToolWindowCommandTests<T> where T : ToolWindowPane
     {
-        private readonly Action<AsyncPackage, ILogger> executeCommand;
-        private readonly Func<IMenuCommandService, object> createCommand;
-        private readonly IDictionary<Guid, IEnumerable<int>> commandsInCommandSet;
+        protected abstract Guid CommandSetId { get; }
+        protected abstract IEnumerable<int> CommandIds { get; }
+        protected abstract void ExecuteCommand(AsyncPackage package, ILogger logger);
+        protected abstract object CreateCommand(IMenuCommandService commandService);
 
         private Mock<AsyncPackage> package;
         private Mock<ILogger> logger;
-
-        protected ToolWindowCommandTests(Action<AsyncPackage, ILogger> executeCommand,
-            Func<IMenuCommandService, object> createCommand,
-            IDictionary<Guid, IEnumerable<int>> commandsInCommandSet)
-        {
-            this.executeCommand = executeCommand;
-            this.createCommand = createCommand;
-            this.commandsInCommandSet = commandsInCommandSet;
-
-            ThreadHelper.SetCurrentThreadAsUIThread();
-        }
 
         [TestInitialize]
         public void TestInitialize()
         {
             package = new Mock<AsyncPackage>();
             logger = new Mock<ILogger>();
+
+            ThreadHelper.SetCurrentThreadAsUIThread();
         }
 
         [TestMethod]
@@ -62,21 +54,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var commandService = new Mock<IMenuCommandService>();
 
-            createCommand(commandService.Object);
+            CreateCommand(commandService.Object);
 
-            foreach (var commandInCommandSet in commandsInCommandSet)
+            foreach (var commandId in CommandIds)
             {
-                var commandSetId = commandInCommandSet.Key;
-                var commandIds = commandInCommandSet.Value;
-
-                foreach (var commandId in commandIds)
-                {
-                    commandService.Verify(x =>
-                            x.AddCommand(It.Is((MenuCommand c) =>
-                                c.CommandID.Guid == commandSetId &&
-                                c.CommandID.ID == commandId)),
-                        Times.Once);
-                }
+                commandService.Verify(x =>
+                        x.AddCommand(It.Is((MenuCommand c) =>
+                            c.CommandID.Guid == CommandSetId &&
+                            c.CommandID.ID == commandId)),
+                    Times.Once);
             }
 
             commandService.VerifyNoOtherCalls();
@@ -163,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private void VerifyExecutionDoesNotThrow()
         {
-            Action act = () => executeCommand(package.Object, logger.Object);
+            Action act = () => ExecuteCommand(package.Object, logger.Object);
             act.Should().NotThrow();
         }
     }

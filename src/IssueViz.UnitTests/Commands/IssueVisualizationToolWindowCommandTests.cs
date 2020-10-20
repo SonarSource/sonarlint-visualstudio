@@ -37,26 +37,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
     [TestClass]
     public class IssueVisualizationToolWindowCommandTests : ToolWindowCommandTests<IssueVisualizationToolWindow>
     {
-        public IssueVisualizationToolWindowCommandTests()
-            : base(ExecuteCommand, CreateCommand,
-                new Dictionary<Guid, IEnumerable<int>>
-                {
-                    {
-                        IssueVisualizationToolWindowCommand.CommandSet,
-                        new[]
-                        {
-                            IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
-                            IssueVisualizationToolWindowCommand.ErrorListCommandId
-                        }
-                    }
-                })
-        {
-        }
+        protected override Guid CommandSetId => IssueVisualizationToolWindowCommand.CommandSet;
 
-        private static object CreateCommand(IMenuCommandService commandService)=>
+        protected override IEnumerable<int> CommandIds => new[]
+        {
+            IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
+            IssueVisualizationToolWindowCommand.ErrorListCommandId
+        };
+
+        protected override object CreateCommand(IMenuCommandService commandService)=>
             new IssueVisualizationToolWindowCommand(Mock.Of<AsyncPackage>(), commandService, Mock.Of<IVsMonitorSelection>(), Mock.Of<ILogger>());
 
-        private static void ExecuteCommand(AsyncPackage package, ILogger logger)
+        protected override void ExecuteCommand(AsyncPackage package, ILogger logger)
         {
             var testSubject = new IssueVisualizationToolWindowCommand(package, Mock.Of<IMenuCommandService>(), Mock.Of<IVsMonitorSelection>(), logger);
 

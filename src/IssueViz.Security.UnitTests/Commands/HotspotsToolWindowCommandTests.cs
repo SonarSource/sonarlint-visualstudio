@@ -35,17 +35,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
     [TestClass]
     public class HotspotsToolWindowCommandTests : ToolWindowCommandTests<HotspotsToolWindow>
     {
-        public HotspotsToolWindowCommandTests()
-            : base(ExecuteCommand, CreateCommand,
-                new Dictionary<Guid, IEnumerable<int>>
-                    {{HotspotsToolWindowCommand.CommandSet, new[] {HotspotsToolWindowCommand.ViewToolWindowCommandId}}})
-        {
-        }
+        protected override Guid CommandSetId => HotspotsToolWindowCommand.CommandSet;
+        protected override IEnumerable<int> CommandIds => new[] {HotspotsToolWindowCommand.ViewToolWindowCommandId};
 
-        private static object CreateCommand(IMenuCommandService commandService) =>
+        protected override object CreateCommand(IMenuCommandService commandService) =>
             new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService, Mock.Of<ILogger>());
 
-        private static void ExecuteCommand(AsyncPackage package, ILogger logger)
+        protected override void ExecuteCommand(AsyncPackage package, ILogger logger)
         {
             var testSubject = new HotspotsToolWindowCommand(package, Mock.Of<IMenuCommandService>(), logger);
             testSubject.Execute(null, EventArgs.Empty);
