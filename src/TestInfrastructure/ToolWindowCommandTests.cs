@@ -39,8 +39,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<AsyncPackage> package;
         private Mock<ILogger> logger;
 
-        protected ToolWindowCommandTests(Action<AsyncPackage, ILogger> executeCommand, 
-            Func<IMenuCommandService, object> createCommand, 
+        protected ToolWindowCommandTests(Action<AsyncPackage, ILogger> executeCommand,
+            Func<IMenuCommandService, object> createCommand,
             IDictionary<Guid, IEnumerable<int>> commandsInCommandSet)
         {
             this.executeCommand = executeCommand;
