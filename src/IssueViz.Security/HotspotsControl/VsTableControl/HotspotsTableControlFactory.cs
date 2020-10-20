@@ -19,27 +19,38 @@
  */
 
 extern alias versionSpecificShellFramework;
+extern alias versionSpecificShell;
 
-using System;
-using SonarLint.VisualStudio.Core;
+using System.ComponentModel.Composition;
 
+using versionSpecificShell::Microsoft.Internal.VisualStudio.Shell.TableControl;
 using versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
 {
-    internal class HotspotsTableDataSource : ITableDataSource, IDisposable
+    internal interface IHotspotsTableControlFactory
     {
-        public string SourceTypeIdentifier { get; } = HotspotsTableConstants.TableSourceTypeIdentifier;
-        public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
-        public string DisplayName { get; } = HotspotsTableConstants.TableDisplayName;
+        IHotspotsTableControl Get();
+    }
 
-        public IDisposable Subscribe(ITableDataSink sink)
+    [Export(typeof(IHotspotsTableControlFactory))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class HotspotsTableControlFactory : IHotspotsTableControlFactory
+    {
+        private readonly ITableManagerProvider tableManagerProvider;
+        private readonly IWpfTableControlProvider wpfTableControlProvider;
+
+        [ImportingConstructor]
+        public HotspotsTableControlFactory(ITableManagerProvider tableManagerProvider, IWpfTableControlProvider wpfTableControlProvider)
         {
-            return new ExecuteOnDispose(() => { });
+            this.tableManagerProvider = tableManagerProvider;
+            this.wpfTableControlProvider = wpfTableControlProvider;
         }
 
-        public void Dispose()
+        public IHotspotsTableControl Get()
         {
+            var hotspotsTableControl = new HotspotsTableControl(tableManagerProvider, wpfTableControlProvider);
+            return hotspotsTableControl;
         }
     }
 }

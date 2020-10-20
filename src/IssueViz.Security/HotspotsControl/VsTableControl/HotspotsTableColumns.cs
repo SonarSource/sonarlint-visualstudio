@@ -22,19 +22,19 @@ extern alias versionSpecificShellFramework;
 
 using System.Collections.Generic;
 using System.Linq;
-using ColumnState2 = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl.ColumnState2;
-using StandardTableColumnDefinitions = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl.StandardTableColumnDefinitions;
+
+using versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableControl;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
 {
     internal static class HotspotsTableColumns
     {
-        public static IReadOnlyList<ColumnState2> InitialStates { get; } = new[]
+        public static IReadOnlyList<ColumnState> InitialStates { get; } = new[]
         {
-            new ColumnState2(StandardTableColumnDefinitions.DocumentName, true, 200),
-            new ColumnState2(StandardTableColumnDefinitions.ProjectName, true, 200),
-            new ColumnState2(StandardTableColumnDefinitions.Line, true, 200),
-            new ColumnState2(StandardTableColumnDefinitions.Column, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.DocumentName, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.ProjectName, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Line, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Column, true, 200),
         };
 
         public static string[] Names { get; } = InitialStates.Select(x => x.Name).ToArray();

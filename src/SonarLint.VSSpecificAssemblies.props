@@ -157,7 +157,7 @@
   <!-- ******************************************************************************* -->
   <!-- Microsoft.VisualStudio.Shell assembly -->
   <!-- ******************************************************************************* -->
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'=='2015'">
+  <ItemGroup Label="Shell versioned references - 2015" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'=='2015'">
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0"
                       Version="14.3.25407"
                       GeneratePathProperty="true"
@@ -168,8 +168,18 @@
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>global, versionSpecificShell</Aliases>
     </ReferencePath>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.14.0"
+                      Version="14.3.25407"
+                      GeneratePathProperty="true"
+                      ExcludeAssets="all"
+                      PrivateAssets="all">
+    </PackageReference>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.Immutable.14.0\14.3.25407\lib\net45\Microsoft.VisualStudio.Shell.Immutable.14.0.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>global, versionSpecificShellFramework</Aliases>
+    </ReferencePath>
   </ItemGroup>
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'!='2015'">
+  <ItemGroup Label="Shell versioned references - 2017/2019" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'!='2015'">
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0"
                       Version="15.0.26201"
                       GeneratePathProperty="true"

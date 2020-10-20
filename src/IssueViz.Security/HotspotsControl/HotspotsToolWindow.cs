@@ -18,34 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-extern alias versionSpecificShell;
-extern alias versionSpecificShellFramework;
-
 using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl;
-using WpfTableControlProvider = versionSpecificShell::Microsoft.Internal.VisualStudio.Shell.TableControl.IWpfTableControlProvider;
-using TableManagerProvider = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableManager.ITableManagerProvider;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
 {
     [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
     public class HotspotsToolWindow : ToolWindowPane
     {
-        private readonly HotspotsTableControl hotspotsTableControl;
+        private readonly IHotspotsTableControl hotspotsTableControl;
 
         public HotspotsToolWindow(IServiceProvider serviceProvider) : base(null)
         {
             Caption = Resources.HotspotsToolWindowCaption;
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var tableManagerProvider = componentModel.GetService<TableManagerProvider>();
-            var wpfTableControlProvider = componentModel.GetService<WpfTableControlProvider>();
-            hotspotsTableControl = new HotspotsTableControl(tableManagerProvider, wpfTableControlProvider);
+            var tableControlFactory = componentModel.GetService<IHotspotsTableControlFactory>();
+            hotspotsTableControl = tableControlFactory.Get();
 
-            Content = new HotspotsControl(hotspotsTableControl.TableControl.Control);
+            var hotspotsViewModel = new HotspotsViewModel(hotspotsTableControl.TableControl);
+            Content = new HotspotsControl(hotspotsViewModel);
         }
 
         protected override void Dispose(bool disposing)
@@ -53,6 +49,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
             if (disposing)
             {
                 hotspotsTableControl?.Dispose();
+
+                var vsWindowFrame = Frame as IVsWindowFrame;
+                vsWindowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
             }
 
             base.Dispose(disposing);
