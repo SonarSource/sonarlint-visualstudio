@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsC
     [TestClass]
     public class HotspotsToolWindowTests
     {
-        [TestMethod, Ignore]
+        [TestMethod]
         public void Dispose_FrameIsClosed()
         {
             var frameMock = new Mock<IVsWindowFrame>();

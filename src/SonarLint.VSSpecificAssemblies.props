@@ -175,10 +175,10 @@
       <Aliases>global, versionSpecificShellFramework</Aliases>
     </ReferencePath>
     <PackageReference Include="Microsoft.VisualStudio.Threading"
-                      Version="14.0.50702"
+                      Version="14.1.111"
                       ExcludeAssets="all"
                       PrivateAssets="all"/>
-    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Threading\14.0.50702\lib\net45\Microsoft.VisualStudio.Threading.dll">
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Threading\14.1.111\lib\net45\Microsoft.VisualStudio.Threading.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>global, versionSpecificThreading</Aliases>
     </ReferencePath>
