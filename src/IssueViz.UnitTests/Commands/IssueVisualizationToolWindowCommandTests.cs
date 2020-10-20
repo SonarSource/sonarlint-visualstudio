@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio;
@@ -26,9 +27,9 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
-using SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers;
 using IVsMonitorSelection = Microsoft.VisualStudio.Shell.Interop.IVsMonitorSelection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
@@ -36,10 +37,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
     [TestClass]
     public class IssueVisualizationToolWindowCommandTests : ToolWindowCommandTests<IssueVisualizationToolWindow>
     {
-        public IssueVisualizationToolWindowCommandTests() 
-            : base(ExecuteCommand)
+        public IssueVisualizationToolWindowCommandTests()
+            : base(ExecuteCommand, CreateCommand,
+                new Dictionary<Guid, IEnumerable<int>>
+                {
+                    {
+                        IssueVisualizationToolWindowCommand.CommandSet,
+                        new[]
+                        {
+                            IssueVisualizationToolWindowCommand.ViewToolWindowCommandId,
+                            IssueVisualizationToolWindowCommand.ErrorListCommandId
+                        }
+                    }
+                })
         {
         }
+
+        private static object CreateCommand(IMenuCommandService commandService)=>
+            new IssueVisualizationToolWindowCommand(Mock.Of<AsyncPackage>(), commandService, Mock.Of<IVsMonitorSelection>(), Mock.Of<ILogger>());
 
         private static void ExecuteCommand(AsyncPackage package, ILogger logger)
         {
@@ -67,31 +82,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
 
             act = () => new IssueVisualizationToolWindowCommand(package, commandService, monitorSelection, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        [TestMethod]
-        public void Ctor_CommandAddedToMenu()
-        {
-            var commandService = new Mock<IMenuCommandService>();
-
-            new IssueVisualizationToolWindowCommand(Mock.Of<AsyncPackage>(),
-                commandService.Object,
-                Mock.Of<IVsMonitorSelection>(),
-                Mock.Of<ILogger>());
-
-            commandService.Verify(x =>
-                    x.AddCommand(It.Is((MenuCommand c) =>
-                        c.CommandID.Guid == IssueVisualizationToolWindowCommand.CommandSet &&
-                        c.CommandID.ID == IssueVisualizationToolWindowCommand.ViewToolWindowCommandId)),
-                Times.Once);
-
-            commandService.Verify(x =>
-                    x.AddCommand(It.Is((OleMenuCommand c) =>
-                        c.CommandID.Guid == IssueVisualizationToolWindowCommand.CommandSet &&
-                        c.CommandID.ID == IssueVisualizationToolWindowCommand.ErrorListCommandId)),
-                Times.Once);
-
-            commandService.VerifyNoOtherCalls();
         }
 
         [TestMethod]

@@ -19,6 +19,8 @@
  */
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,13 +33,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public abstract class ToolWindowCommandTests<T> where T : ToolWindowPane
     {
         private readonly Action<AsyncPackage, ILogger> executeCommand;
+        private readonly Func<IMenuCommandService, object> createCommand;
+        private readonly IDictionary<Guid, IEnumerable<int>> commandsInCommandSet;
 
         private Mock<AsyncPackage> package;
         private Mock<ILogger> logger;
 
-        protected ToolWindowCommandTests(Action<AsyncPackage, ILogger> executeCommand)
+        protected ToolWindowCommandTests(Action<AsyncPackage, ILogger> executeCommand, 
+            Func<IMenuCommandService, object> createCommand, 
+            IDictionary<Guid, IEnumerable<int>> commandsInCommandSet)
         {
             this.executeCommand = executeCommand;
+            this.createCommand = createCommand;
+            this.commandsInCommandSet = commandsInCommandSet;
 
             ThreadHelper.SetCurrentThreadAsUIThread();
         }
@@ -47,6 +55,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             package = new Mock<AsyncPackage>();
             logger = new Mock<ILogger>();
+        }
+
+        [TestMethod]
+        public void Ctor_CommandAddedToMenu()
+        {
+            var commandService = new Mock<IMenuCommandService>();
+
+            createCommand(commandService.Object);
+
+            foreach (var commandInCommandSet in commandsInCommandSet)
+            {
+                var commandSetId = commandInCommandSet.Key;
+                var commandIds = commandInCommandSet.Value;
+
+                foreach (var commandId in commandIds)
+                {
+                    commandService.Verify(x =>
+                            x.AddCommand(It.Is((MenuCommand c) =>
+                                c.CommandID.Guid == commandSetId &&
+                                c.CommandID.ID == commandId)),
+                        Times.Once);
+                }
+            }
+
+            commandService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
