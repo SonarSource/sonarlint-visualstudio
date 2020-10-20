@@ -18,31 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Runtime.InteropServices;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsControl
 {
-    [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
-    public class HotspotsToolWindow : ToolWindowPane
+    [TestClass]
+    public class HotspotsToolWindowTests
     {
-        public HotspotsToolWindow()
+        [TestMethod]
+        public void Dispose_FrameIsClosed()
         {
-            Caption = Resources.HotspotsToolWindowCaption;
+            var frameMock = new Mock<IVsWindowFrame>();
 
-            Content = new HotspotsControl(new HotspotsViewModel());
+            var testSubject = CreateTestSubject();
+            testSubject.Frame = frameMock.Object;
+
+            testSubject.Dispose();
+
+            frameMock.Verify(x => x.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave), Times.Once());
         }
 
-        protected override void Dispose(bool disposing)
+        private HotspotsToolWindow CreateTestSubject()
         {
-            if (disposing)
-            {
-                var vsWindowFrame = Frame as IVsWindowFrame;
-                vsWindowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
-            }
-
-            base.Dispose(disposing);
+            return new HotspotsToolWindow();
         }
     }
 }
