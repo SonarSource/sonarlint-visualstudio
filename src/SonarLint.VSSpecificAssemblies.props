@@ -160,45 +160,53 @@
   <ItemGroup Label="Shell versioned references - 2015" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'=='2015'">
     <PackageReference Include="Microsoft.VisualStudio.Shell.14.0"
                       Version="14.3.25407"
-                      GeneratePathProperty="true"
                       ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
+                      PrivateAssets="all"/>
     <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>global, versionSpecificShell</Aliases>
     </ReferencePath>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Immutable.14.0"
                       Version="14.3.25407"
-                      GeneratePathProperty="true"
                       ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
+                      PrivateAssets="all"/>
     <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.Immutable.14.0\14.3.25407\lib\net45\Microsoft.VisualStudio.Shell.Immutable.14.0.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>global, versionSpecificShellFramework</Aliases>
+    </ReferencePath>
+    <PackageReference Include="Microsoft.VisualStudio.Threading"
+                      Version="14.0.50702"
+                      ExcludeAssets="all"
+                      PrivateAssets="all"/>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Threading\14.0.50702\lib\net45\Microsoft.VisualStudio.Threading.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>global, versionSpecificThreading</Aliases>
     </ReferencePath>
   </ItemGroup>
   <ItemGroup Label="Shell versioned references - 2017/2019" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'!='2015'">
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0"
                       Version="15.0.26201"
-                      GeneratePathProperty="true"
                       ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
+                      PrivateAssets="all"/>
     <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.15.0\15.0.26201\lib\Microsoft.VisualStudio.Shell.15.0.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>versionSpecificShell</Aliases>
     </ReferencePath>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework"
                       Version="15.0.26201"
-                      GeneratePathProperty="true"
                       ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
+                      PrivateAssets="all"/>
     <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.Framework\15.0.26201\lib\net45\Microsoft.VisualStudio.Shell.Framework.dll">
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>versionSpecificShellFramework</Aliases>
+    </ReferencePath>
+    <PackageReference Include="Microsoft.VisualStudio.Threading" 
+                      Version="15.0.240"                      
+                      ExcludeAssets="all"
+                      PrivateAssets="all"/>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Threading\15.0.240\lib\net45\Microsoft.VisualStudio.Threading.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>versionSpecificThreading</Aliases>
     </ReferencePath>
   </ItemGroup>
 
