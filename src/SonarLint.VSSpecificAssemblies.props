@@ -180,6 +180,16 @@
       <Private>$(CopyVSAssembliesToOutput)</Private>
       <Aliases>versionSpecificShell</Aliases>
     </ReferencePath>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework"
+                      Version="15.0.26201"
+                      GeneratePathProperty="true"
+                      ExcludeAssets="all"
+                      PrivateAssets="all">
+    </PackageReference>
+    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.Framework\15.0.26201\lib\net45\Microsoft.VisualStudio.Shell.Framework.dll">
+      <Private>$(CopyVSAssembliesToOutput)</Private>
+      <Aliases>versionSpecificShellFramework</Aliases>
+    </ReferencePath>
   </ItemGroup>
 
 </Project>

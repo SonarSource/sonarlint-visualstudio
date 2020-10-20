@@ -18,19 +18,44 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+extern alias versionSpecificShell;
+extern alias versionSpecificShellFramework;
+
+using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl;
+using WpfTableControlProvider = versionSpecificShell::Microsoft.Internal.VisualStudio.Shell.TableControl.IWpfTableControlProvider;
+using TableManagerProvider = versionSpecificShellFramework::Microsoft.VisualStudio.Shell.TableManager.ITableManagerProvider;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
 {
     [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
     public class HotspotsToolWindow : ToolWindowPane
     {
-        public HotspotsToolWindow()
+        private readonly HotspotsTableControl hotspotsTableControl;
+
+        public HotspotsToolWindow(IServiceProvider serviceProvider) : base(null)
         {
             Caption = Resources.HotspotsToolWindowCaption;
 
-            Content = new HotspotsControl(new HotspotsViewModel());
+            var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var tableManagerProvider = componentModel.GetService<TableManagerProvider>();
+            var wpfTableControlProvider = componentModel.GetService<WpfTableControlProvider>();
+            hotspotsTableControl = new HotspotsTableControl(tableManagerProvider, wpfTableControlProvider);
+
+            Content = new HotspotsControl(hotspotsTableControl.TableControl.Control);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                hotspotsTableControl?.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
     }
 }

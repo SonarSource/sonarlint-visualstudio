@@ -18,18 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows;
-using System.Windows.Controls;
-
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
 {
-    internal sealed partial class HotspotsControl : UserControl
+    internal static class HotspotsTableConstants
     {
-        public HotspotsControl(UIElement tableControl)
-        {
-            InitializeComponent();
-
-            hotspotsList.Child = tableControl;
-        }
+        public static readonly string TableDisplayName = Resources.HotspotsToolWindowCaption;
+        public const string TableManagerIdentifier = nameof(TableManagerIdentifier);
+        public const string TableIdentifier = nameof(TableIdentifier);
+        public const string TableSourceTypeIdentifier = nameof(TableSourceTypeIdentifier);
     }
 }

@@ -1,8 +1,8 @@
 ﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.HotspotsControl"
+             x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
-             DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}" x:ClassModifier="internal">
+             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0">
     <Grid UseLayoutRounding="True" 
           Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}">
         <Border x:Name="hotspotsList" />
