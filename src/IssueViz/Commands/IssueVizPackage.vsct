@@ -4,8 +4,6 @@
   <Extern href="stdidcmd.h"/>
   <Extern href="vsshlids.h"/>
 
-  <Include href="..\Hotspots\Commands\HotspotsCommands.vsct"/>
-
   <Commands package="guidIssueVizPackage">
 
     <Groups>
@@ -63,7 +61,7 @@
     </Buttons>
 
     <Bitmaps>
-      <Bitmap guid="guidImages" href="..\Resources\sonarlint.png"/>
+      <Bitmap guid="guidImages" href=".\Resources\sonarlint.png"/>
     </Bitmaps>
 
   </Commands>

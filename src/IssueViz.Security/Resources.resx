@@ -117,28 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERR_FailedToGetFileImageMoniker" xml:space="preserve">
-    <value>Failed to get image moniker for file '{0}': {1}</value>
+  <data name="ERR_HotspotsToolWindow_Exception" xml:space="preserve">
+    <value>Error displaying Hotspots Tool Window: {0}</value>
   </data>
-  <data name="ERR_HandlingBufferChange" xml:space="preserve">
-    <value>Error handling buffer change: {0} </value>
+  <data name="ERR_HotspotsToolWindow_NoFrame" xml:space="preserve">
+    <value>Error displaying Hotspots Tool Window: cannot create window frame</value>
   </data>
-  <data name="ERR_NavigationException" xml:space="preserve">
-    <value>Error navigating to analysis issue location: {0}</value>
-  </data>
-  <data name="ERR_OpenDocumentException" xml:space="preserve">
-    <value>Error opening file '{0}': {1}</value>
-  </data>
-  <data name="ERR_VisualizationToolWindow_Exception" xml:space="preserve">
-    <value>Error displaying Visualization Tool Window: {0}</value>
-  </data>
-  <data name="ERR_QueryStatusVisualizationToolWindowCommand" xml:space="preserve">
-    <value>Error querying status of Visualization Tool Window command: {0}</value>
-  </data>
-  <data name="ERR_VisualizationToolWindow_NoFrame" xml:space="preserve">
-    <value>Error displaying Visualization Tool Window: cannot create window frame</value>
-  </data>
-  <data name="IssueVisualizationToolWindowCaption" xml:space="preserve">
-    <value>SonarLint Issue Visualization</value>
+  <data name="HotspotsToolWindowCaption" xml:space="preserve">
+    <value>SonarLint Hotspots</value>
   </data>
 </root>
