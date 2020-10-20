@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
@@ -34,15 +35,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
     [TestClass]
     public class HotspotsToolWindowCommandTests : ToolWindowCommandTests<HotspotsToolWindow>
     {
-        public HotspotsToolWindowCommandTests() 
-            : base(ExecuteCommand)
-        {
-        }
+        protected override Guid CommandSetId => HotspotsToolWindowCommand.CommandSet;
+        protected override IEnumerable<int> CommandIds => new[] {HotspotsToolWindowCommand.ViewToolWindowCommandId};
 
-        private static void ExecuteCommand(AsyncPackage package, ILogger logger)
+        protected override object CreateCommand(IMenuCommandService commandService) =>
+            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService, Mock.Of<ILogger>());
+
+        protected override void ExecuteCommand(AsyncPackage package, ILogger logger)
         {
             var testSubject = new HotspotsToolWindowCommand(package, Mock.Of<IMenuCommandService>(), logger);
-            
             testSubject.Execute(null, EventArgs.Empty);
         }
 
@@ -61,22 +62,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 
             act = () => new HotspotsToolWindowCommand(package, commandService, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
-        }
-
-        [TestMethod]
-        public void Ctor_CommandAddedToMenu()
-        {
-            var commandService = new Mock<IMenuCommandService>();
-
-            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService.Object, Mock.Of<ILogger>());
-
-            commandService.Verify(x =>
-                    x.AddCommand(It.Is((MenuCommand c) =>
-                        c.CommandID.Guid == HotspotsToolWindowCommand.CommandSet &&
-                        c.CommandID.ID == HotspotsToolWindowCommand.ViewToolWindowCommandId)),
-                Times.Once);
-
-            commandService.VerifyNoOtherCalls();
         }
     }
 }
