@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -49,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             IComponentModel componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            var logger = componentModel.GetExtensions<ILogger>().First();
+            var logger = componentModel.GetService<ILogger>();
 
             IListenerFactory listenerFactory = new ListenerFactory(logger);
             listener = listenerFactory.Create(StartPort, EndPort);
