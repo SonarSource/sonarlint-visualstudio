@@ -39,8 +39,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
     [ProvideAutoLoad(VSConstants.UICONTEXT.ShellInitialized_string, PackageAutoLoadFlags.BackgroundLoad)]
     internal sealed class OpenInIDEPackage : AsyncPackage
     {
-        private const int StartPort = 1000;
-        private const int EndPort = 10005;
+        // Note: the range of ports used is common across SonarLint implementations in all IDEs and
+        // must match those checked by SonarQube/SonarCloud.
+        private const int StartPort = 64120;
+        private const int EndPort = 64123;
 
         private ILogger logger;
         private HttpListener listener;
