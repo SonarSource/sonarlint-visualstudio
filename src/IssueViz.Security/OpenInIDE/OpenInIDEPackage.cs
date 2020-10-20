@@ -44,13 +44,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         private const int StartPort = 64120;
         private const int EndPort = 64123;
 
-        private ILogger logger;
         private HttpListener listener;
 
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             IComponentModel componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            logger = componentModel.GetExtensions<ILogger>().First();
+            var logger = componentModel.GetExtensions<ILogger>().First();
 
             IListenerFactory listenerFactory = new ListenerFactory(logger);
             listener = listenerFactory.Create(StartPort, EndPort);
