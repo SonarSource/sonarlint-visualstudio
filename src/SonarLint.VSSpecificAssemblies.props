@@ -157,29 +157,29 @@
   <!-- ******************************************************************************* -->
   <!-- Microsoft.VisualStudio.Shell assembly -->
   <!-- ******************************************************************************* -->
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'=='2015'">
-    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0"
-                      Version="14.3.25407"
-                      GeneratePathProperty="true"
-                      ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
-    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll">
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-      <Aliases>global, versionSpecificShell</Aliases>
-    </ReferencePath>
+  <PropertyGroup>
+    <RequiresShell14 Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VersionSpecificSuffix)'=='2015'">true</RequiresShell14>
+    <RequiresShell15 Condition="$(RequiresVersionSpecificShell)=='true' AND ('$(VersionSpecificSuffix)'=='2017' OR '$(VersionSpecificSuffix)'=='2019')">true</RequiresShell15>
+  </PropertyGroup>
+
+  <ItemGroup Label="Shell 14 references" Condition="$(RequiresShell14)=='true'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407"/>
   </ItemGroup>
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'!='2015'">
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0"
-                      Version="15.0.26201"
-                      GeneratePathProperty="true"
-                      ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
-    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.15.0\15.0.26201\lib\Microsoft.VisualStudio.Shell.15.0.dll">
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-      <Aliases>versionSpecificShell</Aliases>
-    </ReferencePath>
+  <ItemGroup Label="Shell 15 references" Condition="$(RequiresShell15)=='true'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="15.0.26201"/>
   </ItemGroup>
+  <Target Name="SilenceShell14" Condition="$(RequiresShell15)=='true'" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.14.0'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Immutable.14.0'" />
+    </ItemGroup>
+  </Target>
+  <Target Name="SilenceShell15" Condition="'$(RequiresShell15)'!='true'" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.15.0'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Framework'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Microsoft.VisualStudio.Threading\15.0.240'))" />
+    </ItemGroup>
+  </Target>
 
 </Project>
