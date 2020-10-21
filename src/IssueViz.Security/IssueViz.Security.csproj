@@ -59,12 +59,23 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
+    
+    <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>OpenInIDEResources.resx</DependentUpon>
+    </Compile>
 
     <Compile Update="Resources.Designer.cs">
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
+
+    <EmbeddedResource Update="OpenInIDE\OpenInIDEResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>OpenInIDEResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
 
     <EmbeddedResource Update="Resources.resx">
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
