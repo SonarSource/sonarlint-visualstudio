@@ -13,6 +13,7 @@
     <ProjectGuid>{35AB5B51-BC2A-44A6-BE46-EF41CDF1398D}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.IssueVisualization.Security.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.IssueVisualization.Security.UnitTests</AssemblyName>
+    <LangVersion>latest</LangVersion>
 
   </PropertyGroup>
 
