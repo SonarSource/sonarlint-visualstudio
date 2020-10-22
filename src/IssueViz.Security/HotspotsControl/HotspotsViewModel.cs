@@ -18,9 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Windows;
+using Microsoft.VisualStudio.Shell.TableControl;
+
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
 {
     internal class HotspotsViewModel
     {
+        public FrameworkElement TableElement { get; }
+
+        public HotspotsViewModel(IWpfTableControl tableControl)
+        {
+            TableElement = tableControl.Control;
+        }
     }
 }

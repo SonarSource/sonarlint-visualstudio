@@ -18,17 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
+using System;
+using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.Core;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
 {
-    internal sealed partial class HotspotsControl : UserControl
+    internal class HotspotsTableDataSource : ITableDataSource, IDisposable
     {
-        public HotspotsControl(HotspotsViewModel viewModel)
-        {
-            InitializeComponent();
+        public string SourceTypeIdentifier { get; } = HotspotsTableConstants.TableSourceTypeIdentifier;
+        public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
+        public string DisplayName { get; } = HotspotsTableConstants.TableDisplayName;
 
-            hotspotsList.Child = viewModel.TableElement;
+        public IDisposable Subscribe(ITableDataSink sink)
+        {
+            return new ExecuteOnDispose(() => { });
+        }
+
+        public void Dispose()
+        {
         }
     }
 }

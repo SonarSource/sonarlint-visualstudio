@@ -18,20 +18,30 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
 {
     [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
     public class HotspotsToolWindow : ToolWindowPane
     {
-        public HotspotsToolWindow()
+        private readonly IHotspotsTableControl hotspotsTableControl;
+
+        public HotspotsToolWindow(IServiceProvider serviceProvider)
         {
             Caption = Resources.HotspotsToolWindowCaption;
 
-            Content = new HotspotsControl(new HotspotsViewModel());
+            var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var tableControlFactory = componentModel.GetService<IHotspotsTableControlFactory>();
+            hotspotsTableControl = tableControlFactory.Get();
+
+            var hotspotsViewModel = new HotspotsViewModel(hotspotsTableControl.TableControl);
+            Content = new HotspotsControl(hotspotsViewModel);
         }
 
         protected override void Dispose(bool disposing)

@@ -18,10 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsControl
 {
@@ -43,7 +47,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsC
 
         private HotspotsToolWindow CreateTestSubject()
         {
-            return new HotspotsToolWindow();
+            var hotspotsTableControl = new Mock<IHotspotsTableControl>();
+            hotspotsTableControl.Setup(x => x.TableControl).Returns(Mock.Of<IWpfTableControl>());
+
+            var hotspotsTableControlFactory = new Mock<IHotspotsTableControlFactory>();
+            hotspotsTableControlFactory.Setup(x => x.Get()).Returns(hotspotsTableControl.Object);
+
+            var componentModelMock = new Mock<IComponentModel>();
+            componentModelMock.Setup(x => x.GetService<IHotspotsTableControlFactory>())
+                .Returns(hotspotsTableControlFactory.Object);
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SComponentModel)))
+                .Returns(componentModelMock.Object);
+
+            return new HotspotsToolWindow(serviceProviderMock.Object);
         }
     }
 }
