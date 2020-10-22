@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var testSubject = new HotspotsToolWindowCommand(package.Object, Mock.Of<IMenuCommandService>(), logger.Object);
 
-            Action act = () => testSubject.Execute(null, EventArgs.Empty); ;
+            Action act = () => testSubject.Execute(null, EventArgs.Empty);
             act.Should().NotThrow();
         }
     }

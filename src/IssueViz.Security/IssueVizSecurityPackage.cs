@@ -22,12 +22,8 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.Internal.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableControl;
-using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
 using Task = System.Threading.Tasks.Task;
@@ -52,27 +48,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         {
             if (toolWindowType == typeof(HotspotsToolWindow))
             {
-                TestShellLoad();
-
                 return new HotspotsToolWindow();
             }
 
             return base.InstantiateToolWindow(toolWindowType);
-        }
-
-        private void TestShellLoad()
-        {
-            var componentModel = GetService(typeof(SComponentModel)) as IComponentModel;
-            var tableManagerProvider = componentModel.GetService<ITableManagerProvider>();
-            var wpfTableControlProvider = componentModel.GetService<IWpfTableControlProvider>();
-            var tableManager = tableManagerProvider.GetTableManager(nameof(IssueVizSecurityPackage));
-            var tableControl = wpfTableControlProvider.CreateControl(tableManager,
-                true,
-                new[]
-                {
-                    new ColumnState(StandardTableKeyNames.DocumentName, true, 200),
-                    new ColumnState(StandardTableKeyNames.Line, true, 200)
-                }, StandardTableKeyNames.DocumentName, StandardTableKeyNames.Line);
         }
     }
 }
