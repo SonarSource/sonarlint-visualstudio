@@ -12,7 +12,7 @@
         <Parent guid="guidSHLMainMenu" id="IDG_VS_WNDO_OTRWNDWS1" />
         <Icon guid="guidImages" id="sonarlint" />
         <Strings>
-          <ButtonText>SonarLint Hotspots</ButtonText>
+          <ButtonText>SonarLint Security Hotspots</ButtonText>
         </Strings>
       </Button>
 

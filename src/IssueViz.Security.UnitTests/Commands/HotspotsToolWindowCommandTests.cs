@@ -28,7 +28,7 @@ using Moq;
 using Moq.Protected;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using ThreadHelper = SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Helpers.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
