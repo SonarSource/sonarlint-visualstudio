@@ -18,32 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    [TestClass]
-    public class HotspotsToolWindowTests
+    internal static class HotspotsTableColumns
     {
-        [TestMethod]
-        public void Dispose_FrameIsClosed()
+        public static IReadOnlyList<ColumnState> InitialStates { get; } = new[]
         {
-            var frameMock = new Mock<IVsWindowFrame>();
+            new ColumnState(StandardTableColumnDefinitions.DocumentName, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.ProjectName, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Line, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Column, true, 200),
+        };
 
-            var testSubject = CreateTestSubject();
-            testSubject.Frame = frameMock.Object;
-
-            testSubject.Dispose();
-
-            frameMock.Verify(x => x.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave), Times.Once());
-        }
-
-        private HotspotsToolWindow CreateTestSubject()
-        {
-            return new HotspotsToolWindow();
-        }
+        public static string[] Names { get; } = InitialStates.Select(x => x.Name).ToArray();
     }
 }
