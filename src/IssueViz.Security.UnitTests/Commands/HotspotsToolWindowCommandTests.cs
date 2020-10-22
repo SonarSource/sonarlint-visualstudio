@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
@@ -30,22 +29,23 @@ using Moq.Protected;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using ThreadHelper = SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Helpers.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 {
     [TestClass]
-    public class HotspotsToolWindowCommandTests : ToolWindowCommandTests<HotspotsToolWindow>
+    public class HotspotsToolWindowCommandTests
     {
-        protected override Guid CommandSetId => HotspotsToolWindowCommand.CommandSet;
-        protected override IEnumerable<int> CommandIds => new[] {HotspotsToolWindowCommand.ViewToolWindowCommandId};
+        private Mock<AsyncPackage> package;
+        private Mock<ILogger> logger;
 
-        protected override object CreateCommand(IMenuCommandService commandService) =>
-            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService, Mock.Of<ILogger>());
-
-        protected override void ExecuteCommand(AsyncPackage package, ILogger logger)
+        [TestInitialize]
+        public void TestInitialize()
         {
-            var testSubject = new HotspotsToolWindowCommand(package, Mock.Of<IMenuCommandService>(), logger);
-            testSubject.Execute(null, EventArgs.Empty);
+            package = new Mock<AsyncPackage>();
+            logger = new Mock<ILogger>();
+
+            ThreadHelper.SetCurrentThreadAsUIThread();
         }
 
         [TestMethod]
@@ -64,49 +64,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
             act = () => new HotspotsToolWindowCommand(package, commandService, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
-    }
-
-    public abstract class ToolWindowCommandTests<T> where T : ToolWindowPane
-    {
-        protected abstract Guid CommandSetId { get; }
-        protected abstract IEnumerable<int> CommandIds { get; }
-        protected abstract void ExecuteCommand(AsyncPackage package, ILogger logger);
-        protected abstract object CreateCommand(IMenuCommandService commandService);
-
-        private Mock<AsyncPackage> package;
-        private Mock<ILogger> logger;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            package = new Mock<AsyncPackage>();
-            logger = new Mock<ILogger>();
-
-            SetCurrentThreadAsUIThread();
-        }
-
-        private static void SetCurrentThreadAsUIThread()
-        {
-            var methodInfo = typeof(Microsoft.VisualStudio.Shell.ThreadHelper).GetMethod("SetUIThread", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-            methodInfo.Should().NotBeNull("Could not find ThreadHelper.SetUIThread");
-            methodInfo.Invoke(null, null);
-        }
 
         [TestMethod]
         public void Ctor_CommandAddedToMenu()
         {
             var commandService = new Mock<IMenuCommandService>();
 
-            CreateCommand(commandService.Object);
+            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService.Object, Mock.Of<ILogger>());
 
-            foreach (var commandId in CommandIds)
-            {
-                commandService.Verify(x =>
-                        x.AddCommand(It.Is((MenuCommand c) =>
-                            c.CommandID.Guid == CommandSetId &&
-                            c.CommandID.ID == commandId)),
-                    Times.Once);
-            }
+            commandService.Verify(x =>
+                    x.AddCommand(It.Is((MenuCommand c) =>
+                        c.CommandID.Guid == HotspotsToolWindowCommand.CommandSet &&
+                        c.CommandID.ID == HotspotsToolWindowCommand.ViewToolWindowCommandId)),
+                Times.Once);
 
             commandService.VerifyNoOtherCalls();
         }
@@ -171,7 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 
         private void SetupWindowCreation(WindowPane windowPane, Exception exceptionToThrow = null)
         {
-            var setup = package.Protected().Setup<WindowPane>("CreateToolWindow", typeof(T), 0);
+            var setup = package.Protected().Setup<WindowPane>("CreateToolWindow", typeof(HotspotsToolWindow), 0);
 
             if (exceptionToThrow == null)
             {
@@ -192,7 +162,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 
         private void VerifyExecutionDoesNotThrow()
         {
-            Action act = () => ExecuteCommand(package.Object, logger.Object);
+            var testSubject = new HotspotsToolWindowCommand(package.Object, Mock.Of<IMenuCommandService>(), logger.Object);
+
+            Action act = () => testSubject.Execute(null, EventArgs.Empty); ;
             act.Should().NotThrow();
         }
     }
