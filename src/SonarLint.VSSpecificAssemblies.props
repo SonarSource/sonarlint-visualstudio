@@ -157,29 +157,45 @@
   <!-- ******************************************************************************* -->
   <!-- Microsoft.VisualStudio.Shell assembly -->
   <!-- ******************************************************************************* -->
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'=='2015'">
-    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0"
-                      Version="14.3.25407"
-                      GeneratePathProperty="true"
-                      ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
-    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.14.0\14.3.25407\lib\Microsoft.VisualStudio.Shell.14.0.dll">
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-      <Aliases>global, versionSpecificShell</Aliases>
-    </ReferencePath>
+  <PropertyGroup>
+    <RequiresShell14 Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VersionSpecificSuffix)'=='2015'">true</RequiresShell14>
+    <RequiresShell15 Condition="$(RequiresVersionSpecificShell)=='true' AND ('$(VersionSpecificSuffix)'=='2017' OR '$(VersionSpecificSuffix)'=='2019')">true</RequiresShell15>
+  </PropertyGroup>
+
+  <ItemGroup Label="Shell 14 references" Condition="$(RequiresShell14)=='true'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.14.0" Version="14.3.25407"/>
   </ItemGroup>
-  <ItemGroup Label="Shell versioned references" Condition="$(RequiresVersionSpecificShell)=='true' AND '$(VsTargetVersion)'!='2015'">
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0"
-                      Version="15.0.26201"
-                      GeneratePathProperty="true"
-                      ExcludeAssets="all"
-                      PrivateAssets="all">
-    </PackageReference>
-    <ReferencePath Include="$(NuGetPackageRoot)\Microsoft.VisualStudio.Shell.15.0\15.0.26201\lib\Microsoft.VisualStudio.Shell.15.0.dll">
-      <Private>$(CopyVSAssembliesToOutput)</Private>
-      <Aliases>versionSpecificShell</Aliases>
-    </ReferencePath>
+  <ItemGroup Label="Shell 15 references" Condition="$(RequiresShell15)=='true'">
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="15.0.26201"/>
   </ItemGroup>
+
+  <!-- ******************************************************************************* -->
+  <!-- Clean-up Microsoft.VisualStudio.Shell transitive assemblies -->
+  <!-- ******************************************************************************* -->
+  <!-- Projects won't build if they reference both Shell 14 and Shell 15. Each project will only directly reference one Shell version. 
+       However, it could transitively reference the other Shell assembly e.g. X depends on Shell14 and Y, and Y depends on Shell15. 
+       In this case, we need to remove the transitive references to Shell15 when building X. -->
+  <!-- ******************************************************************************* -->
+
+  <Target Name="RemoveUnneededShell14" Condition="$(RequiresShell15)=='true'" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <!-- Projects that need shell 15, can still get shell 14 via transitive references. So if we need shell 15, we need to make sure that we remove dependencies of shell 14. -->
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.14.0'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Immutable.14.0'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="RemoveUnneededShell15" Condition="'$(RequiresShell15)'!='true'" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences">
+    <!-- Nearly all the projects in the code reference a shell version that isn't shell 15, yet they can still get shell 15 via transitive references. 
+         This can cause conflicts, so we need to make sure that we remove dependencies of shell 15 when we don't need it. -->
+    <ItemGroup>
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.15.0'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Framework'" />
+
+      <!-- 'Microsoft.VisualStudio.Threading.dll` is "left behind" when we remove shell 15 references and causes shell 14 packages to be built with `Microsoft.VisualStudio.Threading` version 15. 
+           So we need to remove it, but it has the same file name in both shell 14 and shell 15 versions ('Microsoft.VisualStudio.Threading.dll`). Hence we're using String.Contains on the full file path, to know if it's coming from a shell 15 package. -->
+      <ReferencePath Remove="@(ReferencePath)" Condition="$([System.String]::Copy(%(FullPath)).Contains('Microsoft.VisualStudio.Threading\15.0.240'))" />
+    </ItemGroup>
+  </Target>
 
 </Project>

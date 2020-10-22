@@ -19,32 +19,33 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Design;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using Moq.Protected;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using ThreadHelper = SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Helpers.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 {
     [TestClass]
-    public class HotspotsToolWindowCommandTests : ToolWindowCommandTests<HotspotsToolWindow>
+    public class HotspotsToolWindowCommandTests
     {
-        protected override Guid CommandSetId => HotspotsToolWindowCommand.CommandSet;
-        protected override IEnumerable<int> CommandIds => new[] {HotspotsToolWindowCommand.ViewToolWindowCommandId};
+        private Mock<AsyncPackage> package;
+        private Mock<ILogger> logger;
 
-        protected override object CreateCommand(IMenuCommandService commandService) =>
-            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService, Mock.Of<ILogger>());
-
-        protected override void ExecuteCommand(AsyncPackage package, ILogger logger)
+        [TestInitialize]
+        public void TestInitialize()
         {
-            var testSubject = new HotspotsToolWindowCommand(package, Mock.Of<IMenuCommandService>(), logger);
-            testSubject.Execute(null, EventArgs.Empty);
+            package = new Mock<AsyncPackage>();
+            logger = new Mock<ILogger>();
+
+            ThreadHelper.SetCurrentThreadAsUIThread();
         }
 
         [TestMethod]
@@ -62,6 +63,109 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 
             act = () => new HotspotsToolWindowCommand(package, commandService, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        public void Ctor_CommandAddedToMenu()
+        {
+            var commandService = new Mock<IMenuCommandService>();
+
+            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService.Object, Mock.Of<ILogger>());
+
+            commandService.Verify(x =>
+                    x.AddCommand(It.Is((MenuCommand c) =>
+                        c.CommandID.Guid == HotspotsToolWindowCommand.CommandSet &&
+                        c.CommandID.ID == HotspotsToolWindowCommand.ViewToolWindowCommandId)),
+                Times.Once);
+
+            commandService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Execute_WindowNotCreated_NoException()
+        {
+            SetupWindowCreation(null);
+
+            VerifyExecutionDoesNotThrow();
+
+            VerifyMessageLogged("cannot create window frame");
+        }
+
+        [TestMethod]
+        public void Execute_WindowCreatedWithoutFrame_NoException()
+        {
+            SetupWindowCreation(new ToolWindowPane());
+
+            VerifyExecutionDoesNotThrow();
+
+            VerifyMessageLogged("cannot create window frame");
+        }
+
+        [TestMethod]
+        public void Execute_NonCriticalExceptionInCreatingWindow_IsSuppressed()
+        {
+            SetupWindowCreation(new ToolWindowPane { Frame = Mock.Of<IVsWindowFrame>() }, new NotImplementedException("this is a test"));
+
+            VerifyExecutionDoesNotThrow();
+
+            VerifyMessageLogged("this is a test");
+        }
+
+        [TestMethod]
+        public void Execute_WindowCreatedWithIVsWindowFrame_WindowIsShown()
+        {
+            var frame = new Mock<IVsWindowFrame>();
+            SetupWindowCreation(new ToolWindowPane { Frame = frame.Object });
+
+            VerifyExecutionDoesNotThrow();
+
+            frame.Verify(x => x.Show(), Times.Once);
+
+            logger.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Execute_WindowCreatedWithIVsWindowFrame_ExceptionInShowingWindow_NoException()
+        {
+            var frame = new Mock<IVsWindowFrame>();
+            frame.Setup(x => x.Show()).Throws(new NotImplementedException("this is a test"));
+
+            SetupWindowCreation(new ToolWindowPane { Frame = frame.Object });
+
+            VerifyExecutionDoesNotThrow();
+
+            frame.Verify(x => x.Show(), Times.Once);
+
+            VerifyMessageLogged("this is a test");
+        }
+
+        private void SetupWindowCreation(WindowPane windowPane, Exception exceptionToThrow = null)
+        {
+            var setup = package.Protected().Setup<WindowPane>("CreateToolWindow", typeof(HotspotsToolWindow), 0);
+
+            if (exceptionToThrow == null)
+            {
+                setup.Returns(windowPane);
+            }
+            else
+            {
+                setup.Throws(exceptionToThrow);
+            }
+        }
+
+        private void VerifyMessageLogged(string expectedMessage)
+        {
+            logger.Verify(x =>
+                    x.WriteLine(It.Is((string message) => message.Contains(expectedMessage))),
+                Times.Once);
+        }
+
+        private void VerifyExecutionDoesNotThrow()
+        {
+            var testSubject = new HotspotsToolWindowCommand(package.Object, Mock.Of<IMenuCommandService>(), logger.Object);
+
+            Action act = () => testSubject.Execute(null, EventArgs.Empty);
+            act.Should().NotThrow();
         }
     }
 }
