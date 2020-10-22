@@ -31,8 +31,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
     [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
     public class HotspotsToolWindow : ToolWindowPane
     {
-        private readonly HotspotsControl hotspotsControl;
-
         public HotspotsToolWindow(IServiceProvider serviceProvider)
         {
             Caption = Resources.HotspotsToolWindowCaption;
@@ -41,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
             var tableManagerProvider = componentModel.GetService<ITableManagerProvider>();
             var wpfTableControlProvider = componentModel.GetService<IWpfTableControlProvider>();
 
-            hotspotsControl = new HotspotsControl(tableManagerProvider, wpfTableControlProvider);
+            var hotspotsControl = new HotspotsControl(tableManagerProvider, wpfTableControlProvider);
             Content = hotspotsControl;
         }
 
