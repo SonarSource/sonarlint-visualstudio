@@ -32,13 +32,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
     [TagType(typeof(IIssueLocationTag))]
     internal class LocationTaggerProvider : ITaggerProvider
     {
-        private readonly IIssueLocationStore locationStore;
+        private readonly IIssueLocationStoreAggregator locationStore;
         private readonly IIssueSpanCalculator spanCalculator;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public LocationTaggerProvider(IIssueLocationStore locationStore, 
+        public LocationTaggerProvider(IIssueLocationStoreAggregator locationStore, 
             IIssueSpanCalculator spanCalculator, 
             ITaggableBufferIndicator taggableBufferIndicator, 
             ILogger logger)
