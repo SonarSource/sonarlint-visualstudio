@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
     [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
     public class HotspotsToolWindow : ToolWindowPane

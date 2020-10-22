@@ -27,9 +27,9 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
     [TestClass]
     public class HotspotsToolWindowTests

@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.TableDataSource
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
     internal static class HotspotsTableConstants
     {

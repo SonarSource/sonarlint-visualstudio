@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.TableDataSource
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
     internal static class HotspotsTableColumns
     {

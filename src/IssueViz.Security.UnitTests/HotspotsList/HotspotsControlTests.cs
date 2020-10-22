@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Windows;
 using FluentAssertions;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
@@ -26,9 +25,9 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.TableDataSource;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
     [TestClass]
     public class HotspotsControlTests
@@ -59,7 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsC
             wpfTableControl.Verify(x => x.Dispose(), Times.Once);
         }
 
-        private static Security.HotspotsControl.HotspotsControl CreateTestSubject(Mock<IWpfTableControl> wpfTableControl)
+        private static Security.HotspotsList.HotspotsControl CreateTestSubject(Mock<IWpfTableControl> wpfTableControl)
         {
             var tableManager = Mock.Of<ITableManager>();
 
@@ -78,7 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsC
                     HotspotsTableColumns.Names))
                 .Returns(wpfTableControl.Object);
 
-            var testSubject = new Security.HotspotsControl.HotspotsControl(tableManagerProviderMock.Object, wpfTableControlProviderMock.Object);
+            var testSubject = new Security.HotspotsList.HotspotsControl(tableManagerProviderMock.Object, wpfTableControlProviderMock.Object);
 
             return testSubject;
         }

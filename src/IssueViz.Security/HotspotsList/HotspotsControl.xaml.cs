@@ -23,9 +23,9 @@ using System.Windows.Controls;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.TableDataSource;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
     internal sealed partial class HotspotsControl : UserControl, IDisposable
     {

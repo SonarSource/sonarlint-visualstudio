@@ -24,7 +24,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
