@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
     [Guid("D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
-    [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Style = VsDockStyle.Float, Width = 500, Height = 250)]
+    [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Style = VsDockStyle.Float, Width = 700, Height = 250)]
     public sealed class IssueVizSecurityPackage : AsyncPackage
     {
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)

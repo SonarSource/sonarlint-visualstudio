@@ -18,17 +18,45 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows.Controls;
+using Microsoft.Internal.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.TableDataSource;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl
 {
-    internal sealed partial class HotspotsControl : UserControl
+    internal sealed partial class HotspotsControl : UserControl, IDisposable
     {
-        public HotspotsControl(HotspotsViewModel viewModel)
+        private readonly IWpfTableControl wpfTableControl;
+
+        public HotspotsControl(ITableManagerProvider tableManagerProvider, IWpfTableControlProvider wpfTableControlProvider)
         {
             InitializeComponent();
 
-            hotspotsList.Child = viewModel.TableElement;
+            wpfTableControl = CreateWpfTableControl(tableManagerProvider, wpfTableControlProvider);
+
+            hotspotsList.Child = wpfTableControl.Control;
+        }
+
+        private static IWpfTableControl CreateWpfTableControl(ITableManagerProvider tableManagerProvider, IWpfTableControlProvider wpfTableControlProvider)
+        {
+            var tableManager = tableManagerProvider.GetTableManager(HotspotsTableConstants.TableManagerIdentifier);
+
+            var wpfTableControl = wpfTableControlProvider.CreateControl(tableManager,
+                true,
+                HotspotsTableColumns.InitialStates,
+                HotspotsTableColumns.Names);
+
+            wpfTableControl.SelectionMode = SelectionMode.Single;
+
+            return wpfTableControl;
+        }
+
+        public void Dispose()
+        {
+            wpfTableControl?.Dispose();
         }
     }
 }

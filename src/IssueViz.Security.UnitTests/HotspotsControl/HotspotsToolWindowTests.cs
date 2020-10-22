@@ -19,13 +19,15 @@
  */
 
 using System;
+using System.Collections.Generic;
+using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsControl
 {
@@ -36,26 +38,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsC
         public void Dispose_FrameIsClosed()
         {
             var frameMock = new Mock<IVsWindowFrame>();
+            var testSubject = CreateTestSubject(frameMock: frameMock);
 
-            var testSubject = CreateTestSubject();
-            testSubject.Frame = frameMock.Object;
+            frameMock.Verify(x => x.CloseFrame(It.IsAny<uint>()), Times.Never());
 
             testSubject.Dispose();
 
             frameMock.Verify(x => x.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave), Times.Once());
         }
 
-        private HotspotsToolWindow CreateTestSubject()
+        [TestMethod]
+        public void Dispose_HotspotsControlIsDisposed()
         {
-            var hotspotsTableControl = new Mock<IHotspotsTableControl>();
-            hotspotsTableControl.Setup(x => x.TableControl).Returns(Mock.Of<IWpfTableControl>());
+            var hotspotsTableControl = new Mock<IWpfTableControl>();
+            var testSubject = CreateTestSubject(hotspotsTableControl);
 
-            var hotspotsTableControlFactory = new Mock<IHotspotsTableControlFactory>();
-            hotspotsTableControlFactory.Setup(x => x.Get()).Returns(hotspotsTableControl.Object);
+            hotspotsTableControl.Verify(x=> x.Dispose(), Times.Never);
+
+            testSubject.Dispose();
+
+            hotspotsTableControl.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        private HotspotsToolWindow CreateTestSubject(Mock<IWpfTableControl> hotspotsTableControl = null,
+            Mock<IVsWindowFrame> frameMock = null)
+        {
+            hotspotsTableControl ??= new Mock<IWpfTableControl>();
+
+            var wpfTableControlProviderMock = new Mock<IWpfTableControlProvider>();
+            wpfTableControlProviderMock
+                .Setup(x => x.CreateControl(
+                    It.IsAny<ITableManager>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<IEnumerable<ColumnState>>(),
+                    It.IsAny<string[]>()))
+                .Returns(hotspotsTableControl.Object);
 
             var componentModelMock = new Mock<IComponentModel>();
-            componentModelMock.Setup(x => x.GetService<IHotspotsTableControlFactory>())
-                .Returns(hotspotsTableControlFactory.Object);
+
+            componentModelMock
+                .Setup(x => x.GetService<ITableManagerProvider>())
+                .Returns(Mock.Of<ITableManagerProvider>());
+
+            componentModelMock
+                .Setup(x => x.GetService<IWpfTableControlProvider>())
+                .Returns(wpfTableControlProviderMock.Object);
 
             var serviceProviderMock = new Mock<IServiceProvider>();
 
@@ -63,7 +90,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsC
                 .Setup(x => x.GetService(typeof(SComponentModel)))
                 .Returns(componentModelMock.Object);
 
-            return new HotspotsToolWindow(serviceProviderMock.Object);
+            frameMock ??= new Mock<IVsWindowFrame>();
+
+            return new HotspotsToolWindow(serviceProviderMock.Object) {Frame = frameMock.Object};
         }
     }
 }

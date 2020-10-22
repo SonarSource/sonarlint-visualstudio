@@ -18,13 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.VsTableControl
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.VisualStudio.Shell.TableControl;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsControl.TableDataSource
 {
-    internal static class HotspotsTableConstants
+    internal static class HotspotsTableColumns
     {
-        public static readonly string TableDisplayName = Resources.HotspotsToolWindowCaption;
-        public const string TableManagerIdentifier = nameof(TableManagerIdentifier);
-        public const string TableIdentifier = nameof(TableIdentifier);
-        public const string TableSourceTypeIdentifier = nameof(TableSourceTypeIdentifier);
+        public static IReadOnlyList<ColumnState> InitialStates { get; } = new[]
+        {
+            new ColumnState(StandardTableColumnDefinitions.DocumentName, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.ProjectName, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Line, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Column, true, 200),
+        };
+
+        public static string[] Names { get; } = InitialStates.Select(x => x.Name).ToArray();
     }
 }
