@@ -28,10 +28,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     {
         public static IReadOnlyList<ColumnState> InitialStates { get; } = new[]
         {
+            new ColumnState(StandardTableColumnDefinitions.ErrorCode, true, 50),
             new ColumnState(StandardTableColumnDefinitions.DocumentName, true, 200),
-            new ColumnState(StandardTableColumnDefinitions.ProjectName, true, 200),
-            new ColumnState(StandardTableColumnDefinitions.Line, true, 200),
-            new ColumnState(StandardTableColumnDefinitions.Column, true, 200),
+            new ColumnState(StandardTableColumnDefinitions.Text, true, 450),
+            new ColumnState(StandardTableColumnDefinitions.Line, true, 50),
+            new ColumnState(StandardTableColumnDefinitions.Column, true, 50),
         };
 
         public static string[] Names { get; } = InitialStates.Select(x => x.Name).ToArray();

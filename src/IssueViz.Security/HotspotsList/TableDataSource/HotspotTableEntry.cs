@@ -38,18 +38,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public bool TryGetValue(string keyName, out object content)
         {
+            var originalIssue = hotspot.Issue;
+
             switch (keyName)
             {
                 case StandardTableColumnDefinitions.ErrorCode:
-                    content = hotspot.Issue.RuleKey;
+                    content = originalIssue.RuleKey;
                     break;
 
                 case StandardTableColumnDefinitions.DocumentName:
-                    content = hotspot.CurrentFilePath;
+                    content = originalIssue.FilePath;
                     break;
 
                 case StandardTableColumnDefinitions.Text:
-                    content = hotspot.Issue.Message;
+                    content = originalIssue.Message;
+                    break;
+
+                case StandardTableColumnDefinitions.Line:
+                    content = originalIssue.StartLine;
+                    break;
+
+                case StandardTableColumnDefinitions.Column:
+                    content = originalIssue.StartLineOffset;
                     break;
 
                 default:
@@ -60,25 +70,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             return true;
         }
 
+        #region ITableEntry
+
         public virtual bool TryCreateToolTip(string columnName, out object toolTip)
         {
-            switch (columnName)
-            {
-                case StandardTableColumnDefinitions.Text:
-                    if (this.TryGetValue(columnName, out object stringContent) && stringContent == null)
-                    {
-                        toolTip = hotspot.Issue.Message;
-                        return true;
-                    }
-
-                    break;
-            }
-
             toolTip = null;
             return false;
         }
-
-        #region ITableEntry
 
         public virtual bool TrySetValue(string keyName, object content)
         {
