@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
@@ -32,10 +33,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
     [Export(typeof(IHotspotsTableDataSource))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class HotspotsTableDataSource : IHotspotsTableDataSource
+    internal sealed class HotspotsTableDataSource : IHotspotsTableDataSource
     {
         private readonly ITableManager tableManager;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
+        private readonly List<HotspotTableEntry> tableEntries = new List<HotspotTableEntry>();
 
         public string SourceTypeIdentifier { get; } = HotspotsTableConstants.TableSourceTypeIdentifier;
         public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
@@ -50,6 +52,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public IDisposable Subscribe(ITableDataSink sink)
         {
+            sink.AddEntries(tableEntries, true);
+
             lock (sinks)
             {
                 sinks.Add(sink);
@@ -60,6 +64,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         private void Unsubscribe(ITableDataSink sink)
         {
+            sink.RemoveAllEntries();
+
             lock (sinks)
             {
                 sinks.Remove(sink);

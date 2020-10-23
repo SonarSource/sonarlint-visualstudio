@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -66,8 +67,37 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             tableManagerMock.Verify(x => x.RemoveSource(testSubject), Times.Once);
         }
 
-        private static HotspotsTableDataSource CreateTestSubject(Mock<ITableManager> tableManagerMock)
+        [TestMethod]
+        public void Subscribe_AddsEntriesToSink()
         {
+            var sink = new Mock<ITableDataSink>();
+
+            var testSubject = CreateTestSubject();
+            testSubject.Subscribe(sink.Object);
+
+            sink.Verify(x=> x.AddEntries(It.IsAny<IReadOnlyList<ITableEntry>>(), true), Times.Once);
+            sink.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Unsubscribe_RemovesEntriesFromSink()
+        {
+            var sink = new Mock<ITableDataSink>();
+
+            var testSubject = CreateTestSubject();
+            var unSubscribeCallback = testSubject.Subscribe(sink.Object);
+
+            sink.Verify(x => x.RemoveAllEntries(), Times.Never);
+
+            unSubscribeCallback.Dispose();
+
+            sink.Verify(x => x.RemoveAllEntries(), Times.Once);
+        }
+
+        private static HotspotsTableDataSource CreateTestSubject(Mock<ITableManager> tableManagerMock = null)
+        {
+            tableManagerMock ??= new Mock<ITableManager>();
+
             var tableManagerProviderMock = new Mock<ITableManagerProvider>();
             tableManagerProviderMock
                 .Setup(x => x.GetTableManager(HotspotsTableConstants.TableManagerIdentifier))
