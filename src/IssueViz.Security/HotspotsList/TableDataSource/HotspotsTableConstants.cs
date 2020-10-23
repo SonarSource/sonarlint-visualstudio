@@ -22,6 +22,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 {
     internal static class HotspotsTableConstants
     {
-        public const string TableManagerIdentifier = nameof(TableManagerIdentifier);
+        private const string Prefix = "SonarLint.Security.Hotspots.";
+
+        public static readonly string TableDisplayName = Resources.HotspotsToolWindowCaption;
+        public const string TableManagerIdentifier = Prefix + nameof(TableManagerIdentifier);
+        public const string TableIdentifier = Prefix + nameof(TableIdentifier);
+        public const string TableSourceTypeIdentifier = Prefix + nameof(TableSourceTypeIdentifier);
     }
 }
