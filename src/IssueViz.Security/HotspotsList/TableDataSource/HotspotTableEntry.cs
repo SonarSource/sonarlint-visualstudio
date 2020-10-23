@@ -28,10 +28,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     internal class HotspotTableEntry : IWpfTableEntry
     {
         private readonly IAnalysisIssueVisualization hotspot;
+        private readonly IAnalysisSeverityToPriorityConverter severityToPriorityConverter;
 
         public HotspotTableEntry(IAnalysisIssueVisualization hotspot)
+            : this(hotspot, new AnalysisSeverityToPriorityConverter())
+        {
+        }
+
+        internal HotspotTableEntry(IAnalysisIssueVisualization hotspot, IAnalysisSeverityToPriorityConverter severityToPriorityConverter)
         {
             this.hotspot = hotspot;
+            this.severityToPriorityConverter = severityToPriorityConverter;
         }
 
         public object Identity => hotspot;
@@ -39,6 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public bool TryGetValue(string keyName, out object content)
         {
             var originalIssue = hotspot.Issue;
+            var span = hotspot.Span;
 
             switch (keyName)
             {
@@ -46,20 +54,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     content = originalIssue.RuleKey;
                     break;
 
-                case StandardTableColumnDefinitions.DocumentName:
-                    content = originalIssue.FilePath;
+                case StandardTableColumnDefinitions.Priority:
+                    content = severityToPriorityConverter.Convert(originalIssue.Severity);
                     break;
 
                 case StandardTableColumnDefinitions.Text:
                     content = originalIssue.Message;
                     break;
 
+                case StandardTableColumnDefinitions.DocumentName:
+                    content = originalIssue.FilePath;
+                    break;
+
                 case StandardTableColumnDefinitions.Line:
-                    content = originalIssue.StartLine;
+                    content = span?.Start.GetContainingLine().LineNumber ?? originalIssue.StartLine;
                     break;
 
                 case StandardTableColumnDefinitions.Column:
-                    content = originalIssue.StartLineOffset;
+                    if (!span.HasValue)
+                    {
+                        content = originalIssue.StartLineOffset;
+                        break;
+                    }
+                    var position = span.Value.Start;
+                    var line = position.GetContainingLine();
+                    content = position.Position - line.Start.Position;
                     break;
 
                 default:
