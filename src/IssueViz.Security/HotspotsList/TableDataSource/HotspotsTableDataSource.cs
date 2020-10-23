@@ -20,19 +20,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    internal interface IHotspotsTableDataSource : ITableDataSource, IDisposable
-    {
-    }
-
-    [Export(typeof(IHotspotsTableDataSource))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class HotspotsTableDataSource : IHotspotsTableDataSource
+    internal sealed class HotspotsTableDataSource : ITableDataSource, IDisposable
     {
         private readonly ITableManager tableManager;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
@@ -42,7 +35,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
         public string DisplayName { get; } = HotspotsTableConstants.TableDisplayName;
 
-        [ImportingConstructor]
         public HotspotsTableDataSource(ITableManagerProvider tableManagerProvider)
         {
             tableManager = tableManagerProvider.GetTableManager(HotspotsTableConstants.TableManagerIdentifier);

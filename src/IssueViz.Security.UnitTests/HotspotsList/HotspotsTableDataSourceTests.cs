@@ -22,7 +22,6 @@ using System.Collections.Generic;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
@@ -30,20 +29,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
     [TestClass]
     public class HotspotsTableDataSourceTests
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            var tableManagerProviderMock = new Mock<ITableManagerProvider>();
-            tableManagerProviderMock
-                .Setup(x => x.GetTableManager(It.IsAny<string>()))
-                .Returns(Mock.Of<ITableManager>());
-
-            MefTestHelpers.CheckTypeCanBeImported<HotspotsTableDataSource, IHotspotsTableDataSource>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ITableManagerProvider>(tableManagerProviderMock.Object)
-            });
-        }
-
         [TestMethod]
         public void Ctor_RegisterAsSource()
         {

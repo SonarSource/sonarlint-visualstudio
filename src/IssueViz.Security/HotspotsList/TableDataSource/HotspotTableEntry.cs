@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             return true;
         }
 
-        #region ITableEntry
+        #region ITableEntry unimplemented methods
 
         public virtual bool TryCreateToolTip(string columnName, out object toolTip)
         {
