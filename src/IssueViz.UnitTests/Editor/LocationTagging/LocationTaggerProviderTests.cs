@@ -34,14 +34,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
     [TestClass]
     public class LocationTaggerProviderTests : CommonTaggerProviderTestsBase
     {
-        private readonly IIssueLocationStore ValidLocationStore = Mock.Of<IIssueLocationStore>();
+        private readonly IIssueLocationStoreAggregator ValidLocationStore = Mock.Of<IIssueLocationStoreAggregator>();
         private readonly IIssueSpanCalculator ValidSpanCalculator = Mock.Of<IIssueSpanCalculator>();
         private readonly ILogger ValidLogger = Mock.Of<ILogger>();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            var storeExport = MefTestHelpers.CreateExport<IIssueLocationStore>(ValidLocationStore);
+            var storeExport = MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(ValidLocationStore);
             var calculatorExport = MefTestHelpers.CreateExport<IIssueSpanCalculator>(ValidSpanCalculator);
             var taggableBufferIndicatorExport = MefTestHelpers.CreateExport<ITaggableBufferIndicator>(Mock.Of<ITaggableBufferIndicator>());
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(ValidLogger);
