@@ -88,13 +88,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             return false;
         }
 
-        public virtual bool TryCreateStringContent(string columnName, bool truncatedText, bool singleColumnView,
-            out string content)
+        public virtual bool TryCreateStringContent(string columnName, bool truncatedText, bool singleColumnView, out string content)
         {
-            var res = TryGetValue(columnName, out var c);
-            content = c as string;
-
-            return res;
+            content = null;
+            return false;
         }
 
         public virtual bool TryCreateImageContent(string columnName, bool singleColumnView, out ImageMoniker content)
@@ -103,8 +100,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             return false;
         }
 
-        public virtual bool TryCreateColumnContent(string columnName, bool singleColumnView,
-            out FrameworkElement content)
+        public virtual bool TryCreateColumnContent(string columnName, bool singleColumnView, out FrameworkElement content)
         {
             content = null;
             return false;
