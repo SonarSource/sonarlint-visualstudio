@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         private const int StartPort = 64120;
         private const int EndPort = 64123;
 
-        private HttpListener listener;
+        private IDisposable listener;
 
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         {
             if(disposing)
             {
-                ((IDisposable)listener).Dispose();
+                listener?.Dispose();
             }
             base.Dispose(disposing);
         }

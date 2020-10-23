@@ -19,7 +19,9 @@
  */
 
 using System;
-using System.Net;
+using System.Collections.Generic;
+using Microsoft.Owin.BuilderProperties;
+using Microsoft.Owin.Host.HttpListener;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
@@ -28,11 +30,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
     internal interface IListenerFactory
     {
         /// <summary>
-        /// Attempts to create and return a new HTTP listener listening
+        /// Attempts to create and return a new HTTP listener listening(
         /// on the first available port in the specified range.
         /// Returns null if there is not a free port in the range.
         /// </summary>
-        HttpListener Create(int startPort, int endPort);
+        IDisposable Create(int startPort, int endPort);
     }
 
     internal class ListenerFactory : IListenerFactory
@@ -44,19 +46,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        HttpListener IListenerFactory.Create(int startPort, int endPort)
+        IDisposable IListenerFactory.Create(int startPort, int endPort)
         {
             logger.WriteLine(OpenInIDEResources.Factory_CreatingListener);
-            HttpListener listener = null;
+            IDisposable listener = null;
 
             for (int port = startPort; port <= endPort; port++)
             {
                 logger.WriteLine(OpenInIDEResources.Factory_CheckingPort, port);
-                listener = new HttpListener();
-                listener.Prefixes.Add($"http://localhost:{port}/");
                 try
                 {
-                    listener.Start();
+                    listener = CreateListener(port);
                     logger.WriteLine(OpenInIDEResources.Factory_Succeeded, port);
                     break;
                 }
@@ -72,6 +72,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
                 logger.WriteLine(OpenInIDEResources.Factory_Failed_NoAvailablePorts);
             }
             return listener;
+        }
+
+        private static IDisposable CreateListener(int port)
+        {
+            var appProperties = new AppProperties(new Dictionary<string, object>())
+            {
+                Addresses = AddressCollection.Create()
+            };
+
+            var address = Address.Create();
+            address.Port = port.ToString();
+            appProperties.Addresses.Add(address);
+
+            var openInIDEListener = new OpenInIDEHttpListener();
+            return OwinServerFactory.Create(openInIDEListener.ProcessRequest, appProperties.Dictionary);
         }
     }
 }
