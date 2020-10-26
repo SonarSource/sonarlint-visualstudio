@@ -20,14 +20,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Host.HttpListener;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 {
-    internal interface IListenerFactory
+    internal interface IHttpListenerFactory
     {
         /// <summary>
         /// Attempts to create and return a new HTTP listener listening
@@ -37,16 +39,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         IDisposable Create(int startPort, int endPort);
     }
 
-    internal class ListenerFactory : IListenerFactory
+    /// <summary>
+    /// Component that can process requests in an Owin pipeline
+    /// </summary>
+    internal interface IOwinPipelineProcessor
     {
+        Task ProcessRequest(IDictionary<string, object> environment);
+    }
+
+    [Export(typeof(IHttpListenerFactory))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class HttpListenerFactory : IHttpListenerFactory
+    {
+        private readonly IOwinPipelineProcessor requestProcessor;
         private readonly ILogger logger;
 
-        public ListenerFactory(ILogger logger)
+        [ImportingConstructor]
+        public HttpListenerFactory(IOwinPipelineProcessor requestProcessor, ILogger logger)
         {
+            this.requestProcessor = requestProcessor ?? throw new ArgumentNullException(nameof(requestProcessor));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        IDisposable IListenerFactory.Create(int startPort, int endPort)
+        IDisposable IHttpListenerFactory.Create(int startPort, int endPort)
         {
             logger.WriteLine(OpenInIDEResources.Factory_CreatingListener);
             IDisposable listener = null;
@@ -74,19 +89,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
             return listener;
         }
 
-        private static IDisposable CreateListener(int port)
+        private IDisposable CreateListener(int port)
         {
             var appProperties = new AppProperties(new Dictionary<string, object>())
             {
                 Addresses = AddressCollection.Create()
             };
 
+            // We're not specifying a URL so 
             var address = Address.Create();
+
             address.Port = port.ToString();
             appProperties.Addresses.Add(address);
 
-            var openInIDEListener = new OpenInIDEHttpListener();
-            return OwinServerFactory.Create(openInIDEListener.ProcessRequest, appProperties.Dictionary);
+            // Create a new Owin HTTPListener that forwards all requests to our processor for handling.
+            return OwinServerFactory.Create(requestProcessor.ProcessRequest, appProperties.Dictionary);
         }
     }
 }
