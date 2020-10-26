@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryGetValue_LineColumn_ReturnsIssueStartLine()
+        public void TryGetValue_LineColumn_NoSpan_ReturnsIssueStartLine()
         {
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.StartLine).Returns(123);
@@ -84,13 +85,37 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryGetValue_Column_ReturnsIssueStartPosition()
+        public void TryGetValue_LineColumn_HasSpan_ReturnsSpanStartLine()
+        {
+            const int lineNumber = 12;
+            const int columnNumber = 15;
+            var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
+
+            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
+            result.Should().BeTrue();
+            value.Should().Be(lineNumber);
+        }
+
+        [TestMethod]
+        public void TryGetValue_Column_NoSpan_ReturnsIssueStartPosition()
         {
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.StartLineOffset).Returns(456);
 
             var value = GetValue(issue.Object, StandardTableColumnDefinitions.Column);
             value.Should().Be(456);
+        }
+
+        [TestMethod]
+        public void TryGetValue_Column_HasSpan_ReturnsSpanPosition()
+        {
+            const int lineNumber = 12;
+            const int columnNumber = 15;
+            var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
+
+            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
+            result.Should().BeTrue();
+            value.Should().Be(columnNumber);
         }
 
         [TestMethod]
@@ -200,6 +225,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             tryGetValue.Should().BeTrue();
 
             return value;
+        }
+
+        private IAnalysisIssueVisualization CreateIssueVizWithSpan(int lineNumber, int column)
+        {
+            const int lineStartPosition = 10;
+            var spanStartPosition = column + lineStartPosition;
+
+            var mockTextSnap = new Mock<ITextSnapshot>();
+            mockTextSnap.Setup(t => t.Length).Returns(50);
+
+            var mockTextSnapLine = new Mock<ITextSnapshotLine>();
+            mockTextSnapLine.Setup(l => l.LineNumber).Returns(lineNumber);
+            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, lineStartPosition));
+
+            mockTextSnap.Setup(t => t.GetLineFromPosition(spanStartPosition)).Returns(mockTextSnapLine.Object);
+
+            var span = new SnapshotSpan(new SnapshotPoint(mockTextSnap.Object, spanStartPosition), new SnapshotPoint(mockTextSnap.Object, spanStartPosition + 1));
+
+            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
+            issueVizMock.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssue>());
+            issueVizMock.SetupProperty(x => x.Span);
+            issueVizMock.Object.Span = span;
+
+            return issueVizMock.Object;
         }
     }
 }
