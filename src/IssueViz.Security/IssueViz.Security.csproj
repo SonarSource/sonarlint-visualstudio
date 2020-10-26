@@ -43,6 +43,8 @@
   </ItemGroup>
 
   <ItemGroup Label="Package references">
+    <PackageReference Include="Microsoft.Owin" Version="4.1.1" />
+    <PackageReference Include="Microsoft.Owin.Host.HttpListener" Version="4.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="14.0.25424" />
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="14.0.23205" />
   </ItemGroup>
@@ -89,6 +91,29 @@
   
   </ItemGroup>
 
+  <!--**********************************************************************-->
+  <!-- Workarounds -->
+  <!--**********************************************************************-->
+
+  <!-- The OWIN assemblies aren't being included in the VSIX for some reason.	
+       This workaround adds metadata to three artifacts so that the standard VSSDK targets will	
+       include them.	
+       NB the target is based on the one from Microsoft.VisualStudio.SDK.EmbedInteropTypes.
+       We have a similar hack in Intergration.csproj -->
+  <Target Name="HackIncludeOwinInVsix" AfterTargets="ResolveReferences" BeforeTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'Microsoft.Owin' or '%(FileName)' == 'Microsoft.Owin.Host.HttpListener'">
+        <CopyLocal>true</CopyLocal>
+      </ReferencePath>
+    </ItemGroup>
+
+    <Message Importance="high" Text="In HackIncludeOwinInVsix" />
+    <Message Importance="high" Text="Reference paths: @(ReferencePath)" />
+  </Target>
+  <!--**********************************************************************-->
+  <!-- End of workarounds -->
+  <!--**********************************************************************-->
+  
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 
