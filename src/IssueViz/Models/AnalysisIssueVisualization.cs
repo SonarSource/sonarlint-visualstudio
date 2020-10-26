@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     {
         IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
 
-        IAnalysisIssue Issue { get; }
+        IAnalysisIssueBase Issue { get; }
     }
 
     internal class AnalysisIssueVisualization : IAnalysisIssueVisualization
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         private string currentFilePath;
         private SnapshotSpan? span;
 
-        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssue issue, SnapshotSpan span)
+        public AnalysisIssueVisualization(IReadOnlyList<IAnalysisIssueFlowVisualization> flows, IAnalysisIssueBase issue, SnapshotSpan span)
         {
             Flows = flows;
             Issue = issue;
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         }
 
         public IReadOnlyList<IAnalysisIssueFlowVisualization> Flows { get; }
-        public IAnalysisIssue Issue { get; }
+        public IAnalysisIssueBase Issue { get; }
         public int StepNumber => 0;
         public IAnalysisIssueLocation Location => Issue;
 

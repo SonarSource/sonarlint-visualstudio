@@ -148,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         {
             public int CallCount { get; private set; }
             public IList<IAnalysisIssueVisualization> LastSuppliedIssueVisualizations { get; private set; }
-            public IList<IAnalysisIssue> LastSuppliedIssues
+            public IList<IAnalysisIssueBase> LastSuppliedIssues
             {
                 get
                 {
