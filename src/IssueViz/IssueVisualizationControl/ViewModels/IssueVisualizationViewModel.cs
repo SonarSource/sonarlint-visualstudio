@@ -110,7 +110,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public string RuleHelpLink => string.IsNullOrEmpty(RuleKey) ? null : ruleHelpLinkProvider.GetHelpLink(RuleKey);
 
-        public AnalysisIssueSeverity Severity => CurrentIssue?.Issue?.Severity ?? AnalysisIssueSeverity.Info;
+        public AnalysisIssueSeverity Severity =>
+            CurrentIssue?.Issue is IAnalysisIssue analysisIssue
+                ? analysisIssue.Severity
+                : AnalysisIssueSeverity.Info;
 
         public IAnalysisIssueVisualization CurrentIssue
         {

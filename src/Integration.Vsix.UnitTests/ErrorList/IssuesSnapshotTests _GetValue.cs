@@ -119,6 +119,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Ctor_BaseIssueIsNotAnalysisIssue_InvalidCastException()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.SetupGet(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
+
+            Action act = () => new IssuesSnapshot("test", projectGuid, "test.cpp", new[] {issueViz.Object});
+            act.Should().Throw<InvalidCastException>();
+        }
+
+        [TestMethod]
         public void GetValue_Line()
         {
             GetValue(StandardTableKeyNames.Line).Should().Be(12);

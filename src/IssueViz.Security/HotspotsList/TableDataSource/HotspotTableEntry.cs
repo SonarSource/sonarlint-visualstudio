@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -27,44 +28,49 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 {
     internal class HotspotTableEntry : IWpfTableEntry
     {
-        private readonly IAnalysisIssueVisualization hotspot;
+        private readonly IAnalysisIssueVisualization hotspotViz;
 
-        public HotspotTableEntry(IAnalysisIssueVisualization hotspot)
+        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz)
         {
-            this.hotspot = hotspot;
+            this.hotspotViz = hotspotViz;
+
+            if (!(hotspotViz.Issue is IHotspot))
+            {
+                throw new InvalidCastException($"{nameof(hotspotViz.Issue)} is not {nameof(IHotspot)}");
+            }
         }
 
-        public object Identity => hotspot;
+        public object Identity => hotspotViz;
 
         public bool TryGetValue(string keyName, out object content)
         {
-            var originalIssue = hotspot.Issue;
+            var hotspot = hotspotViz.Issue as IHotspot;
 
             switch (keyName)
             {
                 case StandardTableColumnDefinitions.ErrorCode:
-                    content = originalIssue.RuleKey;
+                    content = hotspot.RuleKey;
                     break;
 
                 case StandardTableColumnDefinitions.DocumentName:
-                    content = originalIssue.FilePath;
+                    content = hotspot.FilePath;
                     break;
 
                 case StandardTableColumnDefinitions.Text:
-                    content = originalIssue.Message;
+                    content = hotspot.Message;
                     break;
 
                 case StandardTableColumnDefinitions.Line:
-                    content = hotspot.Span?.Start.GetContainingLine().LineNumber ?? originalIssue.StartLine;
+                    content = hotspotViz.Span?.Start.GetContainingLine().LineNumber ?? hotspot.StartLine;
                     break;
 
                 case StandardTableColumnDefinitions.Column:
-                    if (!hotspot.Span.HasValue)
+                    if (!hotspotViz.Span.HasValue)
                     {
-                        content = originalIssue.StartLineOffset;
+                        content = hotspot.StartLineOffset;
                         break;
                     }
-                    var position = hotspot.Span.Value.Start;
+                    var position = hotspotViz.Span.Value.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;
                     break;
