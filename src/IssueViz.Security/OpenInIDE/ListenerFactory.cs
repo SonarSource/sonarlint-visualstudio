@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
     internal interface IListenerFactory
     {
         /// <summary>
-        /// Attempts to create and return a new HTTP listener listening(
+        /// Attempts to create and return a new HTTP listener listening
         /// on the first available port in the specified range.
         /// Returns null if there is not a free port in the range.
         /// </summary>
