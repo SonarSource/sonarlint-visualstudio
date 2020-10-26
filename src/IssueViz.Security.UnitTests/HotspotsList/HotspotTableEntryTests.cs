@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -44,59 +45,74 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryGetValue_ErrorCodeColumn_ReturnsIssueRuleKey()
+        public void TryGetValue_BaseIssueIsNotHotspot_ArgumentNullException()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.RuleKey).Returns("test key");
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.ErrorCode);
+            var testSubject = new HotspotTableEntry(issueViz.Object);
+
+            Action act = () => testSubject.TryGetValue(StandardTableColumnDefinitions.ErrorCode, out _);
+            act.Should().Throw<InvalidCastException>();
+        }
+
+        [TestMethod]
+        public void TryGetValue_ErrorCodeColumn_ReturnsHotspotRuleKey()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.RuleKey).Returns("test key");
+
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.ErrorCode);
             value.Should().Be("test key");
         }
 
         [TestMethod]
-        public void TryGetValue_DocumentNameColumn_ReturnsIssueFilePath()
+        public void TryGetValue_DocumentNameColumn_ReturnsHotspotFilePath()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.FilePath).Returns("test path");
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.FilePath).Returns("test path");
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.DocumentName);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.DocumentName);
             value.Should().Be("test path");
         }
 
         [TestMethod]
-        public void TryGetValue_TextColumn_ReturnsIssueMessage()
+        public void TryGetValue_TextColumn_ReturnsHotspotMessage()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.Message).Returns("test message");
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.Message).Returns("test message");
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.Text);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Text);
             value.Should().Be("test message");
         }
 
         [TestMethod]
-        public void TryGetValue_LineColumn_ReturnsIssueStartLine()
+        public void TryGetValue_LineColumn_ReturnsHotspotStartLine()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.StartLine).Returns(123);
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLine).Returns(123);
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.Line);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Line);
             value.Should().Be(123);
         }
 
         [TestMethod]
-        public void TryGetValue_Column_ReturnsIssueStartPosition()
+        public void TryGetValue_Column_ReturnsHotspotStartPosition()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.StartLineOffset).Returns(456);
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLineOffset).Returns(456);
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.Column);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Column);
             value.Should().Be(456);
         }
 
         [TestMethod]
         public void TryGetValue_UnknownColumn_ReturnsNull()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(Mock.Of<IHotspot>());
+
+            var testSubject = new HotspotTableEntry(issueViz.Object);
 
             var result = testSubject.TryGetValue("dummy column", out var content);
             result.Should().BeFalse();
@@ -124,7 +140,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TrySetValue_False()
         {
-            var issue = new Mock<IAnalysisIssue>();
+            var issue = new Mock<IHotspot>();
             issue.SetupGet(x => x.FilePath).Returns("unchanged file path");
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
@@ -191,10 +207,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             value.Should().BeNull();
         }
 
-        private static object GetValue(IAnalysisIssue issue, string column)
+        private static object GetValue(IHotspot hotspot, string column)
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(issue);
+            issueViz.Setup(x => x.Issue).Returns(hotspot);
 
             var tryGetValue = new HotspotTableEntry(issueViz.Object).TryGetValue(column, out object value);
             tryGetValue.Should().BeTrue();

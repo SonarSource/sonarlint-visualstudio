@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Windows;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -27,39 +28,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 {
     internal class HotspotTableEntry : IWpfTableEntry
     {
-        private readonly IAnalysisIssueVisualization hotspot;
+        private readonly IAnalysisIssueVisualization hotspotViz;
 
-        public HotspotTableEntry(IAnalysisIssueVisualization hotspot)
+        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz)
         {
-            this.hotspot = hotspot;
+            this.hotspotViz = hotspotViz;
         }
 
-        public object Identity => hotspot;
+        public object Identity => hotspotViz;
 
         public bool TryGetValue(string keyName, out object content)
         {
-            var originalIssue = hotspot.Issue;
+            if (!(hotspotViz.Issue is IHotspot hotspot))
+            {
+                throw new InvalidCastException($"{nameof(hotspotViz.Issue)} is not {nameof(IHotspot)}");
+            }
 
             switch (keyName)
             {
                 case StandardTableColumnDefinitions.ErrorCode:
-                    content = originalIssue.RuleKey;
+                    content = hotspot.RuleKey;
                     break;
 
                 case StandardTableColumnDefinitions.DocumentName:
-                    content = originalIssue.FilePath;
+                    content = hotspot.FilePath;
                     break;
 
                 case StandardTableColumnDefinitions.Text:
-                    content = originalIssue.Message;
+                    content = hotspot.Message;
                     break;
 
                 case StandardTableColumnDefinitions.Line:
-                    content = originalIssue.StartLine;
+                    content = hotspot.StartLine;
                     break;
 
                 case StandardTableColumnDefinitions.Column:
-                    content = originalIssue.StartLineOffset;
+                    content = hotspot.StartLineOffset;
                     break;
 
                 default:
