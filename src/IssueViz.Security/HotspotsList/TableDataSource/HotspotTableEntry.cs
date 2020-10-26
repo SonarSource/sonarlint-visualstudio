@@ -59,11 +59,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     break;
 
                 case StandardTableColumnDefinitions.Line:
-                    content = hotspot.StartLine;
+                    content = hotspotViz.Span?.Start.GetContainingLine().LineNumber ?? hotspot.StartLine;
                     break;
 
                 case StandardTableColumnDefinitions.Column:
-                    content = hotspot.StartLineOffset;
+                    if (!hotspotViz.Span.HasValue)
+                    {
+                        content = hotspot.StartLineOffset;
+                        break;
+                    }
+                    var position = hotspotViz.Span.Value.Start;
+                    var line = position.GetContainingLine();
+                    content = position.Position - line.Start.Position;
                     break;
 
                 default:
