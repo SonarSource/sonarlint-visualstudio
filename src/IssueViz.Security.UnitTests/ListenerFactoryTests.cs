@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using System.Net;
 using FluentAssertions;
+using Microsoft.Owin.Host.HttpListener;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE;
@@ -62,9 +63,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
                 {
                     var expectedPort = GetPrefix(firstFreePort);
                     actual.Should().NotBeNull();
-                    actual.IsListening.Should().BeTrue();
-                    actual.Prefixes.Count.Should().Be(1);
-                    actual.Prefixes.First().Should().Be(expectedPort);
+                    actual.Should().BeAssignableTo<OwinHttpListener>();
+
+                    var owinListener = (OwinHttpListener)actual;
+                    var httpListener = owinListener.Listener;
+
+                    httpListener.IsListening.Should().BeTrue();
+                    httpListener.Prefixes.Count.Should().Be(1);
+                    httpListener.Prefixes.First().Should().Be(expectedPort);
                     IsPortAvailable(firstFreePort).Should().BeFalse();
                 }
                 else
