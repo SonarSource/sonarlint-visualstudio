@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Owin;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
 {
@@ -31,8 +30,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         /// </summary>
         public Task ProcessRequest(IDictionary<string, object> environment)
         {
-            var context = new OwinContext(environment);
-
             //TODO
             return Task.CompletedTask;
         }
