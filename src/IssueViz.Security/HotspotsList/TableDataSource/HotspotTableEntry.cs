@@ -19,14 +19,13 @@
  */
 
 using System;
-using System.Windows;
 using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using ImageMoniker = Microsoft.VisualStudio.Imaging.Interop.ImageMoniker;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    internal class HotspotTableEntry : IWpfTableEntry
+    internal class HotspotTableEntry : ITableEntry
     {
         private readonly IAnalysisIssueVisualization hotspotViz;
 
@@ -61,11 +60,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     break;
 
                 case StandardTableColumnDefinitions.Line:
-                    content = hotspotViz.Span?.Start.GetContainingLine().LineNumber ?? hotspot.StartLine;
+                    if (!hotspotViz.Span.HasValue || hotspotViz.Span.Value.IsEmpty)
+                    {
+                        content = hotspot.StartLine;
+                        break;
+                    }
+
+                    content = hotspotViz.Span.Value.Start.GetContainingLine().LineNumber;
                     break;
 
                 case StandardTableColumnDefinitions.Column:
-                    if (!hotspotViz.Span.HasValue)
+                    if (!hotspotViz.Span.HasValue || hotspotViz.Span.Value.IsEmpty)
                     {
                         content = hotspot.StartLineOffset;
                         break;
@@ -85,12 +90,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         #region ITableEntry unimplemented methods
 
-        public virtual bool TryCreateToolTip(string columnName, out object toolTip)
-        {
-            toolTip = null;
-            return false;
-        }
-
         public virtual bool TrySetValue(string keyName, object content)
         {
             return false;
@@ -98,41 +97,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public virtual bool CanSetValue(string keyName)
         {
-            return false;
-        }
-
-        public virtual bool TryCreateStringContent(string columnName, bool truncatedText, bool singleColumnView, out string content)
-        {
-            content = null;
-            return false;
-        }
-
-        public virtual bool TryCreateImageContent(string columnName, bool singleColumnView, out ImageMoniker content)
-        {
-            content = default;
-            return false;
-        }
-
-        public virtual bool TryCreateColumnContent(string columnName, bool singleColumnView, out FrameworkElement content)
-        {
-            content = null;
-            return false;
-        }
-
-        public virtual bool CanCreateDetailsContent()
-        {
-            return false;
-        }
-
-        public virtual bool TryCreateDetailsContent(out FrameworkElement expandedContent)
-        {
-            expandedContent = null;
-            return false;
-        }
-
-        public virtual bool TryCreateDetailsStringContent(out string content)
-        {
-            content = null;
             return false;
         }
 

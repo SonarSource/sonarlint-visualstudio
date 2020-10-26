@@ -20,12 +20,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    internal sealed class HotspotsTableDataSource : ITableDataSource, IDisposable
+    internal interface IHotspotsStore
+    {
+        void Add(IAnalysisIssueVisualization hotspot);
+    }
+
+    [Export(typeof(IHotspotsStore))]
+    [Export(typeof(IIssueLocationStore))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class HotspotsTableDataSource : IHotspotsStore, IIssueLocationStore, ITableDataSource, IDisposable
     {
         private readonly ITableManager tableManager;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
@@ -35,6 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
         public string DisplayName { get; } = HotspotsTableConstants.TableDisplayName;
 
+        [ImportingConstructor]
         public HotspotsTableDataSource(ITableManagerProvider tableManagerProvider)
         {
             tableManager = tableManagerProvider.GetTableManager(HotspotsTableConstants.TableManagerIdentifier);
@@ -66,6 +80,55 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public void Dispose()
         {
             tableManager.RemoveSource(this);
+        }
+
+        public void Add(IAnalysisIssueVisualization hotspot)
+        {
+            var entry = new HotspotTableEntry(hotspot);
+            tableEntries.Add(entry);
+
+            lock (sinks)
+            {
+                foreach (var sink in sinks)
+                {
+                    sink.AddEntries(new[] {entry});
+                }
+            }
+
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(new[] {hotspot.CurrentFilePath}));
+        }
+
+        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
+        {
+            var matchingLocations = tableEntries
+                .Select(entry => entry.Identity as IAnalysisIssueVisualization)
+                .SelectMany(hotspotViz => hotspotViz.GetAllLocations())
+                .Where(locationViz => PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
+
+            return matchingLocations;
+        }
+
+        public void Refresh(IEnumerable<string> affectedFilePaths)
+        {
+            var changedEntries = tableEntries
+                .Where(entry => affectedFilePaths.Any(p =>
+                    PathHelper.IsMatchingPath(p, (entry.Identity as IAnalysisIssueVisualization).CurrentFilePath)))
+                .ToList();
+
+            if (!changedEntries.Any())
+            {
+                return;
+            }
+
+            lock (sinks)
+            {
+                foreach (var sink in sinks)
+                {
+                    sink.ReplaceEntries(changedEntries, changedEntries);
+                }
+            }
         }
     }
 }
