@@ -119,6 +119,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
+            var areAllIssuesAnalysisIssues = issues.All(x => x.Issue is IAnalysisIssue);
+
+            if (!areAllIssuesAnalysisIssues)
+            {
+                throw new InvalidCastException($"Some {nameof(issues)} do not contain {nameof(IAnalysisIssue)}");
+            }
+
             this.AnalysisRunId = snapshotId;
             this.AnalyzedFilePath = filePath;
             this.projectName = projectName;
@@ -156,11 +163,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             var issueViz = issues[index];
-
-            if (!(issueViz.Issue is IAnalysisIssue issue))
-            {
-                throw new InvalidCastException($"{nameof(issueViz.Issue)} is not {nameof(IAnalysisIssue)}");
-            }
+            var issue = issueViz.Issue as IAnalysisIssue;
 
             switch (keyName)
             {

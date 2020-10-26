@@ -33,16 +33,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz)
         {
             this.hotspotViz = hotspotViz;
+
+            if (!(hotspotViz.Issue is IHotspot))
+            {
+                throw new InvalidCastException($"{nameof(hotspotViz.Issue)} is not {nameof(IHotspot)}");
+            }
         }
 
         public object Identity => hotspotViz;
 
         public bool TryGetValue(string keyName, out object content)
         {
-            if (!(hotspotViz.Issue is IHotspot hotspot))
-            {
-                throw new InvalidCastException($"{nameof(hotspotViz.Issue)} is not {nameof(IHotspot)}");
-            }
+            var hotspot = hotspotViz.Issue as IHotspot;
 
             switch (keyName)
             {
