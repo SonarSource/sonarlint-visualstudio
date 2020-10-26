@@ -119,6 +119,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
+            var areAllIssuesAnalysisIssues = issues.All(x => x.Issue is IAnalysisIssue);
+
+            if (!areAllIssuesAnalysisIssues)
+            {
+                throw new InvalidCastException($"Some {nameof(issues)} do not contain {nameof(IAnalysisIssue)}");
+            }
+
             this.AnalysisRunId = snapshotId;
             this.AnalyzedFilePath = filePath;
             this.projectName = projectName;
@@ -155,6 +162,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return false;
             }
 
+            var issueViz = issues[index];
+            var issue = issueViz.Issue as IAnalysisIssue;
+
             switch (keyName)
             {
                 case StandardTableKeyNames.DocumentName:
@@ -165,22 +175,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     // Note: the line and column numbers are taken from the SnapshotSpan, not the Issue.
                     // The SnapshotSpan represents the live document, so the text positions could have
                     // changed from those reported from the Issue.
-                    content = this.issues[index].Span.Value.Start.GetContainingLine().LineNumber;
+                    content = issueViz.Span.Value.Start.GetContainingLine().LineNumber;
                     return true;
 
                 case StandardTableKeyNames.Column:
                     // Use the span, not the issue. See comment immediately above.
-                    var position = this.issues[index].Span.Value.Start;
+                    var position = issueViz.Span.Value.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;
                     return true;
 
                 case StandardTableKeyNames.Text:
-                    content = this.issues[index].Issue.Message;
+                    content = issue.Message;
                     return true;
 
                 case StandardTableKeyNames.ErrorSeverity:
-                    content = toVsSeverityConverter.Convert(this.issues[index].Issue.Severity);
+                    content = toVsSeverityConverter.Convert(issue.Severity);
                     return true;
 
                 case StandardTableKeyNames.BuildTool:
@@ -188,7 +198,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCode:
-                    content = this.issues[index].Issue.RuleKey;
+                    content = issue.RuleKey;
                     return true;
 
                 case StandardTableKeyNames.ErrorRank:
@@ -196,15 +206,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     return true;
 
                 case StandardTableKeyNames.ErrorCategory:
-                    content = $"{issues[index].Issue.Severity} {ToString(issues[index].Issue.Type)}";
+                    content = $"{issue.Severity} {ToString(issue.Type)}";
                     return true;
 
                 case StandardTableKeyNames.ErrorCodeToolTip:
-                    content = $"Open description of rule {this.issues[index].Issue.RuleKey}";
+                    content = $"Open description of rule {issue.RuleKey}";
                     return true;
 
                 case StandardTableKeyNames.HelpLink:
-                    string ruleKey = this.issues[index].Issue.RuleKey;
+                    string ruleKey = issue.RuleKey;
                     content = ruleHelpLinkProvider.GetHelpLink(ruleKey);
                     return true;
 
@@ -218,7 +228,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 // Not a visible field - returns the issue object
                 case SonarLintTableControlConstants.IssueVizColumnName:
-                    content = this.issues[index];
+                    content = issueViz;
                     return true;
                 default:
                     content = null;

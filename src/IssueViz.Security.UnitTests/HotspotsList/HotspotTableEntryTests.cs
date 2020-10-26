@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -34,9 +35,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
     public class HotspotTableEntryTests
     {
         [TestMethod]
+        public void Ctor_BaseIssueIsNotHotspot_InvalidCastException()
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
+
+            Action act = () => new HotspotTableEntry(issueViz.Object);
+            act.Should().Throw<InvalidCastException>();
+        }
+
+        [TestMethod]
         public void Identity_ReturnsIssueViz()
         {
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz = CreateIssueViz();
 
             var testSubject = new HotspotTableEntry(issueViz);
             var identity = testSubject.Identity;
@@ -45,42 +56,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryGetValue_ErrorCodeColumn_ReturnsIssueRuleKey()
+        public void TryGetValue_ErrorCodeColumn_ReturnsHotspotRuleKey()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.RuleKey).Returns("test key");
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.RuleKey).Returns("test key");
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.ErrorCode);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.ErrorCode);
             value.Should().Be("test key");
         }
 
         [TestMethod]
-        public void TryGetValue_DocumentNameColumn_ReturnsIssueFilePath()
+        public void TryGetValue_DocumentNameColumn_ReturnsHotspotFilePath()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.FilePath).Returns("test path");
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.FilePath).Returns("test path");
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.DocumentName);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.DocumentName);
             value.Should().Be("test path");
         }
 
         [TestMethod]
-        public void TryGetValue_TextColumn_ReturnsIssueMessage()
+        public void TryGetValue_TextColumn_ReturnsHotspotMessage()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.Message).Returns("test message");
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.Message).Returns("test message");
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.Text);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Text);
             value.Should().Be("test message");
         }
 
         [TestMethod]
-        public void TryGetValue_LineColumn_NoSpan_ReturnsIssueStartLine()
+        public void TryGetValue_LineColumn_NoSpan_ReturnsHotspotStartLine()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.StartLine).Returns(123);
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLine).Returns(123);
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.Line);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Line);
             value.Should().Be(123);
         }
 
@@ -97,12 +108,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryGetValue_Column_NoSpan_ReturnsIssueStartPosition()
+        public void TryGetValue_Column_NoSpan_ReturnsHotspotStartPosition()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.StartLineOffset).Returns(456);
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLineOffset).Returns(456);
 
-            var value = GetValue(issue.Object, StandardTableColumnDefinitions.Column);
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Column);
             value.Should().Be(456);
         }
 
@@ -121,7 +132,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryGetValue_UnknownColumn_ReturnsNull()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
 
             var result = testSubject.TryGetValue("dummy column", out var content);
             result.Should().BeFalse();
@@ -131,7 +142,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryCreateToolTip_Null()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.TryCreateToolTip(StandardTableColumnDefinitions.DocumentName, out var value);
 
             result.Should().BeFalse();
@@ -141,7 +152,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void CanSetValue_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.CanSetValue(StandardTableColumnDefinitions.DocumentName);
             result.Should().BeFalse();
         }
@@ -149,13 +160,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TrySetValue_False()
         {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.FilePath).Returns("unchanged file path");
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.FilePath).Returns("unchanged file path");
 
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(issue.Object);
-
-            var testSubject = new HotspotTableEntry(issueViz.Object);
+            var testSubject = new HotspotTableEntry(CreateIssueViz(hotspot.Object));
             var result = testSubject.TrySetValue(StandardTableColumnDefinitions.DocumentName, "test");
             result.Should().BeFalse();
 
@@ -166,7 +174,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void CanCreateDetailsContent_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.CanCreateDetailsContent();
             result.Should().BeFalse();
         }
@@ -174,7 +182,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryCreateDetailsContent_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.TryCreateDetailsContent(out var value);
             result.Should().BeFalse();
             value.Should().BeNull();
@@ -183,7 +191,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryCreateDetailsStringContent_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.TryCreateDetailsStringContent(out var value);
             result.Should().BeFalse();
             value.Should().BeNull();
@@ -192,7 +200,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryCreateColumnContent_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.TryCreateColumnContent("column", true, out var value);
             result.Should().BeFalse();
             value.Should().BeNull();
@@ -201,7 +209,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryCreateImageContent_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.TryCreateImageContent("column", true, out var value);
             result.Should().BeFalse();
             value.Should().BeEquivalentTo(default(ImageMoniker));
@@ -210,24 +218,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryCreateStringContent_False()
         {
-            var testSubject = new HotspotTableEntry(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
             var result = testSubject.TryCreateStringContent("column", true, true, out var value);
             result.Should().BeFalse();
             value.Should().BeNull();
         }
 
-        private static object GetValue(IAnalysisIssue issue, string column)
+        private static object GetValue(IHotspot hotspot, string column)
         {
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(issue);
-
-            var tryGetValue = new HotspotTableEntry(issueViz.Object).TryGetValue(column, out object value);
+            var tryGetValue = new HotspotTableEntry(CreateIssueViz(hotspot)).TryGetValue(column, out var value);
             tryGetValue.Should().BeTrue();
 
             return value;
         }
 
-        private IAnalysisIssueVisualization CreateIssueVizWithSpan(int lineNumber, int column)
+        private static IAnalysisIssueVisualization CreateIssueViz(IHotspot hotspot = null)
+        {
+            hotspot ??= Mock.Of<IHotspot>();
+            var hotspotViz = new Mock<IAnalysisIssueVisualization>();
+            hotspotViz.SetupGet(x => x.Issue).Returns(hotspot);
+
+            return hotspotViz.Object;
+        }
+
+        private static IAnalysisIssueVisualization CreateIssueVizWithSpan(int lineNumber, int column)
         {
             const int lineStartPosition = 10;
             var spanStartPosition = column + lineStartPosition;
@@ -243,12 +257,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             var span = new SnapshotSpan(new SnapshotPoint(mockTextSnap.Object, spanStartPosition), new SnapshotPoint(mockTextSnap.Object, spanStartPosition + 1));
 
-            var issueVizMock = new Mock<IAnalysisIssueVisualization>();
-            issueVizMock.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssue>());
-            issueVizMock.SetupProperty(x => x.Span);
-            issueVizMock.Object.Span = span;
+            var issueViz = CreateIssueViz();
+            Mock.Get(issueViz).SetupProperty(x => x.Span);
+            issueViz.Span = span;
 
-            return issueVizMock.Object;
+            return issueViz;
         }
     }
 }
