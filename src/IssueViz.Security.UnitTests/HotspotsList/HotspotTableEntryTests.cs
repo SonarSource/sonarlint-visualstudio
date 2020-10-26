@@ -87,11 +87,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryGetValue_LineColumn_HasSpan_ReturnsSpanStartLine()
         {
-            var issueViz = CreateIssueVizWithSpan();
+            const int lineNumber = 12;
+            const int columnNumber = 15;
+            var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
 
             var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
             result.Should().BeTrue();
-            value.Should().Be(12);
+            value.Should().Be(lineNumber);
         }
 
         [TestMethod]
@@ -107,11 +109,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryGetValue_Column_HasSpan_ReturnsSpanPosition()
         {
-            var issueViz = CreateIssueVizWithSpan();
+            const int lineNumber = 12;
+            const int columnNumber = 15;
+            var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
 
             var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
             result.Should().BeTrue();
-            value.Should().Be(15);
+            value.Should().Be(columnNumber);
         }
 
         [TestMethod]
@@ -223,22 +227,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             return value;
         }
 
-        private IAnalysisIssueVisualization CreateIssueVizWithSpan()
+        private IAnalysisIssueVisualization CreateIssueVizWithSpan(int lineNumber, int column)
         {
+            const int lineStartPosition = 10;
+            var spanStartPosition = column + lineStartPosition;
+
             var mockTextSnap = new Mock<ITextSnapshot>();
             mockTextSnap.Setup(t => t.Length).Returns(50);
 
             var mockTextSnapLine = new Mock<ITextSnapshotLine>();
-            mockTextSnapLine.Setup(l => l.LineNumber).Returns(12);
-            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, 10));
+            mockTextSnapLine.Setup(l => l.LineNumber).Returns(lineNumber);
+            mockTextSnapLine.Setup(l => l.Start).Returns(new SnapshotPoint(mockTextSnap.Object, lineStartPosition));
 
-            mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
-            var textSnap = mockTextSnap.Object;
+            mockTextSnap.Setup(t => t.GetLineFromPosition(spanStartPosition)).Returns(mockTextSnapLine.Object);
+
+            var span = new SnapshotSpan(new SnapshotPoint(mockTextSnap.Object, spanStartPosition), new SnapshotPoint(mockTextSnap.Object, spanStartPosition + 1));
 
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssue>());
             issueVizMock.SetupProperty(x => x.Span);
-            issueVizMock.Object.Span = new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27));
+            issueVizMock.Object.Span = span;
 
             return issueVizMock.Object;
         }
