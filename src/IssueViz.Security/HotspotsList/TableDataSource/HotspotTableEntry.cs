@@ -22,6 +22,7 @@ using System;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
@@ -51,12 +52,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     content = hotspot.RuleKey;
                     break;
 
-                case StandardTableColumnDefinitions.DocumentName:
-                    content = hotspot.FilePath;
+                case StandardTableColumnDefinitions.Priority:
+                    content = hotspot.Priority.ToString();
                     break;
 
                 case StandardTableColumnDefinitions.Text:
                     content = hotspot.Message;
+                    break;
+
+                case StandardTableColumnDefinitions.DocumentName:
+                    content = hotspot.FilePath;
                     break;
 
                 case StandardTableColumnDefinitions.Line:
