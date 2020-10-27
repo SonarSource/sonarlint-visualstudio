@@ -97,8 +97,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
             var hotspotFilePaths = hotspot
                 .GetAllLocations()
-                .Select(x => x.CurrentFilePath.ToLower())
-                .Distinct();
+                .Select(x => x.CurrentFilePath)
+                .Distinct(StringComparer.OrdinalIgnoreCase);
 
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
