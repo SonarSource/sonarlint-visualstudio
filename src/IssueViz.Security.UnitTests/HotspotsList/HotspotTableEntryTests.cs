@@ -67,13 +67,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryGetValue_DocumentNameColumn_ReturnsHotspotFilePath()
+        [DataRow(HotspotPriority.High, "High")]
+        [DataRow(HotspotPriority.Medium, "Medium")]
+        [DataRow(HotspotPriority.Low, "Low")]
+        public void TryGetValue_PriorityColumn_ReturnsHotspotPriority(HotspotPriority priority, string expectedValue)
         {
             var hotspot = new Mock<IHotspot>();
-            hotspot.SetupGet(x => x.FilePath).Returns("test path");
+            hotspot.SetupGet(x => x.Priority).Returns(priority);
 
-            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.DocumentName);
-            value.Should().Be("test path");
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Priority);
+            value.Should().Be(expectedValue);
         }
 
         [TestMethod]
@@ -84,6 +87,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Text);
             value.Should().Be("test message");
+        }
+
+        [TestMethod]
+        public void TryGetValue_DocumentNameColumn_ReturnsHotspotFilePath()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.FilePath).Returns("test path");
+
+            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.DocumentName);
+            value.Should().Be("test path");
         }
 
         [TestMethod]
