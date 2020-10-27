@@ -95,7 +95,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 }
             }
 
-            var hotspotFilePaths = hotspot.GetAllLocations().Select(x => x.CurrentFilePath);
+            var hotspotFilePaths = hotspot
+                .GetAllLocations()
+                .Select(x => x.CurrentFilePath.ToLower())
+                .Distinct();
+
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
 
@@ -104,7 +108,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
         {
             var matchingLocations = tableEntries
-                .Select(entry => entry.Identity as IAnalysisIssueVisualization)
+                .Select(entry => (IAnalysisIssueVisualization) entry.Identity)
                 .SelectMany(hotspotViz => hotspotViz.GetAllLocations())
                 .Where(locationViz => PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
 
@@ -115,10 +119,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         {
             var changedEntries = tableEntries
                 .Where(entry => affectedFilePaths.Any(p =>
-                    PathHelper.IsMatchingPath(p, (entry.Identity as IAnalysisIssueVisualization).CurrentFilePath)))
+                    PathHelper.IsMatchingPath(p, ((IAnalysisIssueVisualization) entry.Identity).CurrentFilePath)))
                 .ToList();
 
-            if (!changedEntries.Any())
+            if (changedEntries.Count == 0)
             {
                 return;
             }
