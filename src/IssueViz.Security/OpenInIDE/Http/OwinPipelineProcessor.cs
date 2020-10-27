@@ -27,17 +27,11 @@ using SonarLint.VisualStudio.Integration;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 {
     /// <summary>
-    /// Component that handles a low-level OWIN HTTP request to a specific relative path
+    /// Component that can process requests in an Owin pipeline
     /// </summary>
-    internal interface IOwinPathRequestHandler
+    internal interface IOwinPipelineProcessor
     {
-        /// <summary>
-        /// Relative path under the base URL address
-        /// e.g. "/sonarlint/status/"
-        /// </summary>
-        string RelativeUrlPath { get; }
-
-        Task ProcessRequest(Microsoft.Owin.IOwinContext context);
+        Task ProcessRequest(IDictionary<string, object> environment);
     }
 
     [Export(typeof(IOwinPipelineProcessor))]
@@ -57,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
             foreach(var handler in pathRequestHandlers)
             {
-                pathToHandlerMap.Add(handler.RelativeUrlPath, handler);
+                pathToHandlerMap.Add(handler.ApiPath, handler);
             }
         }
 

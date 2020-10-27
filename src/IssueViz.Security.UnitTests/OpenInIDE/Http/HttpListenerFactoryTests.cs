@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             return true;
         }
 
-        private static string GetPrefix(int port) => $"http://localhost:{port}/";
+        private static string GetPrefix(int port) => $"http://localhost:{port}/sonarlint/api/";
 
         /// <summary>
         /// Helper class to listen on the specified port(s) until the

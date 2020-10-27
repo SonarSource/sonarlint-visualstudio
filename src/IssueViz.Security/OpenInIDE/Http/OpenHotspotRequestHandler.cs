@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public string RelativeUrlPath => "/sonarlint/openhotspot";
+        public string ApiPath => "hotspots/show";
 
         public Task ProcessRequest(IOwinContext context)
         {

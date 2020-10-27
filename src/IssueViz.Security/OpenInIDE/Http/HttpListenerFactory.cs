@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Threading.Tasks;
 using Microsoft.Owin.BuilderProperties;
 using Microsoft.Owin.Host.HttpListener;
 using SonarLint.VisualStudio.Core;
@@ -37,14 +36,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
         /// Returns null if there is not a free port in the range.
         /// </summary>
         IDisposable Create(int startPort, int endPort);
-    }
-
-    /// <summary>
-    /// Component that can process requests in an Owin pipeline
-    /// </summary>
-    internal interface IOwinPipelineProcessor
-    {
-        Task ProcessRequest(IDictionary<string, object> environment);
     }
 
     [Export(typeof(IHttpListenerFactory))]
@@ -96,10 +87,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
                 Addresses = AddressCollection.Create()
             };
 
-            // We're not specifying a URL so 
             var address = Address.Create();
-
+            address.Scheme = "http";
+            address.Host = "localhost";
             address.Port = port.ToString();
+            address.Path = "/sonarlint/api/";
             appProperties.Addresses.Add(address);
 
             // Create a new Owin HTTPListener that forwards all requests to our processor for handling.

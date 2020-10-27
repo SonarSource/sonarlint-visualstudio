@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static IOwinPathRequestHandler CreateHandler(string path)
         {
             var handlerMock = new Mock<IOwinPathRequestHandler>();
-            handlerMock.Setup(x => x.RelativeUrlPath).Returns(path);
+            handlerMock.Setup(x => x.ApiPath).Returns(path);
 
             return handlerMock.Object;
         }
