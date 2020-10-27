@@ -20,10 +20,10 @@
 
 using System;
 using System.Windows;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
-using ImageMoniker = Microsoft.VisualStudio.Imaging.Interop.ImageMoniker;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
@@ -94,7 +94,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             return true;
         }
 
-        #region ITableEntry unimplemented methods
+        #region IWpfTableEntry unimplemented methods
 
         public virtual bool TryCreateToolTip(string columnName, out object toolTip)
         {

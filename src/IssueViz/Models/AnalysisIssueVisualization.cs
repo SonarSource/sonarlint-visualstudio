@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualStudio.Text;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -88,5 +89,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         string IFilterableIssue.ProjectGuid => null; // not used for non-Roslyn issues
 
         int? IFilterableIssue.StartLine => Issue.StartLine;
+    }
+
+    public static class AnalysisIssueVisualizationExtensions
+    {
+        /// <summary>
+        /// Returns primary and secondary locations of IssueVisualization
+        /// </summary>
+        public static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocations(this IAnalysisIssueVisualization issueVisualization)
+        {
+            var primaryLocation = issueVisualization;
+            var secondaryLocations = issueVisualization.Flows.SelectMany(x => x.Locations);
+
+            var allLocations = new List<IAnalysisIssueLocationVisualization> {primaryLocation};
+            allLocations.AddRange(secondaryLocations);
+
+            return allLocations;
+        }
     }
 }
