@@ -18,8 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
@@ -34,44 +32,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
         High,
         Medium,
         Low
-    }
-
-    internal class Hotspot : IHotspot
-    {
-        private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
-
-        public Hotspot(string filePath,
-            string message,
-            int startLine,
-            int endLine,
-            int startLineOffset,
-            int endLineOffset,
-            string lineHash,
-            string ruleKey,
-            HotspotPriority priority,
-            IReadOnlyList<IAnalysisIssueFlow> flows)
-        {
-            FilePath = filePath;
-            Message = message;
-            StartLine = startLine;
-            EndLine = endLine;
-            StartLineOffset = startLineOffset;
-            EndLineOffset = endLineOffset;
-            LineHash = lineHash;
-            RuleKey = ruleKey;
-            Priority = priority;
-            Flows = flows ?? EmptyFlows;
-        }
-
-        public string FilePath { get; }
-        public string Message { get; }
-        public int StartLine { get; }
-        public int EndLine { get; }
-        public int StartLineOffset { get; }
-        public int EndLineOffset { get; }
-        public string LineHash { get; }
-        public string RuleKey { get; }
-        public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
-        public HotspotPriority Priority { get; }
     }
 }
