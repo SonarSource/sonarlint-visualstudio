@@ -96,6 +96,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
+        public void TryGetValue_LineColumn_EmptySpan_ReturnsHotspotStartLine()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLine).Returns(123);
+
+            var issueViz = CreateIssueViz(hotspot.Object);
+            issueViz.Span = new SnapshotSpan();
+
+            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
+            result.Should().BeTrue();
+            value.Should().Be(123);
+        }
+
+        [TestMethod]
         public void TryGetValue_LineColumn_HasSpan_ReturnsSpanStartLine()
         {
             const int lineNumber = 12;
@@ -114,6 +128,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             hotspot.SetupGet(x => x.StartLineOffset).Returns(456);
 
             var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Column);
+            value.Should().Be(456);
+        }
+
+        [TestMethod]
+        public void TryGetValue_Column_EmptySpan_ReturnsHotspotStartPosition()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLineOffset).Returns(456);
+
+            var issueViz = CreateIssueViz(hotspot.Object);
+            issueViz.Span = new SnapshotSpan();
+
+            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
+            result.Should().BeTrue();
             value.Should().Be(456);
         }
 
