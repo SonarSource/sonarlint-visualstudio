@@ -151,11 +151,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var eventCount = 0;
             testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
 
-            testSubject.Add(CreateIssueViz("test1.cpp"));
+            var location1 = new Mock<IAnalysisIssueLocationVisualization>();
+            location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
+            var location2 = new Mock<IAnalysisIssueLocationVisualization>();
+            location2.SetupGet(x => x.CurrentFilePath).Returns("c.cpp");
+            var issueViz = CreateIssueViz("a.cpp", location1.Object, location2.Object);
+
+            testSubject.Add(issueViz);
 
             eventCount.Should().Be(1);
             suppliedArgs.Should().NotBeNull();
-            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("test1.cpp");
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp", "c.cpp");
         }
 
         [TestMethod]
@@ -180,14 +186,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void GetLocations_HasTableEntriesForGivenFilePath_ReturnsMatchingLocations()
         {
-            var issueViz1 = CreateIssueViz("somefile.cpp");
-            var issueViz2 = CreateIssueViz("someotherfile.cpp");
-            var issueViz3 = CreateIssueViz("somefile.cpp");
-
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
             locationViz.Setup(x => x.CurrentFilePath).Returns("somefile.cpp");
-            var flowViz = Mock.Get(issueViz2.Flows[0]);
-            flowViz.SetupGet(x => x.Locations).Returns(new[] {locationViz.Object});
+
+            var issueViz1 = CreateIssueViz("somefile.cpp");
+            var issueViz2 = CreateIssueViz("someotherfile.cpp", locationViz.Object);
+            var issueViz3 = CreateIssueViz("somefile.cpp");
 
             var testSubject = CreateTestSubject();
             testSubject.Add(issueViz1);
@@ -262,10 +266,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             sink.VerifyNoOtherCalls();
         }
 
-        private static IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp")
+        private static IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", params IAnalysisIssueLocationVisualization[] locations)
         {
             var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
-            flowViz.SetupGet(x => x.Locations).Returns(new List<IAnalysisIssueLocationVisualization>());
+            flowViz.SetupGet(x => x.Locations).Returns(locations);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(Mock.Of<IHotspot>());

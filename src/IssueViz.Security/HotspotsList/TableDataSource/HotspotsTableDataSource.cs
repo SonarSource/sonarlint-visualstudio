@@ -95,7 +95,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 }
             }
 
-            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(new[] {hotspot.CurrentFilePath}));
+            var hotspotFilePaths = hotspot.GetAllLocations().Select(x => x.CurrentFilePath);
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
