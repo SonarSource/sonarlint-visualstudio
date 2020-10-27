@@ -29,7 +29,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         public static IReadOnlyList<ColumnState> InitialStates { get; } = new[]
         {
             new ColumnState(StandardTableColumnDefinitions.ErrorCode, true, 50),
-            new ColumnState(StandardTableColumnDefinitions.Text, true, 450),
+            new ColumnState(StandardTableColumnDefinitions.Priority, true, 50),
+            new ColumnState(StandardTableColumnDefinitions.Text, true, 300),
             new ColumnState(StandardTableColumnDefinitions.DocumentName, true, 200),
             new ColumnState(StandardTableColumnDefinitions.Line, true, 50),
             new ColumnState(StandardTableColumnDefinitions.Column, true, 50),

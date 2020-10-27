@@ -20,10 +20,17 @@
 
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
 {
     internal interface IHotspot : IAnalysisIssueBase
     {
+        HotspotPriority Priority { get; }
+    }
 
+    public enum HotspotPriority
+    {
+        High,
+        Medium,
+        Low
     }
 }
