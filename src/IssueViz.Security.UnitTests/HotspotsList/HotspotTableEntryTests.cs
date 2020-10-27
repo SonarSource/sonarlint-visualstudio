@@ -20,6 +20,7 @@
 
 using System;
 using FluentAssertions;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -181,6 +182,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
+        public void TryCreateToolTip_Null()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.TryCreateToolTip(StandardTableColumnDefinitions.DocumentName, out var value);
+
+            result.Should().BeFalse();
+            value.Should().BeNull();
+        }
+
+        [TestMethod]
         public void CanSetValue_False()
         {
             var testSubject = new HotspotTableEntry(CreateIssueViz());
@@ -200,6 +211,59 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             testSubject.TryGetValue(StandardTableColumnDefinitions.DocumentName, out var value);
             value.Should().Be("unchanged file path");
+        }
+
+        [TestMethod]
+        public void CanCreateDetailsContent_False()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.CanCreateDetailsContent();
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void TryCreateDetailsContent_False()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.TryCreateDetailsContent(out var value);
+            result.Should().BeFalse();
+            value.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryCreateDetailsStringContent_False()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.TryCreateDetailsStringContent(out var value);
+            result.Should().BeFalse();
+            value.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryCreateColumnContent_False()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.TryCreateColumnContent("column", true, out var value);
+            result.Should().BeFalse();
+            value.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryCreateImageContent_False()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.TryCreateImageContent("column", true, out var value);
+            result.Should().BeFalse();
+            value.Should().BeEquivalentTo(default(ImageMoniker));
+        }
+
+        [TestMethod]
+        public void TryCreateStringContent_False()
+        {
+            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var result = testSubject.TryCreateStringContent("column", true, true, out var value);
+            result.Should().BeFalse();
+            value.Should().BeNull();
         }
 
         private static object GetValue(IHotspot hotspot, string column)
