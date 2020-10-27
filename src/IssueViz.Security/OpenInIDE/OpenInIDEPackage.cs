@@ -25,7 +25,7 @@ using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
 {
@@ -47,9 +47,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             IComponentModel componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            var logger = componentModel.GetService<ILogger>();
 
-            IListenerFactory listenerFactory = new ListenerFactory(logger);
+            var listenerFactory = componentModel.GetService<IHttpListenerFactory>();
             listener = listenerFactory.Create(StartPort, EndPort);
         }
 

@@ -18,13 +18,27 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Http
 {
-    internal interface IOpenInIDERequestListener : IDisposable
+    [TestClass]
+    public class OpenHotspotRequestHandlerTests
     {
-        void Start(IOpenInIDERequestHandler requestHandler);
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            // Arrange
+            var apiRequestHandler = MefTestHelpers.CreateExport<IOpenInIDERequestHandler>(Mock.Of<IOpenInIDERequestHandler>());
+            var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
+
+            // Act & Assert
+            MefTestHelpers.CheckTypeCanBeImported<OpenHotspotRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
+        }
     }
 }
