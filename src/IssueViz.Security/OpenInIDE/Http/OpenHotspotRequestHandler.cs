@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using SonarLint.VisualStudio.Integration;
@@ -33,6 +34,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
     [Export(typeof(IOwinPathRequestHandler))]
     internal class OpenHotspotRequestHandler : IOwinPathRequestHandler
     {
+        private const string ParamName_Server = "server";
+        private const string ParamName_Project = "project";
+        private const string ParamName_Hotspot = "hotspot";
+        private const string ParamName_Organization = "organization";
+
         private readonly IOpenInIDERequestHandler openInIDERequestHandler;
         private readonly ILogger logger;
 
@@ -47,10 +53,63 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         public Task ProcessRequest(IOwinContext context)
         {
-            // TODO:
-            // * extract and validate the request parameters
-            // * pass the request to the API request handler
-            throw new NotImplementedException();
+            var request = BuildRequest(context);
+            if (request == null)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                return Task.CompletedTask;
+            }
+
+            // TODO - make async?
+            openInIDERequestHandler.ShowHotspot(request);
+            context.Response.StatusCode = (int)HttpStatusCode.OK;
+            return Task.CompletedTask;
+        }
+
+        private IShowHotspotRequest BuildRequest(IOwinContext context)
+        {
+            // Try to get the required parameters
+            if (TryGetParameter(context, ParamName_Server, out var server) &
+                TryGetParameter(context, ParamName_Project, out var project) &
+                TryGetParameter(context, ParamName_Hotspot, out var hotspot))
+            {
+                TryGetParameter(context, ParamName_Organization, out var organization); // optional
+                return new ShowHotspotRequest(server, project, hotspot, organization);
+            }
+
+            return null;
+        }
+
+        private bool TryGetParameter(IOwinContext context, string paramName, out string value)
+        {
+            value = context.Request.Query.Get(paramName);
+
+            var found = value != null;
+            if (!found)
+            {
+                logger.WriteLine(OpenInIDEResources.OpenHotspot_MissingParameter, paramName);
+            }
+
+            return found;
+        }
+
+        private class ShowHotspotRequest : IShowHotspotRequest
+        {
+            public ShowHotspotRequest(string server, string project, string hotspot, string organization)
+            {
+                ServerUrl = server;
+                ProjectKey = project;
+                HotspotKey = hotspot;
+                OrganizationKey = organization;
+            }
+
+            public string ServerUrl { get; }
+
+            public string OrganizationKey { get; }
+
+            public string ProjectKey { get; }
+
+            public string HotspotKey { get; }
         }
     }
 }
