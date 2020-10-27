@@ -18,20 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 {
-    internal class OpenInIDEHttpListener
+    /// <summary>
+    /// Component that handles a low-level OWIN HTTP request to a specific relative path
+    /// </summary>
+    internal interface IOwinPathRequestHandler
     {
         /// <summary>
-        /// Called for each low-level HTTP request received by the HTTPListener
+        /// Relative path under the base URL address of http://{host}:{port}/sonarlint/api/
+        /// e.g. "status"
         /// </summary>
-        public Task ProcessRequest(IDictionary<string, object> environment)
-        {
-            //TODO
-            return Task.CompletedTask;
-        }
+        string ApiPath { get; }
+
+        Task ProcessRequest(Microsoft.Owin.IOwinContext context);
     }
 }

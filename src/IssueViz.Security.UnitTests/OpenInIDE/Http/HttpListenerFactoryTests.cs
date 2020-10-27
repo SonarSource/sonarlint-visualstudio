@@ -24,14 +24,27 @@ using System.Net;
 using FluentAssertions;
 using Microsoft.Owin.Host.HttpListener;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Http
 {
     [TestClass]
-    public class ListenerFactoryTests
+    public class HttpListenerFactoryTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            // Arrange
+            var requestProcessorExport = MefTestHelpers.CreateExport<IOwinPipelineProcessor>(Mock.Of<IOwinPipelineProcessor>());
+            var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
+
+            // Act & Assert
+            MefTestHelpers.CheckTypeCanBeImported<HttpListenerFactory, IHttpListenerFactory>(null, new[] { requestProcessorExport, loggerExport });
+        }
+
         [TestMethod]
         [DataRow(10000, 10003, 10000)]
         [DataRow(10000, 10003, 10001)]
@@ -40,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         [DataRow(20000, 20005, 20006)] // no free ports in the range
         public void Create_FirstAvailablePortIsUsed(int startPort, int endPort, int firstFreePort)
         {
-            IListenerFactory testSubject = new ListenerFactory(new TestLogger(logToConsole: true));
+            IHttpListenerFactory testSubject = new HttpListenerFactory(Mock.Of<IOwinPipelineProcessor>(), new TestLogger(logToConsole: true));
 
             bool isFreePortInRange = firstFreePort >= startPort && firstFreePort <= endPort;
 
@@ -114,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             return true;
         }
 
-        private static string GetPrefix(int port) => $"http://localhost:{port}/";
+        private static string GetPrefix(int port) => $"http://localhost:{port}/sonarlint/api/";
 
         /// <summary>
         /// Helper class to listen on the specified port(s) until the
