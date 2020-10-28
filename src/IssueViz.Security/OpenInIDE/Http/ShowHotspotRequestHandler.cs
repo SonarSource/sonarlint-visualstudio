@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
     /// Handles low-level HTTP request to open a hotspot
     /// </summary>
     [Export(typeof(IOwinPathRequestHandler))]
-    internal class OpenHotspotRequestHandler : IOwinPathRequestHandler
+    internal class ShowHotspotRequestHandler : IOwinPathRequestHandler
     {
         private const string ParamName_Server = "server";
         private const string ParamName_Project = "project";
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal OpenHotspotRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler, ILogger logger)
+        internal ShowHotspotRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler, ILogger logger)
         {
             this.openInIDERequestHandler = openInIDERequestHandler ?? throw new ArgumentNullException(nameof(openInIDERequestHandler));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -68,7 +68,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         private IShowHotspotRequest BuildRequest(IOwinContext context)
         {
-            // Try to get the required parameters
+            // Try to get the required parameters.
+            // Note: we're not using the short-circuit operator here so all of the
+            // missing parameters will be logged.
             if (TryGetParameter(context, ParamName_Server, out var server) &
                 TryGetParameter(context, ParamName_Project, out var project) &
                 TryGetParameter(context, ParamName_Hotspot, out var hotspot))

@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Http
 {
     [TestClass]
-    public class OpenHotspotRequestHandlerTests
+    public class ShowHotspotRequestHandlerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -40,10 +40,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<OpenHotspotRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<ShowHotspotRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
         }
 
         [TestMethod]
+        [DataRow("", "server;project;hotspot")]
         [DataRow("server=s&hotspot=h&organization=o", "project")]
         [DataRow("project=p&hotspot=h&organization=o", "server")]
         [DataRow("project=p&server=s&organization=o", "hotspot")]
@@ -57,13 +58,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var context = CreateContext(wholeQueryString);
 
-            var testSubject = new OpenHotspotRequestHandler(apiHandlerMock.Object, testLogger);
+            var testSubject = new ShowHotspotRequestHandler(apiHandlerMock.Object, testLogger);
 
             // Act
             testSubject.ProcessRequest(context);
 
             context.Response.StatusCode.Should().Be(400);
 
+            // Note: passing a variable number of items to a test is messy. Here, it's
+            // simpler to pass a string and split it.
             var missingParamNames = missingParamList.Split(';');
             foreach(var paramName in missingParamNames)
             {
@@ -78,6 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [DataRow("project=p&server=s&hotspot=h&organization=o", "s", "p", "h", "o")]
         [DataRow("organization=O&hotspot=H&server=S&project=P", "S", "P", "H", "O")] // order is not important and value case is preserved
         [DataRow("PROJECT=pppp&SERVER=sss&hotSPOT=hhh", "sss", "pppp", "hhh", null)] // lookup is not case sensitive
+        [DataRow("project=p&server=s&hotspot=h&unknown=oXXX", "s", "p", "h", null)]  // unknown parameters are ignored
         public void ProcessRequest_ValidRequest_HandlerCalledAndReturns200StatusCode(string wholeQueryString, string expectedServer, string expectedProject,
             string expectedHotspot, string expectedOrganization)
         {
@@ -85,7 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var context = CreateContext(wholeQueryString);
 
-            var testSubject = new OpenHotspotRequestHandler(apiHandlerMock.Object, new TestLogger(logToConsole: true));
+            var testSubject = new ShowHotspotRequestHandler(apiHandlerMock.Object, new TestLogger(logToConsole: true));
 
             // Act
             testSubject.ProcessRequest(context);
