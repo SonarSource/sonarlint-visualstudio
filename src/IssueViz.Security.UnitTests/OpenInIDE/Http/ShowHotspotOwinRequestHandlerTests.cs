@@ -30,7 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Http
 {
     [TestClass]
-    public class ShowHotspotRequestHandlerTests
+    public class ShowHotspotOwinRequestHandlerTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -40,13 +40,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<ShowHotspotRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<ShowHotspotOwinRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
         }
 
         [TestMethod]
         public void ApiPath_ReturnsExpectedPath()
         {
-            var testSubject = new ShowHotspotRequestHandler(Mock.Of<IOpenInIDERequestHandler>(), Mock.Of<ILogger>());
+            var testSubject = new ShowHotspotOwinRequestHandler(Mock.Of<IOpenInIDERequestHandler>(), Mock.Of<ILogger>());
 
             testSubject.ApiPath.Should().Be("hotspots/show");
         }
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var context = CreateContext(wholeQueryString);
 
-            var testSubject = new ShowHotspotRequestHandler(apiHandlerMock.Object, testLogger);
+            var testSubject = new ShowHotspotOwinRequestHandler(apiHandlerMock.Object, testLogger);
 
             // Act
             testSubject.ProcessRequest(context);
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var context = CreateContext(wholeQueryString);
 
-            var testSubject = new ShowHotspotRequestHandler(apiHandlerMock.Object, new TestLogger(logToConsole: true));
+            var testSubject = new ShowHotspotOwinRequestHandler(apiHandlerMock.Object, new TestLogger(logToConsole: true));
 
             // Act
             testSubject.ProcessRequest(context);

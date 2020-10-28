@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
     /// Handles low-level HTTP request to open a hotspot
     /// </summary>
     [Export(typeof(IOwinPathRequestHandler))]
-    internal class ShowHotspotRequestHandler : IOwinPathRequestHandler
+    internal class ShowHotspotOwinRequestHandler : IOwinPathRequestHandler
     {
         private const string ParamName_Server = "server";
         private const string ParamName_Project = "project";
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal ShowHotspotRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler, ILogger logger)
+        internal ShowHotspotOwinRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler, ILogger logger)
         {
             this.openInIDERequestHandler = openInIDERequestHandler ?? throw new ArgumentNullException(nameof(openInIDERequestHandler));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
