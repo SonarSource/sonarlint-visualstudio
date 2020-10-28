@@ -19,9 +19,7 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration
