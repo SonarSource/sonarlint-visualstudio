@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core;
@@ -204,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region Test helpers
 
-        private static SonarLintImageMoniker CreateFromVsMoniker(dynamic imageMoniker) => new SonarLintImageMoniker(imageMoniker.Guid, imageMoniker.Id);
+        private static SonarLintImageMoniker CreateFromVsMoniker(ImageMoniker imageMoniker) => new SonarLintImageMoniker(imageMoniker.Guid, imageMoniker.Id);
 
         private static ConfigurableVsInfoBarHost RegisterFrameInfoBarHost(ConfigurableVsWindowFrame frame)
         {
