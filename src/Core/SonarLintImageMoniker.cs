@@ -23,7 +23,7 @@ using System;
 namespace SonarLint.VisualStudio.Core
 {
     /// <summary>
-    /// Wrapper class for Microsoft.VisualStudio.Imaging.Interop.ImageMoniker struct
+    /// Duplication of Microsoft.VisualStudio.Imaging.Interop.ImageMoniker struct, used to avoid adding a reference to VS assembly.
     /// </summary>
     public readonly struct SonarLintImageMoniker
     {
