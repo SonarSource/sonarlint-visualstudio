@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Missing request parameter: {0}.
+        /// </summary>
+        internal static string OpenHotspot_MissingParameter {
+            get {
+                return ResourceManager.GetString("OpenHotspot_MissingParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Handing request: {0}.
         /// </summary>
         internal static string Pipeline_HandlingRequest {
