@@ -22,12 +22,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 {
@@ -40,16 +41,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
         [ImportingConstructor]
         public InfoBarManager([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         #region IInfoBarManager
-        public IInfoBar AttachInfoBarWithButton(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
+        public IInfoBar AttachInfoBarWithButton(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -61,17 +57,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(buttonText));
             }
 
-            return AttachInfoBarImpl(toolwindowGuid, message, buttonText, imageMoniker);
+            return AttachInfoBarImpl(toolWindowGuid, message, buttonText, imageMoniker);
         }
 
-        public IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker)
+        public IInfoBar AttachInfoBar(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
                 throw new ArgumentNullException(nameof(message));
             }
 
-            return AttachInfoBarImpl(toolwindowGuid, message, null, imageMoniker);
+            return AttachInfoBarImpl(toolWindowGuid, message, null, imageMoniker);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
@@ -104,10 +100,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
         #region Static helpers
 
-        private IInfoBar AttachInfoBarImpl(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
+        private IInfoBar AttachInfoBarImpl(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
             IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
-            IVsWindowFrame frame = GetToolWindowFrame(shell, toolwindowGuid);
+            IVsWindowFrame frame = GetToolWindowFrame(shell, toolWindowGuid);
 
             InfoBarModel model = CreateModel(message, buttonText, imageMoniker);
 
@@ -151,11 +147,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return uiElement != null;
         }
 
-        private static InfoBarModel CreateModel(string message, string buttonText, ImageMoniker imageMoniker)
+        private static InfoBarModel CreateModel(string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
+            var vsImageMoniker = new ImageMoniker {Guid = imageMoniker.Guid, Id = imageMoniker.Id};
+
             return new InfoBarModel(message,
                 actionItems: buttonText != null ? new[] { new InfoBarButton(buttonText) } : new IVsInfoBarActionItem[0],
-                image: imageMoniker,
+                image: vsImageMoniker,
                 isCloseButtonVisible: true);
         }
 
