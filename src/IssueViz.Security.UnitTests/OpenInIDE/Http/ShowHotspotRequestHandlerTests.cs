@@ -44,6 +44,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
+        public void ApiPath_ReturnsExpectedPath()
+        {
+            var testSubject = new ShowHotspotRequestHandler(Mock.Of<IOpenInIDERequestHandler>(), Mock.Of<ILogger>());
+
+            testSubject.ApiPath.Should().Be("hotspots/show");
+        }
+
+        [TestMethod]
         [DataRow("", "server;project;hotspot")]
         [DataRow("server=s&hotspot=h&organization=o", "project")]
         [DataRow("project=p&hotspot=h&organization=o", "server")]
