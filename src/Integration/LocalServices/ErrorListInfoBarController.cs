@@ -29,9 +29,10 @@ using EnvDTE;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -231,7 +232,7 @@ namespace SonarLint.VisualStudio.Integration
                 ErrorListToolWindowGuid,
                 customInfoBarMessage ?? Strings.SonarLintInfoBarUnboundProjectsMessage,
                 Strings.SonarLintInfoBarUpdateCommandText,
-                KnownMonikers.RuleWarning);
+                new SonarLintImageMoniker(KnownMonikers.RuleWarning.Guid, KnownMonikers.RuleWarning.Id));
 
             if (this.currentErrorWindowInfoBar == null)
             {
