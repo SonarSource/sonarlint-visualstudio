@@ -29,9 +29,10 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.InfoBar;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -933,7 +934,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             infoBar.Message.Should().Be(Strings.SonarLintInfoBarUnboundProjectsMessage);
             infoBar.ButtonText.Should().Be(Strings.SonarLintInfoBarUpdateCommandText);
-            infoBar.Image.Should().Be(KnownMonikers.RuleWarning);
+            infoBar.Image.Should().BeEquivalentTo(new SonarLintImageMoniker(KnownMonikers.RuleWarning.Guid, KnownMonikers.RuleWarning.Id));
         }
 
         #endregion Test helpers

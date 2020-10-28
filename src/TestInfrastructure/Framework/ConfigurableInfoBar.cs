@@ -20,8 +20,8 @@
 
 using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.Imaging.Interop;
-using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         internal int ClosedCalledCount { get; private set; }
 
-        public ConfigurableInfoBar(string message, string buttonText, ImageMoniker imageMoniker)
+        public ConfigurableInfoBar(string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
             message.Should().NotBeNull("Message is null");
             buttonText.Should().NotBeNull("Button text is null");
@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.Image = imageMoniker;
         }
 
-        public ConfigurableInfoBar(string message, ImageMoniker imageMoniker)
+        public ConfigurableInfoBar(string message, SonarLintImageMoniker imageMoniker)
         {
             message.Should().NotBeNull("Message is null");
             imageMoniker.Should().NotBeNull("image moniker is null");
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         public string Message { get; }
         public string ButtonText { get; }
-        public ImageMoniker Image { get; }
+        public SonarLintImageMoniker Image { get; }
 
         public void SimulateButtonClickEvent()
         {

@@ -19,38 +19,34 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace SonarLint.VisualStudio.Integration.InfoBar
+namespace SonarLint.VisualStudio.Core.InfoBar
 {
-    /// <summary>
-    /// Info bar manager
-    /// </summary>
     public interface IInfoBarManager
     {
         /// <summary>
         /// Attach an info bar with just a message to an existing tool window
         /// </summary>
-        /// <param name="toolwindowGuid">Tool window Guid</param>
+        /// <param name="toolWindowGuid">Tool window Guid</param>
         /// <param name="message">Message to show on the info bar</param>
         /// <param name="imageMoniker">Image</param>
         /// <returns><see cref="IInfoBar"/></returns>
-        IInfoBar AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker);
+        IInfoBar AttachInfoBar(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
         /// Attach an info bar with a message and a button to an existing tool window
         /// </summary>
-        /// <param name="toolwindowGuid">Tool window Guid</param>
+        /// <param name="toolWindowGuid">Tool window Guid</param>
         /// <param name="message">Message to show on the info bar</param>
         /// <param name="buttonText">The button text</param>
         /// <param name="imageMoniker">Image</param>
         /// <returns><see cref="IInfoBar"/></returns>
-        IInfoBar AttachInfoBarWithButton(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker);
+        IInfoBar AttachInfoBarWithButton(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker);
 
         /// <summary>
         /// Detaches an <see cref="IInfoBar"/> from its tool window
         /// </summary>
-        /// <param name="currentInfoBar">Instance of <see cref="IInfoBar"/> created by <see cref="AttachInfoBar(Guid, string, string)"/></param>
+        /// <param name="currentInfoBar">Instance of <see cref="IInfoBar"/> created by <see cref="AttachInfoBar(Guid, string, SonarLintImageMoniker)"/></param>
         void DetachInfoBar(IInfoBar currentInfoBar);
     }
 }

@@ -23,7 +23,8 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Imaging.Interop;
-using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,21 +34,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IInfoBarManager
 
-        IInfoBar IInfoBarManager.AttachInfoBarWithButton(Guid toolwindowGuid, string message, string buttonText, ImageMoniker imageMoniker)
+        IInfoBar IInfoBarManager.AttachInfoBarWithButton(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
-            this.attached.Should().NotContainKey(toolwindowGuid, "Info bar is already attached to tool window {0}", toolwindowGuid);
+            this.attached.Should().NotContainKey(toolWindowGuid, "Info bar is already attached to tool window {0}", toolWindowGuid);
 
             var infoBar = new ConfigurableInfoBar(message, buttonText, imageMoniker);
-            this.attached[toolwindowGuid] = infoBar;
+            this.attached[toolWindowGuid] = infoBar;
             return infoBar;
         }
 
-        IInfoBar IInfoBarManager.AttachInfoBar(Guid toolwindowGuid, string message, ImageMoniker imageMoniker)
+        IInfoBar IInfoBarManager.AttachInfoBar(Guid toolWindowGuid, string message, SonarLintImageMoniker imageMoniker)
         {
-            this.attached.Should().NotContainKey(toolwindowGuid, "Info bar is already attached to tool window {0}", toolwindowGuid);
+            this.attached.Should().NotContainKey(toolWindowGuid, "Info bar is already attached to tool window {0}", toolWindowGuid);
 
             var infoBar = new ConfigurableInfoBar(message, imageMoniker);
-            this.attached[toolwindowGuid] = infoBar;
+            this.attached[toolWindowGuid] = infoBar;
             return infoBar;
         }
 
