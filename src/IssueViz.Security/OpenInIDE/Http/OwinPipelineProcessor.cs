@@ -21,8 +21,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Owin;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 {
@@ -58,10 +61,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
         /// <summary>
         /// Called for each low-level HTTP request received by the underlying HTTPListener
         /// </summary>
-        public Task ProcessRequest(IDictionary<string, object> environment)
+        public async Task ProcessRequest(IDictionary<string, object> environment)
         {
-            //TODO
-            return Task.CompletedTask;
+            try
+            {
+                var context = new OwinContext(environment);
+                if (pathToHandlerMap.TryGetValue(context.Request.Path.Value, out var handler))
+                {
+                    logger.WriteLine(OpenInIDEResources.Pipeline_HandlingRequest, context.Request.Path.Value);
+                    await handler.ProcessRequest(context);
+                }
+                else
+                {
+                    logger.WriteLine(OpenInIDEResources.Pipeline_UnrecognizedRequest, context.Request.Path.Value);
+                    context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                }
+            }
+            catch(Exception ex)
+            {
+                // Log then rethrow. We expect the handler pipeline to convert the error into an HTML 500 response
+                logger.WriteLine(OpenInIDEResources.Pipeline_UnhandledError, ex.Message);
+                logger.LogDebug(string.Format(OpenInIDEResources.Pipeline_UnhandledError_Detailed, ex));
+                throw;
+            }
         }
     }
 }

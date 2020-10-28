@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Checking availability of port {0}.
+        ///   Looks up a localized string similar to [Open in IDE] Checking availability of port {0}.
         /// </summary>
         internal static string Factory_CheckingPort {
             get {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Creating request listener....
+        ///   Looks up a localized string similar to [Open in IDE] Creating request listener....
         /// </summary>
         internal static string Factory_CreatingListener {
             get {
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to create a request listener - no available ports. The Open In IDE server feature will not be able to connect to this instance of Visual Studio..
+        ///   Looks up a localized string similar to [Open in IDE] Failed to create a request listener - no available ports. The Open In IDE server feature will not be able to connect to this instance of Visual Studio..
         /// </summary>
         internal static string Factory_Failed_NoAvailablePorts {
             get {
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Port {0} is unavailable.
+        ///   Looks up a localized string similar to [Open in IDE] Port {0} is unavailable.
         /// </summary>
         internal static string Factory_PortIsUnavailable {
             get {
@@ -97,11 +97,47 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Listener created successfully. Listening on port {0}..
+        ///   Looks up a localized string similar to [Open in IDE] Request listener created successfully. Listening on port {0}..
         /// </summary>
         internal static string Factory_Succeeded {
             get {
                 return ResourceManager.GetString("Factory_Succeeded", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Handing request: {0}.
+        /// </summary>
+        internal static string Pipeline_HandlingRequest {
+            get {
+                return ResourceManager.GetString("Pipeline_HandlingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Error handling request: {0}.
+        /// </summary>
+        internal static string Pipeline_UnhandledError {
+            get {
+                return ResourceManager.GetString("Pipeline_UnhandledError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Detailed error: {0}.
+        /// </summary>
+        internal static string Pipeline_UnhandledError_Detailed {
+            get {
+                return ResourceManager.GetString("Pipeline_UnhandledError_Detailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Unrecognized request received: {0}.
+        /// </summary>
+        internal static string Pipeline_UnrecognizedRequest {
+            get {
+                return ResourceManager.GetString("Pipeline_UnrecognizedRequest", resourceCulture);
             }
         }
     }

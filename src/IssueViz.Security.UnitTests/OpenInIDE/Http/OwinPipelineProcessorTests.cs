@@ -20,7 +20,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Owin;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
@@ -56,12 +59,83 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             testSubject.PathToHandlerMap["path2/"].Should().BeSameAs(handler2);
         }
 
-        private static IOwinPathRequestHandler CreateHandler(string path)
+        [TestMethod]
+        [DataRow("/unknown")]
+        [DataRow("/sonarlint/api/unknown")]
+        [DataRow("/sonarlint")]
+        [DataRow("/sonarlint/api")]
+        [DataRow("/handled")]
+        [DataRow("/api/handled")]
+        [DataRow("/SONARLINT/API/HANDLED")]
+        public async Task ProcessRequest_UnrecognisedPath_Returns404(string requestedPath)
+        {
+            var testLogger = new TestLogger(logToConsole: true);
+            var context = CreateOwinContext(requestedPath);
+
+            var handler = CreateHandler("/sonarlint/api/handled");
+            var testSubject = new OwinPipelineProcessor(new[] { handler }, testLogger);
+
+            await testSubject.ProcessRequest(context.Environment).ConfigureAwait(false);
+
+            context.Response.StatusCode.Should().Be(404);
+            testLogger.AssertPartialOutputStringExists(requestedPath);
+        }
+
+        [TestMethod]
+        public async Task ProcessRequest_RecognisedPath_ReturnsStatusSetByHandler()
+        {
+            var testLogger = new TestLogger(logToConsole: true);
+            const int expectedStatusCode = 12345;
+            const string handledRequestPath = "/sonarlint/api/handled";
+            var context = CreateOwinContext(handledRequestPath);
+
+            var handler = CreateHandler(handledRequestPath, expectedStatusCode);
+            var testSubject = new OwinPipelineProcessor(new[] { handler }, testLogger);
+
+            await testSubject.ProcessRequest(context.Environment).ConfigureAwait(false);
+
+            context.Response.StatusCode.Should().Be(expectedStatusCode);
+            testLogger.AssertPartialOutputStringExists(handledRequestPath);
+        }
+
+        [TestMethod]
+        public void ProcessRequest_ExceptionInHandler_IsLoggedAndRethrown()
+        {
+            var testLogger = new TestLogger(logToConsole: true);
+            const string handledRequestPath = "/path";
+            var context = CreateOwinContext(handledRequestPath);
+
+            const string expectedErrorMessage = "exception thrown by test";
+            var handler = CreateHandler(handledRequestPath, processOp: () => throw new IndexOutOfRangeException(expectedErrorMessage));
+            var testSubject = new OwinPipelineProcessor(new[] { handler }, testLogger);
+
+            Func<Task> act = () => testSubject.ProcessRequest(context.Environment);
+
+            act.Should().ThrowExactly<IndexOutOfRangeException>().And.Message.Should().Be(expectedErrorMessage);
+            testLogger.AssertPartialOutputStringExists(expectedErrorMessage);
+        }
+
+        private static IOwinPathRequestHandler CreateHandler(string path, int statusCodeToReturn = (int)HttpStatusCode.OK, Action processOp = null)
         {
             var handlerMock = new Mock<IOwinPathRequestHandler>();
             handlerMock.Setup(x => x.ApiPath).Returns(path);
 
+            handlerMock.Setup(x => x.ProcessRequest(It.IsAny<IOwinContext>()))
+                .Callback<IOwinContext>( x =>
+                     {
+                         x.Response.StatusCode = statusCodeToReturn;
+                         processOp?.Invoke();
+                     });
+
             return handlerMock.Object;
+        }
+
+        private static IOwinContext CreateOwinContext(string requestedPath)
+        {
+            var context = new OwinContext();
+            context.Request.Path = new PathString(requestedPath);
+
+            return context;
         }
     }
 }
