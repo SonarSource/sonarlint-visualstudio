@@ -22,10 +22,10 @@ using System;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Imaging;
-using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.Vsix.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -60,11 +60,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new InfoBarManager(this.serviceProvider);
 
             // Simple checks
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, null, KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, "", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, null, CreateFromVsMoniker(KnownMonikers.EventError)));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBar(Guid.Empty, "", CreateFromVsMoniker(KnownMonikers.EventError)));
 
             // Actually checking if the frame exists
-            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", "button text", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", "button text", CreateFromVsMoniker(KnownMonikers.EventError)));
         }
 
         [TestMethod]
@@ -74,13 +74,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var testSubject = new InfoBarManager(this.serviceProvider);
 
             // Simple checks
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, null, "button text", KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "", "button text", KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", null, KnownMonikers.EventError));
-            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", " ", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, null, "button text", CreateFromVsMoniker(KnownMonikers.EventError)));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "", "button text", CreateFromVsMoniker(KnownMonikers.EventError)));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", null, CreateFromVsMoniker(KnownMonikers.EventError)));
+            Exceptions.Expect<ArgumentNullException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", " ", CreateFromVsMoniker(KnownMonikers.EventError)));
 
             // Actually checking if the frame exists
-            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", "button text", KnownMonikers.EventError));
+            Exceptions.Expect<ArgumentException>(() => testSubject.AttachInfoBarWithButton(Guid.Empty, "message", "button text", CreateFromVsMoniker(KnownMonikers.EventError)));
         }
 
         [TestMethod]
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             host.AssertInfoBars(0);
 
             // Act
-            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", KnownMonikers.UserWarning);
+            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", CreateFromVsMoniker(KnownMonikers.UserWarning));
             frame.ShowNoActivateCalledCount.Should().Be(1);
             bool actionClicked = false;
             bool closed = false;
@@ -155,14 +155,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.AssertOnUnexpectedServiceRequest = false;
 
             // Act + Assert
-            testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
+            testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default).Should().BeNull();
             frame.ShowNoActivateCalledCount.Should().Be(0);
 
             // Case 2: Service exists, no host for frame
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
 
             // Act + Assert
-            testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default(ImageMoniker)).Should().BeNull();
+            testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default).Should().BeNull();
             frame.ShowNoActivateCalledCount.Should().Be(0);
         }
 
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsInfoBarUIFactory), new ConfigurableVsInfoBarUIFactory());
             var testSubject = new InfoBarManager(this.serviceProvider);
             ConfigurableVsInfoBarHost host = RegisterFrameInfoBarHost(frame);
-            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default(ImageMoniker));
+            IInfoBar infoBarWrapper = testSubject.AttachInfoBarWithButton(windowGuid, "Hello", "world", default);
             bool closed = false;
             infoBarWrapper.Closed += (s, e) => closed = true;
 
@@ -203,6 +203,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #endregion Tests
 
         #region Test helpers
+
+        private static SonarLintImageMoniker CreateFromVsMoniker(dynamic imageMoniker) => new SonarLintImageMoniker(imageMoniker.Guid, imageMoniker.Id);
 
         private static ConfigurableVsInfoBarHost RegisterFrameInfoBarHost(ConfigurableVsWindowFrame frame)
         {

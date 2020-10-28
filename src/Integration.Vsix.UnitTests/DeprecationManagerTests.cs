@@ -20,10 +20,10 @@
 
 using System;
 using FluentAssertions;
-using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var inforBarManagerMock = new Mock<IInfoBarManager>();
             var infoBar = new Mock<IInfoBar>();
             inforBarManagerMock
-                .Setup(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, It.IsAny<string>(), It.IsAny<ImageMoniker>()))
+                .Setup(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, It.IsAny<string>(), It.IsAny<SonarLintImageMoniker>()))
                 .Returns(infoBar.Object);
 
             var deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var inforBarManagerMock = new Mock<IInfoBarManager>();
             var infoBar = new Mock<IInfoBar>();
             inforBarManagerMock
-                .Setup(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, It.IsAny<string>(), It.IsAny<ImageMoniker>()))
+                .Setup(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, It.IsAny<string>(), It.IsAny<SonarLintImageMoniker>()))
                 .Returns(infoBar.Object);
 
             var deprecationManager = new DeprecationManager(inforBarManagerMock.Object, sonarLintOutputMock.Object);
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             sonarLintOutputMock.Verify(x => x.WriteLine(expectedOutputMessage), numberOfTimes);
             inforBarManagerMock.Verify(x => x.AttachInfoBar(DeprecationManager.DeprecationBarGuid, expectedBarMessage,
-                It.IsAny<ImageMoniker>()), numberOfTimes);
+                It.IsAny<SonarLintImageMoniker>()), numberOfTimes);
         }
     }
 }

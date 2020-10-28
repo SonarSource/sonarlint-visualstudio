@@ -21,7 +21,8 @@
 using System;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.InfoBar;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.InfoBar;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -70,7 +71,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             const string message = "SonarLint for Visual Studio versions 4.0+ will no longer support this version of Visual " +
                 "Studio. Please update to Visual Studio 2015 Update 3 or Visual Studio 2017 to benefit from new features.";
-            deprecationBar = infoBarManager.AttachInfoBar(DeprecationBarGuid, message, default(ImageMoniker));
+            deprecationBar = infoBarManager.AttachInfoBar(DeprecationBarGuid, message, default);
         }
 
         public void Dispose()

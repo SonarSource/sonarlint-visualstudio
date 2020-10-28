@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration.InfoBar
+namespace SonarLint.VisualStudio.Core.InfoBar
 {
     /// <summary>
     /// Represents an attached info bar
