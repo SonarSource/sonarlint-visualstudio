@@ -19,8 +19,11 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Owin.Host.HttpListener;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -46,6 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
+        [TestCategory("Integration")]
         [DataRow(10000, 10003, 10000)]
         [DataRow(10000, 10003, 10001)]
         [DataRow(10000, 10003, 10002)]
@@ -96,6 +100,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             // The port used by the test subject should have been released on disposal
             IsPortAvailable(firstFreePort).Should().BeTrue();
+        }
+
+        [TestMethod]
+        [TestCategory("Integration")]
+        public async Task ListenerPipeline_ExceptionInHandler_Returns500()
+        {
+            const int port = 10000;
+            // If any of the ports required by the test are not available then bail out.
+            if (!AreAllPortsAvailable(port))
+            {
+                Assert.Inconclusive("Test setup error: some test ports are in use.");
+            }
+
+            // Create a listener with an inner handler that will always throw
+            var handlerExecuted = false;
+            var innerProcessorMock = new Mock<IOwinPipelineProcessor>();
+            innerProcessorMock.Setup(x => x.ProcessRequest(It.IsAny<IDictionary<string, object>>()))
+                .Callback(() =>
+                {
+                    handlerExecuted = true;
+                    throw new InvalidOperationException("exception thrown by test code");
+                });
+
+            IHttpListenerFactory factory = new HttpListenerFactory(innerProcessorMock.Object , new TestLogger(logToConsole: true));
+            using var listener = factory.Create(port, port);
+
+            // Send a request to the listener that should be passed to the pipeline
+            using var httpClient = new HttpClient();
+            var address = GetPrefix(port);
+            var request = new HttpRequestMessage(HttpMethod.Get, address);
+            var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead)
+                .ConfigureAwait(false);
+
+            response.StatusCode.Should().Be(500);
+            handlerExecuted.Should().BeTrue();
         }
 
         private static int[] CreateRange (int start, int end)

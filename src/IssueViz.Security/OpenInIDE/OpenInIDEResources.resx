@@ -118,18 +118,30 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Factory_CheckingPort" xml:space="preserve">
-    <value>Checking availability of port {0}</value>
+    <value>[Open in IDE] Checking availability of port {0}</value>
   </data>
   <data name="Factory_CreatingListener" xml:space="preserve">
-    <value>Creating request listener...</value>
+    <value>[Open in IDE] Creating request listener...</value>
   </data>
   <data name="Factory_Failed_NoAvailablePorts" xml:space="preserve">
-    <value>Failed to create a request listener - no available ports. The Open In IDE server feature will not be able to connect to this instance of Visual Studio.</value>
+    <value>[Open in IDE] Failed to create a request listener - no available ports. The Open In IDE server feature will not be able to connect to this instance of Visual Studio.</value>
   </data>
   <data name="Factory_PortIsUnavailable" xml:space="preserve">
-    <value>Port {0} is unavailable</value>
+    <value>[Open in IDE] Port {0} is unavailable</value>
   </data>
   <data name="Factory_Succeeded" xml:space="preserve">
-    <value>Listener created successfully. Listening on port {0}.</value>
+    <value>[Open in IDE] Request listener created successfully. Listening on port {0}.</value>
+  </data>
+  <data name="Pipeline_HandlingRequest" xml:space="preserve">
+    <value>[Open in IDE] Handing request: {0}</value>
+  </data>
+  <data name="Pipeline_UnhandledError" xml:space="preserve">
+    <value>[Open in IDE] Error handling request: {0}</value>
+  </data>
+  <data name="Pipeline_UnhandledError_Detailed" xml:space="preserve">
+    <value>[Open in IDE] Detailed error: {0}</value>
+  </data>
+  <data name="Pipeline_UnrecognizedRequest" xml:space="preserve">
+    <value>[Open in IDE] Unrecognized request received: {0}</value>
   </data>
 </root>
