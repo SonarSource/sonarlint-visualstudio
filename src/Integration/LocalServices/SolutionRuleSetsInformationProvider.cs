@@ -21,11 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 
@@ -102,28 +100,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return declarations;
-        }
-
-        public string GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode)
-        {
-            bindingMode.ThrowIfNotConnected();
-
-            var projectSystem = this.serviceProvider.GetService<IProjectSystemHelper>();
-            string solutionFullPath = projectSystem.GetCurrentActiveSolution()?.FullName;
-
-            // Solution closed?
-            if (string.IsNullOrWhiteSpace(solutionFullPath))
-            {
-                return null;
-            }
-
-            string solutionRoot = Path.GetDirectoryName(solutionFullPath);
-            string ruleSetDirectoryRoot = Path.Combine(solutionRoot,
-                bindingMode == SonarLintMode.LegacyConnected ?
-                Constants.LegacySonarQubeManagedFolderName :
-                Constants.SonarlintManagedFolderName);
-
-            return ruleSetDirectoryRoot;
         }
 
         public bool TryGetProjectRuleSetFilePath(RuleSetDeclaration declaration, out string fullFilePath)

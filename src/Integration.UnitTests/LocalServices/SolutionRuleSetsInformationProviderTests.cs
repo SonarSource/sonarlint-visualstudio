@@ -27,7 +27,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -164,47 +163,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             VerifyRuleSetInformation(info[1], ruleSet2);
             this.outputPane.AssertOutputStrings(0);
         }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_InvalidBindMode_Throws()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            // Act + Assert
-            Exceptions.Expect<ArgumentOutOfRangeException>(() => testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.Standalone));
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnOpenSolution()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, @"z:\folder\solution\solutionFile.sln");
-
-            // 1. Legacy connected mode
-            string path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected);
-            path.Should().Be(@"z:\folder\solution\SonarQube");
-
-            // 2. Connected mode
-            path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.Connected);
-            path.Should().Be(@"z:\folder\solution\.sonarlint");
-        }
-
-        [TestMethod]
-        public void SolutionRuleSetsInformationProvider_GetSolutionSonarQubeRulesFolder_OnClosedSolution()
-        {
-            // Arrange
-            this.projectSystemHelper.CurrentActiveSolution = new SolutionMock(null, "" /*When the solution is closed the file is empty*/);
-
-            // 1. Legacy connected mode
-            string path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.LegacyConnected);
-            path.Should().BeNull();
-
-            // 2. Connected mode
-            path = testSubject.GetSolutionSonarQubeRulesFolder(SonarLintMode.Connected);
-            path.Should().BeNull();
-        }
-
+      
         [TestMethod]
         public void TryGetProjectRuleSetFilePath_DeclarationReferencesAbsolutePath_SameFilePathReturned()
         {
