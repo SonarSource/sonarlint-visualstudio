@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel;
+using System.ComponentModel.Composition;
 using Microsoft.Alm.Authentication;
 using SonarLint.VisualStudio.Core;
 
@@ -28,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration
     /// <summary>
     /// Simple wrapper around SecretStore to allow it to be registered as a ILocalService
     /// </summary>
+    [Export(typeof(ICredentialStoreService))]
     public class CredentialStore : ICredentialStoreService
     {
         private readonly ICredentialStore store;
@@ -42,7 +44,13 @@ namespace SonarLint.VisualStudio.Integration
         // a token. Other apps (e.g. the Git credential manager) use "PersonalAccessToken".
         internal const string UserNameForTokenCredential = "PersonalAccessToken";
 
-        public CredentialStore(ICredentialStore store, ILogger logger)
+        [ImportingConstructor]
+        public CredentialStore(ILogger logger)
+            : this(new SecretStore("SonarLint.VisualStudio.Integration"), logger)
+        {
+        }
+
+        internal CredentialStore(ICredentialStore store, ILogger logger)
         {
             this.store = store ?? throw new ArgumentNullException(nameof(store));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
