@@ -19,27 +19,26 @@
  */
 
 using System;
-using System.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.Persistence
 {
-    /// <summary>
-    /// Writes the binding configuration file to the source controlled file system
-    /// </summary>
-    /// <remarks>
-    /// The file will be enqueued but not actually written.
-    /// It is the responsibility of the caller to flush the queue.
-    /// This is to allow multiple other files to be written using the 
-    /// same instance of the SCC wrapper (e.g. ruleset files).
-    /// </remarks>
-    internal sealed class SolutionBindingSerializer : ISolutionBindingSerializer
+    internal interface ISolutionBindingDataWriter
     {
+        /// <summary>
+        /// Writes the binding information
+        /// </summary>
+        /// <returns>Has file been saved</returns>
+        bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite);
+    }
+
+    internal class SolutionBindingDataWriter : ISolutionBindingDataWriter
+    {
+        private readonly ISourceControlledFileSystem sccFileSystem;
         private readonly ISolutionBindingFileLoader solutionBindingFileLoader;
         private readonly ISolutionBindingCredentialsLoader credentialsLoader;
-        private readonly ISourceControlledFileSystem sccFileSystem;
 
-        public SolutionBindingSerializer(ISourceControlledFileSystem sccFileSystem,
+        public SolutionBindingDataWriter(ISourceControlledFileSystem sccFileSystem,
             ISolutionBindingFileLoader solutionBindingFileLoader,
             ISolutionBindingCredentialsLoader credentialsLoader)
         {
@@ -48,23 +47,15 @@ namespace SonarLint.VisualStudio.Integration.Persistence
             this.credentialsLoader = credentialsLoader ?? throw new ArgumentNullException(nameof(credentialsLoader));
         }
 
-        public BoundSonarQubeProject Read(string configFilePath)
-        {
-           var bound = solutionBindingFileLoader.Load(configFilePath);
-
-           if (bound == null)
-           {
-               return null;
-           }
-
-           bound.Credentials = credentialsLoader.Load(bound.ServerUri);
-
-            Debug.Assert(!bound.Profiles?.ContainsKey(Core.Language.Unknown) ?? true,
-                "Not expecting the deserialized binding config to contain the profile for an unknown language");
-
-            return bound;
-        }
-
+        /// <summary>
+        /// Writes the binding configuration file to the source controlled file system
+        /// </summary>
+        /// <remarks>
+        /// The file will be enqueued but not actually written.
+        /// It is the responsibility of the caller to flush the queue.
+        /// This is to allow multiple other files to be written using the 
+        /// same instance of the SCC wrapper (e.g. ruleset files).
+        /// </remarks>
         public bool Write(string configFilePath, BoundSonarQubeProject binding, Action<string> onSuccessfulFileWrite)
         {
             if (binding == null)

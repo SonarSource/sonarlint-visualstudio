@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<ISolutionBindingPathProvider> legacyPathProvider;
         private Mock<ISolutionBindingPathProvider> newPathProvider;
-        private Mock<ISolutionBindingSerializer> solutionBindingSerializer;
+        private Mock<ISolutionBindingDataReader> solutionBindingDataReader;
         private ConfigurationProvider testSubject;
 
         [TestInitialize]
@@ -41,11 +41,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             legacyPathProvider = new Mock<ISolutionBindingPathProvider>();
             newPathProvider = new Mock<ISolutionBindingPathProvider>();
-            solutionBindingSerializer = new Mock<ISolutionBindingSerializer>();
+            solutionBindingDataReader = new Mock<ISolutionBindingDataReader>();
 
             testSubject = new ConfigurationProvider(legacyPathProvider.Object,
                 newPathProvider.Object,
-                solutionBindingSerializer.Object);
+                solutionBindingDataReader.Object);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationProvider(legacyPathProvider.Object, newPathProvider.Object, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingSerializer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataReader");
         }
 
         [TestMethod]
@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingSerializer.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             legacyPathProvider.Setup(x => x.Get()).Returns("c:\\old");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingSerializer.Setup(x => x.Read("c:\\old")).Returns(expectedProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\old")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -139,10 +139,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
-            solutionBindingSerializer.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
 
             newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
-            solutionBindingSerializer.Setup(x => x.Read("c:\\new")).Returns(null as BoundSonarQubeProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\new")).Returns(null as BoundSonarQubeProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -158,11 +158,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             // Arrange
             legacyPathProvider.Setup(x => x.Get()).Returns("c:\\legacy");
-            solutionBindingSerializer.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\legacy")).Returns(null as BoundSonarQubeProject);
 
             var expectedProject = new BoundSonarQubeProject();
             newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
-            solutionBindingSerializer.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\new")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             newPathProvider.Setup(x => x.Get()).Returns("c:\\new");
 
             var expectedProject = new BoundSonarQubeProject();
-            solutionBindingSerializer.Setup(x => x.Read("c:\\legacy")).Returns(expectedProject);
+            solutionBindingDataReader.Setup(x => x.Read("c:\\legacy")).Returns(expectedProject);
 
             // Act
             var actual = testSubject.GetConfiguration();

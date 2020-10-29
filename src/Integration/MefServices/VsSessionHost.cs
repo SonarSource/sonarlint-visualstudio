@@ -334,9 +334,9 @@ namespace SonarLint.VisualStudio.Integration
 
             var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
 
-            var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
+            var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, bindingFileLoader, credentialsLoader);
 
-            return new ConfigurationPersister(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer, legacyConfigFolderItemAdder);
+            return new ConfigurationPersister(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingDataWriter, legacyConfigFolderItemAdder);
         }
 
         private ILocalService GetConfigurationProvider()
@@ -349,11 +349,9 @@ namespace SonarLint.VisualStudio.Integration
             var credentialsLoader = new SolutionBindingCredentialsLoader(store);
             var bindingFileLoader = new SolutionBindingFileLoader(Logger);
 
-            var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
+            var solutionBindingDataReader = new SolutionBindingDataReader(bindingFileLoader, credentialsLoader);
 
-            var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
-
-            return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer);
+            return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingDataReader);
         }
 
         public object GetService(Type serviceType)

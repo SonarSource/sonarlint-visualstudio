@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 using SonarQube.Client.Helpers;
@@ -31,14 +30,14 @@ using SonarQube.Client.Helpers;
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
-    public class SolutionBindingSerializerTests
+    public class SolutionBindingDataWriterTests
     {
         private Mock<ISourceControlledFileSystem> sourceControlledFileSystem;
         private Mock<ISolutionBindingCredentialsLoader> credentialsLoader;
         private Mock<ISolutionBindingFileLoader> solutionBindingFileLoader;
         private Mock<Action<string>> onSaveCallback;
         private BoundSonarQubeProject boundSonarQubeProject;
-        private SolutionBindingSerializer testSubject;
+        private SolutionBindingDataWriter testSubject;
 
         private BasicAuthCredentials mockCredentials;
         private const string MockFilePath = "test file path";
@@ -51,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             solutionBindingFileLoader = new Mock<ISolutionBindingFileLoader>();
             onSaveCallback = new Mock<Action<string>>();
 
-            testSubject = new SolutionBindingSerializer(sourceControlledFileSystem.Object,
+            testSubject = new SolutionBindingDataWriter(sourceControlledFileSystem.Object,
                 solutionBindingFileLoader.Object,
                 credentialsLoader.Object);
 
@@ -71,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullSourceControlledFileSystem_Exception()
         {
-            Action act = () => new SolutionBindingSerializer(null, null, null);
+            Action act = () => new SolutionBindingDataWriter(null, null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("sccFileSystem");
         }
@@ -79,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullSerializer_Exception()
         {
-            Action act = () => new SolutionBindingSerializer(sourceControlledFileSystem.Object, null, null);
+            Action act = () => new SolutionBindingDataWriter(sourceControlledFileSystem.Object, null, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingFileLoader");
         }
@@ -87,41 +86,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void Ctor_NullCredentialsLoader_Exception()
         {
-            Action act = () => new SolutionBindingSerializer(sourceControlledFileSystem.Object, solutionBindingFileLoader.Object, null);
+            Action act = () => new SolutionBindingDataWriter(sourceControlledFileSystem.Object, solutionBindingFileLoader.Object, null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("credentialsLoader");
-        }
-
-        [TestMethod]
-        public void Read_ProjectIsNull_Null()
-        {
-            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
-
-            var actual = testSubject.Read(MockFilePath);
-            actual.Should().Be(null);
-        }
-
-        [TestMethod]
-        public void Read_ProjectIsNull_CredentialsNotRead()
-        {
-            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(null as BoundSonarQubeProject);
-
-            testSubject.Read(MockFilePath);
-
-            credentialsLoader.Verify(x => x.Load(It.IsAny<Uri>()), Times.Never);
-        }
-
-        [TestMethod]
-        public void Read_ProjectIsNotNull_ReturnsProjectWithCredentials()
-        {
-            boundSonarQubeProject.ServerUri = new Uri("http://sonarsource.com");
-            boundSonarQubeProject.Credentials = null;
-
-            solutionBindingFileLoader.Setup(x => x.Load(MockFilePath)).Returns(boundSonarQubeProject);
-            credentialsLoader.Setup(x => x.Load(boundSonarQubeProject.ServerUri)).Returns(mockCredentials);
-
-            var actual = testSubject.Read(MockFilePath);
-            actual.Credentials.Should().Be(mockCredentials);
         }
 
         [DataTestMethod]

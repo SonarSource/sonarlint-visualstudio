@@ -29,11 +29,11 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
-        private readonly ISolutionBindingSerializer solutionBindingSerializer;
+        private readonly ISolutionBindingDataReader solutionBindingDataReader;
 
         public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingSerializer solutionBindingSerializer)
+            ISolutionBindingDataReader solutionBindingDataReader)
         {
             this.legacyPathProvider = legacyPathProvider ??
                                       throw new ArgumentNullException(nameof(legacyPathProvider));
@@ -41,8 +41,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.connectedModePathProvider = connectedModePathProvider ??
                                              throw new ArgumentNullException(nameof(connectedModePathProvider));
 
-            this.solutionBindingSerializer = solutionBindingSerializer ??
-                                             throw new ArgumentNullException(nameof(solutionBindingSerializer));
+            this.solutionBindingDataReader = solutionBindingDataReader ??
+                                             throw new ArgumentNullException(nameof(solutionBindingDataReader));
         }
 
         public BindingConfiguration GetConfiguration()
@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
                 return null;
             }
 
-            var boundProject = solutionBindingSerializer.Read(bindingPath);
+            var boundProject = solutionBindingDataReader.Read(bindingPath);
 
             if (boundProject == null)
             {

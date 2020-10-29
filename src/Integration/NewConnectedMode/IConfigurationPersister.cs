@@ -36,12 +36,12 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
-        private readonly ISolutionBindingSerializer solutionBindingSerializer;
+        private readonly ISolutionBindingDataWriter solutionBindingDataWriter;
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
 
         public ConfigurationPersister(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingSerializer solutionBindingSerializer,
+            ISolutionBindingDataWriter solutionBindingDataWriter,
             ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder)
         {
             this.legacyPathProvider = legacyPathProvider ??
@@ -50,8 +50,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             this.connectedModePathProvider = connectedModePathProvider ??
                                              throw new ArgumentNullException(nameof(connectedModePathProvider));
 
-            this.solutionBindingSerializer = solutionBindingSerializer ??
-                                             throw new ArgumentNullException(nameof(solutionBindingSerializer));
+            this.solutionBindingDataWriter = solutionBindingDataWriter ??
+                                             throw new ArgumentNullException(nameof(solutionBindingDataWriter));
 
             this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ??
                                                throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var writeSettings = GetWriteSettings(bindingMode);
 
             var success = writeSettings.HasValue &&
-                          solutionBindingSerializer.Write(writeSettings.Value.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
+                          solutionBindingDataWriter.Write(writeSettings.Value.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
 
             return success ? CreateBindingConfiguration(writeSettings.Value.ConfigPath, project, bindingMode) : null;
         }
