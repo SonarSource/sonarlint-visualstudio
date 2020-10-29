@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private Mock<ISolutionBindingPathProvider> legacyPathProvider;
         private Mock<ISolutionBindingPathProvider> newPathProvider;
-        private Mock<ISolutionBindingSerializer> solutionBindingSerializer;
+        private Mock<ISolutionBindingDataWriter> solutionBindingDataWriter;
         private Mock<ILegacyConfigFolderItemAdder> legacyItemAdderMock;
         private ConfigurationPersister testSubject;
 
@@ -42,12 +42,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             legacyPathProvider = new Mock<ISolutionBindingPathProvider>();
             newPathProvider = new Mock<ISolutionBindingPathProvider>();
-            solutionBindingSerializer = new Mock<ISolutionBindingSerializer>();
+            solutionBindingDataWriter = new Mock<ISolutionBindingDataWriter>();
             legacyItemAdderMock = new Mock<ILegacyConfigFolderItemAdder>();
 
             testSubject = new ConfigurationPersister(legacyPathProvider.Object,
                 newPathProvider.Object,
-                solutionBindingSerializer.Object,
+                solutionBindingDataWriter.Object,
                 legacyItemAdderMock.Object);
         }
 
@@ -78,14 +78,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             Action act = () => new ConfigurationPersister(legacyPathProvider.Object, newPathProvider.Object, null, null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingSerializer");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solutionBindingDataWriter");
         }
 
         [TestMethod]
         public void Ctor_InvalidArgs_NullPostSaveAction_Throws()
         {
             // Arrange
-            Action act = () => new ConfigurationPersister(legacyPathProvider.Object, newPathProvider.Object, solutionBindingSerializer.Object, null);
+            Action act = () => new ConfigurationPersister(legacyPathProvider.Object, newPathProvider.Object, solutionBindingDataWriter.Object, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("legacyConfigFolderItemAdder");
@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var project = new BoundSonarQubeProject();
             legacyPathProvider.Setup(x => x.Get()).Returns("c:\\old.txt");
 
-            solutionBindingSerializer
+            solutionBindingDataWriter
                 .Setup(x => x.Write("c:\\old.txt", project, legacyItemAdderMock.Object.AddToFolder))
                 .Returns(true);
 
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().NotBe(null);
 
-            solutionBindingSerializer.Verify(x =>
+            solutionBindingDataWriter.Verify(x =>
                     x.Write("c:\\old.txt", project, legacyItemAdderMock.Object.AddToFolder),
                 Times.Once);
         }
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var projectToWrite = new BoundSonarQubeProject();
             newPathProvider.Setup(x => x.Get()).Returns("c:\\new.txt");
 
-            solutionBindingSerializer
+            solutionBindingDataWriter
                 .Setup(x => x.Write("c:\\new.txt", projectToWrite, null))
                 .Returns(true);
 
@@ -149,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             actual.Should().NotBe(null);
 
-            solutionBindingSerializer.Verify(x =>
+            solutionBindingDataWriter.Verify(x =>
                     x.Write("c:\\new.txt", projectToWrite, null),
                 Times.Once);
         }
