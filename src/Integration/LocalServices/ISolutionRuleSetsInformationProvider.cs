@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using EnvDTE;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -44,12 +43,5 @@ namespace SonarLint.VisualStudio.Integration
         /// <param name="fullFilePath">A full file path to an existing RuleSet, or null if failed.</param>
         /// <returns>Whether succeeded in which case the <param name="fullFilePath" /> will point to an existing file</returns>
         bool TryGetProjectRuleSetFilePath(RuleSetDeclaration declaration, out string fullFilePath);
-
-        /// <summary>
-        /// Returns the path to solution level rulesets.
-        /// When the solution is closed returns null.
-        /// </summary>
-        /// <param name="bindingMode">The binding mode (legacy or new)</param>
-        string GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode);
     }
 }

@@ -19,17 +19,14 @@
  */
 
 using System.Collections.Generic;
-using System.IO;
 using EnvDTE;
 using FluentAssertions;
-using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public class ConfigurableSolutionRuleSetsInformationProvider : ISolutionRuleSetsInformationProvider
     {
         public const string DummyLegacyModeFolderName = "XXXLegacySolutionFolder";
-        public const string DummyConnectedModeFolderName = "XXXConnectedSolutionFolder";
 
         private readonly Dictionary<Project, List<RuleSetDeclaration>> registeredProjectData = new Dictionary<Project, List<RuleSetDeclaration>>();
 
@@ -47,19 +44,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
             return result;
-        }
-
-        string ISolutionRuleSetsInformationProvider.GetSolutionSonarQubeRulesFolder(SonarLintMode bindingMode)
-        {
-            switch (bindingMode)
-            {
-                case SonarLintMode.LegacyConnected:
-                    return Path.Combine(this.SolutionRootFolder, DummyLegacyModeFolderName);
-                case SonarLintMode.Connected:
-                    return Path.Combine(this.SolutionRootFolder, DummyConnectedModeFolderName);
-                default:
-                    throw new System.ArgumentOutOfRangeException($"Invalid bindingMode supplied: {bindingMode}");
-            }
         }
 
         bool ISolutionRuleSetsInformationProvider.TryGetProjectRuleSetFilePath(RuleSetDeclaration declaration, out string fullFilePath)
