@@ -19,25 +19,21 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    internal class ConfigurationProvider : IConfigurationProvider, IConfigurationPersister
+    internal class ConfigurationProvider : IConfigurationProvider
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
         private readonly ISolutionBindingSerializer solutionBindingSerializer;
-        private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
 
         public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
-            ISolutionBindingSerializer solutionBindingSerializer,
-            ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder)
+            ISolutionBindingSerializer solutionBindingSerializer)
         {
             this.legacyPathProvider = legacyPathProvider ??
                                       throw new ArgumentNullException(nameof(legacyPathProvider));
@@ -47,9 +43,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 
             this.solutionBindingSerializer = solutionBindingSerializer ??
                                              throw new ArgumentNullException(nameof(solutionBindingSerializer));
-
-            this.legacyConfigFolderItemAdder = legacyConfigFolderItemAdder ??
-                                           throw new ArgumentNullException(nameof(legacyConfigFolderItemAdder));
         }
 
         public BindingConfiguration GetConfiguration()
@@ -61,21 +54,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             return bindingConfiguration ?? BindingConfiguration.Standalone;
         }
 
-        public BindingConfiguration Persist(BoundSonarQubeProject project, SonarLintMode bindingMode)
-        {
-            if (project == null)
-            {
-                throw new ArgumentNullException(nameof(project));
-            }
-
-            var writeSettings = GetWriteSettings(bindingMode);
-
-            var success = writeSettings.HasValue && 
-                   solutionBindingSerializer.Write(writeSettings?.ConfigPath, project, writeSettings?.OnSuccessfulFileWrite);
-
-            return success ? CreateBindingConfiguration(writeSettings?.ConfigPath, project, bindingMode) : null;
-        }
-
         private BindingConfiguration TryGetBindingConfiguration(string bindingPath, SonarLintMode sonarLintMode)
         {
             if (bindingPath == null)
@@ -84,12 +62,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             }
 
             var boundProject = solutionBindingSerializer.Read(bindingPath);
-            
-            return CreateBindingConfiguration(bindingPath, boundProject, sonarLintMode);
-        }
 
-        private BindingConfiguration CreateBindingConfiguration(string bindingPath, BoundSonarQubeProject boundProject, SonarLintMode sonarLintMode)
-        {
             if (boundProject == null)
             {
                 return null;
@@ -98,43 +71,6 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
             var bindingConfigDirectory = Path.GetDirectoryName(bindingPath);
 
             return BindingConfiguration.CreateBoundConfiguration(boundProject, sonarLintMode, bindingConfigDirectory);
-        }
-
-        private WriteSettings? GetWriteSettings(SonarLintMode bindingMode)
-        {
-            var writeSettings = new WriteSettings();
-
-            switch (bindingMode)
-            {
-                case SonarLintMode.LegacyConnected:
-                {
-                    writeSettings.ConfigPath = legacyPathProvider.Get();
-                    writeSettings.OnSuccessfulFileWrite = legacyConfigFolderItemAdder.AddToFolder;
-                    break;
-                }
-                case SonarLintMode.Connected:
-                {
-                    writeSettings.ConfigPath = connectedModePathProvider.Get();
-                    break;
-                }
-                case SonarLintMode.Standalone:
-                {
-                    throw new InvalidOperationException(Strings.Bind_CannotSaveStandaloneConfiguration);
-                }
-                default:
-                {
-                    Debug.Fail("Unrecognized write mode " + bindingMode);
-                    return null;
-                }
-            }
-
-            return writeSettings;
-        }
-
-        private struct WriteSettings
-        {
-            public Action<string> OnSuccessfulFileWrite { get; set; }
-            public string ConfigPath { get; set; }
         }
     }
 }
