@@ -24,7 +24,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Threading;
-using Microsoft.Alm.Authentication;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -285,7 +284,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
-            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore("SonarLint.VisualStudio.Integration"), Logger)));
+            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(Logger)));
 
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(GetConfigurationProvider));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
