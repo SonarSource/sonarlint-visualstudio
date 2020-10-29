@@ -288,7 +288,7 @@ namespace SonarLint.VisualStudio.Integration
             this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(new SecretStore("SonarLint.VisualStudio.Integration"), Logger)));
 
             this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(GetConfigurationProvider));
-            this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationProvider));
+            this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
             this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
@@ -321,7 +321,7 @@ namespace SonarLint.VisualStudio.Integration
             Debug.Assert(SupportedLocalServices.All(t => this.localServices.ContainsKey(t)), "Not all the LocalServices are registered");
         }
 
-        private ILocalService GetConfigurationProvider()
+        private ILocalService GetConfigurationPersister()
         {
             var solution = this.GetService<SVsSolution, IVsSolution>();
             var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
@@ -336,8 +336,24 @@ namespace SonarLint.VisualStudio.Integration
 
             var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
 
-            return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer,
-                legacyConfigFolderItemAdder);
+            return new ConfigurationPersister(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer, legacyConfigFolderItemAdder);
+        }
+
+        private ILocalService GetConfigurationProvider()
+        {
+            var solution = this.GetService<SVsSolution, IVsSolution>();
+            var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
+            var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
+
+            var store = this.GetService<ICredentialStoreService>();
+            var credentialsLoader = new SolutionBindingCredentialsLoader(store);
+            var bindingFileLoader = new SolutionBindingFileLoader(Logger);
+
+            var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
+
+            var bindingSerializer = new SolutionBindingSerializer(sccFileSystem, bindingFileLoader, credentialsLoader);
+
+            return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, bindingSerializer);
         }
 
         public object GetService(Type serviceType)
