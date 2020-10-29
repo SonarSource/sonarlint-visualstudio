@@ -26,7 +26,6 @@ using System.Linq;
 using System.Windows.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -36,6 +35,7 @@ using SonarLint.VisualStudio.Integration.Progress;
 using SonarLint.VisualStudio.Integration.State;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarQube.Client;
+using IConfigurationProvider = SonarLint.VisualStudio.Integration.NewConnectedMode.IConfigurationProvider;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
@@ -322,9 +322,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private ILocalService GetConfigurationPersister()
         {
-            var solution = this.GetService<SVsSolution, IVsSolution>();
-            var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
-            var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(solution);
+            var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(this);
+            var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
             var legacyConfigFolderItemAdder = new LegacyConfigFolderItemAdder(this);
 
             var store = this.GetService<ICredentialStoreService>();
@@ -340,17 +339,8 @@ namespace SonarLint.VisualStudio.Integration
 
         private ILocalService GetConfigurationProvider()
         {
-            var solution = this.GetService<SVsSolution, IVsSolution>();
-            var connectedModeConfigPathProvider = new ConnectedModeSolutionBindingPathProvider(solution);
-            var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(solution);
-
             var store = this.GetService<ICredentialStoreService>();
-            var credentialsLoader = new SolutionBindingCredentialsLoader(store);
-            var bindingFileLoader = new SolutionBindingFileLoader(Logger);
-
-            var solutionBindingDataReader = new SolutionBindingDataReader(bindingFileLoader, credentialsLoader);
-
-            return new ConfigurationProvider(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingDataReader);
+            return new ConfigurationProvider(this, Logger, store);
         }
 
         public object GetService(Type serviceType)

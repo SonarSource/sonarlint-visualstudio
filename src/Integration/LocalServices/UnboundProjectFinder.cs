@@ -25,7 +25,7 @@ using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
+using IConfigurationProvider = SonarLint.VisualStudio.Integration.NewConnectedMode.IConfigurationProvider;
 
 namespace SonarLint.VisualStudio.Integration
 {

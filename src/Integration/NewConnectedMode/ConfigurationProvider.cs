@@ -19,19 +19,34 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
 using System.IO;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
+    [Export(typeof(Core.Binding.IConfigurationProvider))]
     internal class ConfigurationProvider : IConfigurationProvider
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
         private readonly ISolutionBindingPathProvider connectedModePathProvider;
         private readonly ISolutionBindingDataReader solutionBindingDataReader;
 
-        public ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
+        [ImportingConstructor]
+        public ConfigurationProvider(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            ILogger logger,
+            ICredentialStoreService credentialStoreService)
+            : this(
+                new LegacySolutionBindingPathProvider(serviceProvider),
+                new ConnectedModeSolutionBindingPathProvider(serviceProvider),
+                new SolutionBindingDataReader(new SolutionBindingFileLoader(logger), new SolutionBindingCredentialsLoader(credentialStoreService)))
+        {
+        }
+
+        internal ConfigurationProvider(ISolutionBindingPathProvider legacyPathProvider,
             ISolutionBindingPathProvider connectedModePathProvider,
             ISolutionBindingDataReader solutionBindingDataReader)
         {

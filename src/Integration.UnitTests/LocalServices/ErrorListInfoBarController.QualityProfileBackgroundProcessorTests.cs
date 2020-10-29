@@ -23,16 +23,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Windows.Threading;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarQube.Client.Models;
 using SonarQube.Client;
+using IConfigurationProvider = SonarLint.VisualStudio.Integration.NewConnectedMode.IConfigurationProvider;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
