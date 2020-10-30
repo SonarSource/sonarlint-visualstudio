@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     /// <summary>
     /// Configurable service provider used for testing
     /// </summary>
-    internal class ConfigurableConfigurationProvider : IConfigurationProvider, IConfigurationPersister
+    internal class ConfigurableConfigurationProvider : IConfigurationProviderService, IConfigurationPersister
     {
         public BindingConfiguration GetConfiguration()
         {

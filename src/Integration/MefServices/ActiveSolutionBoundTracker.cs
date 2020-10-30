@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IHost extensionHost;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
-        private readonly IConfigurationProvider configurationProvider;
+        private readonly IConfigurationProviderService configurationProvider;
         private readonly ILogger logger;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration
             this.solutionTracker = activeSolutionTracker;
             this.logger = logger;
 
-            this.configurationProvider = this.extensionHost.GetService<IConfigurationProvider>();
+            this.configurationProvider = this.extensionHost.GetService<IConfigurationProviderService>();
             this.configurationProvider.AssertLocalServiceIsNotNull();
 
             this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
