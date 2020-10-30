@@ -32,7 +32,6 @@ using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 using SonarQube.Client;
 
-
 namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
 {
     [TestClass]

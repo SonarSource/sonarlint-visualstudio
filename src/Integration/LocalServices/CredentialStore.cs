@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration
     /// Simple wrapper around SecretStore to allow it to be registered as a ILocalService
     /// </summary>
     [Export(typeof(ICredentialStoreService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     public class CredentialStore : ICredentialStoreService
     {
         private readonly ICredentialStore store;

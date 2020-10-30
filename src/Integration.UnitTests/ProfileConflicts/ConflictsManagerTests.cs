@@ -33,7 +33,6 @@ using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 
-
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]

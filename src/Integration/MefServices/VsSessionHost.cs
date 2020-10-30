@@ -339,7 +339,7 @@ namespace SonarLint.VisualStudio.Integration
         private ILocalService GetConfigurationProvider()
         {
             var store = this.GetService<ICredentialStoreService>();
-            return new ConfigurationProvider(this, Logger, store);
+            return new ConfigurationProvider(this, store, Logger);
         }
 
         public object GetService(Type serviceType)

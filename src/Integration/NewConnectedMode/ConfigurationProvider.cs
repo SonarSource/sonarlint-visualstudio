@@ -32,6 +32,7 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     }
 
     [Export(typeof(IConfigurationProviderService))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ConfigurationProvider : IConfigurationProvider
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
@@ -41,8 +42,8 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
         [ImportingConstructor]
         public ConfigurationProvider(
             [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ILogger logger,
-            ICredentialStoreService credentialStoreService)
+            ICredentialStoreService credentialStoreService,
+            ILogger logger)
             : this(
                 new LegacySolutionBindingPathProvider(serviceProvider),
                 new ConnectedModeSolutionBindingPathProvider(serviceProvider),
