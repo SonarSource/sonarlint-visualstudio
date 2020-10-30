@@ -37,18 +37,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             solution = new Mock<IVsSolution>();
-            testSubject = new ConnectedModeSolutionBindingPathProvider(solution.Object);
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
+
+            testSubject = new ConnectedModeSolutionBindingPathProvider(serviceProvider.Object);
 
         }
 
         [TestMethod]
-        public void Ctor_InvalidArgs_NullSolution_Throws()
+        public void Ctor_InvalidArgs_Throws()
         {
             // Arrange
             Action act = () => new ConnectedModeSolutionBindingPathProvider(null);
 
             // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("solution");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]

@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IHost host;
         private readonly IUnboundProjectFinder unboundProjectFinder;
-        private readonly IConfigurationProvider configProvider;
+        private readonly IConfigurationProviderService configProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
         private BoundSonarQubeProject infoBarBinding;
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration
             this.host = host;
             this.unboundProjectFinder = unboundProjectFinder;
 
-            this.configProvider = host.GetService<IConfigurationProvider>();
+            this.configProvider = host.GetService<IConfigurationProviderService>();
             this.configProvider.AssertLocalServiceIsNotNull();
         }
 
@@ -589,7 +589,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 Debug.Assert(this.BackgroundTask == null, "Not expecting this method to be called more than once");
 
-                var configProvider = this.host.GetService<IConfigurationProvider>();
+                var configProvider = this.host.GetService<IConfigurationProviderService>();
                 configProvider.AssertLocalServiceIsNotNull();
 
                 var bindingConfig = configProvider.GetConfiguration();

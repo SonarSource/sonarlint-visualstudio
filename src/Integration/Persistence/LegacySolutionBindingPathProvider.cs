@@ -29,9 +29,14 @@ namespace SonarLint.VisualStudio.Integration.Persistence
         private readonly IVsSolution vsSolution;
         public const string LegacyBindingConfigurationFileName = "SolutionBinding.sqconfig";
 
-        public LegacySolutionBindingPathProvider(IVsSolution vsSolution)
+        public LegacySolutionBindingPathProvider(IServiceProvider serviceProvider)
         {
-            this.vsSolution = vsSolution ?? throw new ArgumentNullException(nameof(vsSolution));
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            vsSolution = serviceProvider.GetService<SVsSolution, IVsSolution>();
         }
 
         public string Get()

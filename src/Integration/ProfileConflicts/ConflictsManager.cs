@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
         {
-            var configProvider = this.serviceProvider.GetService<IConfigurationProvider>();
+            var configProvider = this.serviceProvider.GetService<IConfigurationProviderService>();
             configProvider.AssertLocalServiceIsNotNull();
 
             // Check that we are in legacy connected mode

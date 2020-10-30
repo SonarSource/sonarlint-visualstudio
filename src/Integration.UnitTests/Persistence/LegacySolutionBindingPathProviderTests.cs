@@ -38,7 +38,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void TestInitialize()
         {
             solution = new Mock<IVsSolution>();
-            testSubject = new LegacySolutionBindingPathProvider(solution.Object);
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution.Object);
+
+            testSubject = new LegacySolutionBindingPathProvider(serviceProvider.Object);
         }
 
         [TestMethod]
@@ -46,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             Action act = () => new LegacySolutionBindingPathProvider(null);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("vsSolution");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
         }
 
         [TestMethod]
