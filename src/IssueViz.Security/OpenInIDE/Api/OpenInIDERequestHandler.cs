@@ -64,8 +64,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             // * fetch hotspot data
             // * push to the data source
             // * set the selection
-
-            throw new NotImplementedException("WIP");
         }
     }
 }
