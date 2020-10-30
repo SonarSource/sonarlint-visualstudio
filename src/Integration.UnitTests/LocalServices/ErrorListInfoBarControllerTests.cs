@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             this.configProvider = new ConfigurableConfigurationProvider {FolderPathToReturn = "c:\\test"};
 
-            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
+            this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
 
             this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
             this.stateManager = (ConfigurableStateManager)this.host.VisualStateManager;

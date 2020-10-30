@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             this.configProvider = new ConfigurableConfigurationProvider {FolderPathToReturn = "c:\\test"};
-            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
+            this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
         }
 
         #region Tests

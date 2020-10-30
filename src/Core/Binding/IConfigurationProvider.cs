@@ -20,7 +20,7 @@
 
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public interface IConfigurationProviderService
+    public interface IConfigurationProvider
     {
         BindingConfiguration GetConfiguration();
     }

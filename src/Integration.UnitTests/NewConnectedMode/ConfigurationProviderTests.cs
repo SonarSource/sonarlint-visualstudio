@@ -19,7 +19,11 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
@@ -46,6 +50,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject = new ConfigurationProvider(legacyPathProvider.Object,
                 newPathProvider.Object,
                 solutionBindingDataReader.Object);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            // Arrange
+            var exports = new[]
+            {
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()),
+                MefTestHelpers.CreateExport<ICredentialStoreService>(Mock.Of<ICredentialStoreService>()),
+                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+            };
+
+            // Act & Assert
+            MefTestHelpers.CheckTypeCanBeImported<ConfigurationProvider, IConfigurationProvider>(null, exports);
         }
 
         [TestMethod]

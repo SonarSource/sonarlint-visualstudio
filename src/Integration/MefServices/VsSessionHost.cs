@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration
                 typeof(IRuleSetConflictsController),
                 typeof(IProjectSystemFilter),
                 typeof(IErrorListInfoBarController),
-                typeof(IConfigurationProvider),
+                typeof(IConfigurationProviderService),
                 typeof(IConfigurationPersister),
                 typeof(ICredentialStoreService),
                 typeof(ITestProjectRegexSetter)
@@ -60,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
+        private readonly ICredentialStoreService credentialStoreService;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
@@ -68,8 +69,8 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarQubeService sonarQubeService, IActiveSolutionTracker solutionTacker, ILogger logger)
-            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, logger, Dispatcher.CurrentDispatcher)
+            ISonarQubeService sonarQubeService, IActiveSolutionTracker solutionTacker, ICredentialStoreService credentialStoreService, ILogger logger)
+            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, credentialStoreService, logger, Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
@@ -79,6 +80,7 @@ namespace SonarLint.VisualStudio.Integration
                                     IProgressStepRunnerWrapper progressStepRunner,
                                     ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
+                                    ICredentialStoreService credentialStoreService,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -88,6 +90,7 @@ namespace SonarLint.VisualStudio.Integration
             this.UIDispatcher = uiDispatcher ?? throw new ArgumentNullException(nameof(uiDispatcher));
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
+            this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -255,7 +258,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private BindingConfiguration SafeGetBindingConfig()
         {
-            IConfigurationProvider configProvider = this.GetService<IConfigurationProvider>();
+            var configProvider = this.GetService<IConfigurationProviderService>();
             configProvider.AssertLocalServiceIsNotNull();
 
             BindingConfiguration bindingConfig = null;
@@ -283,9 +286,9 @@ namespace SonarLint.VisualStudio.Integration
         {
             this.localServices.Add(typeof(ISolutionRuleSetsInformationProvider), new Lazy<ILocalService>(() => new SolutionRuleSetsInformationProvider(this, Logger)));
             this.localServices.Add(typeof(IRuleSetSerializer), new Lazy<ILocalService>(() => new RuleSetSerializer()));
-            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => new CredentialStore(Logger)));
+            this.localServices.Add(typeof(ICredentialStoreService), new Lazy<ILocalService>(() => credentialStoreService));
 
-            this.localServices.Add(typeof(IConfigurationProvider), new Lazy<ILocalService>(GetConfigurationProvider));
+            this.localServices.Add(typeof(IConfigurationProviderService), new Lazy<ILocalService>(() => new ConfigurationProvider(this, credentialStoreService, Logger)));
             this.localServices.Add(typeof(IConfigurationPersister), new Lazy<ILocalService>(GetConfigurationPersister));
 
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
@@ -325,8 +328,7 @@ namespace SonarLint.VisualStudio.Integration
             var legacyConfigPathProvider = new LegacySolutionBindingPathProvider(this);
             var legacyConfigFolderItemAdder = new LegacyConfigFolderItemAdder(this);
 
-            var store = this.GetService<ICredentialStoreService>();
-            var credentialsLoader = new SolutionBindingCredentialsLoader(store);
+            var credentialsLoader = new SolutionBindingCredentialsLoader(credentialStoreService);
             var bindingFileLoader = new SolutionBindingFileLoader(Logger);
 
             var sccFileSystem = this.GetService<ISourceControlledFileSystem>();
@@ -334,12 +336,6 @@ namespace SonarLint.VisualStudio.Integration
             var solutionBindingDataWriter = new SolutionBindingDataWriter(sccFileSystem, bindingFileLoader, credentialsLoader);
 
             return new ConfigurationPersister(legacyConfigPathProvider, connectedModeConfigPathProvider, solutionBindingDataWriter, legacyConfigFolderItemAdder);
-        }
-
-        private ILocalService GetConfigurationProvider()
-        {
-            var store = this.GetService<ICredentialStoreService>();
-            return new ConfigurationProvider(this, store, Logger);
         }
 
         public object GetService(Type serviceType)

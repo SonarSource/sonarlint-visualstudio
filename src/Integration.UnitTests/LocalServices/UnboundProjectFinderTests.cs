@@ -123,12 +123,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 var projectSystemHelper = new Mock<IProjectSystemHelper>();
                 projectSystemHelper.Setup(x => x.GetFilteredSolutionProjects()).Returns(projects);
 
-                var configProviderMock = new Mock<IConfigurationProvider>();
+                var configProviderMock = new Mock<IConfigurationProviderService>();
                 configProviderMock.Setup(x => x.GetConfiguration()).Returns(bindingConfiguration);
 
                 var sp = new ConfigurableServiceProvider();
                 sp.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper.Object);
-                sp.RegisterService(typeof(IConfigurationProvider), configProviderMock.Object);
+                sp.RegisterService(typeof(IConfigurationProviderService), configProviderMock.Object);
 
                 var testSubject = new UnboundProjectFinder(sp, projectBinderFactoryMock.Object);
                 return testSubject;

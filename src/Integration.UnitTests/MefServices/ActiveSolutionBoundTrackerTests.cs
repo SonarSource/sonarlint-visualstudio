@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.serviceProvider.RegisterService(typeof(IErrorListInfoBarController), this.errorListController);
 
             this.configProvider = new ConfigurableConfigurationProvider();
-            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
+            this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
 
             this.loggerMock = new Mock<ILogger>();
         }
