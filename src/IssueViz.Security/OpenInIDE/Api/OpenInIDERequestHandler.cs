@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             }
 
             // TODO: change IShowHostpotRequest server property to be a URI
-            if (!ideStateValidator.CanHandleOpenInIDERequest(new Uri(request.ServerUrl), request.ProjectKey, request.OrganizationKey))
+            if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
                 return Task.CompletedTask;
             }

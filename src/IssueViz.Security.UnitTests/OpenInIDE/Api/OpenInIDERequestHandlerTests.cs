@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var validatorMock = CreateValidator("http://localhost/", "project", "org", false);
             var request = new TestShowHotspotRequest
             {
-                ServerUrl = "http://localhost/",
+                ServerUrl = new Uri("http://localhost/"),
                 ProjectKey = "project",
                 HotspotKey = "any",
                 OrganizationKey = "org"
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private class TestShowHotspotRequest : IShowHotspotRequest
         {
-            public string ServerUrl { get; set; }
+            public Uri ServerUrl { get; set; }
             public string OrganizationKey { get; set; }
             public string ProjectKey { get; set; }
             public string HotspotKey { get; set; }

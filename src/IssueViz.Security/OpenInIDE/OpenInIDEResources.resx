@@ -132,6 +132,9 @@
   <data name="Factory_Succeeded" xml:space="preserve">
     <value>[Open in IDE] Request listener created successfully. Listening on port {0}.</value>
   </data>
+  <data name="OpenHotspot_InvalidServerParameter" xml:space="preserve">
+    <value>[Open in IDE] Invalid server parameter: {0}</value>
+  </data>
   <data name="OpenHotspot_MissingParameter" xml:space="preserve">
     <value>[Open in IDE] Missing request parameter: {0}</value>
   </data>
