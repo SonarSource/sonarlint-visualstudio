@@ -28,8 +28,8 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.Resources;
-using IConfigurationProvider = SonarLint.VisualStudio.Integration.NewConnectedMode.IConfigurationProvider;
 
 namespace SonarLint.VisualStudio.Integration.ProfileConflicts
 {

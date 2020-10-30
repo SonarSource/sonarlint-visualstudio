@@ -40,7 +40,6 @@ using SonarLint.VisualStudio.Integration.WPF;
 using SonarLint.VisualStudio.Progress.Controller;
 using SonarQube.Client.Models;
 using SonarQube.Client;
-using IConfigurationProvider = SonarLint.VisualStudio.Integration.NewConnectedMode.IConfigurationProvider;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 {

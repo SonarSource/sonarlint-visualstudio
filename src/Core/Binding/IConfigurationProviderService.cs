@@ -18,9 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration.NewConnectedMode
+namespace SonarLint.VisualStudio.Core.Binding
 {
-    public interface IConfigurationProvider : Core.Binding.IConfigurationProvider, ILocalService
+    public interface IConfigurationProviderService
     {
+        BindingConfiguration GetConfiguration();
     }
 }

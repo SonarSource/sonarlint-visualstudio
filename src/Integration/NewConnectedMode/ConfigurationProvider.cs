@@ -27,7 +27,11 @@ using SonarLint.VisualStudio.Integration.Persistence;
 
 namespace SonarLint.VisualStudio.Integration.NewConnectedMode
 {
-    [Export(typeof(Core.Binding.IConfigurationProvider))]
+    internal interface IConfigurationProvider : IConfigurationProviderService, ILocalService
+    {
+    }
+
+    [Export(typeof(IConfigurationProviderService))]
     internal class ConfigurationProvider : IConfigurationProvider
     {
         private readonly ISolutionBindingPathProvider legacyPathProvider;
