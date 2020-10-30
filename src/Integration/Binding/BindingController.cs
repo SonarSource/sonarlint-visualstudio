@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         internal static /* for testing purposes */ IBindingProcess CreateBindingProcess(IHost host, BindCommandArgs bindingArgs)
         {
             // Choose the type of binding
-            var configProvider = host.GetService<IConfigurationProvider>();
+            var configProvider = host.GetService<IConfigurationProviderService>();
             configProvider.AssertLocalServiceIsNotNull();
 
             var currentConfiguration = configProvider.GetConfiguration();

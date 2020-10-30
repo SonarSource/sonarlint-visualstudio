@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
             this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
-            this.serviceProvider.RegisterService(typeof(IConfigurationProvider), this.configProvider);
+            this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
             this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 

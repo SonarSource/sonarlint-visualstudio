@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public IEnumerable<Project> GetUnboundProjects()
         {
-            var configProvider = serviceProvider.GetService<IConfigurationProvider>();
+            var configProvider = serviceProvider.GetService<IConfigurationProviderService>();
             configProvider.AssertLocalServiceIsNotNull();
 
             // Only applicable in connected mode (legacy or new)

@@ -73,26 +73,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             var loggerMock = new Mock<ILogger>();
             Action action = () => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker(),
-                loggerMock.Object);
+                Mock.Of<ICredentialStoreService>(), loggerMock.Object);
             action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(null, sonarQubeServiceMock.Object, new ConfigurableActiveSolutionTracker(),
-                loggerMock.Object);
+                Mock.Of<ICredentialStoreService>(), loggerMock.Object);
             action.Should().ThrowExactly<ArgumentNullException>();
 
-            action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object, null, loggerMock.Object);
+            action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object, null, Mock.Of<ICredentialStoreService>(), loggerMock.Object);
             action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), null);
+                new ConfigurableActiveSolutionTracker(), null, loggerMock.Object);
+            action.Should().ThrowExactly<ArgumentNullException>();
+
+            action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
+                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), null);
             action.Should().ThrowExactly<ArgumentNullException>();
 
             action = () => new VsSessionHost(this.serviceProvider, null, null, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), loggerMock.Object, null);
+                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), loggerMock.Object, null);
             action.Should().ThrowExactly<ArgumentNullException>();
 
             using (var host = new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), loggerMock.Object))
+                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), loggerMock.Object))
             {
                 host.Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
             }
@@ -367,7 +371,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Arrange
             var testSubject = new VsSessionHost(this.serviceProvider, this.sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), new Mock<ILogger>().Object);
+                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), Mock.Of<ILogger>());
             ConfigurableVsShell shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
@@ -404,12 +408,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.stepRunner,
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
-                new Mock<ILogger>().Object,
+                Mock.Of<ICredentialStoreService>(),
+                Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);
 
             this.stateManager.Host = host;
 
-            host.ReplaceInternalServiceForTesting<IConfigurationProvider>(this.configProvider);
+            host.ReplaceInternalServiceForTesting<IConfigurationProviderService>(this.configProvider);
 
             return host;
         }

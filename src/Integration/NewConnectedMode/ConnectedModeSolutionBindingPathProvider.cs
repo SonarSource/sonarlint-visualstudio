@@ -33,9 +33,14 @@ namespace SonarLint.VisualStudio.Integration.NewConnectedMode
     {
         private readonly IVsSolution solution;
 
-        public ConnectedModeSolutionBindingPathProvider(IVsSolution solution)
+        public ConnectedModeSolutionBindingPathProvider(IServiceProvider serviceProvider)
         {
-            this.solution = solution ?? throw new ArgumentNullException(nameof(solution));
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
+
+            solution = serviceProvider.GetService<SVsSolution, IVsSolution>();
         }
 
         public string Get()
