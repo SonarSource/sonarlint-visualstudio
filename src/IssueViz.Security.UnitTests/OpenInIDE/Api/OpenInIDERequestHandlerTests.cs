@@ -58,7 +58,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public void ShowHotpot_IdeNotInCorrectState_NoActionTaken()
         {
             var validatorMock = CreateValidator("http://localhost/", "project", "org", false);
-            var request = new TestShowHotspotRequest("http://localhost/", "project", "any", "org");
+            var request = new TestShowHotspotRequest
+            {
+                ServerUrl = "http://localhost/",
+                ProjectKey = "project",
+                HotspotKey = "any",
+                OrganizationKey = "org"
+            };
             var serverMock = new Mock<ISonarQubeService>();
 
             IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(validatorMock.Object, serverMock.Object, Mock.Of<ILogger>());
@@ -81,18 +87,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private class TestShowHotspotRequest : IShowHotspotRequest
         {
-            public TestShowHotspotRequest(string server, string project, string hotspot, string organization)
-            {
-                ServerUrl = server;
-                ProjectKey = project;
-                HotspotKey = hotspot;
-                OrganizationKey = organization;
-            }
-
-            public string ServerUrl { get; }
-            public string OrganizationKey { get; }
-            public string ProjectKey { get; }
-            public string HotspotKey { get; }
+            public string ServerUrl { get; set; }
+            public string OrganizationKey { get; set; }
+            public string ProjectKey { get; set; }
+            public string HotspotKey { get; set; }
         }
     }
 }

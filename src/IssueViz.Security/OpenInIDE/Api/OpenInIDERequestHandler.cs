@@ -36,16 +36,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         [ImportingConstructor]
         public OpenInIDERequestHandler(IOpenInIDEStateValidator ideStateValidator, ISonarQubeService sonarQubeService, ILogger logger)
         {
-            this.ideStateValidator = ideStateValidator ?? throw new ArgumentNullException(nameof(ideStateValidator));
-            this.sonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            // MEF-created so the arguments should never be null
+            this.ideStateValidator = ideStateValidator;
+            this.sonarQubeService = sonarQubeService;
+            this.logger = logger;
         }
 
         IStatusResponse IOpenInIDERequestHandler.GetStatus()
         {
             throw new System.NotImplementedException();
         }
-        
+
         void IOpenInIDERequestHandler.ShowHotspot(IShowHotspotRequest request)
         {
             if (request == null)
