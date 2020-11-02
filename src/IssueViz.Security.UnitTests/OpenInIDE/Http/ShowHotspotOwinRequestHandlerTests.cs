@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static void CheckApiHandlerCalledWithExpectedValues(Mock<IOpenInIDERequestHandler> apiHandlerMock,
             string server, string project, string hotspot, string organization)
         {
-            apiHandlerMock.Verify(x => x.ShowHotspot(It.Is<IShowHotspotRequest>(
+            apiHandlerMock.Verify(x => x.ShowHotspotAsync(It.Is<IShowHotspotRequest>(
                 x => x.ServerUrl == server &&
                      x.ProjectKey == project &&
                      x.HotspotKey == hotspot &&

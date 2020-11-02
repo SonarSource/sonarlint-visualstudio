@@ -51,19 +51,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         public string ApiPath => "hotspots/show";
 
-        public Task ProcessRequest(IOwinContext context)
+        public async Task ProcessRequest(IOwinContext context)
         {
             var request = BuildRequest(context);
             if (request == null)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Task.CompletedTask;
+                return;
             }
 
-            // TODO - make async?
-            openInIDERequestHandler.ShowHotspot(request);
+            await openInIDERequestHandler.ShowHotspotAsync(request);
             context.Response.StatusCode = (int)HttpStatusCode.OK;
-            return Task.CompletedTask;
         }
 
         private IShowHotspotRequest BuildRequest(IOwinContext context)

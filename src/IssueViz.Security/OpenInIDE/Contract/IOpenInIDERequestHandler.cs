@@ -18,12 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
+
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract
 {
     public interface IOpenInIDERequestHandler
     {
-        IStatusResponse GetStatus();
+        Task<IStatusResponse> GetStatusAsync();
 
-        void ShowHotspot(IShowHotspotRequest request);
+        Task ShowHotspotAsync(IShowHotspotRequest request);
     }
 }
