@@ -132,6 +132,27 @@
   <data name="Factory_Succeeded" xml:space="preserve">
     <value>[Open in IDE] Request listener created successfully. Listening on port {0}.</value>
   </data>
+  <data name="Infobar_InvalidStateReason_NotInConnectedMode" xml:space="preserve">
+    <value>you must be in Connected Mode</value>
+  </data>
+  <data name="Infobar_InvalidStateReason_WrongOrganization" xml:space="preserve">
+    <value>you must connect to the right organization. Currently connected to: {0}</value>
+  </data>
+  <data name="Infobar_InvalidStateReason_WrongProject" xml:space="preserve">
+    <value>you must bind your solution to the right project. Currently bound to: {0}</value>
+  </data>
+  <data name="Infobar_InvalidStateReason_WrongServer" xml:space="preserve">
+    <value>you must connect to the right server. Currently connected to: {0}</value>
+  </data>
+  <data name="Inforbar_InvalidState" xml:space="preserve">
+    <value>Could not handle Open in IDE request: {0}. {1}</value>
+  </data>
+  <data name="Inforbar_Instructions_SonarCloud" xml:space="preserve">
+    <value>Please connect to {0}, organization {1}, and bind to project '{2}'.</value>
+  </data>
+  <data name="Inforbar_Instructions_SonarQube" xml:space="preserve">
+    <value>Please connect to {0} and bind to project '{1}'.</value>
+  </data>
   <data name="OpenHotspot_MissingParameter" xml:space="preserve">
     <value>[Open in IDE] Missing request parameter: {0}</value>
   </data>

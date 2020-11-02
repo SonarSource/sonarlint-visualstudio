@@ -19,10 +19,15 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
-    internal interface IOpenInIDEStateValidator
+    internal interface IOpenInIDEStateValidator : IDisposable
     {
         /// <summary>
         /// Checks whether the IDE is in the correct status to handle an "Open in IDE" request
@@ -40,5 +45,105 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         /// The validator is responsible for handling any UX notifications if the IDE is not in an appropriate state.
         /// </remarks>
         bool CanHandleOpenInIDERequest(Uri serverUri, string projectKey, string organizationKey);
+    }
+
+    [Export(typeof(IOpenInIDEStateValidator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+
+    internal class OpenInIdeStateValidator : IOpenInIDEStateValidator
+    {
+        private readonly IInfoBarManager infoBarManager;
+        private readonly IConfigurationProvider configurationProvider;
+        private readonly ILogger logger;
+        private IInfoBar currentInfoBar;
+
+        [ImportingConstructor]
+        public OpenInIdeStateValidator(IInfoBarManager infoBarManager, IConfigurationProvider configurationProvider, ILogger logger)
+        {
+            this.infoBarManager = infoBarManager;
+            this.configurationProvider = configurationProvider;
+            this.logger = logger;
+        }
+
+        public bool CanHandleOpenInIDERequest(Uri serverUri, string projectKey, string organizationKey)
+        {
+            RemoveExistingInfoBar();
+
+            var failureMessage = GetFailureMessage(serverUri, projectKey, organizationKey);
+
+            if (string.IsNullOrEmpty(failureMessage))
+            {
+                return true;
+            }
+
+            AddInfoBar(failureMessage);
+            logger.WriteLine(failureMessage);
+
+            return false;
+        }
+
+        private string GetFailureMessage(Uri serverUri, string projectKey, string organizationKey)
+        {
+            var configuration = configurationProvider.GetConfiguration();
+            string reason = null;
+
+            if (configuration.Mode == SonarLintMode.Standalone)
+            {
+                reason = OpenInIDEResources.Infobar_InvalidStateReason_NotInConnectedMode;
+            }
+            else if (!configuration.Project.ServerUri.Equals(serverUri))
+            {
+                reason = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongServer, configuration.Project.ServerUri);
+            }
+            else if (!string.IsNullOrEmpty(organizationKey) &&
+                (configuration.Project.Organization == null ||
+                 !organizationKey.Equals(configuration.Project.Organization.Key, StringComparison.OrdinalIgnoreCase)))
+            {
+                reason = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongOrganization, configuration.Project.Organization?.Key);
+            }
+            else if (!configuration.Project.ProjectKey.Equals(projectKey, StringComparison.OrdinalIgnoreCase))
+            {
+                reason = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongProject, configuration.Project.ProjectKey);
+            }
+
+            if (reason == null)
+            {
+                return null;
+            }
+
+            var instructions = string.IsNullOrEmpty(organizationKey)
+                ? OpenInIDEResources.Inforbar_Instructions_SonarQube
+                : OpenInIDEResources.Inforbar_Instructions_SonarCloud;
+
+            var fullMessage = string.Format(OpenInIDEResources.Inforbar_InvalidState, reason, instructions);
+
+            return fullMessage;
+        }
+
+        private void AddInfoBar(string fullMessage)
+        {
+            currentInfoBar = infoBarManager.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), fullMessage, default);
+            currentInfoBar.Closed += CurrentInfoBar_Closed;
+        }
+
+        private void RemoveExistingInfoBar()
+        {
+            if (currentInfoBar != null)
+            {
+                currentInfoBar.Closed -= CurrentInfoBar_Closed;
+                infoBarManager.DetachInfoBar(currentInfoBar);
+                currentInfoBar = null;
+            }
+        }
+
+        private void CurrentInfoBar_Closed(object sender, EventArgs e)
+        {
+            RemoveExistingInfoBar();
+        }
+
+        public void Dispose()
+        {
+            RemoveExistingInfoBar();
+        }
     }
 }
