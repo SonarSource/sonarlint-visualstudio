@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Owin;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -53,13 +55,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         [TestMethod]
         [DataRow("", "server;project;hotspot")]
-        [DataRow("server=s&hotspot=h&organization=o", "project")]
+        [DataRow("server=http://s&hotspot=h&organization=o", "project")]
         [DataRow("project=p&hotspot=h&organization=o", "server")]
-        [DataRow("project=p&server=s&organization=o", "hotspot")]
+        [DataRow("project=p&server=http://s&organization=o", "hotspot")]
         [DataRow("organization=o", "hotspot;server;project")] // multiple missing
-        [DataRow("projectXXX=p&server=s&organization=o", "project")] // partial match => missing
-        [DataRow("PROJECT=p&SERVER=s", "hotspot")] // lookup is not case sensitive -> only hotspot is missing
-        public void ProcessRequest_MissingParameter_Returns400StatusCode(string wholeQueryString, string missingParamList)
+        [DataRow("projectXXX=p&server=http://s&organization=o", "project")] // partial match => missing
+        [DataRow("PROJECT=p&SERVER=http://s", "hotspot")] // lookup is not case sensitive -> only hotspot is missing
+        public async Task ProcessRequest_MissingParameter_Returns400StatusCode(string wholeQueryString, string missingParamList)
         {
             var testLogger = new TestLogger(logToConsole: true);
             var apiHandlerMock = new Mock<IOpenInIDERequestHandler>();
@@ -69,7 +71,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var testSubject = new ShowHotspotOwinRequestHandler(apiHandlerMock.Object, testLogger);
 
             // Act
-            testSubject.ProcessRequest(context);
+            await testSubject.ProcessRequest(context);
 
             context.Response.StatusCode.Should().Be(400);
 
@@ -85,12 +87,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        [DataRow("project=p&server=s&hotspot=h", "s", "p", "h", null)] // organization is optional
-        [DataRow("project=p&server=s&hotspot=h&organization=o", "s", "p", "h", "o")]
-        [DataRow("organization=O&hotspot=H&server=S&project=P", "S", "P", "H", "O")] // order is not important and value case is preserved
-        [DataRow("PROJECT=pppp&SERVER=sss&hotSPOT=hhh", "sss", "pppp", "hhh", null)] // lookup is not case sensitive
-        [DataRow("project=p&server=s&hotspot=h&unknown=oXXX", "s", "p", "h", null)]  // unknown parameters are ignored
-        public void ProcessRequest_ValidRequest_HandlerCalledAndReturns200StatusCode(string wholeQueryString, string expectedServer, string expectedProject,
+        public async Task ProcessRequest_InvalidServerParameter_Returns400StatusCode()
+        {
+            const string invalidUrl = "NOT_A_URL";
+            var testLogger = new TestLogger(logToConsole: true);
+            var apiHandlerMock = new Mock<IOpenInIDERequestHandler>();
+
+            var context = CreateContext($"server={invalidUrl}&project=any&hotspot=&any");
+
+            var testSubject = new ShowHotspotOwinRequestHandler(apiHandlerMock.Object, testLogger);
+
+            // Act
+            await testSubject.ProcessRequest(context);
+
+            context.Response.StatusCode.Should().Be(400);
+            testLogger.AssertPartialOutputStringExists(invalidUrl);
+            CheckApiHandlerNotCalled(apiHandlerMock);
+        }
+
+        [TestMethod]
+        [DataRow("project=p&server=http://s&hotspot=h", "http://s", "p", "h", null)] // organization is optional
+        [DataRow("project=p&server=http://s&hotspot=h&organization=o", "http://s", "p", "h", "o")]
+        [DataRow("organization=O&hotspot=H&server=HTTP://S&project=P", "HTTP://S", "P", "H", "O")] // order is not important and value case is preserved
+        [DataRow("PROJECT=pppp&SERVER=https://sss&hotSPOT=hhh", "https://sss", "pppp", "hhh", null)] // lookup is not case sensitive
+        [DataRow("project=p&server=http://s&hotspot=h&unknown=oXXX", "http://s", "p", "h", null)]  // unknown parameters are ignored
+        public async Task ProcessRequest_ValidRequest_HandlerCalledAndReturns200StatusCode(string wholeQueryString, string expectedServer, string expectedProject,
             string expectedHotspot, string expectedOrganization)
         {
             var apiHandlerMock = new Mock<IOpenInIDERequestHandler>();
@@ -100,7 +121,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var testSubject = new ShowHotspotOwinRequestHandler(apiHandlerMock.Object, new TestLogger(logToConsole: true));
 
             // Act
-            testSubject.ProcessRequest(context);
+            await testSubject.ProcessRequest(context);
 
             context.Response.StatusCode.Should().Be(200);
             CheckApiHandlerCalledWithExpectedValues(apiHandlerMock, expectedServer, expectedProject, expectedHotspot, expectedOrganization);
@@ -119,8 +140,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static void CheckApiHandlerCalledWithExpectedValues(Mock<IOpenInIDERequestHandler> apiHandlerMock,
             string server, string project, string hotspot, string organization)
         {
-            apiHandlerMock.Verify(x => x.ShowHotspot(It.Is<IShowHotspotRequest>(
-                x => x.ServerUrl == server &&
+            apiHandlerMock.Verify(x => x.ShowHotspotAsync(It.Is<IShowHotspotRequest>(
+                x => x.ServerUrl == new Uri(server) &&
                      x.ProjectKey == project &&
                      x.HotspotKey == hotspot &&
                      x.OrganizationKey == organization)));

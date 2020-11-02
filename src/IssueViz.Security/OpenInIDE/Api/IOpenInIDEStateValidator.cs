@@ -49,7 +49,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
     [Export(typeof(IOpenInIDEStateValidator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-
     internal class OpenInIdeStateValidator : IOpenInIDEStateValidator
     {
         private readonly IInfoBarManager infoBarManager;

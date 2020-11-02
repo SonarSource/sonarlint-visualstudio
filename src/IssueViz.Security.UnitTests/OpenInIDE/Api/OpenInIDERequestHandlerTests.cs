@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -46,21 +47,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public void ShowHotspot_InvalidArg_Throws()
+        public async Task ShowHotspot_InvalidArg_Throws()
         {
             IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(Mock.Of<IOpenInIDEStateValidator>(), Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
 
-            Action act = () => testSubject.ShowHotspot(null);
+            Func<Task> act = async () => await testSubject.ShowHotspotAsync(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("request");
         }
 
         [TestMethod]
-        public void ShowHotpot_IdeNotInCorrectState_NoActionTaken()
+        public async Task ShowHotpot_IdeNotInCorrectState_NoActionTaken()
         {
             var validatorMock = CreateValidator("http://localhost/", "project", "org", false);
             var request = new TestShowHotspotRequest
             {
-                ServerUrl = "http://localhost/",
+                ServerUrl = new Uri("http://localhost/"),
                 ProjectKey = "project",
                 HotspotKey = "any",
                 OrganizationKey = "org"
@@ -69,9 +70,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(validatorMock.Object, serverMock.Object, Mock.Of<ILogger>());
 
-            Action act = () => testSubject.ShowHotspot(request);
+            await testSubject.ShowHotspotAsync(request);
 
-            act.Should().NotThrow();
             validatorMock.VerifyAll();
             serverMock.Invocations.Should().BeEmpty();
         }
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private class TestShowHotspotRequest : IShowHotspotRequest
         {
-            public string ServerUrl { get; set; }
+            public Uri ServerUrl { get; set; }
             public string OrganizationKey { get; set; }
             public string ProjectKey { get; set; }
             public string HotspotKey { get; set; }

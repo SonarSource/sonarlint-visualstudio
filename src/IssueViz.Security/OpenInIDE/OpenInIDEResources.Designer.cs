@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Invalid server parameter: {0}.
+        /// </summary>
+        internal static string OpenHotspot_InvalidServerParameter {
+            get {
+                return ResourceManager.GetString("OpenHotspot_InvalidServerParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to you must be in Connected Mode.
         /// </summary>
         internal static string Infobar_InvalidStateReason_NotInConnectedMode {

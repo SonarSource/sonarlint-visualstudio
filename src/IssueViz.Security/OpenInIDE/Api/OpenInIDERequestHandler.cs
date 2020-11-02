@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarQube.Client;
@@ -42,28 +43,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.logger = logger;
         }
 
-        IStatusResponse IOpenInIDERequestHandler.GetStatus()
+        Task<IStatusResponse> IOpenInIDERequestHandler.GetStatusAsync()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        void IOpenInIDERequestHandler.ShowHotspot(IShowHotspotRequest request)
+        Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            // TODO: change IShowHostpotRequest server property to be a URI
-            if (!ideStateValidator.CanHandleOpenInIDERequest(new Uri(request.ServerUrl), request.ProjectKey, request.OrganizationKey))
+            if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
-                return;
+                return Task.CompletedTask;
             }
 
             // TODO
             // * fetch hotspot data
             // * push to the data source
             // * set the selection
+            return Task.CompletedTask;
         }
     }
 }

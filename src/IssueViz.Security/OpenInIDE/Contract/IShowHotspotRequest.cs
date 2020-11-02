@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract
         /// <summary>
         /// The URL of the requesting server. Required.
         /// </summary>
-        string ServerUrl { get; }
+        System.Uri ServerUrl { get; }
 
         /// <summary>
         /// The organization of the key. Optional - SonarCloud only.

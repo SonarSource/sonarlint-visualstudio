@@ -51,19 +51,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         public string ApiPath => "hotspots/show";
 
-        public Task ProcessRequest(IOwinContext context)
+        public async Task ProcessRequest(IOwinContext context)
         {
             var request = BuildRequest(context);
             if (request == null)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                return Task.CompletedTask;
+                return;
             }
 
-            // TODO - make async?
-            openInIDERequestHandler.ShowHotspot(request);
+            await openInIDERequestHandler.ShowHotspotAsync(request);
             context.Response.StatusCode = (int)HttpStatusCode.OK;
-            return Task.CompletedTask;
         }
 
         private IShowHotspotRequest BuildRequest(IOwinContext context)
@@ -71,18 +69,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
             // Try to get the required parameters.
             // Note: we're not using the short-circuit operator here so all of the
             // missing parameters will be logged.
-            if (TryGetParameter(context, ParamName_Server, out var server) &
-                TryGetParameter(context, ParamName_Project, out var project) &
-                TryGetParameter(context, ParamName_Hotspot, out var hotspot))
+            if (TryGetParameterAsString(context, ParamName_Server, out var server) &
+                TryGetParameterAsString(context, ParamName_Project, out var project) &
+                TryGetParameterAsString(context, ParamName_Hotspot, out var hotspot))
             {
-                TryGetParameter(context, ParamName_Organization, out var organization); // optional
-                return new ShowHotspotRequest(server, project, hotspot, organization);
+                if (!Uri.TryCreate(server, UriKind.Absolute, out var serverUri))
+                {
+                    logger.WriteLine(OpenInIDEResources.OpenHotspot_InvalidServerParameter, server);
+                    return null;
+                }
+
+                TryGetParameterAsString(context, ParamName_Organization, out var organization); // optional
+                return new ShowHotspotRequest(serverUri, project, hotspot, organization);
             }
 
             return null;
         }
 
-        private bool TryGetParameter(IOwinContext context, string paramName, out string value)
+        private bool TryGetParameterAsString(IOwinContext context, string paramName, out string value)
         {
             value = context.Request.Query.Get(paramName);
 
@@ -97,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         private class ShowHotspotRequest : IShowHotspotRequest
         {
-            public ShowHotspotRequest(string server, string project, string hotspot, string organization)
+            public ShowHotspotRequest(Uri server, string project, string hotspot, string organization)
             {
                 ServerUrl = server;
                 ProjectKey = project;
@@ -105,7 +109,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
                 OrganizationKey = organization;
             }
 
-            public string ServerUrl { get; }
+            public Uri ServerUrl { get; }
 
             public string OrganizationKey { get; }
 
