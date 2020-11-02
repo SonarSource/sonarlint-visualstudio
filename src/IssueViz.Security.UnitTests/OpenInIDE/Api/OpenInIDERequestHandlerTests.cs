@@ -40,16 +40,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             // Arrange
             var validatorExport = MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(Mock.Of<IOpenInIDEStateValidator>());
             var sonarQubeServiceExport = MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>());
+            var hotspotConverterExport = MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(Mock.Of<IHotspotToIssueVisualizationConverter>());
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null, new[] { validatorExport, sonarQubeServiceExport, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null, 
+                new[]
+                {
+                    validatorExport,
+                    sonarQubeServiceExport,
+                    hotspotConverterExport,
+                    loggerExport
+                });
         }
 
         [TestMethod]
         public async Task ShowHotspot_InvalidArg_Throws()
         {
-            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(Mock.Of<IOpenInIDEStateValidator>(), Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
+            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(Mock.Of<IOpenInIDEStateValidator>(), Mock.Of<ISonarQubeService>(), Mock.Of<IHotspotToIssueVisualizationConverter>(), Mock.Of<ILogger>());
 
             Func<Task> act = async () => await testSubject.ShowHotspotAsync(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("request");
@@ -68,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             };
             var serverMock = new Mock<ISonarQubeService>();
 
-            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(validatorMock.Object, serverMock.Object, Mock.Of<ILogger>());
+            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(validatorMock.Object, serverMock.Object, Mock.Of<IHotspotToIssueVisualizationConverter>(), Mock.Of<ILogger>());
 
             await testSubject.ShowHotspotAsync(request);
 
