@@ -152,6 +152,7 @@
   </data>
   <data name="Inforbar_Instructions_SonarQube" xml:space="preserve">
     <value>Please connect to {0} and bind to project '{1}'.</value>
+	</data>
   <data name="OpenHotspot_InvalidServerParameter" xml:space="preserve">
     <value>[Open in IDE] Invalid server parameter: {0}</value>
   </data>
