@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
     public interface IAnalysisIssueVisualizationConverter
     {
-        IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
+        IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot);
     }
 
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             this.issueSpanCalculator = issueSpanCalculator;
         }
 
-        public IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot)
+        public IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot)
         {
             var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
 
