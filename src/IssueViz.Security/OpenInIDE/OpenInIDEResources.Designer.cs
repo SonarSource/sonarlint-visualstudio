@@ -115,69 +115,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to you must be in Connected Mode.
-        /// </summary>
-        internal static string Infobar_InvalidStateReason_NotInConnectedMode {
-            get {
-                return ResourceManager.GetString("Infobar_InvalidStateReason_NotInConnectedMode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to you must connect to the right organization. Currently connected to: {0}.
-        /// </summary>
-        internal static string Infobar_InvalidStateReason_WrongOrganization {
-            get {
-                return ResourceManager.GetString("Infobar_InvalidStateReason_WrongOrganization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to you must bind your solution to the right project. Currently bound to: {0}.
-        /// </summary>
-        internal static string Infobar_InvalidStateReason_WrongProject {
-            get {
-                return ResourceManager.GetString("Infobar_InvalidStateReason_WrongProject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to you must connect to the right server. Currently connected to: {0}.
-        /// </summary>
-        internal static string Infobar_InvalidStateReason_WrongServer {
-            get {
-                return ResourceManager.GetString("Infobar_InvalidStateReason_WrongServer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please connect to {0}, organization {1}, and bind to project &apos;{2}&apos;..
-        /// </summary>
-        internal static string Inforbar_Instructions_SonarCloud {
-            get {
-                return ResourceManager.GetString("Inforbar_Instructions_SonarCloud", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Please connect to {0} and bind to project &apos;{1}&apos;..
-        /// </summary>
-        internal static string Inforbar_Instructions_SonarQube {
-            get {
-                return ResourceManager.GetString("Inforbar_Instructions_SonarQube", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Could not handle Open in IDE request: {0}. {1}.
-        /// </summary>
-        internal static string Inforbar_InvalidState {
-            get {
-                return ResourceManager.GetString("Inforbar_InvalidState", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Missing request parameter: {0}.
         /// </summary>
         internal static string OpenHotspot_MissingParameter {
@@ -219,6 +156,79 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         internal static string Pipeline_UnrecognizedRequest {
             get {
                 return ResourceManager.GetString("Pipeline_UnrecognizedRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Output Window for more information..
+        /// </summary>
+        internal static string RequestValidator_InfoBarMessage {
+            get {
+                return ResourceManager.GetString("RequestValidator_InfoBarMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please open a solution connected to {0}, organization &apos;{1}&apos;, project &apos;{2}&apos;..
+        /// </summary>
+        internal static string RequestValidator_Instructions_SonarCloud {
+            get {
+                return ResourceManager.GetString("RequestValidator_Instructions_SonarCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please open a solution connected to {0}, project &apos;{1}&apos;..
+        /// </summary>
+        internal static string RequestValidator_Instructions_SonarQube {
+            get {
+                return ResourceManager.GetString("RequestValidator_Instructions_SonarQube", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not handle Open in IDE request: {0}. 
+        ///{1}.
+        /// </summary>
+        internal static string RequestValidator_InvalidState {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidState", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to you must be in Connected Mode.
+        /// </summary>
+        internal static string RequestValidator_InvalidStateReason_NotInConnectedMode {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidStateReason_NotInConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to you must connect to the right organization. Currently connected to: {0}.
+        /// </summary>
+        internal static string RequestValidator_InvalidStateReason_WrongOrganization {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidStateReason_WrongOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to you must bind your solution to the right project. Currently bound to: {0}.
+        /// </summary>
+        internal static string RequestValidator_InvalidStateReason_WrongProject {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidStateReason_WrongProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to you must connect to the right server. Currently connected to: {0}.
+        /// </summary>
+        internal static string RequestValidator_InvalidStateReason_WrongServer {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidStateReason_WrongServer", resourceCulture);
             }
         }
     }

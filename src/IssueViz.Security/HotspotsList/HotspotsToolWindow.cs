@@ -28,10 +28,10 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
-    [Guid(Guid)]
+    [Guid(ToolWindowId)]
     public class HotspotsToolWindow : ToolWindowPane
     {
-        public const string Guid = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";
+        public const string ToolWindowId = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";
 
         public HotspotsToolWindow(IServiceProvider serviceProvider)
         {

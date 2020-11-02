@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 return true;
             }
 
-            AddInfoBar(failureMessage);
+            AddInfoBar();
             logger.WriteLine(failureMessage);
 
             return false;
@@ -88,21 +88,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             if (configuration.Mode == SonarLintMode.Standalone)
             {
-                reason = OpenInIDEResources.Infobar_InvalidStateReason_NotInConnectedMode;
+                reason = OpenInIDEResources.RequestValidator_InvalidStateReason_NotInConnectedMode;
             }
             else if (!configuration.Project.ServerUri.Equals(serverUri))
             {
-                reason = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongServer, configuration.Project.ServerUri);
+                reason = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongServer, configuration.Project.ServerUri);
             }
             else if (!string.IsNullOrEmpty(organizationKey) &&
                 (configuration.Project.Organization == null ||
                  !organizationKey.Equals(configuration.Project.Organization.Key, StringComparison.OrdinalIgnoreCase)))
             {
-                reason = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongOrganization, configuration.Project.Organization?.Key);
+                reason = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongOrganization, configuration.Project.Organization?.Key);
             }
             else if (!configuration.Project.ProjectKey.Equals(projectKey, StringComparison.OrdinalIgnoreCase))
             {
-                reason = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongProject, configuration.Project.ProjectKey);
+                reason = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongProject, configuration.Project.ProjectKey);
             }
 
             if (reason == null)
@@ -111,18 +111,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             }
 
             var instructions = string.IsNullOrEmpty(organizationKey)
-                ? OpenInIDEResources.Inforbar_Instructions_SonarQube
-                : OpenInIDEResources.Inforbar_Instructions_SonarCloud;
+                ? string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarQube, serverUri, projectKey)
+                : string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarCloud, serverUri, organizationKey, projectKey);
 
-            var fullMessage = string.Format(OpenInIDEResources.Inforbar_InvalidState, reason, instructions);
+            var fullMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidState, reason, instructions);
 
             return fullMessage;
         }
 
-        private void AddInfoBar(string fullMessage)
+        private void AddInfoBar()
         {
-            currentInfoBar = infoBarManager.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), fullMessage, default);
+            currentInfoBar = infoBarManager.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+            currentInfoBar.ButtonClick += ShowOutputWindow;
             currentInfoBar.Closed += CurrentInfoBar_Closed;
+        }
+
+        private void ShowOutputWindow(object sender, EventArgs e)
+        {
+            // todo
         }
 
         private void RemoveExistingInfoBar()

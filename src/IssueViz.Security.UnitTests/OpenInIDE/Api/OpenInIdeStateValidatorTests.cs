@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void CanHandleOpenInIDERequest_NotInConnectedMode_False()
         {
-            var expectedFailureMessage = OpenInIDEResources.Infobar_InvalidStateReason_NotInConnectedMode;
+            var expectedFailureMessage = OpenInIDEResources.RequestValidator_InvalidStateReason_NotInConnectedMode;
 
             VerifyValidationFailed(null, expectedFailureMessage);
         }
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongServer_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongServer, WrongServerConfiguration.ServerUrl);
+            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongServer, WrongServerConfiguration.ServerUrl);
 
             VerifyValidationFailed(WrongServerConfiguration, expectedFailureMessage);
         }
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongOrganization_SolutionConnectedToNullOrganization_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongOrganization, "");
+            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongOrganization, "");
 
             VerifyValidationFailed(WrongOrganizationNullConfiguration, expectedFailureMessage);
         }
@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongOrganization_SolutionConnectedToAnotherOrganization_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongOrganization, WrongOrganizationConfiguration.OrganizationKey);
+            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongOrganization, WrongOrganizationConfiguration.OrganizationKey);
 
             VerifyValidationFailed(WrongOrganizationConfiguration, expectedFailureMessage);
         }
@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongProject_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.Infobar_InvalidStateReason_WrongProject, WrongProjectConfiguration.ProjectKey);
+            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongProject, WrongProjectConfiguration.ProjectKey);
 
             VerifyValidationFailed(WrongProjectConfiguration, expectedFailureMessage);
         }
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider.Object, Mock.Of<ILogger>());
@@ -146,7 +146,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var secondInfoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .SetupSequence(x => x.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), It.IsAny<string>(), default))
+                .SetupSequence(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(firstInfoBar.Object)
                 .Returns(secondInfoBar.Object);
 
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider.Object, Mock.Of<ILogger>());
@@ -211,7 +211,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider.Object, Mock.Of<ILogger>());
@@ -232,7 +232,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 ? SetupConfigurationProvider(BindingConfiguration.Standalone)
                 : SetupConfigurationProvider(CreateBindingConfiguration(solutionTestConfigurationSetup));
 
-            var infoBarManager = SetupInfoBarManager(failureReasonString);
+            var infoBarManager = SetupInfoBarManager();
             var logger = new TestLogger();
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider, logger);
@@ -260,12 +260,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             return configProvider.Object;
         }
 
-        private static Mock<IInfoBarManager> SetupInfoBarManager(string expectedMessage)
+        private static Mock<IInfoBarManager> SetupInfoBarManager()
         {
             var infoBarManager = new Mock<IInfoBarManager>();
 
             infoBarManager
-                .Setup(x => x.AttachInfoBar(new Guid(HotspotsToolWindow.Guid), It.Is((string text) => text.Contains(expectedMessage)), default))
+                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default))
                 .Returns(Mock.Of<IInfoBar>());
 
             return infoBarManager;
