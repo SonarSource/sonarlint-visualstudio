@@ -61,6 +61,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Failed to fetch hotspot data from server: {0}.
+        /// </summary>
+        internal static string ApiHandler_FailedToFetchHotspot {
+            get {
+                return ResourceManager.GetString("ApiHandler_FailedToFetchHotspot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Failed to navigate to the requested issue. Requested file: {0}, line {1}.
+        /// </summary>
+        internal static string ApiHandler_FailedToNavigateToHotspot {
+            get {
+                return ResourceManager.GetString("ApiHandler_FailedToNavigateToHotspot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Checking availability of port {0}.
         /// </summary>
         internal static string Factory_CheckingPort {
