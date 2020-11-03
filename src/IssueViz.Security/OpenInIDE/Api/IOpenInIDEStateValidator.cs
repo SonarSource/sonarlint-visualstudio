@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
@@ -53,14 +54,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     {
         private readonly IInfoBarManager infoBarManager;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly IOutputWindowService outputWindowService;
         private readonly ILogger logger;
         private IInfoBar currentInfoBar;
 
         [ImportingConstructor]
-        public OpenInIdeStateValidator(IInfoBarManager infoBarManager, IConfigurationProvider configurationProvider, ILogger logger)
+        public OpenInIdeStateValidator(IInfoBarManager infoBarManager, 
+            IConfigurationProvider configurationProvider, 
+            IOutputWindowService outputWindowService,
+            ILogger logger)
         {
             this.infoBarManager = infoBarManager;
             this.configurationProvider = configurationProvider;
+            this.outputWindowService = outputWindowService;
             this.logger = logger;
         }
 
@@ -128,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private void ShowOutputWindow(object sender, EventArgs e)
         {
-            // todo
+            outputWindowService.Show();
         }
 
         private void RemoveExistingInfoBar()
