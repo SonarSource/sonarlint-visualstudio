@@ -20,10 +20,14 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
@@ -32,14 +36,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     {
         private readonly IOpenInIDEStateValidator ideStateValidator;
         private readonly ISonarQubeService sonarQubeService;
+        private readonly IHotspotToIssueVisualizationConverter converter;
+        private readonly ILocationNavigator navigator;
+        private readonly IHotspotsStore hotspotsStore;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public OpenInIDERequestHandler(IOpenInIDEStateValidator ideStateValidator, ISonarQubeService sonarQubeService, ILogger logger)
+        public OpenInIDERequestHandler(IOpenInIDEStateValidator ideStateValidator,
+            ISonarQubeService sonarQubeService,
+            IHotspotToIssueVisualizationConverter converter,
+            ILocationNavigator navigator,
+            IHotspotsStore hotspotsStore,
+            ILogger logger)
         {
             // MEF-created so the arguments should never be null
             this.ideStateValidator = ideStateValidator;
             this.sonarQubeService = sonarQubeService;
+            this.converter = converter;
+            this.navigator = navigator;
+            this.hotspotsStore = hotspotsStore;
             this.logger = logger;
         }
 
@@ -48,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             throw new NotImplementedException();
         }
 
-        Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
+        async Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
         {
             if (request == null)
             {
@@ -57,14 +72,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            // TODO
-            // * fetch hotspot data
-            // * push to the data source
-            // * set the selection
-            return Task.CompletedTask;
+            var hotspot = await TryGetHotspotData(request.HotspotKey);
+            if (hotspot == null)
+            {
+                return;
+            }
+
+            var hotspotViz = converter.Convert(hotspot);
+            if (hotspotViz == null)
+            {
+                return;
+            }
+
+            // TODO - show gold bar in event of failure to navigate. Also consider whether this class should
+            // be responsible for showing the gold bar if the state validator returns false.
+            if (!navigator.TryNavigate(hotspotViz))
+            {
+                logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
+            }
+
+            // Add to store regardless of whether navigation succeeded
+            hotspotsStore.Add(hotspotViz);
         }
+
+        private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
+        {
+            // We're calling an external system so exceptions might occur e.g. network errors
+            try
+            {
+                return await sonarQubeService.GetHotspotAsync(hotspotKey, CancellationToken.None);
+            }
+            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToFetchHotspot, ex.Message);
+            }
+            return null;
+        }
+
     }
 }
