@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not handle Open in IDE request: {0}. 
+        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: {0}. 
         ///{1}.
         /// </summary>
         internal static string RequestValidator_InvalidState {

@@ -145,7 +145,7 @@
     <value>you must connect to the right server. Currently connected to: {0}</value>
   </data>
   <data name="RequestValidator_InvalidState" xml:space="preserve">
-    <value>Could not handle Open in IDE request: {0}. 
+    <value>[Open in IDE] Could not handle Open in IDE request: {0}. 
 {1}</value>
   </data>
   <data name="RequestValidator_Instructions_SonarCloud" xml:space="preserve">
