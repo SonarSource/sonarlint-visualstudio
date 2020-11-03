@@ -28,6 +28,7 @@ using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
@@ -75,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var hotspot = new Mock<IHotspot>();
             hotspot.SetupGet(x => x.Priority).Returns(priority);
 
-            var value = GetValue(hotspot.Object, StandardTableColumnDefinitions.Priority);
+            var value = GetValue(hotspot.Object, PriorityTableColumnDefinition.ColumnName);
             value.Should().Be(expectedValue);
         }
 
