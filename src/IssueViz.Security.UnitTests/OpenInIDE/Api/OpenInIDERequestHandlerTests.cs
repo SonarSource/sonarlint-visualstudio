@@ -19,20 +19,25 @@
  */
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Api
 {
     [TestClass]
-    public class OpenInIDERequestHandlerTests
+    public class OpenInIDERequestHandlerTests_MEF
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -40,49 +45,169 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             // Arrange
             var validatorExport = MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(Mock.Of<IOpenInIDEStateValidator>());
             var sonarQubeServiceExport = MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>());
+            var converterExport = MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(Mock.Of<IHotspotToIssueVisualizationConverter>());
+            var navigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>());
+            var storeExport = MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>());
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null, new[] { validatorExport, sonarQubeServiceExport, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null,
+                new[] { validatorExport, sonarQubeServiceExport, converterExport, navigatorExport, storeExport, loggerExport });
         }
+    }
 
-        [TestMethod]
-        public async Task ShowHotspot_InvalidArg_Throws()
-        {
-            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(Mock.Of<IOpenInIDEStateValidator>(), Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
-
-            Func<Task> act = async () => await testSubject.ShowHotspotAsync(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("request");
-        }
-
-        [TestMethod]
-        public async Task ShowHotpot_IdeNotInCorrectState_NoActionTaken()
-        {
-            var validatorMock = CreateValidator("http://localhost/", "project", "org", false);
-            var request = new TestShowHotspotRequest
+    [TestClass]
+    public class OpenInIDERequestHandlerTests
+    {
+        private readonly IShowHotspotRequest ValidRequest = new TestShowHotspotRequest
             {
                 ServerUrl = new Uri("http://localhost/"),
                 ProjectKey = "project",
                 HotspotKey = "any",
                 OrganizationKey = "org"
             };
-            var serverMock = new Mock<ISonarQubeService>();
 
-            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(validatorMock.Object, serverMock.Object, Mock.Of<ILogger>());
+        private readonly SonarQubeHotspot ValidServerHotspot = new SonarQubeHotspot("hotspotKey", null, null, null, -1, null, null, null, null, null, null, null, null, null);
 
-            await testSubject.ShowHotspotAsync(request);
+        private readonly IAnalysisIssueVisualization ValidIssueViz = Mock.Of<IAnalysisIssueVisualization>();
 
-            validatorMock.VerifyAll();
-            serverMock.Invocations.Should().BeEmpty();
+        private Mock<IOpenInIDEStateValidator> stateValidatorMock;
+        private Mock<ISonarQubeService> serverMock;
+        private Mock<IHotspotToIssueVisualizationConverter> converterMock;
+        private Mock<ILocationNavigator> navigatorMock;
+        private Mock<IHotspotsStore> storeMock;
+        private TestLogger logger;
+
+        private IOpenInIDERequestHandler testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            stateValidatorMock = new Mock<IOpenInIDEStateValidator>();
+            serverMock = new Mock<ISonarQubeService>();
+            converterMock = new Mock<IHotspotToIssueVisualizationConverter>();
+            navigatorMock = new Mock<ILocationNavigator>();
+            storeMock = new Mock<IHotspotsStore>();
+            logger = new TestLogger(logToConsole: true);
+
+            testSubject = new OpenInIDERequestHandler(stateValidatorMock.Object, serverMock.Object, converterMock.Object,
+                navigatorMock.Object, storeMock.Object, logger);
         }
 
-        private static Mock<IOpenInIDEStateValidator> CreateValidator(string uri, string projectKey, string orgKey, bool canHandleRequest)
+        [TestMethod]
+        public async Task ShowHotspot_InvalidArg_Throws()
         {
-            var mockValidator = new Mock<IOpenInIDEStateValidator>();
-            mockValidator.Setup(x => x.CanHandleOpenInIDERequest(It.Is<Uri>(x => x.ToString() == uri), projectKey, orgKey))
+            Func<Task> act = async () => await testSubject.ShowHotspotAsync(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("request");
+        }
+
+        [TestMethod]
+        public async Task ShowHotpot_IdeNotInCorrectState_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, false);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckCalled(stateValidatorMock);
+            CheckNotCalled(serverMock, converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_FailedToRetrieveHotspotData_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, null);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckCalled(stateValidatorMock, serverMock);
+            CheckNotCalled(converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_ConversionFailed_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock);
+            CheckNotCalled(navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_DataIsValid_NavigationSucceeded_And_IssueAddedToStore()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, ValidIssueViz);
+            SetNavigationRespone(ValidIssueViz, true);
+            SetStoreExpectedItem(ValidIssueViz);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_DataIsValid_NavigationFailed_IssueStillAddedToStore()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, ValidIssueViz);
+            SetNavigationRespone(ValidIssueViz, false);
+            SetStoreExpectedItem(ValidIssueViz);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+        }
+
+        private void InitializeStateValidator(IShowHotspotRequest expected, bool canHandleRequest) =>
+            stateValidatorMock.Setup(x => x.CanHandleOpenInIDERequest(expected.ServerUrl, expected.ProjectKey, expected.OrganizationKey))
                 .Returns(canHandleRequest);
 
-            return mockValidator;
+        private void SetServerResponse(IShowHotspotRequest expected, SonarQubeHotspot response) =>
+            serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
+                .Returns(Task<SonarQubeHotspot>.FromResult(response));
+
+        private void SetConversionResponse(SonarQubeHotspot expected, IAnalysisIssueVisualization response) =>
+            converterMock.Setup(x => x.Convert(expected)).Returns(response);
+
+        private void SetNavigationRespone(IAnalysisIssueVisualization expected, bool response) =>
+            navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response);
+
+        private void SetStoreExpectedItem(IAnalysisIssueVisualization expected) =>
+            storeMock.Setup(x => x.Add(expected));
+
+        private static void CheckCalled(params Mock[] mocks)
+        {
+            foreach (var mock in mocks)
+            {
+                Console.WriteLine($"Checking mock was called: {mock.Object.GetType()}");
+                mock.VerifyAll();
+                mock.Invocations.Count.Should().Be(1);
+            }
+        }
+
+        private static void CheckNotCalled(params Mock[] mocks)
+        {
+            foreach(var mock in mocks)
+            {
+                Console.WriteLine($"Checking mock wasn't called: {mock.Object.GetType()}");
+                mock.Invocations.Should().BeEmpty();
+            }
         }
 
         private class TestShowHotspotRequest : IShowHotspotRequest

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ApiHandler_FailedToFetchHotspot" xml:space="preserve">
+    <value>[Open in IDE] Failed to fetch hotspot data from server: {0}</value>
+  </data>
   <data name="Factory_CheckingPort" xml:space="preserve">
     <value>[Open in IDE] Checking availability of port {0}</value>
   </data>
