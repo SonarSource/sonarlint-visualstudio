@@ -23,6 +23,7 @@ using System.Windows;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
@@ -53,7 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     content = hotspot.RuleKey;
                     break;
 
-                case StandardTableColumnDefinitions.Priority:
+                case PriorityTableColumnDefinition.ColumnName:
                     content = hotspot.Priority.ToString();
                     break;
 
