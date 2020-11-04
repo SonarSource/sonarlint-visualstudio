@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             const string filePath = "some path";
             var expectedIssueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var sonarQubeHotspot = CreateSonarQubeHotspot(filePath, probability: "high", line: 123, message: "message", ruleKey: "rule key");
+            var sonarQubeHotspot = CreateSonarQubeHotspot(filePath, probability: "high", textRange: new IssueTextRange(5, 10, 15, 20), message: "message", ruleKey: "rule key");
 
             var testSubject = CreateTestSubject(filePath, out var converter, expectedIssueViz);
             var issueViz = testSubject.Convert(sonarQubeHotspot);
@@ -52,13 +52,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                         hotspot.Priority == HotspotPriority.High &&
                         hotspot.LineHash == null &&
                         hotspot.Flows.IsEmpty() &&
-                        hotspot.StartLine == 123 &&
-                        hotspot.EndLine == 123 &&
-                        hotspot.StartLineOffset == 0 &&
-                        hotspot.EndLineOffset == 0 &&
                         hotspot.Message == "message" &&
                         hotspot.RuleKey == "rule key" &&
-                        hotspot.FilePath== filePath),
+                        hotspot.FilePath== filePath &&
+                        hotspot.StartLine == 5 &&
+                        hotspot.EndLine == 10 &&
+                        hotspot.StartLineOffset == 15 &&
+                        hotspot.EndLineOffset == 20),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
         }
@@ -107,12 +107,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 Times.Once);
         }
 
-        private SonarQubeHotspot CreateSonarQubeHotspot(string filePath, string probability, int line = 123, string message = "message", string ruleKey = "rule key") =>
+        private SonarQubeHotspot CreateSonarQubeHotspot(string filePath, string probability, IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key") =>
             new SonarQubeHotspot("some key",
                 message,
                 "assignee",
                 "status",
-                line,
                 "org",
                 "projectKey",
                 "projectName",
@@ -121,7 +120,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 ruleKey,
                 "ruleName",
                 "securityCategory",
-                probability);
+                probability,
+                textRange ?? new IssueTextRange(5, 10, 15, 20));
 
         private HotspotToIssueVisualizationConverter CreateTestSubject(string hotspotFilePath, out Mock<IAnalysisIssueVisualizationConverter> issueVizConverter, IAnalysisIssueVisualization expectedIssueViz = null)
         {
