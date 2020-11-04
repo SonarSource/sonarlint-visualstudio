@@ -28,9 +28,11 @@ using Microsoft.VisualStudio.Shell.TableManager;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
-    [Guid("4BCD4392-DBCF-4AA2-9852-01129D229CD8")]
+    [Guid(ToolWindowId)]
     public class HotspotsToolWindow : ToolWindowPane
     {
+        public const string ToolWindowId = "4BCD4392-DBCF-4AA2-9852-01129D229CD8";
+
         public HotspotsToolWindow(IServiceProvider serviceProvider)
         {
             Caption = Resources.HotspotsToolWindowCaption;
