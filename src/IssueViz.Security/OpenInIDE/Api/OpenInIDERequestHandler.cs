@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
@@ -88,7 +87,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 return;
             }
 
-            navigator.TryNavigate(hotspotViz);
+            // TODO - show gold bar in event of failure to navigate. Also consider whether this class should
+            // be responsible for showing the gold bar if the state validator returns false.
+            if (!navigator.TryNavigate(hotspotViz))
+            {
+                logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
+            }
 
             // Add to store regardless of whether navigation succeeded
             hotspotsStore.Add(hotspotViz);
@@ -96,11 +100,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
         {
+            // We're calling an external system so exceptions might occur e.g. network errors
             try
             {
                 return await sonarQubeService.GetHotspotAsync(hotspotKey, CancellationToken.None);
             }
-            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToFetchHotspot, ex.Message);
             }

@@ -69,8 +69,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private readonly SonarQubeHotspot ValidServerHotspot = new SonarQubeHotspot("hotspotKey", null, null, null, -1, null, null, null, null, null, null, null, null, null);
 
-        private readonly IAnalysisIssueVisualization ValidIssueViz = Mock.Of<IAnalysisIssueVisualization>();
-
         private Mock<IOpenInIDEStateValidator> stateValidatorMock;
         private Mock<ISonarQubeService> serverMock;
         private Mock<IHotspotToIssueVisualizationConverter> converterMock;
@@ -145,33 +143,52 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public async Task ShowHotspot_DataIsValid_NavigationSucceeded_And_IssueAddedToStore()
         {
+            const string hotspotFilePath = "c:\\foo\\myFile.txt";
+            const int hotspotStartLine = 999;
+            var hotspotViz = CreateHotspotVisualization(hotspotFilePath, hotspotStartLine);
+
             InitializeStateValidator(ValidRequest, true);
             SetServerResponse(ValidRequest, ValidServerHotspot);
-            SetConversionResponse(ValidServerHotspot, ValidIssueViz);
-            SetNavigationRespone(ValidIssueViz, true);
-            SetStoreExpectedItem(ValidIssueViz);
+            SetConversionResponse(ValidServerHotspot, hotspotViz);
+            SetNavigationRespone(hotspotViz, true);
+            SetStoreExpectedItem(hotspotViz);
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            // Not expecting an output window message in the success case
+            logger.AssertPartialOutputStringDoesNotExist(hotspotFilePath, hotspotStartLine.ToString());
         }
 
         [TestMethod]
         public async Task ShowHotspot_DataIsValid_NavigationFailed_IssueStillAddedToStore()
         {
+            const string hotspotFilePath = "c:\\xx\\yyy.txt";
+            const int hotspotStartLine = -12345;
+            var hotspotViz = CreateHotspotVisualization(hotspotFilePath, hotspotStartLine);
+
             InitializeStateValidator(ValidRequest, true);
             SetServerResponse(ValidRequest, ValidServerHotspot);
-            SetConversionResponse(ValidServerHotspot, ValidIssueViz);
-            SetNavigationRespone(ValidIssueViz, false);
-            SetStoreExpectedItem(ValidIssueViz);
+            SetConversionResponse(ValidServerHotspot, hotspotViz);
+            SetNavigationRespone(hotspotViz, false);
+            SetStoreExpectedItem(hotspotViz);
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            logger.AssertPartialOutputStringExists(hotspotFilePath, hotspotStartLine.ToString());
+        }
+
+        private static IAnalysisIssueVisualization CreateHotspotVisualization(string filePath, int startLine)
+        {
+            var vizMock = new Mock<IAnalysisIssueVisualization>();
+            vizMock.Setup(x => x.FilePath).Returns(filePath);
+            vizMock.Setup(x => x.StartLine).Returns(startLine);
+            return vizMock.Object;
         }
 
         private void InitializeStateValidator(IShowHotspotRequest expected, bool canHandleRequest) =>
