@@ -60,8 +60,13 @@ namespace SonarQube.Client.Tests
     ""securityCategory"": ""others"",
     ""vulnerabilityProbability"": ""LOW""
   },
+  ""textRange"": {
+    ""startLine"": 5,
+    ""endLine"": 10,
+    ""startOffset"": 29,
+    ""endOffset"": 41
+  },
   ""status"": ""TO_REVIEW"",
-  ""line"": 10,
   ""message"": ""message"",
   ""assignee"": ""joe"",
   ""author"": ""joe"",
@@ -152,7 +157,6 @@ namespace SonarQube.Client.Tests
             result.Message.Should().Be("message");
             result.Assignee.Should().Be("joe");
             result.Status.Should().Be("TO_REVIEW");
-            result.Line.Should().Be(10);
 
             result.Organization.Should().Be("default-organization");
             result.ProjectKey.Should().Be("com.sonarsource:test-project");
@@ -165,6 +169,12 @@ namespace SonarQube.Client.Tests
             result.RuleName.Should().Be("rule-name");
             result.SecurityCategory.Should().Be("others");
             result.VulnerabilityProbability.Should().Be("LOW");
+
+            result.TextRange.Should().NotBeNull();
+            result.TextRange.StartLine.Should().Be(5);
+            result.TextRange.EndLine.Should().Be(10);
+            result.TextRange.StartOffset.Should().Be(29);
+            result.TextRange.EndOffset.Should().Be(41);
         }
 
         [TestMethod]

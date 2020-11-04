@@ -42,7 +42,6 @@ namespace SonarQube.Client.Api.V8_1
                 serverResponse.Message,
                 serverResponse.Assignee,
                 serverResponse.Status,
-                serverResponse.Line,
                 serverResponse.Project.Organization,
                 serverResponse.Project.Key,
                 serverResponse.Project.Name,
@@ -51,11 +50,15 @@ namespace SonarQube.Client.Api.V8_1
                 serverResponse.Rule.Key,
                 serverResponse.Rule.Name,
                 serverResponse.Rule.SecurityCategory,
-                serverResponse.Rule.VulnerabilityProbability
+                serverResponse.Rule.VulnerabilityProbability,
+                ToIssueTextRange(serverResponse.TextRange)
             );
 
             return hotspot;
         }
+
+        private static IssueTextRange ToIssueTextRange(ServerTextRange serverIssueTextRange) =>
+            new IssueTextRange(serverIssueTextRange.StartLine, serverIssueTextRange.EndLine, serverIssueTextRange.StartOffset, serverIssueTextRange.EndOffset);
 
         private class GetHotspotResponse
         {
@@ -82,6 +85,9 @@ namespace SonarQube.Client.Api.V8_1
 
             [JsonProperty("rule")]
             public ServerRule Rule { get; set; }
+
+            [JsonProperty("textRange")]
+            public ServerTextRange TextRange { get; set; }
         }
 
         private class ServerComponent
@@ -104,6 +110,7 @@ namespace SonarQube.Client.Api.V8_1
             [JsonProperty("name")]
             public string Name { get; set; }
         }
+
         private class ServerRule
         {
             [JsonProperty("key")]
@@ -117,6 +124,18 @@ namespace SonarQube.Client.Api.V8_1
 
             [JsonProperty("vulnerabilityProbability")]
             public string VulnerabilityProbability { get; set; }
+        }
+
+        private class ServerTextRange
+        {
+            [JsonProperty("startLine")]
+            public int StartLine { get; set; }
+            [JsonProperty("endLine")]
+            public int EndLine { get; set; }
+            [JsonProperty("startOffset")]
+            public int StartOffset { get; set; }
+            [JsonProperty("endOffset")]
+            public int EndOffset { get; set; }
         }
     }
 }
