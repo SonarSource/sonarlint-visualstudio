@@ -23,16 +23,16 @@ namespace SonarQube.Client.Models
     public class SonarQubeHotspot
     {
         public SonarQubeHotspot(
-            string hotspotKey, string message, string assignee, string status, int line,
+            string hotspotKey, string message, string assignee, string status,
             string organization, string projectKey, string projectName,
             string componentKey, string componentPath,
-            string ruleKey, string ruleName, string securityCategory, string vulnerabilityProbability)
+            string ruleKey, string ruleName, string securityCategory, 
+            string vulnerabilityProbability, IssueTextRange textRange)
         {
             HotspotKey = hotspotKey;
             Message = message;
             Assignee = assignee;
             Status = status;
-            Line = line;
 
             Organization = organization;
             ProjectKey = projectKey;
@@ -45,13 +45,14 @@ namespace SonarQube.Client.Models
             RuleName = ruleName;
             SecurityCategory = securityCategory;
             VulnerabilityProbability = vulnerabilityProbability;
+            TextRange = textRange;
         }
 
         public string HotspotKey { get; }
         public string Message { get; }
         public string Assignee { get; }
         public string Status { get; }
-        public int Line { get; }
+        public IssueTextRange TextRange { get; }
         public string Organization { get; } 
         public string ComponentKey { get; }
         public string ComponentPath { get; }
