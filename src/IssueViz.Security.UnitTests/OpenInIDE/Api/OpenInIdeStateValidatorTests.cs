@@ -58,41 +58,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void CanHandleOpenInIDERequest_NotInConnectedMode_False()
         {
-            var expectedFailureMessage = OpenInIDEResources.RequestValidator_InvalidStateReason_NotInConnectedMode;
-
-            VerifyValidationFailed(null, expectedFailureMessage);
+            VerifyValidationFailed(null, "you must be in Connected Mode");
         }
 
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongServer_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongServer, WrongServerConfiguration.ServerUrl);
-
-            VerifyValidationFailed(WrongServerConfiguration, expectedFailureMessage);
+            VerifyValidationFailed(WrongServerConfiguration, "not bound to the requested Sonar project");
         }
 
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongOrganization_SolutionConnectedToNullOrganization_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongOrganization, "");
-
-            VerifyValidationFailed(WrongOrganizationNullConfiguration, expectedFailureMessage);
+            VerifyValidationFailed(WrongOrganizationNullConfiguration, "not bound to the requested Sonar project");
         }
 
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongOrganization_SolutionConnectedToAnotherOrganization_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongOrganization, WrongOrganizationConfiguration.OrganizationKey);
-
-            VerifyValidationFailed(WrongOrganizationConfiguration, expectedFailureMessage);
+            VerifyValidationFailed(WrongOrganizationConfiguration, "not bound to the requested Sonar project");
         }
 
         [TestMethod]
         public void CanHandleOpenInIDERequest_WrongProject_False()
         {
-            var expectedFailureMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongProject, WrongProjectConfiguration.ProjectKey);
-
-            VerifyValidationFailed(WrongProjectConfiguration, expectedFailureMessage);
+            VerifyValidationFailed(WrongProjectConfiguration, "not bound to the requested Sonar project");
         }
 
         [TestMethod]

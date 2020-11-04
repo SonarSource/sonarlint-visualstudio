@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.InfoBar;
@@ -90,44 +91,55 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private string GetFailureMessage(Uri serverUri, string projectKey, string organizationKey)
         {
             var configuration = configurationProvider.GetConfiguration();
-            string reason = null;
+            var isRequestForSonarCloud = !string.IsNullOrEmpty(organizationKey);
+
+            var instructions = isRequestForSonarCloud
+                ? string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarCloud, serverUri, organizationKey, projectKey)
+                : string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarQube, serverUri, projectKey);
 
             if (configuration.Mode == SonarLintMode.Standalone)
             {
-                reason = OpenInIDEResources.RequestValidator_InvalidStateReason_NotInConnectedMode;
-            }
-            else if (!configuration.Project.ServerUri.Equals(serverUri))
-            {
-                reason = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongServer, configuration.Project.ServerUri);
-            }
-            else if (!string.IsNullOrEmpty(organizationKey) &&
-                (configuration.Project.Organization == null ||
-                 !organizationKey.Equals(configuration.Project.Organization.Key, StringComparison.OrdinalIgnoreCase)))
-            {
-                reason = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongOrganization, configuration.Project.Organization?.Key);
-            }
-            else if (!configuration.Project.ProjectKey.Equals(projectKey, StringComparison.OrdinalIgnoreCase))
-            {
-                reason = string.Format(OpenInIDEResources.RequestValidator_InvalidStateReason_WrongProject, configuration.Project.ProjectKey);
+                return string.Format(OpenInIDEResources.RequestValidator_InvalidState_NotInConnectedMode, instructions);
             }
 
-            if (reason == null)
+            if (IsCorrectServer() && IsCorrectOrganization() && IsCorrectSonarProject())
             {
                 return null;
             }
 
-            var instructions = string.IsNullOrEmpty(organizationKey)
-                ? string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarQube, serverUri, projectKey)
-                : string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarCloud, serverUri, organizationKey, projectKey);
+            var currentConfiguration = isRequestForSonarCloud
+                ? string.Format(OpenInIDEResources.RequestValidator_CurrentState_SonarCloud,
+                    configuration.Project.ServerUri,
+                    configuration.Project.Organization?.Key,
+                    configuration.Project.ProjectKey)
+                : string.Format(OpenInIDEResources.RequestValidator_CurrentState_SonarQube,
+                    configuration.Project.ServerUri,
+                    configuration.Project.ProjectKey);
 
-            var fullMessage = string.Format(OpenInIDEResources.RequestValidator_InvalidState, reason, instructions);
+            return string.Format(OpenInIDEResources.RequestValidator_InvalidState_WrongConnection, instructions, currentConfiguration);
 
-            return fullMessage;
+            bool IsCorrectServer()
+            {
+                return serverUri.Equals(configuration.Project.ServerUri);
+            }
+
+            bool IsCorrectOrganization()
+            {
+                return string.IsNullOrEmpty(organizationKey) ||
+                       organizationKey.Equals(configuration.Project.Organization?.Key, StringComparison.OrdinalIgnoreCase);
+            }
+
+            bool IsCorrectSonarProject()
+            {
+                return projectKey.Equals(configuration.Project.ProjectKey, StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         private void AddInfoBar()
         {
             currentInfoBar = infoBarManager.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+            Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
+            
             currentInfoBar.ButtonClick += ShowOutputWindow;
             currentInfoBar.Closed += CurrentInfoBar_Closed;
         }
