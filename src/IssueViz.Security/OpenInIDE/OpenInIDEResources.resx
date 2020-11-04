@@ -137,7 +137,7 @@
 {0}</value>
   </data>
   <data name="RequestValidator_InvalidState_WrongConnection" xml:space="preserve">
-    <value>[Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project.
+    <value>[Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project. Open a solution with the correct configuration.
 {0}
 {1}</value>
   </data>

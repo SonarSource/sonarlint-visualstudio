@@ -225,7 +225,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project.
+        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project. Open a solution with the correct configuration.
         ///{0}
         ///{1}.
         /// </summary>
