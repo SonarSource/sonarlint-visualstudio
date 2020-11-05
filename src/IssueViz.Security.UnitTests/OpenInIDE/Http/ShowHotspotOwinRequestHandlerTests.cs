@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             var testSubject = new ShowHotspotOwinRequestHandler(Mock.Of<IOpenInIDERequestHandler>(), Mock.Of<ILogger>());
 
-            testSubject.ApiPath.Should().Be("hotspots/show");
+            testSubject.ApiPath.Should().Be("/hotspots/show");
         }
 
         [TestMethod]

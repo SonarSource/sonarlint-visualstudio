@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public string ApiPath => "hotspots/show";
+        public string ApiPath => "/hotspots/show";
 
         public async Task ProcessRequest(IOwinContext context)
         {
