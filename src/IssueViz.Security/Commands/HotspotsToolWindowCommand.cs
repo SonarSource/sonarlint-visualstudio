@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel.Design;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
@@ -37,12 +36,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
         
         public static HotspotsToolWindowCommand Instance { get; set; }
 
-        private readonly AsyncPackage package;
+        private readonly IToolWindowService toolWindowService;
         private readonly ILogger logger;
 
-        internal HotspotsToolWindowCommand(AsyncPackage package, IMenuCommandService commandService, ILogger logger)
+        internal HotspotsToolWindowCommand(IToolWindowService toolWindowService, IMenuCommandService commandService, ILogger logger)
         {
-            this.package = package ?? throw new ArgumentNullException(nameof(package));
+            this.toolWindowService = toolWindowService ?? throw new ArgumentNullException(nameof(toolWindowService));
+
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (commandService == null)
@@ -61,28 +61,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            var toolWindowService = componentModel.GetService<IToolWindowService>();
             var logger = componentModel.GetService<ILogger>();
 
-            Instance = new HotspotsToolWindowCommand(package, commandService, logger);
+            Instance = new HotspotsToolWindowCommand(toolWindowService, commandService, logger);
         }
 
-        internal void Execute(object sender, EventArgs e)
+        internal /* for testing */ void Execute(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
             try
             {
-                var window = package.FindToolWindow(typeof(HotspotsToolWindow), 0, true);
-
-                if (window?.Frame == null)
-                {
-                    logger.WriteLine(Resources.ERR_HotspotsToolWindow_NoFrame);
-                }
-                else
-                {
-                    var vsWindowFrame = (IVsWindowFrame)window.Frame;
-                    Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(vsWindowFrame.Show());
-                }
+                toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
