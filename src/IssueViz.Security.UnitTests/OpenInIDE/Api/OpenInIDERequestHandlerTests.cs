@@ -186,6 +186,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static IAnalysisIssueVisualization CreateHotspotVisualization(string filePath, int startLine)
         {
             var vizMock = new Mock<IAnalysisIssueVisualization>();
+            // Note: these properties are not marked as Verifiable() since they won't always be read
             vizMock.Setup(x => x.FilePath).Returns(filePath);
             vizMock.Setup(x => x.StartLine).Returns(startLine);
             return vizMock.Object;
@@ -193,27 +194,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private void InitializeStateValidator(IShowHotspotRequest expected, bool canHandleRequest) =>
             stateValidatorMock.Setup(x => x.CanHandleOpenInIDERequest(expected.ServerUrl, expected.ProjectKey, expected.OrganizationKey))
-                .Returns(canHandleRequest);
+                .Returns(canHandleRequest)
+                .Verifiable();
 
         private void SetServerResponse(IShowHotspotRequest expected, SonarQubeHotspot response) =>
             serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
-                .Returns(Task<SonarQubeHotspot>.FromResult(response));
+                .Returns(Task<SonarQubeHotspot>.FromResult(response))
+                .Verifiable();
 
         private void SetConversionResponse(SonarQubeHotspot expected, IAnalysisIssueVisualization response) =>
-            converterMock.Setup(x => x.Convert(expected)).Returns(response);
+            converterMock.Setup(x => x.Convert(expected)).Returns(response).Verifiable();
 
         private void SetNavigationRespone(IAnalysisIssueVisualization expected, bool response) =>
-            navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response);
+            navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response).Verifiable();
 
         private void SetStoreExpectedItem(IAnalysisIssueVisualization expected) =>
-            storeMock.Setup(x => x.Add(expected));
+            storeMock.Setup(x => x.Add(expected)).Verifiable();
 
         private static void CheckCalled(params Mock[] mocks)
         {
             foreach (var mock in mocks)
             {
                 Console.WriteLine($"Checking mock was called: {mock.Object.GetType()}");
-                mock.VerifyAll();
+                // Note: we're calling Verify() rather than VerifyAll() so we only verify methods
+                // marked as Verifiable(). This is to prevent assertions on the IAnalysisIssueVisualization
+                // mock if the properties aren't accessed.
+                mock.Verify();
                 mock.Invocations.Count.Should().Be(1);
             }
         }
