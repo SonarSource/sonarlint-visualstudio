@@ -135,9 +135,6 @@
   <data name="ERR_QueryStatusVisualizationToolWindowCommand" xml:space="preserve">
     <value>Error querying status of Visualization Tool Window command: {0}</value>
   </data>
-  <data name="ERR_VisualizationToolWindow_NoFrame" xml:space="preserve">
-    <value>Error displaying Visualization Tool Window: cannot create window frame</value>
-  </data>
   <data name="IssueVisualizationToolWindowCaption" xml:space="preserve">
     <value>SonarLint Issue Visualization</value>
   </data>
