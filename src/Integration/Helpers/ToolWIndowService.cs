@@ -42,7 +42,10 @@ namespace SonarLint.VisualStudio.Integration.Helpers
 
         public void Show(Guid toolWindowId)
         {
-            var hr = shell.FindToolWindow(0, toolWindowId, out var windowFrame);
+            // We want VS to ask the package to create the tool window if it doesn't already exist
+            const uint flags = (uint)__VSFINDTOOLWIN.FTW_fForceCreate;
+
+            var hr = shell.FindToolWindow(flags, toolWindowId, out var windowFrame);
             Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to find tool window. Guid: {toolWindowId}, hr: {hr} ");
 
             if (ErrorHandler.Succeeded(hr))
