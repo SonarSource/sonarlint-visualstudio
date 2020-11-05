@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
     {
         public static readonly Guid CommandSet = Constants.CommandSetGuid;
         public const int ViewToolWindowCommandId = 0x0100;
-        
+
         public static HotspotsToolWindowCommand Instance { get; set; }
 
         private readonly IToolWindowService toolWindowService;
@@ -61,10 +61,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
-            var toolWindowService = componentModel.GetService<IToolWindowService>();
+            var windowService = componentModel.GetService<IToolWindowService>();
             var logger = componentModel.GetService<ILogger>();
 
-            Instance = new HotspotsToolWindowCommand(toolWindowService, commandService, logger);
+            Instance = new HotspotsToolWindowCommand(windowService, commandService, logger);
         }
 
         internal /* for testing */ void Execute(object sender, EventArgs e)
