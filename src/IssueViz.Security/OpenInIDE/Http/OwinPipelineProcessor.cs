@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
@@ -54,6 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
             foreach(var handler in pathRequestHandlers)
             {
+                Debug.Assert(handler.ApiPath.StartsWith("/"), "Expecting the handler path to start with /");
                 pathToHandlerMap.Add(handler.ApiPath, handler);
             }
         }

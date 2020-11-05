@@ -49,14 +49,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void Ctor_HandlersAreRegistered()
         {
-            var handler1 = CreateHandler("path1/");
-            var handler2 = CreateHandler("path2/");
+            var handler1 = CreateHandler("/path1/");
+            var handler2 = CreateHandler("/path2/");
 
             var testSubject = new OwinPipelineProcessor(new[] { handler1, handler2 }, new TestLogger());
 
             testSubject.PathToHandlerMap.Count.Should().Be(2);
-            testSubject.PathToHandlerMap["path1/"].Should().BeSameAs(handler1);
-            testSubject.PathToHandlerMap["path2/"].Should().BeSameAs(handler2);
+            testSubject.PathToHandlerMap["/path1/"].Should().BeSameAs(handler1);
+            testSubject.PathToHandlerMap["/path2/"].Should().BeSameAs(handler2);
         }
 
         [TestMethod]
