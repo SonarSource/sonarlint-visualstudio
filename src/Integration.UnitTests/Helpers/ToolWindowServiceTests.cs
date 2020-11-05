@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             serviceProvider.Setup(x => x.GetService(typeof(SVsUIShell))).Returns(uiShell.Object);
 
             uiShell
-                .Setup(x => x.FindToolWindow(0, ref toolWindowId, out toolWindowObject))
+                .Setup(x => x.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, ref toolWindowId, out toolWindowObject))
                 .Returns(hrResult);
         }
     }

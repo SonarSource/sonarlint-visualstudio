@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider.Object, Mock.Of<IOutputWindowService>(), Mock.Of<ILogger>());
@@ -138,7 +138,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var secondInfoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .SetupSequence(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
+                .SetupSequence(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(firstInfoBar.Object)
                 .Returns(secondInfoBar.Object);
 
@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider.Object, Mock.Of<IOutputWindowService>(), Mock.Of<ILogger>());
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIdeStateValidator(infoBarManager.Object, configProvider.Object, Mock.Of<IOutputWindowService>(), Mock.Of<ILogger>());
@@ -227,7 +227,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), It.IsAny<string>(), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var outputWindowService = new Mock<IOutputWindowService>();
@@ -282,7 +282,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var infoBarManager = new Mock<IInfoBarManager>();
 
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default))
+                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default))
                 .Returns(Mock.Of<IInfoBar>());
 
             return infoBarManager;

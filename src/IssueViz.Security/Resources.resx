@@ -120,9 +120,6 @@
   <data name="ERR_HotspotsToolWindow_Exception" xml:space="preserve">
     <value>Error displaying Hotspots Tool Window: {0}</value>
   </data>
-  <data name="ERR_HotspotsToolWindow_NoFrame" xml:space="preserve">
-    <value>Error displaying Hotspots Tool Window: cannot create window frame</value>
-  </data>
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarLint Security Hotspots</value>
   </data>
