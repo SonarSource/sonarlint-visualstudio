@@ -29,7 +29,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
     {
         /// <summary>
         /// Relative path under the base URL address of http://{host}:{port}/sonarlint/api/
-        /// e.g. "status"
+        /// e.g. "/status"
+        /// Note: the path must start with "/"
         /// </summary>
         string ApiPath { get; }
 
