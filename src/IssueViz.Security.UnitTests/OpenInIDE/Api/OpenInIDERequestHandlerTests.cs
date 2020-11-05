@@ -143,23 +143,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public async Task ShowHotspot_DataIsValid_NavigationSucceeded_And_IssueAddedToStore()
         {
-            const string hotspotFilePath = "c:\\foo\\myFile.txt";
-            const int hotspotStartLine = 999;
-            var hotspotViz = CreateHotspotVisualization(hotspotFilePath, hotspotStartLine);
+            // Note: this test needs a viz mock that doesn't have any members mocked using Setup(...).
+            // This is because we don't expect any of the members to be called (and if the mock has any
+            // members mocked then the call to converterMock.VerifyAll() will fail when the library tries
+            // to transitively verify the viz members).
+            var hotspotVizMock = new Mock<IAnalysisIssueVisualization>();
 
             InitializeStateValidator(ValidRequest, true);
             SetServerResponse(ValidRequest, ValidServerHotspot);
-            SetConversionResponse(ValidServerHotspot, hotspotViz);
-            SetNavigationRespone(hotspotViz, true);
-            SetStoreExpectedItem(hotspotViz);
+            SetConversionResponse(ValidServerHotspot, hotspotVizMock.Object);
+            SetNavigationRespone(hotspotVizMock.Object, true);
+            SetStoreExpectedItem(hotspotVizMock.Object);
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            CheckNotCalled(hotspotVizMock); // shouldn't have accessed any of the members
+
             // Not expecting an output window message in the success case
-            logger.AssertPartialOutputStringDoesNotExist(hotspotFilePath, hotspotStartLine.ToString());
+            logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
@@ -194,32 +198,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private void InitializeStateValidator(IShowHotspotRequest expected, bool canHandleRequest) =>
             stateValidatorMock.Setup(x => x.CanHandleOpenInIDERequest(expected.ServerUrl, expected.ProjectKey, expected.OrganizationKey))
-                .Returns(canHandleRequest)
-                .Verifiable();
+                .Returns(canHandleRequest);
 
         private void SetServerResponse(IShowHotspotRequest expected, SonarQubeHotspot response) =>
             serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
-                .Returns(Task<SonarQubeHotspot>.FromResult(response))
-                .Verifiable();
+                .Returns(Task<SonarQubeHotspot>.FromResult(response));
 
         private void SetConversionResponse(SonarQubeHotspot expected, IAnalysisIssueVisualization response) =>
-            converterMock.Setup(x => x.Convert(expected)).Returns(response).Verifiable();
+            converterMock.Setup(x => x.Convert(expected)).Returns(response);
 
         private void SetNavigationRespone(IAnalysisIssueVisualization expected, bool response) =>
-            navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response).Verifiable();
+            navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response);
 
         private void SetStoreExpectedItem(IAnalysisIssueVisualization expected) =>
-            storeMock.Setup(x => x.Add(expected)).Verifiable();
+            storeMock.Setup(x => x.Add(expected));
 
         private static void CheckCalled(params Mock[] mocks)
         {
             foreach (var mock in mocks)
             {
                 Console.WriteLine($"Checking mock was called: {mock.Object.GetType()}");
-                // Note: we're calling Verify() rather than VerifyAll() so we only verify methods
-                // marked as Verifiable(). This is to prevent assertions on the IAnalysisIssueVisualization
-                // mock if the properties aren't accessed.
-                mock.Verify();
+                mock.VerifyAll();
                 mock.Invocations.Count.Should().Be(1);
             }
         }
