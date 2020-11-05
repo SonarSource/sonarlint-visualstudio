@@ -70,15 +70,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error displaying Hotspots Tool Window: cannot create window frame.
-        /// </summary>
-        internal static string ERR_HotspotsToolWindow_NoFrame {
-            get {
-                return ResourceManager.GetString("ERR_HotspotsToolWindow_NoFrame", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SonarLint Security Hotspots.
         /// </summary>
         internal static string HotspotsToolWindowCaption {

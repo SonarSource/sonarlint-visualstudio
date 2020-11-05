@@ -137,7 +137,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private void AddInfoBar()
         {
-            currentInfoBar = infoBarManager.AttachInfoBarWithButton(new Guid(HotspotsToolWindow.ToolWindowId), OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+            currentInfoBar = infoBarManager.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
             Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
             
             currentInfoBar.ButtonClick += ShowOutputWindow;
