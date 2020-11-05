@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -33,11 +32,14 @@ namespace SonarLint.VisualStudio.Integration.Helpers
     internal class OutputWindowService : IOutputWindowService
     {
         private readonly IServiceProvider serviceProvider;
+        private readonly IToolWindowService toolWindowService;
 
         [ImportingConstructor]
-        public OutputWindowService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public OutputWindowService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IToolWindowService toolWindowService)
         {
             this.serviceProvider = serviceProvider;
+            this.toolWindowService = toolWindowService;
         }
 
         public void Show()
@@ -49,27 +51,13 @@ namespace SonarLint.VisualStudio.Integration.Helpers
             {
                 return;
             }
-       
+
             var hr = sonarLintOutputPane.Activate();
             Debug.Assert(ErrorHandler.Succeeded(hr), "Failed to activate SonarLint pane: " + hr);
 
-            if (!ErrorHandler.Succeeded(hr))
-            {
-                return;
-            }
-
-            ShowOutputWindowFrame();
-        }
-
-        private void ShowOutputWindowFrame()
-        {
-            var shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
-            var hr = shell.FindToolWindow(0, VSConstants.StandardToolWindows.Output, out var windowFrame);
-            Debug.Assert(ErrorHandler.Succeeded(hr), "Call to find output window: " + hr);
-
             if (ErrorHandler.Succeeded(hr))
             {
-                windowFrame?.Show();
+                toolWindowService.Show(VSConstants.StandardToolWindows.Output);
             }
         }
     }
