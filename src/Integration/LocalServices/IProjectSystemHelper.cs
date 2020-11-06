@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration
@@ -146,5 +147,23 @@ namespace SonarLint.VisualStudio.Integration
         /// that handles MSBuild SDK-style projects; the legacy project system is the closed-source one that
         /// preceeded it that only handles old-style MSBuild projects.</returns>
         bool IsLegacyProjectSystem(Project dteProject);
+
+        /// <summary>
+        /// Returns a flat list of all solution items, including projects and folders
+        /// </summary>
+        IEnumerable<IVsHierarchy> EnumerateProjects();
+
+        /// <summary>
+        /// Returns a flat list of all items in a given project, including items in sub folders
+        /// </summary>
+        IEnumerable<VSConstants.VSITEMID> GetAllItems(IVsHierarchy vsHierarchy);
+
+        /// <summary>
+        /// Returns an absolute file path of the given itemId in a given project
+        /// </summary>
+        /// <param name="vsProject">The project in which the item is located</param>
+        /// <param name="itemId">The item id for which to return the file path</param>
+        /// <returns>Null if the file does not exist in the project</returns>
+        string GetItemFilePath(IVsProject vsProject, VSConstants.VSITEMID itemId);
     }
 }

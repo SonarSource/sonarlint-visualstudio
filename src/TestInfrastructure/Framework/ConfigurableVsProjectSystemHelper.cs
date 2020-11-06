@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EnvDTE;
 using EnvDTE80;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -195,6 +196,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public bool IsLegacyProjectSystem(Project dteProject)
         {
             return this.isLegacyProjectSystem;
+        }
+
+        public IEnumerable<IVsHierarchy> EnumerateProjects()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<VSConstants.VSITEMID> GetAllItems(IVsHierarchy vsHierarchy)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetItemFilePath(IVsProject vsProject, VSConstants.VSITEMID itemId)
+        {
+            throw new NotImplementedException();
         }
 
         #endregion IVsProjectSystemHelper

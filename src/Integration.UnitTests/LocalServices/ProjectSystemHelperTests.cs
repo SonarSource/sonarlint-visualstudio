@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
-        public void ProjectSystemHelper_ArgCheck()
+        public void ArgCheck()
         {
             // Arrange
             Action act = () => new ProjectSystemHelper(null);
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetIVsHierarchy_ArgChecks()
+        public void GetIVsHierarchy_ArgChecks()
         {
             // Arrange
             Action act = () => this.testSubject.GetIVsHierarchy(null);
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetIVsHierarchy()
+        public void GetIVsHierarchy()
         {
             // Arrange
             const string projectName = "project";
@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetSolutionProjects_ReturnsOnlyKnownLanguages()
+        public void GetSolutionProjects_ReturnsOnlyKnownLanguages()
         {
             // Arrange
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
@@ -115,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsFileInProject_ProjectArgCheck()
+        public void IsFileInProject_ProjectArgCheck()
         {
             Action act = () => this.testSubject.IsFileInProject(null, "file");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
@@ -125,14 +125,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("\t\n")]
-        public void ProjectSystemHelper_IsFileInProject_FileArgCheck(string file)
+        public void IsFileInProject_FileArgCheck(string file)
         {
             Action act = () => this.testSubject.IsFileInProject(new ProjectMock("project"), file);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsFileInProject()
+        public void IsFileInProject()
         {
             // Arrange
             ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsFileInProject_DifferentCase()
+        public void IsFileInProject_DifferentCase()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_FindFileInProject_Missing_ReturnsNull()
+        public void FindFileInProject_Missing_ReturnsNull()
         {
             var project = this.solutionMock.AddOrGetProject("project");
             project.AddOrGetFile("fileThatExists.txt");
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_FindFileInProject_ProjectArgCheck()
+        public void FindFileInProject_ProjectArgCheck()
         {
             Action act = () => testSubject.FindFileInProject(null, "file");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
@@ -185,14 +185,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("\t\n")]
-        public void ProjectSystemHelper_FindFileInProject_FileArgChecks(string fileName)
+        public void FindFileInProject_FileArgChecks(string fileName)
         {
             Action act = () => this.testSubject.FindFileInProject(new ProjectMock("project"), fileName);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_FindFileInProject_Exists_ReturnsProjectItem()
+        public void FindFileInProject_Exists_ReturnsProjectItem()
         {
             var project = this.solutionMock.AddOrGetProject("project");
             var itemId = project.AddOrGetFile("fileInProject");
@@ -205,7 +205,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_FindFileInProject_ExistsButWrongExtObjType_ReturnsNull()
+        public void FindFileInProject_ExistsButWrongExtObjType_ReturnsNull()
         {
             var project = this.solutionMock.AddOrGetProject("project");
             var itemId = project.AddOrGetFile("fileInProject");
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetSolutionItemsProject()
+        public void GetSolutionItemsProject()
         {
             // Arrange
             const string SolutionItemsName = "Hello world";
@@ -296,7 +296,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetFilteredSolutionProjects()
+        public void GetFilteredSolutionProjects()
         {
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
             csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
@@ -322,7 +322,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_AddFileToProject_ProjectArgCheck()
+        public void AddFileToProject_ProjectArgCheck()
         {
             Action act = () => this.testSubject.AddFileToProject(null, "file");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("project");
@@ -332,14 +332,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("\t\n")]
-        public void ProjectSystemHelper_AddFileToProject_FileArgCheck(string file)
+        public void AddFileToProject_FileArgCheck(string file)
         {
             Action act = () => this.testSubject.AddFileToProject(new ProjectMock("project"), file);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("file");
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_AddFileToProject()
+        public void AddFileToProject()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("project1");
@@ -433,7 +433,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetSelectedProjects_ReturnsActiveProjects()
+        public void GetSelectedProjects_ReturnsActiveProjects()
         {
             // Arrange
             var dte = new DTEMock();
@@ -453,7 +453,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetProjectProperty_ProjectArgCheck()
+        public void GetProjectProperty_ProjectArgCheck()
         {
             Action act = () => testSubject.GetProjectProperty(null, "prop");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
@@ -463,14 +463,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("\t\n")]
-        public void ProjectSystemHelper_GetProjectProperty_PropertyNameArgCheck(string propertyName)
+        public void GetProjectProperty_PropertyNameArgCheck(string propertyName)
         {
             Action act = () => testSubject.GetProjectProperty(new ProjectMock("a.proj"), propertyName);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetProjectProperty_PropertyDoesNotExist_ReturnsNull()
+        public void GetProjectProperty_PropertyDoesNotExist_ReturnsNull()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
@@ -483,7 +483,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetProjectProperty_PropertyExists_ReturnsValue()
+        public void GetProjectProperty_PropertyExists_ReturnsValue()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
@@ -498,7 +498,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_SetProjectProperty_PropertyArgCheck()
+        public void SetProjectProperty_PropertyArgCheck()
         {
             // 1. Null project
             Action act = () => testSubject.SetProjectProperty(null, "prop", "val");
@@ -508,14 +508,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void ProjectSystemHelper_SetProjectProperty_PropertyArgCheck(string propertyName)
+        public void SetProjectProperty_PropertyArgCheck(string propertyName)
         {
             Action act = () => testSubject.SetProjectProperty(new ProjectMock("a.proj"), propertyName, "val");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_SetProjectProperty_PropertyDoesNotExist_AddsPropertyWithValue()
+        public void SetProjectProperty_PropertyDoesNotExist_AddsPropertyWithValue()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
@@ -528,7 +528,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_SetProjectProperty_PropertyExists_OverwritesValue()
+        public void SetProjectProperty_PropertyExists_OverwritesValue()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
@@ -543,7 +543,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_ClearProjectProperty_ProjectArgCheck()
+        public void ClearProjectProperty_ProjectArgCheck()
         {
             Action act = () => testSubject.ClearProjectProperty(null, "prop");
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
@@ -553,14 +553,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(null)]
         [DataRow("")]
         [DataRow("\t\n")]
-        public void ProjectSystemHelper_ClearProjectProperty_PropertyArgCheck(string propertyName)
+        public void ClearProjectProperty_PropertyArgCheck(string propertyName)
         {
             Action act = () => testSubject.ClearProjectProperty(new ProjectMock("a.proj"), propertyName);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyName");
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_ClearProjectProperty_PropertyExists_ClearsProperty()
+        public void ClearProjectProperty_PropertyExists_ClearsProperty()
         {
             // Arrange
             ProjectMock project = this.solutionMock.AddOrGetProject("my.proj");
@@ -575,7 +575,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetProject_ArgChecks()
+        public void GetProject_ArgChecks()
         {
             // Arrange
             Action act = () => testSubject.GetProject(null);
@@ -585,7 +585,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetAggregateProjectKinds_ArgChecks()
+        public void GetAggregateProjectKinds_ArgChecks()
         {
             // Arrange
             Action act = () => this.testSubject.GetAggregateProjectKinds(null).FirstOrDefault();
@@ -595,7 +595,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetAggregateProjectKinds_NoGuids_ReturnsEmpty()
+        public void GetAggregateProjectKinds_NoGuids_ReturnsEmpty()
         {
             // Arrange
             var project = new LegacyProjectMock("my.project");
@@ -609,7 +609,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_GetAggregateProjectKinds_HasGoodAndBadGuids_ReturnsSuccessfullyParsedGuidsOnly()
+        public void GetAggregateProjectKinds_HasGoodAndBadGuids_ReturnsSuccessfullyParsedGuidsOnly()
         {
             // Arrange
             const string guidString = ";;;F602148F607646F88F7772CC9C49BC3F;;__BAD__;;__BADGUID__;0BA323B301614B1C80D74607B7EB7F5A;;;__FOO__;;;";
@@ -630,7 +630,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsSolutionFullyLoaded_PropertyIsTrue_ReturnsTrue()
+        public void IsSolutionFullyLoaded_PropertyIsTrue_ReturnsTrue()
         {
             // Arrange
             this.solutionMock.IsFullyLoaded = true;
@@ -643,7 +643,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsSolutionFullyLoaded_PropertyIsFalse_ReturnsFalse()
+        public void IsSolutionFullyLoaded_PropertyIsFalse_ReturnsFalse()
         {
             // Arrange
             this.solutionMock.IsFullyLoaded = false;
@@ -656,7 +656,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsSolutionFullyLoaded_PropertyIsNotBoolean_ReturnsFalse()
+        public void IsSolutionFullyLoaded_PropertyIsNotBoolean_ReturnsFalse()
         {
             // Arrange
             this.solutionMock.IsFullyLoaded = "not a boolean";
@@ -669,7 +669,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsLegacyProject_NotLegacy_ReturnsFalse()
+        public void IsLegacyProject_NotLegacy_ReturnsFalse()
         {
             // Arrange
             var mockProject = this.solutionMock.AddOrGetProject("dummy.proj", isLegacy: false);
@@ -682,7 +682,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ProjectSystemHelper_IsLegacyProject_Legacy_ReturnsTrue()
+        public void IsLegacyProject_Legacy_ReturnsTrue()
         {
             // Arrange
             var mockProject  = this.solutionMock.AddOrGetProject("dummy.proj", isLegacy: true);
@@ -694,9 +694,121 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeTrue();
         }
 
+        [TestMethod]
+        public void EnumerateProjects_NoProjectsInSolution_EmptyList()
+        {
+            var result = testSubject.EnumerateProjects().ToArray();
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void EnumerateProjects_OneProjectInSolution_ListWithProject()
+        {
+            var project = solutionMock.AddOrGetProject("test.csproj", true, false);
+
+            var result = testSubject.EnumerateProjects().ToArray();
+            result.Should().BeEquivalentTo(project);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void EnumerateProjects_ProjectAndFolderInSolution_ListWithProjectAndFolder(bool isProjectUnderFolder)
+        {
+            var folder = solutionMock.AddOrGetProject("folder");
+            folder.SetExtObjProperty(VSConstants.VSITEMID_ROOT, folder);
+
+            var project = solutionMock.AddOrGetProject("test.csproj", true, false);
+            project.SetExtObjProperty(VSConstants.VSITEMID_ROOT, isProjectUnderFolder ? folder : project);
+            project.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
+
+            var result = testSubject.EnumerateProjects().ToArray();
+            result.Should().BeEquivalentTo(folder, project);
+        }
+
+        [TestMethod]
+        public void GetItemFilePath_ItemDoesNotExist_Null()
+        {
+            var project = new ProjectMock("test.csproj");
+
+            using (new AssertIgnoreScope())
+            {
+                var result = testSubject.GetItemFilePath(project, (VSConstants.VSITEMID)123);
+                result.Should().BeNull();
+            }
+        }
+
+        [TestMethod]
+        public void GetItemFilePath_ItemExists_ReturnsItemFilePath()
+        {
+            var project = new ProjectMock("test.csproj");
+            var itemId = project.AddOrGetFile("test.cs");
+
+            var result = testSubject.GetItemFilePath(project, (VSConstants.VSITEMID) itemId);
+            result.Should().Be("test.cs");
+        }
+
+        [TestMethod]
+        public void GetItemFilePath_ProjectPath_ReturnsProjectPath()
+        {
+            var project = new ProjectMock("test.csproj");
+
+            var result = testSubject.GetItemFilePath(project, VSConstants.VSITEMID.Root);
+            result.Should().Be("test.csproj");
+        }
+
+        [TestMethod]
+        public void GetAllItems_ProjectIsEmpty_EmptyList()
+        {
+            var project = new ProjectMock("test.csproj");
+
+            var result = testSubject.GetAllItems(project);
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetAllItems_MultipleFiles_FlatListOfAllItems()
+        {
+            var project = new ProjectMock("test.csproj");
+            var file1 = project.AddOrGetFile("file1.cs");
+            var file2 = project.AddOrGetFile("file2.cs");
+            var file3 = project.AddOrGetFile("file3.cs");
+            var file4 = project.AddOrGetFile("file4.cs");
+            var folder1 = project.AddOrGetFile("folder1");
+            var folder2 = project.AddOrGetFile("folder2");
+
+            /*
+             * file1
+             * folder1
+             *    file2
+             *    folder2
+             *       file3
+             * file4
+             */
+            project.SetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_FirstChild, file1);
+            project.SetProperty(file1, (int)__VSHPROPID.VSHPROPID_NextSibling, folder1);
+            project.SetProperty(folder1, (int)__VSHPROPID.VSHPROPID_NextSibling, file4);
+            project.SetProperty(folder1, (int)__VSHPROPID.VSHPROPID_FirstChild, file2);
+            project.SetProperty(file2, (int)__VSHPROPID.VSHPROPID_NextSibling, folder2);
+            project.SetProperty(folder2, (int)__VSHPROPID.VSHPROPID_FirstChild, file3);
+
+            var result = testSubject.GetAllItems(project);
+            var expected = new[] {file1, folder1, file2, folder2, file3, file4};
+            result.Should().BeEquivalentTo(expected, c => c.WithStrictOrdering());
+        }
+
         #endregion Tests
 
         #region Helpers
+
+        private static ProjectSystemHelper CreateTestSubject(IVsSolution solution)
+        {
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(solution);
+
+            var testSubject = new ProjectSystemHelper(serviceProvider.Object);
+            return testSubject;
+        }
 
         private void SetSolutionFolderName(string name)
         {

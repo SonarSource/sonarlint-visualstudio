@@ -56,24 +56,19 @@ namespace SonarLint.VisualStudio.Integration
         internal const uint SolutionItemResourceId = 13450;
 
         private readonly IServiceProvider serviceProvider;
+        private readonly IVsSolution solution;
 
         public ProjectSystemHelper(IServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
-            this.serviceProvider = serviceProvider;
+            solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
+            Debug.Assert(solution != null, "Cannot find SVsSolution");
         }
-
 
         public IEnumerable<Project> GetSolutionProjects()
         {
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
-
-            foreach (var hierarchy in EnumerateProjects(solution))
+            foreach (var hierarchy in EnumerateProjects())
             {
                 Project Project = GetProject(hierarchy);
                 if (Project != null && !ProjectToLanguageMapper.GetLanguageForProject(Project).Equals(Language.Unknown))
@@ -455,7 +450,7 @@ namespace SonarLint.VisualStudio.Integration
             return solutionItemsFolderName;
         }
 
-        private static IEnumerable<IVsHierarchy> EnumerateProjects(IVsSolution solution)
+        public IEnumerable<IVsHierarchy> EnumerateProjects()
         {
             Guid empty = Guid.Empty;
             IEnumHierarchies projectsEnum;
@@ -501,6 +496,48 @@ namespace SonarLint.VisualStudio.Integration
             var hierarchy = GetIVsHierarchy(dteProject);
 
             return hierarchy != null && hierarchy is IVsAggregatableProjectCorrected;
+        }
+
+        public IEnumerable<VSConstants.VSITEMID> GetAllItems(IVsHierarchy vsHierarchy)
+        {
+            // Based on https://github.com/microsoft/VSSDK-Extensibility-Samples/blob/c6b80a4ff7023578649d7edecc8fd6cd8a34da10/Code_Sweep/C%23/VsPackage/BuildManager.cs#L450
+            return ChildrenOf(vsHierarchy, (uint) VSConstants.VSITEMID.Root);
+        }
+
+        private static IEnumerable<VSConstants.VSITEMID> ChildrenOf(IVsHierarchy hierarchy, uint rootId)
+        {
+            var result = new List<VSConstants.VSITEMID>();
+
+            for (var itemId = FirstChild(hierarchy, rootId);
+                itemId != (uint)VSConstants.VSITEMID.Nil;
+                itemId = NextSibling(hierarchy, itemId))
+            {
+                result.Add((VSConstants.VSITEMID) itemId);
+                result.AddRange(ChildrenOf(hierarchy, itemId));
+            }
+
+            return result;
+        }
+
+        private static uint FirstChild(IVsHierarchy hierarchy, uint rootId) =>
+            GetItemId(hierarchy, rootId, __VSHPROPID.VSHPROPID_FirstChild);
+
+        private static uint NextSibling(IVsHierarchy hierarchy, uint firstId) =>
+            GetItemId(hierarchy, firstId, __VSHPROPID.VSHPROPID_NextSibling);
+
+        private static uint GetItemId(IVsHierarchy hierarchy, uint itemId, __VSHPROPID propId)
+        {
+            hierarchy.GetProperty(itemId, (int)propId, out var idObj);
+
+            return idObj == null ? (uint)VSConstants.VSITEMID.Nil : (uint) idObj;
+        }
+
+        public string GetItemFilePath(IVsProject vsProject, VSConstants.VSITEMID itemId)
+        {
+            var hr = vsProject.GetMkDocument((uint)itemId, out var filePath);
+            Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "GetMkDocument failed for project.");
+
+            return filePath;
         }
     }
 }
