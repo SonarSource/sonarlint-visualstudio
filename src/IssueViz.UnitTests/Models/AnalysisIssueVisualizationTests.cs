@@ -50,7 +50,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
-        public void Ctor_InitialSpanIsSetToGivenValue()
+        public void Ctor_NullSpan_InitialSpanIsSetToGivenValue()
+        {
+            var testSubject = CreateTestSubject(span: null);
+
+            testSubject.Span.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Ctor_EmptySpan_InitialSpanIsSetToGivenValue()
+        {
+            var span = new SnapshotSpan();
+            var testSubject = CreateTestSubject(span: span);
+
+            testSubject.Span.Should().Be(span);
+        }
+
+        [TestMethod]
+        public void Ctor_NonEmptySpan_InitialSpanIsSetToGivenValue()
         {
             var span = CreateSpan();
             var testSubject = CreateTestSubject(span: span);
@@ -157,7 +174,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             return new SnapshotSpan(mockTextSnapshot.Object, new Span(0, 10));
         }
 
-        private AnalysisIssueVisualization CreateTestSubject(string filePath = null, SnapshotSpan span = new SnapshotSpan())
+        private AnalysisIssueVisualization CreateTestSubject(string filePath = null, SnapshotSpan? span = null)
         {
             var issue = new Mock<IAnalysisIssue>();
             issue.SetupGet(x => x.FilePath).Returns(filePath);
