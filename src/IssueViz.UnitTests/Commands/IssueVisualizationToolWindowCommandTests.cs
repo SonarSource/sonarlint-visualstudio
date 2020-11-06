@@ -38,46 +38,39 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
     [TestClass]
     public class IssueVisualizationToolWindowCommandTests
     {
-        private Mock<IToolWindowService> toolWindowService;
-        private Mock<IMenuCommandService> commandService;
-        private Mock<IVsMonitorSelection> monitorSelection;
-        private Mock<ILogger> logger;
-        private uint uiContextCookie = 999;
-
         [TestInitialize]
         public void TestInitialize()
         {
-            toolWindowService = new Mock<IToolWindowService>();
-            commandService = new Mock<IMenuCommandService>();
-            monitorSelection = new Mock<IVsMonitorSelection>();
-            logger = new Mock<ILogger>();
-
             ThreadHelper.SetCurrentThreadAsUIThread();
-
-            var uiContext = new Guid(IssueVisualization.Commands.Constants.UIContextGuid);
-            monitorSelection.Setup(x => x.GetCmdUIContextCookie(ref uiContext, out uiContextCookie)).Returns(VSConstants.S_OK);
         }
 
         [TestMethod]
         public void Ctor_ArgsCheck()
         {
-            Action act = () => new IssueVisualizationToolWindowCommand(null, commandService.Object, monitorSelection.Object, logger.Object);
+            var toolWindowService = Mock.Of<IToolWindowService>();
+            var commandService = Mock.Of<IMenuCommandService>();
+            var monitorSelection = Mock.Of<IVsMonitorSelection>();
+            var logger = Mock.Of<ILogger>();
+
+            Action act = () => new IssueVisualizationToolWindowCommand(null, commandService, monitorSelection, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("toolWindowService");
 
-            act = () => new IssueVisualizationToolWindowCommand(toolWindowService.Object, null, monitorSelection.Object, logger.Object);
+            act = () => new IssueVisualizationToolWindowCommand(toolWindowService, null, monitorSelection, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 
-            act = () => new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, null, logger.Object);
+            act = () => new IssueVisualizationToolWindowCommand(toolWindowService, commandService, null, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("monitorSelection");
 
-            act = () => new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, monitorSelection.Object, null);
+            act = () => new IssueVisualizationToolWindowCommand(toolWindowService, commandService, monitorSelection, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void Ctor_CommandAddedToMenu()
         {
-            new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, monitorSelection.Object, logger.Object);
+            var commandService = new Mock<IMenuCommandService>();
+
+            new IssueVisualizationToolWindowCommand(Mock.Of<IToolWindowService>(), commandService.Object, Mock.Of<IVsMonitorSelection>(), Mock.Of<ILogger>());
 
             commandService.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
@@ -97,17 +90,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         [TestMethod]
         public void ErrorListQueryStatus_NonCriticalException_IsSuppressed()
         {
+            var logger = new TestLogger(logToConsole: true);
+
+            const uint uiContextCookie = 123;
+            var monitorSelection = new Mock<IVsMonitorSelection>();
+            SetupSelectionService(monitorSelection, uiContextCookie);
+
             var result = 1;
             monitorSelection
                 .Setup(x => x.IsCmdUIContextActive(uiContextCookie, out result))
                 .Throws(new NotImplementedException("this is a test"));
 
-            var testSubject = CreateTestSubject();
+            var testSubject = new IssueVisualizationToolWindowCommand(Mock.Of<IToolWindowService>(), Mock.Of<IMenuCommandService>(),
+                monitorSelection.Object, logger);
 
             Action act = () => testSubject.ErrorListQueryStatus(null, EventArgs.Empty);
             act.Should().NotThrow();
 
-            VerifyMessageLogged("this is a test");
+            logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]
@@ -115,10 +115,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         [DataRow(false)]
         public void ErrorListQueryStatus_CommandVisibilityIsSetToContextActivation(bool isContextActive)
         {
+            const uint uiContextCookie = 999;
+            var monitorSelection = new Mock<IVsMonitorSelection>();
+            SetupSelectionService(monitorSelection, uiContextCookie);
+
             var isActive = isContextActive ? 1 : 0;
             monitorSelection.Setup(x => x.IsCmdUIContextActive(uiContextCookie, out isActive)).Returns(VSConstants.S_OK);
 
-            var testSubject = CreateTestSubject();
+            var testSubject = new IssueVisualizationToolWindowCommand(Mock.Of<IToolWindowService>(), Mock.Of<IMenuCommandService>(),
+                monitorSelection.Object, Mock.Of<ILogger>());
 
             testSubject.ErrorListMenuItem.Visible = !isContextActive;
 
@@ -177,14 +182,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
             logger.AssertNoOutputMessages();
         }
 
-        private void VerifyMessageLogged(string expectedMessage)
+        private void SetupSelectionService(Mock<IVsMonitorSelection> monitorSelection, uint uiContextCookie)
         {
-            logger.Verify(x =>
-                    x.WriteLine(It.Is((string message) => message.Contains(expectedMessage))),
-                Times.Once);
+            var uiContext = new Guid(IssueVisualization.Commands.Constants.UIContextGuid);
+            monitorSelection.Setup(x => x.GetCmdUIContextCookie(ref uiContext, out uiContextCookie)).Returns(VSConstants.S_OK);
         }
-
-        private IssueVisualizationToolWindowCommand CreateTestSubject() =>
-            new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, monitorSelection.Object, logger.Object);
     }
 }
