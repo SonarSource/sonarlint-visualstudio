@@ -56,14 +56,14 @@ namespace SonarLint.VisualStudio.Integration
         internal const uint SolutionItemResourceId = 13450;
 
         private readonly IServiceProvider serviceProvider;
-        private readonly IVsSolution solution;
+        private readonly IVsSolution vsSolution;
 
         public ProjectSystemHelper(IServiceProvider serviceProvider)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
 
-            solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
+            vsSolution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
+            Debug.Assert(vsSolution != null, "Cannot find SVsSolution");
         }
 
         public IEnumerable<Project> GetSolutionProjects()
@@ -109,11 +109,8 @@ namespace SonarLint.VisualStudio.Integration
                 throw new ArgumentNullException(nameof(dteProject));
             }
 
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
-
             IVsHierarchy hierarchy;
-            if (ErrorHandler.Succeeded(solution.GetProjectOfUniqueName(dteProject.UniqueName, out hierarchy)))
+            if (ErrorHandler.Succeeded(vsSolution.GetProjectOfUniqueName(dteProject.UniqueName, out hierarchy)))
             {
                 return hierarchy;
             }
@@ -454,7 +451,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             Guid empty = Guid.Empty;
             IEnumHierarchies projectsEnum;
-            ErrorHandler.ThrowOnFailure(solution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref empty, out projectsEnum));
+            ErrorHandler.ThrowOnFailure(vsSolution.GetProjectEnum((uint)__VSENUMPROJFLAGS.EPF_LOADEDINSOLUTION, ref empty, out projectsEnum));
             IVsHierarchy[] output = new IVsHierarchy[1];
             uint fetched;
             while (ErrorHandler.Succeeded(projectsEnum.Next(1, output, out fetched)) && fetched == 1)
@@ -466,10 +463,8 @@ namespace SonarLint.VisualStudio.Integration
         public bool IsSolutionFullyOpened()
         {
             object isLoaded;
-            IVsSolution solution = this.serviceProvider.GetService<SVsSolution, IVsSolution>();
-            Debug.Assert(solution != null, "Cannot find SVsSolution");
 
-            int hresult = solution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
+            int hresult = vsSolution.GetProperty((int)__VSPROPID4.VSPROPID_IsSolutionFullyLoaded, out isLoaded);
 
             if (ErrorHandler.Succeeded(hresult) && isLoaded is Boolean)
             {
