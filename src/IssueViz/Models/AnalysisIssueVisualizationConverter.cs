@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 {
     public interface IAnalysisIssueVisualizationConverter
     {
-        IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot);
+        IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null);
     }
 
     [Export(typeof(IAnalysisIssueVisualizationConverter))]
@@ -48,19 +48,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             this.issueSpanCalculator = issueSpanCalculator;
         }
 
-        public IAnalysisIssueVisualization Convert(IAnalysisIssue issue, ITextSnapshot textSnapshot)
+        public IAnalysisIssueVisualization Convert(IAnalysisIssueBase issue, ITextSnapshot textSnapshot = null)
         {
-            var span = issueSpanCalculator.CalculateSpan(issue, textSnapshot);
-
-            if (span.IsEmpty)
-            {
-                return null;
-            }
+            var issueSpan = textSnapshot == null
+                ? (SnapshotSpan?) null
+                : issueSpanCalculator.CalculateSpan(issue, textSnapshot);
 
             var flows = Convert(issue.Flows);
 
-            var issueVisualization = new AnalysisIssueVisualization(flows, issue, span);
+            var issueVisualization = new AnalysisIssueVisualization(flows, issue, issueSpan);
 
+            if (textSnapshot != null)
+            {
+                CalculateSpanForSecondaryLocationsInSameFile(issueVisualization, textSnapshot);
+            }
+
+            return issueVisualization;
+        }
+
+        private void CalculateSpanForSecondaryLocationsInSameFile(IAnalysisIssueVisualization issueVisualization, ITextSnapshot textSnapshot)
+        {
             var locationsInSameFile = issueVisualization
                 .Flows
                 .SelectMany(x => x.Locations)
@@ -70,8 +77,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             {
                 locationVisualization.Span = issueSpanCalculator.CalculateSpan(locationVisualization.Location, textSnapshot);
             }
-
-            return issueVisualization;
         }
 
         private IReadOnlyList<IAnalysisIssueFlowVisualization> Convert(IEnumerable<IAnalysisIssueFlow> flows)
