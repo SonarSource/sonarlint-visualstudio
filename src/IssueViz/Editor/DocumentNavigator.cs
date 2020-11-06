@@ -30,7 +30,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    public interface IDocumentNavigator
+    internal interface IDocumentNavigator
     {
         ITextView Open(string filePath);
         void Navigate(ITextView textView, SnapshotSpan snapshotSpan);

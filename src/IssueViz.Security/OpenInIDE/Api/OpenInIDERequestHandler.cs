@@ -32,19 +32,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     {
         private readonly IOpenInIDEStateValidator ideStateValidator;
         private readonly ISonarQubeService sonarQubeService;
-        private readonly IHotspotToIssueVisualizationConverter hotspotConverter;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public OpenInIDERequestHandler(IOpenInIDEStateValidator ideStateValidator,
-            ISonarQubeService sonarQubeService,
-            IHotspotToIssueVisualizationConverter hotspotConverter,
-            ILogger logger)
+        public OpenInIDERequestHandler(IOpenInIDEStateValidator ideStateValidator, ISonarQubeService sonarQubeService, ILogger logger)
         {
             // MEF-created so the arguments should never be null
             this.ideStateValidator = ideStateValidator;
             this.sonarQubeService = sonarQubeService;
-            this.hotspotConverter = hotspotConverter;
             this.logger = logger;
         }
 
