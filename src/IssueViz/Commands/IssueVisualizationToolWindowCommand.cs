@@ -24,6 +24,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using ErrorHandler = SonarLint.VisualStudio.Core.ErrorHandler;
@@ -39,16 +40,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 
         public static IssueVisualizationToolWindowCommand Instance { get; private set; }
 
-        private readonly AsyncPackage package;
+        private readonly IToolWindowService toolWindowService;
         private readonly IVsMonitorSelection monitorSelection;
         private readonly ILogger logger;
         private readonly uint uiContextCookie;
 
         internal readonly OleMenuCommand ErrorListMenuItem;
 
-        internal IssueVisualizationToolWindowCommand(AsyncPackage package, IMenuCommandService commandService, IVsMonitorSelection monitorSelection, ILogger logger)
+        internal IssueVisualizationToolWindowCommand(IToolWindowService toolWindowService, IMenuCommandService commandService, IVsMonitorSelection monitorSelection, ILogger logger)
         {
-            this.package = package ?? throw new ArgumentNullException(nameof(package));
+            this.toolWindowService = toolWindowService ?? throw new ArgumentNullException(nameof(toolWindowService));
             this.monitorSelection = monitorSelection ?? throw new ArgumentNullException(nameof(monitorSelection));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -77,9 +78,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var monitorSelection = await package.GetServiceAsync(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
-            var logger = componentModel.GetService<ILogger>(); 
+            var toolWindowService = componentModel.GetService<IToolWindowService>();
+            var logger = componentModel.GetService<ILogger>();
 
-            Instance = new IssueVisualizationToolWindowCommand(package, commandService, monitorSelection, logger);
+            Instance = new IssueVisualizationToolWindowCommand(toolWindowService, commandService, monitorSelection, logger);
         }
 
         internal void ErrorListQueryStatus(object sender, EventArgs e)
@@ -103,17 +105,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 
             try
             {
-                var window = package.FindToolWindow(typeof(IssueVisualizationToolWindow), 0, true);
-
-                if (window?.Frame == null)
-                {
-                    logger.WriteLine(Resources.ERR_VisualizationToolWindow_NoFrame);
-                }
-                else
-                {
-                    var vsWindowFrame = (IVsWindowFrame) window.Frame;
-                    Microsoft.VisualStudio.ErrorHandler.ThrowOnFailure(vsWindowFrame.Show());
-                }
+                toolWindowService.Show(IssueVisualizationToolWindow.ToolWindowId);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

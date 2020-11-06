@@ -26,8 +26,9 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Moq.Protected;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
     [TestClass]
     public class IssueVisualizationToolWindowCommandTests
     {
-        private Mock<AsyncPackage> package;
+        private Mock<IToolWindowService> toolWindowService;
         private Mock<IMenuCommandService> commandService;
         private Mock<IVsMonitorSelection> monitorSelection;
         private Mock<ILogger> logger;
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         [TestInitialize]
         public void TestInitialize()
         {
-            package = new Mock<AsyncPackage>();
+            toolWindowService = new Mock<IToolWindowService>();
             commandService = new Mock<IMenuCommandService>();
             monitorSelection = new Mock<IVsMonitorSelection>();
             logger = new Mock<ILogger>();
@@ -61,22 +62,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         public void Ctor_ArgsCheck()
         {
             Action act = () => new IssueVisualizationToolWindowCommand(null, commandService.Object, monitorSelection.Object, logger.Object);
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("package");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("toolWindowService");
 
-            act = () => new IssueVisualizationToolWindowCommand(package.Object, null, monitorSelection.Object, logger.Object);
+            act = () => new IssueVisualizationToolWindowCommand(toolWindowService.Object, null, monitorSelection.Object, logger.Object);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 
-            act = () => new IssueVisualizationToolWindowCommand(package.Object, commandService.Object, null, logger.Object);
+            act = () => new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, null, logger.Object);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("monitorSelection");
 
-            act = () => new IssueVisualizationToolWindowCommand(package.Object, commandService.Object, monitorSelection.Object, null);
+            act = () => new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, monitorSelection.Object, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
         [TestMethod]
         public void Ctor_CommandAddedToMenu()
         {
-            new IssueVisualizationToolWindowCommand(package.Object, commandService.Object, monitorSelection.Object, logger.Object);
+            new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, monitorSelection.Object, logger.Object);
 
             commandService.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
@@ -127,75 +128,53 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         }
 
         [TestMethod]
-        public void Execute_WindowNotCreated_NoException()
+        public void Execute_ServiceCalled()
         {
-            SetupWindowCreation(null);
+            var logger = new TestLogger(logToConsole: true);
+            var toolwindowServiceMock = new Mock<IToolWindowService>();
 
-            VerifyExecutionDoesNotThrow();
+            var testSubject = new IssueVisualizationToolWindowCommand(toolwindowServiceMock.Object,
+                Mock.Of<IMenuCommandService>(), Mock.Of<IVsMonitorSelection>(), logger);
 
-            VerifyMessageLogged("cannot create window frame");
+            // Act
+            testSubject.Execute(null, null);
+
+            toolwindowServiceMock.Verify(x => x.Show(IssueVisualizationToolWindow.ToolWindowId), Times.Once);
+            logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
-        public void Execute_WindowCreatedWithoutFrame_NoException()
+        public void Execute_NonCriticalException_IsSuppressed()
         {
-            SetupWindowCreation(new ToolWindowPane());
+            var logger = new TestLogger(logToConsole: true);
+            var toolwindowServiceMock = new Mock<IToolWindowService>();
+            toolwindowServiceMock.Setup(x => x.Show(IssueVisualizationToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
 
-            VerifyExecutionDoesNotThrow();
+            var testSubject = new IssueVisualizationToolWindowCommand(toolwindowServiceMock.Object,
+                Mock.Of<IMenuCommandService>(), Mock.Of<IVsMonitorSelection>(), logger);
 
-            VerifyMessageLogged("cannot create window frame");
+            // Act
+            testSubject.Execute(null, null);
+
+            toolwindowServiceMock.Verify(x => x.Show(IssueVisualizationToolWindow.ToolWindowId), Times.Once);
+            logger.AssertPartialOutputStringExists("thrown by test");
         }
 
         [TestMethod]
-        public void Execute_NonCriticalExceptionInCreatingWindow_IsSuppressed()
+        public void Execute_CriticalException_IsNotSuppressed()
         {
-            SetupWindowCreation(new ToolWindowPane { Frame = Mock.Of<IVsWindowFrame>() }, new NotImplementedException("this is a test"));
+            var logger = new TestLogger(logToConsole: true);
+            var toolwindowServiceMock = new Mock<IToolWindowService>();
+            toolwindowServiceMock.Setup(x => x.Show(IssueVisualizationToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
 
-            VerifyExecutionDoesNotThrow();
+            var testSubject = new IssueVisualizationToolWindowCommand(toolwindowServiceMock.Object,
+                Mock.Of<IMenuCommandService>(), Mock.Of<IVsMonitorSelection>(), logger);
 
-            VerifyMessageLogged("this is a test");
-        }
+            // Act
+            Action act = () => testSubject.Execute(null, null);
 
-        [TestMethod]
-        public void Execute_WindowCreatedWithIVsWindowFrame_WindowIsShown()
-        {
-            var frame = new Mock<IVsWindowFrame>();
-            SetupWindowCreation(new ToolWindowPane { Frame = frame.Object });
-
-            VerifyExecutionDoesNotThrow();
-
-            frame.Verify(x => x.Show(), Times.Once);
-
-            logger.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Execute_WindowCreatedWithIVsWindowFrame_ExceptionInShowingWindow_NoException()
-        {
-            var frame = new Mock<IVsWindowFrame>();
-            frame.Setup(x => x.Show()).Throws(new NotImplementedException("this is a test"));
-
-            SetupWindowCreation(new ToolWindowPane { Frame = frame.Object });
-
-            VerifyExecutionDoesNotThrow();
-
-            frame.Verify(x => x.Show(), Times.Once);
-
-            VerifyMessageLogged("this is a test");
-        }
-
-        private void SetupWindowCreation(WindowPane windowPane, Exception exceptionToThrow = null)
-        {
-            var setup = package.Protected().Setup<WindowPane>("CreateToolWindow", typeof(IssueVisualizationToolWindow), 0);
-
-            if (exceptionToThrow == null)
-            {
-                setup.Returns(windowPane);
-            }
-            else
-            {
-                setup.Throws(exceptionToThrow);
-            }
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown by test");
+            logger.AssertNoOutputMessages();
         }
 
         private void VerifyMessageLogged(string expectedMessage)
@@ -205,15 +184,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
                 Times.Once);
         }
 
-        private void VerifyExecutionDoesNotThrow()
-        {
-            var testSubject = CreateTestSubject();
-
-            Action act = () => testSubject.Execute(this, EventArgs.Empty);
-            act.Should().NotThrow();
-        }
-
         private IssueVisualizationToolWindowCommand CreateTestSubject() =>
-            new IssueVisualizationToolWindowCommand(package.Object, commandService.Object, monitorSelection.Object, logger.Object);
+            new IssueVisualizationToolWindowCommand(toolWindowService.Object, commandService.Object, monitorSelection.Object, logger.Object);
     }
 }

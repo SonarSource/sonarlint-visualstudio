@@ -31,9 +31,12 @@ using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
-    [Guid("bb3677d1-3b5c-45a3-8a3a-897108c3ba28")]
+    [Guid(ToolWindowIdAsString)]
     public class IssueVisualizationToolWindow : ToolWindowPane
     {
+        private const string ToolWindowIdAsString = "bb3677d1-3b5c-45a3-8a3a-897108c3ba28";
+        public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
+
         private readonly IssueVisualizationViewModel viewModel;
 
         public IssueVisualizationToolWindow(IServiceProvider serviceProvider) : base(null)
