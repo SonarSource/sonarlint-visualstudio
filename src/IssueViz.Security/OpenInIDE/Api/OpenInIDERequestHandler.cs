@@ -22,8 +22,10 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarQube.Client;
@@ -34,6 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     [Export(typeof(IOpenInIDERequestHandler))]
     internal class OpenInIDERequestHandler : IOpenInIDERequestHandler
     {
+        private readonly IToolWindowService toolWindowService;
         private readonly IOpenInIDEStateValidator ideStateValidator;
         private readonly ISonarQubeService sonarQubeService;
         private readonly IHotspotToIssueVisualizationConverter converter;
@@ -42,7 +45,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public OpenInIDERequestHandler(IOpenInIDEStateValidator ideStateValidator,
+        public OpenInIDERequestHandler(
+            IToolWindowService toolWindowService,
+            IOpenInIDEStateValidator ideStateValidator,
             ISonarQubeService sonarQubeService,
             IHotspotToIssueVisualizationConverter converter,
             ILocationNavigator navigator,
@@ -50,6 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             ILogger logger)
         {
             // MEF-created so the arguments should never be null
+            this.toolWindowService = toolWindowService;
             this.ideStateValidator = ideStateValidator;
             this.sonarQubeService = sonarQubeService;
             this.converter = converter;
@@ -70,6 +76,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 throw new ArgumentNullException(nameof(request));
             }
 
+            // Always show the Hotspots tool window. If we can't successfully process the
+            // request we'll show a gold bar in the window
+            toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
+
+            // TODO: show gold bar in event of any problem handing the request
+            
             if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
                 return;
