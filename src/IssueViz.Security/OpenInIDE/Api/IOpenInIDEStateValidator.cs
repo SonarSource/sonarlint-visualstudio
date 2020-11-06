@@ -20,16 +20,12 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
-    internal interface IOpenInIDEStateValidator : IDisposable
+    internal interface IOpenInIDEStateValidator
     {
         /// <summary>
         /// Checks whether the IDE is in the correct status to handle an "Open in IDE" request
@@ -44,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         /// * a solution must be open
         /// * the solution must be in connected mode, pointing to the correct server/project/organization.
         ///
-        /// The validator is responsible for handling any UX notifications if the IDE is not in an appropriate state.
+        /// The validator is responsible for logging UX messages to the output window if the IDE is not in an appropriate state.
         /// </remarks>
         bool CanHandleOpenInIDERequest(Uri serverUri, string projectKey, string organizationKey);
     }
@@ -53,28 +49,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class OpenInIdeStateValidator : IOpenInIDEStateValidator
     {
-        private readonly IInfoBarManager infoBarManager;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly IOutputWindowService outputWindowService;
         private readonly ILogger logger;
-        private IInfoBar currentInfoBar;
 
         [ImportingConstructor]
-        public OpenInIdeStateValidator(IInfoBarManager infoBarManager, 
-            IConfigurationProvider configurationProvider, 
-            IOutputWindowService outputWindowService,
+        public OpenInIdeStateValidator(IConfigurationProvider configurationProvider,
             ILogger logger)
         {
-            this.infoBarManager = infoBarManager;
             this.configurationProvider = configurationProvider;
-            this.outputWindowService = outputWindowService;
             this.logger = logger;
         }
 
         public bool CanHandleOpenInIDERequest(Uri serverUri, string projectKey, string organizationKey)
         {
-            RemoveExistingInfoBar();
-
             var failureMessage = GetFailureMessage(serverUri, projectKey, organizationKey);
 
             if (string.IsNullOrEmpty(failureMessage))
@@ -82,7 +69,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 return true;
             }
 
-            AddInfoBar();
             logger.WriteLine(failureMessage);
 
             return false;
@@ -133,40 +119,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             {
                 return projectKey.Equals(configuration.Project.ProjectKey, StringComparison.OrdinalIgnoreCase);
             }
-        }
-
-        private void AddInfoBar()
-        {
-            currentInfoBar = infoBarManager.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
-            Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
-            
-            currentInfoBar.ButtonClick += ShowOutputWindow;
-            currentInfoBar.Closed += CurrentInfoBar_Closed;
-        }
-
-        private void ShowOutputWindow(object sender, EventArgs e)
-        {
-            outputWindowService.Show();
-        }
-
-        private void RemoveExistingInfoBar()
-        {
-            if (currentInfoBar != null)
-            {
-                currentInfoBar.Closed -= CurrentInfoBar_Closed;
-                infoBarManager.DetachInfoBar(currentInfoBar);
-                currentInfoBar = null;
-            }
-        }
-
-        private void CurrentInfoBar_Closed(object sender, EventArgs e)
-        {
-            RemoveExistingInfoBar();
-        }
-
-        public void Dispose()
-        {
-            RemoveExistingInfoBar();
         }
     }
 }
