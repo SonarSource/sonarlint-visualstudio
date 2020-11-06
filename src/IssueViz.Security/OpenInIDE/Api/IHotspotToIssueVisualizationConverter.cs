@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 using SonarQube.Client.Models;
@@ -36,20 +35,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     internal class HotspotToIssueVisualizationConverter : IHotspotToIssueVisualizationConverter
     {
         private readonly IAnalysisIssueVisualizationConverter issueVisualizationConverter;
-        private readonly IDocumentNavigator documentNavigator;
 
         [ImportingConstructor]
-        public HotspotToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter, IDocumentNavigator documentNavigator)
+        public HotspotToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter)
         {
             this.issueVisualizationConverter = issueVisualizationConverter;
-            this.documentNavigator = documentNavigator;
         }
 
         public IAnalysisIssueVisualization Convert(SonarQubeHotspot sonarQubeHotspot)
         {
             var hotspot = ConvertToHotspot(sonarQubeHotspot);
-            var textView = documentNavigator.Open(hotspot.FilePath);
-            var issueViz = issueVisualizationConverter.Convert(hotspot, textView.TextBuffer.CurrentSnapshot);
+            var issueViz = issueVisualizationConverter.Convert(hotspot);
 
             return issueViz;
         }
