@@ -18,22 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using System;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
+namespace SonarLint.VisualStudio.Core
 {
-    /// <summary>
-    /// Component that handles a low-level OWIN HTTP request to a specific relative path
-    /// </summary>
-    internal interface IOwinPathRequestHandler
+    public interface IToolWindowService
     {
         /// <summary>
-        /// Relative path under the base URL address of http://{host}:{port}/sonarlint/api/
-        /// e.g. "/status"
-        /// Note: the path must start with "/"
+        /// Opens specified tool window
         /// </summary>
-        string ApiPath { get; }
-
-        Task ProcessRequest(Microsoft.Owin.IOwinContext context);
+        void Show(Guid toolWindowId);
     }
 }

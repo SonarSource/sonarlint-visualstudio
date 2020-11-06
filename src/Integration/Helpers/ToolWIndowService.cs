@@ -21,43 +21,36 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
-    [Export(typeof(IOutputWindowService))]
-    internal class OutputWindowService : IOutputWindowService
+    [Export(typeof(IToolWindowService))]
+    internal class ToolWindowService : IToolWindowService
     {
-        private readonly IServiceProvider serviceProvider;
-        private readonly IToolWindowService toolWindowService;
+        private readonly IVsUIShell shell;
 
         [ImportingConstructor]
-        public OutputWindowService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IToolWindowService toolWindowService)
+        public ToolWindowService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            this.serviceProvider = serviceProvider;
-            this.toolWindowService = toolWindowService;
+            shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
+            Debug.Assert(shell != null, "Failed to retrieve the IVsUIShell");
         }
 
-        public void Show()
+        public void Show(Guid toolWindowId)
         {
-            var sonarLintOutputPane = VsShellUtils.GetOrCreateSonarLintOutputPane(serviceProvider);
-            Debug.Assert(sonarLintOutputPane != null, "Failed to create SonarLint pane");
+            // We want VS to ask the package to create the tool window if it doesn't already exist
+            const uint flags = (uint)__VSFINDTOOLWIN.FTW_fForceCreate;
 
-            if (sonarLintOutputPane == null)
-            {
-                return;
-            }
-
-            var hr = sonarLintOutputPane.Activate();
-            Debug.Assert(ErrorHandler.Succeeded(hr), "Failed to activate SonarLint pane: " + hr);
+            var hr = shell.FindToolWindow(flags, toolWindowId, out var windowFrame);
+            Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to find tool window. Guid: {toolWindowId}, hr: {hr} ");
 
             if (ErrorHandler.Succeeded(hr))
             {
-                toolWindowService.Show(VSConstants.StandardToolWindows.Output);
+                windowFrame?.Show();
             }
         }
     }

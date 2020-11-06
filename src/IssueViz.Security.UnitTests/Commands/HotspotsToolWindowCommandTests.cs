@@ -21,12 +21,11 @@
 using System;
 using System.ComponentModel.Design;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Moq.Protected;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using ThreadHelper = SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Helpers.ThreadHelper;
@@ -36,32 +35,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
     [TestClass]
     public class HotspotsToolWindowCommandTests
     {
-        private Mock<AsyncPackage> package;
-        private Mock<ILogger> logger;
-
         [TestInitialize]
         public void TestInitialize()
         {
-            package = new Mock<AsyncPackage>();
-            logger = new Mock<ILogger>();
-
             ThreadHelper.SetCurrentThreadAsUIThread();
         }
 
         [TestMethod]
         public void Ctor_ArgsCheck()
         {
-            var package = Mock.Of<AsyncPackage>();
+            var toolWindowService = Mock.Of<IToolWindowService>();
             var commandService = Mock.Of<IMenuCommandService>();
             var logger = Mock.Of<ILogger>();
 
             Action act = () => new HotspotsToolWindowCommand(null, commandService, logger);
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("package");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("toolWindowService");
 
-            act = () => new HotspotsToolWindowCommand(package, null, logger);
+            act = () => new HotspotsToolWindowCommand(toolWindowService, null, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 
-            act = () => new HotspotsToolWindowCommand(package, commandService, null);
+            act = () => new HotspotsToolWindowCommand(toolWindowService, commandService, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
@@ -70,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var commandService = new Mock<IMenuCommandService>();
 
-            new HotspotsToolWindowCommand(Mock.Of<AsyncPackage>(), commandService.Object, Mock.Of<ILogger>());
+            new HotspotsToolWindowCommand(Mock.Of<IToolWindowService>(), commandService.Object, Mock.Of<ILogger>());
 
             commandService.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
@@ -82,90 +75,50 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         }
 
         [TestMethod]
-        public void Execute_WindowNotCreated_NoException()
+        public void Execute_ServiceCalled()
         {
-            SetupWindowCreation(null);
+            var logger = new TestLogger(logToConsole: true);
+            var toolwindowServiceMock = new Mock<IToolWindowService>();
 
-            VerifyExecutionDoesNotThrow();
+            var testSubject = new HotspotsToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
-            VerifyMessageLogged("cannot create window frame");
+            // Act
+            testSubject.Execute(null, null);
+
+            toolwindowServiceMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
+            logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
-        public void Execute_WindowCreatedWithoutFrame_NoException()
+        public void Execute_NonCriticalException_IsSuppressed()
         {
-            SetupWindowCreation(new ToolWindowPane());
+            var logger = new TestLogger(logToConsole: true);
+            var toolwindowServiceMock = new Mock<IToolWindowService>();
+            toolwindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
 
-            VerifyExecutionDoesNotThrow();
+            var testSubject = new HotspotsToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
-            VerifyMessageLogged("cannot create window frame");
+            // Act
+            testSubject.Execute(null, null);
+
+            toolwindowServiceMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
+            logger.AssertPartialOutputStringExists("thrown by test");
         }
 
         [TestMethod]
-        public void Execute_NonCriticalExceptionInCreatingWindow_IsSuppressed()
+        public void Execute_CriticalException_IsNotSuppressed()
         {
-            SetupWindowCreation(new ToolWindowPane { Frame = Mock.Of<IVsWindowFrame>() }, new NotImplementedException("this is a test"));
+            var logger = new TestLogger(logToConsole: true);
+            var toolwindowServiceMock = new Mock<IToolWindowService>();
+            toolwindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
 
-            VerifyExecutionDoesNotThrow();
+            var testSubject = new HotspotsToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
-            VerifyMessageLogged("this is a test");
-        }
+            // Act
+            Action act = () => testSubject.Execute(null, null);
 
-        [TestMethod]
-        public void Execute_WindowCreatedWithIVsWindowFrame_WindowIsShown()
-        {
-            var frame = new Mock<IVsWindowFrame>();
-            SetupWindowCreation(new ToolWindowPane { Frame = frame.Object });
-
-            VerifyExecutionDoesNotThrow();
-
-            frame.Verify(x => x.Show(), Times.Once);
-
-            logger.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Execute_WindowCreatedWithIVsWindowFrame_ExceptionInShowingWindow_NoException()
-        {
-            var frame = new Mock<IVsWindowFrame>();
-            frame.Setup(x => x.Show()).Throws(new NotImplementedException("this is a test"));
-
-            SetupWindowCreation(new ToolWindowPane { Frame = frame.Object });
-
-            VerifyExecutionDoesNotThrow();
-
-            frame.Verify(x => x.Show(), Times.Once);
-
-            VerifyMessageLogged("this is a test");
-        }
-
-        private void SetupWindowCreation(WindowPane windowPane, Exception exceptionToThrow = null)
-        {
-            var setup = package.Protected().Setup<WindowPane>("CreateToolWindow", typeof(HotspotsToolWindow), 0);
-
-            if (exceptionToThrow == null)
-            {
-                setup.Returns(windowPane);
-            }
-            else
-            {
-                setup.Throws(exceptionToThrow);
-            }
-        }
-
-        private void VerifyMessageLogged(string expectedMessage)
-        {
-            logger.Verify(x =>
-                    x.WriteLine(It.Is((string message) => message.Contains(expectedMessage))),
-                Times.Once);
-        }
-
-        private void VerifyExecutionDoesNotThrow()
-        {
-            var testSubject = new HotspotsToolWindowCommand(package.Object, Mock.Of<IMenuCommandService>(), logger.Object);
-
-            Action act = () => testSubject.Execute(null, EventArgs.Empty);
-            act.Should().NotThrow();
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown by test");
+            logger.AssertNoOutputMessages();
         }
     }
 }

@@ -38,7 +38,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             MefTestHelpers.CheckTypeCanBeImported<OutputWindowService, IOutputWindowService>(null, new[]
             {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>())
+                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>())
             });
         }
 
@@ -47,8 +48,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var serviceProvider = new Mock<IServiceProvider>();
             SetupSonarLintPane(serviceProvider, sonarLintPane: null);
+            var toolWindowServiceMock = new Mock<IToolWindowService>();
 
-            var testSubject = new OutputWindowService(serviceProvider.Object);
+            var testSubject = new OutputWindowService(serviceProvider.Object, toolWindowServiceMock.Object);
 
             using (new AssertIgnoreScope())
             {
@@ -57,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             serviceProvider.VerifyAll();
             serviceProvider.VerifyNoOtherCalls();
+            toolWindowServiceMock.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -68,7 +71,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProvider = new Mock<IServiceProvider>();
             SetupSonarLintPane(serviceProvider, sonarLintPane.Object);
 
-            var testSubject = new OutputWindowService(serviceProvider.Object);
+            var toolWindowServiceMock = new Mock<IToolWindowService>();
+
+            var testSubject = new OutputWindowService(serviceProvider.Object, toolWindowServiceMock.Object);
 
             using (new AssertIgnoreScope())
             {
@@ -77,52 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             serviceProvider.VerifyAll();
             serviceProvider.VerifyNoOtherCalls();
-        }
 
-        [TestMethod]
-        public void Show_ActivatedSonarLintPane_FailedToGetOutputWindow_OutputWindowNotShown()
-        {
-            var sonarLintPane = new Mock<IVsOutputWindowPane>();
-            sonarLintPane.Setup(x => x.Activate()).Returns(VSConstants.S_OK);
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            SetupSonarLintPane(serviceProvider, sonarLintPane.Object);
-
-            var uiShell = new Mock<IVsUIShell>();
-            var outputWindow = new Mock<IVsWindowFrame>();
-            SetupOutputWindow(VSConstants.E_FAIL, serviceProvider, uiShell, outputWindow.Object);
-
-            var testSubject = new OutputWindowService(serviceProvider.Object);
-
-            using (new AssertIgnoreScope())
-            {
-                testSubject.Show();
-            }
-
-            outputWindow.VerifyNoOtherCalls();
-            uiShell.VerifyAll();
-            uiShell.VerifyNoOtherCalls();
-            serviceProvider.VerifyAll();
-            serviceProvider.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Show_ActivatedSonarLintPane_ReturnedNullOutputWindow_NoException()
-        {
-            var sonarLintPane = new Mock<IVsOutputWindowPane>();
-            sonarLintPane.Setup(x => x.Activate()).Returns(VSConstants.S_OK);
-
-            var serviceProvider = new Mock<IServiceProvider>();
-            SetupSonarLintPane(serviceProvider, sonarLintPane.Object);
-
-            var outputWindow = new Mock<IVsWindowFrame>();
-            var uiShell = new Mock<IVsUIShell>();
-            SetupOutputWindow(VSConstants.S_OK, serviceProvider, uiShell, outputWindow.Object);
-
-            var testSubject = new OutputWindowService(serviceProvider.Object);
-            testSubject.Show();
-
-            outputWindow.Verify(x=> x.Show(), Times.Once);
+            toolWindowServiceMock.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -134,16 +95,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var serviceProvider = new Mock<IServiceProvider>();
             SetupSonarLintPane(serviceProvider, sonarLintPane.Object);
 
-            var uiShell = new Mock<IVsUIShell>();
-            SetupOutputWindow(VSConstants.S_OK, serviceProvider, uiShell, outputWindowObject: null);
+            var toolWindowServiceMock = new Mock<IToolWindowService>();
 
-            var testSubject = new OutputWindowService(serviceProvider.Object);
+            var testSubject = new OutputWindowService(serviceProvider.Object, toolWindowServiceMock.Object);
 
-            using (new AssertIgnoreScope())
-            {
-                Action act = () => testSubject.Show();
-                act.Should().NotThrow();
-            }
+            // Act
+            testSubject.Show();
+
+            toolWindowServiceMock.Verify(x => x.Show(VSConstants.StandardToolWindows.Output), Times.Once);
         }
 
         private static void SetupSonarLintPane(Mock<IServiceProvider> serviceProvider, IVsOutputWindowPane sonarLintPane)
@@ -152,20 +111,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             outputWindow
                 .Setup(x => x.GetPane(ref VsShellUtils.SonarLintOutputPaneGuid, out sonarLintPane))
                 .Returns(VSConstants.S_OK);
-            
+
             serviceProvider
                 .Setup(x => x.GetService(typeof(SVsOutputWindow)))
                 .Returns(outputWindow.Object);
-        }
-
-        private void SetupOutputWindow(int hrResult, Mock<IServiceProvider> serviceProvider, Mock<IVsUIShell> uiShell, IVsWindowFrame outputWindowObject)
-        {
-            var outputWindowGuid = VSConstants.StandardToolWindows.Output;
-            uiShell
-                .Setup(x => x.FindToolWindow(0, ref outputWindowGuid, out outputWindowObject))
-                .Returns(hrResult);
-
-            serviceProvider.Setup(x => x.GetService(typeof(SVsUIShell))).Returns(uiShell.Object);
         }
     }
 }
