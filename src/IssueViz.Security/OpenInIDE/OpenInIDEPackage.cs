@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE
         // Note: the range of ports used is common across SonarLint implementations in all IDEs and
         // must match those checked by SonarQube/SonarCloud.
         private const int StartPort = 64120;
-        private const int EndPort = 64123;
+        private const int EndPort = 64130;
 
         private IDisposable listener;
 
