@@ -149,13 +149,15 @@ namespace SonarLint.VisualStudio.Integration
         bool IsLegacyProjectSystem(Project dteProject);
 
         /// <summary>
-        /// Returns a flat list of all solution items, including projects and folders
+        /// Returns a lazy flat list of all solution items, including projects and folders.
         /// </summary>
+        /// <remarks>The list is lazy-loaded.</remarks>
         IEnumerable<IVsHierarchy> EnumerateProjects();
 
         /// <summary>
-        /// Returns a flat list of all items in a given project, including items in sub folders
+        /// Returns a flat list of all items in a given project, including items in sub folders.
         /// </summary>
+        /// <remarks>The list is eager-loaded.</remarks>
         IEnumerable<VSConstants.VSITEMID> GetAllItems(IVsHierarchy vsHierarchy);
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace SonarLint.VisualStudio.Core
     public interface IAbsoluteFilePathLocator
     {
         /// <summary>
-        /// Searches for all files in the current solution and returns an absolute file path that ends with the given relative path
+        /// Searches all files in the current solution and returns the absolute path of the first file in the solution that ends with the given relative path.
         /// </summary>
         /// <returns>Null if there is no solution open, or if there are no files in the solution that end with the given relative path</returns>
         string Locate(string relativeFilePath);

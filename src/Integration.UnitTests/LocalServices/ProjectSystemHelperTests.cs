@@ -785,12 +785,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
              *       file3
              * file4
              */
-            project.SetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_FirstChild, file1);
-            project.SetProperty(file1, (int)__VSHPROPID.VSHPROPID_NextSibling, folder1);
-            project.SetProperty(folder1, (int)__VSHPROPID.VSHPROPID_NextSibling, file4);
-            project.SetProperty(folder1, (int)__VSHPROPID.VSHPROPID_FirstChild, file2);
-            project.SetProperty(file2, (int)__VSHPROPID.VSHPROPID_NextSibling, folder2);
-            project.SetProperty(folder2, (int)__VSHPROPID.VSHPROPID_FirstChild, file3);
+            project.SetProperty((uint)VSConstants.VSITEMID.Root, (int)__VSHPROPID.VSHPROPID_FirstChild, (int)file1);
+            project.SetProperty(file1, (int)__VSHPROPID.VSHPROPID_NextSibling, (int)folder1);
+            project.SetProperty(folder1, (int)__VSHPROPID.VSHPROPID_NextSibling, (int)file4);
+            project.SetProperty(folder1, (int)__VSHPROPID.VSHPROPID_FirstChild, (int)file2);
+            project.SetProperty(file2, (int)__VSHPROPID.VSHPROPID_NextSibling, (int)folder2);
+            project.SetProperty(folder2, (int)__VSHPROPID.VSHPROPID_FirstChild, (int)file3);
 
             var result = testSubject.GetAllItems(project);
             var expected = new[] {file1, folder1, file2, folder2, file3, file4};

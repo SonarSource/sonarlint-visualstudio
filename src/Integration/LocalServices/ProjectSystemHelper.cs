@@ -524,7 +524,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             hierarchy.GetProperty(itemId, (int)propId, out var idObj);
 
-            return idObj == null ? (uint)VSConstants.VSITEMID.Nil : (uint) idObj;
+            return idObj == null ? (uint)VSConstants.VSITEMID.Nil : (uint)(int) idObj;
         }
 
         public string GetItemFilePath(IVsProject vsProject, VSConstants.VSITEMID itemId)
