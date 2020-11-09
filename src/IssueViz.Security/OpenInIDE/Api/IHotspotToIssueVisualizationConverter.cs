@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 using SonarQube.Client.Models;
@@ -35,11 +36,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     internal class HotspotToIssueVisualizationConverter : IHotspotToIssueVisualizationConverter
     {
         private readonly IAnalysisIssueVisualizationConverter issueVisualizationConverter;
+        private readonly IAbsoluteFilePathLocator absoluteFilePathLocator;
 
         [ImportingConstructor]
-        public HotspotToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter)
+        public HotspotToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter, IAbsoluteFilePathLocator absoluteFilePathLocator)
         {
             this.issueVisualizationConverter = issueVisualizationConverter;
+            this.absoluteFilePathLocator = absoluteFilePathLocator;
         }
 
         public IAnalysisIssueVisualization Convert(SonarQubeHotspot sonarQubeHotspot)
@@ -52,8 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private Hotspot ConvertToHotspot(SonarQubeHotspot sonarQubeHotspot)
         {
-            // todo: calculate file path
-            var filePath = sonarQubeHotspot.ComponentPath;
+            var filePath = absoluteFilePathLocator.Locate(sonarQubeHotspot.ComponentPath);
             var priority = GetPriority(sonarQubeHotspot.VulnerabilityProbability);
 
             var hotspot = new Hotspot(
