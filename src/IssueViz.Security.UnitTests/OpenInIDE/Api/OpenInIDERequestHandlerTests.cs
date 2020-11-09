@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             logger = new TestLogger(logToConsole: true);
 
             testSubject = new OpenInIDERequestHandler(toolWindowService.Object, stateValidatorMock.Object, serverMock.Object,
-                converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, logger);
+            converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, logger);
         }
 
         [TestMethod]
@@ -184,8 +184,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
             CheckNotCalled(hotspotVizMock); // shouldn't have accessed any of the members
 
-            // Not expecting an output window message in the success case
-            logger.AssertNoOutputMessages();
+            logger.AssertPartialOutputStringExists(ValidRequest.ServerUrl.ToString(), ValidRequest.ProjectKey, ValidRequest.OrganizationKey, ValidRequest.HotspotKey);
         }
 
         [TestMethod]
