@@ -26,6 +26,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
@@ -85,8 +86,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private async Task ShowHotspotAsync(IShowHotspotRequest request)
         {
-            logger.WriteLine(OpenInIDEResources.OpenHotspot_ProcessingRequest, request.ServerUrl, request.ProjectKey,
-                request.OrganizationKey ?? OpenInIDEResources.OpenHotspot_NullOrganization, request.HotspotKey);
+            logger.WriteLine(OpenInIDEResources.ApiHandler_ProcessingRequest, request.ServerUrl, request.ProjectKey,
+                request.OrganizationKey ?? OpenInIDEResources.ApiHandler_NullOrganization, request.HotspotKey);
 
             // Always show the Hotspots tool window. If we can't successfully process the
             // request we'll show a gold bar in the window
@@ -108,10 +109,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 return;
             }
 
-            var hotspotViz = converter.Convert(hotspot);
+            var hotspotViz = TryCreateIssueViz(hotspot);
             if (hotspotViz == null)
             {
-                logger.WriteLine(OpenInIDEResources.OpenHotspot_UnableToConvertHotspotData);
                 ShowFailureInfoBar();
                 return;
             }
@@ -125,7 +125,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             // Add to store regardless of whether navigation succeeded
             hotspotsStore.Add(hotspotViz);
         }
-
 
         private void ShowFailureInfoBar()
         {
@@ -146,5 +145,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             return null;
         }
 
+        private IAnalysisIssueVisualization TryCreateIssueViz(SonarQubeHotspot hotspot)
+        {
+            try
+            {
+                return converter.Convert(hotspot);
+            }
+            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(OpenInIDEResources.ApiHandler_UnableToConvertHotspotData, ex.Message);
+            }
+            return null;
+        }
     }
 }

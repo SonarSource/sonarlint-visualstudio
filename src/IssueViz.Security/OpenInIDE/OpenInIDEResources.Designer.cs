@@ -79,6 +79,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {none}.
+        /// </summary>
+        internal static string ApiHandler_NullOrganization {
+            get {
+                return ResourceManager.GetString("ApiHandler_NullOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}.
+        /// </summary>
+        internal static string ApiHandler_ProcessingRequest {
+            get {
+                return ResourceManager.GetString("ApiHandler_ProcessingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Unable to convert hotspot data: {0}.
+        /// </summary>
+        internal static string ApiHandler_UnableToConvertHotspotData {
+            get {
+                return ResourceManager.GetString("ApiHandler_UnableToConvertHotspotData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Checking availability of port {0}.
         /// </summary>
         internal static string Factory_CheckingPort {
@@ -138,33 +165,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         internal static string OpenHotspot_MissingParameter {
             get {
                 return ResourceManager.GetString("OpenHotspot_MissingParameter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {none}.
-        /// </summary>
-        internal static string OpenHotspot_NullOrganization {
-            get {
-                return ResourceManager.GetString("OpenHotspot_NullOrganization", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}.
-        /// </summary>
-        internal static string OpenHotspot_ProcessingRequest {
-            get {
-                return ResourceManager.GetString("OpenHotspot_ProcessingRequest", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [Open in IDE] Unable to convert hotspot data.
-        /// </summary>
-        internal static string OpenHotspot_UnableToConvertHotspotData {
-            get {
-                return ResourceManager.GetString("OpenHotspot_UnableToConvertHotspotData", resourceCulture);
             }
         }
         

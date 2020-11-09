@@ -145,14 +145,52 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public async Task ShowHotspot_ConversionFailed_NoFurtherProcessing()
+        public async Task ShowHotspot_ServerThrows_NoFurtherProcessing()
         {
             InitializeStateValidator(ValidRequest, true);
-            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetServerToThrow(ValidRequest, new InvalidOperationException("thrown from test code"));
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
+
+            logger.AssertPartialOutputStringExists("thrown from test code");
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock);
+            CheckNotCalled(converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_ConversionFailed_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, null);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
+            CheckNotCalled(navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_ConverterThrows_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConverterToThrow(ValidServerHotspot, new InvalidOperationException("thrown from test code"));
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            logger.AssertPartialOutputStringExists("thrown from test code");
 
             CheckInfoBarCleared();
             CheckInfoBarShown();
@@ -227,8 +265,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
                 .Returns(Task<SonarQubeHotspot>.FromResult(response));
 
+        private void SetServerToThrow(IShowHotspotRequest expected, Exception ex) =>
+            serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
+            .Throws(ex);
+
         private void SetConversionResponse(SonarQubeHotspot expected, IAnalysisIssueVisualization response) =>
             converterMock.Setup(x => x.Convert(expected)).Returns(response);
+
+        private void SetConverterToThrow(SonarQubeHotspot expected, Exception ex) =>
+            converterMock.Setup(x => x.Convert(expected)).Throws(ex);
 
         private void SetNavigationRespone(IAnalysisIssueVisualization expected, bool response) =>
             navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response);
