@@ -25,7 +25,6 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Api
@@ -33,6 +32,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
     [TestClass]
     public class OpenInIDEFailureInfoBarTests
     {
+        private static readonly Guid ValidToolWindowId = Guid.NewGuid();
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -78,15 +79,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>());
 
             // Act
-            testSubject.Show();
+            testSubject.Show(ValidToolWindowId);
 
-            CheckInfoBarWithEventsAdded(infoBarManager, infoBar);
+            CheckInfoBarWithEventsAdded(infoBarManager, infoBar, ValidToolWindowId);
             infoBar.VerifyNoOtherCalls();
         }
 
@@ -97,15 +98,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var secondInfoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
             infoBarManager
-                .SetupSequence(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
+                .SetupSequence(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(firstInfoBar.Object)
                 .Returns(secondInfoBar.Object);
 
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>());
 
             // Act
-            testSubject.Show(); // show first bar
-            testSubject.Show(); // show second bar
+            testSubject.Show(ValidToolWindowId); // show first bar
+            testSubject.Show(ValidToolWindowId); // show second bar
 
             firstInfoBar.VerifyNoOtherCalls();
             secondInfoBar.VerifyNoOtherCalls();
@@ -183,13 +184,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             outputWindow ??= new Mock<IOutputWindowService>();
 
             infoBarManager
-                .Setup(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
+                .Setup(x => x.AttachInfoBarWithButton(ValidToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default))
                 .Returns(infoBar.Object);
 
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, outputWindow.Object);
 
             // Call "Show" to create an infobar and check it was added
-            testSubject.Show();
+            testSubject.Show(ValidToolWindowId);
 
             infoBarManager.VerifyAll();
             infoBarManager.VerifyNoOtherCalls();
@@ -215,9 +216,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             infoBar.VerifyRemove(x => x.ButtonClick -= It.IsAny<EventHandler>(), Times.Once);
         }
 
-        private static void CheckInfoBarWithEventsAdded(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar)
+        private static void CheckInfoBarWithEventsAdded(Mock<IInfoBarManager> infoBarManager, Mock<IInfoBar> infoBar, Guid toolWindowId)
         {
-            infoBarManager.Verify(x => x.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
+            infoBarManager.Verify(x => x.AttachInfoBarWithButton(toolWindowId, It.IsAny<string>(), It.IsAny<string>(), default), Times.Once);
 
             infoBar.VerifyAdd(x => x.Closed += It.IsAny<EventHandler>(), Times.Once);
             infoBar.VerifyAdd(x => x.ButtonClick += It.IsAny<EventHandler>(), Times.Once);
