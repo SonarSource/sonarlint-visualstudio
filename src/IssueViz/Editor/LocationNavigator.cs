@@ -28,7 +28,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
-    internal interface ILocationNavigator
+    public interface ILocationNavigator
     {
         bool TryNavigate(IAnalysisIssueLocationVisualization locationVisualization);
     }
