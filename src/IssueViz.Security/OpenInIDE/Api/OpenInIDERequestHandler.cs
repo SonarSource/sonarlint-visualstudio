@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private readonly IHotspotToIssueVisualizationConverter converter;
         private readonly ILocationNavigator navigator;
         private readonly IHotspotsStore hotspotsStore;
+        private readonly IOpenInIDEFailureInfoBar failureInfoBar;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -52,6 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             IHotspotToIssueVisualizationConverter converter,
             ILocationNavigator navigator,
             IHotspotsStore hotspotsStore,
+            IOpenInIDEFailureInfoBar failueInfoBar,
             ILogger logger)
         {
             // MEF-created so the arguments should never be null
@@ -61,6 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.converter = converter;
             this.navigator = navigator;
             this.hotspotsStore = hotspotsStore;
+            this.failureInfoBar = failueInfoBar;
             this.logger = logger;
         }
 
@@ -79,35 +83,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             // Always show the Hotspots tool window. If we can't successfully process the
             // request we'll show a gold bar in the window
             toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
+            failureInfoBar.Clear();
 
-            // TODO: show gold bar in event of any problem handing the request
-            
             if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
+                ShowFailureInfoBar();
                 return;
             }
 
             var hotspot = await TryGetHotspotData(request.HotspotKey);
             if (hotspot == null)
             {
+                ShowFailureInfoBar();
                 return;
             }
 
             var hotspotViz = converter.Convert(hotspot);
             if (hotspotViz == null)
             {
+                ShowFailureInfoBar();
                 return;
             }
 
-            // TODO - show gold bar in event of failure to navigate. Also consider whether this class should
-            // be responsible for showing the gold bar if the state validator returns false.
             if (!navigator.TryNavigate(hotspotViz))
             {
+                ShowFailureInfoBar();
                 logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
             }
 
             // Add to store regardless of whether navigation succeeded
             hotspotsStore.Add(hotspotViz);
+        }
+
+
+        private void ShowFailureInfoBar()
+        {
+            RunOnUIThread.Run(() => failureInfoBar.Show());
         }
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
