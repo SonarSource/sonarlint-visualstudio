@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.IO;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
