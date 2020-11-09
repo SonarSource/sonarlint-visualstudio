@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
 using NuGet;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
@@ -44,10 +45,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 message: "message",
                 ruleKey: "rule key");
 
+            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
+            absoluteFilePathLocator
+                .Setup(x => x.Locate("some path"))
+                .Returns("some absolute path");
+
             var expectedIssueViz = Mock.Of<IAnalysisIssueVisualization>();
             var issueVizConverter = SetupIssueVizConverter(expectedIssueViz);
 
-            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object);
+            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object, absoluteFilePathLocator.Object);
             var issueViz = testSubject.Convert(sonarQubeHotspot);
             issueViz.Should().Be(expectedIssueViz);
 
@@ -58,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                         hotspot.Flows.IsEmpty() &&
                         hotspot.Message == "message" &&
                         hotspot.RuleKey == "rule key" &&
-                        hotspot.FilePath== "some path" &&
+                        hotspot.FilePath== "some absolute path" &&
                         hotspot.StartLine == 5 &&
                         hotspot.EndLine == 10 &&
                         hotspot.StartLineOffset == 15 &&
@@ -73,7 +79,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var sonarQubeHotspot = CreateSonarQubeHotspot(probability: null);
             var issueVizConverter = SetupIssueVizConverter(Mock.Of<IAnalysisIssueVisualization>());
 
-            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object);
+            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object, Mock.Of<IAbsoluteFilePathLocator>());
             Action act = () => testSubject.Convert(sonarQubeHotspot);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("vulnerabilityProbability");
@@ -85,7 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var sonarQubeHotspot = CreateSonarQubeHotspot(probability: "some probability");
             var issueVizConverter = SetupIssueVizConverter(Mock.Of<IAnalysisIssueVisualization>());
 
-            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object);
+            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object, Mock.Of<IAbsoluteFilePathLocator>());
             Action act = () => testSubject.Convert(sonarQubeHotspot);
 
             act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("vulnerabilityProbability");
@@ -102,7 +108,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var sonarQubeHotspot = CreateSonarQubeHotspot(probability);
             var issueVizConverter = SetupIssueVizConverter(Mock.Of<IAnalysisIssueVisualization>());
 
-            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object);
+            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object, Mock.Of<IAbsoluteFilePathLocator>());
             testSubject.Convert(sonarQubeHotspot);
 
             issueVizConverter.Verify(x => x.Convert(
