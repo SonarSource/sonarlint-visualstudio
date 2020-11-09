@@ -73,12 +73,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             throw new NotImplementedException();
         }
 
-        async Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
+        Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
+
+            return ShowHotspotAsync(request);
+        }
+
+        private async Task ShowHotspotAsync(IShowHotspotRequest request)
+        {
+            logger.WriteLine(OpenInIDEResources.OpenHotspot_ProcessingRequest, request.ServerUrl, request.ProjectKey,
+                request.OrganizationKey ?? OpenInIDEResources.OpenHotspot_NullOrganization, request.HotspotKey);
 
             // Always show the Hotspots tool window. If we can't successfully process the
             // request we'll show a gold bar in the window
@@ -87,6 +95,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
+                // We're assuming the validator will have output an explanantion of why the IDE
+                // isn't in the correct state
                 ShowFailureInfoBar();
                 return;
             }
@@ -101,14 +111,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             var hotspotViz = converter.Convert(hotspot);
             if (hotspotViz == null)
             {
+                logger.WriteLine(OpenInIDEResources.OpenHotspot_UnableToConvertHotspotData);
                 ShowFailureInfoBar();
                 return;
             }
 
             if (!navigator.TryNavigate(hotspotViz))
             {
-                ShowFailureInfoBar();
                 logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
+                ShowFailureInfoBar();
             }
 
             // Add to store regardless of whether navigation succeeded

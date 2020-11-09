@@ -190,4 +190,13 @@
   <data name="RequestValidator_InfoBarMessage" xml:space="preserve">
     <value>Could not handle Open in IDE request. See the Output Window for more information.</value>
   </data>
+  <data name="OpenHotspot_NullOrganization" xml:space="preserve">
+    <value>{none}</value>
+  </data>
+  <data name="OpenHotspot_ProcessingRequest" xml:space="preserve">
+    <value>[Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}</value>
+  </data>
+  <data name="OpenHotspot_UnableToConvertHotspotData" xml:space="preserve">
+    <value>[Open in IDE] Unable to convert hotspot data</value>
+  </data>
 </root>

@@ -142,6 +142,33 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {none}.
+        /// </summary>
+        internal static string OpenHotspot_NullOrganization {
+            get {
+                return ResourceManager.GetString("OpenHotspot_NullOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}.
+        /// </summary>
+        internal static string OpenHotspot_ProcessingRequest {
+            get {
+                return ResourceManager.GetString("OpenHotspot_ProcessingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Unable to convert hotspot data.
+        /// </summary>
+        internal static string OpenHotspot_UnableToConvertHotspotData {
+            get {
+                return ResourceManager.GetString("OpenHotspot_UnableToConvertHotspotData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Handing request: {0}.
         /// </summary>
         internal static string Pipeline_HandlingRequest {
