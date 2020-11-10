@@ -187,7 +187,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 // TODO: Handle race conditions
                 var moduleKeyToRelativePathToRoot = (await this.sonarQubeService.GetAllModulesAsync(sonarQubeProjectKey,
                         cancellationTokenSource.Token))
-                    .ToDictionary(x => x.Key, x => NormalizeSonarQubePath(x.RelativePathToRoot));
+                    .ToDictionary(x => x.Key, x => x.RelativePathToRoot);
                 this.hasModules = moduleKeyToRelativePathToRoot.Keys.Count > 1;
 
                 var allSuppressedIssues = await this.sonarQubeService.GetSuppressedIssuesAsync(sonarQubeProjectKey,
@@ -226,18 +226,9 @@ namespace SonarLint.VisualStudio.Integration.Suppression
             var filePathRelativeToRoot = moduleToRootRelativePath != null
                 ? moduleToRootRelativePath + "\\"
                 : string.Empty;
-            filePathRelativeToRoot += NormalizeSonarQubePath(issue.FilePath);
+            filePathRelativeToRoot += issue.FilePath;
 
             return filePathRelativeToRoot;
-        }
-
-        private string NormalizeSonarQubePath(string path)
-        {
-            Debug.Assert(path == null || !path.Contains("\\"), 
-                $"Expecting sonarqube relative path delimiters to be forward-slash but got '{path}'.");
-
-            return path?.Trim('/').Replace('/', '\\')
-                ?? string.Empty;
         }
     }
 }

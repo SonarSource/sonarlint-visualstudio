@@ -213,7 +213,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId2", "S1", true, flows: null);
             var sonarQubeIssue2 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
-            var sonarQubeIssue3 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey:sqkey:projectId", "S3", true, flows: null);
+            var sonarQubeIssue3 = new SonarQubeIssue("foo\\bar.cs", "hash", 12, "message", "sqkey:sqkey:projectId", "S3", true, flows: null);
 
             SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3 });
 
@@ -235,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "sqkey", "S2", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("foo\\bar.cs", "hash", 12, "message", "sqkey", "S2", true, flows: null);
 
             SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
                 new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", "") });
@@ -258,8 +258,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue(null, null, null, "message", "sqkey:sqkey:projectId2", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("/foo/bar.cs", "hash", 123, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
-            var sonarQubeIssue3 = new SonarQubeIssue("/foo/bar.cs", "hash", 12, "message", "FOOBAR", "S3", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("foo\\bar.cs", "hash", 123, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
+            var sonarQubeIssue3 = new SonarQubeIssue("foo\\bar.cs", "hash", 12, "message", "FOOBAR", "S3", true, flows: null);
 
             SetupSolutionBinding(true, new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3 });
 
@@ -279,15 +279,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsFileLevelAndIsFound_ReturnsExpectedIssue()
         {
             // Arrange
-            var sonarQubeIssue1 = new SonarQubeIssue("\\foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
-            var sonarQubeIssue3 = new SonarQubeIssue("foo\\FOO.cs", null, null, "message", "sqkey:sqkey:projectId", "S3", true, flows: null);
-            var sonarQubeIssue4 = new SonarQubeIssue("FOO/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S4", true, flows: null);
-            var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId", "S5", true, flows: null);
+            var issues = new []
+            {
+                new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null),
+                new SonarQubeIssue("foo\\FOO.cs", null, null, "message", "sqkey:sqkey:projectId", "S3", true, flows: null),
+                new SonarQubeIssue("FOO\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S4", true, flows: null),
+                new SonarQubeIssue("bar\\bar.cs", null, null, "message", "sqkey:sqkey:projectId", "S5", true, flows: null)
+            };
 
             SetupSolutionBinding(true,
-                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4, sonarQubeIssue5 },
-                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+                issues,
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src\\bar") });
 
             SonarQubeIssuesProvider issuesProvider;
 
@@ -306,7 +308,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
                 // Assert
                 matches = issuesProvider.GetSuppressedIssues("guid doesn't matter", "C:\\AwesomeProject\\src\\bar\\foo\\foo.cs");
-                matches.Should().HaveCount(4);
+                matches.Should().HaveCount(3);
                 matches.Should().OnlyContain(x => x.RuleId != "S5");
             }
         }
@@ -315,15 +317,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void GetSuppressedIssues_WhenProjectHasModulesAndIssueIsFileLevelAndIsNotFound_ReturnsNoIssue()
         {
             // Arrange
-            var sonarQubeIssue1 = new SonarQubeIssue("\\foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
-            var sonarQubeIssue3 = new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S3", true, flows: null);
-            var sonarQubeIssue4 = new SonarQubeIssue("foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S4", true, flows: null);
-            var sonarQubeIssue5 = new SonarQubeIssue("bar/bar.cs", null, null, "message", "sqkey:sqkey:projectId", "S5", true, flows: null);
+            var issues = new []
+            {
+                new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null),
+                new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S3", true, flows: null),
+                new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S4", true, flows: null),
+                new SonarQubeIssue("bar\\bar.cs", null, null, "message", "sqkey:sqkey:projectId", "S5", true, flows: null),
+            };
 
             SetupSolutionBinding(true,
-                new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2, sonarQubeIssue3, sonarQubeIssue4, sonarQubeIssue5 },
-                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+                issues,
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:projectId", "", "src\\bar") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
@@ -354,11 +358,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("/foo/foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
 
             SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
-                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src\\bar") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
@@ -381,11 +385,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         {
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("foo.CS", null, null, "message", "sqkey:sqkey:projectId", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("/foo/FOO.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("foo\\foo.cs", null, null, "message", "sqkey:sqkey:projectId", "S2", true, flows: null);
 
             SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
-                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src/bar") });
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey:sqkey:projectId", "", "src\\bar") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
@@ -410,7 +414,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey", "S2", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("toto\\foo.cs", null, null, "message", "sqkey", "S2", true, flows: null);
 
             SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
@@ -441,11 +445,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 
             // Arrange
             var sonarQubeIssue1 = new SonarQubeIssue("foo.cs", null, null, "message", "sqkey", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey", "S2", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("toto\\foo.cs", null, null, "message", "sqkey", "S2", true, flows: null);
 
             SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
-                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:guid", "", "src/bar/foo") });
+                new List<SonarQubeModule> { new SonarQubeModule("sqkey", "", ""), new SonarQubeModule("sqkey:sqkey:guid", "", "src\\bar\\foo") });
 
             var issuesProvider = new SonarQubeIssuesProvider(mockSqService.Object, "sqkey", mockTimerFactory.Object, testLogger);
             WaitForInitialFetchTaskToStart();
@@ -469,8 +473,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         public void GetSuppressedIssues_WhenProjectHasNoModulesAndIssueIsOnAFileWhoseRelativePathExistsMultipleTimes_FalseMatch()
         {
             // Arrange
-            var sonarQubeIssue1 = new SonarQubeIssue("aaa/foo.cs", null, null, "message", "sqkey", "S1", true, flows: null);
-            var sonarQubeIssue2 = new SonarQubeIssue("toto/foo.cs", null, null, "message", "sqkey", "S2", true, flows: null);
+            var sonarQubeIssue1 = new SonarQubeIssue("aaa\\foo.cs", null, null, "message", "sqkey", "S1", true, flows: null);
+            var sonarQubeIssue2 = new SonarQubeIssue("toto\\foo.cs", null, null, "message", "sqkey", "S2", true, flows: null);
 
             SetupSolutionBinding(true,
                 new List<SonarQubeIssue> { sonarQubeIssue1, sonarQubeIssue2 },
@@ -501,7 +505,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void GetIssues_IssuesNotYetFetch_WaitsForIssuesToBeFetched()
         {
-            var issue1 = new SonarQubeIssue("folder1/file1", "hash1", 0, "message", "sqkey:sqkey:projectId", "S101", true, flows: null);
+            var issue1 = new SonarQubeIssue("folder1\\file1", "hash1", 0, "message", "sqkey:sqkey:projectId", "S101", true, flows: null);
 
             int callbackCount = 0;
             bool callbackCompleted = false;
@@ -579,8 +583,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         [TestMethod]
         public void GetIssues_ErrorInInitialFetchTask_IsSuppressed()
         {
-            var issue1 = new SonarQubeIssue("folder1/file1", "hash1", 0, "message", "sqkey:sqkey:projectID1", "S101", true, flows: null);
-
             Func<IList<SonarQubeIssue>> serviceFetchIssuesTask = () =>
             {
                 InitialFetchWaitHandle.Set(); // signal so the test can continue
@@ -615,7 +617,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             // Tests that the timer trigger that causes the data to be refetched won't propagate errors
             // if the GetIssues call throws.
 
-            var issue1 = new SonarQubeIssue("/folder1/file1.cs", "hash1", 0, "message", "sqkey:sqkey:projectId", "S101", true, flows: null);
+            var issue1 = new SonarQubeIssue("folder1\\file1.cs", "hash1", 0, "message", "sqkey:sqkey:projectId", "S101", true, flows: null);
             SetupSolutionBinding(isConnected: true, issues: new List<SonarQubeIssue> { issue1 });
 
             // 1. Create the issue provider and call GetIssues to make sure the issues are cached
@@ -703,11 +705,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
         private void VerifyTimerStart(Times expected)
         {
             mockTimer.Verify(t => t.Start(), expected);
-        }
-
-        private void VerifyTimerStop(Times expected)
-        {
-            mockTimer.Verify(t => t.Stop(), expected);
         }
 
         private void VerifyServiceGetIssues(Times expected)
