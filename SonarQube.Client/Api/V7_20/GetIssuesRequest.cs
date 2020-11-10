@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 
@@ -79,7 +80,7 @@ namespace SonarQube.Client.Api.V7_20
         }
 
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(ComputePath(issue.Component), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue),
+            new SonarQubeIssue(FilePathNormalizer.NormalizeSonarQubePath(ComputePath(issue.Component)), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue),
                 GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED", ToIssueFlows(issue.Flows));
 
         private string ComputePath(string component) =>

@@ -25,7 +25,7 @@ namespace SonarQube.Client.Models
         public SonarQubeHotspot(
             string hotspotKey, string message, string assignee, string status,
             string organization, string projectKey, string projectName,
-            string componentKey, string componentPath,
+            string componentKey, string filePath,
             string ruleKey, string ruleName, string securityCategory, 
             string vulnerabilityProbability, IssueTextRange textRange)
         {
@@ -39,7 +39,7 @@ namespace SonarQube.Client.Models
             ProjectName = projectName;
 
             ComponentKey = componentKey;
-            ComponentPath = componentPath;
+            FilePath = filePath;
 
             RuleKey = ruleKey;
             RuleName = ruleName;
@@ -55,7 +55,7 @@ namespace SonarQube.Client.Models
         public IssueTextRange TextRange { get; }
         public string Organization { get; } 
         public string ComponentKey { get; }
-        public string ComponentPath { get; }
+        public string FilePath { get; }
         public string RuleKey { get; }
         public string RuleName { get; }
         public string SecurityCategory { get; }
