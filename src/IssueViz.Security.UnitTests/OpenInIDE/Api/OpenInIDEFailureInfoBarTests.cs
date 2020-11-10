@@ -35,6 +35,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
     {
         private static readonly Guid ValidToolWindowId = Guid.NewGuid();
 
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            ThreadHelper.SetCurrentThreadAsUIThread();
+        }
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -58,7 +64,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public async void Clear_HasPreviousInfoBar_InfoBarCleared()
+        public async Task Clear_HasPreviousInfoBar_InfoBarCleared()
         {
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
@@ -93,7 +99,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public async void Show_HasPreviousInfoBar_InfoBarReplaced()
+        public async Task Show_HasPreviousInfoBar_InfoBarReplaced()
         {
             var firstInfoBar = new Mock<IInfoBar>();
             var secondInfoBar = new Mock<IInfoBar>();
@@ -117,7 +123,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public async void Dispose_HasPreviousInfoBar_InfoBarRemoved()
+        public async Task Dispose_HasPreviousInfoBar_InfoBarRemoved()
         {
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
@@ -144,7 +150,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public async void InfoBarIsManuallyClosed_InfoBarDetachedFromToolWindow()
+        public async Task InfoBarIsManuallyClosed_InfoBarDetachedFromToolWindow()
         {
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
@@ -160,7 +166,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public async void InfoBarButtonClicked_OutputWindowIsShown()
+        public async Task InfoBarButtonClicked_OutputWindowIsShown()
         {
             var infoBar = new Mock<IInfoBar>();
             var outputWindowService = new Mock<IOutputWindowService>();
