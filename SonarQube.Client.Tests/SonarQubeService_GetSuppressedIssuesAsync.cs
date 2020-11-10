@@ -275,7 +275,7 @@ namespace SonarQube.Client.Tests
             result[1].RuleId.Should().Be("S1118");
 
             // File level issues don't have hash and line
-            result[2].FilePath.Should().Be("SharedProject1/SharedClass1.cs");
+            result[2].FilePath.Should().Be("SharedProject1\\SharedClass1.cs");
             result[2].Hash.Should().BeNull();
             result[2].Line.Should().BeNull();
             result[2].Message.Should().Be("Add or update the header of this file.");
@@ -283,7 +283,7 @@ namespace SonarQube.Client.Tests
             result[2].IsResolved.Should().BeTrue();
             result[2].RuleId.Should().Be("S1451");
 
-            result[3].FilePath.Should().Be("SharedProject1/SharedClass1.cs");
+            result[3].FilePath.Should().Be("SharedProject1\\SharedClass1.cs");
             result[3].Hash.Should().Be("be411c6cf1ae5ba7d7c5d6da7355afa1");
             result[3].Line.Should().Be(5);
             result[3].Message.Should().Be("Remove this method and declare a constant for this value.");

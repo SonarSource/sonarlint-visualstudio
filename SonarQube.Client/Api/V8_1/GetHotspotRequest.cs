@@ -20,6 +20,7 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 
@@ -46,7 +47,7 @@ namespace SonarQube.Client.Api.V8_1
                 serverResponse.Project.Key,
                 serverResponse.Project.Name,
                 serverResponse.Component.Key,
-                serverResponse.Component.Path,
+                FilePathNormalizer.NormalizeSonarQubePath(serverResponse.Component.Path),
                 serverResponse.Rule.Key,
                 serverResponse.Rule.Name,
                 serverResponse.Rule.SecurityCategory,

@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+
 namespace SonarQube.Client.Models
 {
     public class SonarQubeIssue
@@ -28,7 +29,7 @@ namespace SonarQube.Client.Models
         public SonarQubeIssue(string filePath, string hash, int? line, string message, string moduleKey, string ruleId,
             bool isResolved, List<IssueFlow> flows)
         {
-            FilePath = filePath?.Trim('/', '\\');
+            FilePath = filePath;
             Hash = hash;
             Line = line;
             Message = message;
