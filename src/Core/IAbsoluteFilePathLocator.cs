@@ -18,22 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
-
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
+namespace SonarLint.VisualStudio.Core
 {
-    /// <summary>
-    /// Component that handles a low-level OWIN HTTP request to a specific relative path
-    /// </summary>
-    internal interface IOwinPathRequestHandler
+    public interface IAbsoluteFilePathLocator
     {
         /// <summary>
-        /// Relative path under the base URL address of http://{host}:{port}/sonarlint/api/
-        /// e.g. "/status"
-        /// Note: the path must start with "/"
+        /// Searches all files in the current solution and returns the absolute path of the first file in the solution that ends with the given relative path.
         /// </summary>
-        string ApiPath { get; }
-
-        Task ProcessRequest(Microsoft.Owin.IOwinContext context);
+        /// <returns>Null if there is no solution open, or if there are no files in the solution that end with the given relative path</returns>
+        string Locate(string relativeFilePath);
     }
 }

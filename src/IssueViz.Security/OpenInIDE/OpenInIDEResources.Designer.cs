@@ -61,6 +61,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Failed to fetch hotspot data from server: {0}.
+        /// </summary>
+        internal static string ApiHandler_FailedToFetchHotspot {
+            get {
+                return ResourceManager.GetString("ApiHandler_FailedToFetchHotspot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Failed to navigate to the requested issue. Requested file: {0}, line {1}.
+        /// </summary>
+        internal static string ApiHandler_FailedToNavigateToHotspot {
+            get {
+                return ResourceManager.GetString("ApiHandler_FailedToNavigateToHotspot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {none}.
+        /// </summary>
+        internal static string ApiHandler_NullOrganization {
+            get {
+                return ResourceManager.GetString("ApiHandler_NullOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}.
+        /// </summary>
+        internal static string ApiHandler_ProcessingRequest {
+            get {
+                return ResourceManager.GetString("ApiHandler_ProcessingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Unable to convert hotspot data: {0}.
+        /// </summary>
+        internal static string ApiHandler_UnableToConvertHotspotData {
+            get {
+                return ResourceManager.GetString("ApiHandler_UnableToConvertHotspotData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [Open in IDE] Checking availability of port {0}.
         /// </summary>
         internal static string Factory_CheckingPort {
@@ -156,6 +201,82 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         internal static string Pipeline_UnrecognizedRequest {
             get {
                 return ResourceManager.GetString("Pipeline_UnrecognizedRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution configuration:
+        ///    server: {0}
+        ///    organization: {1}
+        ///    project: {2}.
+        /// </summary>
+        internal static string RequestValidator_CurrentState_SonarCloud {
+            get {
+                return ResourceManager.GetString("RequestValidator_CurrentState_SonarCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Solution configuration:
+        ///    server: {0}
+        ///    project: {1}.
+        /// </summary>
+        internal static string RequestValidator_CurrentState_SonarQube {
+            get {
+                return ResourceManager.GetString("RequestValidator_CurrentState_SonarQube", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Output Window for more information..
+        /// </summary>
+        internal static string RequestValidator_InfoBarMessage {
+            get {
+                return ResourceManager.GetString("RequestValidator_InfoBarMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requested Sonar project configuration:
+        ///    server: {0}
+        ///    organization: {1}
+        ///    project: {2}.
+        /// </summary>
+        internal static string RequestValidator_Instructions_SonarCloud {
+            get {
+                return ResourceManager.GetString("RequestValidator_Instructions_SonarCloud", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Requested Sonar project configuration:
+        ///    server: {0}
+        ///    project: {1}.
+        /// </summary>
+        internal static string RequestValidator_Instructions_SonarQube {
+            get {
+                return ResourceManager.GetString("RequestValidator_Instructions_SonarQube", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: you must be in Connected Mode. Bind/open a solution with the correct configuration.
+        ///{0}.
+        /// </summary>
+        internal static string RequestValidator_InvalidState_NotInConnectedMode {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidState_NotInConnectedMode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project. Open a solution with the correct configuration.
+        ///{0}
+        ///{1}.
+        /// </summary>
+        internal static string RequestValidator_InvalidState_WrongConnection {
+            get {
+                return ResourceManager.GetString("RequestValidator_InvalidState_WrongConnection", resourceCulture);
             }
         }
     }

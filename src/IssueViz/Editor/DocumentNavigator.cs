@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
@@ -67,9 +68,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
 
         public void Navigate(ITextView textView, SnapshotSpan snapshotSpan)
         {
-            ExpandSpan(textView, snapshotSpan);
+            RunOnUIThread.Run(() =>
+            {
+                ExpandSpan(textView, snapshotSpan);
 
-            SelectSpan(textView, snapshotSpan);
+                SelectSpan(textView, snapshotSpan);
+            });
         }
 
         private IVsTextView OpenDocument(string filePath)

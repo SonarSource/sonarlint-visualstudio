@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ApiHandler_FailedToFetchHotspot" xml:space="preserve">
+    <value>[Open in IDE] Failed to fetch hotspot data from server: {0}</value>
+  </data>
+  <data name="ApiHandler_FailedToNavigateToHotspot" xml:space="preserve">
+    <value>[Open in IDE] Failed to navigate to the requested issue. Requested file: {0}, line {1}</value>
+  </data>
   <data name="Factory_CheckingPort" xml:space="preserve">
     <value>[Open in IDE] Checking availability of port {0}</value>
   </data>
@@ -131,6 +137,37 @@
   </data>
   <data name="Factory_Succeeded" xml:space="preserve">
     <value>[Open in IDE] Request listener created successfully. Listening on port {0}.</value>
+  </data>
+  <data name="RequestValidator_InvalidState_NotInConnectedMode" xml:space="preserve">
+    <value>[Open in IDE] Could not handle Open in IDE request: you must be in Connected Mode. Bind/open a solution with the correct configuration.
+{0}</value>
+  </data>
+  <data name="RequestValidator_InvalidState_WrongConnection" xml:space="preserve">
+    <value>[Open in IDE] Could not handle Open in IDE request: the current solution is not bound to the requested Sonar project. Open a solution with the correct configuration.
+{0}
+{1}</value>
+  </data>
+  <data name="RequestValidator_Instructions_SonarCloud" xml:space="preserve">
+    <value>Requested Sonar project configuration:
+    server: {0}
+    organization: {1}
+    project: {2}</value>
+  </data>
+  <data name="RequestValidator_CurrentState_SonarCloud" xml:space="preserve">
+    <value>Solution configuration:
+    server: {0}
+    organization: {1}
+    project: {2}</value>
+  </data>
+  <data name="RequestValidator_CurrentState_SonarQube" xml:space="preserve">
+    <value>Solution configuration:
+    server: {0}
+    project: {1}</value>
+  </data>
+  <data name="RequestValidator_Instructions_SonarQube" xml:space="preserve">
+    <value>Requested Sonar project configuration:
+    server: {0}
+    project: {1}</value>
   </data>
   <data name="OpenHotspot_InvalidServerParameter" xml:space="preserve">
     <value>[Open in IDE] Invalid server parameter: {0}</value>
@@ -149,5 +186,17 @@
   </data>
   <data name="Pipeline_UnrecognizedRequest" xml:space="preserve">
     <value>[Open in IDE] Unrecognized request received: {0}</value>
+  </data>
+  <data name="RequestValidator_InfoBarMessage" xml:space="preserve">
+    <value>Could not handle Open in IDE request. See the Output Window for more information.</value>
+  </data>
+  <data name="ApiHandler_NullOrganization" xml:space="preserve">
+    <value>{none}</value>
+  </data>
+  <data name="ApiHandler_ProcessingRequest" xml:space="preserve">
+    <value>[Open in IDE] Processing request. Server: {0}, project: {1}, organization: {2}, hotspot: {3}</value>
+  </data>
+  <data name="ApiHandler_UnableToConvertHotspotData" xml:space="preserve">
+    <value>[Open in IDE] Unable to convert hotspot data: {0}</value>
   </data>
 </root>

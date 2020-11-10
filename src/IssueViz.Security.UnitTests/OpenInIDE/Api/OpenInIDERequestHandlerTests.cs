@@ -19,71 +19,295 @@
  */
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarQube.Client;
+using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE.Api
 {
     [TestClass]
-    public class OpenInIDERequestHandlerTests
+    public class OpenInIDERequestHandlerTests_MEF
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             // Arrange
+            var toolWindowServiceExport = MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>());
             var validatorExport = MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(Mock.Of<IOpenInIDEStateValidator>());
             var sonarQubeServiceExport = MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>());
+            var converterExport = MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(Mock.Of<IHotspotToIssueVisualizationConverter>());
+            var navigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>());
+            var storeExport = MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>());
+            var failureInfoBarExport = MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>());
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null, new[] { validatorExport, sonarQubeServiceExport, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null,
+                new[] { toolWindowServiceExport, validatorExport, sonarQubeServiceExport, converterExport,
+                        navigatorExport, storeExport, failureInfoBarExport, loggerExport });
         }
+    }
 
-        [TestMethod]
-        public async Task ShowHotspot_InvalidArg_Throws()
-        {
-            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(Mock.Of<IOpenInIDEStateValidator>(), Mock.Of<ISonarQubeService>(), Mock.Of<ILogger>());
-
-            Func<Task> act = async () => await testSubject.ShowHotspotAsync(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("request");
-        }
-
-        [TestMethod]
-        public async Task ShowHotpot_IdeNotInCorrectState_NoActionTaken()
-        {
-            var validatorMock = CreateValidator("http://localhost/", "project", "org", false);
-            var request = new TestShowHotspotRequest
+    [TestClass]
+    public class OpenInIDERequestHandlerTests_Orchestration
+    {
+        private readonly IShowHotspotRequest ValidRequest = new TestShowHotspotRequest
             {
                 ServerUrl = new Uri("http://localhost/"),
                 ProjectKey = "project",
                 HotspotKey = "any",
                 OrganizationKey = "org"
             };
-            var serverMock = new Mock<ISonarQubeService>();
 
-            IOpenInIDERequestHandler testSubject = new OpenInIDERequestHandler(validatorMock.Object, serverMock.Object, Mock.Of<ILogger>());
+        private readonly SonarQubeHotspot ValidServerHotspot = new SonarQubeHotspot("hotspotKey", null, null, null, null, null, null, null, null, null, null, null, null, null);
 
-            await testSubject.ShowHotspotAsync(request);
+        private Mock<IToolWindowService> toolWindowService;
+        private Mock<IOpenInIDEStateValidator> stateValidatorMock;
+        private Mock<ISonarQubeService> serverMock;
+        private Mock<IHotspotToIssueVisualizationConverter> converterMock;
+        private Mock<ILocationNavigator> navigatorMock;
+        private Mock<IHotspotsStore> storeMock;
+        private Mock<IOpenInIDEFailureInfoBar> failureInfoBarMock;
+        private TestLogger logger;
 
-            validatorMock.VerifyAll();
-            serverMock.Invocations.Should().BeEmpty();
+        private IOpenInIDERequestHandler testSubject;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            ThreadHelper.SetCurrentThreadAsUIThread();
+
+            // The tool window should always be called with the same argument
+            toolWindowService = new Mock<IToolWindowService>();
+            toolWindowService.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId));
+
+            stateValidatorMock = new Mock<IOpenInIDEStateValidator>();
+            serverMock = new Mock<ISonarQubeService>();
+            converterMock = new Mock<IHotspotToIssueVisualizationConverter>();
+            navigatorMock = new Mock<ILocationNavigator>();
+            storeMock = new Mock<IHotspotsStore>();
+            failureInfoBarMock = new Mock<IOpenInIDEFailureInfoBar>();
+            logger = new TestLogger(logToConsole: true);
+
+            testSubject = new OpenInIDERequestHandler(toolWindowService.Object, stateValidatorMock.Object, serverMock.Object,
+            converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, logger);
         }
 
-        private static Mock<IOpenInIDEStateValidator> CreateValidator(string uri, string projectKey, string orgKey, bool canHandleRequest)
+        [TestMethod]
+        public async Task ShowHotspot_InvalidArg_Throws()
         {
-            var mockValidator = new Mock<IOpenInIDEStateValidator>();
-            mockValidator.Setup(x => x.CanHandleOpenInIDERequest(It.Is<Uri>(x => x.ToString() == uri), projectKey, orgKey))
+            Func<Task> act = async () => await testSubject.ShowHotspotAsync(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("request");
+        }
+
+        [TestMethod]
+        public async Task ShowHotpot_IdeNotInCorrectState_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, false);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock);
+            CheckNotCalled(serverMock, converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_FailedToRetrieveHotspotData_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, null);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock);
+            CheckNotCalled(converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_ServerThrows_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerToThrow(ValidRequest, new InvalidOperationException("thrown from test code"));
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            logger.AssertPartialOutputStringExists("thrown from test code");
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock);
+            CheckNotCalled(converterMock, navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_ConversionFailed_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, null);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
+            CheckNotCalled(navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_ConverterThrows_NoFurtherProcessing()
+        {
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConverterToThrow(ValidServerHotspot, new InvalidOperationException("thrown from test code"));
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            logger.AssertPartialOutputStringExists("thrown from test code");
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
+            CheckNotCalled(navigatorMock, storeMock);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_DataIsValid_NavigationSucceeded_And_IssueAddedToStore()
+        {
+            // Note: this test needs a viz mock that doesn't have any members mocked using Setup(...).
+            // This is because we don't expect any of the members to be called (and if the mock has any
+            // members mocked then the call to converterMock.VerifyAll() will fail when the library tries
+            // to transitively verify the viz members).
+            var hotspotVizMock = new Mock<IAnalysisIssueVisualization>();
+
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, hotspotVizMock.Object);
+            SetNavigationRespone(hotspotVizMock.Object, true);
+            SetStoreExpectedItem(hotspotVizMock.Object);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckInfoBarCleared();
+            CheckInfoBarNotShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            CheckNotCalled(hotspotVizMock); // shouldn't have accessed any of the members
+
+            logger.AssertPartialOutputStringExists(ValidRequest.ServerUrl.ToString(), ValidRequest.ProjectKey, ValidRequest.OrganizationKey, ValidRequest.HotspotKey);
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_DataIsValid_NavigationFailed_IssueStillAddedToStore()
+        {
+            const string hotspotFilePath = "c:\\xx\\yyy.txt";
+            const int hotspotStartLine = -12345;
+            var hotspotViz = CreateHotspotVisualization(hotspotFilePath, hotspotStartLine);
+
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, hotspotViz);
+            SetNavigationRespone(hotspotViz, false);
+            SetStoreExpectedItem(hotspotViz);
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            CheckInfoBarCleared();
+            CheckInfoBarShown();
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            logger.AssertPartialOutputStringExists(hotspotFilePath, hotspotStartLine.ToString());
+        }
+
+        private static IAnalysisIssueVisualization CreateHotspotVisualization(string filePath, int startLine)
+        {
+            var vizMock = new Mock<IAnalysisIssueVisualization>();
+            // Note: these properties are not marked as Verifiable() since they won't always be read
+            vizMock.Setup(x => x.FilePath).Returns(filePath);
+            vizMock.Setup(x => x.StartLine).Returns(startLine);
+            return vizMock.Object;
+        }
+
+        private void InitializeStateValidator(IShowHotspotRequest expected, bool canHandleRequest) =>
+            stateValidatorMock.Setup(x => x.CanHandleOpenInIDERequest(expected.ServerUrl, expected.ProjectKey, expected.OrganizationKey))
                 .Returns(canHandleRequest);
 
-            return mockValidator;
+        private void SetServerResponse(IShowHotspotRequest expected, SonarQubeHotspot response) =>
+            serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
+                .Returns(Task<SonarQubeHotspot>.FromResult(response));
+
+        private void SetServerToThrow(IShowHotspotRequest expected, Exception ex) =>
+            serverMock.Setup(x => x.GetHotspotAsync(expected.HotspotKey, It.IsAny<CancellationToken>()))
+            .Throws(ex);
+
+        private void SetConversionResponse(SonarQubeHotspot expected, IAnalysisIssueVisualization response) =>
+            converterMock.Setup(x => x.Convert(expected)).Returns(response);
+
+        private void SetConverterToThrow(SonarQubeHotspot expected, Exception ex) =>
+            converterMock.Setup(x => x.Convert(expected)).Throws(ex);
+
+        private void SetNavigationRespone(IAnalysisIssueVisualization expected, bool response) =>
+            navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response);
+
+        private void SetStoreExpectedItem(IAnalysisIssueVisualization expected) =>
+            storeMock.Setup(x => x.Add(expected));
+
+        private static void CheckCalled(params Mock[] mocks)
+        {
+            foreach (var mock in mocks)
+            {
+                Console.WriteLine($"Checking mock was called: {mock.Object.GetType()}");
+                mock.VerifyAll();
+                mock.Invocations.Count.Should().Be(1);
+            }
         }
+
+        private static void CheckNotCalled(params Mock[] mocks)
+        {
+            foreach(var mock in mocks)
+            {
+                Console.WriteLine($"Checking mock wasn't called: {mock.Object.GetType()}");
+                mock.Invocations.Should().BeEmpty();
+            }
+        }
+
+        private void CheckInfoBarCleared() =>
+            failureInfoBarMock.Verify(x => x.Clear(), Times.Once);
+
+        private void CheckInfoBarNotShown() =>
+            failureInfoBarMock.Verify(x => x.Show(It.IsAny<Guid>()), Times.Never);
+
+        private void CheckInfoBarShown() =>
+            failureInfoBarMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
 
         private class TestShowHotspotRequest : IShowHotspotRequest
         {

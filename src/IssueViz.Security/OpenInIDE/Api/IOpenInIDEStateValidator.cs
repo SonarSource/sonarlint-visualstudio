@@ -19,6 +19,9 @@
  */
 
 using System;
+using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
@@ -37,8 +40,85 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         /// * a solution must be open
         /// * the solution must be in connected mode, pointing to the correct server/project/organization.
         ///
-        /// The validator is responsible for handling any UX notifications if the IDE is not in an appropriate state.
+        /// The validator is responsible for logging UX messages to the output window if the IDE is not in an appropriate state.
         /// </remarks>
         bool CanHandleOpenInIDERequest(Uri serverUri, string projectKey, string organizationKey);
+    }
+
+    [Export(typeof(IOpenInIDEStateValidator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class OpenInIdeStateValidator : IOpenInIDEStateValidator
+    {
+        private readonly IConfigurationProvider configurationProvider;
+        private readonly ILogger logger;
+
+        [ImportingConstructor]
+        public OpenInIdeStateValidator(IConfigurationProvider configurationProvider,
+            ILogger logger)
+        {
+            this.configurationProvider = configurationProvider;
+            this.logger = logger;
+        }
+
+        public bool CanHandleOpenInIDERequest(Uri serverUri, string projectKey, string organizationKey)
+        {
+            var failureMessage = GetFailureMessage(serverUri, projectKey, organizationKey);
+
+            if (string.IsNullOrEmpty(failureMessage))
+            {
+                return true;
+            }
+
+            logger.WriteLine(failureMessage);
+
+            return false;
+        }
+
+        private string GetFailureMessage(Uri serverUri, string projectKey, string organizationKey)
+        {
+            var configuration = configurationProvider.GetConfiguration();
+            var isRequestForSonarCloud = !string.IsNullOrEmpty(organizationKey);
+
+            var instructions = isRequestForSonarCloud
+                ? string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarCloud, serverUri, organizationKey, projectKey)
+                : string.Format(OpenInIDEResources.RequestValidator_Instructions_SonarQube, serverUri, projectKey);
+
+            if (configuration.Mode == SonarLintMode.Standalone)
+            {
+                return string.Format(OpenInIDEResources.RequestValidator_InvalidState_NotInConnectedMode, instructions);
+            }
+
+            if (IsCorrectServer() && IsCorrectOrganization() && IsCorrectSonarProject())
+            {
+                return null;
+            }
+
+            var currentConfiguration = isRequestForSonarCloud
+                ? string.Format(OpenInIDEResources.RequestValidator_CurrentState_SonarCloud,
+                    configuration.Project.ServerUri,
+                    configuration.Project.Organization?.Key,
+                    configuration.Project.ProjectKey)
+                : string.Format(OpenInIDEResources.RequestValidator_CurrentState_SonarQube,
+                    configuration.Project.ServerUri,
+                    configuration.Project.ProjectKey);
+
+            return string.Format(OpenInIDEResources.RequestValidator_InvalidState_WrongConnection, instructions, currentConfiguration);
+
+            bool IsCorrectServer()
+            {
+                return serverUri.Equals(configuration.Project.ServerUri);
+            }
+
+            bool IsCorrectOrganization()
+            {
+                return string.IsNullOrEmpty(organizationKey) ||
+                       organizationKey.Equals(configuration.Project.Organization?.Key, StringComparison.OrdinalIgnoreCase);
+            }
+
+            bool IsCorrectSonarProject()
+            {
+                return projectKey.Equals(configuration.Project.ProjectKey, StringComparison.OrdinalIgnoreCase);
+            }
+        }
     }
 }

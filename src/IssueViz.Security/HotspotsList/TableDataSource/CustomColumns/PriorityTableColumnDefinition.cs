@@ -18,22 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Threading.Tasks;
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Shell.TableControl;
+using Microsoft.VisualStudio.Utilities;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns
 {
-    /// <summary>
-    /// Component that handles a low-level OWIN HTTP request to a specific relative path
-    /// </summary>
-    internal interface IOwinPathRequestHandler
+    [Export(typeof(ITableColumnDefinition))]
+    [Name(ColumnName)]
+    internal class PriorityTableColumnDefinition : TableColumnDefinitionBase
     {
-        /// <summary>
-        /// Relative path under the base URL address of http://{host}:{port}/sonarlint/api/
-        /// e.g. "/status"
-        /// Note: the path must start with "/"
-        /// </summary>
-        string ApiPath { get; }
+        public const string ColumnName = "ReviewPriority";
 
-        Task ProcessRequest(Microsoft.Owin.IOwinContext context);
+        public override string Name { get; } = ColumnName;
+
+        public override double DefaultWidth => 50;
+
+        public override string DisplayName => "Priority";
+
+        public override bool IsFilterable => true;
     }
 }
