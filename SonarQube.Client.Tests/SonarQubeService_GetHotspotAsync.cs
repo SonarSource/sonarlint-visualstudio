@@ -163,7 +163,7 @@ namespace SonarQube.Client.Tests
             result.ProjectName.Should().Be("test-project");
 
             result.ComponentKey.Should().Be("com.sonarsource:test-project:src/main/java/com/sonarsource/FourthClass.java");
-            result.ComponentPath.Should().Be("src/main/java/com/sonarsource/FourthClass.java");
+            result.FilePath.Should().Be("src\\main\\java\\com\\sonarsource\\FourthClass.java");
 
             result.RuleKey.Should().Be("java:S4787");
             result.RuleName.Should().Be("rule-name");
