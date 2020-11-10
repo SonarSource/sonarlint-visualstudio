@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         public void Ctor_HotspotsListIsWpfTableControl()
         {
             var uiControl = Mock.Of<FrameworkElement>();
-            var wpfTableControl = new Mock<IWpfTableControl2>();
+            var wpfTableControl = new Mock<IWpfTableControl>();
             wpfTableControl.Setup(x => x.Control).Returns(uiControl);
 
             var testSubject = CreateTestSubject(wpfTableControl);
@@ -47,24 +47,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void Ctor_WpfTableControlConfiguration_NavigationBehaviorConfigured()
-        {
-            var uiControl = Mock.Of<FrameworkElement>();
-            var wpfTableControl = new Mock<IWpfTableControl2>();
-            wpfTableControl.Setup(x => x.Control).Returns(uiControl);
-
-            CreateTestSubject(wpfTableControl);
-
-            wpfTableControl.VerifySet(x =>
-                x.NavigationBehavior = TableEntryNavigationBehavior.AcceptsDoubleClick |
-                                       TableEntryNavigationBehavior.AcceptsEnter);
-        }
-
-        [TestMethod]
         public void Ctor_WpfTableControlConfiguration_SelectionSet()
         {
             var uiControl = Mock.Of<FrameworkElement>();
-            var wpfTableControl = new Mock<IWpfTableControl2>();
+            var wpfTableControl = new Mock<IWpfTableControl>();
             wpfTableControl.Setup(x => x.Control).Returns(uiControl);
 
             CreateTestSubject(wpfTableControl);
@@ -75,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void Dispose_WpfTableControlIsDisposed()
         {
-            var wpfTableControl = new Mock<IWpfTableControl2>();
+            var wpfTableControl = new Mock<IWpfTableControl>();
             var testSubject = CreateTestSubject(wpfTableControl);
 
             wpfTableControl.Verify(x=> x.Dispose(), Times.Never);
@@ -85,7 +71,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             wpfTableControl.Verify(x => x.Dispose(), Times.Once);
         }
 
-        private static Security.HotspotsList.HotspotsControl CreateTestSubject(Mock<IWpfTableControl2> wpfTableControl)
+        private static Security.HotspotsList.HotspotsControl CreateTestSubject(Mock<IWpfTableControl> wpfTableControl)
         {
             var tableManager = Mock.Of<ITableManager>();
 

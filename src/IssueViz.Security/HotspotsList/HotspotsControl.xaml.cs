@@ -47,10 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
             var wpfTableControl = wpfTableControlProvider.CreateControl(tableManager,
                 true,
                 HotspotsTableColumns.InitialStates,
-                HotspotsTableColumns.Names) as IWpfTableControl2;
-
-            wpfTableControl.NavigationBehavior = TableEntryNavigationBehavior.AcceptsDoubleClick |
-                                                 TableEntryNavigationBehavior.AcceptsEnter;
+                HotspotsTableColumns.Names);
 
             wpfTableControl.SelectionMode = SelectionMode.Single;
 
