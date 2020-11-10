@@ -27,6 +27,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
     internal interface IHotspot : IAnalysisIssueBase
     {
         HotspotPriority Priority { get; }
+
+        /// <summary>
+        /// File path as received from SQ server
+        /// </summary>
+        string ServerFilePath { get; }
     }
 
     public enum HotspotPriority
@@ -41,6 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
         private static readonly IReadOnlyList<IAnalysisIssueFlow> EmptyFlows = Array.Empty<IAnalysisIssueFlow>();
 
         public Hotspot(string filePath,
+            string serverFilePath,
             string message,
             int startLine,
             int endLine,
@@ -52,6 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
             IReadOnlyList<IAnalysisIssueFlow> flows)
         {
             FilePath = filePath;
+            ServerFilePath = serverFilePath;
             Message = message;
             StartLine = startLine;
             EndLine = endLine;
@@ -73,5 +80,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
         public string RuleKey { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
         public HotspotPriority Priority { get; }
+        public string ServerFilePath { get;  }
     }
 }
