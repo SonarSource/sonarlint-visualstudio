@@ -62,6 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                         hotspot.Message == "message" &&
                         hotspot.RuleKey == "rule key" &&
                         hotspot.FilePath== "some absolute path" &&
+                        hotspot.ServerFilePath== "some path" &&
                         hotspot.StartLine == 5 &&
                         hotspot.EndLine == 10 &&
                         hotspot.StartLineOffset == 15 &&
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public void Convert_CannotGetAbsoluteFilePath_KeepOriginalFilePath()
+        public void Convert_CannotGetAbsoluteFilePath_FilePathIsNull()
         {
             const string originalPath = "some path";
 
@@ -86,7 +87,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             issueViz.Should().Be(expectedIssueViz);
 
             issueVizConverter.Verify(x => x.Convert(
-                    It.Is((IHotspot hotspot) => hotspot.FilePath == originalPath),
+                    It.Is((IHotspot hotspot) => 
+                        hotspot.FilePath == null &&
+                        hotspot.ServerFilePath == originalPath),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
         }

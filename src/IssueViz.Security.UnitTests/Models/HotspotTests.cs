@@ -33,9 +33,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Models
         [TestMethod]
         public void Ctor_PropertiesSet()
         {
-            var hotspot = new Hotspot("a.cpp", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, null);
+            var hotspot = new Hotspot("local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, null);
 
-            hotspot.FilePath.Should().Be("a.cpp");
+            hotspot.FilePath.Should().Be("local-path.cpp");
+            hotspot.ServerFilePath.Should().Be("server-path");
             hotspot.Message.Should().Be("message");
             hotspot.StartLine.Should().Be(1);
             hotspot.EndLine.Should().Be(2);
@@ -50,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Models
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var hotspot = new Hotspot("a.cpp", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, flows);
+            var hotspot = new Hotspot("local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, flows);
 
             hotspot.Flows.Should().BeEmpty();
         }
@@ -59,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Models
         public void Ctor_HasFlows_CorrectFlows()
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
-            var hotspot = new Hotspot("a.cpp", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, flows);
+            var hotspot = new Hotspot("local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, flows);
 
             hotspot.Flows.Should().BeEquivalentTo(flows);
         }
