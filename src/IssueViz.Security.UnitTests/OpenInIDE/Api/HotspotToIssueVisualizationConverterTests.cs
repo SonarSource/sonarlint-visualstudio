@@ -45,10 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 message: "message",
                 ruleKey: "rule key");
 
-            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
-            absoluteFilePathLocator
-                .Setup(x => x.Locate("some path"))
-                .Returns("some absolute path");
+            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("some path", "some absolute path");
 
             var expectedIssueViz = Mock.Of<IAnalysisIssueVisualization>();
             var issueVizConverter = SetupIssueVizConverter(expectedIssueViz);
@@ -69,6 +66,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                         hotspot.EndLine == 10 &&
                         hotspot.StartLineOffset == 15 &&
                         hotspot.EndLineOffset == 20),
+                    It.IsAny<ITextSnapshot>()),
+                Times.Once);
+        }
+
+        [TestMethod]
+        public void Convert_CannotGetAbsoluteFilePath_KeepOriginalFilePath()
+        {
+            const string originalPath = "some path";
+
+            var sonarQubeHotspot = CreateSonarQubeHotspot(filePath: originalPath);
+            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator(originalPath, null);
+
+            var expectedIssueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var issueVizConverter = SetupIssueVizConverter(expectedIssueViz);
+
+            var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object, absoluteFilePathLocator.Object);
+            var issueViz = testSubject.Convert(sonarQubeHotspot);
+            issueViz.Should().Be(expectedIssueViz);
+
+            issueVizConverter.Verify(x => x.Convert(
+                    It.Is((IHotspot hotspot) => hotspot.FilePath == originalPath),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
         }
@@ -117,7 +135,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 Times.Once);
         }
 
-        private SonarQubeHotspot CreateSonarQubeHotspot(string probability, string filePath = "some path", IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key") =>
+        private SonarQubeHotspot CreateSonarQubeHotspot(string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key") =>
             new SonarQubeHotspot("some key",
                 message,
                 "assignee",
@@ -136,10 +154,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private static Mock<IAnalysisIssueVisualizationConverter> SetupIssueVizConverter(IAnalysisIssueVisualization expectedIssueViz)
         {
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+
             issueVizConverter
                 .Setup(x => x.Convert(It.IsAny<IHotspot>(), null))
                 .Returns(expectedIssueViz);
+
             return issueVizConverter;
+        }
+
+        private static Mock<IAbsoluteFilePathLocator> SetupAbsoluteFilePathLocator(string originalPath, string expectedAbsolutePath)
+        {
+            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
+
+            absoluteFilePathLocator
+                .Setup(x => x.Locate(originalPath))
+                .Returns(expectedAbsolutePath);
+
+            return absoluteFilePathLocator;
         }
     }
 }
