@@ -304,10 +304,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             failureInfoBarMock.Verify(x => x.Clear(), Times.Once);
 
         private void CheckInfoBarNotShown() =>
-            failureInfoBarMock.Verify(x => x.Show(), Times.Never);
+            failureInfoBarMock.Verify(x => x.Show(It.IsAny<Guid>()), Times.Never);
 
         private void CheckInfoBarShown() =>
-            failureInfoBarMock.Verify(x => x.Show(), Times.Once);
+            failureInfoBarMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
 
         private class TestShowHotspotRequest : IShowHotspotRequest
         {

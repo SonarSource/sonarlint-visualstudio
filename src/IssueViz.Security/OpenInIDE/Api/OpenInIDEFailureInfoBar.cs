@@ -23,13 +23,12 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
     internal interface IOpenInIDEFailureInfoBar
     {
-        void Show();
+        void Show(Guid toolWindowId);
 
         void Clear();
     }
@@ -50,10 +49,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.outputWindowService = outputWindowService;
         }
 
-        public void Show()
+        public void Show(Guid toolWindowId)
         {
             RemoveExistingInfoBar();
-            AddInfoBar();
+            AddInfoBar(toolWindowId);
         }
 
         public void Clear()
@@ -61,9 +60,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             RemoveExistingInfoBar();
         }
 
-        private void AddInfoBar()
+        private void AddInfoBar(Guid toolWindowId)
         {
-            currentInfoBar = infoBarManager.AttachInfoBarWithButton(HotspotsToolWindow.ToolWindowId, OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
+            currentInfoBar = infoBarManager.AttachInfoBarWithButton(toolWindowId, OpenInIDEResources.RequestValidator_InfoBarMessage, "Show Output Window", default);
             Debug.Assert(currentInfoBar != null, "currentInfoBar != null");
 
             currentInfoBar.ButtonClick += ShowOutputWindow;

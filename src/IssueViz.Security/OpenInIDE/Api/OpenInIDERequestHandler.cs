@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private void ShowFailureInfoBar()
         {
-            RunOnUIThread.Run(() => failureInfoBar.Show());
+            RunOnUIThread.Run(() => failureInfoBar.Show(HotspotsToolWindow.ToolWindowId));
         }
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
