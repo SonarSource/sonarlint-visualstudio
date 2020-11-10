@@ -22,6 +22,7 @@ using System;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 
@@ -58,7 +59,7 @@ namespace SonarQube.Client.Api.V5_40
         }
 
         private SonarQubeModule ToSonarQubeModule(ModuleResponse response) =>
-            new SonarQubeModule(response.Key, response.Name, response.Path);
+            new SonarQubeModule(response.Key, response.Name, FilePathNormalizer.NormalizeSonarQubePath(response.Path));
 
         private class ModuleResponse
         {
