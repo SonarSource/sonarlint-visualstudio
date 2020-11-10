@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -45,34 +46,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public void Clear_NoPreviousInfoBar_NoException()
+        public async Task Clear_NoPreviousInfoBar_NoException()
         {
             var infoBarManager = new Mock<IInfoBarManager>();
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>());
 
             // Act
-            testSubject.Clear();
+            await testSubject.ClearAsync();
 
             infoBarManager.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void Clear_HasPreviousInfoBar_InfoBarCleared()
+        public async void Clear_HasPreviousInfoBar_InfoBarCleared()
         {
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
-            var testSubject = CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar);
+            var testSubject = await CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar);
 
             SetupInfoBarEvents(infoBar);
 
             // Act
-            testSubject.Clear();
+            await testSubject.ClearAsync();
 
             CheckInfoBarWithEventsRemoved(infoBarManager, infoBar);
         }
 
         [TestMethod]
-        public void Show_NoPreviousInfoBar_InfoBarIsShown()
+        public async Task Show_NoPreviousInfoBar_InfoBarIsShown()
         {
             var infoBar = new Mock<IInfoBar>();
             SetupInfoBarEvents(infoBar);
@@ -85,14 +86,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>());
 
             // Act
-            testSubject.Show(ValidToolWindowId);
+            await testSubject.ShowAsync(ValidToolWindowId);
 
             CheckInfoBarWithEventsAdded(infoBarManager, infoBar, ValidToolWindowId);
             infoBar.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void Show_HasPreviousInfoBar_InfoBarReplaced()
+        public async void Show_HasPreviousInfoBar_InfoBarReplaced()
         {
             var firstInfoBar = new Mock<IInfoBar>();
             var secondInfoBar = new Mock<IInfoBar>();
@@ -105,8 +106,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, Mock.Of<IOutputWindowService>());
 
             // Act
-            testSubject.Show(ValidToolWindowId); // show first bar
-            testSubject.Show(ValidToolWindowId); // show second bar
+            await testSubject.ShowAsync(ValidToolWindowId); // show first bar
+            await testSubject.ShowAsync(ValidToolWindowId); // show second bar
 
             firstInfoBar.VerifyNoOtherCalls();
             secondInfoBar.VerifyNoOtherCalls();
@@ -116,11 +117,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public void Dispose_HasPreviousInfoBar_InfoBarRemoved()
+        public async void Dispose_HasPreviousInfoBar_InfoBarRemoved()
         {
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
-            var testSubject = CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar);
+            var testSubject = await CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar);
 
             SetupInfoBarEvents(infoBar);
 
@@ -143,11 +144,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public void InfoBarIsManuallyClosed_InfoBarDetachedFromToolWindow()
+        public async void InfoBarIsManuallyClosed_InfoBarDetachedFromToolWindow()
         {
             var infoBar = new Mock<IInfoBar>();
             var infoBarManager = new Mock<IInfoBarManager>();
-            var testSubject = CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar);
+            var testSubject = await CreateTestSubjectWithPreviousInfoBar(infoBarManager, infoBar);
 
             SetupInfoBarEvents(infoBar);
 
@@ -159,11 +160,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         [TestMethod]
-        public void InfoBarButtonClicked_OutputWindowIsShown()
+        public async void InfoBarButtonClicked_OutputWindowIsShown()
         {
             var infoBar = new Mock<IInfoBar>();
             var outputWindowService = new Mock<IOutputWindowService>();
-            var testSubject = CreateTestSubjectWithPreviousInfoBar(infoBar: infoBar, outputWindow: outputWindowService);
+            var testSubject = await CreateTestSubjectWithPreviousInfoBar(infoBar: infoBar, outputWindow: outputWindowService);
 
             outputWindowService.VerifyNoOtherCalls();
 
@@ -174,7 +175,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             outputWindowService.VerifyNoOtherCalls();
         }
 
-        private static OpenInIDEFailureInfoBar CreateTestSubjectWithPreviousInfoBar(
+        private async static Task<OpenInIDEFailureInfoBar> CreateTestSubjectWithPreviousInfoBar(
             Mock<IInfoBarManager> infoBarManager = null,
             Mock<IInfoBar> infoBar = null,
             Mock<IOutputWindowService> outputWindow = null)
@@ -190,7 +191,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var testSubject = new OpenInIDEFailureInfoBar(infoBarManager.Object, outputWindow.Object);
 
             // Call "Show" to create an infobar and check it was added
-            testSubject.Show(ValidToolWindowId);
+            await testSubject.ShowAsync(ValidToolWindowId);
 
             infoBarManager.VerifyAll();
             infoBarManager.VerifyNoOtherCalls();
