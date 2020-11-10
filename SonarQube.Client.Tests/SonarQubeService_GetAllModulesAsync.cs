@@ -72,15 +72,15 @@ namespace SonarQube.Client.Tests
 
             result[0].Key.Should().Be("sq-project-key");
             result[0].Name.Should().Be("SonarQube Project Name");
-            result[0].RelativePathToRoot.Should().BeNull();
+            result[0].RelativePathToRoot.Should().BeEmpty();
 
             result[1].Key.Should().Be("sq-project-key:sq-project-key:50934C7A-2751-4675-91C4-CFD37C8BF57C");
             result[1].Name.Should().Be("Project1");
-            result[1].RelativePathToRoot.Should().Be("src/Project1");
+            result[1].RelativePathToRoot.Should().Be("src\\Project1");
 
             result[2].Key.Should().Be("sq-project-key:sq-project-key:39CCD086-A7F8-42A0-B402-3C9BD9EB4825");
             result[2].Name.Should().Be("Project2");
-            result[2].RelativePathToRoot.Should().Be("src/Project2");
+            result[2].RelativePathToRoot.Should().Be("src\\Project2");
         }
 
         [TestMethod]
@@ -117,11 +117,11 @@ namespace SonarQube.Client.Tests
 
             result[0].Key.Should().Be("sq-project-key");
             result[0].Name.Should().Be("SonarQube Project Name");
-            result[0].RelativePathToRoot.Should().BeNull();
+            result[0].RelativePathToRoot.Should().BeEmpty();
 
             result[1].Key.Should().Be("sq-project-key:sq-project-key:50934C7A-2751-4675-91C4-CFD37C8BF57C");
             result[1].Name.Should().Be("Project1");
-            result[1].RelativePathToRoot.Should().BeNull();
+            result[1].RelativePathToRoot.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -152,7 +152,7 @@ namespace SonarQube.Client.Tests
 
             result[0].Key.Should().Be("sq-project-key");
             result[0].Name.Should().Be("SonarQube Project Name");
-            result[0].RelativePathToRoot.Should().BeNull();
+            result[0].RelativePathToRoot.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -189,6 +189,68 @@ namespace SonarQube.Client.Tests
                 .Message.Should().Be("This operation expects the service to be connected.");
 
             logger.ErrorMessages.Should().Contain("The service is expected to be connected.");
+        }
+
+        [TestMethod]
+        public async Task GetModules_FilePathsNormalized()
+        {
+            await ConnectToSonarQube();
+
+            SetupRequest("api/components/tree?component=myProject&qualifiers=BRC&p=1&ps=500", @"
+{
+  ""paging"": {
+    ""pageIndex"": 1,
+    ""pageSize"": 100,
+    ""total"": 3
+  },
+  ""baseComponent"": {
+    ""organization"": ""my-org-1"",
+    ""key"": ""MY_PROJECT_KEY"",
+    ""description"": ""MY_PROJECT_DESCRIPTION"",
+    ""qualifier"": ""TRK"",
+    ""tags"": [
+      ""abc"",
+      ""def""
+    ],
+    ""visibility"": ""private""
+  },
+  ""components"": [
+    {
+      ""organization"": ""my-org-1"",
+      ""key"": ""com.sonarsource:java-markdown:src/test/java/com/sonarsource/markdown/BasicMarkdownParser.java"",
+      ""name"": ""BasicMarkdownParser.java"",
+      ""qualifier"": ""UTS"",
+      ""path"": ""src/test/java/com/sonarsource/markdown/BasicMarkdownParser.java"",
+      ""language"":""java""
+    },
+    {
+      ""organization"": ""my-org-1"",
+      ""key"": ""com.sonarsource:java-markdown:src/test/java/com/sonarsource/markdown/BasicMarkdownParserTest.java"",
+      ""name"": ""BasicMarkdownParserTest.java"",
+      ""qualifier"": ""UTS"",
+      ""path"": ""src/test/java/com/sonarsource/markdown/BasicMarkdownParserTest.java"",
+      ""language"":""java""
+    },
+    {
+      ""organization"": ""my-org-1"",
+      ""key"": ""com.sonarsource:java-markdown:src/main/java/com/sonarsource/markdown"",
+      ""name"": ""src/main/java/com/sonarsource/markdown"",
+      ""qualifier"": ""DIR"",
+      ""path"": ""src/main/java/com/sonarsource/markdown""
+    }
+  ]
+}");
+
+            var result = await service.GetAllModulesAsync("myProject", CancellationToken.None);
+
+            messageHandler.VerifyAll();
+
+            result.Should().HaveCount(4);
+
+            result[0].RelativePathToRoot.Should().BeEmpty();
+            result[1].RelativePathToRoot.Should().Be("src\\test\\java\\com\\sonarsource\\markdown\\BasicMarkdownParser.java");
+            result[2].RelativePathToRoot.Should().Be("src\\test\\java\\com\\sonarsource\\markdown\\BasicMarkdownParserTest.java");
+            result[3].RelativePathToRoot.Should().Be("src\\main\\java\\com\\sonarsource\\markdown");
         }
     }
 }
