@@ -27,6 +27,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Newtonsoft.Json;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Messages;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
@@ -87,7 +88,7 @@ namespace SonarQube.Client.Api.V5_10
         }
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(issue.Path, issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey,
+            new SonarQubeIssue(FilePathNormalizer.NormalizeSonarQubePath(issue.Path), issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey,
                 issue.Status == "RESOLVED", flows: null);
     }
 }

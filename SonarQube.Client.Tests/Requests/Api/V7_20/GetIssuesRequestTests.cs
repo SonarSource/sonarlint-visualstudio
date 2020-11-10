@@ -36,6 +36,94 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
     public class GetIssuesRequestTests
     {
         [TestMethod]
+        public async Task InvokeAsync_FilePathNormalized()
+        {
+            const string projectKey = "myproject";
+            const string statusesToRequest = "some status";
+            const string expectedEscapedStatusesInRequest = "some+status";
+
+            var testSubject = CreateTestSubject(projectKey, statusesToRequest);
+
+            var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
+            var httpClient = new HttpClient(handlerMock.Object)
+            {
+                BaseAddress = new Uri(ValidBaseAddress)
+            };
+
+            var request = $"api/issues/search?projects={projectKey}&statuses={expectedEscapedStatusesInRequest}&p=1&ps=500";
+            const string response = @"
+{
+  ""total"": 1,
+  ""p"": 1,
+  ""ps"": 100,
+  ""paging"": {
+    ""pageIndex"": 1,
+    ""pageSize"": 100,
+    ""total"": 1
+  },
+  ""effortTotal"": 30,
+  ""debtTotal"": 30,
+  ""issues"": [
+    {
+      ""key"": ""AXNZHuA7uQ67pPQjI7e7"",
+      ""rule"": ""roslyn.sonaranalyzer.security.cs:S5146"",
+      ""severity"": ""BLOCKER"",
+      ""component"": ""myprojectkey:projectroot/Controllers/WeatherForecastController.cs"",
+      ""project"": ""myprojectkey"",
+      ""line"": 43,
+      ""hash"": ""d8684fca55d4dc80e444a993de15ba18"",
+      ""textRange"": {
+        ""startLine"": 43,
+        ""endLine"": 43,
+        ""startOffset"": 19,
+        ""endOffset"": 43
+      },
+      ""status"": ""OPEN"",
+      ""message"": ""Refactor this code to not perform redirects based on tainted, user-controlled data."",
+      ""effort"": ""30min"",
+      ""debt"": ""30min"",
+      ""assignee"": ""rita-g-sonarsource@github"",
+      ""author"": ""rita.gorokhod@sonarsource.com"",
+      ""tags"": [],
+      ""creationDate"": ""2020-07-16T21:31:25+0200"",
+      ""updateDate"": ""2020-07-16T21:34:05+0200"",
+      ""type"": ""VULNERABILITY"",
+      ""organization"": ""myorganization"",
+      ""fromHotspot"": false
+    }
+  ],
+  ""components"": [
+    {
+      ""organization"": ""myorganization"",
+      ""key"": ""myprojectkey:projectroot/Controllers/WeatherForecastController.cs"",
+      ""uuid"": ""AXNZHtnVuQ67pPQjI7ey"",
+      ""enabled"": true,
+      ""qualifier"": ""FIL"",
+      ""name"": ""WeatherForecastController.cs"",
+      ""longName"": ""projectroot/Controllers/WeatherForecastController.cs"",
+      ""path"": ""projectroot/Controllers/WeatherForecastController.cs""
+    }
+  ],
+  ""organizations"": [
+    {
+      ""key"": ""myorganization"",
+      ""name"": ""a user""
+    }
+  ],
+  ""facets"": []
+}
+";
+
+            SetupHttpRequest(handlerMock, request, response);
+
+            var results = await testSubject.InvokeAsync(httpClient, CancellationToken.None);
+            results.Should().HaveCount(1);
+
+            var result = results[0];
+            result.FilePath.Should().Be("projectroot\\Controllers\\WeatherForecastController.cs");
+        }
+
+        [TestMethod]
         public async Task InvokeAsync_ResponseWithFlows_IsDeserializedCorrectly()
         {
             const string projectKey = "myproject";
