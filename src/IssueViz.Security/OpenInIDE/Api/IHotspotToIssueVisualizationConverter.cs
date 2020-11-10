@@ -62,12 +62,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private Hotspot ConvertToHotspot(SonarQubeHotspot sonarQubeHotspot)
         {
-            var localFilePath = absoluteFilePathLocator.Locate(sonarQubeHotspot.ComponentPath);
+            var localFilePath = absoluteFilePathLocator.Locate(sonarQubeHotspot.FilePath);
             var priority = GetPriority(sonarQubeHotspot.VulnerabilityProbability);
 
             var hotspot = new Hotspot(
                 filePath: localFilePath,
-                serverFilePath: sonarQubeHotspot.ComponentPath,
+                serverFilePath: sonarQubeHotspot.FilePath,
                 message: sonarQubeHotspot.Message,
                 startLine: sonarQubeHotspot.TextRange.StartLine,
                 endLine: sonarQubeHotspot.TextRange.EndLine,
