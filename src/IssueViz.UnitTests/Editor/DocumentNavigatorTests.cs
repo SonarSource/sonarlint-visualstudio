@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {
@@ -47,6 +48,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         [TestInitialize]
         public void TestInitialize()
         {
+            ThreadHelper.SetCurrentThreadAsUIThread();
+
             mockTextView = Mock.Of<ITextView>();
 
             var mockSnapshot = new Mock<ITextSnapshot>();
