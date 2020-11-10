@@ -19,8 +19,6 @@
  */
 
 using System;
-using System.Windows;
-using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns;
@@ -28,7 +26,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    internal class HotspotTableEntry : IWpfTableEntry
+    internal class HotspotTableEntry : WpfTableEntryBase
     {
         private readonly IAnalysisIssueVisualization hotspotViz;
 
@@ -42,9 +40,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             }
         }
 
-        public object Identity => hotspotViz;
+        public override object Identity => hotspotViz;
 
-        public bool TryGetValue(string keyName, out object content)
+        public override bool TryGetValue(string keyName, out object content)
         {
             var hotspot = hotspotViz.Issue as IHotspot;
 
@@ -94,60 +92,5 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
             return true;
         }
-
-        #region IWpfTableEntry unimplemented methods
-
-        public virtual bool TryCreateToolTip(string columnName, out object toolTip)
-        {
-            toolTip = null;
-            return false;
-        }
-
-        public virtual bool TrySetValue(string keyName, object content)
-        {
-            return false;
-        }
-
-        public virtual bool CanSetValue(string keyName)
-        {
-            return false;
-        }
-
-        public virtual bool TryCreateStringContent(string columnName, bool truncatedText, bool singleColumnView, out string content)
-        {
-            content = null;
-            return false;
-        }
-
-        public virtual bool TryCreateImageContent(string columnName, bool singleColumnView, out ImageMoniker content)
-        {
-            content = default;
-            return false;
-        }
-
-        public virtual bool TryCreateColumnContent(string columnName, bool singleColumnView, out FrameworkElement content)
-        {
-            content = null;
-            return false;
-        }
-
-        public virtual bool CanCreateDetailsContent()
-        {
-            return false;
-        }
-
-        public virtual bool TryCreateDetailsContent(out FrameworkElement expandedContent)
-        {
-            expandedContent = null;
-            return false;
-        }
-
-        public virtual bool TryCreateDetailsStringContent(out string content)
-        {
-            content = null;
-            return false;
-        }
-
-        #endregion
     }
 }
