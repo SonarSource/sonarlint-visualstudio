@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             // Always show the Hotspots tool window. If we can't successfully process the
             // request we'll show a gold bar in the window
             toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
-            failureInfoBar.Clear();
+            ClearFailureInfoBar();
 
             if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))
             {
@@ -129,6 +129,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private void ShowFailureInfoBar()
         {
             RunOnUIThread.Run(() => failureInfoBar.Show(HotspotsToolWindow.ToolWindowId));
+        }
+
+        private void ClearFailureInfoBar()
+        {
+            RunOnUIThread.Run(() => failureInfoBar.Clear());
         }
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
