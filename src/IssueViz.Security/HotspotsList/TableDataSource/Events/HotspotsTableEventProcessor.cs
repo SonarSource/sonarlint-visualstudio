@@ -46,9 +46,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             }
         }
 
-        void ITableControlEventProcessor.PostprocessMouseDown(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseDown(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
-            if (args.ClickCount > 1)
+            if (e.ClickCount > 1)
             {
                 TryNavigateToHotspot(entry);
             }
@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         #region ITableControlEventProcessor unimplemented methods
 
-        void ITableControlEventProcessor.PostprocessSelectionChanged(TableSelectionChangedEventArgs args)
+        void ITableControlEventProcessor.PostprocessSelectionChanged(TableSelectionChangedEventArgs e)
         {
         }
 
@@ -74,147 +74,147 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
         {
         }
 
-        void ITableControlEventProcessor.PostprocessDragEnter(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PostprocessDragEnter(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessDragLeave(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PostprocessDragLeave(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessDragOver(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PostprocessDragOver(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessDrop(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PostprocessDrop(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessGiveFeedback(ITableEntryHandle entry, GiveFeedbackEventArgs args)
+        void ITableControlEventProcessor.PostprocessGiveFeedback(ITableEntryHandle entry, GiveFeedbackEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseEnter(ITableEntryHandle entry, MouseEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseEnter(ITableEntryHandle entry, MouseEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseLeave(ITableEntryHandle entry, MouseEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseLeave(ITableEntryHandle entry, MouseEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseLeftButtonDown(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseLeftButtonDown(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseLeftButtonUp(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseLeftButtonUp(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseMove(ITableEntryHandle entry, MouseEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseMove(ITableEntryHandle entry, MouseEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseRightButtonDown(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseRightButtonDown(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseRightButtonUp(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseRightButtonUp(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseUp(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseUp(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessMouseWheel(ITableEntryHandle entry, MouseWheelEventArgs args)
+        void ITableControlEventProcessor.PostprocessMouseWheel(ITableEntryHandle entry, MouseWheelEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs args)
+        void ITableControlEventProcessor.PostprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessNavigateToHelp(ITableEntryHandle entry, TableEntryEventArgs args)
+        void ITableControlEventProcessor.PostprocessNavigateToHelp(ITableEntryHandle entry, TableEntryEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PostprocessQueryContinueDrag(ITableEntryHandle entry, QueryContinueDragEventArgs args)
+        void ITableControlEventProcessor.PostprocessQueryContinueDrag(ITableEntryHandle entry, QueryContinueDragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessDragEnter(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PreprocessDragEnter(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessDragLeave(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PreprocessDragLeave(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessDragOver(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PreprocessDragOver(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessDrop(ITableEntryHandle entry, DragEventArgs args)
+        void ITableControlEventProcessor.PreprocessDrop(ITableEntryHandle entry, DragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessGiveFeedback(ITableEntryHandle entry, GiveFeedbackEventArgs args)
+        void ITableControlEventProcessor.PreprocessGiveFeedback(ITableEntryHandle entry, GiveFeedbackEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseDown(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseDown(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseEnter(ITableEntryHandle entry, MouseEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseEnter(ITableEntryHandle entry, MouseEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseLeave(ITableEntryHandle entry, MouseEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseLeave(ITableEntryHandle entry, MouseEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseLeftButtonDown(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseLeftButtonDown(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseLeftButtonUp(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseLeftButtonUp(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseMove(ITableEntryHandle entry, MouseEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseMove(ITableEntryHandle entry, MouseEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseRightButtonDown(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseRightButtonDown(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseRightButtonUp(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseRightButtonUp(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseUp(ITableEntryHandle entry, MouseButtonEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseUp(ITableEntryHandle entry, MouseButtonEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessMouseWheel(ITableEntryHandle entry, MouseWheelEventArgs args)
+        void ITableControlEventProcessor.PreprocessMouseWheel(ITableEntryHandle entry, MouseWheelEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs args)
+        void ITableControlEventProcessor.PreprocessNavigate(ITableEntryHandle entry, TableEntryNavigateEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessNavigateToHelp(ITableEntryHandle entry, TableEntryEventArgs args)
+        void ITableControlEventProcessor.PreprocessNavigateToHelp(ITableEntryHandle entry, TableEntryEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessQueryContinueDrag(ITableEntryHandle entry, QueryContinueDragEventArgs args)
+        void ITableControlEventProcessor.PreprocessQueryContinueDrag(ITableEntryHandle entry, QueryContinueDragEventArgs e)
         {
         }
 
-        void ITableControlEventProcessor.PreprocessSelectionChanged(TableSelectionChangedEventArgs args)
+        void ITableControlEventProcessor.PreprocessSelectionChanged(TableSelectionChangedEventArgs e)
         {
         }
 

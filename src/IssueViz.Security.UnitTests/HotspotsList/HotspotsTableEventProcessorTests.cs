@@ -20,8 +20,8 @@
 
 using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
+using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -42,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
             testSubject.KeyDown(CreateKeyEventArgs(Key.Space));
 
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(tableControl.Object, locationNavigator.Object);
             testSubject.KeyDown(CreateKeyEventArgs(Key.Enter));
 
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(tableControl.Object, locationNavigator.Object);
             testSubject.KeyDown(CreateKeyEventArgs(Key.Enter));
 
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
@@ -89,8 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(tableControl.Object, locationNavigator.Object);
             testSubject.KeyDown(CreateKeyEventArgs(Key.Enter));
 
-            locationNavigator.Verify(x=> x.TryNavigate(issueViz), Times.Once);
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNavigation(locationNavigator, issueViz);
         }
 
         [TestMethod]
@@ -101,7 +100,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
             testSubject.PostprocessMouseDown(Mock.Of<ITableEntryHandle>(), CreateMouseEventArgs(1));
 
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
@@ -112,7 +111,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
             testSubject.PostprocessMouseDown(Mock.Of<ITableEntryHandle>(), CreateMouseEventArgs(2));
 
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
@@ -127,8 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
             testSubject.PostprocessMouseDown(entry.Object, CreateMouseEventArgs(2));
 
-            locationNavigator.Verify(x => x.TryNavigate(issueViz), Times.Once);
-            locationNavigator.VerifyNoOtherCalls();
+            VerifyNavigation(locationNavigator, issueViz);
         }
 
         private ITableControlEventProcessor CreateTestSubject(IWpfTableControl tableControl, ILocationNavigator locationNavigator)
@@ -152,6 +150,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             fieldInfo.SetValue(eventArgs, numberOfClicks);
 
             return eventArgs;
+        }
+
+        private void VerifyNoNavigation(Mock<ILocationNavigator> locationNavigator)
+        {
+            locationNavigator.Invocations.Count.Should().Be(0);
+        }
+
+        private static void VerifyNavigation(Mock<ILocationNavigator> locationNavigator, IAnalysisIssueLocationVisualization issueViz)
+        {
+            locationNavigator.Verify(x => x.TryNavigate(issueViz), Times.Once);
+            locationNavigator.VerifyNoOtherCalls();
         }
     }
 }
