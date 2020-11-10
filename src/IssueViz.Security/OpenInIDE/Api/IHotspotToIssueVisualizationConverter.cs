@@ -29,6 +29,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
     internal interface IHotspotToIssueVisualizationConverter
     {
+        /// <summary>
+        /// Converts given SQ hotspot into AnalysisIssueVisualization with IHotspot.
+        /// </summary>
+        /// <remarks>
+        /// Attempts to resolve <see cref="SonarQubeHotspot.ComponentPath"/> into an absolute file path.
+        /// If path cannot be resolved, <see cref="IHotspot.FilePath"/> will be null and <see cref="IHotspot.ServerFilePath"/> will contain the original SQ hotspot path.
+        /// </remarks>
         IAnalysisIssueVisualization Convert(SonarQubeHotspot sonarQubeHotspot);
     }
 
@@ -55,11 +62,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         private Hotspot ConvertToHotspot(SonarQubeHotspot sonarQubeHotspot)
         {
-            var filePath = absoluteFilePathLocator.Locate(sonarQubeHotspot.ComponentPath);
+            var localFilePath = absoluteFilePathLocator.Locate(sonarQubeHotspot.ComponentPath);
             var priority = GetPriority(sonarQubeHotspot.VulnerabilityProbability);
 
             var hotspot = new Hotspot(
-                filePath: filePath,
+                filePath: localFilePath,
+                serverFilePath: sonarQubeHotspot.ComponentPath,
                 message: sonarQubeHotspot.Message,
                 startLine: sonarQubeHotspot.TextRange.StartLine,
                 endLine: sonarQubeHotspot.TextRange.EndLine,
