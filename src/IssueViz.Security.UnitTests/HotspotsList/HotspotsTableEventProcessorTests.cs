@@ -18,9 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Reflection;
-using System.Windows;
-using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -35,122 +32,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
     public class HotspotsTableEventProcessorTests
     {
         [TestMethod]
-        public void KeyDown_KeyIsNotEnter_NoNavigation()
+        public void PreprocessNavigate_NoSelectedEntry_NoNavigation()
         {
             var locationNavigator = new Mock<ILocationNavigator>();
-            
-            var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
-            testSubject.KeyDown(CreateKeyEventArgs(Key.Space));
+
+            var testSubject = CreateTestSubject(locationNavigator.Object);
+            testSubject.PreprocessNavigate(null, new TableEntryNavigateEventArgs(false));
 
             VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
-        public void KeyDown_KeyIsEnter_NoSelectedEntry_NoNavigation()
+        public void PreprocessNavigate_SelectedEntryIsNotIssueViz_NoNavigation()
         {
             var locationNavigator = new Mock<ILocationNavigator>();
 
-            var tableControl = new Mock<IWpfTableControl>();
-            tableControl.Setup(x => x.SelectedEntry).Returns((ITableEntryHandle) null);
-
-            var testSubject = CreateTestSubject(tableControl.Object, locationNavigator.Object);
-            testSubject.KeyDown(CreateKeyEventArgs(Key.Enter));
+            var testSubject = CreateTestSubject(locationNavigator.Object);
+            testSubject.PreprocessNavigate(Mock.Of<ITableEntryHandle>(), new TableEntryNavigateEventArgs(false));
 
             VerifyNoNavigation(locationNavigator);
         }
 
         [TestMethod]
-        public void KeyDown_KeyIsEnter_SelectedEntryIsNotIssueViz_NoNavigation()
-        {
-            var locationNavigator = new Mock<ILocationNavigator>();
-
-            var tableControl = new Mock<IWpfTableControl>();
-            tableControl.Setup(x => x.SelectedEntry).Returns(Mock.Of<ITableEntryHandle>());
-
-            var testSubject = CreateTestSubject(tableControl.Object, locationNavigator.Object);
-            testSubject.KeyDown(CreateKeyEventArgs(Key.Enter));
-
-            VerifyNoNavigation(locationNavigator);
-        }
-
-        [TestMethod]
-        public void KeyDown_KeyIsEnter_SelectedEntryIssueViz_NavigationToIssue()
+        public void PreprocessNavigate_SelectedEntryIsIssueViz_NavigationToIssue()
         {
             var locationNavigator = new Mock<ILocationNavigator>();
 
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            
             var entry = new Mock<ITableEntryHandle>();
             entry.Setup(x => x.Identity).Returns(issueViz);
 
-            var tableControl = new Mock<IWpfTableControl>();
-            tableControl.Setup(x => x.SelectedEntry).Returns(entry.Object);
-
-            var testSubject = CreateTestSubject(tableControl.Object, locationNavigator.Object);
-            testSubject.KeyDown(CreateKeyEventArgs(Key.Enter));
+            var testSubject = CreateTestSubject(locationNavigator.Object);
+            testSubject.PreprocessNavigate(entry.Object, new TableEntryNavigateEventArgs(false));
 
             VerifyNavigation(locationNavigator, issueViz);
         }
 
-        [TestMethod]
-        public void PostprocessMouseDown_SingleClick_NoNavigation()
-        {
-            var locationNavigator = new Mock<ILocationNavigator>();
-
-            var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
-            testSubject.PostprocessMouseDown(Mock.Of<ITableEntryHandle>(), CreateMouseEventArgs(1));
-
-            VerifyNoNavigation(locationNavigator);
-        }
-
-        [TestMethod]
-        public void PostprocessMouseDown_DoubleClick_ClickedEntryIsNotIssueViz_NoNavigation()
-        {
-            var locationNavigator = new Mock<ILocationNavigator>();
-
-            var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
-            testSubject.PostprocessMouseDown(Mock.Of<ITableEntryHandle>(), CreateMouseEventArgs(2));
-
-            VerifyNoNavigation(locationNavigator);
-        }
-
-        [TestMethod]
-        public void PostprocessMouseDown_DoubleClick_ClickedEntryIsIssueViz_NavigationToIssue()
-        {
-            var locationNavigator = new Mock<ILocationNavigator>();
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-
-            var entry = new Mock<ITableEntryHandle>();
-            entry.Setup(x => x.Identity).Returns(issueViz);
-
-            var testSubject = CreateTestSubject(Mock.Of<IWpfTableControl>(), locationNavigator.Object);
-            testSubject.PostprocessMouseDown(entry.Object, CreateMouseEventArgs(2));
-
-            VerifyNavigation(locationNavigator, issueViz);
-        }
-
-        private ITableControlEventProcessor CreateTestSubject(IWpfTableControl tableControl, ILocationNavigator locationNavigator)
-            => new HotspotsTableEventProcessor(tableControl, locationNavigator);
-
-        private KeyEventArgs CreateKeyEventArgs(Key key)
-        {
-            var eventArgs = new KeyEventArgs(Keyboard.PrimaryDevice, Mock.Of<PresentationSource>(), 0, key)
-            {
-                RoutedEvent = Keyboard.KeyDownEvent
-            };
-
-            return eventArgs;
-        }
-
-        private MouseButtonEventArgs CreateMouseEventArgs(int numberOfClicks)
-        {
-            var eventArgs = new MouseButtonEventArgs(InputManager.Current.PrimaryMouseDevice, 0, MouseButton.Left);
-
-            var fieldInfo = typeof(MouseButtonEventArgs).GetField("_count", BindingFlags.Instance | BindingFlags.NonPublic);
-            fieldInfo.SetValue(eventArgs, numberOfClicks);
-
-            return eventArgs;
-        }
+        private ITableControlEventProcessor CreateTestSubject(ILocationNavigator locationNavigator)
+            => new HotspotsTableEventProcessor(locationNavigator);
 
         private void VerifyNoNavigation(Mock<ILocationNavigator> locationNavigator)
         {

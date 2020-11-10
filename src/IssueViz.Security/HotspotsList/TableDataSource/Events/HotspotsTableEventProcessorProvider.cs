@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         ITableControlEventProcessor ITableControlEventProcessorProvider.GetAssociatedEventProcessor(IWpfTableControl tableControl)
         {
-            return new HotspotsTableEventProcessor(tableControl, locationNavigator);
+            return new HotspotsTableEventProcessor(locationNavigator);
         }
     }
 }
