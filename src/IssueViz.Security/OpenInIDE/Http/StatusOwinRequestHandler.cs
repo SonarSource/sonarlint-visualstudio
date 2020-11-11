@@ -23,7 +23,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
@@ -35,13 +34,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
     internal class StatusOwinRequestHandler : IOwinPathRequestHandler
     {
         private readonly IOpenInIDERequestHandler openInIDERequestHandler;
-        private readonly ILogger logger;
 
         [ImportingConstructor]
-        internal StatusOwinRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler, ILogger logger)
+        internal StatusOwinRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler)
         {
             this.openInIDERequestHandler = openInIDERequestHandler;
-            this.logger = logger;
         }
 
         public string ApiPath => "/status";

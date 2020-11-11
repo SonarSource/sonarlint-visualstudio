@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
@@ -43,16 +42,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             // Arrange
             var apiRequestHandler = MefTestHelpers.CreateExport<IOpenInIDERequestHandler>(Mock.Of<IOpenInIDERequestHandler>());
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<StatusOwinRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler, loggerExport });
+            MefTestHelpers.CheckTypeCanBeImported<StatusOwinRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler });
         }
 
         [TestMethod]
         public void ApiPath_ReturnsExpectedPath()
         {
-            var testSubject = new StatusOwinRequestHandler(Mock.Of<IOpenInIDERequestHandler>(), Mock.Of<ILogger>());
+            var testSubject = new StatusOwinRequestHandler(Mock.Of<IOpenInIDERequestHandler>());
 
             testSubject.ApiPath.Should().Be("/status");
         }
@@ -65,7 +63,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var apiResponse = new StatusResponse(expectedIdeName, expectedDescription);
 
-            var testLogger = new TestLogger(logToConsole: true);
             var apiHandlerMock = new Mock<IOpenInIDERequestHandler>();
             apiHandlerMock.Setup(x => x.GetStatusAsync()).Returns(Task.FromResult<IStatusResponse>(apiResponse));
 
@@ -73,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var context = new OwinContext();
             context.Response.Body = responseStream;
 
-            var testSubject = new StatusOwinRequestHandler(apiHandlerMock.Object, testLogger);
+            var testSubject = new StatusOwinRequestHandler(apiHandlerMock.Object);
 
             // Act
             await testSubject.ProcessRequest(context)
