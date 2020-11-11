@@ -29,13 +29,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     internal class PriorityTableColumnDefinition : TableColumnDefinitionBase
     {
         public const string ColumnName = "ReviewPriority";
+        public const int Width = 120;
 
         public override string Name { get; } = ColumnName;
 
-        public override double DefaultWidth => 50;
+        public override string DisplayName { get; } = "Priority";
 
-        public override string DisplayName => "Priority";
-
-        public override bool IsFilterable => true;
+        public override double DefaultWidth { get; } = Width;
     }
 }
