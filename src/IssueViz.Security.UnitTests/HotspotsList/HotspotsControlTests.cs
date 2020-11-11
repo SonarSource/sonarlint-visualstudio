@@ -19,6 +19,7 @@
  */
 
 using System.Windows;
+using System.Windows.Controls;
 using FluentAssertions;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableControl;
@@ -43,6 +44,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             testSubject.hotspotsList.Child.Should().NotBeNull();
             testSubject.hotspotsList.Child.Should().Be(uiControl);
+        }
+
+        [TestMethod]
+        public void Ctor_WpfTableControlConfiguration_SelectionSet()
+        {
+            var uiControl = Mock.Of<FrameworkElement>();
+            var wpfTableControl = new Mock<IWpfTableControl>();
+            wpfTableControl.Setup(x => x.Control).Returns(uiControl);
+
+            CreateTestSubject(wpfTableControl);
+
+            wpfTableControl.VerifySet(x => x.SelectionMode = SelectionMode.Single);
         }
 
         [TestMethod]
