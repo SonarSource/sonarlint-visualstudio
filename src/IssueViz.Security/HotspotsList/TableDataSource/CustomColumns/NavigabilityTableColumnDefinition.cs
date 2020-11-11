@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
             if (!issueViz.IsNavigable())
             {
-                toolTip = Resources.ERR_CannotNavigate;
+                toolTip = HotspotsListResources.ERR_CannotNavigateTooltip;
                 return true;
             }
 

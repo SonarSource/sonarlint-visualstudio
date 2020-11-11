@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security {
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources {
+    internal class HotspotsListResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources() {
+        internal HotspotsListResources() {
         }
         
         /// <summary>
@@ -39,7 +39,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.Security.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.HotspotsListResou" +
+                            "rces", typeof(HotspotsListResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,20 +62,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error displaying Hotspots Tool Window: {0}.
+        ///   Looks up a localized string similar to Cannot navigate to location. The source code is different from the analyzed version..
         /// </summary>
-        internal static string ERR_HotspotsToolWindow_Exception {
+        internal static string ERR_CannotNavigateTooltip {
             get {
-                return ResourceManager.GetString("ERR_HotspotsToolWindow_Exception", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SonarLint Security Hotspots.
-        /// </summary>
-        internal static string HotspotsToolWindowCaption {
-            get {
-                return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
+                return ResourceManager.GetString("ERR_CannotNavigateTooltip", resourceCulture);
             }
         }
     }

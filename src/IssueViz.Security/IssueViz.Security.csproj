@@ -64,6 +64,12 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
     
+    <Compile Update="HotspotsList\HotspotsListResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>HotspotsListResources.resx</DependentUpon>
+    </Compile>
+    
     <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -75,6 +81,11 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
+
+    <EmbeddedResource Update="HotspotsList\HotspotsListResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>HotspotsListResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
 
     <EmbeddedResource Update="OpenInIDE\OpenInIDEResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
