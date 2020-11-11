@@ -74,7 +74,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         Task<IStatusResponse> IOpenInIDERequestHandler.GetStatusAsync()
         {
-            throw new NotImplementedException();
+            // TODO: fetch the real data
+            return Task.FromResult<IStatusResponse>(new StatusResponse("Visual Studio", "{unknown}"));
         }
 
         Task IOpenInIDERequestHandler.ShowHotspotAsync(IShowHotspotRequest request)
