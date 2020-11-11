@@ -301,13 +301,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         }
 
         private void CheckInfoBarCleared() =>
-            failureInfoBarMock.Verify(x => x.Clear(), Times.Once);
+            failureInfoBarMock.Verify(x => x.ClearAsync(), Times.Once);
 
         private void CheckInfoBarNotShown() =>
-            failureInfoBarMock.Verify(x => x.Show(It.IsAny<Guid>()), Times.Never);
+            failureInfoBarMock.Verify(x => x.ShowAsync(It.IsAny<Guid>()), Times.Never);
 
         private void CheckInfoBarShown() =>
-            failureInfoBarMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
+            failureInfoBarMock.Verify(x => x.ShowAsync(HotspotsToolWindow.ToolWindowId), Times.Once);
 
         private class TestShowHotspotRequest : IShowHotspotRequest
         {
