@@ -21,16 +21,18 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.InfoBar;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
     internal interface IOpenInIDEFailureInfoBar
     {
-        void Show(Guid toolWindowId);
+        Task ShowAsync(Guid toolWindowId);
 
-        void Clear();
+        Task ClearAsync();
     }
 
     [Export(typeof(IOpenInIDEFailureInfoBar))]
@@ -49,15 +51,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.outputWindowService = outputWindowService;
         }
 
-        public void Show(Guid toolWindowId)
+        public async Task ShowAsync(Guid toolWindowId)
         {
-            RemoveExistingInfoBar();
-            AddInfoBar(toolWindowId);
+            await RunOnUIThread.RunAsync(() =>
+            {
+                RemoveExistingInfoBar();
+                AddInfoBar(toolWindowId);
+            });
         }
 
-        public void Clear()
+        public async Task ClearAsync()
         {
-            RemoveExistingInfoBar();
+            await RunOnUIThread.RunAsync(() =>
+            {
+                RemoveExistingInfoBar();
+            });
         }
 
         private void AddInfoBar(Guid toolWindowId)

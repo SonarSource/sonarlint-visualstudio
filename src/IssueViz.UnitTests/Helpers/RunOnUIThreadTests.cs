@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,7 +32,6 @@ using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 {
-
     // These tests are slightly hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()"
     // to fool the VS thread helper into thinking the current thread is the UI thread.
     // 
@@ -42,7 +42,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
     [TestClass]
     public class RunOnUIThreadTests
     {
-
         [TestMethod]
         public void Run_StartsOnUIThread_ExecuteOnUIThread()
         {
