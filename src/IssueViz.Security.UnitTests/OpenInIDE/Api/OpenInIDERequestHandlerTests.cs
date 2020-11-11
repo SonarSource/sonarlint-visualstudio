@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -33,6 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -52,12 +54,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             var navigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>());
             var storeExport = MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>());
             var failureInfoBarExport = MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>());
+            var hotspotSelectionServiceExport = MefTestHelpers.CreateExport<IHotspotsSelectionService>(Mock.Of<IHotspotsSelectionService>());
             var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
 
             // Act & Assert
             MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null,
                 new[] { toolWindowServiceExport, validatorExport, sonarQubeServiceExport, converterExport,
-                        navigatorExport, storeExport, failureInfoBarExport, loggerExport });
+                        navigatorExport, storeExport, failureInfoBarExport, hotspotSelectionServiceExport, loggerExport });
         }
     }
 
@@ -81,6 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private Mock<ILocationNavigator> navigatorMock;
         private Mock<IHotspotsStore> storeMock;
         private Mock<IOpenInIDEFailureInfoBar> failureInfoBarMock;
+        private Mock<IHotspotsSelectionService> selectionServiceMock;
         private TestLogger logger;
 
         private IOpenInIDERequestHandler testSubject;
@@ -100,10 +104,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             navigatorMock = new Mock<ILocationNavigator>();
             storeMock = new Mock<IHotspotsStore>();
             failureInfoBarMock = new Mock<IOpenInIDEFailureInfoBar>();
+            selectionServiceMock = new Mock<IHotspotsSelectionService>();
             logger = new TestLogger(logToConsole: true);
 
             testSubject = new OpenInIDERequestHandler(toolWindowService.Object, stateValidatorMock.Object, serverMock.Object,
-            converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, logger);
+            converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, selectionServiceMock.Object, logger);
         }
 
         [TestMethod]
@@ -125,7 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             CheckInfoBarCleared();
             CheckInfoBarShown();
             CheckCalled(toolWindowService, stateValidatorMock);
-            CheckNotCalled(serverMock, converterMock, navigatorMock, storeMock);
+            CheckNotCalled(serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
         }
 
         [TestMethod]
@@ -141,7 +146,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             CheckInfoBarCleared();
             CheckInfoBarShown();
             CheckCalled(toolWindowService, stateValidatorMock, serverMock);
-            CheckNotCalled(converterMock, navigatorMock, storeMock);
+            CheckNotCalled(converterMock, navigatorMock, storeMock, selectionServiceMock);
         }
 
         [TestMethod]
@@ -159,7 +164,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             CheckInfoBarCleared();
             CheckInfoBarShown();
             CheckCalled(toolWindowService, stateValidatorMock, serverMock);
-            CheckNotCalled(converterMock, navigatorMock, storeMock);
+            CheckNotCalled(converterMock, navigatorMock, storeMock, selectionServiceMock);
         }
 
         [TestMethod]
@@ -176,7 +181,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             CheckInfoBarCleared();
             CheckInfoBarShown();
             CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
-            CheckNotCalled(navigatorMock, storeMock);
+            CheckNotCalled(navigatorMock, storeMock, selectionServiceMock);
         }
 
         [TestMethod]
@@ -195,11 +200,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             CheckInfoBarCleared();
             CheckInfoBarShown();
             CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
-            CheckNotCalled(navigatorMock, storeMock);
+            CheckNotCalled(navigatorMock, storeMock, selectionServiceMock);
         }
 
         [TestMethod]
-        public async Task ShowHotspot_DataIsValid_NavigationSucceeded_And_IssueAddedToStore()
+        public async Task ShowHotspot_DataIsValid_NavigationSucceeded_And_IssueAddedToStoreAndSelected()
         {
             // Note: this test needs a viz mock that doesn't have any members mocked using Setup(...).
             // This is because we don't expect any of the members to be called (and if the mock has any
@@ -212,6 +217,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             SetConversionResponse(ValidServerHotspot, hotspotVizMock.Object);
             SetNavigationRespone(hotspotVizMock.Object, true);
             SetStoreExpectedItem(hotspotVizMock.Object);
+            SetSelectionServiceExpectedItem(hotspotVizMock.Object);
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
@@ -219,14 +225,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             CheckInfoBarCleared();
             CheckInfoBarNotShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
             CheckNotCalled(hotspotVizMock); // shouldn't have accessed any of the members
 
             logger.AssertPartialOutputStringExists(ValidRequest.ServerUrl.ToString(), ValidRequest.ProjectKey, ValidRequest.OrganizationKey, ValidRequest.HotspotKey);
         }
 
         [TestMethod]
-        public async Task ShowHotspot_DataIsValid_NavigationFailed_IssueStillAddedToStore()
+        public async Task ShowHotspot_DataIsValid_NavigationFailed_IssueStillAddedToStoreAndStillSelected()
         {
             const string hotspotFilePath = "c:\\xx\\yyy.txt";
             const int hotspotStartLine = -12345;
@@ -237,6 +243,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             SetConversionResponse(ValidServerHotspot, hotspotViz);
             SetNavigationRespone(hotspotViz, false);
             SetStoreExpectedItem(hotspotViz);
+            SetSelectionServiceExpectedItem(hotspotViz);
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
@@ -244,8 +251,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             CheckInfoBarCleared();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock);
+            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
             logger.AssertPartialOutputStringExists(hotspotFilePath, hotspotStartLine.ToString());
+        }
+
+        [TestMethod]
+        public async Task ShowHotspot_DataIsValid_IssueFirstAddedToStoreAndThenSelected()
+        {
+            const string hotspotFilePath = "c:\\xx\\yyy.txt";
+            const int hotspotStartLine = -12345;
+            var hotspotViz = CreateHotspotVisualization(hotspotFilePath, hotspotStartLine);
+
+            InitializeStateValidator(ValidRequest, true);
+            SetServerResponse(ValidRequest, ValidServerHotspot);
+            SetConversionResponse(ValidServerHotspot, hotspotViz);
+            SetNavigationRespone(hotspotViz, false);
+
+            var callOrder = new List<int>();
+            storeMock.Setup(x => x.Add(hotspotViz)).Callback(() => callOrder.Add(1));
+            selectionServiceMock.Setup(x=> x.Select(hotspotViz)).Callback(() => callOrder.Add(2));
+
+            // Act
+            await testSubject.ShowHotspotAsync(ValidRequest)
+                .ConfigureAwait(false);
+
+            callOrder.Should().BeEquivalentTo(new[] {1, 2}, c => c.WithStrictOrdering());
         }
 
         private static IAnalysisIssueVisualization CreateHotspotVisualization(string filePath, int startLine)
@@ -280,6 +310,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private void SetStoreExpectedItem(IAnalysisIssueVisualization expected) =>
             storeMock.Setup(x => x.Add(expected));
+
+        private void SetSelectionServiceExpectedItem(IAnalysisIssueVisualization expected) =>
+            selectionServiceMock.Setup(x => x.Select(expected));
 
         private static void CheckCalled(params Mock[] mocks)
         {

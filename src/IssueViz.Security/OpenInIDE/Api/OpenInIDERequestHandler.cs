@@ -25,11 +25,11 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private readonly ILocationNavigator navigator;
         private readonly IHotspotsStore hotspotsStore;
         private readonly IOpenInIDEFailureInfoBar failureInfoBar;
+        private readonly IHotspotsSelectionService hotspotsSelectionService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             ILocationNavigator navigator,
             IHotspotsStore hotspotsStore,
             IOpenInIDEFailureInfoBar failureInfoBar,
+            IHotspotsSelectionService hotspotsSelectionService,
             ILogger logger)
         {
             // MEF-created so the arguments should never be null
@@ -66,6 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.navigator = navigator;
             this.hotspotsStore = hotspotsStore;
             this.failureInfoBar = failureInfoBar;
+            this.hotspotsSelectionService = hotspotsSelectionService;
             this.logger = logger;
         }
 
@@ -122,8 +125,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 await failureInfoBar.ShowAsync(HotspotsToolWindow.ToolWindowId);
             }
 
-            // Add to store regardless of whether navigation succeeded
+            // Add to store and select regardless of whether navigation succeeded
             hotspotsStore.Add(hotspotViz);
+            hotspotsSelectionService.Select(hotspotViz);
         }
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)

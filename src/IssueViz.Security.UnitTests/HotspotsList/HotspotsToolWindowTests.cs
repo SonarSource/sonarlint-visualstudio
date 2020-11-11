@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
@@ -83,6 +84,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             componentModelMock
                 .Setup(x => x.GetService<IWpfTableControlProvider>())
                 .Returns(wpfTableControlProviderMock.Object);
+
+            componentModelMock
+                .Setup(x => x.GetService<IHotspotsSelectionService>())
+                .Returns(Mock.Of<IHotspotsSelectionService>());
 
             var serviceProviderMock = new Mock<IServiceProvider>();
 
