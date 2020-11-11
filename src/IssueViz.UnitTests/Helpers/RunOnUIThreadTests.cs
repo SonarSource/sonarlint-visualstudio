@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -30,16 +31,17 @@ using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 {
+
+    // These tests are slightly hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()"
+    // to fool the VS thread helper into thinking the current thread is the UI thread.
+    // 
+    // However, these tests are quite limited as we can only test the cases where the
+    // caller is already on the main thread - we're not hacking/mocking/faking enough 
+    // of the VS setup for a call to "ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()"
+    // to succeed.
     [TestClass]
     public class RunOnUIThreadTests
     {
-        // These tests are slightly hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()"
-        // to fool the VS thread helper into thinking the current thread is the UI thread.
-        // 
-        // However, these tests are quite limited as we can only test the cases where the
-        // caller is already on the main thread - we're not hacking/mocking/faking enough 
-        // of the VS setup for a call to "ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()"
-        // to succeed.
 
         [TestMethod]
         public void Run_StartsOnUIThread_ExecuteOnUIThread()
@@ -72,58 +74,48 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
         }
     }
 
+    // These tests are quite hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()",
+    // and also use reflection to set private data fields in the VS ThreadHelper hierarchy.
+    // As such, they will break if the underlying VS implementation changes.
+    // 
+    // However, we are now hacking/mocking/faking enough of the VS setup that a call to 
+    // "ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()" won't fail.
+    // It won't actually cause a thread transition, but we can use the fact that our
+    // scheduler mock was called to detect whether a thread transition was requested.
     [TestClass]
-    public class RunOnUIThreadTests_Hacky
+    public class RunOnUIThreadTests_HackVSThreadingInternals
     {
-        // These tests are quite hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()",
-        // and also use reflection to set private data fields in the VS ThreadHelper hierarchy.
-        // As such, they will break if the underlying VS implementation changes.
-        // to fool the VS thread helper into thinking the current thread is the UI thread.
-        // 
-        // However, we are now hacking/mocking/faking enough of the VS setup that a call to 
-        // "ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync()" won't fail.
-        // It won't actually cause a thread transition, but we can use the fact that our
-        // scheduler mock was called to detect whether a thread transition was requested.
-
-        private Mock<IVsTaskSchedulerService2> schedulerMock;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            ThreadHelper.SetCurrentThreadAsUIThread();
-
-            schedulerMock = new Mock<IVsTaskSchedulerService2>();
-            SetupTaskSchedulerMock(schedulerMock);
-        }
-
         [TestMethod]
         public void Run_StartsOnUIThread_ExecuteOnUIThread()
         {
             bool operationExecuted = false;
+            using var hackedThreadingScope = new HackedVSThreadingScope();
 
             // Act
             RunOnUIThread.Run(() => operationExecuted = true);
 
             operationExecuted.Should().BeTrue();
-            CheckThreadSwitchNotRequested(schedulerMock);
+            hackedThreadingScope.CheckThreadSwitchNotRequested();
         }
 
         [TestMethod]
         public async Task RunAsync_StartsOnUIThread_ExecuteOnUIThread()
         {
             bool operationExecuted = false;
+            using var hackedThreadingScope = new HackedVSThreadingScope();
 
             // Act
             await RunOnUIThread.RunAsync(() => operationExecuted = true);
 
             operationExecuted.Should().BeTrue();
-            CheckThreadSwitchNotRequested(schedulerMock);
+            hackedThreadingScope.CheckThreadSwitchNotRequested();
         }
 
         [TestMethod]
         public async Task Run_StartsOnBackgroundThread_ExecuteOnUIThread()
         {
             bool operationExecuted = false;
+            using var hackedThreadingScope = new HackedVSThreadingScope();
 
             // Act
             await Task.Run(() =>
@@ -133,13 +125,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             });
 
             operationExecuted.Should().BeTrue();
-            CheckThreadSwitchRequested(schedulerMock);
+            hackedThreadingScope.CheckThreadSwitchRequested();
         }
 
         [TestMethod]
         public async Task RunAsync_StartsOnBackgroundThread_ExecuteOnUIThread()
         {
             bool operationExecuted = false;
+            using var hackedThreadingScope = new HackedVSThreadingScope();
 
             // Act
             await Task.Run(async () =>
@@ -149,24 +142,68 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
             });
 
             operationExecuted.Should().BeTrue();
-            CheckThreadSwitchRequested(schedulerMock);
+            hackedThreadingScope.CheckThreadSwitchRequested();
         }
 
-        private static void SetupTaskSchedulerMock(Mock<IVsTaskSchedulerService2> schedulerMock)
+        /// <summary>
+        /// Hacks VS threading internals so that calls to ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync
+        /// won't fail. This part of the hack is cleared when the scope is disposed.
+        /// 
+        /// Also sets the calling thread as the UI thread.
+        /// This is NOT changed when the scope is disposed.
+        /// </summary>
+        private sealed class HackedVSThreadingScope : IDisposable
         {
-            var taskContext = new JoinableTaskContext(System.Threading.Thread.CurrentThread);
-            schedulerMock.As<IVsTaskSchedulerService>();
-            schedulerMock.Setup(x => x.GetAsyncTaskContext()).Returns(taskContext);
+            private Mock<IVsTaskSchedulerService2> schedulerMock;
+            private bool disposedValue;
 
-            // Override the static scheduler mock used by VS
-            var fieldInfo = typeof(Microsoft.VisualStudio.Shell.VsTaskLibraryHelper).GetField("cachedServiceInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-            fieldInfo.SetValue(null, schedulerMock.Object);
+            private readonly System.Reflection.FieldInfo cachedServiceInstanceField;
+            private object originalCachedValue;
+
+            public HackedVSThreadingScope()
+            {
+                // We can't currently unset the UI thread once we've set it, so it's
+                // safe for each thread to explicitly set what is considered as the UI thread.
+                ThreadHelper.SetCurrentThreadAsUIThread();
+
+                cachedServiceInstanceField = typeof(Microsoft.VisualStudio.Shell.VsTaskLibraryHelper)
+                    .GetField("cachedServiceInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+                originalCachedValue = cachedServiceInstanceField.GetValue(null);
+
+                SetupTaskSchedulerMock();
+            }
+
+            public void CheckThreadSwitchRequested() =>
+                schedulerMock.Invocations.Should().NotBeEmpty();
+
+            public void CheckThreadSwitchNotRequested() =>
+                schedulerMock.Invocations.Should().BeEmpty();
+
+            private void SetupTaskSchedulerMock()
+            {
+                var taskContext = new JoinableTaskContext(Thread.CurrentThread);
+
+                schedulerMock = new Mock<IVsTaskSchedulerService2>();
+                schedulerMock.As<IVsTaskSchedulerService>();
+                schedulerMock.Setup(x => x.GetAsyncTaskContext()).Returns(taskContext);
+
+                // Override the static scheduler mock used by VS
+                var fieldInfo = typeof(Microsoft.VisualStudio.Shell.VsTaskLibraryHelper).GetField("cachedServiceInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                fieldInfo.SetValue(null, schedulerMock.Object);
+            }
+
+            public void Dispose()
+            {
+                if(disposedValue)
+                {
+                    return;
+                }
+
+                disposedValue = true;
+                cachedServiceInstanceField.SetValue(null, originalCachedValue);
+                originalCachedValue = null;
+            }
         }
-
-        private static void CheckThreadSwitchRequested(Mock<IVsTaskSchedulerService2> schedulerMock) =>
-            schedulerMock.Invocations.Should().NotBeEmpty();
-
-        private static void CheckThreadSwitchNotRequested(Mock<IVsTaskSchedulerService2> schedulerMock) =>
-            schedulerMock.Invocations.Should().BeEmpty();
     }
 }
