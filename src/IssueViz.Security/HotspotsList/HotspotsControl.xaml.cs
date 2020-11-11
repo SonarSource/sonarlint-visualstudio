@@ -19,25 +19,33 @@
  */
 
 using System;
+using System.Linq;
 using System.Windows.Controls;
 using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
     internal sealed partial class HotspotsControl : UserControl, IDisposable
     {
+        private readonly IHotspotsSelectionService selectionService;
         private readonly IWpfTableControl wpfTableControl;
 
-        public HotspotsControl(ITableManagerProvider tableManagerProvider, IWpfTableControlProvider wpfTableControlProvider)
+        public HotspotsControl(ITableManagerProvider tableManagerProvider, 
+            IWpfTableControlProvider wpfTableControlProvider,
+            IHotspotsSelectionService selectionService)
         {
+            this.selectionService = selectionService;
             InitializeComponent();
 
             wpfTableControl = CreateWpfTableControl(tableManagerProvider, wpfTableControlProvider);
-
             hotspotsList.Child = wpfTableControl.Control;
+
+            selectionService.SelectionChanged += SelectionService_SelectionChanged;
         }
 
         private static IWpfTableControl CreateWpfTableControl(ITableManagerProvider tableManagerProvider, IWpfTableControlProvider wpfTableControlProvider)
@@ -54,8 +62,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
             return wpfTableControl;
         }
 
+        private async void SelectionService_SelectionChanged(object sender, SelectionService.SelectionChangedEventArgs e)
+        {
+            if (e.SelectedHotspot == null)
+            {
+                return;
+            }
+
+            await wpfTableControl.ForceUpdateAsync();
+
+            await RunOnUIThread.RunAsync(() =>
+            {
+                var tableEntryHandle = wpfTableControl.Entries.FirstOrDefault(x => x.Identity == e.SelectedHotspot);
+
+                if (tableEntryHandle != null)
+                {
+                    wpfTableControl.SelectedEntries = new[] {tableEntryHandle};
+                }
+            });
+        }
+
         public void Dispose()
         {
+            selectionService.SelectionChanged -= SelectionService_SelectionChanged;
+
             wpfTableControl?.Dispose();
         }
     }

@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using FluentAssertions;
@@ -26,13 +28,23 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
+using SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Helpers;
+using SelectionChangedEventArgs = SonarLint.VisualStudio.IssueVisualization.Security.SelectionService.SelectionChangedEventArgs;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
     [TestClass]
     public class HotspotsControlTests
     {
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            ThreadHelper.SetCurrentThreadAsUIThread();
+        }
+
         [TestMethod]
         public void Ctor_HotspotsListIsWpfTableControl()
         {
@@ -71,7 +83,84 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             wpfTableControl.Verify(x => x.Dispose(), Times.Once);
         }
 
-        private static Security.HotspotsList.HotspotsControl CreateTestSubject(Mock<IWpfTableControl> wpfTableControl)
+        [TestMethod]
+        public void Ctor_RegisterToSelectionEvents()
+        {
+            var hotspotsSelectionService = new Mock<IHotspotsSelectionService>();
+            hotspotsSelectionService.SetupAdd(x => x.SelectionChanged += null);
+
+            CreateTestSubject(selectionService: hotspotsSelectionService.Object);
+
+            hotspotsSelectionService.VerifyAdd(x => x.SelectionChanged += It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
+            hotspotsSelectionService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_UnregisterFromSelectionEvents()
+        {
+            var hotspotsSelectionService = new Mock<IHotspotsSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: hotspotsSelectionService.Object);
+
+            hotspotsSelectionService.Reset();
+            hotspotsSelectionService.SetupRemove(x => x.SelectionChanged -= null);
+
+            testSubject.Dispose();
+
+            hotspotsSelectionService.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
+            hotspotsSelectionService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectionEventRaised_SelectedHotspotIsNull_NoSelectionChanges()
+        {
+            var hotspotsSelectionService = new Mock<IHotspotsSelectionService>();
+            var wpfTableControl = new Mock<IWpfTableControl>();
+
+            CreateTestSubject(wpfTableControl, hotspotsSelectionService.Object);
+
+            hotspotsSelectionService.Raise(x=> x.SelectionChanged += null, new SelectionChangedEventArgs(null));
+
+            wpfTableControl.VerifySet(x=> x.SelectedEntries = It.IsAny<IEnumerable<ITableEntryHandle>>(), Times.Never);
+        }
+
+        [TestMethod]
+        public void SelectionEventRaised_SelectedHotspotDoesntExistInList_NoSelectionChanges()
+        {
+            var someEntry = new Mock<ITableEntryHandle>();
+            someEntry.Setup(x => x.Identity).Returns(Mock.Of<IAnalysisIssueVisualization>());
+
+            var wpfTableControl = new Mock<IWpfTableControl>();
+            wpfTableControl.Setup(x => x.Entries).Returns(new[] {someEntry.Object});
+
+            var anotherHotspot = Mock.Of<IAnalysisIssueVisualization>();
+
+            var hotspotsSelectionService = new Mock<IHotspotsSelectionService>();
+            CreateTestSubject(wpfTableControl, hotspotsSelectionService.Object);
+
+            hotspotsSelectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(anotherHotspot));
+
+            wpfTableControl.VerifySet(x => x.SelectedEntries = It.IsAny<IEnumerable<ITableEntryHandle>>(), Times.Never);
+        }
+
+        [TestMethod]
+        public void SelectionEventRaised_SelectedHotspotExistsInList_HotspotSelected()
+        {
+            var hotspot = Mock.Of<IAnalysisIssueVisualization>();
+            var entry = new Mock<ITableEntryHandle>();
+            entry.Setup(x => x.Identity).Returns(hotspot);
+
+            var wpfTableControl = new Mock<IWpfTableControl>();
+            wpfTableControl.Setup(x => x.Entries).Returns(new[] {entry.Object});
+
+            var hotspotsSelectionService = new Mock<IHotspotsSelectionService>();
+            CreateTestSubject(wpfTableControl, hotspotsSelectionService.Object);
+
+            hotspotsSelectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(hotspot));
+
+            wpfTableControl.VerifySet(x => x.SelectedEntries = new[] {entry.Object}, Times.Once);
+        }
+
+        private static Security.HotspotsList.HotspotsControl CreateTestSubject(Mock<IWpfTableControl> wpfTableControl = null, IHotspotsSelectionService selectionService = null)
         {
             var tableManager = Mock.Of<ITableManager>();
 
@@ -82,6 +171,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             var wpfTableControlProviderMock = new Mock<IWpfTableControlProvider>();
 
+            wpfTableControl ??= new Mock<IWpfTableControl>();
+
             wpfTableControlProviderMock
                 .Setup(x => x.CreateControl(
                     tableManager,
@@ -90,7 +181,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
                     HotspotsTableColumns.Names))
                 .Returns(wpfTableControl.Object);
 
-            var testSubject = new Security.HotspotsList.HotspotsControl(tableManagerProviderMock.Object, wpfTableControlProviderMock.Object);
+            selectionService ??= Mock.Of<IHotspotsSelectionService>();
+
+            var testSubject = new Security.HotspotsList.HotspotsControl(tableManagerProviderMock.Object, wpfTableControlProviderMock.Object, selectionService);
 
             return testSubject;
         }
