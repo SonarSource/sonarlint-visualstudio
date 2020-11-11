@@ -168,6 +168,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 
                 cachedServiceInstanceField = typeof(Microsoft.VisualStudio.Shell.VsTaskLibraryHelper)
                     .GetField("cachedServiceInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                if (cachedServiceInstanceField == null)
+                {
+                    Assert.Inconclusive("Test setup error: failed to locate internal VS field via Reflection. Have the VS internals changed?");
+                }
 
                 originalCachedValue = cachedServiceInstanceField.GetValue(null);
 
@@ -189,8 +193,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
                 schedulerMock.Setup(x => x.GetAsyncTaskContext()).Returns(taskContext);
 
                 // Override the static scheduler mock used by VS
-                var fieldInfo = typeof(Microsoft.VisualStudio.Shell.VsTaskLibraryHelper).GetField("cachedServiceInstance", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-                fieldInfo.SetValue(null, schedulerMock.Object);
+                cachedServiceInstanceField.SetValue(null, schedulerMock.Object);
             }
 
             public void Dispose()
