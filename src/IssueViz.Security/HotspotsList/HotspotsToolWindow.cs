@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
@@ -41,8 +42,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
             var tableManagerProvider = componentModel.GetService<ITableManagerProvider>();
             var wpfTableControlProvider = componentModel.GetService<IWpfTableControlProvider>();
+            var selectionService = componentModel.GetService<IHotspotsSelectionService>();
 
-            var hotspotsControl = new HotspotsControl(tableManagerProvider, wpfTableControlProvider);
+            var hotspotsControl = new HotspotsControl(tableManagerProvider, wpfTableControlProvider, selectionService);
             Content = hotspotsControl;
         }
 
