@@ -20,8 +20,6 @@
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract
 {
-
-
     public interface IStatusResponse
     {
         /// <summary>
