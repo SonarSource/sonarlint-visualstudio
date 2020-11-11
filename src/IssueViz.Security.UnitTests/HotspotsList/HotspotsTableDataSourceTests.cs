@@ -289,7 +289,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
                 .Setup(x => x.GetTableManager(HotspotsTableConstants.TableManagerIdentifier))
                 .Returns(tableManagerMock.Object);
 
-            var testSubject = new HotspotsTableDataSource(tableManagerProviderMock.Object);
+            var testSubject = new HotspotsTableDataSource(Mock.Of<IServiceProvider>(), tableManagerProviderMock.Object);
 
             return testSubject;
         }

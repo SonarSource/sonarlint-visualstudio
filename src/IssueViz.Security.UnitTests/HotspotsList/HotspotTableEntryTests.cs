@@ -19,7 +19,11 @@
  */
 
 using System;
+using System.Drawing;
+using System.Windows;
+using System.Windows.Controls;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -41,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(Mock.Of<IAnalysisIssueBase>());
 
-            Action act = () => new HotspotTableEntry(issueViz.Object);
+            Action act = () => new HotspotTableEntry(issueViz.Object, Mock.Of<IVsUIShell2>());
             act.Should().Throw<InvalidCastException>();
         }
 
@@ -50,7 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         {
             var issueViz = CreateIssueViz();
 
-            var testSubject = new HotspotTableEntry(issueViz);
+            var testSubject = new HotspotTableEntry(issueViz, Mock.Of<IVsUIShell2>());
             var identity = testSubject.Identity;
 
             identity.Should().Be(issueViz);
@@ -118,7 +122,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var issueViz = CreateIssueViz(hotspot.Object);
             issueViz.Span = new SnapshotSpan();
 
-            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IVsUIShell2>()).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
             result.Should().BeTrue();
             value.Should().Be(123);
         }
@@ -130,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int columnNumber = 15;
             var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
 
-            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IVsUIShell2>()).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
             result.Should().BeTrue();
             value.Should().Be(lineNumber);
         }
@@ -154,7 +158,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var issueViz = CreateIssueViz(hotspot.Object);
             issueViz.Span = new SnapshotSpan();
 
-            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IVsUIShell2>()).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
             result.Should().BeTrue();
             value.Should().Be(456);
         }
@@ -166,7 +170,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int columnNumber = 15;
             var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
 
-            var result = new HotspotTableEntry(issueViz).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IVsUIShell2>()).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
             result.Should().BeTrue();
             value.Should().Be(columnNumber);
         }
@@ -174,26 +178,83 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryGetValue_UnknownColumn_ReturnsNull()
         {
-            var testSubject = new HotspotTableEntry(CreateIssueViz());
+            var testSubject = new HotspotTableEntry(CreateIssueViz(), Mock.Of<IVsUIShell2>());
 
             var result = testSubject.TryGetValue("dummy column", out var content);
             result.Should().BeFalse();
             content.Should().BeNull();
         }
 
+        [TestMethod]
+        [DataRow(NavigabilityTableColumnDefinition.ColumnName)]
+        [DataRow("dummy column")]
+        public void TryCreateColumnContent_UnsupportedColumn_ReturnsNull(string column)
+        {
+            var uiShell = new Mock<IVsUIShell2>();
+
+            var testSubject = new HotspotTableEntry(CreateIssueViz(), uiShell.Object);
+
+            var result = testSubject.TryCreateColumnContent(column, true, out var content);
+            result.Should().BeFalse();
+            content.Should().BeNull();
+
+            uiShell.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void TryCreateColumnContent_IssueVizIsNavigable_ReturnsNull()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.FilePath).Returns("test path");
+            var issueViz = CreateIssueViz(hotspot.Object, isNavigable: true);
+
+            var uiShell = new Mock<IVsUIShell2>();
+            var testSubject = new HotspotTableEntry(issueViz, uiShell.Object);
+
+            var result = testSubject.TryCreateColumnContent(StandardTableColumnDefinitions.DocumentName, true, out var content);
+            result.Should().BeFalse();
+            content.Should().BeNull();
+
+            uiShell.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void TryCreateColumnContent_IssueVizIsNotNavigable_TextColumn_ReturnsStyledColumn()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.FilePath).Returns("test path");
+
+            AssertNavigationStyleApplied(hotspot, StandardTableColumnDefinitions.DocumentName, "test path");
+        }
+
+        [TestMethod]
+        public void TryCreateColumnContent_IssueVizIsNotNavigable_NumericColumn_ReturnsStyledColumn()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.SetupGet(x => x.StartLine).Returns(123);
+
+            AssertNavigationStyleApplied(hotspot, StandardTableColumnDefinitions.Line, "123");
+        }
+
         private static object GetValue(IHotspot hotspot, string column)
         {
-            var tryGetValue = new HotspotTableEntry(CreateIssueViz(hotspot)).TryGetValue(column, out var value);
+            var tryGetValue = new HotspotTableEntry(CreateIssueViz(hotspot), Mock.Of<IVsUIShell2>()).TryGetValue(column, out var value);
             tryGetValue.Should().BeTrue();
 
             return value;
         }
 
-        private static IAnalysisIssueVisualization CreateIssueViz(IHotspot hotspot = null)
+        private static IAnalysisIssueVisualization CreateIssueViz(IHotspot hotspot = null, bool isNavigable = true)
         {
             hotspot ??= Mock.Of<IHotspot>();
             var hotspotViz = new Mock<IAnalysisIssueVisualization>();
             hotspotViz.SetupGet(x => x.Issue).Returns(hotspot);
+            hotspotViz.SetupProperty(x => x.Span);
+
+            if (!isNavigable)
+            {
+                hotspotViz.Object.Span = new SnapshotSpan();
+            }
 
             return hotspotViz.Object;
         }
@@ -219,6 +280,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             issueViz.Span = span;
 
             return issueViz;
+        }
+
+        private static void AssertNavigationStyleApplied(Mock<IHotspot> hotspot, string columnName, string expectedValue)
+        {
+            var disabledTextColor = (uint)Color.Red.ToArgb();
+            var uiShell = new Mock<IVsUIShell2>();
+            uiShell.Setup(x => x.GetVSSysColorEx((int)__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_TEXT_INACTIVE, out disabledTextColor));
+
+            var issueViz = CreateIssueViz(hotspot.Object, false);
+
+            var testSubject = new HotspotTableEntry(issueViz, uiShell.Object);
+            
+            var result = testSubject.TryCreateColumnContent(columnName, true, out var content);
+            result.Should().BeTrue();
+            content.Should().NotBeNull();
+
+            var textBlock = content as TextBlock;
+            textBlock.Should().NotBeNull();
+            textBlock.Text.Should().Be(expectedValue);
+            textBlock.FontStyle.Should().Be(FontStyles.Italic);
+            textBlock.Foreground.Should().BeEquivalentTo(Brushes.Red, c => c.ExcludingMissingMembers());
         }
     }
 }

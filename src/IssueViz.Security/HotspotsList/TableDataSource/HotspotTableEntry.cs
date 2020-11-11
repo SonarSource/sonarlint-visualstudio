@@ -19,20 +19,28 @@
  */
 
 using System;
+using System.Drawing;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
+using Color = System.Windows.Media.Color;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
     internal class HotspotTableEntry : WpfTableEntryBase
     {
         private readonly IAnalysisIssueVisualization hotspotViz;
+        private readonly IVsUIShell2 vsUiShell;
 
-        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz)
+        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz, IVsUIShell2 vsUiShell)
         {
             this.hotspotViz = hotspotViz;
+            this.vsUiShell = vsUiShell;
 
             if (!(hotspotViz.Issue is IHotspot))
             {
@@ -91,6 +99,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             }
 
             return true;
+        }
+
+        public override bool TryCreateColumnContent(string columnName, bool singleColumnView, out FrameworkElement content)
+        {
+            if (hotspotViz.IsNavigable() || !TryGetValue(columnName, out var columnContent))
+            {
+                return base.TryCreateColumnContent(columnName, singleColumnView, out content);
+            }
+
+            var textColor = GetInactiveTextColor();
+            var control = new TextBlock
+            {
+                Text = columnContent.ToString(),
+                Foreground = new SolidColorBrush(textColor),
+                FontStyle = FontStyles.Italic
+            };
+
+            content = control;
+            return true;
+        }
+
+        private Color GetInactiveTextColor()
+        {
+            vsUiShell.GetVSSysColorEx((int) __VSSYSCOLOREX.VSCOLOR_COMMANDBAR_TEXT_INACTIVE, out var rgbValue);
+
+            var color = ColorTranslator.FromWin32((int) rgbValue);
+            var wpfColor = Color.FromRgb(color.R, color.G, color.B);
+
+            return wpfColor;
         }
     }
 }
