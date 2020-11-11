@@ -19,12 +19,20 @@
  */
 
 using System;
+using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 {
     public static class RunOnUIThread
     {
+        /// <summary>
+        /// Executes the operation synchronously on the main thread.
+        /// If the caller is on the main thread already then the operation is executed directly.
+        /// If the caller is not on the main thread then the method will switch to the main thread,
+        /// then resume on the caller's thread when then the operation completes.
+        /// </summary>
         public static void Run(Action op)
         {
             if (ThreadHelper.CheckAccess())
@@ -37,6 +45,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Helpers
                 await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
                 op();
             });
+
+            Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting to returning on the UI thread");
+        }
+
+        /// <summary>
+        /// Executes the operation asynchronously on the main thread.
+        /// If the caller is on the main thread already then the operation is executed directly.
+        /// If the caller is not on the main thread then the method will switch to the main thread,
+        /// then resume on the caller's thread when then the operation completes.
+        /// </summary>
+        public async static Task RunAsync(Action op)
+        {
+            if (ThreadHelper.CheckAccess())
+            {
+                op();
+                return;
+            }
+            await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+                op();
+            });
+
+            Debug.Assert(!ThreadHelper.CheckAccess(), "Not expecting to returning on the UI thread");
         }
     }
 }
