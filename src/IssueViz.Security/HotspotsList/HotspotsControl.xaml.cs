@@ -69,6 +69,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
                 return;
             }
 
+            // There is an internal delay between adding an entry to the table sink and until the WpfTableControl picks up on the changes.
+            // So it's possible that when we fire the selection event, that the entry was added to the sink but not yet picked up by the wpf control.
+            // So wpfTableControl.Entries will not contain the entry, even though it should be there.
+            // To solve it we are forcing the control to sync the entries.
             await wpfTableControl.ForceUpdateAsync();
 
             await RunOnUIThread.RunAsync(() =>
