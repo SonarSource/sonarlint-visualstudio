@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot navigate to step. The source code is different from the analyzed version.
+        /// </summary>
+        internal static string ERR_CannotNavigate {
+            get {
+                return ResourceManager.GetString("ERR_CannotNavigate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error displaying Hotspots Tool Window: {0}.
         /// </summary>
         internal static string ERR_HotspotsToolWindow_Exception {
