@@ -214,6 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                     return;
                 }
 
+                ThreadHelper.ThrowIfNotOnUIThread();
                 this.InfoBarUIElement.Close();
 
                 Debug.Assert(!this.cookie.HasValue, "Expected to be unadvised");
