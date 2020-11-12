@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         {
             var testSubject = new HotspotTableEntryFactory(Mock.Of<IServiceProvider>());
 
-            Action act = () => testSubject.Create(null);
+            Action act = () => testSubject.Create(null, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
         }
 
@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             var testSubject = new HotspotTableEntryFactory(Mock.Of<IServiceProvider>());
 
-            Action act = () => testSubject.Create(issueViz.Object);
+            Action act = () => testSubject.Create(issueViz.Object, null);
             act.Should().Throw<InvalidCastException>();
         }
 
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             issueViz.Setup(x => x.Issue).Returns(Mock.Of<IHotspot>());
 
             var testSubject = new HotspotTableEntryFactory(Mock.Of<IServiceProvider>());
-            var result = testSubject.Create(issueViz.Object);
+            var result = testSubject.Create(issueViz.Object, null);
 
             result.Should().NotBeNull();
             result.Should().BeOfType<HotspotTableEntry>();

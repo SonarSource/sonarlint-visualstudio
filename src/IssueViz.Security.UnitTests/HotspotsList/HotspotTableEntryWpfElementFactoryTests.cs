@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows;
@@ -45,10 +46,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             frameworkElement.Should().NotBeNull();
             frameworkElement.ContextMenu.Should().NotBeNull();
-            frameworkElement.ContextMenu.Items.Count.Should().Be(1);
+            frameworkElement.ContextMenu.Items.Should().NotBeEmpty();
 
             var removeMenuItem = frameworkElement.ContextMenu.Items[0] as MenuItem;
             removeMenuItem.Header.Should().Be("Remove");
+        }
+
+        [TestMethod]
+        public void Create_RemoveItemContextMenu_OnClick_InvokesCallback()
+        {
+            var removeCallback = new Mock<Action>();
+            var testSubject = CreateTestSubject(removeCallback: removeCallback.Object);
+            
+            var frameworkElement = testSubject.Create("some content");
+
+            removeCallback.VerifyNoOtherCalls();
+
+            var removeMenuItem = frameworkElement.ContextMenu.Items[0] as MenuItem;
+            removeMenuItem.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+
+            removeCallback.Verify(x=> x(), Times.Once);
         }
 
         [TestMethod]
@@ -117,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             (trigger.Setters.First() as Setter).Value.Should().BeEquivalentTo(expectedColor, c => c.ExcludingMissingMembers());
         }
 
-        private static HotspotTableEntryWpfElementFactory CreateTestSubject(IVsUIShell2 vsUiShell = null, bool isNavigable = true)
+        private static HotspotTableEntryWpfElementFactory CreateTestSubject(IVsUIShell2 vsUiShell = null, bool isNavigable = true, Action removeCallback = null)
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
 
@@ -128,7 +145,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
             vsUiShell ??= Mock.Of<IVsUIShell2>();
 
-            return new HotspotTableEntryWpfElementFactory(vsUiShell, issueViz.Object);
+            return new HotspotTableEntryWpfElementFactory(vsUiShell, issueViz.Object, removeCallback);
         }
     }
 }

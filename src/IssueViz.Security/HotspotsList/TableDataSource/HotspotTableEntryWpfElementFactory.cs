@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
@@ -39,11 +40,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     {
         private readonly IVsUIShell2 vsUiShell;
         private readonly IAnalysisIssueVisualization issueVisualization;
+        private readonly Action removeCallback;
 
-        public HotspotTableEntryWpfElementFactory(IVsUIShell2 vsUiShell, IAnalysisIssueVisualization issueVisualization)
+        public HotspotTableEntryWpfElementFactory(IVsUIShell2 vsUiShell, 
+            IAnalysisIssueVisualization issueVisualization,
+            Action removeCallback)
         {
             this.vsUiShell = vsUiShell;
             this.issueVisualization = issueVisualization;
+            this.removeCallback = removeCallback;
         }
 
         public FrameworkElement Create(string content)
@@ -64,8 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 Header = "Remove",
                 Icon = new CrispImage { Moniker = KnownMonikers.DeleteTableRow }
             };
-            // TODO: implement the click
-            //removeEntryMenuItem.Click += (sender, args) => removeCallback();
+            removeEntryMenuItem.Click += (sender, args) => removeCallback();
 
             return new ContextMenu
             {

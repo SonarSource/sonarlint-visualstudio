@@ -395,8 +395,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             IAnalysisIssueVisualization requestedIssueViz = null;
             var tableEntryFactoryMock = new Mock<IHotspotTableEntryFactory>();
             tableEntryFactoryMock
-                .Setup(x => x.Create(It.IsAny<IAnalysisIssueVisualization>()))
-                .Callback((IAnalysisIssueVisualization issueViz) => requestedIssueViz = issueViz)
+                .Setup(x => x.Create(It.IsAny<IAnalysisIssueVisualization>(), It.IsAny<Action>()))
+                .Callback((IAnalysisIssueVisualization issueViz, Action removeCallback) => requestedIssueViz = issueViz)
                 .Returns(() =>
                 {
                     var tableEntryMock = new Mock<ITableEntry>();

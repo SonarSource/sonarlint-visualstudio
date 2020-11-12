@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 {
     internal interface IHotspotTableEntryFactory
     {
-        ITableEntry Create(IAnalysisIssueVisualization issueVisualization);
+        ITableEntry Create(IAnalysisIssueVisualization issueVisualization, Action removeCallback);
     }
 
     [Export(typeof(IHotspotTableEntryFactory))]
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
             vsUiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell2;
         }
 
-        public ITableEntry Create(IAnalysisIssueVisualization issueVisualization)
+        public ITableEntry Create(IAnalysisIssueVisualization issueVisualization, Action removeCallback)
         {
             if (issueVisualization == null)
             {
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 throw new InvalidCastException($"{nameof(issueVisualization.Issue)} is not {nameof(IHotspot)}");
             }
 
-            return new HotspotTableEntry(issueVisualization, new HotspotTableEntryWpfElementFactory(vsUiShell, issueVisualization));
+            return new HotspotTableEntry(issueVisualization, new HotspotTableEntryWpfElementFactory(vsUiShell, issueVisualization, removeCallback));
         }
     }
 }

@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public void Add(IAnalysisIssueVisualization hotspot)
         {
-            var entry = tableEntryFactory.Create(hotspot);
+            var entry = tableEntryFactory.Create(hotspot, () => Remove(hotspot));
             tableEntries.Add(entry);
 
             lock (sinks)
