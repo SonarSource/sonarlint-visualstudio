@@ -33,6 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     internal interface IHotspotsStore
     {
         void Add(IAnalysisIssueVisualization hotspot);
+        void Remove(IAnalysisIssueVisualization hotspot);
     }
 
     [Export(typeof(IHotspotsStore))]
@@ -97,12 +98,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 }
             }
 
-            var hotspotFilePaths = hotspot
-                .GetAllLocations()
-                .Select(x => x.CurrentFilePath)
-                .Distinct(StringComparer.OrdinalIgnoreCase);
+            NotifyHotspotFilesChanged(hotspot);
+        }
 
-            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
+        public void Remove(IAnalysisIssueVisualization hotspot)
+        {
+            var entries = tableEntries.Where(x => x.Identity == hotspot).ToArray();
+
+            if (entries.Length == 0)
+            {
+                return;
+            }
+
+            tableEntries.RemoveAll(x=> x.Identity == hotspot);
+
+            lock (sinks)
+            {
+                foreach (var sink in sinks)
+                {
+                    sink.RemoveEntries(entries);
+                }
+            }
+
+            NotifyHotspotFilesChanged(hotspot);
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
@@ -136,6 +154,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     sink.ReplaceEntries(changedEntries, changedEntries);
                 }
             }
+        }
+
+        private void NotifyHotspotFilesChanged(IAnalysisIssueVisualization hotspot)
+        {
+            var hotspotFilePaths = hotspot
+                .GetAllLocations()
+                .Select(x => x.CurrentFilePath)
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
     }
 }

@@ -165,6 +165,111 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
+        public void Remove_NoMatchingEntries_IssuesChangedEventNotRaised()
+        {
+            var issueViz = CreateIssueViz("a.cpp");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Add(issueViz);
+
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { eventCount++; };
+
+            testSubject.Remove(CreateIssueViz("b.cpp"));
+
+            eventCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Remove_NoMatchingEntries_SinksNotNotified()
+        {
+            var issueViz = CreateIssueViz("a.cpp");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Add(issueViz);
+
+            var sink = new Mock<ITableDataSink>();
+            testSubject.Subscribe(sink.Object);
+
+            sink.Reset();
+
+            testSubject.Remove(CreateIssueViz("b.cpp"));
+
+            sink.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Remove_HasMatchingEntries_IssuesChangedEventRaised()
+        {
+            var issueViz1 = CreateIssueViz("a.cpp");
+            var issueViz2 = CreateIssueViz("b.cpp");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Add(issueViz1);
+            testSubject.Add(issueViz2);
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+
+            testSubject.Remove(issueViz1);
+
+            eventCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp");
+        }
+
+        [TestMethod]
+        public void Remove_HasMatchingEntries_SinksNotified()
+        {
+            var issueViz1 = CreateIssueViz("a.cpp");
+            var issueViz2 = CreateIssueViz("b.cpp");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Add(issueViz1);
+            testSubject.Add(issueViz2);
+
+            var sink = new Mock<ITableDataSink>();
+            testSubject.Subscribe(sink.Object);
+
+            sink.Reset();
+
+            testSubject.Remove(issueViz1);
+
+            sink.Verify(x => x.RemoveEntries(
+                    It.Is((IReadOnlyList<ITableEntry> entries) =>
+                        entries.Count == 1 &&
+                        entries[0].Identity == issueViz1)),
+                Times.Once);
+
+            sink.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Remove_HasMatchingEntries_EntryRemoved()
+        {
+            var issueViz1 = CreateIssueViz("a.cpp");
+            var issueViz2 = CreateIssueViz("b.cpp");
+
+            var testSubject = CreateTestSubject();
+            testSubject.Add(issueViz1);
+            testSubject.Add(issueViz2);
+
+            testSubject.Remove(issueViz1);
+
+            var sink = new Mock<ITableDataSink>();
+            testSubject.Subscribe(sink.Object);
+
+            sink.Verify(x => x.AddEntries(
+                    It.Is((IReadOnlyList<ITableEntry> entries) =>
+                        entries.Count == 1 &&
+                        entries[0].Identity == issueViz2), true),
+                Times.Once);
+
+            sink.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void GetLocations_NoTableEntries_EmptyList()
         {
             var testSubject = CreateTestSubject();
