@@ -27,7 +27,6 @@ using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
-using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
@@ -273,7 +272,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             flowViz.SetupGet(x => x.Locations).Returns(locations);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(Mock.Of<IHotspot>());
             issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
             issueViz.Setup(x => x.Flows).Returns(new[] {flowViz.Object});
 
@@ -289,7 +287,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
                 .Setup(x => x.GetTableManager(HotspotsTableConstants.TableManagerIdentifier))
                 .Returns(tableManagerMock.Object);
 
-            var testSubject = new HotspotsTableDataSource(tableManagerProviderMock.Object);
+            IAnalysisIssueVisualization requestedIssueViz = null;
+            var tableEntryFactoryMock = new Mock<IHotspotTableEntryFactory>();
+            tableEntryFactoryMock
+                .Setup(x => x.Create(It.IsAny<IAnalysisIssueVisualization>()))
+                .Callback((IAnalysisIssueVisualization issueViz) => requestedIssueViz = issueViz)
+                .Returns(() =>
+                {
+                    var tableEntryMock = new Mock<ITableEntry>();
+                    tableEntryMock.Setup(x => x.Identity).Returns(requestedIssueViz);
+
+                    return tableEntryMock.Object;
+                });
+
+            var testSubject = new HotspotsTableDataSource(tableManagerProviderMock.Object, tableEntryFactoryMock.Object);
 
             return testSubject;
         }
