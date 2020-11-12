@@ -46,21 +46,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var toolWindowServiceExport = MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>());
-            var validatorExport = MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(Mock.Of<IOpenInIDEStateValidator>());
-            var sonarQubeServiceExport = MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>());
-            var converterExport = MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(Mock.Of<IHotspotToIssueVisualizationConverter>());
-            var navigatorExport = MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>());
-            var storeExport = MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>());
-            var failureInfoBarExport = MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>());
-            var hotspotSelectionServiceExport = MefTestHelpers.CreateExport<IHotspotsSelectionService>(Mock.Of<IHotspotsSelectionService>());
-            var loggerExport = MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>());
-
-            // Act & Assert
             MefTestHelpers.CheckTypeCanBeImported<OpenInIDERequestHandler, IOpenInIDERequestHandler>(null,
-                new[] { toolWindowServiceExport, validatorExport, sonarQubeServiceExport, converterExport,
-                        navigatorExport, storeExport, failureInfoBarExport, hotspotSelectionServiceExport, loggerExport });
+                new[] {
+                    MefTestHelpers.CreateExport<IIDEWindowService>(Mock.Of<IIDEWindowService>()),
+                    MefTestHelpers.CreateExport<IToolWindowService>(Mock.Of<IToolWindowService>()),
+                    MefTestHelpers.CreateExport<IOpenInIDEStateValidator>(Mock.Of<IOpenInIDEStateValidator>()),
+                    MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
+                    MefTestHelpers.CreateExport<IHotspotToIssueVisualizationConverter>(Mock.Of<IHotspotToIssueVisualizationConverter>()),
+                    MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>()),
+                    MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>()),
+                    MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>()),
+                    MefTestHelpers.CreateExport<IHotspotsSelectionService>(Mock.Of<IHotspotsSelectionService>()),
+                    MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+                });
         }
     }
 
@@ -77,7 +75,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private readonly SonarQubeHotspot ValidServerHotspot = new SonarQubeHotspot("hotspotKey", null, null, null, null, null, null, null, null, null, null, null, null, null);
 
-        private Mock<IToolWindowService> toolWindowService;
+        private Mock<IIDEWindowService> ideWindowServiceMock;
+        private Mock<IToolWindowService> toolWindowServiceMock;
         private Mock<IOpenInIDEStateValidator> stateValidatorMock;
         private Mock<ISonarQubeService> serverMock;
         private Mock<IHotspotToIssueVisualizationConverter> converterMock;
@@ -95,9 +94,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             ThreadHelper.SetCurrentThreadAsUIThread();
 
             // The tool window should always be called with the same argument
-            toolWindowService = new Mock<IToolWindowService>();
-            toolWindowService.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId));
+            toolWindowServiceMock = new Mock<IToolWindowService>();
+            toolWindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId));
 
+            ideWindowServiceMock = new Mock<IIDEWindowService>();
             stateValidatorMock = new Mock<IOpenInIDEStateValidator>();
             serverMock = new Mock<ISonarQubeService>();
             converterMock = new Mock<IHotspotToIssueVisualizationConverter>();
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             selectionServiceMock = new Mock<IHotspotsSelectionService>();
             logger = new TestLogger(logToConsole: true);
 
-            testSubject = new OpenInIDERequestHandler(toolWindowService.Object, stateValidatorMock.Object, serverMock.Object,
+            testSubject = new OpenInIDERequestHandler(ideWindowServiceMock.Object, toolWindowServiceMock.Object, stateValidatorMock.Object, serverMock.Object,
             converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, selectionServiceMock.Object, logger);
         }
 
@@ -127,9 +127,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock);
+
+            CheckCalled(stateValidatorMock);
             CheckNotCalled(serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
         }
 
@@ -143,9 +144,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock);
+
+            CheckCalled(stateValidatorMock, serverMock);
             CheckNotCalled(converterMock, navigatorMock, storeMock, selectionServiceMock);
         }
 
@@ -161,9 +163,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             logger.AssertPartialOutputStringExists("thrown from test code");
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock);
+
+            CheckCalled(stateValidatorMock, serverMock);
             CheckNotCalled(converterMock, navigatorMock, storeMock, selectionServiceMock);
         }
 
@@ -178,9 +181,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock);
             CheckNotCalled(navigatorMock, storeMock, selectionServiceMock);
         }
 
@@ -197,9 +201,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             logger.AssertPartialOutputStringExists("thrown from test code");
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock);
             CheckNotCalled(navigatorMock, storeMock, selectionServiceMock);
         }
 
@@ -223,9 +228,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarNotShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
             CheckNotCalled(hotspotVizMock); // shouldn't have accessed any of the members
 
             logger.AssertPartialOutputStringExists(ValidRequest.ServerUrl.ToString(), ValidRequest.ProjectKey, ValidRequest.OrganizationKey, ValidRequest.HotspotKey);
@@ -249,9 +255,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInfoBarCleared();
+            CheckInvariants();
             CheckInfoBarShown();
-            CheckCalled(toolWindowService, stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
+
+            CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
             logger.AssertPartialOutputStringExists(hotspotFilePath, hotspotStartLine.ToString());
         }
 
@@ -313,6 +320,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
         private void SetSelectionServiceExpectedItem(IAnalysisIssueVisualization expected) =>
             selectionServiceMock.Setup(x => x.Select(expected));
+
+        private void CheckInvariants()
+        {
+            // Whatever happens, the tool window should be shown, the gold bar
+            // cleared and the IDE brought to the front
+            CheckInfoBarCleared();
+            CheckCalled(ideWindowServiceMock, toolWindowServiceMock);
+        }
 
         private static void CheckCalled(params Mock[] mocks)
         {
