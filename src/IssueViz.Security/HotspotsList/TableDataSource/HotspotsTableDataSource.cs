@@ -22,8 +22,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -42,20 +40,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class HotspotsTableDataSource : IHotspotsStore, IIssueLocationStore, ITableDataSource, IDisposable
     {
-        private readonly IVsUIShell2 uiShell;
+        private readonly IHotspotTableEntryFactory tableEntryFactory;
         private readonly ITableManager tableManager;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
-        private readonly List<HotspotTableEntry> tableEntries = new List<HotspotTableEntry>();
+        private readonly List<ITableEntry> tableEntries = new List<ITableEntry>();
 
         public string SourceTypeIdentifier { get; } = HotspotsTableConstants.TableSourceTypeIdentifier;
         public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
         public string DisplayName { get; } = HotspotsTableConstants.TableDisplayName;
 
         [ImportingConstructor]
-        public HotspotsTableDataSource([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITableManagerProvider tableManagerProvider)
+        public HotspotsTableDataSource(ITableManagerProvider tableManagerProvider, IHotspotTableEntryFactory tableEntryFactory)
         {
-            uiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell2;
-
+            this.tableEntryFactory = tableEntryFactory;
             tableManager = tableManagerProvider.GetTableManager(HotspotsTableConstants.TableManagerIdentifier);
             tableManager.AddSource(this, HotspotsTableColumns.Names);
         }
@@ -89,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public void Add(IAnalysisIssueVisualization hotspot)
         {
-            var entry = new HotspotTableEntry(hotspot, uiShell);
+            var entry = tableEntryFactory.Create(hotspot);
             tableEntries.Add(entry);
 
             lock (sinks)

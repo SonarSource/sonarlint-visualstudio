@@ -18,34 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Drawing;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
-using Color = System.Windows.Media.Color;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
     internal class HotspotTableEntry : WpfTableEntryBase
     {
         private readonly IAnalysisIssueVisualization hotspotViz;
-        private readonly IVsUIShell2 vsUiShell;
+        private readonly INonNavigableFrameworkElementFactory nonNavigableFrameworkElementFactory;
 
-        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz, IVsUIShell2 vsUiShell)
+        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz, INonNavigableFrameworkElementFactory nonNavigableFrameworkElementFactory)
         {
             this.hotspotViz = hotspotViz;
-            this.vsUiShell = vsUiShell;
-
-            if (!(hotspotViz.Issue is IHotspot))
-            {
-                throw new InvalidCastException($"{nameof(hotspotViz.Issue)} is not {nameof(IHotspot)}");
-            }
+            this.nonNavigableFrameworkElementFactory = nonNavigableFrameworkElementFactory;
         }
 
         public override object Identity => hotspotViz;
@@ -88,6 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                         content = hotspot.StartLineOffset;
                         break;
                     }
+
                     var position = hotspotViz.Span.Value.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;
@@ -108,26 +98,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 return base.TryCreateColumnContent(columnName, singleColumnView, out content);
             }
 
-            var textColor = GetInactiveTextColor();
-            var control = new TextBlock
-            {
-                Text = columnContent.ToString(),
-                Foreground = new SolidColorBrush(textColor),
-                FontStyle = FontStyles.Italic
-            };
-
-            content = control;
+            content = nonNavigableFrameworkElementFactory.Create(columnContent.ToString());
             return true;
-        }
-
-        private Color GetInactiveTextColor()
-        {
-            vsUiShell.GetVSSysColorEx((int) __VSSYSCOLOREX.VSCOLOR_COMMANDBAR_TEXT_INACTIVE, out var rgbValue);
-
-            var color = ColorTranslator.FromWin32((int) rgbValue);
-            var wpfColor = Color.FromRgb(color.R, color.G, color.B);
-
-            return wpfColor;
         }
     }
 }
