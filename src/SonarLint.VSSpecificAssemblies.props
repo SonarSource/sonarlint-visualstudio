@@ -182,6 +182,7 @@
     <ItemGroup>
       <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.14.0'" />
       <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Immutable.14.0'" />
+      <ReferencePath Remove="@(ReferencePath)" Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Immutable.10.0'" />
     </ItemGroup>
   </Target>
 

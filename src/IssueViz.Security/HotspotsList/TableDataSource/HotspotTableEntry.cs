@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Windows;
 using Microsoft.VisualStudio.Shell.TableControl;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource.CustomColumns;
@@ -29,15 +29,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     internal class HotspotTableEntry : WpfTableEntryBase
     {
         private readonly IAnalysisIssueVisualization hotspotViz;
+        private readonly INonNavigableFrameworkElementFactory nonNavigableFrameworkElementFactory;
 
-        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz)
+        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz, INonNavigableFrameworkElementFactory nonNavigableFrameworkElementFactory)
         {
             this.hotspotViz = hotspotViz;
-
-            if (!(hotspotViz.Issue is IHotspot))
-            {
-                throw new InvalidCastException($"{nameof(hotspotViz.Issue)} is not {nameof(IHotspot)}");
-            }
+            this.nonNavigableFrameworkElementFactory = nonNavigableFrameworkElementFactory;
         }
 
         public override object Identity => hotspotViz;
@@ -80,6 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                         content = hotspot.StartLineOffset;
                         break;
                     }
+
                     var position = hotspotViz.Span.Value.Start;
                     var line = position.GetContainingLine();
                     content = position.Position - line.Start.Position;
@@ -90,6 +88,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     return false;
             }
 
+            return true;
+        }
+
+        public override bool TryCreateColumnContent(string columnName, bool singleColumnView, out FrameworkElement content)
+        {
+            if (hotspotViz.IsNavigable() || !TryGetValue(columnName, out var columnContent))
+            {
+                return base.TryCreateColumnContent(columnName, singleColumnView, out content);
+            }
+
+            content = nonNavigableFrameworkElementFactory.Create(columnContent.ToString());
             return true;
         }
     }

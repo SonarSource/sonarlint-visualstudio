@@ -40,17 +40,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class HotspotsTableDataSource : IHotspotsStore, IIssueLocationStore, ITableDataSource, IDisposable
     {
+        private readonly IHotspotTableEntryFactory tableEntryFactory;
         private readonly ITableManager tableManager;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
-        private readonly List<HotspotTableEntry> tableEntries = new List<HotspotTableEntry>();
+        private readonly List<ITableEntry> tableEntries = new List<ITableEntry>();
 
         public string SourceTypeIdentifier { get; } = HotspotsTableConstants.TableSourceTypeIdentifier;
         public string Identifier { get; } = HotspotsTableConstants.TableIdentifier;
         public string DisplayName { get; } = HotspotsTableConstants.TableDisplayName;
 
         [ImportingConstructor]
-        public HotspotsTableDataSource(ITableManagerProvider tableManagerProvider)
+        public HotspotsTableDataSource(ITableManagerProvider tableManagerProvider, IHotspotTableEntryFactory tableEntryFactory)
         {
+            this.tableEntryFactory = tableEntryFactory;
             tableManager = tableManagerProvider.GetTableManager(HotspotsTableConstants.TableManagerIdentifier);
             tableManager.AddSource(this, HotspotsTableColumns.Names);
         }
@@ -84,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public void Add(IAnalysisIssueVisualization hotspot)
         {
-            var entry = new HotspotTableEntry(hotspot);
+            var entry = tableEntryFactory.Create(hotspot);
             tableEntries.Add(entry);
 
             lock (sinks)
