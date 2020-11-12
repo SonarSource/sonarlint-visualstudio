@@ -18,34 +18,72 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using Color = System.Windows.Media.Color;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    internal interface INonNavigableFrameworkElementFactory
+    internal interface IHotspotTableEntryWpfElementFactory
     {
         FrameworkElement Create(string content);
     }
 
-    internal class NonNavigableFrameworkElementFactory : INonNavigableFrameworkElementFactory
+    internal class HotspotTableEntryWpfElementFactory : IHotspotTableEntryWpfElementFactory
     {
         private readonly IVsUIShell2 vsUiShell;
+        private readonly IAnalysisIssueVisualization issueVisualization;
 
-        public NonNavigableFrameworkElementFactory(IServiceProvider serviceProvider)
+        public HotspotTableEntryWpfElementFactory(IVsUIShell2 vsUiShell, IAnalysisIssueVisualization issueVisualization)
         {
-            vsUiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell2;
+            this.vsUiShell = vsUiShell;
+            this.issueVisualization = issueVisualization;
         }
 
         public FrameworkElement Create(string content)
         {
-            var control = new TextBlock
+            var control = new Border
+            {
+                ContextMenu = CreateContextMenu(),
+                Child = CreateControlItem(content)
+            };
+
+            return control;
+        }
+
+        private ContextMenu CreateContextMenu()
+        {
+            var removeEntryMenuItem = new MenuItem
+            {
+                Header = "Remove",
+                Icon = new CrispImage { Moniker = KnownMonikers.DeleteTableRow }
+            };
+            // TODO: implement the click
+            //removeEntryMenuItem.Click += (sender, args) => removeCallback();
+
+            return new ContextMenu
+            {
+                Items =
+                {
+                    removeEntryMenuItem
+                }
+            };
+        }
+
+        private UIElement CreateControlItem(string content)
+        {
+            if (issueVisualization.IsNavigable())
+            {
+                return new TextBlock {Text = content};
+            }
+
+            return new TextBlock
             {
                 Text = content,
                 FontStyle = FontStyles.Italic,
@@ -83,8 +121,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                     }
                 }
             };
-
-            return control;
         }
 
         private Color GetInactiveSelectedTextColor() => GetColor(__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_TEXT_SELECTED);

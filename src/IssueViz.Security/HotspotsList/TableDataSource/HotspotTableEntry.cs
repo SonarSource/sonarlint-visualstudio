@@ -29,12 +29,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     internal class HotspotTableEntry : WpfTableEntryBase
     {
         private readonly IAnalysisIssueVisualization hotspotViz;
-        private readonly INonNavigableFrameworkElementFactory nonNavigableFrameworkElementFactory;
+        private readonly IHotspotTableEntryWpfElementFactory hotspotTableEntryWpfElementFactory;
 
-        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz, INonNavigableFrameworkElementFactory nonNavigableFrameworkElementFactory)
+        public HotspotTableEntry(IAnalysisIssueVisualization hotspotViz, IHotspotTableEntryWpfElementFactory hotspotTableEntryWpfElementFactory)
         {
             this.hotspotViz = hotspotViz;
-            this.nonNavigableFrameworkElementFactory = nonNavigableFrameworkElementFactory;
+            this.hotspotTableEntryWpfElementFactory = hotspotTableEntryWpfElementFactory;
         }
 
         public override object Identity => hotspotViz;
@@ -93,12 +93,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
 
         public override bool TryCreateColumnContent(string columnName, bool singleColumnView, out FrameworkElement content)
         {
-            if (hotspotViz.IsNavigable() || !TryGetValue(columnName, out var columnContent))
+            if (!TryGetValue(columnName, out var columnContent))
             {
                 return base.TryCreateColumnContent(columnName, singleColumnView, out content);
             }
 
-            content = nonNavigableFrameworkElementFactory.Create(columnContent.ToString());
+            content = hotspotTableEntryWpfElementFactory.Create(columnContent.ToString());
             return true;
         }
     }

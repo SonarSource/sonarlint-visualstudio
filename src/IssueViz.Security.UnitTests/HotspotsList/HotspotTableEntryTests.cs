@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         {
             var issueViz = CreateIssueViz();
 
-            var testSubject = new HotspotTableEntry(issueViz, Mock.Of<INonNavigableFrameworkElementFactory>());
+            var testSubject = new HotspotTableEntry(issueViz, Mock.Of<IHotspotTableEntryWpfElementFactory>());
             var identity = testSubject.Identity;
 
             identity.Should().Be(issueViz);
@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var issueViz = CreateIssueViz(hotspot.Object);
             issueViz.Span = new SnapshotSpan();
 
-            var result = new HotspotTableEntry(issueViz, Mock.Of<INonNavigableFrameworkElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IHotspotTableEntryWpfElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
             result.Should().BeTrue();
             value.Should().Be(123);
         }
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int columnNumber = 15;
             var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
 
-            var result = new HotspotTableEntry(issueViz, Mock.Of<INonNavigableFrameworkElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IHotspotTableEntryWpfElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Line, out var value);
             result.Should().BeTrue();
             value.Should().Be(lineNumber);
         }
@@ -143,7 +143,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var issueViz = CreateIssueViz(hotspot.Object);
             issueViz.Span = new SnapshotSpan();
 
-            var result = new HotspotTableEntry(issueViz, Mock.Of<INonNavigableFrameworkElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IHotspotTableEntryWpfElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
             result.Should().BeTrue();
             value.Should().Be(456);
         }
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int columnNumber = 15;
             var issueViz = CreateIssueVizWithSpan(lineNumber, columnNumber);
 
-            var result = new HotspotTableEntry(issueViz, Mock.Of<INonNavigableFrameworkElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
+            var result = new HotspotTableEntry(issueViz, Mock.Of<IHotspotTableEntryWpfElementFactory>()).TryGetValue(StandardTableColumnDefinitions.Column, out var value);
             result.Should().BeTrue();
             value.Should().Be(columnNumber);
         }
@@ -163,7 +163,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void TryGetValue_UnknownColumn_ReturnsNull()
         {
-            var testSubject = new HotspotTableEntry(CreateIssueViz(), Mock.Of<INonNavigableFrameworkElementFactory>());
+            var testSubject = new HotspotTableEntry(CreateIssueViz(), Mock.Of<IHotspotTableEntryWpfElementFactory>());
 
             var result = testSubject.TryGetValue("dummy column", out var content);
             result.Should().BeFalse();
@@ -175,7 +175,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [DataRow("dummy column")]
         public void TryCreateColumnContent_UnsupportedColumn_ReturnsNull(string column)
         {
-            var elementFactory = new Mock<INonNavigableFrameworkElementFactory>();
+            var elementFactory = new Mock<IHotspotTableEntryWpfElementFactory>();
 
             var testSubject = new HotspotTableEntry(CreateIssueViz(), elementFactory.Object);
 
@@ -187,32 +187,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void TryCreateColumnContent_IssueVizIsNavigable_ReturnsNull()
-        {
-            var hotspot = new Mock<IHotspot>();
-            hotspot.SetupGet(x => x.FilePath).Returns("test path");
-            var issueViz = CreateIssueViz(hotspot.Object, isNavigable: true);
-
-            var elementFactory = new Mock<INonNavigableFrameworkElementFactory>();
-            var testSubject = new HotspotTableEntry(issueViz, elementFactory.Object);
-
-            var result = testSubject.TryCreateColumnContent(StandardTableColumnDefinitions.DocumentName, true, out var content);
-            result.Should().BeFalse();
-            content.Should().BeNull();
-
-            elementFactory.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void TryCreateColumnContent_IssueVizIsNotNavigable_ReturnsStyledColumn()
+        public void TryCreateColumnContent_SupportedColumn_ReturnsStyledColumn()
         {
             var hotspot = new Mock<IHotspot>();
             hotspot.SetupGet(x => x.FilePath).Returns("test path");
 
-            var issueViz = CreateIssueViz(hotspot.Object, false);
+            var issueViz = CreateIssueViz(hotspot.Object);
 
             var element = new FrameworkElement();
-            var elementFactory = new Mock<INonNavigableFrameworkElementFactory>();
+            var elementFactory = new Mock<IHotspotTableEntryWpfElementFactory>();
             elementFactory.Setup(x => x.Create("test path")).Returns(element);
 
             var testSubject = new HotspotTableEntry(issueViz, elementFactory.Object);
@@ -225,23 +208,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
 
         private static object GetValue(IHotspot hotspot, string column)
         {
-            var tryGetValue = new HotspotTableEntry(CreateIssueViz(hotspot), Mock.Of<INonNavigableFrameworkElementFactory>()).TryGetValue(column, out var value);
+            var tryGetValue = new HotspotTableEntry(CreateIssueViz(hotspot), Mock.Of<IHotspotTableEntryWpfElementFactory>()).TryGetValue(column, out var value);
             tryGetValue.Should().BeTrue();
 
             return value;
         }
 
-        private static IAnalysisIssueVisualization CreateIssueViz(IHotspot hotspot = null, bool isNavigable = true)
+        private static IAnalysisIssueVisualization CreateIssueViz(IHotspot hotspot = null)
         {
             hotspot ??= Mock.Of<IHotspot>();
             var hotspotViz = new Mock<IAnalysisIssueVisualization>();
             hotspotViz.SetupGet(x => x.Issue).Returns(hotspot);
-            hotspotViz.SetupProperty(x => x.Span);
-
-            if (!isNavigable)
-            {
-                hotspotViz.Object.Span = new SnapshotSpan();
-            }
 
             return hotspotViz.Object;
         }

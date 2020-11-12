@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows;
@@ -27,17 +26,55 @@ using System.Windows.Data;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using DataTrigger = System.Windows.DataTrigger;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
     [TestClass]
-    public class NonNavigableFrameworkElementFactoryTests
+    public class HotspotTableEntryWpfElementFactoryTests
     {
         [TestMethod]
-        public void Create_CreatesStyledElement()
+        public void Create_CreatesElementWithContextMenu()
+        {
+            var testSubject = CreateTestSubject();
+            var frameworkElement = testSubject.Create("some content");
+
+            frameworkElement.Should().NotBeNull();
+            frameworkElement.ContextMenu.Should().NotBeNull();
+            frameworkElement.ContextMenu.Items.Count.Should().Be(1);
+
+            var removeMenuItem = frameworkElement.ContextMenu.Items[0] as MenuItem;
+            removeMenuItem.Header.Should().Be("Remove");
+        }
+
+        [TestMethod]
+        public void Create_ChildElement_IssueVizIsNavigable_CreatesElementWithoutStyle()
+        {
+            // Arrange
+            var vsUiShell = new Mock<IVsUIShell2>();
+
+            // Act
+            var testSubject = CreateTestSubject(vsUiShell.Object, true);
+            var frameworkElement = testSubject.Create("some content");
+
+            // Assert
+            vsUiShell.VerifyNoOtherCalls();
+            frameworkElement.Should().BeOfType<Border>();
+
+            var textBlock = (frameworkElement as Border).Child as TextBlock;
+            textBlock.Should().NotBeNull();
+
+            textBlock.Text.Should().Be("some content");
+            textBlock.FontStyle.Should().Be(FontStyles.Normal);
+            textBlock.Style.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Create_ChildElement_IssueVizIsNotNavigable_CreatesElementWithNavigabilityStyle()
         {
             // Arrange
             var selectedTextColor = (uint)Color.Yellow.ToArgb();
@@ -48,18 +85,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             vsUiShell.Setup(x => x.GetVSSysColorEx((int)__VSSYSCOLOREX.VSCOLOR_COMMANDBAR_TEXT_SELECTED, out selectedTextColor));
 
             // Act
-            var testSubject = CreateTestSubject(vsUiShell.Object);
+            var testSubject = CreateTestSubject(vsUiShell.Object, false);
             var frameworkElement = testSubject.Create("some content");
 
             // Assert
-            frameworkElement.Should().NotBeNull();
-
-            var textBlock = frameworkElement as TextBlock;
+            frameworkElement.Should().BeOfType<Border>();
+            var textBlock = (frameworkElement as Border).Child as TextBlock;
             textBlock.Should().NotBeNull();
 
             textBlock.Text.Should().Be("some content");
             textBlock.FontStyle.Should().Be(FontStyles.Italic);
-
             textBlock.Style.Should().NotBeNull();
             textBlock.Style.Triggers.Count.Should().Be(2);
             textBlock.Style.Triggers.Should().AllBeOfType<DataTrigger>();
@@ -82,12 +117,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             (trigger.Setters.First() as Setter).Value.Should().BeEquivalentTo(expectedColor, c => c.ExcludingMissingMembers());
         }
 
-        private static NonNavigableFrameworkElementFactory CreateTestSubject(IVsUIShell2 vsUiShell)
+        private static HotspotTableEntryWpfElementFactory CreateTestSubject(IVsUIShell2 vsUiShell = null, bool isNavigable = true)
         {
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsUIShell))).Returns(vsUiShell);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
-            return new NonNavigableFrameworkElementFactory(serviceProvider.Object);
+            if (!isNavigable)
+            {
+                issueViz.SetupGet(x => x.Span).Returns(new SnapshotSpan());
+            }
+
+            vsUiShell ??= Mock.Of<IVsUIShell2>();
+
+            return new HotspotTableEntryWpfElementFactory(vsUiShell, issueViz.Object);
         }
     }
 }

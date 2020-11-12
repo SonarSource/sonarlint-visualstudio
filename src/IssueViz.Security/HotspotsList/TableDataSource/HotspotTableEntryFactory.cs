@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
@@ -35,12 +36,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
     [Export(typeof(IHotspotTableEntryFactory))]
     internal class HotspotTableEntryFactory : IHotspotTableEntryFactory
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly IVsUIShell2 vsUiShell;
 
         [ImportingConstructor]
         public HotspotTableEntryFactory([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            this.serviceProvider = serviceProvider;
+            vsUiShell = serviceProvider.GetService(typeof(SVsUIShell)) as IVsUIShell2;
         }
 
         public ITableEntry Create(IAnalysisIssueVisualization issueVisualization)
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableD
                 throw new InvalidCastException($"{nameof(issueVisualization.Issue)} is not {nameof(IHotspot)}");
             }
 
-            return new HotspotTableEntry(issueVisualization, new NonNavigableFrameworkElementFactory(serviceProvider));
+            return new HotspotTableEntry(issueVisualization, new HotspotTableEntryWpfElementFactory(vsUiShell, issueVisualization));
         }
     }
 }
