@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInit()
         {
+            ThreadHelper.SetCurrentThreadAsUIThread();
             this.serviceProvider = new ConfigurableServiceProvider();
 
             this.shell = new ConfigurableVsUIShell();

@@ -70,11 +70,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
             return AttachInfoBarImpl(toolWindowGuid, message, null, imageMoniker);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability",
-            "S3215:\"interface\" instances should not be cast to concrete types",
-            Justification = "We want to hide the concrete implementation but also handle instance that were created by this class in the first place",
-            Scope = "member",
-            Target = "~M:SonarLint.VisualStudio.Integration.Vsix.InfoBar.InfoBarManager.DetachInfoBar(SonarLint.VisualStudio.Integration.InfoBar.IInfoBar)")]
         public void DetachInfoBar(IInfoBar currentInfoBar)
         {
             if (currentInfoBar == null)
@@ -82,14 +77,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                 throw new ArgumentNullException(nameof(currentInfoBar));
             }
 
-            PrivateInfoBarWrapper wrapper = currentInfoBar as PrivateInfoBarWrapper;
-            if (wrapper == null)
+            if (!(currentInfoBar is PrivateInfoBarWrapper wrapper))
             {
                 throw new ArgumentException(Strings.InvalidInfoBarInstance, nameof(currentInfoBar));
             }
 
             currentInfoBar.Close();
 
+            ThreadHelper.ThrowIfNotOnUIThread();
             IVsInfoBarHost host;
             if (TryGetInfoBarHost(wrapper.Frame, out host))
             {
@@ -102,6 +97,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
 
         private IInfoBar AttachInfoBarImpl(Guid toolWindowGuid, string message, string buttonText, SonarLintImageMoniker imageMoniker)
         {
+            ThreadHelper.ThrowIfNotOnUIThread();
+
             IVsUIShell shell = serviceProvider.GetService<SVsUIShell, IVsUIShell>();
             IVsWindowFrame frame = GetToolWindowFrame(shell, toolWindowGuid);
 
@@ -217,6 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.InfoBar
                     return;
                 }
 
+                ThreadHelper.ThrowIfNotOnUIThread();
                 this.InfoBarUIElement.Close();
 
                 Debug.Assert(!this.cookie.HasValue, "Expected to be unadvised");
