@@ -40,11 +40,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var apiRequestHandler = MefTestHelpers.CreateExport<IOpenInIDERequestHandler>(Mock.Of<IOpenInIDERequestHandler>());
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<StatusOwinRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler });
+            MefTestHelpers.CheckTypeCanBeImported<StatusOwinRequestHandler, IOwinPathRequestHandler>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IStatusRequestHandler>(Mock.Of<IStatusRequestHandler>())
+            });
         }
 
         [TestMethod]
