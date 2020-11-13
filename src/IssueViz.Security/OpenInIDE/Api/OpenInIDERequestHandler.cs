@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
     [Export(typeof(IOpenInIDERequestHandler))]
     internal class OpenInIDERequestHandler : IOpenInIDERequestHandler
     {
+        private readonly IIDEWindowService ideWindowService;
         private readonly IToolWindowService toolWindowService;
         private readonly IOpenInIDEStateValidator ideStateValidator;
         private readonly ISonarQubeService sonarQubeService;
@@ -50,6 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
         [ImportingConstructor]
         public OpenInIDERequestHandler(
+            IIDEWindowService ideWindowService,
             IToolWindowService toolWindowService,
             IOpenInIDEStateValidator ideStateValidator,
             ISonarQubeService sonarQubeService,
@@ -61,6 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             ILogger logger)
         {
             // MEF-created so the arguments should never be null
+            this.ideWindowService = ideWindowService;
             this.toolWindowService = toolWindowService;
             this.ideStateValidator = ideStateValidator;
             this.sonarQubeService = sonarQubeService;
@@ -95,6 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             // Always show the Hotspots tool window. If we can't successfully process the
             // request we'll show a gold bar in the window
+            ideWindowService.BringToFront();
             toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
             await failureInfoBar.ClearAsync();
 
