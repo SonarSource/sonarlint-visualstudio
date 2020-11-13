@@ -322,6 +322,51 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IDE is minimized. Restoring....
+        /// </summary>
+        internal static string IDEWindowServer_IDEIsMinimized {
+            get {
+                return ResourceManager.GetString("IDEWindowServer_IDEIsMinimized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bringing IDE to front....
+        /// </summary>
+        internal static string IDEWindowService_BringingToFront {
+            get {
+                return ResourceManager.GetString("IDEWindowService_BringingToFront", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error bringing IDE to front: {0}.
+        /// </summary>
+        internal static string IDEWindowService_GeneralError {
+            get {
+                return ResourceManager.GetString("IDEWindowService_GeneralError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid window handle.
+        /// </summary>
+        internal static string IDEWindowService_InvalidWindowHandle {
+            get {
+                return ResourceManager.GetString("IDEWindowService_InvalidWindowHandle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} call failed. Last error code: {1}.
+        /// </summary>
+        internal static string IDEWindowService_WinAPICallFailed {
+            get {
+                return ResourceManager.GetString("IDEWindowService_WinAPICallFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified argument is of a valid type..
         /// </summary>
         internal static string InvalidInfoBarInstance {

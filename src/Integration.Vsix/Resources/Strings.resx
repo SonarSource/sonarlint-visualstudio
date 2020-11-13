@@ -336,4 +336,19 @@
   Error: {1}</value>
     <comment>Output window message</comment>
   </data>
+  <data name="IDEWindowServer_IDEIsMinimized" xml:space="preserve">
+    <value>IDE is minimized. Restoring...</value>
+  </data>
+  <data name="IDEWindowService_BringingToFront" xml:space="preserve">
+    <value>Bringing IDE to front...</value>
+  </data>
+  <data name="IDEWindowService_GeneralError" xml:space="preserve">
+    <value>Error bringing IDE to front: {0}</value>
+  </data>
+  <data name="IDEWindowService_InvalidWindowHandle" xml:space="preserve">
+    <value>Invalid window handle</value>
+  </data>
+  <data name="IDEWindowService_WinAPICallFailed" xml:space="preserve">
+    <value>{0} call failed. Last error code: {1}</value>
+  </data>
 </root>
