@@ -19,6 +19,7 @@
  */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Helpers;
 
@@ -30,7 +31,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<IDEWindowService, IIDEWindowService>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<IDEWindowService, IIDEWindowService>(null,
+                new[] { MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())});
         }
     }
 }
