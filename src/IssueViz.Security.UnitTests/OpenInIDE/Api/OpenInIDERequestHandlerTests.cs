@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarShown();
 
             CheckCalled(stateValidatorMock);
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarShown();
 
             CheckCalled(stateValidatorMock, serverMock);
@@ -163,7 +163,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             logger.AssertPartialOutputStringExists("thrown from test code");
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarShown();
 
             CheckCalled(stateValidatorMock, serverMock);
@@ -181,7 +181,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarShown();
 
             CheckCalled(stateValidatorMock, serverMock, converterMock);
@@ -201,7 +201,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             logger.AssertPartialOutputStringExists("thrown from test code");
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarShown();
 
             CheckCalled(stateValidatorMock, serverMock, converterMock);
@@ -228,7 +228,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarNotShown();
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
@@ -255,7 +255,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ShowHotspotAsync(ValidRequest)
                 .ConfigureAwait(false);
 
-            CheckInvariants();
+            CheckInvariantBehaviours();
             CheckInfoBarShown();
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
@@ -321,7 +321,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private void SetSelectionServiceExpectedItem(IAnalysisIssueVisualization expected) =>
             selectionServiceMock.Setup(x => x.Select(expected));
 
-        private void CheckInvariants()
+        private void CheckInvariantBehaviours()
         {
             // Whatever happens, the tool window should be shown, the gold bar
             // cleared and the IDE brought to the front
