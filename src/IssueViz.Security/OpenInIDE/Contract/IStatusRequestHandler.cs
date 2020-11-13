@@ -22,8 +22,8 @@ using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract
 {
-    public interface IOpenInIDERequestHandler
+    internal interface IStatusRequestHandler
     {
-        Task ShowHotspotAsync(IShowHotspotRequest request);
+        Task<IStatusResponse> GetStatusAsync();
     }
 }

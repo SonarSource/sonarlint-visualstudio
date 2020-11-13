@@ -40,17 +40,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var apiRequestHandler = MefTestHelpers.CreateExport<IOpenInIDERequestHandler>(Mock.Of<IOpenInIDERequestHandler>());
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<StatusOwinRequestHandler, IOwinPathRequestHandler>(null, new[] { apiRequestHandler });
+            MefTestHelpers.CheckTypeCanBeImported<StatusOwinRequestHandler, IOwinPathRequestHandler>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IStatusRequestHandler>(Mock.Of<IStatusRequestHandler>())
+            });
         }
 
         [TestMethod]
         public void ApiPath_ReturnsExpectedPath()
         {
-            var testSubject = new StatusOwinRequestHandler(Mock.Of<IOpenInIDERequestHandler>());
+            var testSubject = new StatusOwinRequestHandler(Mock.Of<IStatusRequestHandler>());
 
             testSubject.ApiPath.Should().Be("/status");
         }
@@ -63,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var apiResponse = new StatusResponse(expectedIdeName, expectedDescription);
 
-            var apiHandlerMock = new Mock<IOpenInIDERequestHandler>();
+            var apiHandlerMock = new Mock<IStatusRequestHandler>();
             apiHandlerMock.Setup(x => x.GetStatusAsync()).Returns(Task.FromResult<IStatusResponse>(apiResponse));
 
             var responseStream = new MemoryStream();
