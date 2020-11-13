@@ -32,6 +32,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     public class IDEWindowServiceTests
     {
         private readonly IntPtr ValidHandle = new IntPtr(123);
+        private readonly WINDOWPLACEMENT Minimized = new WINDOWPLACEMENT { showCmd = NativeMethods.SW_SHOWMINIMIZED };
+        private readonly WINDOWPLACEMENT NotMinimized = new WINDOWPLACEMENT { showCmd = 0 };
+
         private Mock<INativeMethods> nativeMock;
         private TestLogger logger;
 
@@ -80,8 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var testSubject = new IDEWindowService(nativeMock.Object, ValidHandle, logger);
 
-            SetGetPlacementResponse(result: true,
-                new WINDOWPLACEMENT { showCmd = 0 });
+            SetGetPlacementResponse(result: true, NotMinimized);
 
             // Act
             testSubject.BringToFront();
@@ -96,8 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         {
             var testSubject = new IDEWindowService(nativeMock.Object, ValidHandle, logger);
 
-            SetGetPlacementResponse(result: true,
-                new WINDOWPLACEMENT { showCmd = NativeMethods.SW_SHOWMINIMIZED });
+            SetGetPlacementResponse(result: true, Minimized);
 
             // Act
             testSubject.BringToFront();
