@@ -33,19 +33,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
     [Export(typeof(IOwinPathRequestHandler))]
     internal class StatusOwinRequestHandler : IOwinPathRequestHandler
     {
-        private readonly IOpenInIDERequestHandler openInIDERequestHandler;
+        private readonly IStatusRequestHandler statusRequestHandler;
 
         [ImportingConstructor]
-        internal StatusOwinRequestHandler(IOpenInIDERequestHandler openInIDERequestHandler)
+        internal StatusOwinRequestHandler(IStatusRequestHandler statusRequestHandler)
         {
-            this.openInIDERequestHandler = openInIDERequestHandler;
+            this.statusRequestHandler = statusRequestHandler;
         }
 
         public string ApiPath => "/status";
 
         public async Task ProcessRequest(IOwinContext context)
         {
-            var status = await openInIDERequestHandler.GetStatusAsync();
+            var status = await statusRequestHandler.GetStatusAsync();
             var data = JsonConvert.SerializeObject(status, Formatting.Indented);
             await context.Response.WriteAsync(data);
 
