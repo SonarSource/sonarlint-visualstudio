@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -32,7 +31,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
     [TestClass]
     public class IDEWindowServiceTests
     {
-        private readonly IntPtr ValidHandle = new (123);
+        private readonly IntPtr ValidHandle = new IntPtr(123);
         private Mock<INativeMethods> nativeMock;
         private TestLogger logger;
 
@@ -125,7 +124,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             nativeMock.Verify(x => x.GetWindowPlacement(ValidHandle, ref It.Ref<WINDOWPLACEMENT>.IsAny), Times.Once);
 
         // Delegate required to enable setting ref parameter in the mock
-
         private delegate bool GetWindowPlacementDelegate(IntPtr hwnd, ref WINDOWPLACEMENT placement);
 
         private void SetGetPlacementResponse(bool result, WINDOWPLACEMENT placementToReturn)
