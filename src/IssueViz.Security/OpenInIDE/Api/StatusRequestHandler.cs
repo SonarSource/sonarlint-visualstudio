@@ -18,12 +18,19 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.ComponentModel.Composition;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract
+namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
-    public interface IOpenInIDERequestHandler
+    [Export(typeof(IStatusRequestHandler))]
+    internal class StatusRequestHandler : IStatusRequestHandler
     {
-        Task ShowHotspotAsync(IShowHotspotRequest request);
+        Task<IStatusResponse> IStatusRequestHandler.GetStatusAsync()
+        {
+            // TODO: fetch the real data
+            return Task.FromResult<IStatusResponse>(new StatusResponse("Visual Studio", "{unknown}"));
+        }
     }
 }
