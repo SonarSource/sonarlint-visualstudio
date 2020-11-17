@@ -67,6 +67,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             var responseStream = new MemoryStream();
             var context = new OwinContext();
+            var origin = "http://origin";
+            context.Request.Headers["Origin"] = origin;
             context.Response.Body = responseStream;
 
             var testSubject = new StatusOwinRequestHandler(apiHandlerMock.Object);
@@ -75,6 +77,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ProcessRequest(context)
                 .ConfigureAwait(false);
 
+            context.Response.Headers["Access-Control-Allow-Origin"].Should().Be(origin);
+            context.Response.ContentType.Should().Be("application/json");
             context.Response.StatusCode.Should().Be((int)HttpStatusCode.OK);
             var responseData = Deserialize(responseStream);
             responseData["ideName"].Type.Should().Be(JTokenType.String);

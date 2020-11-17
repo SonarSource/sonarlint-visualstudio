@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         public async Task ProcessRequest(IOwinContext context)
         {
+            context.Response.Headers["Access-Control-Allow-Origin"] = context.Request.Headers["Origin"];
             var request = BuildRequest(context);
             if (request == null)
             {

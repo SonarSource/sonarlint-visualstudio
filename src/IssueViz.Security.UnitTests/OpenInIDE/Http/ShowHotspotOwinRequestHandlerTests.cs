@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
     [TestClass]
     public class ShowHotspotOwinRequestHandlerTests
     {
+        const string ORIGIN = "http://origin";
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -124,6 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ProcessRequest(context);
 
             context.Response.StatusCode.Should().Be(200);
+            context.Response.Headers["Access-Control-Allow-Origin"].Should().Be(ORIGIN);
             CheckApiHandlerCalledWithExpectedValues(apiHandlerMock, expectedServer, expectedProject, expectedHotspot, expectedOrganization);
         }
 
@@ -131,6 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             var context = new OwinContext();
             context.Request.QueryString = new QueryString(wholeQueryString);
+            context.Request.Headers["Origin"] = ORIGIN;
             return context;
         }
 
