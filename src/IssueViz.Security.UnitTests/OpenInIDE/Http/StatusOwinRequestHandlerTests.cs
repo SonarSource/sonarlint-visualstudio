@@ -75,6 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ProcessRequest(context)
                 .ConfigureAwait(false);
 
+            context.Response.ContentType.Should().Be("application/json");
             context.Response.StatusCode.Should().Be((int)HttpStatusCode.OK);
             var responseData = Deserialize(responseStream);
             responseData["ideName"].Type.Should().Be(JTokenType.String);

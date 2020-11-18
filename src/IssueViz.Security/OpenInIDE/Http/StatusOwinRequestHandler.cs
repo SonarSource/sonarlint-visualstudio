@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
             var status = await statusRequestHandler.GetStatusAsync();
             var data = JsonConvert.SerializeObject(status, Formatting.Indented);
             await context.Response.WriteAsync(data);
-
+            context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.OK;
         }
     }
