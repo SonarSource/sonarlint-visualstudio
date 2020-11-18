@@ -45,7 +45,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
 
         public async Task ProcessRequest(IOwinContext context)
         {
-            context.Response.Headers["Access-Control-Allow-Origin"] = context.Request.Headers["Origin"];
             var status = await statusRequestHandler.GetStatusAsync();
             var data = JsonConvert.SerializeObject(status, Formatting.Indented);
             await context.Response.WriteAsync(data);
