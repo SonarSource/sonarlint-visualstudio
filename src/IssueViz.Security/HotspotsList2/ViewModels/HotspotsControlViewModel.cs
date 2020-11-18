@@ -18,17 +18,57 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Windows.Data;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels
 {
-    internal interface IHotspotsControlViewModel
+    internal interface IHotspotsControlViewModel : IDisposable
     {
         ObservableCollection<IHotspotViewModel> Hotspots { get; }
     }
 
-    internal class HotspotsControlViewModel : IHotspotsControlViewModel
+    internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel
     {
+        private readonly object Lock = new object();
+        private readonly INotifyCollectionChanged readonlyObservableHotspotsCollection;
+
+        public HotspotsControlViewModel(IHotspotsStore hotspotsStore)
+        {
+            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
+
+            var allHotspots = hotspotsStore.GetAll();
+            readonlyObservableHotspotsCollection = allHotspots;
+            readonlyObservableHotspotsCollection.CollectionChanged += HotspotsStore_CollectionChanged;
+
+            UpdateHotspotsList(allHotspots);
+        }
+
+        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> hotspots)
+        {
+            foreach (var addedHotspot in hotspots)
+            {
+                Hotspots.Add(new HotspotViewModel(addedHotspot));
+            }
+        }
+
+        private void HotspotsStore_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            // todo: handle deletion
+            UpdateHotspotsList(e.NewItems.Cast<IAnalysisIssueVisualization>());
+        }
+
         public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
+
+        public void Dispose()
+        {
+            readonlyObservableHotspotsCollection.CollectionChanged -= HotspotsStore_CollectionChanged;
+        }
     }
 }

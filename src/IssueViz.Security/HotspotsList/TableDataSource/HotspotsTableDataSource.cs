@@ -30,15 +30,9 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource
 {
-    internal interface IHotspotsStore
-    {
-        void Add(IAnalysisIssueVisualization hotspot);
-    }
-
-    [Export(typeof(IHotspotsStore))]
     [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class HotspotsTableDataSource : IHotspotsStore, IIssueLocationStore, ITableDataSource, IDisposable
+    internal sealed class HotspotsTableDataSource : IIssueLocationStore, ITableDataSource, IDisposable
     {
         private readonly IHotspotTableEntryFactory tableEntryFactory;
         private readonly ITableManager tableManager;
