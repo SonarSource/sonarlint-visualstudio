@@ -18,8 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Linq;
+using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
@@ -32,19 +37,42 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
     }
 
     [Export(typeof(IHotspotsStore))]
+    [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class HotspotsStore : IHotspotsStore
+    internal class HotspotsStore : IHotspotsStore, IIssueLocationStore
     {
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
 
         public void Add(IAnalysisIssueVisualization hotspot)
         {
             Hotspots.Add(hotspot);
+
+            var hotspotFilePaths = hotspot
+                .GetAllLocations()
+                .Select(x => x.CurrentFilePath)
+                .Distinct(StringComparer.OrdinalIgnoreCase);
+
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
 
         public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll()
         {
             return new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
+        }
+
+        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
+
+        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
+        {
+            var matchingLocations = Hotspots
+                .SelectMany(hotspotViz => hotspotViz.GetAllLocations())
+                .Where(locationViz => PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
+
+            return matchingLocations;
+        }
+
+        public void Refresh(IEnumerable<string> affectedFilePaths)
+        {
         }
     }
 }
