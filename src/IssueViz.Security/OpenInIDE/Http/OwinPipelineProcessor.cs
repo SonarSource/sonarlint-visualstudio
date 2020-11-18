@@ -68,6 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Http
             try
             {
                 var context = new OwinContext(environment);
+                context.Response.Headers["Access-Control-Allow-Origin"] = context.Request.Headers["Origin"];
                 if (pathToHandlerMap.TryGetValue(context.Request.Path.Value, out var handler))
                 {
                     logger.WriteLine(OpenInIDEResources.Pipeline_HandlingRequest, context.Request.Path.Value);
