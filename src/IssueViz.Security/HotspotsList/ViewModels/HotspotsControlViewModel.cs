@@ -27,6 +27,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
@@ -40,6 +42,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
         IHotspotViewModel SelectedHotspot { get; }
 
         ICommand NavigateCommand { get; }
+
+        ICommand DeleteCommand { get; }
     }
 
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
@@ -52,9 +56,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
         public IHotspotViewModel SelectedHotspot { get; set; }
 
-        public ICommand NavigateCommand { get; }
+        public ICommand NavigateCommand { get; private set; }
 
-        public HotspotsControlViewModel(IHotspotsStore hotspotsStore, ICommand navigateCommand, IHotspotsSelectionService selectionService)
+        public ICommand DeleteCommand { get; private set; }
+
+        public HotspotsControlViewModel(IHotspotsStore hotspotsStore, 
+            ILocationNavigator locationNavigator, 
+            IHotspotsSelectionService selectionService)
         {
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
 
@@ -65,22 +73,49 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             readonlyObservableHotspotsCollection = allHotspots;
             readonlyObservableHotspotsCollection.CollectionChanged += HotspotsStore_CollectionChanged;
 
-            NavigateCommand = navigateCommand;
-            UpdateHotspotsList(allHotspots);
+            UpdateHotspotsList(allHotspots, Array.Empty<IAnalysisIssueVisualization>());
+
+            SetCommands(hotspotsStore, locationNavigator);
         }
 
-        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> hotspots)
+        private void SetCommands(IHotspotsStore hotspotsStore, ILocationNavigator locationNavigator)
         {
-            foreach (var addedHotspot in hotspots)
+            NavigateCommand = new DelegateCommand(parameter =>
+            {
+                var selectedHotspot = (IHotspotViewModel) parameter;
+                locationNavigator.TryNavigate(selectedHotspot.Hotspot);
+            }, parameter => parameter is IHotspotViewModel);
+
+            DeleteCommand = new DelegateCommand(parameter =>
+            {
+                var selectedHotspot = (IHotspotViewModel) parameter;
+                hotspotsStore.Delete(selectedHotspot.Hotspot);
+            }, parameter => parameter is IHotspotViewModel);
+        }
+
+        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> addedHotspots, IEnumerable<IAnalysisIssueVisualization> deletedHotspots)
+        {
+            foreach (var addedHotspot in addedHotspots)
             {
                 Hotspots.Add(new HotspotViewModel(addedHotspot));
+            }
+
+            var viewModelsToDelete = Hotspots.Where(x => deletedHotspots.Contains(x.Hotspot)).ToList();
+
+            foreach (var deletedHotspot in viewModelsToDelete)
+            {
+                Hotspots.Remove(deletedHotspot);
             }
         }
 
         private void HotspotsStore_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            // todo: handle deletion
-            UpdateHotspotsList(e.NewItems.Cast<IAnalysisIssueVisualization>());
+            var addedHotspots = e.NewItems ?? Array.Empty<IAnalysisIssueVisualization>();
+            var deletedHotspots = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
+
+            UpdateHotspotsList(
+                addedHotspots.Cast<IAnalysisIssueVisualization>(),
+                deletedHotspots.Cast<IAnalysisIssueVisualization>());
         }
 
         private void SelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)

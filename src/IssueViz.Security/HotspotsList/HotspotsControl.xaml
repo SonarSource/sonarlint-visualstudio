@@ -17,6 +17,16 @@
             <wpf:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
         </wpf:AggregatorValueConverter>
 
+        <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+            <MenuItem Header="Delete" 
+                      CommandParameter="{Binding}"
+                      Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                <MenuItem.Icon>
+                    <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.DeleteTableRow}"/>
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
+
         <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Width" Value="8"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -93,6 +103,7 @@
             </Setter>
         </Style>
         <Style TargetType="DataGridRow">
+            <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Margin" Value="2,0,2,0" />
             <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
@@ -143,6 +154,53 @@
         <Style x:Key="CellTextBlockStyle" TargetType="TextBlock">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextAlignment" Value="Left"/>
+        </Style>
+        <Style TargetType="ContextMenu">
+            <Setter Property="HasDropShadow" Value="True"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.MenuTextKey}}"/>
+            <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMenuBackgroundGradientKey}}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMenuBorderKey}}"/>
+            <Setter Property="BorderThickness" Value="1"></Setter>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ContextMenu}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                SnapsToDevicePixels="true">
+                            <StackPanel IsItemsHost="True" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="MenuItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderThickness="0" 
+                                Margin="2"
+                                Padding="3" 
+                                SnapsToDevicePixels="true">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition MinWidth="25" Width="Auto" />
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="5,0,10,0" VerticalAlignment="Center" ContentSource="Icon"/>
+                                <ContentPresenter Grid.Column="1" x:Name="Header" ContentSource="Header" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter Property="Background"  Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True"
