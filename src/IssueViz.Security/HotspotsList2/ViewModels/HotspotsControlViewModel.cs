@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Data;
+using System.Windows.Input;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
@@ -32,6 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewM
     internal interface IHotspotsControlViewModel : IDisposable
     {
         ObservableCollection<IHotspotViewModel> Hotspots { get; }
+        ICommand NavigateCommand { get; }
     }
 
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel
@@ -39,7 +41,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewM
         private readonly object Lock = new object();
         private readonly INotifyCollectionChanged readonlyObservableHotspotsCollection;
 
-        public HotspotsControlViewModel(IHotspotsStore hotspotsStore)
+        public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
+
+        public ICommand NavigateCommand { get; }
+
+        public HotspotsControlViewModel(IHotspotsStore hotspotsStore, ICommand navigateCommand)
         {
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
 
@@ -47,6 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewM
             readonlyObservableHotspotsCollection = allHotspots;
             readonlyObservableHotspotsCollection.CollectionChanged += HotspotsStore_CollectionChanged;
 
+            NavigateCommand = navigateCommand;
             UpdateHotspotsList(allHotspots);
         }
 
@@ -63,8 +70,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewM
             // todo: handle deletion
             UpdateHotspotsList(e.NewItems.Cast<IAnalysisIssueVisualization>());
         }
-
-        public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
 
         public void Dispose()
         {

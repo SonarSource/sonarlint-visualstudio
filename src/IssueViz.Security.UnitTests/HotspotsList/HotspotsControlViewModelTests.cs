@@ -20,6 +20,7 @@
 
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -81,14 +82,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             testSubject.Hotspots.Count.Should().Be(0);
         }
 
-        private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection)
+        [TestMethod]
+        public void Ctor_NavigateCommandIsSet()
+        {
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization>();
+            var navigateCommand = Mock.Of<ICommand>();
+
+            var testSubject = CreateTestSubject(storeHotspots, navigateCommand);
+            testSubject.NavigateCommand.Should().Be(navigateCommand);
+        }
+
+        private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection, ICommand navigateCommand = null)
         {
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
 
             var store = new Mock<IHotspotsStore>();
             store.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
 
-            return new HotspotsControlViewModel(store.Object);
+            return new HotspotsControlViewModel(store.Object, navigateCommand);
         }
     }
 }

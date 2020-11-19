@@ -32,7 +32,18 @@
                   AutoGenerateColumns="False"
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
+                  IsSynchronizedWithCurrentItem="True"
                   ItemsSource="{Binding Hotspots}">
+            <DataGrid.InputBindings>
+                <MouseBinding
+                    MouseAction="LeftDoubleClick"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Hotspots/}"/>
+                <KeyBinding
+                    Key="Enter"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Hotspots/}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTemplateColumn CanUserSort="False" Width="25">
                     <DataGridTemplateColumn.CellTemplate>
