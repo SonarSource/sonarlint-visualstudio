@@ -145,8 +145,7 @@
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
     </UserControl.Resources>
-    <Grid UseLayoutRounding="True"
-          vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
+    <Grid UseLayoutRounding="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
@@ -163,7 +162,8 @@
                   SelectionUnit="FullRow"
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding SelectedHotspot, Mode=TwoWay}"
-                  ItemsSource="{Binding Hotspots}">
+                  ItemsSource="{Binding Hotspots}"
+                  vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
             <DataGrid.InputBindings>
                 <MouseBinding
                     MouseAction="LeftDoubleClick"
