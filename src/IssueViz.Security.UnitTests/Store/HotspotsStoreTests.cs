@@ -73,6 +73,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             readOnlyWrapper.Count.Should().Be(2);
             readOnlyWrapper.First().Should().Be(issueViz1);
             readOnlyWrapper.Last().Should().Be(issueViz2);
+
+            testSubject.Delete(issueViz2);
+
+            readOnlyWrapper.Count.Should().Be(1);
+            readOnlyWrapper.First().Should().Be(issueViz1);
         }
 
         [TestMethod]
@@ -100,6 +105,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             var issueViz = CreateIssueViz("a.cpp", location1.Object, location2.Object);
 
             testSubject.Add(issueViz);
+
+            eventCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp");
+        }
+
+        [TestMethod]
+        public void Delete_NoSubscribersToIssuesChangedEvent_NoException()
+        {
+            var testSubject = new HotspotsStore();
+
+            var act = new Action(() => testSubject.Delete(CreateIssueViz()));
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void Delete_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
+        {
+            var location1 = new Mock<IAnalysisIssueLocationVisualization>();
+            location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
+            var location2 = new Mock<IAnalysisIssueLocationVisualization>();
+            location2.SetupGet(x => x.CurrentFilePath).Returns("B.cpp");
+            var issueViz = CreateIssueViz("a.cpp", location1.Object, location2.Object);
+
+            var testSubject = new HotspotsStore();
+            testSubject.Add(issueViz);
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+
+            testSubject.Delete(issueViz);
 
             eventCount.Should().Be(1);
             suppliedArgs.Should().NotBeNull();
