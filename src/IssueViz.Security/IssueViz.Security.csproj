@@ -11,7 +11,6 @@
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <RequiresVersionSpecificShell>true</RequiresVersionSpecificShell>
   </PropertyGroup>
 
   <!-- This project references the Microsoft.VisualStudio.Shell assembly which is VS-version specific -->
