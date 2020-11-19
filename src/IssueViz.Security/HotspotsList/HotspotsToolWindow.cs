@@ -20,12 +20,13 @@
 
 using System;
 using System.Runtime.InteropServices;
-using Microsoft.Internal.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell.TableManager;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
+using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
 {
@@ -40,11 +41,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
             Caption = Resources.HotspotsToolWindowCaption;
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var tableManagerProvider = componentModel.GetService<ITableManagerProvider>();
-            var wpfTableControlProvider = componentModel.GetService<IWpfTableControlProvider>();
+
+            var store = componentModel.GetService<IHotspotsStore>();
+            var locationNavigator = componentModel.GetService<ILocationNavigator>();
             var selectionService = componentModel.GetService<IHotspotsSelectionService>();
 
-            var hotspotsControl = new HotspotsControl(tableManagerProvider, wpfTableControlProvider, selectionService);
+            var viewModel = new HotspotsControlViewModel(store, new NavigateCommand(locationNavigator), selectionService);
+            var hotspotsControl = new HotspotsControl(viewModel);
+
             Content = hotspotsControl;
         }
 

@@ -18,20 +18,29 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels;
+using System;
+using System.Windows.Input;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2
+namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels
 {
-    internal sealed partial class HotspotsControl : UserControl
+    internal class NavigateCommand : ICommand
     {
-        public IHotspotsControlViewModel ViewModel { get; }
+        private readonly ILocationNavigator locationNavigator;
 
-        public HotspotsControl(IHotspotsControlViewModel viewModel)
+        public NavigateCommand(ILocationNavigator locationNavigator)
         {
-            ViewModel = viewModel;
-
-            InitializeComponent();
+            this.locationNavigator = locationNavigator;
         }
+
+        public bool CanExecute(object parameter) => parameter is IHotspotViewModel;
+
+        public void Execute(object parameter)
+        {
+            var selectedHotspot = (IHotspotViewModel) parameter;
+            locationNavigator.TryNavigate(selectedHotspot.Hotspot);
+        }
+
+        public event EventHandler CanExecuteChanged;
     }
 }
