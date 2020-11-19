@@ -18,30 +18,78 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Annotations;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels
 {
-    internal interface IHotspotViewModel
+    internal interface IHotspotViewModel : INotifyPropertyChanged, IDisposable
     {
         IAnalysisIssueVisualization Hotspot { get; }
+
         int Line { get; }
+
         int Column { get; }
     }
 
-    internal class HotspotViewModel : IHotspotViewModel
+    internal sealed class HotspotViewModel : IHotspotViewModel
     {
         public HotspotViewModel(IAnalysisIssueVisualization hotspot)
         {
             Hotspot = hotspot;
+            Hotspot.PropertyChanged += Hotspot_PropertyChanged;
         }
 
         public IAnalysisIssueVisualization Hotspot { get; }
 
-        // todo: take from span
-        public int Line => Hotspot.Issue.StartLine;
+        public int Line =>
+            CanUseSpan()
+                ? Hotspot.Span.Value.Start.GetContainingLine().LineNumber
+                : Hotspot.Issue.StartLine;
 
-        // todo: take from span
-        public int Column => Hotspot.Issue.StartLineOffset;
+        public int Column
+        {
+            get
+            {
+                if (!CanUseSpan())
+                {
+                    return Hotspot.Issue.StartLineOffset;
+                }
+
+                var position = Hotspot.Span.Value.Start;
+                var line = position.GetContainingLine();
+                return position.Position - line.Start.Position;
+            }
+        }
+
+        private bool CanUseSpan()
+        {
+            return Hotspot.Span.HasValue && !Hotspot.Span.Value.IsEmpty;
+        }
+
+        private void Hotspot_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IAnalysisIssueVisualization.Span))
+            {
+                NotifyPropertyChanged(nameof(Line));
+                NotifyPropertyChanged(nameof(Column));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void Dispose()
+        {
+            Hotspot.PropertyChanged -= Hotspot_PropertyChanged;
+        }
     }
 }
