@@ -83,10 +83,10 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.CurrentFilePath" Header="File" Width="200">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="FileName" Header="File" Width="200">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Hotspot.CurrentFilePath}" 
+                            <TextBlock Text="{Binding FileName}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
