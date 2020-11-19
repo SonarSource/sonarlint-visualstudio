@@ -22,7 +22,6 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Annotations;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels
 {
@@ -81,7 +80,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewM
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        [NotifyPropertyChangedInvocator]
         private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));

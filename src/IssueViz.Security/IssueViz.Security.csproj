@@ -58,7 +58,7 @@
 
   <ItemGroup>
     <None Remove="HotspotsList\HotspotsControl.xaml" />
-    <None Remove="HotspotsList\HotspotsControl2.xaml" />
+    <None Remove="HotspotsList2\HotspotsControl2.xaml" />
     <Page Include="HotspotsList2\HotspotsControl2.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
