@@ -231,6 +231,10 @@
                     Key="Enter"
                     Command="{Binding NavigateCommand}"
                     CommandParameter="{Binding Hotspots/}"/>
+                <KeyBinding
+                    Key="Delete"
+                    Command="{Binding DeleteCommand}"
+                    CommandParameter="{Binding Hotspots/}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTemplateColumn CanUserSort="False" Width="25">
