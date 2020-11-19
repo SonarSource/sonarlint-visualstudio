@@ -18,7 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using FluentAssertions;
@@ -26,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
@@ -85,21 +88,124 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         public void Ctor_NavigateCommandIsSet()
         {
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization>();
             var navigateCommand = Mock.Of<ICommand>();
 
-            var testSubject = CreateTestSubject(storeHotspots, navigateCommand);
+            var testSubject = CreateTestSubject(navigateCommand: navigateCommand);
             testSubject.NavigateCommand.Should().Be(navigateCommand);
         }
 
-        private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection, ICommand navigateCommand = null)
+        [TestMethod]
+        public void Ctor_RegisterToSelectionChangedEvent()
         {
+            var selectionService = new Mock<IHotspotsSelectionService>();
+            selectionService.SetupAdd(x => x.SelectionChanged += null);
+
+            CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.VerifyAdd(x => x.SelectionChanged += It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once());
+            selectionService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_UnregisterFromSelectionChangedEvent()
+        {
+            var selectionService = new Mock<IHotspotsSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.Reset();
+            selectionService.SetupRemove(x => x.SelectionChanged -= null);
+
+            testSubject.Dispose();
+
+            selectionService.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once());
+        }
+
+        [TestMethod]
+        public void SelectionChanged_SelectedHotspotExistsInList_HotspotSelected()
+        {
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> {issueViz};
+            var selectionService = new Mock<IHotspotsSelectionService>();
+
+            var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
+
+            testSubject.SelectedHotspot.Should().BeNull();
+
+            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(issueViz));
+
+            testSubject.SelectedHotspot.Should().NotBeNull();
+            testSubject.SelectedHotspot.Hotspot.Should().Be(issueViz);
+        }
+
+        [TestMethod]
+        public void SelectionChanged_SelectedHotspotIsNotInList_SelectionSetToNull()
+        {
+            var selectionService = new Mock<IHotspotsSelectionService>();
+
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            testSubject.SelectedHotspot.Should().BeNull();
+
+            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(Mock.Of<IAnalysisIssueVisualization>()));
+
+            testSubject.SelectedHotspot.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void SelectionChanged_SelectedHotspotExistsInList_RaisesPropertyChanged()
+        {
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
+            var selectionService = new Mock<IHotspotsSelectionService>();
+
+            var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            eventHandler.VerifyNoOtherCalls();
+
+            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(issueViz));
+
+            eventHandler.Verify(x => x(testSubject,
+                It.Is((PropertyChangedEventArgs args) =>
+                    args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SelectionChanged_SelectedHotspotIsNotInList_RaisesPropertyChanged()
+        {
+            var selectionService = new Mock<IHotspotsSelectionService>();
+
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            eventHandler.VerifyNoOtherCalls();
+
+            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(Mock.Of<IAnalysisIssueVisualization>()));
+
+            eventHandler.Verify(x => x(testSubject,
+                It.Is((PropertyChangedEventArgs args) =>
+                    args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null, ICommand navigateCommand = null, IHotspotsSelectionService selectionService = null)
+        {
+            originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
 
             var store = new Mock<IHotspotsStore>();
             store.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
 
-            return new HotspotsControlViewModel(store.Object, navigateCommand);
+            selectionService ??= Mock.Of<IHotspotsSelectionService>();
+
+            return new HotspotsControlViewModel(store.Object, navigateCommand, selectionService);
         }
     }
 }

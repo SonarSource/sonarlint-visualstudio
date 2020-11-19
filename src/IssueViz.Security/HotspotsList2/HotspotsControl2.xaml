@@ -33,6 +33,7 @@
                   SelectionMode="Single"
                   SelectionUnit="FullRow"
                   IsSynchronizedWithCurrentItem="True"
+                  SelectedItem="{Binding SelectedHotspot, Mode=TwoWay}"
                   ItemsSource="{Binding Hotspots}">
             <DataGrid.InputBindings>
                 <MouseBinding
