@@ -10,6 +10,7 @@
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
+        <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
         <issueVisualizationControl:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter"/>
         <wpf:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
             <issueVisualizationControl:SpanToNavigabilityConverter />
@@ -177,8 +178,7 @@
                 <DataGridTemplateColumn CanUserSort="False" Width="25">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <vsImaging:CrispImage Grid.Column="2"
-                                                  Height="16" Width="16"
+                            <vsImaging:CrispImage Height="16" Width="16"
                                                   Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
                                                   Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
                         </DataTemplate>
