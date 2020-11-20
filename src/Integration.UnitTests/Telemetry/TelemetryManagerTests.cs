@@ -218,10 +218,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 IsAnonymousDataShared = true,
                 InstallationDate = DateTimeOffset.Now,
                 LastUploadDate = DateTimeOffset.Now.AddDays(-1),
-                NumberOfShowHotspotRequests = 123,
                 Analyses = new System.Collections.Generic.List<Analysis>()
                 {
                     new Analysis { Language = "csharp" }
+                },
+                ShowHotspot = new ShowHotspot
+                {
+                    NumberOfRequests = 123
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -235,7 +238,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
             telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
-            telemetryData.NumberOfShowHotspotRequests.Should().Be(0); // should have cleared the hotspots counter
+            telemetryData.ShowHotspot.NumberOfRequests.Should().Be(0); // should have cleared the hotspots counter
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -249,10 +252,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 IsAnonymousDataShared = true,
                 InstallationDate = DateTimeOffset.Now,
                 LastUploadDate = DateTimeOffset.Now.AddDays(-1),
-                NumberOfShowHotspotRequests = 123,
                 Analyses = new System.Collections.Generic.List<Analysis>()
                 {
                     new Analysis { Language = "csharp" }
+                },
+                ShowHotspot = new ShowHotspot
+                {
+                    NumberOfRequests = 123
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -266,7 +272,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             telemetryData.LastUploadDate.Should().Be(now);
             telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
-            telemetryData.NumberOfShowHotspotRequests.Should().Be(0); // should have cleared the hotspots counter
+            telemetryData.ShowHotspot.NumberOfRequests.Should().Be(0); // should have cleared the hotspots counter
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -605,7 +611,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(100)]
         public void ShowHotspotRequested_CounterIncremented(int previousCounter)
         {
-            var telemetryData = new TelemetryData { NumberOfShowHotspotRequests = previousCounter };
+            var telemetryData = new TelemetryData {ShowHotspot = new ShowHotspot {NumberOfRequests = previousCounter}};
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
@@ -616,7 +622,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             testSubject.ShowHotspotRequested();
 
-            telemetryData.NumberOfShowHotspotRequests.Should().Be(previousCounter + 1);
+            telemetryData.ShowHotspot.NumberOfRequests.Should().Be(previousCounter + 1);
             telemetryRepositoryMock.Verify(x=> x.Save(), Times.Once);
         }
 

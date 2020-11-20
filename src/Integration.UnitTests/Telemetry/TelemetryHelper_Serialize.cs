@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class TelemetryHelper_Serialize
     {
         [TestMethod]
-        public void SerializeLanguages()
+        public void Serialize()
         {
             // Check serialization produces json in the expected format
             var payload = new TelemetryPayload
@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 SonarLintVersion = "1.2.3.4",
                 VisualStudioVersion = "15.0.1.2",
                 NumberOfDaysSinceInstallation = 234,
-                NumberOfShowHotspotRequests = 567,
                 NumberOfDaysOfUse = 123,
                 IsUsingConnectedMode = true,
                 IsUsingLegacyConnectedMode = true,
@@ -53,7 +52,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new Analysis { Language = "js" },
                     new Analysis { Language = "csharp" },
                     new Analysis { Language = "vbnet" }
-                }.ToList()
+                }.ToList(),
+                ShowHotspot = new ShowHotspot { NumberOfRequests = 567 }
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -64,7 +64,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""ide_version"": ""15.0.1.2"",
   ""days_since_installation"": 234,
   ""days_of_use"": 123,
-  ""show_hotspot_requests_count"": 567,
   ""connected_mode_used"": true,
   ""legacy_connected_mode_used"": true,
   ""connected_mode_sonarcloud"": true,
@@ -80,7 +79,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
       ""language"": ""vbnet""
     }
-  ]
+  ],
+  ""show_hotspot"": {
+    ""requests_count"": 567
+  }
 }";
             serialized.Should().Be(expected);
         }

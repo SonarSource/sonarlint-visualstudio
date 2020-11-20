@@ -46,9 +46,6 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("days_of_use")]
         public long NumberOfDaysOfUse { get; set; }
 
-        [JsonProperty("show_hotspot_requests_count")]
-        public long NumberOfShowHotspotRequests { get; set; }
-
         [JsonProperty("connected_mode_used")]
         public bool IsUsingConnectedMode { get; set; }
 
@@ -66,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("analyses")]
         public List<Analysis> Analyses { get; set; }
+
+        [JsonProperty("show_hotspot")]
+        public ShowHotspot ShowHotspot { get; set; }
     }
 
     // We want to produce the same format as for IntelliJ and Eclipse (although
@@ -91,5 +91,11 @@ namespace SonarLint.VisualStudio.Integration
     {
         [JsonProperty("language")]
         public string Language { get; set; }
+    }
+
+    public sealed class ShowHotspot
+    {
+        [JsonProperty("requests_count")]
+        public long NumberOfRequests { get; set; }
     }
 }

@@ -73,13 +73,13 @@ namespace SonarLint.VisualStudio.Integration
                 VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
-                NumberOfShowHotspotRequests = telemetryData.NumberOfShowHotspotRequests,
                 IsUsingConnectedMode = isConnected,
                 IsUsingLegacyConnectedMode = isLegacyConnected,
                 IsUsingSonarCloud = isSonarCloud,
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
-                Analyses = telemetryData.Analyses
+                Analyses = telemetryData.Analyses,
+                ShowHotspot = telemetryData.ShowHotspot
             };
         }
 

@@ -57,11 +57,13 @@ namespace SonarLint.VisualStudio.Integration.Tests
 <TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <IsAnonymousDataShared>true</IsAnonymousDataShared>
   <NumberOfDaysOfUse>0</NumberOfDaysOfUse>
-  <NumberOfShowHotspotRequests>0</NumberOfShowHotspotRequests>
   <InstallationDate>0001-01-01T00:00:00.0000000+00:00</InstallationDate>
   <LastSavedAnalysisDate>0001-01-01T00:00:00.0000000+00:00</LastSavedAnalysisDate>
   <LastUploadDate>0001-01-01T00:00:00.0000000+00:00</LastUploadDate>
   <Analyses />
+  <ShowHotspot>
+    <NumberOfRequests>0</NumberOfRequests>
+  </ShowHotspot>
 </TelemetryData>"));
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
@@ -75,10 +77,12 @@ namespace SonarLint.VisualStudio.Integration.Tests
 <TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <IsAnonymousDataShared>false</IsAnonymousDataShared>
   <NumberOfDaysOfUse>10</NumberOfDaysOfUse>
-  <NumberOfShowHotspotRequests>20</NumberOfShowHotspotRequests>
   <InstallationDate>2017-03-15T06:15:42.1234567+01:00</InstallationDate>
   <LastSavedAnalysisDate>2018-03-15T06:15:42.1234567+01:00</LastSavedAnalysisDate>
   <LastUploadDate>2019-03-15T06:15:42.1234567+01:00</LastUploadDate>
+  <ShowHotspot>
+    <NumberOfRequests>20</NumberOfRequests>
+  </ShowHotspot>
 </TelemetryData>");
 
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
@@ -89,10 +93,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
             repository.Data.NumberOfDaysOfUse.Should().Be(10);
-            repository.Data.NumberOfShowHotspotRequests.Should().Be(20);
             repository.Data.InstallationDate.Should().Be(new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
+            repository.Data.ShowHotspot.NumberOfRequests.Should().Be(20);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -127,10 +131,12 @@ namespace SonarLint.VisualStudio.Integration.Tests
 <TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <IsAnonymousDataShared>{newIsAnonymousDataShared.ToString().ToLower()}</IsAnonymousDataShared>
   <NumberOfDaysOfUse>{newDaysOfUse}</NumberOfDaysOfUse>
-  <NumberOfShowHotspotRequests>{newHotspotsRequests}</NumberOfShowHotspotRequests>
   <InstallationDate>{newInstallationDate.ToString("o")}</InstallationDate>
   <LastSavedAnalysisDate>{newLastSavedAnalysisDate.ToString("o")}</LastSavedAnalysisDate>
   <LastUploadDate>{newLastUploadDate.ToString("o")}</LastUploadDate>
+  <ShowHotspot>
+    <NumberOfRequests>{newHotspotsRequests}</NumberOfRequests>
+  </ShowHotspot>
 </TelemetryData>");
 
             fileSystemWatcherMock
@@ -139,10 +145,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
             // Assert
             repository.Data.IsAnonymousDataShared.Should().Be(newIsAnonymousDataShared);
             repository.Data.NumberOfDaysOfUse.Should().Be(newDaysOfUse);
-            repository.Data.NumberOfShowHotspotRequests.Should().Be(newHotspotsRequests);
             repository.Data.InstallationDate.Should().Be(newInstallationDate);
             repository.Data.LastSavedAnalysisDate.Should().Be(newLastSavedAnalysisDate);
             repository.Data.LastUploadDate.Should().Be(newLastUploadDate);
+            repository.Data.ShowHotspot.NumberOfRequests.Should().Be(newHotspotsRequests);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }
@@ -176,9 +182,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.InstallationDate.Should().Be(expectedDateTimeOffset);
             repository.Data.LastSavedAnalysisDate.Should().Be(expectedDateTimeOffset);
             repository.Data.NumberOfDaysOfUse.Should().Be(5807);
-            repository.Data.NumberOfShowHotspotRequests.Should().Be(0);
             repository.Data.LastUploadDate.Should().Be(expectedDateTimeOffset);
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
+            repository.Data.ShowHotspot.NumberOfRequests.Should().Be(0);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }

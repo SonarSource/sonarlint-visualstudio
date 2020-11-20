@@ -30,8 +30,6 @@ namespace SonarLint.VisualStudio.Integration
         public bool IsAnonymousDataShared { get; set; }
 
         public long NumberOfDaysOfUse { get; set; }
-
-        public long NumberOfShowHotspotRequests { get; set; }
         
         [XmlIgnore]
         public DateTimeOffset InstallationDate { get; set; }
@@ -65,6 +63,9 @@ namespace SonarLint.VisualStudio.Integration
 
         [XmlArray("Analyses")]
         public List<Analysis> Analyses { get; set; } = new List<Analysis>();
+
+        [XmlElement(nameof(ShowHotspot))]
+        public ShowHotspot ShowHotspot { get; set; } = new ShowHotspot();
 
         private static DateTimeOffset ParseSavedString(string data)
         {

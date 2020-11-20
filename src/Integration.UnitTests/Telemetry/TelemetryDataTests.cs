@@ -39,19 +39,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 999,
-                NumberOfShowHotspotRequests = 567,
 
                 // Not serialized directly: converted then saved
                 InstallationDate = DateTimeOffset.UtcNow - TimeSpan.FromDays(100),
                 LastSavedAnalysisDate = DateTimeOffset.UtcNow - TimeSpan.FromHours(200),
                 LastUploadDate = DateTimeOffset.UtcNow - -TimeSpan.FromMinutes(300),
 
-                Analyses = new Analysis[]
+                Analyses = new[]
                     {
                         new Analysis { Language = "js" },
                         new Analysis { Language = "csharp" },
                         new Analysis { Language = "xxx" }
-                    }.ToList()
+                    }.ToList(),
+
+                ShowHotspot = new ShowHotspot
+                {
+                    NumberOfRequests = 567
+                }
             };
 
             string serializedData = null;
@@ -70,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             reloadedData.IsAnonymousDataShared.Should().BeTrue();
             reloadedData.NumberOfDaysOfUse.Should().Be(999);
-            reloadedData.NumberOfShowHotspotRequests.Should().Be(567);
 
             reloadedData.InstallationDate.Should().Be(originalData.InstallationDate);
             reloadedData.LastSavedAnalysisDate.Should().Be(originalData.LastSavedAnalysisDate);
@@ -80,6 +83,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.Analyses[0].Language.Should().Be("js");
             reloadedData.Analyses[1].Language.Should().Be("csharp");
             reloadedData.Analyses[2].Language.Should().Be("xxx");
+
+            reloadedData.ShowHotspot.Should().NotBeNull();
+            reloadedData.ShowHotspot.NumberOfRequests.Should().Be(567);
         }
     }
 }

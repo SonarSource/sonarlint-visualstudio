@@ -194,7 +194,7 @@ namespace SonarLint.VisualStudio.Integration
         {
             Debug.Assert(telemetryRepository.Data != null);
 
-            ++telemetryRepository.Data.NumberOfShowHotspotRequests;
+            ++telemetryRepository.Data.ShowHotspot.NumberOfRequests;
             telemetryRepository.Save();
         }
 
@@ -206,12 +206,12 @@ namespace SonarLint.VisualStudio.Integration
 
                 await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
 
-                // Clear out the list of saved languages
+                // Reset daily data
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
-                telemetryRepository.Data.NumberOfShowHotspotRequests = 0;
+                telemetryRepository.Data.ShowHotspot = new ShowHotspot();
                 telemetryRepository.Save();
             }
-            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.Telemetry_ERROR_SendingTelemetry, ex.Message);
