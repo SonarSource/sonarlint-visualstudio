@@ -25,6 +25,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration
 {
