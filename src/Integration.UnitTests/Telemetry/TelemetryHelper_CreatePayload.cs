@@ -50,7 +50,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 InstallationDate = now.AddDays(-10),
                 IsAnonymousDataShared = true,
-                NumberOfDaysOfUse = 5
+                NumberOfDaysOfUse = 5,
+                NumberOfShowHotspotRequests = 11,
             };
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
@@ -66,6 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             result.NumberOfDaysOfUse.Should().Be(5);
             result.NumberOfDaysSinceInstallation.Should().Be(10);
+            result.NumberOfShowHotspotRequests.Should().Be(11);
             result.SonarLintProduct.Should().Be("SonarLint Visual Studio");
             result.SonarLintVersion.Should().Be(
                 typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);

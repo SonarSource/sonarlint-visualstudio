@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 999,
+                NumberOfShowHotspotRequests = 567,
 
                 // Not serialized directly: converted then saved
                 InstallationDate = DateTimeOffset.UtcNow - TimeSpan.FromDays(100),
@@ -69,6 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             reloadedData.IsAnonymousDataShared.Should().BeTrue();
             reloadedData.NumberOfDaysOfUse.Should().Be(999);
+            reloadedData.NumberOfShowHotspotRequests.Should().Be(567);
 
             reloadedData.InstallationDate.Should().Be(originalData.InstallationDate);
             reloadedData.LastSavedAnalysisDate.Should().Be(originalData.LastSavedAnalysisDate);

@@ -31,6 +31,8 @@ namespace SonarLint.VisualStudio.Integration
 
         public long NumberOfDaysOfUse { get; set; }
 
+        public long NumberOfShowHotspotRequests { get; set; }
+        
         [XmlIgnore]
         public DateTimeOffset InstallationDate { get; set; }
 

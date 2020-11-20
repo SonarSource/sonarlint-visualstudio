@@ -46,6 +46,9 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("days_of_use")]
         public long NumberOfDaysOfUse { get; set; }
 
+        [JsonProperty("show_hotspot_requests_count")]
+        public long NumberOfShowHotspotRequests { get; set; }
+
         [JsonProperty("connected_mode_used")]
         public bool IsUsingConnectedMode { get; set; }
 
