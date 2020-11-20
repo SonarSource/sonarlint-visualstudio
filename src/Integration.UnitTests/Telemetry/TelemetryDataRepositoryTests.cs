@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 <TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <IsAnonymousDataShared>false</IsAnonymousDataShared>
   <NumberOfDaysOfUse>10</NumberOfDaysOfUse>
-  <NumberOfShowHotspotRequests>10</NumberOfShowHotspotRequests>
+  <NumberOfShowHotspotRequests>20</NumberOfShowHotspotRequests>
   <InstallationDate>2017-03-15T06:15:42.1234567+01:00</InstallationDate>
   <LastSavedAnalysisDate>2018-03-15T06:15:42.1234567+01:00</LastSavedAnalysisDate>
   <LastUploadDate>2019-03-15T06:15:42.1234567+01:00</LastUploadDate>

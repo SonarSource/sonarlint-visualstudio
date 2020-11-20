@@ -190,6 +190,14 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public void ShowHotspotRequested()
+        {
+            Debug.Assert(telemetryRepository.Data != null);
+
+            ++telemetryRepository.Data.NumberOfShowHotspotRequests;
+            telemetryRepository.Save();
+        }
+
         private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
             try
@@ -200,6 +208,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 // Clear out the list of saved languages
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
+                telemetryRepository.Data.NumberOfShowHotspotRequests = 0;
                 telemetryRepository.Save();
             }
             catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
