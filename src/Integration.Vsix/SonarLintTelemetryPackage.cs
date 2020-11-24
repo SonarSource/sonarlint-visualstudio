@@ -26,6 +26,7 @@ using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

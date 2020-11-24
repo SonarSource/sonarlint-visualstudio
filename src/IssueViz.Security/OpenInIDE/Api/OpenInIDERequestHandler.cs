@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private readonly IHotspotsStore hotspotsStore;
         private readonly IOpenInIDEFailureInfoBar failureInfoBar;
         private readonly IHotspotsSelectionService hotspotsSelectionService;
+        private readonly ITelemetryManager telemetryManager;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -60,6 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             IHotspotsStore hotspotsStore,
             IOpenInIDEFailureInfoBar failureInfoBar,
             IHotspotsSelectionService hotspotsSelectionService,
+            ITelemetryManager telemetryManager,
             ILogger logger)
         {
             // MEF-created so the arguments should never be null
@@ -72,6 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.hotspotsStore = hotspotsStore;
             this.failureInfoBar = failureInfoBar;
             this.hotspotsSelectionService = hotspotsSelectionService;
+            this.telemetryManager = telemetryManager;
             this.logger = logger;
         }
 
@@ -92,6 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             // Always show the Hotspots tool window. If we can't successfully process the
             // request we'll show a gold bar in the window
+            telemetryManager.ShowHotspotRequested();
             ideWindowService.BringToFront();
             toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
             await failureInfoBar.ClearAsync();

@@ -151,7 +151,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 NumberOfDaysSinceInstallation = 230,
                 SonarLintProduct = "SonarLint for Visual Studio",
                 SonarLintVersion = "1.2.3.4",
-                VisualStudioVersion = "15.16",
+                VisualStudioVersion = "15.16"
             });
 
             // Assert
@@ -168,7 +168,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""connected_mode_sonarcloud"": true,
   ""install_time"": ""2017-12-23T08:25:35.456+01:00"",
   ""system_time"": ""2018-03-15T18:55:10.123+01:00"",
-  ""analyses"": null
+  ""analyses"": null,
+  ""show_hotspot"": null
 }";
 
             httpHandlerMock.VerifyAll();

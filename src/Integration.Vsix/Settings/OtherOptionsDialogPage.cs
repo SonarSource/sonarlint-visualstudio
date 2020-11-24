@@ -22,6 +22,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
