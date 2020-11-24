@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 

@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core.Telemetry
 {
     public interface ITelemetryManager
     {
@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration
         void OptOut();
         void OptIn();
         void Update();
-
         void LanguageAnalyzed(string languageKey);
+        void ShowHotspotRequested();
     }
 }

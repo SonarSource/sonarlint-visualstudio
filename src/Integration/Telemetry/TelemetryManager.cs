@@ -25,6 +25,7 @@ using System.Linq;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Core.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -189,6 +190,14 @@ namespace SonarLint.VisualStudio.Integration
             }
         }
 
+        public void ShowHotspotRequested()
+        {
+            Debug.Assert(telemetryRepository.Data != null);
+
+            ++telemetryRepository.Data.ShowHotspot.NumberOfRequests;
+            telemetryRepository.Save();
+        }
+
         private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
             try
@@ -197,11 +206,12 @@ namespace SonarLint.VisualStudio.Integration
 
                 await telemetryClient.SendPayloadAsync(GetPayload(telemetryRepository.Data));
 
-                // Clear out the list of saved languages
+                // Reset daily data
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
+                telemetryRepository.Data.ShowHotspot = new ShowHotspot();
                 telemetryRepository.Save();
             }
-            catch (Exception ex) when (!Core.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
                 logger.WriteLine(Resources.Strings.Telemetry_ERROR_SendingTelemetry, ex.Message);

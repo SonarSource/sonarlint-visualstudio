@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class TelemetryHelper_Serialize
     {
         [TestMethod]
-        public void SerializeLanguages()
+        public void Serialize()
         {
             // Check serialization produces json in the expected format
             var payload = new TelemetryPayload
@@ -52,7 +52,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new Analysis { Language = "js" },
                     new Analysis { Language = "csharp" },
                     new Analysis { Language = "vbnet" }
-                }.ToList()
+                }.ToList(),
+                ShowHotspot = new ShowHotspot { NumberOfRequests = 567 }
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -78,7 +79,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
       ""language"": ""vbnet""
     }
-  ]
+  ],
+  ""show_hotspot"": {
+    ""requests_count"": 567
+  }
 }";
             serialized.Should().Be(expected);
         }
