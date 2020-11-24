@@ -53,6 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             WriteUTF(writer, /* pchDir */ "");
             WriteUTF(writer, /* pchThroughHeader */ "");
             WriteUTF(writer, request.PchFile);
+            WriteUTF(writer, /* reportingCppStandardOverride */ "");
             WriteInt(writer, /* sourceDirs */ 0);
             WriteUTF(writer, "END");
         }

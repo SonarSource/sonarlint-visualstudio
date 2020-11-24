@@ -264,6 +264,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Capture[] c = CFamilyHelper.Capture.ToCaptures(fileConfig, path, out string cfamilyLanguage);
             var request = MsvcDriver.ToRequest(c);
             request.CFamilyLanguage = cfamilyLanguage;
+            if (fileConfig.ItemType == "ClInclude")
+            {
+                request.Flags |= Request.MainFileIsHeader;
+            }
             return request;
         }
 
