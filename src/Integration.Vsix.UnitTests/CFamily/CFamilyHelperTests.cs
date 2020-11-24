@@ -58,6 +58,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             // Assert
             request.Should().NotBeNull();
+            (request.Flags & Request.MainFileIsHeader).Should().NotBe(0);
+        }
+
+        [TestMethod]
+        public void CreateRequest_NonHeaderFile_IsSupported()
+        {
+            var request = GetSuccessfulRequest(null);
+            request.Should().NotBeNull();
+            (request.Flags & Request.MainFileIsHeader).Should().Be(0);
         }
 
         [TestMethod]

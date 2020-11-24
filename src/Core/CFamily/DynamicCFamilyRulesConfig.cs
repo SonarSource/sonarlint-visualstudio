@@ -38,6 +38,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
         internal static readonly string[] ExcludedRulesKeys = new string[] {
             // Project-level:
             "cpp:S5536", "c:S5536",
+            "cpp:S4830", "c:S4830",
+            "cpp:S5527", "c:S5527",
             // Security hotspots:
             "cpp:S5801", "c:S5801",
             "cpp:S5814", "c:S5814",
@@ -48,6 +50,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
             "cpp:S5802", "c:S5802",
             "cpp:S5849", "c:S5849",
             "cpp:S5982", "c:S5982",
+            "cpp:S5813", "c:S5813",
+            "cpp:S5332", "c:S5332",
         };
 
         public DynamicCFamilyRulesConfig(ICFamilyRulesConfig defaultRulesConfig, RulesSettings customRulesSettings, ILogger logger)

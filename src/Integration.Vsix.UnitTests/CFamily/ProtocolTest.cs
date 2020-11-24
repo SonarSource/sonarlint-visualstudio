@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.Write(writer, new Request());
 
                 byte[] result = stream.ToArray();
-                result.Length.Should().Be(85);
+                result.Length.Should().Be(87);
             }
         }
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.Write(writer, request);
 
                 byte[] result = stream.ToArray();
-                result.Length.Should().Be(87);
+                result.Length.Should().Be(89);
             }
         }
 
