@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core.Telemetry;
 using static Microsoft.VisualStudio.Shell.DialogPage;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Tests
