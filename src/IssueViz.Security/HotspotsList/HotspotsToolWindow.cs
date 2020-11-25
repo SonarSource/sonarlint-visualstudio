@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
             var locationNavigator = componentModel.GetService<ILocationNavigator>();
             var selectionService = componentModel.GetService<IHotspotsSelectionService>();
 
-            var viewModel = new HotspotsControlViewModel(store, new NavigateCommand(locationNavigator), selectionService);
+            var viewModel = new HotspotsControlViewModel(store, locationNavigator, selectionService);
             var hotspotsControl = new HotspotsControl(viewModel);
 
             Content = hotspotsControl;
