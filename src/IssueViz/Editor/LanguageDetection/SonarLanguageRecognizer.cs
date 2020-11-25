@@ -67,9 +67,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
                 detectedLanguages.Add(AnalysisLanguage.CFamily);
             }
 
-            if (IsRoslynDocument(contentTypes))
+            if (IsRoslynFamilyDocument(contentTypes))
             {
-                detectedLanguages.Add(AnalysisLanguage.Roslyn);
+                detectedLanguages.Add(AnalysisLanguage.RoslynFamily);
             }
 
             return detectedLanguages;
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
         private static bool IsCFamilyDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType("C/C++"));
 
-        private static bool IsRoslynDocument(IEnumerable<IContentType> contentTypes) =>
+        private static bool IsRoslynFamilyDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType("Roslyn Languages"));
     }
 }

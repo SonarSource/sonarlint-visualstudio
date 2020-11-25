@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("JavaScript", AnalysisLanguage.Javascript)]
         [DataRow("Vue", AnalysisLanguage.Javascript)]
         [DataRow("C/C++", AnalysisLanguage.CFamily)]
-        [DataRow("Roslyn Languages", AnalysisLanguage.Roslyn)]
+        [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
         public void Detect_WhenExtensionNotRegistered_ReturnsLanguageFromBufferContentType(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("JavaScript", AnalysisLanguage.Javascript)]
         [DataRow("Vue", AnalysisLanguage.Javascript)]
         [DataRow("C/C++", AnalysisLanguage.CFamily)]
-        [DataRow("Roslyn Languages", AnalysisLanguage.Roslyn)]
+        [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
         public void Detect_WhenExtensionIsRegistered_ReturnsLanguageFromExtension(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
