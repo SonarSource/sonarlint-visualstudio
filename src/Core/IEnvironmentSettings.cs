@@ -29,7 +29,6 @@ namespace SonarLint.VisualStudio.Core
         /// Returns true if the user has specified that Blocker issues should map to VS Errors,
         /// otherwise false
         /// </summary>
-        /// <returns></returns>
         bool TreatBlockerSeverityAsError();
 
         /// <summary>
@@ -46,5 +45,10 @@ namespace SonarLint.VisualStudio.Core
         /// Download location for the SonarLint daemon additional zip file
         /// </summary>
         string SonarLintDaemonDownloadUrl();
+
+        /// <summary>
+        /// Returns true if debug-level messages should be logged to the output window, otherwise false
+        /// </summary>
+        bool LogDebugMessages();
     }
 }

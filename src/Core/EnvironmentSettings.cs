@@ -27,6 +27,8 @@ namespace SonarLint.VisualStudio.Core
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
+        internal const string LogDebugMessagesEnvVar = "SONARLINT_INTERNAL_LOG_DEBUG";
+
         public const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
 
         public bool TreatBlockerSeverityAsError()
@@ -48,6 +50,15 @@ namespace SonarLint.VisualStudio.Core
             var userValue = ParseInt(Environment.GetEnvironmentVariable(PchGenerationTimeoutEnvVar));
 
             return userValue > 0 ? userValue : defaultValue;
+        }
+
+        public bool LogDebugMessages()
+        {
+            if (bool.TryParse(Environment.GetEnvironmentVariable(LogDebugMessagesEnvVar), out var result))
+            {
+                return result;
+            }
+            return false;
         }
 
         public string SonarLintDaemonDownloadUrl()

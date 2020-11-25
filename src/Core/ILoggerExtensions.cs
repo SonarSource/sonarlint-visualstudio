@@ -18,20 +18,32 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Helpers
 {
     public static class ILoggerExtensions
     {
+        private static bool shouldLogDebug;
+
+        static ILoggerExtensions() => Initialize(new EnvironmentSettings());
+
+        internal /* for testing*/ static void Initialize(IEnvironmentSettings settings)
+        {
+            shouldLogDebug = settings.LogDebugMessages();
+        }
+
         /// <summary>
-        /// Logs messages only when the code is compiled with DEBUG condition. This is temporary
+        /// Logs messages only when an environment variable is set. This is temporary
         /// solution for not having log verbosity setting.
         /// </summary>
-        [Conditional("DEBUG")]
-        public static void LogDebug(this ILogger logger, string message)
+        public static void LogDebug(this ILogger logger, string message, params object[] args)
         {
-            logger.WriteLine(message);
+            if(shouldLogDebug)
+            {
+                var text = args.Length == 0 ? message : string.Format(message, args);
+                logger.WriteLine("DEBUG: " + text);
+            }
         }
     }
 }
