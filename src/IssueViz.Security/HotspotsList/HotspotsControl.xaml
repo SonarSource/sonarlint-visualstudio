@@ -20,9 +20,9 @@
         <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
 
         <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-            <MenuItem Header="Delete" 
+            <MenuItem Header="Remove" 
                       CommandParameter="{Binding}"
-                      Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                      Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
                 <MenuItem.Icon>
                     <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.DeleteTableRow}"/>
                 </MenuItem.Icon>
@@ -246,7 +246,7 @@
                     CommandParameter="{Binding Hotspots/}"/>
                 <KeyBinding
                     Key="Delete"
-                    Command="{Binding DeleteCommand}"
+                    Command="{Binding RemoveCommand}"
                     CommandParameter="{Binding Hotspots/}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>

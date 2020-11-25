@@ -249,43 +249,43 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void DeleteCommand_CanExecute_NullParameter_False()
+        public void RemoveCommand_CanExecute_NullParameter_False()
         {
             var hotspotsStore = new Mock<IHotspotsStore>();
 
             var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
-            var result = testSubject.DeleteCommand.CanExecute(null);
+            var result = testSubject.RemoveCommand.CanExecute(null);
             result.Should().BeFalse();
 
-            hotspotsStore.Verify(x => x.Delete(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+            hotspotsStore.Verify(x => x.Remove(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
         }
 
         [TestMethod]
-        public void DeleteCommand_CanExecute_ParameterIsNotHotspotViewModel_False()
+        public void RemoveCommand_CanExecute_ParameterIsNotHotspotViewModel_False()
         {
             var hotspotsStore = new Mock<IHotspotsStore>();
 
             var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
-            var result = testSubject.DeleteCommand.CanExecute("something");
+            var result = testSubject.RemoveCommand.CanExecute("something");
             result.Should().BeFalse();
 
-            hotspotsStore.Verify(x => x.Delete(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+            hotspotsStore.Verify(x => x.Remove(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
         }
 
         [TestMethod]
-        public void DeleteCommand_CanExecute_ParameterIsHotspotViewModel_True()
+        public void RemoveCommand_CanExecute_ParameterIsHotspotViewModel_True()
         {
             var hotspotsStore = new Mock<IHotspotsStore>();
 
             var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
-            var result = testSubject.DeleteCommand.CanExecute(Mock.Of<IHotspotViewModel>());
+            var result = testSubject.RemoveCommand.CanExecute(Mock.Of<IHotspotViewModel>());
             result.Should().BeTrue();
 
-            hotspotsStore.Verify(x => x.Delete(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+            hotspotsStore.Verify(x => x.Remove(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
         }
 
         [TestMethod]
-        public void DeleteCommand_Execute_HotspotDeleted()
+        public void RemoveCommand_Execute_HotspotRemoved()
         {
             var hotspotsStore = new Mock<IHotspotsStore>();
 
@@ -294,9 +294,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             viewModel.Setup(x => x.Hotspot).Returns(hotspot);
 
             var testSubject = CreateTestSubject(hotspotsStore: hotspotsStore);
-            testSubject.DeleteCommand.Execute(viewModel.Object);
+            testSubject.RemoveCommand.Execute(viewModel.Object);
 
-            hotspotsStore.Verify(x => x.Delete(hotspot), Times.Once);
+            hotspotsStore.Verify(x => x.Remove(hotspot), Times.Once);
         }
 
         private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,

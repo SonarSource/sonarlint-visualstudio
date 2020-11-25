@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
         ICommand NavigateCommand { get; }
 
-        ICommand DeleteCommand { get; }
+        ICommand RemoveCommand { get; }
     }
 
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
         public ICommand NavigateCommand { get; private set; }
 
-        public ICommand DeleteCommand { get; private set; }
+        public ICommand RemoveCommand { get; private set; }
 
         public HotspotsControlViewModel(IHotspotsStore hotspotsStore, 
             ILocationNavigator locationNavigator, 
@@ -96,36 +96,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
                 locationNavigator.TryNavigate(selectedHotspot.Hotspot);
             }, parameter => parameter is IHotspotViewModel);
 
-            DeleteCommand = new DelegateCommand(parameter =>
+            RemoveCommand = new DelegateCommand(parameter =>
         {
                 var selectedHotspot = (IHotspotViewModel) parameter;
-                hotspotsStore.Delete(selectedHotspot.Hotspot);
+                hotspotsStore.Remove(selectedHotspot.Hotspot);
             }, parameter => parameter is IHotspotViewModel);
         }
 
-        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> addedHotspots, IEnumerable<IAnalysisIssueVisualization> deletedHotspots)
+        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> addedHotspots, IEnumerable<IAnalysisIssueVisualization> removedHotspots)
         {
             foreach (var addedHotspot in addedHotspots)
             {
                 Hotspots.Add(new HotspotViewModel(addedHotspot));
             }
 
-            var viewModelsToDelete = Hotspots.Where(x => deletedHotspots.Contains(x.Hotspot)).ToList();
+            var viewModelsToRemove = Hotspots.Where(x => removedHotspots.Contains(x.Hotspot)).ToArray();
 
-            foreach (var deletedHotspot in viewModelsToDelete)
+            foreach (var removedHotspot in viewModelsToRemove)
             {
-                Hotspots.Remove(deletedHotspot);
+                Hotspots.Remove(removedHotspot);
             }
         }
 
         private void HotspotsStore_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             var addedHotspots = e.NewItems ?? Array.Empty<IAnalysisIssueVisualization>();
-            var deletedHotspots = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
+            var removedHotspots = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
 
             UpdateHotspotsList(
                 addedHotspots.Cast<IAnalysisIssueVisualization>(),
-                deletedHotspots.Cast<IAnalysisIssueVisualization>());
+                removedHotspots.Cast<IAnalysisIssueVisualization>());
         }
 
         private void SelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
 
         void Add(IAnalysisIssueVisualization hotspot);
 
-        void Delete(IAnalysisIssueVisualization hotspot);
+        void Remove(IAnalysisIssueVisualization hotspot);
     }
 
     [Export(typeof(IHotspotsStore))]
@@ -51,7 +51,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
             NotifyHotspotChanged(hotspot);
         }
 
-        void IHotspotsStore.Delete(IAnalysisIssueVisualization hotspot)
+        void IHotspotsStore.Remove(IAnalysisIssueVisualization hotspot)
         {
             Hotspots.Remove(hotspot);
             NotifyHotspotChanged(hotspot);

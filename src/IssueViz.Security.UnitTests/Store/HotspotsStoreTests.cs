@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             readOnlyWrapper.First().Should().Be(issueViz1);
             readOnlyWrapper.Last().Should().Be(issueViz2);
 
-            testSubject.Delete(issueViz2);
+            testSubject.Remove(issueViz2);
 
             readOnlyWrapper.Count.Should().Be(1);
             readOnlyWrapper.First().Should().Be(issueViz1);
@@ -112,16 +112,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void Delete_NoSubscribersToIssuesChangedEvent_NoException()
+        public void Remove_NoSubscribersToIssuesChangedEvent_NoException()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
-            var act = new Action(() => testSubject.Delete(CreateIssueViz()));
+            var act = new Action(() => testSubject.Remove(CreateIssueViz()));
             act.Should().NotThrow();
         }
 
         [TestMethod]
-        public void Delete_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
+        public void Remove_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
         {
             var location1 = new Mock<IAnalysisIssueLocationVisualization>();
             location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             var eventCount = 0;
             ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
 
-            testSubject.Delete(issueViz);
+            testSubject.Remove(issueViz);
 
             eventCount.Should().Be(1);
             suppliedArgs.Should().NotBeNull();
