@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
         ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
 
         void Add(IAnalysisIssueVisualization hotspot);
+
+        void Remove(IAnalysisIssueVisualization hotspot);
     }
 
     [Export(typeof(IHotspotsStore))]
@@ -46,13 +48,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
         void IHotspotsStore.Add(IAnalysisIssueVisualization hotspot)
         {
             Hotspots.Add(hotspot);
+            NotifyHotspotChanged(hotspot);
+        }
 
+        void IHotspotsStore.Remove(IAnalysisIssueVisualization hotspot)
+        {
+            Hotspots.Remove(hotspot);
+            NotifyHotspotChanged(hotspot);
+        }
+
+        private void NotifyHotspotChanged(IAnalysisIssueVisualization changedHotspot)
+        {
             if (IssuesChanged == null)
             {
                 return;
             }
 
-            var hotspotFilePaths = hotspot
+            var hotspotFilePaths = changedHotspot
                 .GetAllLocations()
                 .Select(x => x.CurrentFilePath)
                 .Distinct(StringComparer.OrdinalIgnoreCase);

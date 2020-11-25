@@ -27,6 +27,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
@@ -41,6 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
         IHotspotViewModel SelectedHotspot { get; }
 
         ICommand NavigateCommand { get; }
+
+        ICommand RemoveCommand { get; }
     }
 
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
@@ -53,9 +57,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
         public IHotspotViewModel SelectedHotspot { get; set; }
 
-        public ICommand NavigateCommand { get; }
+        public ICommand NavigateCommand { get; private set; }
 
-        public HotspotsControlViewModel(IHotspotsStore hotspotsStore, ICommand navigateCommand, IHotspotsSelectionService selectionService)
+        public ICommand RemoveCommand { get; private set; }
+
+        public HotspotsControlViewModel(IHotspotsStore hotspotsStore, 
+            ILocationNavigator locationNavigator, 
+            IHotspotsSelectionService selectionService)
         {
             AllowMultiThreadedAccessToHotspotsList();
 
@@ -66,8 +74,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             readonlyObservableHotspotsCollection = allHotspots;
             readonlyObservableHotspotsCollection.CollectionChanged += HotspotsStore_CollectionChanged;
 
-            NavigateCommand = navigateCommand;
-            UpdateHotspotsList(allHotspots);
+            UpdateHotspotsList(allHotspots, Array.Empty<IAnalysisIssueVisualization>());
+
+            SetCommands(hotspotsStore, locationNavigator);
         }
 
         /// <summary>
@@ -79,18 +88,44 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
         }
 
-        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> hotspots)
+        private void SetCommands(IHotspotsStore hotspotsStore, ILocationNavigator locationNavigator)
         {
-            foreach (var addedHotspot in hotspots)
+            NavigateCommand = new DelegateCommand(parameter =>
+            {
+                var selectedHotspot = (IHotspotViewModel) parameter;
+                locationNavigator.TryNavigate(selectedHotspot.Hotspot);
+            }, parameter => parameter is IHotspotViewModel);
+
+            RemoveCommand = new DelegateCommand(parameter =>
+        {
+                var selectedHotspot = (IHotspotViewModel) parameter;
+                hotspotsStore.Remove(selectedHotspot.Hotspot);
+            }, parameter => parameter is IHotspotViewModel);
+        }
+
+        private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> addedHotspots, IEnumerable<IAnalysisIssueVisualization> removedHotspots)
+        {
+            foreach (var addedHotspot in addedHotspots)
             {
                 Hotspots.Add(new HotspotViewModel(addedHotspot));
+            }
+
+            var viewModelsToRemove = Hotspots.Where(x => removedHotspots.Contains(x.Hotspot)).ToArray();
+
+            foreach (var removedHotspot in viewModelsToRemove)
+            {
+                Hotspots.Remove(removedHotspot);
             }
         }
 
         private void HotspotsStore_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            // todo: handle deletion
-            UpdateHotspotsList(e.NewItems.Cast<IAnalysisIssueVisualization>());
+            var addedHotspots = e.NewItems ?? Array.Empty<IAnalysisIssueVisualization>();
+            var removedHotspots = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
+
+            UpdateHotspotsList(
+                addedHotspots.Cast<IAnalysisIssueVisualization>(),
+                removedHotspots.Cast<IAnalysisIssueVisualization>());
         }
 
         private void SelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)

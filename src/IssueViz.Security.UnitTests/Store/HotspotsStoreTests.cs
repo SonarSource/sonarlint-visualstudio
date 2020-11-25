@@ -73,6 +73,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             readOnlyWrapper.Count.Should().Be(2);
             readOnlyWrapper.First().Should().Be(issueViz1);
             readOnlyWrapper.Last().Should().Be(issueViz2);
+
+            testSubject.Remove(issueViz2);
+
+            readOnlyWrapper.Count.Should().Be(1);
+            readOnlyWrapper.First().Should().Be(issueViz1);
         }
 
         [TestMethod]
@@ -91,7 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
 
             IssuesChangedEventArgs suppliedArgs = null;
             var eventCount = 0;
-            ((IIssueLocationStore) testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
 
             var location1 = new Mock<IAnalysisIssueLocationVisualization>();
             location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
@@ -100,6 +105,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             var issueViz = CreateIssueViz("a.cpp", location1.Object, location2.Object);
 
             testSubject.Add(issueViz);
+
+            eventCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp");
+        }
+
+        [TestMethod]
+        public void Remove_NoSubscribersToIssuesChangedEvent_NoException()
+        {
+            var testSubject = new HotspotsStore() as IHotspotsStore;
+
+            var act = new Action(() => testSubject.Remove(CreateIssueViz()));
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void Remove_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
+        {
+            var location1 = new Mock<IAnalysisIssueLocationVisualization>();
+            location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
+            var location2 = new Mock<IAnalysisIssueLocationVisualization>();
+            location2.SetupGet(x => x.CurrentFilePath).Returns("B.cpp");
+            var issueViz = CreateIssueViz("a.cpp", location1.Object, location2.Object);
+
+            var testSubject = new HotspotsStore() as IHotspotsStore;
+            testSubject.Add(issueViz);
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+
+            testSubject.Remove(issueViz);
 
             eventCount.Should().Be(1);
             suppliedArgs.Should().NotBeNull();
