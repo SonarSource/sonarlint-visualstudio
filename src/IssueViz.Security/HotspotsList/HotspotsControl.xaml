@@ -8,6 +8,7 @@
              xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsImaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             xmlns:hotspotsList="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
@@ -16,6 +17,7 @@
             <issueVisualizationControl:SpanToNavigabilityConverter />
             <wpf:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
         </wpf:AggregatorValueConverter>
+        <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
 
         <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Width" Value="8"/>
@@ -144,6 +146,12 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
+        <Style x:Key="PriorityColumnCellTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
+        </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
         <Grid.ColumnDefinitions>
@@ -196,7 +204,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Hotspot.Issue.Priority}" 
-                                       Style="{StaticResource CellTextBlockStyle}"/>
+                                       Style="{StaticResource PriorityColumnCellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
