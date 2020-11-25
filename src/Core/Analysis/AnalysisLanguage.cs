@@ -26,6 +26,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     public enum AnalysisLanguage
     {
         Javascript,
-        CFamily
+        CFamily,
+        Roslyn
     }
 }
