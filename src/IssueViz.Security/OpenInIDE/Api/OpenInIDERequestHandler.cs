@@ -28,9 +28,9 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.TableDataSource;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
+using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
