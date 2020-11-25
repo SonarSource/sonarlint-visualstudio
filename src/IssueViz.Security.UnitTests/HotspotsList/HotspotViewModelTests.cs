@@ -25,7 +25,7 @@ using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList

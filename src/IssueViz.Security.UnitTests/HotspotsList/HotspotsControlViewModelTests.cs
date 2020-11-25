@@ -27,7 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList2.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
