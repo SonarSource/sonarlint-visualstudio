@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <IsTestProject>true</IsTestProject>
-    <RequiresVersionSpecificShell>true</RequiresVersionSpecificShell>
   </PropertyGroup>
 
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
