@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void HotspotPropertyChanged_NotSpanProperty_NoPropertyChangedEvent()
+        public void HotspotPropertyChanged_UnknownProperty_NoPropertyChangedEvent()
         {
             var eventHandler = new Mock<PropertyChangedEventHandler>();
             var hotspot = new Mock<IAnalysisIssueVisualization>();
@@ -121,13 +121,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void Line_HasSpan_ReturnsSpanStartLine()
+        public void Line_HasSpan_ReturnsOneBasedSpanStartLine()
         {
             const int lineNumber = 12;
             var issueViz = CreateIssueVizWithSpan(lineNumber: lineNumber);
 
             var testSubject = new HotspotViewModel(issueViz);
-            testSubject.Line.Should().Be(lineNumber);
+            testSubject.Line.Should().Be(lineNumber + 1);
         }
 
         [TestMethod]
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void FileName_HotspotHasNoFilePath_ReturnsServerPath()
+        public void DisplayPath_HotspotHasNoFilePath_ReturnsServerPath()
         {
             var hotspot = new Mock<IHotspot>();
             hotspot.Setup(x => x.ServerFilePath).Returns("\\some\\server\\path.cs");
@@ -151,21 +151,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
 
             var testSubject = new HotspotViewModel(issueViz.Object);
-            testSubject.FileName.Should().Be("path.cs");
+            testSubject.DisplayPath.Should().Be("path.cs");
         }
 
         [TestMethod]
-        public void FileName_HotspotHasFilePath_ReturnsFilePath()
+        public void DisplayPath_HotspotHasFilePath_ReturnsFilePath()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns("c:\\some\\local\\path.cs");
 
             var testSubject = new HotspotViewModel(issueViz.Object);
-            testSubject.FileName.Should().Be("path.cs");
+            testSubject.DisplayPath.Should().Be("path.cs");
         }
 
         [TestMethod]
-        public void HotspotPropertyChanged_CurrentFilePathProperty_RaisesPropertyChangedForFileName()
+        public void HotspotPropertyChanged_CurrentFilePathProperty_RaisesPropertyChangedForDisplayPath()
         {
             var eventHandler = new Mock<PropertyChangedEventHandler>();
             var hotspot = new Mock<IAnalysisIssueVisualization>();
@@ -178,7 +178,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             hotspot.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.CurrentFilePath)));
 
             eventHandler.Verify(x => x(testSubject,
-                    It.Is((PropertyChangedEventArgs args) => args.PropertyName == nameof(IHotspotViewModel.FileName))),
+                    It.Is((PropertyChangedEventArgs args) => args.PropertyName == nameof(IHotspotViewModel.DisplayPath))),
                 Times.Once);
 
             eventHandler.VerifyNoOtherCalls();

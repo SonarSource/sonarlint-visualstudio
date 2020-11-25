@@ -216,10 +216,10 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="FileName" Header="File" Width="200">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="200">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding FileName}" 
+                            <TextBlock Text="{Binding DisplayPath}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
