@@ -111,13 +111,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void Column_NoSpan_ReturnsHotspotStartLineOffset(bool spanIsNull)
+        public void Column_NoSpan_ReturnsOneBasedHotspotStartLineOffset(bool spanIsNull)
         {
             const int originalColumnNumber = 456;
             var issueViz = CreateIssueVizWithoutSpan(spanIsNull, originalColumnNumber: originalColumnNumber);
 
             var testSubject = new HotspotViewModel(issueViz);
-            testSubject.Column.Should().Be(originalColumnNumber);
+            testSubject.Column.Should().Be(originalColumnNumber + 1);
         }
 
         [TestMethod]
@@ -131,13 +131,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
-        public void Column_HasSpan_ReturnsSpanStartLine()
+        public void Column_HasSpan_ReturnsOneBasedSpanStartLine()
         {
             const int columnNumber = 15;
             var issueViz = CreateIssueVizWithSpan(columnNumber: columnNumber);
 
             var testSubject = new HotspotViewModel(issueViz);
-            testSubject.Column.Should().Be(columnNumber);
+            testSubject.Column.Should().Be(columnNumber + 1);
         }
 
         [TestMethod]

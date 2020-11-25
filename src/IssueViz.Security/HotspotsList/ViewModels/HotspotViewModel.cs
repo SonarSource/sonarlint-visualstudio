@@ -57,14 +57,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
         {
             get
             {
+                int zeroBasedColumn;
+
                 if (!CanUseSpan())
                 {
-                    return Hotspot.Issue.StartLineOffset;
+                    zeroBasedColumn = Hotspot.Issue.StartLineOffset;
+                }
+                else
+                {
+                    var position = Hotspot.Span.Value.Start;
+                    var line = position.GetContainingLine();
+                    zeroBasedColumn = position.Position - line.Start.Position;
                 }
 
-                var position = Hotspot.Span.Value.Start;
-                var line = position.GetContainingLine();
-                return position.Position - line.Start.Position;
+                // both SQ hotspot column and VS column are zero-based
+                return zeroBasedColumn + 1;
             }
         }
 
