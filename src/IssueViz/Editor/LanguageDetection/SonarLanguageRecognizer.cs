@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             // Languages are for now mainly exclusive but it should possible for the same file to be analyzed by multiple
             // plugins (language plugin).
             var detectedLanguages = new List<AnalysisLanguage>();
+
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.Javascript);
@@ -65,6 +66,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             {
                 detectedLanguages.Add(AnalysisLanguage.CFamily);
             }
+
+            if (IsRoslynFamilyDocument(contentTypes))
+            {
+                detectedLanguages.Add(AnalysisLanguage.RoslynFamily);
+            }
+
             return detectedLanguages;
         }
 
@@ -93,5 +100,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
         private static bool IsCFamilyDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType("C/C++"));
+
+        private static bool IsRoslynFamilyDocument(IEnumerable<IContentType> contentTypes) =>
+            contentTypes.Any(type => type.IsOfType("Roslyn Languages"));
     }
 }
