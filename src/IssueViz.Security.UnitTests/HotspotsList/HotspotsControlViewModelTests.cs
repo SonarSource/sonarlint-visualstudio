@@ -22,6 +22,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -256,7 +257,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var result = testSubject.DeleteCommand.CanExecute(null);
             result.Should().BeFalse();
 
-            hotspotsStore.Verify(x=> x.Delete(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
+            hotspotsStore.Verify(x => x.Delete(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
         }
 
         [TestMethod]
@@ -298,7 +299,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             hotspotsStore.Verify(x => x.Delete(hotspot), Times.Once);
         }
 
-        private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null, 
+        private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
             Mock<IHotspotsStore> hotspotsStore = null,
             IHotspotsSelectionService selectionService = null)

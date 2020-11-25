@@ -45,13 +45,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
     {
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
 
-        public void Add(IAnalysisIssueVisualization hotspot)
+        void IHotspotsStore.Add(IAnalysisIssueVisualization hotspot)
         {
             Hotspots.Add(hotspot);
             NotifyHotspotChanged(hotspot);
         }
 
-        public void Delete(IAnalysisIssueVisualization hotspot)
+        void IHotspotsStore.Delete(IAnalysisIssueVisualization hotspot)
         {
             Hotspots.Remove(hotspot);
             NotifyHotspotChanged(hotspot);
@@ -59,22 +59,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
 
         private void NotifyHotspotChanged(IAnalysisIssueVisualization changedHotspot)
         {
+            if (IssuesChanged == null)
+            {
+                return;
+            }
+
             var hotspotFilePaths = changedHotspot
                 .GetAllLocations()
                 .Select(x => x.CurrentFilePath)
                 .Distinct(StringComparer.OrdinalIgnoreCase);
 
-            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
+            IssuesChanged.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
 
-        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll()
+        ReadOnlyObservableCollection<IAnalysisIssueVisualization> IHotspotsStore.GetAll()
         {
             return new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
+        IEnumerable<IAnalysisIssueLocationVisualization> IIssueLocationStore.GetLocations(string filePath)
         {
             var matchingLocations = Hotspots
                 .SelectMany(hotspotViz => hotspotViz.GetAllLocations())
@@ -83,7 +88,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
             return matchingLocations;
         }
 
-        public void Refresh(IEnumerable<string> affectedFilePaths)
+        void IIssueLocationStore.Refresh(IEnumerable<string> affectedFilePaths)
         {
         }
     }

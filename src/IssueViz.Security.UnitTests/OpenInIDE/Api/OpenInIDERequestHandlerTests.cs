@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -57,6 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                     MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>()),
                     MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>()),
                     MefTestHelpers.CreateExport<IHotspotsSelectionService>(Mock.Of<IHotspotsSelectionService>()),
+                    MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                     MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
                 });
         }
@@ -84,6 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private Mock<IHotspotsStore> storeMock;
         private Mock<IOpenInIDEFailureInfoBar> failureInfoBarMock;
         private Mock<IHotspotsSelectionService> selectionServiceMock;
+        private Mock<ITelemetryManager> telemetryManagerMock;
         private TestLogger logger;
 
         private IOpenInIDERequestHandler testSubject;
@@ -105,10 +108,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             storeMock = new Mock<IHotspotsStore>();
             failureInfoBarMock = new Mock<IOpenInIDEFailureInfoBar>();
             selectionServiceMock = new Mock<IHotspotsSelectionService>();
+            telemetryManagerMock = new Mock<ITelemetryManager>();
             logger = new TestLogger(logToConsole: true);
 
             testSubject = new OpenInIDERequestHandler(ideWindowServiceMock.Object, toolWindowServiceMock.Object, stateValidatorMock.Object, serverMock.Object,
-            converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, selectionServiceMock.Object, logger);
+            converterMock.Object, navigatorMock.Object, storeMock.Object, failureInfoBarMock.Object, selectionServiceMock.Object, telemetryManagerMock.Object, logger);
         }
 
         [TestMethod]
@@ -326,7 +330,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             // Whatever happens, the tool window should be shown, the gold bar
             // cleared and the IDE brought to the front
             CheckInfoBarCleared();
-            CheckCalled(ideWindowServiceMock, toolWindowServiceMock);
+            CheckCalled(ideWindowServiceMock, toolWindowServiceMock, telemetryManagerMock);
         }
 
         private static void CheckCalled(params Mock[] mocks)

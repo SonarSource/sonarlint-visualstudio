@@ -8,6 +8,7 @@
              xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsImaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             xmlns:hotspotsList="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
@@ -16,6 +17,7 @@
             <issueVisualizationControl:SpanToNavigabilityConverter />
             <wpf:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
         </wpf:AggregatorValueConverter>
+        <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
 
         <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
             <MenuItem Header="Delete" 
@@ -207,6 +209,12 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="PriorityColumnCellTextBlockStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="1"/>
+            <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
+        </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
         <Grid.ColumnDefinitions>
@@ -263,7 +271,7 @@
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Hotspot.Issue.Priority}" 
-                                       Style="{StaticResource CellTextBlockStyle}"/>
+                                       Style="{StaticResource PriorityColumnCellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
@@ -275,10 +283,10 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="FileName" Header="File" Width="200">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="200">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding FileName}" 
+                            <TextBlock Text="{Binding DisplayPath}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>

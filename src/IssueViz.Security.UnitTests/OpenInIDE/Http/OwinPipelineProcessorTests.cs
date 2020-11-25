@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
     [TestClass]
     public class OwinPipelineProcessorTests
     {
+        const string Origin = "http://origin";
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -78,6 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ProcessRequest(context.Environment).ConfigureAwait(false);
 
             context.Response.StatusCode.Should().Be(404);
+            CheckCorsHeader(context);
             testLogger.AssertPartialOutputStringExists(requestedPath);
         }
 
@@ -95,6 +98,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             await testSubject.ProcessRequest(context.Environment).ConfigureAwait(false);
 
             context.Response.StatusCode.Should().Be(expectedStatusCode);
+            CheckCorsHeader(context);
             testLogger.AssertPartialOutputStringExists(handledRequestPath);
         }
 
@@ -112,6 +116,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             Func<Task> act = () => testSubject.ProcessRequest(context.Environment);
 
             act.Should().ThrowExactly<IndexOutOfRangeException>().And.Message.Should().Be(expectedErrorMessage);
+            CheckCorsHeader(context);
             testLogger.AssertPartialOutputStringExists(expectedErrorMessage);
         }
 
@@ -134,8 +139,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         {
             var context = new OwinContext();
             context.Request.Path = new PathString(requestedPath);
+            context.Request.Headers["Origin"] = Origin;
 
             return context;
+        }
+
+        private static void CheckCorsHeader(IOwinContext context)
+        {
+            context.Response.Headers["Access-Control-Allow-Origin"].Should().Be(Origin);
         }
     }
 }

@@ -29,6 +29,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             ILocationNavigator locationNavigator, 
             IHotspotsSelectionService selectionService)
         {
-            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
+            AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
             selectionService.SelectionChanged += SelectionService_SelectionChanged;
@@ -78,6 +79,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             SetCommands(hotspotsStore, locationNavigator);
         }
 
+        /// <summary>
+        /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
+        /// </summary>
+        private void AllowMultiThreadedAccessToHotspotsList()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
+        }
+
         private void SetCommands(IHotspotsStore hotspotsStore, ILocationNavigator locationNavigator)
         {
             NavigateCommand = new DelegateCommand(parameter =>
@@ -87,7 +97,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             }, parameter => parameter is IHotspotViewModel);
 
             DeleteCommand = new DelegateCommand(parameter =>
-            {
+        {
                 var selectedHotspot = (IHotspotViewModel) parameter;
                 hotspotsStore.Delete(selectedHotspot.Hotspot);
             }, parameter => parameter is IHotspotViewModel);
