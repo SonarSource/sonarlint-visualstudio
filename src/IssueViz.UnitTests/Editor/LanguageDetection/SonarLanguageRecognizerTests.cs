@@ -97,78 +97,62 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         }
 
         [TestMethod]
-        public void Detect_WhenExtensionNotRegisteredAndBufferContentTypeIsJsRelated_ReturnsJavascript()
+        public void Detect_WhenExtensionIsUnknownAndBufferIsUnknown_ReturnsEmptyList()
         {
             // Arrange
             var contentTypeMock = new Mock<IContentType>();
+            contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentTypeMock.Object });
 
-            foreach (var expectedType in new[] { "JavaScript", "Vue" })
-            {
-                contentTypeMock.Setup(x => x.IsOfType(expectedType)).Returns(true);
+            // Act
+            var result = testSubject.Detect("foo", null);
 
-                // Act
-                var result = testSubject.Detect("foo", contentTypeMock.Object);
-
-                // Assert
-                result.Should().HaveCount(1);
-                result.First().Should().Be(AnalysisLanguage.Javascript);
-            }
+            // Assert
+            result.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void Detect_WhenExtensionNotRegisteredAndBufferContentTypeIsCRelated_ReturnsCFamily()
+        [DataRow("JavaScript", AnalysisLanguage.Javascript)]
+        [DataRow("Vue", AnalysisLanguage.Javascript)]
+        [DataRow("C/C++", AnalysisLanguage.CFamily)]
+        [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
+        public void Detect_WhenExtensionNotRegistered_ReturnsLanguageFromBufferContentType(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
-
             var contentTypeMock = new Mock<IContentType>();
-            contentTypeMock.Setup(x => x.IsOfType("C/C++")).Returns(true);
+            contentTypeMock.Setup(x => x.IsOfType(bufferContentType)).Returns(true);
 
             // Act
             var result = testSubject.Detect("foo", contentTypeMock.Object);
 
             // Assert
             result.Should().HaveCount(1);
-            result.First().Should().Be(AnalysisLanguage.CFamily);
+            result.First().Should().Be(expectedLanguage);
         }
 
         [TestMethod]
-        public void Detect_WhenExtensionIsRegisteredAsJs_ReturnsJavascript()
+        [DataRow("JavaScript", AnalysisLanguage.Javascript)]
+        [DataRow("Vue", AnalysisLanguage.Javascript)]
+        [DataRow("C/C++", AnalysisLanguage.CFamily)]
+        [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
+        public void Detect_WhenExtensionIsRegistered_ReturnsLanguageFromExtension(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
             var fileExtension = "XXX";
             var contentTypeMock = new Mock<IContentType>();
             contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentTypeMock.Object });
             fileExtensionServiceMock.Setup(x => x.GetExtensionsForContentType(contentTypeMock.Object)).Returns(new[] { fileExtension });
-            contentTypeMock.Setup(x => x.IsOfType("JavaScript")).Returns(true);
+            contentTypeMock.Setup(x => x.IsOfType(bufferContentType)).Returns(true);
 
             // Act
             var result = testSubject.Detect($"foo.{fileExtension}", null);
 
             // Assert
             result.Should().HaveCount(1);
-            result.First().Should().Be(AnalysisLanguage.Javascript);
+            result.First().Should().Be(expectedLanguage);
         }
 
         [TestMethod]
-        public void Detect_WhenExtensionIsRegisteredAsC_ReturnsCFamily()
-        {
-            // Arrange
-            var fileExtension = "XXX";
-            var contentTypeMock = new Mock<IContentType>();
-            contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentTypeMock.Object });
-            fileExtensionServiceMock.Setup(x => x.GetExtensionsForContentType(contentTypeMock.Object)).Returns(new[] { fileExtension });
-            contentTypeMock.Setup(x => x.IsOfType("C/C++")).Returns(true);
-
-            // Act
-            var result = testSubject.Detect($"foo.{fileExtension}", null);
-
-            // Assert
-            result.Should().HaveCount(1);
-            result.First().Should().Be(AnalysisLanguage.CFamily);
-        }
-
-        [TestMethod]
-        public void Detect_WhenExtensionIsRegisteredAsCandJs_ReturnsCFamilyAndJavascript()
+        public void Detect_WhenExtensionIsRegisteredAsMultipleTypes_ReturnsMultipleLanguages()
         {
             // Arrange
             var fileExtension = "XXX";
