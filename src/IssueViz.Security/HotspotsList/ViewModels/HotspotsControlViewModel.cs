@@ -27,6 +27,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
@@ -56,7 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
         public HotspotsControlViewModel(IHotspotsStore hotspotsStore, ICommand navigateCommand, IHotspotsSelectionService selectionService)
         {
-            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
+            AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
             selectionService.SelectionChanged += SelectionService_SelectionChanged;
@@ -67,6 +68,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
             NavigateCommand = navigateCommand;
             UpdateHotspotsList(allHotspots);
+        }
+
+        /// <summary>
+        /// Allow the observable collection <see cref="Hotspots"/> to be modified from non-UI thread. 
+        /// </summary>
+        private void AllowMultiThreadedAccessToHotspotsList()
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            BindingOperations.EnableCollectionSynchronization(Hotspots, Lock);
         }
 
         private void UpdateHotspotsList(IEnumerable<IAnalysisIssueVisualization> hotspots)

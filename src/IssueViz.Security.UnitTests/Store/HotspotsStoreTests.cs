@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         [TestMethod]
         public void GetAll_ReturnsReadOnlyObservableWrapper()
         {
-            var testSubject = new HotspotsStore();
+            var testSubject = new HotspotsStore() as IHotspotsStore;
             var readOnlyWrapper = testSubject.GetAll();
 
             readOnlyWrapper.Should().BeAssignableTo<IReadOnlyCollection<IAnalysisIssueVisualization>>();
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         [TestMethod]
         public void Add_NoSubscribersToIssuesChangedEvent_NoException()
         {
-            var testSubject = new HotspotsStore();
+            var testSubject = new HotspotsStore() as IHotspotsStore;
 
             var act = new Action(() => testSubject.Add(CreateIssueViz()));
             act.Should().NotThrow();
@@ -87,11 +87,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         [TestMethod]
         public void Add_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
         {
-            var testSubject = new HotspotsStore();
+            var testSubject = new HotspotsStore() as IHotspotsStore;
 
             IssuesChangedEventArgs suppliedArgs = null;
             var eventCount = 0;
-            testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+            ((IIssueLocationStore) testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
 
             var location1 = new Mock<IAnalysisIssueLocationVisualization>();
             location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         [TestMethod]
         public void GetLocations_NoHotspots_EmptyList()
         {
-            var testSubject = new HotspotsStore();
+            var testSubject = new HotspotsStore() as IIssueLocationStore;
 
             var locations = testSubject.GetLocations("test.cpp");
             locations.Should().BeEmpty();
@@ -118,8 +118,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         [TestMethod]
         public void GetLocations_NoHotspotsForGivenFilePath_EmptyList()
         {
-            var testSubject = new HotspotsStore();
-            testSubject.Add(CreateIssueViz("file1.cpp"));
+            var testSubject = new HotspotsStore() as IIssueLocationStore;
+            ((IHotspotsStore)testSubject).Add(CreateIssueViz("file1.cpp"));
 
             var locations = testSubject.GetLocations("file2.cpp");
             locations.Should().BeEmpty();
@@ -135,10 +135,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             var issueViz2 = CreateIssueViz("someotherfile.cpp", locationViz.Object);
             var issueViz3 = CreateIssueViz("SOMEFILE.cpp");
 
-            var testSubject = new HotspotsStore();
-            testSubject.Add(issueViz1);
-            testSubject.Add(issueViz2);
-            testSubject.Add(issueViz3);
+            var testSubject = new HotspotsStore() as IIssueLocationStore;
+            ((IHotspotsStore)testSubject).Add(issueViz1);
+            ((IHotspotsStore)testSubject).Add(issueViz2);
+            ((IHotspotsStore)testSubject).Add(issueViz3);
 
             var locations = testSubject.GetLocations("somefile.cpp");
             locations.Should().BeEquivalentTo(issueViz1, issueViz3, locationViz.Object);
