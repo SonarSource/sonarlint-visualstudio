@@ -11,7 +11,6 @@
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    <RequiresVersionSpecificShell>true</RequiresVersionSpecificShell>
   </PropertyGroup>
 
   <!-- This project references the Microsoft.VisualStudio.Shell assembly which is VS-version specific -->
@@ -62,12 +61,6 @@
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
     
-    <Compile Update="HotspotsList\HotspotsListResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>HotspotsListResources.resx</DependentUpon>
-    </Compile>
-    
     <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -79,11 +72,6 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
     </Compile>
-
-    <EmbeddedResource Update="HotspotsList\HotspotsListResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>HotspotsListResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
 
     <EmbeddedResource Update="OpenInIDE\OpenInIDEResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
