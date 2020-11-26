@@ -55,6 +55,14 @@ namespace SonarQube.Client.Models
         public IssueTextRange TextRange { get; }
         public string Organization { get; } 
         public string ComponentKey { get; }
+
+        /// <summary>
+        /// Relative file path
+        /// </summary>
+        /// <remarks>
+        /// The path is relative to the Sonar project root.
+        /// The path is in Windows format i.e. the directory separators are backslashes
+        /// </remarks>
         public string FilePath { get; }
         public string RuleKey { get; }
         public string RuleName { get; }
