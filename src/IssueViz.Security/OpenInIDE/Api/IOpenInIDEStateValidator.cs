@@ -22,6 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
+using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 {
@@ -88,7 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 return string.Format(OpenInIDEResources.RequestValidator_InvalidState_NotInConnectedMode, instructions);
             }
 
-            if (IsCorrectServer() && IsCorrectOrganization() && IsCorrectSonarProject())
+            if (IsCorrectServer(serverUri, configuration.Project.ServerUri) && IsCorrectOrganization() && IsCorrectSonarProject())
             {
                 return null;
             }
@@ -104,11 +105,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             return string.Format(OpenInIDEResources.RequestValidator_InvalidState_WrongConnection, instructions, currentConfiguration);
 
-            bool IsCorrectServer()
-            {
-                return serverUri.Equals(configuration.Project.ServerUri);
-            }
-
             bool IsCorrectOrganization()
             {
                 return string.IsNullOrEmpty(organizationKey) ||
@@ -119,6 +115,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             {
                 return projectKey.Equals(configuration.Project.ProjectKey, StringComparison.OrdinalIgnoreCase);
             }
+        }
+
+        internal /* for testing */ static bool IsCorrectServer(Uri requestUri, Uri bindingUri)
+        {
+            var normalizedRequestUri = requestUri.EnsureTrailingSlash();
+            var normalizedBindingUri = bindingUri.EnsureTrailingSlash();
+            return normalizedRequestUri.Equals(normalizedBindingUri);
         }
     }
 }

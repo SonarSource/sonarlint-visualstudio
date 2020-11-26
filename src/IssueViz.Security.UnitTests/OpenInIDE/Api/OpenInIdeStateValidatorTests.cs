@@ -92,6 +92,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             logger.AssertNoOutputMessages();
         }
 
+        [TestMethod]
+        [DataRow("https://myserver.sonarqube.com/sonarqube", "https://myserver.sonarqube.com/sonarqube/", true)] // regression test for #1945
+        [DataRow("https://myserver.sonarqube.com/sonarqube/", "https://myserver.sonarqube.com/sonarqube", true)] // regression test for #1945
+
+        [DataRow("https://locahost:9000", "https://locahost:9000", true)]
+        [DataRow("https://locahost:9000", "https://locahost:9000/", true)]
+        [DataRow("https://locahost:9000/", "https://locahost:9000", true)]
+        [DataRow("https://locahost:9000/", "https://locahost:9000/", true)]
+        [DataRow("https://locahost:9000", "https://LOCALHOST:9000", false)]     // case-sensitive
+        [DataRow("http://locahost:9000", "https://locahost:9000", false)]       // different scheme
+        [DataRow("https://locahost/", "https://locahost:2222/", false)]         // different port
+        [DataRow("https://locahost:1111/", "https://locahost:2222/", false)]    // different port
+        public void IsSameServer(string uriString1, string uriString2, bool shouldMatch)
+        {
+            var uri1 = new Uri(uriString1);
+            var uri2 = new Uri(uriString2);
+
+            OpenInIdeStateValidator.IsCorrectServer(uri1, uri2)
+                .Should().Be(shouldMatch);
+        }
+
         private void VerifyValidationFailed(TestConfigurationSetup solutionTestConfigurationSetup, string failureReasonString)
         {
             var configProvider = solutionTestConfigurationSetup == null
