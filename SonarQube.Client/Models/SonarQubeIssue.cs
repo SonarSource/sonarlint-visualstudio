@@ -39,6 +39,13 @@ namespace SonarQube.Client.Models
             Flows = flows ?? EmptyFlows;
         }
 
+        /// <summary>
+        /// Relative file path
+        /// </summary>
+        /// <remarks>
+        /// The path is relative to the Sonar project root.
+        /// The path is in Windows format i.e. the directory separators are backslashes
+        /// </remarks>
         public string FilePath { get; }
         public string Hash { get; }
         public int? Line { get; }
