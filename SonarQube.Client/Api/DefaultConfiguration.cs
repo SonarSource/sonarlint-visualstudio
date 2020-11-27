@@ -50,7 +50,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>("6.6")
                 .RegisterRequest<IGetOrganizationsRequest, V7_00.GetOrganizationsRequest>("7.0")
                 .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>("7.2")
-                .RegisterRequest<IGetHotspotRequest, V8_1.GetHotspotRequest>("8.1");
+                .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>("8.6");
             return requestFactory;
         }
     }
