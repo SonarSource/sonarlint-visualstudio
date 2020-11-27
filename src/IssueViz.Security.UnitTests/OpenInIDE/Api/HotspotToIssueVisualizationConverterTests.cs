@@ -39,6 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         public void Convert_CreatedIssueVisualization()
         {
             var sonarQubeHotspot = CreateSonarQubeHotspot(
+                hotspotKey: "some key",
                 filePath: "some path",
                 probability: "high",
                 textRange: new IssueTextRange(5, 10, 15, 20),
@@ -56,6 +57,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             issueVizConverter.Verify(x => x.Convert(
                     It.Is((IHotspot hotspot) =>
+                        hotspot.HotspotKey == "some key" &&
                         hotspot.Priority == HotspotPriority.High &&
                         hotspot.LineHash == null &&
                         hotspot.Flows.IsEmpty() &&
@@ -126,7 +128,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [DataRow("low", HotspotPriority.Low)]
         public void Convert_VulnerabilityProbability_ConvertedToHotspotPriority(string probability, HotspotPriority expectedPriority)
         {
-            var sonarQubeHotspot = CreateSonarQubeHotspot(probability);
+            var sonarQubeHotspot = CreateSonarQubeHotspot(probability: probability);
             var issueVizConverter = SetupIssueVizConverter(Mock.Of<IAnalysisIssueVisualization>());
 
             var testSubject = new HotspotToIssueVisualizationConverter(issueVizConverter.Object, Mock.Of<IAbsoluteFilePathLocator>());
@@ -138,8 +140,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 Times.Once);
         }
 
-        private SonarQubeHotspot CreateSonarQubeHotspot(string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key") =>
-            new SonarQubeHotspot("some key",
+        private SonarQubeHotspot CreateSonarQubeHotspot(string hotspotKey = "some key", string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key") =>
+            new SonarQubeHotspot(hotspotKey,
                 message,
                 "assignee",
                 "status",
