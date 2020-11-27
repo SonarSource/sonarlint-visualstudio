@@ -35,7 +35,7 @@ namespace SonarQube.Client.Tests
         public async Task GetHotspot_Response_From_SonarQube()
         {
             const string hotspotKey = "AW9mgJw6eFC3pGl94Wrf";
-            await ConnectToSonarQube("8.1.0.0");
+            await ConnectToSonarQube("8.6.0.0");
 
             SetupRequest($"api/hotspots/show?hotspot={hotspotKey}", @"{
   ""key"": ""AW9mgJw6eFC3pGl94Wrf"",
@@ -58,7 +58,10 @@ namespace SonarQube.Client.Tests
     ""key"": ""java:S4787"",
     ""name"": ""rule-name"",
     ""securityCategory"": ""others"",
-    ""vulnerabilityProbability"": ""LOW""
+    ""vulnerabilityProbability"": ""LOW"",
+    ""riskDescription"": ""risk desc"",
+    ""vulnerabilityDescription"": ""vuln desc"",
+    ""fixRecommendations"": ""fix rec""
   },
   ""textRange"": {
     ""startLine"": 5,
@@ -67,6 +70,7 @@ namespace SonarQube.Client.Tests
     ""endOffset"": 41
   },
   ""status"": ""TO_REVIEW"",
+  ""hash"": ""106b6a42b6099a78bbb233937f36c4bc"",
   ""message"": ""message"",
   ""assignee"": ""joe"",
   ""author"": ""joe"",
@@ -155,6 +159,7 @@ namespace SonarQube.Client.Tests
 
             result.HotspotKey.Should().Be(hotspotKey);
             result.Message.Should().Be("message");
+            result.LineHash.Should().Be("106b6a42b6099a78bbb233937f36c4bc");
             result.Assignee.Should().Be("joe");
             result.Status.Should().Be("TO_REVIEW");
 
@@ -165,10 +170,13 @@ namespace SonarQube.Client.Tests
             result.ComponentKey.Should().Be("com.sonarsource:test-project:src/main/java/com/sonarsource/FourthClass.java");
             result.FilePath.Should().Be("src\\main\\java\\com\\sonarsource\\FourthClass.java");
 
-            result.RuleKey.Should().Be("java:S4787");
-            result.RuleName.Should().Be("rule-name");
-            result.SecurityCategory.Should().Be("others");
-            result.VulnerabilityProbability.Should().Be("LOW");
+            result.Rule.RuleKey.Should().Be("java:S4787");
+            result.Rule.RuleName.Should().Be("rule-name");
+            result.Rule.SecurityCategory.Should().Be("others");
+            result.Rule.VulnerabilityProbability.Should().Be("LOW");
+            result.Rule.RiskDescription.Should().Be("risk desc");
+            result.Rule.VulnerabilityDescription.Should().Be("vuln desc");
+            result.Rule.FixRecommendations.Should().Be("fix rec");
 
             result.TextRange.Should().NotBeNull();
             result.TextRange.StartLine.Should().Be(5);

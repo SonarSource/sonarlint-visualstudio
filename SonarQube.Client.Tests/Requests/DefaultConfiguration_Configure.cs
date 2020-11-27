@@ -60,7 +60,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V6_60.GetRoslynExportProfileRequest for 6.6",
                     "Registered SonarQube.Client.Api.V7_00.GetOrganizationsRequest for 7.0",
                     "Registered SonarQube.Client.Api.V7_20.GetIssuesRequestWrapper for 7.2",
-                    "Registered SonarQube.Client.Api.V8_1.GetHotspotRequest for 8.1"
+                    "Registered SonarQube.Client.Api.V8_6.GetHotspotRequest for 8.6"
                 };
 
             DefaultConfiguration.Configure(new RequestFactory(logger));

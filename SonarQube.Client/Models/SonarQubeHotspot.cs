@@ -23,14 +23,15 @@ namespace SonarQube.Client.Models
     public class SonarQubeHotspot
     {
         public SonarQubeHotspot(
-            string hotspotKey, string message, string assignee, string status,
+            string hotspotKey, string message, string lineHash, string assignee, string status,
             string organization, string projectKey, string projectName,
             string componentKey, string filePath,
-            string ruleKey, string ruleName, string securityCategory, 
-            string vulnerabilityProbability, IssueTextRange textRange)
+            SonarQubeHotspotRule rule,
+            IssueTextRange textRange)
         {
             HotspotKey = hotspotKey;
             Message = message;
+            LineHash = lineHash;
             Assignee = assignee;
             Status = status;
 
@@ -41,15 +42,13 @@ namespace SonarQube.Client.Models
             ComponentKey = componentKey;
             FilePath = filePath;
 
-            RuleKey = ruleKey;
-            RuleName = ruleName;
-            SecurityCategory = securityCategory;
-            VulnerabilityProbability = vulnerabilityProbability;
+            Rule = rule;
             TextRange = textRange;
         }
 
         public string HotspotKey { get; }
         public string Message { get; }
+        public string LineHash { get; }
         public string Assignee { get; }
         public string Status { get; }
         public IssueTextRange TextRange { get; }
@@ -64,10 +63,7 @@ namespace SonarQube.Client.Models
         /// The path is in Windows format i.e. the directory separators are backslashes
         /// </remarks>
         public string FilePath { get; }
-        public string RuleKey { get; }
-        public string RuleName { get; }
-        public string SecurityCategory { get; }
-        public string VulnerabilityProbability { get; }
+        public SonarQubeHotspotRule Rule { get; }
         public string ProjectKey { get; }
         public string ProjectName { get; }
     }
