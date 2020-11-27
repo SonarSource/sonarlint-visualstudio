@@ -26,6 +26,7 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
 {
@@ -33,7 +34,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
     {
         ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
 
-        void Add(IAnalysisIssueVisualization hotspot);
+        /// <summary>
+        /// Adds a given hotspot to the list if it does not already exist.
+        /// Returns the given hotspot, or the existing hotspot if the key exists.
+        /// </summary>
+        IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspot);
 
         void Remove(IAnalysisIssueVisualization hotspot);
     }
@@ -45,10 +50,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
     {
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
 
-        void IHotspotsStore.Add(IAnalysisIssueVisualization hotspot)
+        IAnalysisIssueVisualization IHotspotsStore.GetOrAdd(IAnalysisIssueVisualization hotspot)
         {
+            var existingHotspot = Exists(hotspot);
+
+            if (existingHotspot != null)
+            {
+                return existingHotspot;
+            }
+
             Hotspots.Add(hotspot);
             NotifyHotspotChanged(hotspot);
+
+            return hotspot;
         }
 
         void IHotspotsStore.Remove(IAnalysisIssueVisualization hotspot)
@@ -70,6 +84,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
                 .Distinct(StringComparer.OrdinalIgnoreCase);
 
             IssuesChanged.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
+        }
+
+        private IAnalysisIssueVisualization Exists(IAnalysisIssueVisualization hotspot)
+        {
+            var matches = Hotspots
+                .ToLookup(x => ((IHotspot)x.Issue).HotspotKey)
+                .FirstOrDefault(x => x.Key.Equals(((IHotspot)hotspot.Issue).HotspotKey));
+
+            return matches?.FirstOrDefault();
         }
 
         ReadOnlyObservableCollection<IAnalysisIssueVisualization> IHotspotsStore.GetAll()
