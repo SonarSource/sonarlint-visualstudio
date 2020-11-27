@@ -27,21 +27,15 @@ namespace SonarLint.VisualStudio.Core
         internal const string TreatBlockerAsErrorEnvVar = "SONAR_INTERNAL_TREAT_BLOCKER_AS_ERROR";
         internal const string AnalysisTimeoutEnvVar = "SONARLINT_INTERNAL_ANALYSIS_TIMEOUT_MS";
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
+        internal const string LogDebugMessagesEnvVar = "SONARLINT_INTERNAL_LOG_DEBUG";
+
         public const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
 
         public bool TreatBlockerSeverityAsError()
-        {
-            if (bool.TryParse(Environment.GetEnvironmentVariable(TreatBlockerAsErrorEnvVar), out var result))
-            {
-                return result;
-            }
-            return false;
-        }
+            => ParseBool(TreatBlockerAsErrorEnvVar);
 
         public int AnalysisTimeoutInMs()
-        {
-            return ParseInt(Environment.GetEnvironmentVariable(AnalysisTimeoutEnvVar));
-        }
+            => ParseInt(Environment.GetEnvironmentVariable(AnalysisTimeoutEnvVar));
 
         public int PCHGenerationTimeoutInMs(int defaultValue)
         {
@@ -50,14 +44,15 @@ namespace SonarLint.VisualStudio.Core
             return userValue > 0 ? userValue : defaultValue;
         }
 
-        public string SonarLintDaemonDownloadUrl()
-        {
-            // The URL validation and logging is being done by the daemon installer, so
-            // this is just a passthrough
-            return Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
-        }
+        public bool ShouldLogDebugMessages() 
+            => ParseBool(LogDebugMessagesEnvVar);
 
-        internal int ParseInt(string setting)
+        // The URL validation and logging is being done by the daemon installer, so
+        // this is just a passthrough       
+        public string SonarLintDaemonDownloadUrl()
+            => Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
+
+        private static int ParseInt(string setting)
         {
             if (int.TryParse(setting, System.Globalization.NumberStyles.Integer, System.Globalization.NumberFormatInfo.InvariantInfo, out int userSuppliedValue)
                 && userSuppliedValue > 0)
@@ -66,6 +61,15 @@ namespace SonarLint.VisualStudio.Core
             }
 
             return 0;
+        }
+
+        private static bool ParseBool(string setting)
+        {
+            if (bool.TryParse(Environment.GetEnvironmentVariable(setting), out var result))
+            {
+                return result;
+            }
+            return false;
         }
     }
 }
