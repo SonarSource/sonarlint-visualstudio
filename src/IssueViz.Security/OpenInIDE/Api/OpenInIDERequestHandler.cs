@@ -130,8 +130,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             }
 
             // Add to store and select regardless of whether navigation succeeded
-            hotspotsStore.Add(hotspotViz);
-            hotspotsSelectionService.Select(hotspotViz);
+            var addedHotspot = hotspotsStore.GetOrAdd(hotspotViz);
+            hotspotsSelectionService.Select(addedHotspot);
         }
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
