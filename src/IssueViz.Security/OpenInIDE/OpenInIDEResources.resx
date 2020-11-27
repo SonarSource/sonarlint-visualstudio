@@ -169,6 +169,10 @@
     server: {0}
     project: {1}</value>
   </data>
+  <data name="RequestValidator_DocumentationLink" xml:space="preserve">
+    <value>Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features.
+</value>
+  </data>
   <data name="OpenHotspot_InvalidServerParameter" xml:space="preserve">
     <value>[Open in IDE] Invalid server parameter: {0}</value>
   </data>
