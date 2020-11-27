@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Native;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
@@ -99,6 +100,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         }
 
         private void LogWinApiFailure(string apiName) =>
-            logger.WriteLine(Strings.IDEWindowService_WinAPICallFailed, apiName, Marshal.GetLastWin32Error());
+            logger.LogDebug(Strings.IDEWindowService_WinAPICallFailed, apiName, Marshal.GetLastWin32Error());
     }
 }

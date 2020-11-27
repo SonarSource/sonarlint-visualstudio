@@ -56,8 +56,8 @@ namespace SonarLint.VisualStudio.Integration.MefServices
             }
 
             public void Debug(string message) =>
-                // This will be executed only on DEBUG build.
-                logger.LogDebug($"DEBUG: {message}");
+                // This will only be logged if an env var is set
+                logger.LogDebug(message);
 
             public void Error(string message) =>
                 logger.WriteLine($"ERROR: {message}");
