@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
 
         internal /* for testing*/ static void Initialize(IEnvironmentSettings settings)
         {
-            shouldLogDebug = settings.LogDebugMessages();
+            shouldLogDebug = settings.ShouldLogDebugMessages();
         }
 
         /// <summary>

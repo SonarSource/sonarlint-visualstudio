@@ -49,6 +49,6 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Returns true if debug-level messages should be logged to the output window, otherwise false
         /// </summary>
-        bool LogDebugMessages();
+        bool ShouldLogDebugMessages();
     }
 }

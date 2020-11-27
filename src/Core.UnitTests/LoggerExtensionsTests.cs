@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             var logger = new TestLogger();
             var mockSettings = new Mock<IEnvironmentSettings>();
-            mockSettings.Setup(x => x.LogDebugMessages()).Returns(shouldLog);
+            mockSettings.Setup(x => x.ShouldLogDebugMessages()).Returns(shouldLog);
 
             try
             {

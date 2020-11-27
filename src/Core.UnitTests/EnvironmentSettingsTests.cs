@@ -118,7 +118,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             using (var scope = new EnvironmentVariableScope())
             {
                 scope.SetVariable(EnvironmentSettings.LogDebugMessagesEnvVar, envVarValue);
-                new EnvironmentSettings().LogDebugMessages().Should().Be(expected);
+                new EnvironmentSettings().ShouldLogDebugMessages().Should().Be(expected);
             }
         }
     }
