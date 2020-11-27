@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 OrganizationKey = "org"
             };
 
-        private readonly SonarQubeHotspot ValidServerHotspot = new SonarQubeHotspot("hotspotKey", null, null, null, null, null, null, null, null, null, null, null, null, null);
+        private readonly SonarQubeHotspot ValidServerHotspot = new SonarQubeHotspot("hotspotKey", null, null, null, null, null, null, null, null, null, null, null);
 
         private Mock<IIDEWindowService> ideWindowServiceMock;
         private Mock<IToolWindowService> toolWindowServiceMock;

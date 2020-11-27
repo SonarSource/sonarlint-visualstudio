@@ -43,7 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 probability: "high",
                 textRange: new IssueTextRange(5, 10, 15, 20),
                 message: "message",
-                ruleKey: "rule key");
+                ruleKey: "rule key",
+                lineHash: "hash-xxx");
 
             var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("some path", "some absolute path");
 
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             issueVizConverter.Verify(x => x.Convert(
                     It.Is((IHotspot hotspot) =>
                         hotspot.Priority == HotspotPriority.High &&
-                        hotspot.LineHash == null &&
+                        hotspot.LineHash == "hash-xxx" &&
                         hotspot.Flows.IsEmpty() &&
                         hotspot.Message == "message" &&
                         hotspot.RuleKey == "rule key" &&
@@ -138,9 +139,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 Times.Once);
         }
 
-        private SonarQubeHotspot CreateSonarQubeHotspot(string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key") =>
+        private SonarQubeHotspot CreateSonarQubeHotspot(string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message",
+            string ruleKey = "rule key", string lineHash = "linehash") =>
             new SonarQubeHotspot("some key",
                 message,
+                lineHash,
                 "assignee",
                 "status",
                 "org",
@@ -148,10 +151,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 "projectName",
                 "componentKey",
                 filePath,
-                ruleKey,
-                "ruleName",
-                "securityCategory",
-                probability,
+                new SonarQubeHotspotRule(ruleKey, "rule name", "sec category", probability, "risk desc", "vuln desc", "fix req"),
                 textRange ?? new IssueTextRange(5, 10, 15, 20));
 
         private static Mock<IAnalysisIssueVisualizationConverter> SetupIssueVizConverter(IAnalysisIssueVisualization expectedIssueViz)
