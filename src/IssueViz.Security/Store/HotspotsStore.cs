@@ -35,12 +35,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
         ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
 
         /// <summary>
-        /// Adds a given hotspot to the list if it does not already exist.
-        /// Returns the given hotspot, or the existing hotspot if the key exists.
+        /// Adds a given visualization to the list if it does not already exist.
+        /// Returns the given visualization, or the existing visualization with the same hotspot key.
         /// </summary>
-        IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspot);
+        IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspotViz);
 
-        void Remove(IAnalysisIssueVisualization hotspot);
+        void Remove(IAnalysisIssueVisualization hotspotViz);
     }
 
     [Export(typeof(IHotspotsStore))]
@@ -50,35 +50,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
     {
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
 
-        IAnalysisIssueVisualization IHotspotsStore.GetOrAdd(IAnalysisIssueVisualization hotspot)
+        IAnalysisIssueVisualization IHotspotsStore.GetOrAdd(IAnalysisIssueVisualization hotspotViz)
         {
-            var existingHotspot = Exists(hotspot);
+            var existingHotspot = FindExisting(hotspotViz);
 
             if (existingHotspot != null)
             {
                 return existingHotspot;
             }
 
-            Hotspots.Add(hotspot);
-            NotifyHotspotChanged(hotspot);
+            Hotspots.Add(hotspotViz);
+            NotifyHotspotChanged(hotspotViz);
 
-            return hotspot;
+            return hotspotViz;
         }
 
-        void IHotspotsStore.Remove(IAnalysisIssueVisualization hotspot)
+        void IHotspotsStore.Remove(IAnalysisIssueVisualization hotspotViz)
         {
-            Hotspots.Remove(hotspot);
-            NotifyHotspotChanged(hotspot);
+            Hotspots.Remove(hotspotViz);
+            NotifyHotspotChanged(hotspotViz);
         }
 
-        private void NotifyHotspotChanged(IAnalysisIssueVisualization changedHotspot)
+        private void NotifyHotspotChanged(IAnalysisIssueVisualization changedHotspotViz)
         {
             if (IssuesChanged == null)
             {
                 return;
             }
 
-            var hotspotFilePaths = changedHotspot
+            var hotspotFilePaths = changedHotspotViz
                 .GetAllLocations()
                 .Select(x => x.CurrentFilePath)
                 .Distinct(StringComparer.OrdinalIgnoreCase);
@@ -86,13 +86,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
             IssuesChanged.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
         }
 
-        private IAnalysisIssueVisualization Exists(IAnalysisIssueVisualization hotspot)
+        private IAnalysisIssueVisualization FindExisting(IAnalysisIssueVisualization hotspotViz)
         {
-            var matches = Hotspots
-                .ToLookup(x => ((IHotspot)x.Issue).HotspotKey)
-                .FirstOrDefault(x => x.Key.Equals(((IHotspot)hotspot.Issue).HotspotKey));
+            var key = ((IHotspot)hotspotViz.Issue).HotspotKey;
 
-            return matches?.FirstOrDefault();
+            return Hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
         ReadOnlyObservableCollection<IAnalysisIssueVisualization> IHotspotsStore.GetAll()

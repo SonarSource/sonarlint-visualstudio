@@ -89,9 +89,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             var hotspotToAdd = CreateIssueViz(hotspotKey:"some hotspot");
             var addedHotspot = testSubject.GetOrAdd(hotspotToAdd);
 
-            addedHotspot.Should().Be(hotspotToAdd);
+            addedHotspot.Should().BeSameAs(hotspotToAdd);
             testSubject.GetAll().Count.Should().Be(1);
-            testSubject.GetAll()[0].Should().Be(hotspotToAdd);
+            testSubject.GetAll()[0].Should().BeSameAs(hotspotToAdd);
         }
 
         [TestMethod]
@@ -105,10 +105,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot 2");
             var addedHotspot = testSubject.GetOrAdd(hotspotToAdd);
 
-            addedHotspot.Should().Be(hotspotToAdd);
+            addedHotspot.Should().BeSameAs(hotspotToAdd);
             testSubject.GetAll().Count.Should().Be(2);
-            testSubject.GetAll()[0].Should().Be(someOtherHotspot);
-            testSubject.GetAll()[1].Should().Be(hotspotToAdd);
+            testSubject.GetAll()[0].Should().BeSameAs(someOtherHotspot);
+            testSubject.GetAll()[1].Should().BeSameAs(hotspotToAdd);
         }
 
         [TestMethod]
@@ -122,9 +122,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             testSubject.GetOrAdd(firstHotspot);
             var secondAddedHotspot = testSubject.GetOrAdd(secondHotspot);
 
-            secondAddedHotspot.Should().Be(firstHotspot);
+            secondAddedHotspot.Should().BeSameAs(firstHotspot);
             testSubject.GetAll().Count.Should().Be(1);
-            testSubject.GetAll()[0].Should().Be(firstHotspot);
+            testSubject.GetAll()[0].Should().BeSameAs(firstHotspot);
         }
 
         [TestMethod]
