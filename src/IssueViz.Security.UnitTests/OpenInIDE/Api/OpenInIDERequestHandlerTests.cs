@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -225,8 +224,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             SetServerResponse(ValidRequest, ValidServerHotspot);
             SetConversionResponse(ValidServerHotspot, hotspotVizMock.Object);
             SetNavigationRespone(hotspotVizMock.Object, true);
-            SetStoreExpectedItem(hotspotVizMock.Object);
-            SetSelectionServiceExpectedItem(hotspotVizMock.Object);
+
+            var addedHotspotVizMock = new Mock<IAnalysisIssueVisualization>();
+            SetStoreExpectedItem(hotspotVizMock.Object, addedHotspotVizMock.Object);
+            SetSelectionServiceExpectedItem(addedHotspotVizMock.Object);
 
             // Act
             await testSubject.ShowHotspotAsync(ValidRequest)
@@ -252,7 +253,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             SetServerResponse(ValidRequest, ValidServerHotspot);
             SetConversionResponse(ValidServerHotspot, hotspotViz);
             SetNavigationRespone(hotspotViz, false);
-            SetStoreExpectedItem(hotspotViz);
+            SetStoreExpectedItem(hotspotViz, hotspotViz);
             SetSelectionServiceExpectedItem(hotspotViz);
 
             // Act
@@ -264,29 +265,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
             logger.AssertPartialOutputStringExists(hotspotFilePath, hotspotStartLine.ToString());
-        }
-
-        [TestMethod]
-        public async Task ShowHotspot_DataIsValid_IssueFirstAddedToStoreAndThenSelected()
-        {
-            const string hotspotFilePath = "c:\\xx\\yyy.txt";
-            const int hotspotStartLine = -12345;
-            var hotspotViz = CreateHotspotVisualization(hotspotFilePath, hotspotStartLine);
-
-            InitializeStateValidator(ValidRequest, true);
-            SetServerResponse(ValidRequest, ValidServerHotspot);
-            SetConversionResponse(ValidServerHotspot, hotspotViz);
-            SetNavigationRespone(hotspotViz, false);
-
-            var callOrder = new List<int>();
-            storeMock.Setup(x => x.Add(hotspotViz)).Callback(() => callOrder.Add(1));
-            selectionServiceMock.Setup(x=> x.Select(hotspotViz)).Callback(() => callOrder.Add(2));
-
-            // Act
-            await testSubject.ShowHotspotAsync(ValidRequest)
-                .ConfigureAwait(false);
-
-            callOrder.Should().BeEquivalentTo(new[] {1, 2}, c => c.WithStrictOrdering());
         }
 
         private static IAnalysisIssueVisualization CreateHotspotVisualization(string filePath, int startLine)
@@ -319,8 +297,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private void SetNavigationRespone(IAnalysisIssueVisualization expected, bool response) =>
             navigatorMock.Setup(x => x.TryNavigate(expected)).Returns(response);
 
-        private void SetStoreExpectedItem(IAnalysisIssueVisualization expected) =>
-            storeMock.Setup(x => x.Add(expected));
+        private void SetStoreExpectedItem(IAnalysisIssueVisualization expected, IAnalysisIssueVisualization response) =>
+            storeMock.Setup(x => x.GetOrAdd(expected)).Returns(response);
 
         private void SetSelectionServiceExpectedItem(IAnalysisIssueVisualization expected) =>
             selectionServiceMock.Setup(x => x.Select(expected));

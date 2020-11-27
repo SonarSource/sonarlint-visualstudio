@@ -66,6 +66,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             var priority = GetPriority(sonarQubeHotspot.Rule.VulnerabilityProbability);
 
             var hotspot = new Hotspot(
+                hotspotKey: sonarQubeHotspot.HotspotKey,
                 filePath: localFilePath,
                 serverFilePath: sonarQubeHotspot.FilePath,
                 message: sonarQubeHotspot.Message,
