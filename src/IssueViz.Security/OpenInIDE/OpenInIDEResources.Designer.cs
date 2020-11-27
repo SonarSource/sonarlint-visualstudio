@@ -228,6 +228,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features.
+        ///.
+        /// </summary>
+        internal static string RequestValidator_DocumentationLink {
+            get {
+                return ResourceManager.GetString("RequestValidator_DocumentationLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not handle Open in IDE request. See the Output Window for more information..
         /// </summary>
         internal static string RequestValidator_InfoBarMessage {
