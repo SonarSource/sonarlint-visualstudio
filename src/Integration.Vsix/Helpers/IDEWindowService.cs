@@ -20,9 +20,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.Native;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
@@ -33,19 +33,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class IDEWindowService : IIDEWindowService
     {
         private readonly INativeMethods nativeMethods;
-        private readonly IntPtr handle;
+        private readonly IProcess process;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public IDEWindowService(ILogger logger)
-            : this(new NativeMethods(), Process.GetCurrentProcess().MainWindowHandle, logger)
+            : this(new NativeMethods(), new ProcessWrapper(), logger)
         {
         }
 
-        internal /* for testing */ IDEWindowService(INativeMethods nativeMethods, IntPtr handle, ILogger logger)
+        internal /* for testing */ IDEWindowService(INativeMethods nativeMethods, IProcess process, ILogger logger)
         {
             this.nativeMethods = nativeMethods;
-            this.handle = handle;
+            this.process = process;
             this.logger = logger;
         }
 
@@ -54,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 logger.WriteLine(Strings.IDEWindowService_BringingToFront);
+                var handle = process.GetCurrentProcessMainWindowHandle();
                 if (handle == IntPtr.Zero)
                 {
                     logger.WriteLine(Strings.IDEWindowService_InvalidWindowHandle);
