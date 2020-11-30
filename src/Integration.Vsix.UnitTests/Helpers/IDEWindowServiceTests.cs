@@ -21,8 +21,10 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Win32;
 using Moq;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.Native;
 
@@ -36,13 +38,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         private readonly WINDOWPLACEMENT NotMinimized = new WINDOWPLACEMENT { showCmd = 0 };
 
         private Mock<INativeMethods> nativeMock;
+        private Mock<IProcess> processMock;
         private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
         {
             nativeMock = new Mock<INativeMethods>();
+            processMock = new Mock<IProcess>();
             logger = new TestLogger(logToConsole: true);
+
+            SetCurrentMainWindowHandleResponse(ValidHandle);
         }
 
         [TestMethod]
@@ -55,7 +61,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_InvalidHandle_NoApiCalls()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, IntPtr.Zero, logger);
+            SetCurrentMainWindowHandleResponse(IntPtr.Zero);
+
+            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
 
             // Act
             testSubject.BringToFront();
@@ -66,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_GetWindowPlacementFails_IsStillBroughtToFront()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, ValidHandle, logger);
+            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
 
             SetGetPlacementResponse(false, new WINDOWPLACEMENT());
 
@@ -81,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_NotMinimized_IsBroughtToFrontButNotRestored()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, ValidHandle, logger);
+            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
 
             SetGetPlacementResponse(result: true, NotMinimized);
 
@@ -96,7 +104,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_IsMinimized_IsRestoredAndBroughtToFront()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, ValidHandle, logger);
+            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
 
             SetGetPlacementResponse(result: true, Minimized);
 
@@ -111,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         [TestMethod]
         public void BringToFront_NonCriticalExceptions_IsSuppressed()
         {
-            var testSubject = new IDEWindowService(nativeMock.Object, ValidHandle, logger);
+            var testSubject = new IDEWindowService(nativeMock.Object, processMock.Object, logger);
             nativeMock.Setup(x => x.SetForegroundWindow(ValidHandle))
                 .Throws(new InvalidOperationException("thrown from test code"));
 
@@ -126,6 +134,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
         // Delegate required to enable setting ref parameter in the mock
         private delegate bool GetWindowPlacementDelegate(IntPtr hwnd, ref WINDOWPLACEMENT placement);
+
+        private void SetCurrentMainWindowHandleResponse(IntPtr handle) =>
+            processMock.Setup(x => x.GetCurrentProcessMainWindowHandle()).Returns(handle);
 
         private void SetGetPlacementResponse(bool result, WINDOWPLACEMENT placementToReturn)
         {
