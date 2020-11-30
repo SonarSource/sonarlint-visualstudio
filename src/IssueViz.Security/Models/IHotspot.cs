@@ -28,19 +28,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
     {
         string HotspotKey { get; }
 
-        HotspotPriority Priority { get; }
+        IHotspotRule Rule { get; }
 
         /// <summary>
         /// File path as received from SQ server
         /// </summary>
         string ServerFilePath { get; }
-    }
-
-    public enum HotspotPriority
-    {
-        High,
-        Medium,
-        Low
     }
 
     internal class Hotspot : IHotspot
@@ -56,8 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
             int startLineOffset,
             int endLineOffset,
             string lineHash,
-            string ruleKey,
-            HotspotPriority priority,
+            IHotspotRule rule,
             IReadOnlyList<IAnalysisIssueFlow> flows)
         {
             HotspotKey = hotspotKey;
@@ -69,8 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
             StartLineOffset = startLineOffset;
             EndLineOffset = endLineOffset;
             LineHash = lineHash;
-            RuleKey = ruleKey;
-            Priority = priority;
+            Rule = rule;
             Flows = flows ?? EmptyFlows;
         }
 
@@ -82,9 +73,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
         public int StartLineOffset { get; }
         public int EndLineOffset { get; }
         public string LineHash { get; }
-        public string RuleKey { get; }
+        public string RuleKey => Rule.RuleKey;
+        public IHotspotRule Rule { get; }
         public IReadOnlyList<IAnalysisIssueFlow> Flows { get; }
-        public HotspotPriority Priority { get; }
         public string ServerFilePath { get;  }
     }
 }
