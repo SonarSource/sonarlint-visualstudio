@@ -165,6 +165,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
         }
 
         [TestMethod]
+        public void CategoryDisplayName_SecurityCategoryIsKnown_ReturnsFriendlyName()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.Setup(x => x.Rule.SecurityCategory).Returns("auth");
+
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
+
+            var testSubject = new HotspotViewModel(issueViz.Object);
+            testSubject.CategoryDisplayName.Should().Be("Authentication");
+        }
+
+        [TestMethod]
+        public void CategoryDisplayName_SecurityCategoryIsUnknown_ReturnsEmptyString()
+        {
+            var hotspot = new Mock<IHotspot>();
+            hotspot.Setup(x => x.Rule.SecurityCategory).Returns("some dummy category");
+
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
+
+            var testSubject = new HotspotViewModel(issueViz.Object);
+            testSubject.CategoryDisplayName.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void HotspotPropertyChanged_CurrentFilePathProperty_RaisesPropertyChangedForDisplayPath()
         {
             var eventHandler = new Mock<PropertyChangedEventHandler>();

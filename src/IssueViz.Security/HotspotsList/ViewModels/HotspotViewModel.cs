@@ -36,6 +36,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
         int Column { get; }
 
         string DisplayPath { get; }
+
+        string CategoryDisplayName { get; }
     }
 
     internal sealed class HotspotViewModel : IHotspotViewModel
@@ -77,6 +79,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
         public string DisplayPath =>
             Path.GetFileName(Hotspot.CurrentFilePath ?? ((IHotspot)Hotspot.Issue).ServerFilePath);
+
+        public string CategoryDisplayName =>
+            SecurityCategoryDisplayNames.Mapping.TryGetValue(
+                ((IHotspot) Hotspot.Issue).Rule.SecurityCategory, out var displayName)
+                ? displayName
+                : string.Empty;
 
         private bool CanUseSpan()
         {
