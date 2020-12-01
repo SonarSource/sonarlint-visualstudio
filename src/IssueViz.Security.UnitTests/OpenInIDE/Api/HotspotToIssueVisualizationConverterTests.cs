@@ -59,11 +59,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             issueVizConverter.Verify(x => x.Convert(
                     It.Is((IHotspot hotspot) =>
                         hotspot.HotspotKey == "some key" &&
-                        hotspot.Priority == HotspotPriority.High &&
+                        hotspot.Rule.Priority == HotspotPriority.High &&
                         hotspot.LineHash == "hash-xxx" &&
                         hotspot.Flows.IsEmpty() &&
                         hotspot.Message == "message" &&
                         hotspot.RuleKey == "rule key" &&
+                        hotspot.Rule.RuleKey == "rule key" &&
                         hotspot.FilePath== "some absolute path" &&
                         hotspot.ServerFilePath== "some path" &&
                         hotspot.StartLine == 5 &&
@@ -136,7 +137,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             testSubject.Convert(sonarQubeHotspot);
 
             issueVizConverter.Verify(x => x.Convert(
-                    It.Is((IHotspot hotspot) => hotspot.Priority == expectedPriority),
+                    It.Is((IHotspot hotspot) => hotspot.Rule.Priority == expectedPriority),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
         }
