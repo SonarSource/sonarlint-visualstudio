@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var hotspot = new Mock<IAnalysisIssueVisualization>();
             hotspot.SetupAdd(x => x.PropertyChanged += null);
 
-            new HotspotViewModel(hotspot.Object);
+            CreateTestSubject(hotspot.Object);
 
             hotspot.VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
@@ -50,7 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var hotspot = new Mock<IAnalysisIssueVisualization>();
             hotspot.SetupRemove(x => x.PropertyChanged -= null);
 
-            var testSubject = new HotspotViewModel(hotspot.Object);
+            var testSubject = CreateTestSubject(hotspot.Object);
             testSubject.Dispose();
 
             hotspot.VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var eventHandler = new Mock<PropertyChangedEventHandler>();
             var hotspot = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = new HotspotViewModel(hotspot.Object);
+            var testSubject = CreateTestSubject(hotspot.Object);
             testSubject.PropertyChanged += eventHandler.Object;
 
             eventHandler.VerifyNoOtherCalls();
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var eventHandler = new Mock<PropertyChangedEventHandler>();
             var hotspot = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = new HotspotViewModel(hotspot.Object);
+            var testSubject = CreateTestSubject(hotspot.Object);
             testSubject.PropertyChanged += eventHandler.Object;
 
             eventHandler.VerifyNoOtherCalls();
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int originalLineNumber = 123;
             var issueViz = CreateIssueVizWithoutSpan(spanIsNull, originalLineNumber: originalLineNumber);
 
-            var testSubject = new HotspotViewModel(issueViz);
+            var testSubject = CreateTestSubject(issueViz);
             testSubject.Line.Should().Be(originalLineNumber);
         }
 
@@ -116,7 +116,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int originalColumnNumber = 456;
             var issueViz = CreateIssueVizWithoutSpan(spanIsNull, originalColumnNumber: originalColumnNumber);
 
-            var testSubject = new HotspotViewModel(issueViz);
+            var testSubject = CreateTestSubject(issueViz);
             testSubject.Column.Should().Be(originalColumnNumber + 1);
         }
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int lineNumber = 12;
             var issueViz = CreateIssueVizWithSpan(lineNumber: lineNumber);
 
-            var testSubject = new HotspotViewModel(issueViz);
+            var testSubject = CreateTestSubject(issueViz);
             testSubject.Line.Should().Be(lineNumber + 1);
         }
 
@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             const int columnNumber = 15;
             var issueViz = CreateIssueVizWithSpan(columnNumber: columnNumber);
 
-            var testSubject = new HotspotViewModel(issueViz);
+            var testSubject = CreateTestSubject(issueViz);
             testSubject.Column.Should().Be(columnNumber + 1);
         }
 
@@ -150,7 +150,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             issueViz.Setup(x => x.CurrentFilePath).Returns((string)null);
             issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
 
-            var testSubject = new HotspotViewModel(issueViz.Object);
+            var testSubject = CreateTestSubject(issueViz.Object);
             testSubject.DisplayPath.Should().Be("path.cs");
         }
 
@@ -160,34 +160,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns("c:\\some\\local\\path.cs");
 
-            var testSubject = new HotspotViewModel(issueViz.Object);
+            var testSubject = CreateTestSubject(issueViz.Object);
             testSubject.DisplayPath.Should().Be("path.cs");
         }
 
         [TestMethod]
-        public void CategoryDisplayName_SecurityCategoryIsKnown_ReturnsFriendlyName()
+        public void CategoryDisplayName_ReturnsFriendlyName()
         {
             var hotspot = new Mock<IHotspot>();
-            hotspot.Setup(x => x.Rule.SecurityCategory).Returns("auth");
+            hotspot.Setup(x => x.Rule.SecurityCategory).Returns("some category");
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
 
-            var testSubject = new HotspotViewModel(issueViz.Object);
-            testSubject.CategoryDisplayName.Should().Be("Authentication");
-        }
+            var categoryDisplayNameProvider = new Mock<ISecurityCategoryDisplayNameProvider>();
+            categoryDisplayNameProvider.Setup(x => x.Get("some category")).Returns("some display name");
 
-        [TestMethod]
-        public void CategoryDisplayName_SecurityCategoryIsUnknown_ReturnsEmptyString()
-        {
-            var hotspot = new Mock<IHotspot>();
-            hotspot.Setup(x => x.Rule.SecurityCategory).Returns("some dummy category");
-
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
-
-            var testSubject = new HotspotViewModel(issueViz.Object);
-            testSubject.CategoryDisplayName.Should().BeEmpty();
+            var testSubject = CreateTestSubject(issueViz.Object, categoryDisplayNameProvider.Object);
+            testSubject.CategoryDisplayName.Should().Be("some display name");
         }
 
         [TestMethod]
@@ -196,7 +186,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             var eventHandler = new Mock<PropertyChangedEventHandler>();
             var hotspot = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = new HotspotViewModel(hotspot.Object);
+            var testSubject = CreateTestSubject(hotspot.Object);
             testSubject.PropertyChanged += eventHandler.Object;
 
             eventHandler.VerifyNoOtherCalls();
@@ -245,6 +235,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsL
             issueViz.Object.Span = span;
 
             return issueViz.Object;
+        }
+
+        private static HotspotViewModel CreateTestSubject(IAnalysisIssueVisualization issueViz, ISecurityCategoryDisplayNameProvider securityCategoryDisplayNameProvider = null)
+        {
+            securityCategoryDisplayNameProvider ??= Mock.Of<ISecurityCategoryDisplayNameProvider>();
+            return new HotspotViewModel(issueViz, securityCategoryDisplayNameProvider);
         }
     }
 }

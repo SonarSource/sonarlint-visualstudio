@@ -42,8 +42,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
 
     internal sealed class HotspotViewModel : IHotspotViewModel
     {
+        private readonly ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider;
+
         public HotspotViewModel(IAnalysisIssueVisualization hotspot)
+            : this(hotspot, new SecurityCategoryDisplayNameProvider())
         {
+        }
+
+        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider)
+        {
+            this.categoryDisplayNameProvider = categoryDisplayNameProvider;
             Hotspot = hotspot;
             Hotspot.PropertyChanged += Hotspot_PropertyChanged;
         }
@@ -81,12 +89,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             Path.GetFileName(Hotspot.CurrentFilePath ?? ((IHotspot)Hotspot.Issue).ServerFilePath);
 
         public string CategoryDisplayName =>
-            SecurityCategoryDisplayNames.Mapping.TryGetValue(
-                ((IHotspot) Hotspot.Issue).Rule.SecurityCategory, out var displayName)
-                ? displayName
-                : string.Empty;
+            categoryDisplayNameProvider.Get(((IHotspot) Hotspot.Issue).Rule.SecurityCategory);
 
-        private bool CanUseSpan()
+        private bool CanUseSpan()   
         {
             return Hotspot.Span.HasValue && !Hotspot.Span.Value.IsEmpty;
         }

@@ -22,12 +22,22 @@ using System.Collections.Generic;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels
 {
-    /// <summary>
-    /// Based on https://github.com/SonarSource/sonarqube/blob/master/server/sonar-web/src/main/js/helpers/standards.json#L3622
-    /// </summary>
-    internal static class SecurityCategoryDisplayNames
+    internal interface ISecurityCategoryDisplayNameProvider
     {
-        public static readonly IDictionary<string, string> Mapping = new Dictionary<string, string>
+        /// <summary>
+        /// Returns the friendly name of the given security category code, or a placeholder if the category is unknown.
+        /// </summary>
+        string Get(string categoryCode);
+    }
+
+    internal class SecurityCategoryDisplayNameProvider : ISecurityCategoryDisplayNameProvider
+    {
+        internal const string UnknownCategoryDisplayName = "{unknown}";
+
+        /// <summary>
+        /// Based on https://github.com/SonarSource/sonarqube/blob/master/server/sonar-web/src/main/js/helpers/standards.json#L3622
+        /// </summary>
+        private static readonly IDictionary<string, string> Mapping = new Dictionary<string, string>
         {
             {"buffer-overflow", "Buffer Overflow"},
             {"sql-injection", "SQL Injection"},
@@ -52,5 +62,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
             {"file-manipulation", "File Manipulation"},
             {"others", "Others"}
         };
+
+        string ISecurityCategoryDisplayNameProvider.Get(string categoryCode)
+        {
+            return Mapping.TryGetValue(categoryCode, out var displayName)
+                ? displayName
+                : UnknownCategoryDisplayName;
+        }
     }
 }
