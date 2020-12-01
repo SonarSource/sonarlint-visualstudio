@@ -81,9 +81,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
             var hotspotFilePaths = changedHotspotViz
                 .GetAllLocations()
                 .Select(x => x.CurrentFilePath)
+                .Where(x=> !string.IsNullOrEmpty(x))
                 .Distinct(StringComparer.OrdinalIgnoreCase);
 
-            IssuesChanged.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
+            if (hotspotFilePaths.Any())
+            {
+                IssuesChanged.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
+            }
         }
 
         private IAnalysisIssueVisualization FindExisting(IAnalysisIssueVisualization hotspotViz)
@@ -104,7 +108,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
         {
             var matchingLocations = Hotspots
                 .SelectMany(hotspotViz => hotspotViz.GetAllLocations())
-                .Where(locationViz => PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
+                .Where(locationViz => !string.IsNullOrEmpty(locationViz.CurrentFilePath) &&
+                                      PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
 
             return matchingLocations;
         }

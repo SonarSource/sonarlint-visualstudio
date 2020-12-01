@@ -132,9 +132,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
-            IssuesChangedEventArgs suppliedArgs = null;
             var eventCount = 0;
-            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
 
             var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot");
             testSubject.GetOrAdd(hotspotToAdd);
@@ -147,7 +146,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void Add_NoSubscribersToIssuesChangedEvent_NoException()
+        [DataRow(null)]
+        [DataRow("")]
+        public void GetOrAdd_HotspotHasNoFilePath_SubscribersNotNotified(string filePath)
+        {
+            var testSubject = new HotspotsStore() as IHotspotsStore;
+
+            var eventCount = 0;
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
+
+            var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot", filePath: filePath);
+            testSubject.GetOrAdd(hotspotToAdd);
+
+            eventCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void GetOrAdd_NoSubscribersToIssuesChangedEvent_NoException()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -156,7 +171,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void Add_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
+        public void GetOrAdd_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -184,6 +199,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
 
             var act = new Action(() => testSubject.Remove(CreateIssueViz()));
             act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Remove_HotspotHasNoFilePath_SubscribersNotNotified(string filePath)
+        {
+            var testSubject = new HotspotsStore() as IHotspotsStore;
+
+            var eventCount = 0;
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
+
+            var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot", filePath: filePath);
+            testSubject.GetOrAdd(hotspotToAdd);
+
+            eventCount.Should().Be(0);
+
+            testSubject.Remove(hotspotToAdd);
+
+            eventCount.Should().Be(0);
         }
 
         [TestMethod]
@@ -225,6 +260,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
             ((IHotspotsStore)testSubject).GetOrAdd(CreateIssueViz("file1.cpp"));
 
             var locations = testSubject.GetLocations("file2.cpp");
+            locations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [Description("Regression test for #1958")]
+        public void GetLocations_HotspotHasNoFilePath_EmptyList(string filePath)
+        {
+            var issueViz = CreateIssueViz(filePath: filePath);
+
+            var testSubject = new HotspotsStore() as IIssueLocationStore;
+            ((IHotspotsStore)testSubject).GetOrAdd(issueViz);
+
+            var locations = testSubject.GetLocations("somefile.cpp");
             locations.Should().BeEmpty();
         }
 
