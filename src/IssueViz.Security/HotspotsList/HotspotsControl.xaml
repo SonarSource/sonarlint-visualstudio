@@ -221,7 +221,7 @@
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
         <DataGrid Grid.Column="0" 
-                  IsReadOnly="False" 
+                  IsReadOnly="True" 
                   CanUserAddRows="False"
                   CanUserDeleteRows="False"
                   CanUserReorderColumns="True"
