@@ -30,10 +30,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Models
     [TestClass]
     public class HotspotTests
     {
+        private static readonly IHotspotRule ValidRule = CreateRule("x123");
+
         [TestMethod]
         public void Ctor_PropertiesSet()
         {
-            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, null);
+            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, null);
 
             hotspot.HotspotKey.Should().Be("hotspot key");
             hotspot.FilePath.Should().Be("local-path.cpp");
@@ -44,15 +46,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Models
             hotspot.StartLineOffset.Should().Be(3);
             hotspot.EndLineOffset.Should().Be(4);
             hotspot.LineHash.Should().Be("hash");
-            hotspot.RuleKey.Should().Be("rule");
-            hotspot.Priority.Should().Be(HotspotPriority.Medium);
+            hotspot.RuleKey.Should().Be(ValidRule.RuleKey);
+            hotspot.Rule.Should().BeSameAs(ValidRule);
         }
 
         [TestMethod]
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, flows);
+            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, flows);
 
             hotspot.Flows.Should().BeEmpty();
         }
@@ -61,9 +63,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Models
         public void Ctor_HasFlows_CorrectFlows()
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
-            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", "rule", HotspotPriority.Medium, flows);
+            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, flows);
 
             hotspot.Flows.Should().BeEquivalentTo(flows);
+        }
+
+        private static IHotspotRule CreateRule(string ruleKey)
+        {
+            var ruleMock = new Mock<IHotspotRule>();
+            ruleMock.Setup(x => x.RuleKey).Returns(ruleKey);
+            return ruleMock.Object;
         }
     }
 }
