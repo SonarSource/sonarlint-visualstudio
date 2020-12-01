@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void GetOrAdd_NoExistingHotspots_HotspotAdded()
+        public void GetOrGetOrAdd_NoExistingHotspots_HotspotAdded()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -95,7 +95,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void GetOrAdd_NoMatchingHotspot_HotspotAdded()
+        public void GetOrGetOrAdd_NoMatchingHotspot_HotspotAdded()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void GetOrAdd_HasMatchingHotspot_HotspotNotAdded()
+        public void GetOrGetOrAdd_HasMatchingHotspot_HotspotNotAdded()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void GetOrAdd_HasMatchingHotspot_SubscribersNotNotified()
+        public void GetOrGetOrAdd_HasMatchingHotspot_SubscribersNotNotified()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void Add_NoSubscribersToIssuesChangedEvent_NoException()
+        public void GetOrAdd_NoSubscribersToIssuesChangedEvent_NoException()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
@@ -156,7 +156,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         }
 
         [TestMethod]
-        public void Add_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
+        public void GetOrAdd_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
         {
             var testSubject = new HotspotsStore() as IHotspotsStore;
 
