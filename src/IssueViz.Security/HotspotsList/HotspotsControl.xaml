@@ -213,7 +213,7 @@
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="Margin" Value="1"/>
-            <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
+            <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Rule.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
         </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
@@ -267,10 +267,10 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Priority" Header="Priority" Width="100">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Rule.Priority" Header="Priority" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding Hotspot.Issue.Priority}" 
+                            <TextBlock Text="{Binding Hotspot.Issue.Rule.Priority}" 
                                        Style="{StaticResource PriorityColumnCellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
