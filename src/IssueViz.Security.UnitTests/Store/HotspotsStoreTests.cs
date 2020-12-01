@@ -266,6 +266,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
+        [Description("Regression test for #1958")]
         public void GetLocations_HotspotHasNoFilePath_EmptyList(string filePath)
         {
             var issueViz = CreateIssueViz(filePath: filePath);
