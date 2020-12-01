@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
     /// <summary>
     /// Based on https://github.com/SonarSource/sonarqube/blob/master/server/sonar-web/src/main/js/helpers/standards.json#L3622
     /// </summary>
-    internal class SecurityCategoryDisplayNames
+    internal static class SecurityCategoryDisplayNames
     {
         public static readonly IDictionary<string, string> Mapping = new Dictionary<string, string>
         {
