@@ -36,12 +36,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
         int Column { get; }
 
         string DisplayPath { get; }
+
+        string CategoryDisplayName { get; }
     }
 
     internal sealed class HotspotViewModel : IHotspotViewModel
     {
+        private readonly ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider;
+
         public HotspotViewModel(IAnalysisIssueVisualization hotspot)
+            : this(hotspot, new SecurityCategoryDisplayNameProvider())
         {
+        }
+
+        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider)
+        {
+            this.categoryDisplayNameProvider = categoryDisplayNameProvider;
             Hotspot = hotspot;
             Hotspot.PropertyChanged += Hotspot_PropertyChanged;
         }
@@ -78,7 +88,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewMo
         public string DisplayPath =>
             Path.GetFileName(Hotspot.CurrentFilePath ?? ((IHotspot)Hotspot.Issue).ServerFilePath);
 
-        private bool CanUseSpan()
+        public string CategoryDisplayName =>
+            categoryDisplayNameProvider.Get(((IHotspot) Hotspot.Issue).Rule.SecurityCategory);
+
+        private bool CanUseSpan()   
         {
             return Hotspot.Span.HasValue && !Hotspot.Span.Value.IsEmpty;
         }
