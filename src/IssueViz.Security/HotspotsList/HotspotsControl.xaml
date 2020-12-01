@@ -156,6 +156,7 @@
         <Style x:Key="CellTextBlockStyle" TargetType="TextBlock">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextAlignment" Value="Left"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style TargetType="ContextMenu">
             <Setter Property="Width" Value="200"/>
@@ -212,6 +213,7 @@
         <Style x:Key="PriorityColumnCellTextBlockStyle" TargetType="TextBlock">
             <Setter Property="TextWrapping" Value="Wrap"/>
             <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="1"/>
             <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Rule.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
         </Style>
@@ -264,6 +266,14 @@
                         <DataTemplate>
                             <TextBlock Text="{Binding Hotspot.Issue.RuleKey}" 
                                        Style="{StaticResource CellTextBlockStyle}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="CategoryDisplayName" Header="Category" Width="Auto">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding CategoryDisplayName}" 
+                                       Style="{StaticResource CellTextBlockStyle}"/>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
