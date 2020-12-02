@@ -269,8 +269,9 @@
                                                       Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
                                                       Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
                                 <vsImaging:CrispImage Height="16" Width="16"
+                                                      Margin="-5,0,0,0"
                                                       ToolTipService.ToolTip="Location is navigable. Use double-click or Enter to open the document."
-                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentOK}" 
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentSource}" 
                                                       Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToVisibilityConverter}, Mode=OneWay}"/>
                             </Grid>
                         </DataTemplate>
