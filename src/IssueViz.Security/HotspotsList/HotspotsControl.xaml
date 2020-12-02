@@ -2,7 +2,7 @@
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:wpf="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+             xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
              xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
              xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
@@ -13,10 +13,14 @@
     <UserControl.Resources>
         <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
         <issueVisualizationControl:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter"/>
-        <wpf:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
+        <core:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
             <issueVisualizationControl:SpanToNavigabilityConverter />
-            <wpf:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
-        </wpf:AggregatorValueConverter>
+            <core:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
+        </core:AggregatorValueConverter>
+        <core:AggregatorValueConverter x:Key="SpanToVisibilityConverter">
+            <issueVisualizationControl:SpanToNavigabilityConverter />
+            <core:BoolToVisibilityConverter TrueValue="Visible" FalseValue="Collapsed" />
+        </core:AggregatorValueConverter>
         <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
 
         <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
@@ -252,12 +256,23 @@
                     CommandParameter="{Binding Hotspots/}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
-                <DataGridTemplateColumn CanUserSort="False" Width="25">
+                <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
+                    <DataGridTemplateColumn.HeaderStyle>
+                        <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                            <Setter Property="ToolTipService.ToolTip" Value="Location navigability status" />
+                        </Style>
+                    </DataGridTemplateColumn.HeaderStyle>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
-                            <vsImaging:CrispImage Height="16" Width="16"
-                                                  Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
-                                                  Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
+                            <Grid>
+                                <vsImaging:CrispImage Height="16" Width="16"
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
+                                                      Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
+                                <vsImaging:CrispImage Height="16" Width="16"
+                                                      ToolTipService.ToolTip="Location is navigable. Use double-click or Enter to open the document."
+                                                      Moniker="{x:Static vsCatalog:KnownMonikers.DocumentOK}" 
+                                                      Visibility="{Binding Hotspot.Span, Converter={StaticResource SpanToVisibilityConverter}, Mode=OneWay}"/>
+                            </Grid>
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
