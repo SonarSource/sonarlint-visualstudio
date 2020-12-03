@@ -261,7 +261,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 .ConfigureAwait(false);
 
             CheckInvariantBehaviours();
-            CheckInfoBarShown();
+            CheckInfoBarNotShown();
 
             CheckCalled(stateValidatorMock, serverMock, converterMock, navigatorMock, storeMock, selectionServiceMock);
             logger.AssertPartialOutputStringExists(hotspotFilePath, hotspotStartLine.ToString());
