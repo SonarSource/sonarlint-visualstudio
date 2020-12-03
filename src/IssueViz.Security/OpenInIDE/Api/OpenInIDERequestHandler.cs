@@ -126,7 +126,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             if (!navigator.TryNavigate(hotspotViz))
             {
                 logger.WriteLine(OpenInIDEResources.ApiHandler_FailedToNavigateToHotspot, hotspotViz.FilePath, hotspotViz.StartLine);
-                await failureInfoBar.ShowAsync(HotspotsToolWindow.ToolWindowId);
             }
 
             // Add to store and select regardless of whether navigation succeeded
