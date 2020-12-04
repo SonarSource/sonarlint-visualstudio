@@ -240,7 +240,8 @@
                   IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding SelectedHotspot, Mode=TwoWay}"
                   ItemsSource="{Binding Hotspots}"
-                  vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
+                  vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}"
+                  HorizontalScrollBarVisibility="Auto">
             <DataGrid.InputBindings>
                 <MouseBinding
                     MouseAction="LeftDoubleClick"
@@ -277,7 +278,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.RuleKey" Header="Code" Width="130">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.RuleKey" Header="Code" Width="130" MinWidth="54">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Hotspot.Issue.RuleKey}" 
@@ -285,7 +286,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="CategoryDisplayName" Header="Category" Width="Auto">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="CategoryDisplayName" Header="Category" Width="Auto"  MinWidth="74">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding CategoryDisplayName}" 
@@ -293,7 +294,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Rule.Priority" Header="Priority" Width="100">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Rule.Priority" Header="Priority" Width="90"  MinWidth="64">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Hotspot.Issue.Rule.Priority}" 
@@ -301,7 +302,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Message" Header="Description" Width="*">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Hotspot.Issue.Message" Header="Description" Width="*" MinWidth="150">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Hotspot.Issue.Message}" 
@@ -309,7 +310,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="200">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="180"  MinWidth="80">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding DisplayPath}" 
@@ -317,7 +318,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Line" Header="Line" Width="50">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Line" Header="Line" Width="48"  MinWidth="48">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Line}" 
@@ -325,7 +326,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Column" Header="Col" Width="50">
+                <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Column" Header="Col" Width="44"  MinWidth="44">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <TextBlock Text="{Binding Column}" 
