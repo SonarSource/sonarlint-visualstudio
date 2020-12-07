@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
     [Export(typeof(IOpenInIDEFailureInfoBar))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class OpenInIDEFailureInfoBar : IOpenInIDEFailureInfoBar, IDisposable
+    internal sealed class OpenInIDEFailureInfoBar : IOpenInIDEFailureInfoBar, IDisposable
     {
         private readonly IInfoBarManager infoBarManager;
         private readonly IOutputWindowService outputWindowService;
