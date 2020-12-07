@@ -91,6 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     PrecompiledHeader = precompiledHeader,
                     PrecompiledHeaderFile = precompiledHeaderFile,
 
+                    ItemType = vcFile.ItemType,
                     CompileAs = compileAs,
                     CompileAsManaged = vcFileSettings.GetEvaluatedPropertyValue("CompileAsManaged"),
                     CompileAsWinRT = vcFileSettings.GetEvaluatedPropertyValue("CompileAsWinRT"),
@@ -205,6 +206,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             public string PrecompiledHeader { get; set; }
 
             public string PrecompiledHeaderFile { get; set; }
+
+            public string ItemType { get; set; }
 
             public string CompileAs { get; set; }
 

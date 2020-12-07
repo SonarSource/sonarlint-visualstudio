@@ -75,6 +75,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 .Select(x=> ToAnalysisIssueLocation(x, fileContents))
                 .ToArray();
 
+            // If PartsMakeFlow is set to true the issues are expected to be in the reversed order
+            if (locations != null && cFamilyIssue.PartsMakeFlow)
+            {
+                Array.Reverse(locations);
+            }
             var flows = locations.Any() ? new[] { new AnalysisIssueFlow(locations) } : null;
 
             return ToAnalysisIssue(cFamilyIssue, sqLanguage, defaultSeverity, defaultType, flows, fileContents);

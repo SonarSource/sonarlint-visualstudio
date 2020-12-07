@@ -101,6 +101,34 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void Convert_HasMessagePartsMakeFlow_FlowsAreReverted()
+        {
+            var messageParts = new List<MessagePart>
+            {
+                new MessagePart("test1.cpp", 1, 2, 3, 4, "this is a test 1"),
+                new MessagePart("test2.cpp", 5, 6, 7, 8, "this is a test 2")
+            };
+
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", true, messageParts.ToArray());
+
+            var issue = Convert(message);
+
+            var expectedLocations = new List<AnalysisIssueLocation>
+            {
+                new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 5, 7, null),
+                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 1, 3, null),
+            };
+
+            var expectedFlows = new List<AnalysisIssueFlow>
+            {
+                new AnalysisIssueFlow(expectedLocations)
+            };
+
+            issue.Flows.Count.Should().Be(1);
+            issue.Flows.Should().BeEquivalentTo(expectedFlows, config => config.WithStrictOrdering());
+        }
+
+        [TestMethod]
         public void Convert_IssueEndLineIsNotZero_OffsetsAreCalculatedCorrectly()
         {
             var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new MessagePart[0]);
