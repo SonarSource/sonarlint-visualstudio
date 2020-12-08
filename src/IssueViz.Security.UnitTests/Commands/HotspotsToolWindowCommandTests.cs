@@ -27,7 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 {

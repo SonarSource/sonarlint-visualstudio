@@ -22,15 +22,14 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {

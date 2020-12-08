@@ -22,8 +22,8 @@ using System;
 using System.Windows.Media;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {

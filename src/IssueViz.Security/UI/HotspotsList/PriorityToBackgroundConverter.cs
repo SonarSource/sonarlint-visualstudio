@@ -24,7 +24,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using SonarLint.VisualStudio.IssueVisualization.Security.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList
 {
     [ValueConversion(typeof(HotspotPriority), typeof(Brush))]
     public class PriorityToBackgroundConverter : IValueConverter

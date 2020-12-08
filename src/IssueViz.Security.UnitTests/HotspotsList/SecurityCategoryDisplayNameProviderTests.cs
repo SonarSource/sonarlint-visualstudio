@@ -20,7 +20,7 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
 {
