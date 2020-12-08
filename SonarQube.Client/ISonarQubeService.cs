@@ -79,5 +79,7 @@ namespace SonarQube.Client
         Task<IList<SonarQubeModule>> GetAllModulesAsync(string projectKey, CancellationToken token);
 
         Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token);
+
+        Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token);
     }
 }
