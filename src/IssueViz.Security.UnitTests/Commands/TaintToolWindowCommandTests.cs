@@ -48,13 +48,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
             var commandService = Mock.Of<IMenuCommandService>();
             var logger = Mock.Of<ILogger>();
 
-            Action act = () => new HotspotsToolWindowCommand(null, commandService, logger);
+            Action act = () => new TaintToolWindowCommand(null, commandService, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("toolWindowService");
 
-            act = () => new HotspotsToolWindowCommand(toolWindowService, null, logger);
+            act = () => new TaintToolWindowCommand(toolWindowService, null, logger);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("commandService");
 
-            act = () => new HotspotsToolWindowCommand(toolWindowService, commandService, null);
+            act = () => new TaintToolWindowCommand(toolWindowService, commandService, null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
 
