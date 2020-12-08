@@ -296,7 +296,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var firstFlowFirstLocation = results[0].Flows[0].Locations[0];
             firstFlowFirstLocation.ModuleKey.Should().Be("myprojectkey:projectroot/Controllers/WeatherForecastController.cs");
-            firstFlowFirstLocation.FilePath.Should().Be("projectroot/Controllers/WeatherForecastController.cs");
+            firstFlowFirstLocation.FilePath.Should().Be("projectroot\\Controllers\\WeatherForecastController.cs");
             firstFlowFirstLocation.Message.Should().Be("sink: tainted value is used to perform a security-sensitive operation");
             firstFlowFirstLocation.TextRange.StartLine.Should().Be(43);
             firstFlowFirstLocation.TextRange.EndLine.Should().Be(43);
@@ -305,7 +305,7 @@ namespace SonarQube.Client.Tests.Requests.Api.V7_20
 
             var seconFlowSecondLocation = results[0].Flows[1].Locations[1];
             seconFlowSecondLocation.ModuleKey.Should().Be("myprojectkey:projectroot/Controllers/Helper.cs");
-            seconFlowSecondLocation.FilePath.Should().Be("projectroot/Controllers/Helper.cs");
+            seconFlowSecondLocation.FilePath.Should().Be("projectroot\\Controllers\\Helper.cs");
             seconFlowSecondLocation.Message.Should().Be("tainted value is propagated");
             seconFlowSecondLocation.TextRange.StartLine.Should().Be(5);
             seconFlowSecondLocation.TextRange.EndLine.Should().Be(5);
