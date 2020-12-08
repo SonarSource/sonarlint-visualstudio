@@ -24,19 +24,21 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 {
-    internal sealed class HotspotsToolWindowCommand
+    internal sealed class TaintToolWindowCommand
     {
-        public static HotspotsToolWindowCommand Instance { get; set; }
+        public static readonly Guid CommandSet = Constants.CommandSetGuid;
+
+        public static TaintToolWindowCommand Instance { get; set; }
 
         private readonly IToolWindowService toolWindowService;
         private readonly ILogger logger;
 
-        internal HotspotsToolWindowCommand(IToolWindowService toolWindowService, IMenuCommandService commandService, ILogger logger)
+        internal TaintToolWindowCommand(IToolWindowService toolWindowService, IMenuCommandService commandService, ILogger logger)
         {
             this.toolWindowService = toolWindowService ?? throw new ArgumentNullException(nameof(toolWindowService));
 
@@ -46,8 +48,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
             {
                 throw new ArgumentNullException(nameof(commandService));
             }
-            
-            var menuCommandId = new CommandID(Constants.CommandSetGuid, Constants.HotspotsToolWindowCommandId);
+
+            var menuCommandId = new CommandID(CommandSet, Constants.TaintToolWindowCommandId);
             var menuItem = new MenuCommand(Execute, menuCommandId);
             commandService.AddCommand(menuItem);
         }
@@ -61,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
             var windowService = componentModel.GetService<IToolWindowService>();
             var logger = componentModel.GetService<ILogger>();
 
-            Instance = new HotspotsToolWindowCommand(windowService, commandService, logger);
+            Instance = new TaintToolWindowCommand(windowService, commandService, logger);
         }
 
         internal /* for testing */ void Execute(object sender, EventArgs e)
@@ -70,11 +72,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 
             try
             {
-                toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
+                toolWindowService.Show(TaintToolWindow.ToolWindowId);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Resources.ERR_HotspotsToolWindow_Exception, ex));
+                logger.WriteLine(string.Format(Resources.ERR_TaintToolWindow_Exception, ex));
             }
         }
     }
