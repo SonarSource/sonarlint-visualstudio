@@ -20,28 +20,27 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList;
-using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 {
-    internal sealed class TaintToolWindowCommand
+    internal sealed class ShowToolWindowCommand
     {
-        public static readonly Guid CommandSet = Constants.CommandSetGuid;
-
-        public static TaintToolWindowCommand Instance { get; set; }
+        private readonly Guid toolWindowId;
 
         private readonly IToolWindowService toolWindowService;
         private readonly ILogger logger;
 
-        internal TaintToolWindowCommand(IToolWindowService toolWindowService, IMenuCommandService commandService, ILogger logger)
+        internal ShowToolWindowCommand(CommandID commandId, Guid toolWindowId,
+            IToolWindowService toolWindowService, IMenuCommandService commandService, ILogger logger)
         {
-            this.toolWindowService = toolWindowService ?? throw new ArgumentNullException(nameof(toolWindowService));
+            this.toolWindowId = toolWindowId;
 
+            this.toolWindowService = toolWindowService ?? throw new ArgumentNullException(nameof(toolWindowService));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             if (commandService == null)
@@ -49,21 +48,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
                 throw new ArgumentNullException(nameof(commandService));
             }
 
-            var menuCommandId = new CommandID(CommandSet, Constants.TaintToolWindowCommandId);
-            var menuItem = new MenuCommand(Execute, menuCommandId);
+            var menuItem = new MenuCommand(Execute, commandId);
             commandService.AddCommand(menuItem);
         }
 
-        public static async Task InitializeAsync(AsyncPackage package)
+        public static async Task<ShowToolWindowCommand> CreateAsync(AsyncPackage package, CommandID commandID, Guid toolWindowId)
         {
             await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
 
             var commandService = await package.GetServiceAsync(typeof(IMenuCommandService)) as IMenuCommandService;
             var componentModel = await package.GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
             var windowService = componentModel.GetService<IToolWindowService>();
-            var logger = componentModel.GetService<ILogger>();
+            var loggerService = componentModel.GetService<ILogger>();
 
-            Instance = new TaintToolWindowCommand(windowService, commandService, logger);
+            return new ShowToolWindowCommand(commandID, toolWindowId, windowService, commandService, loggerService);
         }
 
         internal /* for testing */ void Execute(object sender, EventArgs e)
@@ -72,11 +70,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 
             try
             {
-                toolWindowService.Show(TaintToolWindow.ToolWindowId);
+                toolWindowService.Show(toolWindowId);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Resources.ERR_TaintToolWindow_Exception, ex));
+                logger.WriteLine(string.Format(Resources.ERR_ShowToolWindow_Exception, ex));
             }
         }
     }

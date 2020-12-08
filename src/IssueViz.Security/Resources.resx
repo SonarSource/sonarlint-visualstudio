@@ -117,11 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERR_HotspotsToolWindow_Exception" xml:space="preserve">
-    <value>Error displaying Security Hotspots Tool Window: {0}</value>
-  </data>
-  <data name="ERR_TaintToolWindow_Exception" xml:space="preserve">
-    <value>Error displaying Taint Vulnerabilites Tool Window: {0}</value>
+  <data name="ERR_ShowToolWindow_Exception" xml:space="preserve">
+    <value>Error displaying tool window: {0}</value>
   </data>
   <data name="HotspotsToolWindowCaption" xml:space="preserve">
     <value>SonarLint Security Hotspots</value>
