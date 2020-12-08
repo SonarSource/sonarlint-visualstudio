@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands

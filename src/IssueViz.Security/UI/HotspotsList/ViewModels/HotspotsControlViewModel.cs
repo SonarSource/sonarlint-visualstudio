@@ -34,7 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels
 {
     internal interface IHotspotsControlViewModel : IDisposable
     {

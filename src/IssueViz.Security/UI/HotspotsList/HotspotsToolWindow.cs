@@ -24,11 +24,11 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
 using SonarLint.VisualStudio.IssueVisualization.Security.Store;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList
 {
     [Guid(ToolWindowIdAsString)]
     public class HotspotsToolWindow : ToolWindowPane
