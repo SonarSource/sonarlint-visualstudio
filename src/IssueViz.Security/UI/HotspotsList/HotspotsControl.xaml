@@ -4,223 +4,61 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
-             xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
              xmlns:vsCatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
              xmlns:vsImaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
              xmlns:hotspotsList="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
-        <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
-        <issueVisualizationControl:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter"/>
-        <core:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
-            <issueVisualizationControl:SpanToNavigabilityConverter />
-            <core:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
-        </core:AggregatorValueConverter>
-        <core:AggregatorValueConverter x:Key="SpanToVisibilityConverter">
-            <issueVisualizationControl:SpanToNavigabilityConverter />
-            <core:BoolToVisibilityConverter TrueValue="Visible" FalseValue="Collapsed" />
-        </core:AggregatorValueConverter>
-        <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="..\SharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
 
-        <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-            <MenuItem Header="Remove" 
-                      CommandParameter="{Binding}"
-                      Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
-                <MenuItem.Icon>
-                    <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.DeleteTableRow}"/>
-                </MenuItem.Icon>
-            </MenuItem>
-        </ContextMenu>
+            <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
+            <issueVisualizationControl:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter"/>
+            <core:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
+                <issueVisualizationControl:SpanToNavigabilityConverter />
+                <core:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
+            </core:AggregatorValueConverter>
+            <core:AggregatorValueConverter x:Key="SpanToVisibilityConverter">
+                <issueVisualizationControl:SpanToNavigabilityConverter />
+                <core:BoolToVisibilityConverter TrueValue="Visible" FalseValue="Collapsed" />
+            </core:AggregatorValueConverter>
+            <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
 
-        <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
-            <Setter Property="Width" Value="8"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Cursor" Value="SizeWE"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Thumb}">
-                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="DataGrid">
-            <Setter Property="GridLinesVisibility" Value="None"/>
-            <Setter Property="HeadersVisibility" Value="Column"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
-            <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
-        </Style>
-        <Style TargetType="DataGridColumnHeader">
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextActiveKey}}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
-                        <Border x:Name="ExternalBorder" 
-                                BorderThickness="0,0,0,1" 
-                                Background="{DynamicResource {x:Static vsTheming:HeaderColors.DefaultBrushKey}}">
-                            <Border x:Name="BackgroundBorder" 
-                                    BorderThickness="1,0,0,1"
-                                    Background="{DynamicResource {x:Static vsTheming:HeaderColors.DefaultBrushKey}}"
-                                    BorderBrush="{DynamicResource {x:Static vsTheming:HeaderColors.SeparatorLineBrushKey}}">
-                                <Grid>
-                                    <StackPanel Orientation="Horizontal">
-                                        <ContentPresenter Margin="6,3,6,3" VerticalAlignment="Center"/>
-                                        <Path x:Name="SortArrow" 
-                                          Visibility="Collapsed" 
-                                          Data="M 0,0 L 1,0 0.5,1 z" 
-                                          Stretch="Fill"
-                                          Width="8"
-                                          Height="6" 
-                                          Fill="{DynamicResource {x:Static vsShell:VsBrushes.DockTargetGlyphArrowKey}}" 
-                                          Margin="5,0,0,0"
-                                          VerticalAlignment="Center" 
-                                          RenderTransformOrigin="0.5, 0.4"/>
-                                    </StackPanel>
-                                    <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
-                                    <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
-                                </Grid>
-                            </Border>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextHoverKey}}"/>
-                                <Setter TargetName="BackgroundBorder" Property="Background" Value="{DynamicResource {x:Static vsTheming:HeaderColors.MouseOverBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextSelectedKey}}"/>
-                                <Setter TargetName="BackgroundBorder" Property="Background" Value="{DynamicResource {x:Static vsTheming:HeaderColors.MouseDownBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="SortDirection" Value="Ascending">
-                                <Setter TargetName="SortArrow" Property="Visibility" Value="Visible"/>
-                                <Setter TargetName="SortArrow" Property="RenderTransform">
-                                    <Setter.Value>
-                                        <RotateTransform Angle="180"/>
-                                    </Setter.Value>
-                                </Setter>
-                            </Trigger>
-                            <Trigger Property="SortDirection" Value="Descending">
-                                <Setter TargetName="SortArrow" Property="Visibility" Value="Visible"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="DataGridRow">
-            <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Margin" Value="2,0,2,0" />
-            <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}"/>
-                </Trigger>
-                <MultiTrigger>
-                    <MultiTrigger.Conditions>
-                        <Condition Property="IsSelected" Value="True"/>
-                        <Condition Property="Selector.IsSelectionActive" Value="False"/>
-                    </MultiTrigger.Conditions>
-                    <MultiTrigger.Setters>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
-                    </MultiTrigger.Setters>
-                </MultiTrigger>
-                <DataTrigger Binding="{Binding Hotspot.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
-                    <Setter Property="FontStyle" Value="Italic"/>
-                    <Setter Property="ToolTip" Value="Cannot navigate to location. The source code is different from the analyzed version."/>
-                    <Setter Property="ToolTipService.IsEnabled" Value="true"/>
-                </DataTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style TargetType="DataGridCell">
-            <Setter Property="MinHeight" Value="20"/>
-            <Setter Property="Padding" Value="6,2,2,2"/>
-            <Setter Property="Margin" Value="6,0,6,0"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextActiveKey}}"/>
-            <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
-            <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveTextBrushKey}}"/>
-                    <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemActiveBrushKey}}"/>
-                </Trigger>
-                <MultiTrigger>
-                    <MultiTrigger.Conditions>
-                        <Condition Property="IsSelected" Value="True"/>
-                        <Condition Property="Selector.IsSelectionActive" Value="False"/>
-                    </MultiTrigger.Conditions>
-                    <MultiTrigger.Setters>
-                        <Setter Property="Foreground" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveTextBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.SelectedItemInactiveBrushKey}}"/>
-                    </MultiTrigger.Setters>
-                </MultiTrigger>
-            </Style.Triggers>
-        </Style>
-        <Style x:Key="CellTextBlockStyle" TargetType="TextBlock">
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="TextAlignment" Value="Left"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style TargetType="ContextMenu">
-            <Setter Property="Width" Value="200"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.MenuTextKey}}"/>
-            <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMenuBackgroundGradientKey}}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarMenuBorderKey}}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="2"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ContextMenu}">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderThickness="{TemplateBinding BorderThickness}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                SnapsToDevicePixels="true" 
-                                Margin="{TemplateBinding Margin}">
-                            <StackPanel IsItemsHost="True" />
-                            <Border.Effect>
-                                <DropShadowEffect Color="{DynamicResource {x:Static vsShell:VsColors.ButtonShadowKey}}" 
-                                                  Opacity="0.80" ShadowDepth="2"/>
-                            </Border.Effect>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style TargetType="MenuItem">
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type MenuItem}">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderThickness="0" 
-                                Margin="2"
-                                Padding="3" 
-                                SnapsToDevicePixels="true">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition MinWidth="25" Width="Auto" />
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <ContentPresenter Grid.Column="0" x:Name="Icon" Margin="5,0,10,0" VerticalAlignment="Center" ContentSource="Icon"/>
-                                <ContentPresenter Grid.Column="1" x:Name="Header" ContentSource="Header" />
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsHighlighted" Value="True">
-                                <Setter Property="Background"  Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="PriorityColumnCellTextBlockStyle" TargetType="TextBlock">
-            <Setter Property="TextWrapping" Value="Wrap"/>
-            <Setter Property="TextAlignment" Value="Center"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Margin" Value="1"/>
-            <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Rule.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
-        </Style>
+            <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                <MenuItem Header="Remove" 
+                    CommandParameter="{Binding}"
+                    Command="{Binding DataContext.RemoveCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                    <MenuItem.Icon>
+                        <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.DeleteTableRow}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+            
+            <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->
+            <Style BasedOn="{StaticResource BaseDataGridRow}"
+                   TargetType="DataGridRow">
+                <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
+                <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
+                <Style.Triggers>
+                    <DataTrigger Binding="{Binding Hotspot.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
+                        <Setter Property="FontStyle" Value="Italic"/>
+                        <Setter Property="ToolTip" Value="Cannot navigate to location. The source code is different from the analyzed version."/>
+                        <Setter Property="ToolTipService.IsEnabled" Value="true"/>
+                    </DataTrigger>
+                </Style.Triggers>
+            </Style>
+
+            <Style x:Key="PriorityColumnCellTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="TextWrapping" Value="Wrap"/>
+                <Setter Property="TextAlignment" Value="Center"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Margin" Value="1"/>
+                <Setter Property="Background" Value="{Binding Path=DataContext.Hotspot.Issue.Rule.Priority, RelativeSource={RelativeSource Self}, Converter={StaticResource PriorityToBackgroundConverter}}"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True">
         <Grid.ColumnDefinitions>
