@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Resources.ERR_HotspotsToolWindow_Exception, ex));
+                logger.WriteLine(string.Format(Resources.ERR_TaintToolWindow_Exception, ex));
             }
         }
     }
