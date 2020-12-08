@@ -18,15 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList
 {
-    internal static class Constants
+    internal sealed partial class TaintVulnerabilitiesControl : UserControl
     {
-        public static readonly Guid CommandSetGuid = new Guid("97856422-20A2-4DB5-A468-1BAA9B6EEC38");
-
-        public const int HotspotsToolWindowCommandId = 0x0100;
-        public const int TaintToolWindowCommandId = 0x0101;
+        public TaintVulnerabilitiesControl()
+        {
+            InitializeComponent();
+        }
     }
 }
