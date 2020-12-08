@@ -56,7 +56,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="HotspotsList\HotspotsControl.xaml">
+    <Page Include="UI\HotspotsList\HotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
