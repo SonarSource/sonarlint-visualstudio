@@ -80,11 +80,11 @@ namespace SonarQube.Client.Api.V7_20
         }
 
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(FilePathNormalizer.NormalizeSonarQubePath(ComputePath(issue.Component)), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue),
+            new SonarQubeIssue(ComputePath(issue.Component), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue),
                 GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED", ToIssueFlows(issue.Flows));
 
         private string ComputePath(string component) =>
-            componentKeyPathLookup[component].FirstOrDefault() ?? string.Empty;
+            FilePathNormalizer.NormalizeSonarQubePath(componentKeyPathLookup[component].FirstOrDefault() ?? string.Empty);
 
         private static string ComputeModuleKey(ServerIssue issue) =>
             issue.SubProject ?? issue.Component;

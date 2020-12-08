@@ -322,6 +322,13 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                }, token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
