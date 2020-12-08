@@ -27,13 +27,13 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList;
 using Constants = SonarLint.VisualStudio.IssueVisualization.Security.Commands.Constants;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
 {
     [TestClass]
-    public class HotspotsToolWindowCommandTests
+    public class TaintToolWindowCommandTests
     {
         [TestInitialize]
         public void TestInitialize()
@@ -63,12 +63,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var commandService = new Mock<IMenuCommandService>();
 
-            new HotspotsToolWindowCommand(Mock.Of<IToolWindowService>(), commandService.Object, Mock.Of<ILogger>());
+            new TaintToolWindowCommand(Mock.Of<IToolWindowService>(), commandService.Object, Mock.Of<ILogger>());
 
             commandService.Verify(x =>
                     x.AddCommand(It.Is((MenuCommand c) =>
                         c.CommandID.Guid == Constants.CommandSetGuid &&
-                        c.CommandID.ID == Constants.HotspotsToolWindowCommandId)),
+                        c.CommandID.ID == Constants.TaintToolWindowCommandId)),
                 Times.Once);
 
             commandService.VerifyNoOtherCalls();
@@ -80,12 +80,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
 
-            var testSubject = new HotspotsToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
+            var testSubject = new TaintToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(TaintToolWindow.ToolWindowId), Times.Once);
             logger.AssertNoOutputMessages();
         }
 
@@ -94,14 +94,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(TaintToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
 
-            var testSubject = new HotspotsToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
+            var testSubject = new TaintToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(HotspotsToolWindow.ToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(TaintToolWindow.ToolWindowId), Times.Once);
             logger.AssertPartialOutputStringExists("thrown by test");
         }
 
@@ -110,9 +110,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(TaintToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
 
-            var testSubject = new HotspotsToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
+            var testSubject = new TaintToolWindowCommand(toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
             // Act
             Action act = () => testSubject.Execute(null, null);

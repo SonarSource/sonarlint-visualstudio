@@ -63,6 +63,10 @@
     <Page Include="UI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
+    <Page Include="UI\TaintList\TaintVulnerabilitiesControl.xaml">
+      <Generator>XamlIntelliSenseFileGenerator</Generator>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Page>
     
     <Compile Update="OpenInIDE\OpenInIDEResources.Designer.cs">
       <DesignTime>True</DesignTime>
