@@ -61,11 +61,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error displaying Hotspots Tool Window: {0}.
+        ///   Looks up a localized string similar to Error displaying Security Hotspots Tool Window: {0}.
         /// </summary>
         internal static string ERR_HotspotsToolWindow_Exception {
             get {
                 return ResourceManager.GetString("ERR_HotspotsToolWindow_Exception", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error displaying Taint Vulnerabilites Tool Window: {0}.
+        /// </summary>
+        internal static string ERR_TaintToolWindow_Exception {
+            get {
+                return ResourceManager.GetString("ERR_TaintToolWindow_Exception", resourceCulture);
             }
         }
         
@@ -75,6 +84,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         internal static string HotspotsToolWindowCaption {
             get {
                 return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SonarLint Taint Vulnerabilities.
+        /// </summary>
+        internal static string TaintToolWindowCaption {
+            get {
+                return ResourceManager.GetString("TaintToolWindowCaption", resourceCulture);
             }
         }
     }
