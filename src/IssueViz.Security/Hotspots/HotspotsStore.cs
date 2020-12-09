@@ -29,8 +29,10 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
-    internal interface IHotspotsStore : IIssueVizsStore
+    internal interface IHotspotsStore : IDisposable
     {
+        ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
+
         /// <summary>
         /// Adds a given visualization to the list if it does not already exist.
         /// Returns the given visualization, or the existing visualization with the same hotspot key.
@@ -43,19 +45,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [Export(typeof(IHotspotsStore))]
     [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class HotspotsStore : IHotspotsStore
+    internal sealed class HotspotsStore : IHotspotsStore, IIssueLocationStore
     {
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
 
-        private IIssueVizsStore IssueVizsStore { get; }
+        private IIssueLocationStore IssueVizsStore { get; }
 
         [ImportingConstructor]
         public HotspotsStore()
         {
-            IssueVizsStore = new IssueVizsStore(Hotspots);
+            IssueVizsStore = new ObservableIssueLocationStore(Hotspots);
         }
 
-        internal /* for testing */ HotspotsStore(IIssueVizsStore issueVizsStore)
+        internal /* for testing */ HotspotsStore(IIssueLocationStore issueVizsStore)
         {
             IssueVizsStore = issueVizsStore;
         }
@@ -86,17 +88,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return Hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
+        ReadOnlyObservableCollection<IAnalysisIssueVisualization> IHotspotsStore.GetAll()
+        {
+            return new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
+        }
+
         public void Dispose()
         {
-            IssueVizsStore.Dispose();
+            if (IssueVizsStore is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
         }
 
-        #region IIssueVizsStore delegated implementation
-
-        ReadOnlyObservableCollection<IAnalysisIssueVisualization> IIssueVizsStore.GetAll()
-        {
-            return IssueVizsStore.GetAll();
-        }
+        #region IIssueLocationStore delegated implementation
 
         event EventHandler<IssuesChangedEventArgs> IIssueLocationStore.IssuesChanged
         {

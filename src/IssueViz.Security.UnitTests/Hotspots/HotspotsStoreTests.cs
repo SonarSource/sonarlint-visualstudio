@@ -20,9 +20,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -55,6 +55,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             issueLocationStoreImporter.Import.Should().NotBeNull();
 
             hotspotsStoreImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
+        }
+
+        [TestMethod]
+        public void GetAll_ReturnsReadOnlyObservableWrapper()
+        {
+            var testSubject = new HotspotsStore() as IHotspotsStore;
+            var readOnlyWrapper = testSubject.GetAll();
+
+            readOnlyWrapper.Should().BeAssignableTo<IReadOnlyCollection<IAnalysisIssueVisualization>>();
+
+            var issueViz1 = CreateIssueViz("some hotspot1");
+            var issueViz2 = CreateIssueViz("some hotspot2");
+
+            testSubject.GetOrAdd(issueViz1);
+            testSubject.GetOrAdd(issueViz2);
+
+            readOnlyWrapper.Count.Should().Be(2);
+            readOnlyWrapper.First().Should().Be(issueViz1);
+            readOnlyWrapper.Last().Should().Be(issueViz2);
+
+            testSubject.Remove(issueViz2);
+
+            readOnlyWrapper.Count.Should().Be(1);
+            readOnlyWrapper.First().Should().Be(issueViz1);
         }
 
         [TestMethod]
@@ -122,78 +146,64 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void Dispose_InnerIssueVizStoreIsDisposed()
         {
-            var issueVizsStore = new Mock<IIssueVizsStore>();
-            var testSubject = CreateTestSubject(issueVizsStore.Object);
+            var issueLocationStore = new Mock<IIssueLocationStore>();
+            var disposable = issueLocationStore.As<IDisposable>();
 
-            issueVizsStore.VerifyNoOtherCalls();
+            var testSubject = CreateTestSubject(issueLocationStore.Object);
+
+            issueLocationStore.VerifyNoOtherCalls();
             
             testSubject.Dispose();
 
-            issueVizsStore.Verify(x=> x.Dispose(), Times.Once);
-            issueVizsStore.VerifyNoOtherCalls();
+            disposable.Verify(x=> x.Dispose(), Times.Once);
+            issueLocationStore.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void GetAll_ImplementationDelegatedToIssueVizsStore()
+        public void IssuesChanged_ImplementationDelegatedToIssueLocationStore()
         {
-            var expectedResult = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(new ObservableCollection<IAnalysisIssueVisualization>());
-            var issueVizsStore = new Mock<IIssueVizsStore>();
-            issueVizsStore.Setup(x => x.GetAll()).Returns(expectedResult);
+            var issueLocationStore = new Mock<IIssueLocationStore>();
+            issueLocationStore.SetupAdd(x => x.IssuesChanged += null);
+            issueLocationStore.SetupRemove(x => x.IssuesChanged -= null);
 
-            var testSubject = CreateTestSubject(issueVizsStore.Object);
-            var result = testSubject.GetAll();
-
-            result.Should().BeSameAs(expectedResult);
-
-            issueVizsStore.VerifyAll();
-            issueVizsStore.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void IssuesChanged_ImplementationDelegatedToIssueVizsStore()
-        {
-            var issueVizsStore = new Mock<IIssueVizsStore>();
-            issueVizsStore.SetupAdd(x => x.IssuesChanged += null);
-            issueVizsStore.SetupRemove(x => x.IssuesChanged -= null);
-
-            var testSubject = CreateTestSubject(issueVizsStore.Object);
+            var testSubject = CreateTestSubject(issueLocationStore.Object) as IIssueLocationStore;
             var eventHandler = new Mock<EventHandler<IssuesChangedEventArgs>>();
 
             testSubject.IssuesChanged += eventHandler.Object;
-            issueVizsStore.VerifyAdd(x=> x.IssuesChanged += eventHandler.Object);
-            issueVizsStore.VerifyNoOtherCalls();
+            issueLocationStore.VerifyAdd(x=> x.IssuesChanged += eventHandler.Object);
+            issueLocationStore.VerifyNoOtherCalls();
 
             testSubject.IssuesChanged -= eventHandler.Object;
-            issueVizsStore.VerifyRemove(x => x.IssuesChanged -= eventHandler.Object);
-            issueVizsStore.VerifyNoOtherCalls();
+            issueLocationStore.VerifyRemove(x => x.IssuesChanged -= eventHandler.Object);
+            issueLocationStore.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void GetLocations_ImplementationDelegatedToIssueVizsStore()
+        public void GetLocations_ImplementationDelegatedToIssueLocationStore()
         {
             var expectedResult = new List<IAnalysisIssueVisualization>();
-            var issueVizsStore = new Mock<IIssueVizsStore>();
-            issueVizsStore.Setup(x => x.GetLocations("test.cpp")).Returns(expectedResult);
+            var issueLocationStore = new Mock<IIssueLocationStore>();
+            issueLocationStore.Setup(x => x.GetLocations("test.cpp")).Returns(expectedResult);
 
-            var testSubject = CreateTestSubject(issueVizsStore.Object);
+            var testSubject = CreateTestSubject(issueLocationStore.Object) as IIssueLocationStore;
             var result = testSubject.GetLocations("test.cpp");
 
             result.Should().BeSameAs(expectedResult);
 
-            issueVizsStore.VerifyAll();
-            issueVizsStore.VerifyNoOtherCalls();
+            issueLocationStore.VerifyAll();
+            issueLocationStore.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void Refresh_ImplementationDelegatedToIssueVizsStore()
+        public void Refresh_ImplementationDelegatedToIssueLocationStore()
         {
-            var issueVizsStore = new Mock<IIssueVizsStore>();
+            var issueLocationStore = new Mock<IIssueLocationStore>();
 
-            var testSubject = CreateTestSubject(issueVizsStore.Object);
+            var testSubject = CreateTestSubject(issueLocationStore.Object) as IIssueLocationStore;
             testSubject.Refresh(new List<string> {"test1.cpp", "test2.cpp"});
 
-            issueVizsStore.Verify(x=> x.Refresh(new List<string> { "test1.cpp", "test2.cpp" }), Times.Once);
-            issueVizsStore.VerifyNoOtherCalls();
+            issueLocationStore.Verify(x=> x.Refresh(new List<string> { "test1.cpp", "test2.cpp" }), Times.Once);
+            issueLocationStore.VerifyNoOtherCalls();
         }
 
         private static IAnalysisIssueVisualization CreateIssueViz(string hotspotKey)
@@ -207,9 +217,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             return issueViz.Object;
         }
 
-        private IHotspotsStore CreateTestSubject(IIssueVizsStore issueVizsStore = null)
+        private IHotspotsStore CreateTestSubject(IIssueLocationStore issueLocationStore = null)
         {
-            return issueVizsStore == null ? new HotspotsStore() : new HotspotsStore(issueVizsStore);
+            return issueLocationStore == null ? new HotspotsStore() : new HotspotsStore(issueLocationStore);
         }
     }
 }
