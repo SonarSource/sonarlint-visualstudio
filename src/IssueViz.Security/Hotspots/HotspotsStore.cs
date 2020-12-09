@@ -19,11 +19,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
@@ -43,23 +41,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     }
 
     [Export(typeof(IHotspotsStore))]
-    [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class HotspotsStore : IHotspotsStore, IIssueLocationStore
+    internal sealed class HotspotsStore : IHotspotsStore
     {
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
-
-        private IIssueLocationStore IssueVizsStore { get; }
+        private readonly IObservingIssueLocationStore observingIssueLocationStore;
 
         [ImportingConstructor]
-        public HotspotsStore()
+        public HotspotsStore(IObservingIssueLocationStore observingIssueLocationStore)
         {
-            IssueVizsStore = new ObservableIssueLocationStore(Hotspots);
-        }
-
-        internal /* for testing */ HotspotsStore(IIssueLocationStore issueVizsStore)
-        {
-            IssueVizsStore = issueVizsStore;
+            this.observingIssueLocationStore = observingIssueLocationStore;
+            observingIssueLocationStore.Register(Hotspots);
         }
 
         IAnalysisIssueVisualization IHotspotsStore.GetOrAdd(IAnalysisIssueVisualization hotspotViz)
@@ -95,30 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         public void Dispose()
         {
-            if (IssueVizsStore is IDisposable disposable)
-            {
-                disposable.Dispose();
-            }
+            observingIssueLocationStore.Unregister(Hotspots);
         }
-
-        #region IIssueLocationStore delegated implementation
-
-        event EventHandler<IssuesChangedEventArgs> IIssueLocationStore.IssuesChanged
-        {
-            add => IssueVizsStore.IssuesChanged += value;
-            remove => IssueVizsStore.IssuesChanged -= value;
-        }
-
-        IEnumerable<IAnalysisIssueLocationVisualization> IIssueLocationStore.GetLocations(string filePath)
-        {
-            return IssueVizsStore.GetLocations(filePath);
-        }
-
-        void IIssueLocationStore.Refresh(IEnumerable<string> affectedFilePaths)
-        {
-            IssueVizsStore.Refresh(affectedFilePaths);
-        }
-
-        #endregion
     }
 }
