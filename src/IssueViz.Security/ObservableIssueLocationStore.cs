@@ -28,24 +28,14 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
-    internal interface IIssueVizsStore : IIssueLocationStore, IDisposable
-    {
-        ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
-    }
-
-    internal sealed class IssueVizsStore : IIssueVizsStore
+    internal sealed class ObservableIssueLocationStore : IIssueLocationStore, IDisposable
     {
         private ObservableCollection<IAnalysisIssueVisualization> IssueVisualizations { get; }
 
-        public IssueVizsStore(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
+        public ObservableIssueLocationStore(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
         {
             IssueVisualizations = issueVisualizations ?? throw new ArgumentNullException(nameof(issueVisualizations));
             IssueVisualizations.CollectionChanged += IssueVisualizations_CollectionChanged;
-        }
-
-        ReadOnlyObservableCollection<IAnalysisIssueVisualization> IIssueVizsStore.GetAll()
-        {
-            return new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(IssueVisualizations);
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
