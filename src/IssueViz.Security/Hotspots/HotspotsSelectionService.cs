@@ -22,7 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.SelectionService
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
     internal interface IHotspotsSelectionService : IDisposable
     {

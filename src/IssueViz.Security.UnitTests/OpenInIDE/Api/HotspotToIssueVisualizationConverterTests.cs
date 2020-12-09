@@ -26,7 +26,7 @@ using Moq;
 using NuGet;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarQube.Client.Models;
 
