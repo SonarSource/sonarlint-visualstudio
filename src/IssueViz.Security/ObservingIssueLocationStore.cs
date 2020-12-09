@@ -31,7 +31,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
     internal interface IObservingIssueLocationStore : IIssueLocationStore, IDisposable
     {
-        void Register(ObservableCollection<IAnalysisIssueVisualization> collection);
+        void Register(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
+        void Unregister(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
     }
 
     [Export(typeof(IObservingIssueLocationStore))]
@@ -50,6 +51,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 
             ObservableIssueVisualizations.Add(issueVisualizations);
             issueVisualizations.CollectionChanged += IssueVisualizations_CollectionChanged;
+        }
+
+        public void Unregister(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
+        {
+            if (issueVisualizations == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualizations));
+            }
+
+            ObservableIssueVisualizations.Remove(issueVisualizations);
+            issueVisualizations.CollectionChanged -= IssueVisualizations_CollectionChanged;
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
