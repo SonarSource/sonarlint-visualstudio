@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error displaying tool window: {0}.
+        ///   Looks up a localized string similar to Error displaying tool window. Window id: {0}. Error: {1}.
         /// </summary>
         internal static string ERR_ShowToolWindow_Exception {
             get {

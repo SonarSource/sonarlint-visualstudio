@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
             testSubject.Execute(null, null);
 
             toolwindowServiceMock.Verify(x => x.Show(ValidToolWindowId), Times.Once);
-            logger.AssertPartialOutputStringExists("thrown by test");
+            logger.AssertPartialOutputStringExists(ValidToolWindowId.ToString(), "thrown by test");
         }
 
         [TestMethod]

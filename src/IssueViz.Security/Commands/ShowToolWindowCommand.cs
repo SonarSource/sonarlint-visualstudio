@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(string.Format(Resources.ERR_ShowToolWindow_Exception, ex));
+                logger.WriteLine(string.Format(Resources.ERR_ShowToolWindow_Exception, toolWindowId, ex));
             }
         }
     }
