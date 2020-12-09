@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
@@ -28,21 +29,35 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
-    internal sealed class ObservableIssueLocationStore : IIssueLocationStore, IDisposable
+    internal interface IObservingIssueLocationStore : IIssueLocationStore, IDisposable
     {
-        private ObservableCollection<IAnalysisIssueVisualization> IssueVisualizations { get; }
+        void Register(ObservableCollection<IAnalysisIssueVisualization> collection);
+    }
 
-        public ObservableIssueLocationStore(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
+    [Export(typeof(IObservingIssueLocationStore))]
+    [Export(typeof(IIssueLocationStore))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal sealed class ObservingIssueLocationStore : IObservingIssueLocationStore
+    {
+        private IList<ObservableCollection<IAnalysisIssueVisualization>> ObservableIssueVisualizations { get; } = new List<ObservableCollection<IAnalysisIssueVisualization>>();
+
+        public void Register(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
         {
-            IssueVisualizations = issueVisualizations ?? throw new ArgumentNullException(nameof(issueVisualizations));
-            IssueVisualizations.CollectionChanged += IssueVisualizations_CollectionChanged;
+            if (issueVisualizations == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualizations));
+            }
+
+            ObservableIssueVisualizations.Add(issueVisualizations);
+            issueVisualizations.CollectionChanged += IssueVisualizations_CollectionChanged;
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-        IEnumerable<IAnalysisIssueLocationVisualization> IIssueLocationStore.GetLocations(string filePath)
+        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
         {
-            var matchingLocations = IssueVisualizations
+            var matchingLocations = ObservableIssueVisualizations
+                .SelectMany(issueVizsCollection => issueVizsCollection )
                 .SelectMany(issueViz => issueViz.GetAllLocations())
                 .Where(locationViz => !string.IsNullOrEmpty(locationViz.CurrentFilePath) &&
                                       PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
@@ -50,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             return matchingLocations;
         }
 
-        void IIssueLocationStore.Refresh(IEnumerable<string> affectedFilePaths)
+        public void Refresh(IEnumerable<string> affectedFilePaths)
         {
         }
 
@@ -85,7 +100,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 
         public void Dispose()
         {
-            IssueVisualizations.CollectionChanged -= IssueVisualizations_CollectionChanged;
+            foreach (var collection in ObservableIssueVisualizations)
+            {
+                collection.CollectionChanged -= IssueVisualizations_CollectionChanged;
+            }
+
+            ObservableIssueVisualizations.Clear();
         }
     }
 }
