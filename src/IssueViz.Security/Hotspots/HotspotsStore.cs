@@ -26,9 +26,9 @@ using System.Linq;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Store
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
     internal interface IHotspotsStore
     {

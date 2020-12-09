@@ -22,7 +22,7 @@ using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api

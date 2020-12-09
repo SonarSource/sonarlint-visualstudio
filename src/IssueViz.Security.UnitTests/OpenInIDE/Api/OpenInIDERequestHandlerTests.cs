@@ -30,11 +30,10 @@ using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
-using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
-using SonarLint.VisualStudio.IssueVisualization.Security.Store;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 

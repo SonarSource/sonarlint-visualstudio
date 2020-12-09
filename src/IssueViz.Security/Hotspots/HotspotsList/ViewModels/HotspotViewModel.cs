@@ -23,9 +23,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
     internal interface IHotspotViewModel : INotifyPropertyChanged, IDisposable
     {

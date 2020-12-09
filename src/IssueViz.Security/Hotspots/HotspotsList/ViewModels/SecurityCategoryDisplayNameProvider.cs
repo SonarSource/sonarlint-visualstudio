@@ -20,7 +20,7 @@
 
 using System.Collections.Generic;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
     internal interface ISecurityCategoryDisplayNameProvider
     {
