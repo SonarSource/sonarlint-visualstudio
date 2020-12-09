@@ -56,14 +56,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Include="UI\HotspotsList\HotspotsControl.xaml">
+    <Page Include="Hotspots\HotspotsList\HotspotsControl.xaml">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="UI\SharedResources.xaml">
+    <Page Include="SharedUI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="UI\TaintList\TaintVulnerabilitiesControl.xaml">
+    <Page Include="Taint\TaintList\TaintVulnerabilitiesControl.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
