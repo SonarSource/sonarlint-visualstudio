@@ -23,9 +23,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.SelectionService
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 {
     [TestClass]
     public class HotspotsSelectionServiceTests

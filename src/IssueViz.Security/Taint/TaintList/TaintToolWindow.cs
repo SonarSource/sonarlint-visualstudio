@@ -23,7 +23,7 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
     [Guid(ToolWindowIdAsString)]
     public class TaintToolWindow : ToolWindowPane

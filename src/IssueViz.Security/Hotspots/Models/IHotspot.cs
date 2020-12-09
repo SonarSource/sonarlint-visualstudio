@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using SonarLint.VisualStudio.Core.Analysis;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
 {
     internal interface IHotspot : IAnalysisIssueBase
     {

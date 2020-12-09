@@ -19,9 +19,9 @@
  */
 
 using System.Windows.Controls;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
 {
     internal sealed partial class HotspotsControl : UserControl
     {

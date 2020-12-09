@@ -22,9 +22,9 @@ using System;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.TaintList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
 {
     [TestClass]
     public class TaintToolWindowTests

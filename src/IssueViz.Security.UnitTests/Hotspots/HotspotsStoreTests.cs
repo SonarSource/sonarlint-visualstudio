@@ -29,10 +29,10 @@ using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.Store;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Store
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 {
     [TestClass]
     public class HotspotsStoreTests
