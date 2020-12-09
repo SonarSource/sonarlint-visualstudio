@@ -66,6 +66,46 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         }
 
         [TestMethod]
+        public void Unregister_NullCollection_ArgumentNullException()
+        {
+            var testSubject = new ObservingIssueLocationStore();
+
+            Action act = () => testSubject.Unregister(null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualizations");
+        }
+
+        [TestMethod]
+        public void Unregister_StopTrackingCollection()
+        {
+            var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
+            var testSubject = new ObservingIssueLocationStore();
+            testSubject.Register(originalCollection);
+
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { eventCount++; };
+
+            testSubject.Unregister(originalCollection);
+            originalCollection.Add(CreateIssueViz());
+
+            eventCount.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Unregister_RemoveUnderlyingCollections()
+        {
+            var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
+            var testSubject = new ObservingIssueLocationStore();
+            testSubject.Register(originalCollection);
+
+            originalCollection.Add(CreateIssueViz("somefile.cpp"));
+
+            testSubject.Unregister(originalCollection);
+
+            var locations = testSubject.GetLocations("somefile.cpp");
+            locations.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public void UnderlyingCollectionsChanged_NoSubscribersToIssuesChangedEvent_NoException()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
