@@ -5,7 +5,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="..\SharedResources.xaml" />
+                <ResourceDictionary Source="../../SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
