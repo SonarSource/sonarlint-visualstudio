@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -47,8 +48,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await HotspotsToolWindowCommand.InitializeAsync(this);
-            await TaintToolWindowCommand.InitializeAsync(this);
+            // We're not storing references to the command handler instances.
+            // We relying on the fact that the command handler instance registers a
+            // callback with the menu service to stop it from being garbage collected.
+            await ShowToolWindowCommand.CreateAsync(this,
+                new CommandID(Constants.CommandSetGuid, Constants.HotspotsToolWindowCommandId),
+                HotspotsToolWindow.ToolWindowId);
+
+            await ShowToolWindowCommand.CreateAsync(this,
+                new CommandID(Constants.CommandSetGuid, Constants.TaintToolWindowCommandId),
+                TaintToolWindow.ToolWindowId);
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
