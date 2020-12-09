@@ -28,13 +28,11 @@ using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Security.SelectionService;
-using SonarLint.VisualStudio.IssueVisualization.Security.Store;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
     internal interface IHotspotsControlViewModel : IDisposable
     {

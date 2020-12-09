@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Models
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models
 {
     public enum HotspotPriority
     {

@@ -20,9 +20,9 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.IssueVisualization.Security.UI.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.HotspotsList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList
 {
     [TestClass]
     public class SecurityCategoryDisplayNameProviderTests

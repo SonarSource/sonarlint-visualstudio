@@ -20,7 +20,7 @@
 
 using System.Windows.Controls;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UI.TaintList
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
     internal sealed partial class TaintVulnerabilitiesControl : UserControl
     {
