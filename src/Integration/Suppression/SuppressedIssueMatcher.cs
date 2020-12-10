@@ -69,11 +69,11 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
             if (!issue.StartLine.HasValue) // i.e. file-level issue
             {
-                return !serverIssue.Line.HasValue;
+                return serverIssue.TextRange == null;
             }
 
             // Non-file level issue
-            return issue.StartLine == serverIssue.Line || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
+            return issue.StartLine == serverIssue.TextRange?.StartLine || StringComparer.Ordinal.Equals(issue.LineHash, serverIssue.Hash);
         }
     }
 }
