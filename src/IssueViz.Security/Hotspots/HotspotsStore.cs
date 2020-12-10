@@ -44,14 +44,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class HotspotsStore : IHotspotsStore
     {
+        private readonly IDisposable unregisterCallback;
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
-        private readonly IObservingIssueLocationStore observingIssueLocationStore;
+        private ReadOnlyObservableCollection<IAnalysisIssueVisualization> ReadOnlyWrapper => new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
 
         [ImportingConstructor]
-        public HotspotsStore(IObservingIssueLocationStore observingIssueLocationStore)
+        public HotspotsStore(IIssueStoreObserver issueStoreObserver)
         {
-            this.observingIssueLocationStore = observingIssueLocationStore;
-            observingIssueLocationStore.Register(Hotspots);
+            unregisterCallback = issueStoreObserver.Register(ReadOnlyWrapper);
         }
 
         public IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspotViz)
@@ -80,14 +80,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return Hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
-        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll()
-        {
-            return new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
-        }
+        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => ReadOnlyWrapper;
 
         public void Dispose()
         {
-            observingIssueLocationStore.Unregister(Hotspots);
+            unregisterCallback.Dispose();
         }
     }
 }

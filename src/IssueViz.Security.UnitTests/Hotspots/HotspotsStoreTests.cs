@@ -18,10 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Media;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -38,33 +38,43 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
+            var issueStoreObserver = new Mock<IIssueStoreObserver>();
+            issueStoreObserver
+                .Setup(x => x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()))
+                .Returns(Mock.Of<IDisposable>());
+
             MefTestHelpers.CheckTypeCanBeImported<HotspotsStore, IHotspotsStore>(null, new[]
             {
-                MefTestHelpers.CreateExport<IObservingIssueLocationStore>(Mock.Of<IObservingIssueLocationStore>())
+                MefTestHelpers.CreateExport<IIssueStoreObserver>(issueStoreObserver.Object)
             });
         }
 
         [TestMethod]
-        public void Ctor_RegisterToObservingStore()
+        public void Ctor_RegisterToIssueStoreObserver()
         {
-            var observingStore = new Mock<IObservingIssueLocationStore>();
-            CreateTestSubject(observingStore.Object);
+            var issueStoreObserver = new Mock<IIssueStoreObserver>();
+            CreateTestSubject(issueStoreObserver.Object);
 
-            observingStore.Verify(x=> x.Register(It.IsAny<ObservableCollection<IAnalysisIssueVisualization>>()), Times.Once);
-            observingStore.VerifyNoOtherCalls();
+            issueStoreObserver.Verify(x=> x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()), Times.Once);
+            issueStoreObserver.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void Dispose_InnerIssueVizStoreIsDisposed()
         {
-            var observingStore = new Mock<IObservingIssueLocationStore>();
-            var testSubject = CreateTestSubject(observingStore.Object);
+            var unregisterMock = new Mock<IDisposable>();
+            var issueStoreObserver = new Mock<IIssueStoreObserver>();
+            issueStoreObserver
+                .Setup(x => x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()))
+                .Returns(unregisterMock.Object);
 
-            observingStore.Reset();
+            var testSubject = CreateTestSubject(issueStoreObserver.Object);
+
+            unregisterMock.VerifyNoOtherCalls();
+
             testSubject.Dispose();
 
-            observingStore.Verify(x => x.Unregister(It.IsAny<ObservableCollection<IAnalysisIssueVisualization>>()), Times.Once);
-            observingStore.VerifyNoOtherCalls();
+            unregisterMock.Verify(x => x.Dispose(), Times.Once);
         }
 
         [TestMethod]
@@ -164,10 +174,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             return issueViz.Object;
         }
 
-        private IHotspotsStore CreateTestSubject(IObservingIssueLocationStore observingIssueLocationStore = null)
+        private IHotspotsStore CreateTestSubject(IIssueStoreObserver issueStoreObserver = null)
         {
-            observingIssueLocationStore ??= Mock.Of<IObservingIssueLocationStore>();
-            return new HotspotsStore(observingIssueLocationStore);
+            issueStoreObserver ??= Mock.Of<IIssueStoreObserver>();
+            return new HotspotsStore(issueStoreObserver);
         }
     }
 }
