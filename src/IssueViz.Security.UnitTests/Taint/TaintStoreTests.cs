@@ -87,24 +87,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
             var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
 
-            testSubject.Initialize(new List<IAnalysisIssueVisualization> {issueViz1, issueViz2});
+            testSubject.Set(new List<IAnalysisIssueVisualization> {issueViz1, issueViz2});
 
             readOnlyWrapper.Count.Should().Be(2);
             readOnlyWrapper.First().Should().Be(issueViz1);
             readOnlyWrapper.Last().Should().Be(issueViz2);
 
-            testSubject.Initialize(new List<IAnalysisIssueVisualization> { issueViz2 });
+            testSubject.Set(new List<IAnalysisIssueVisualization> { issueViz2 });
 
             readOnlyWrapper.Count.Should().Be(1);
             readOnlyWrapper.First().Should().Be(issueViz2);
         }
 
         [TestMethod]
-        public void Initialize_NullCollection_ArgumentNullException()
+        public void Set_NullCollection_ArgumentNullException()
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.Initialize(null);
+            Action act = () => testSubject.Set(null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualizations");
         }

@@ -32,38 +32,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
         /// <summary>
         /// Removes all existing visualizations and initializes the store to the given collection.
+        /// Can be called multiple times.
         /// </summary>
-        void Initialize(IEnumerable<IAnalysisIssueVisualization> issueVisualizations);
+        void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations);
     }
 
     [Export(typeof(ITaintStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintStore : ITaintStore
     {
+        private readonly ObservableCollection<IAnalysisIssueVisualization> taintVulnerabilities;
+        private readonly ReadOnlyObservableCollection<IAnalysisIssueVisualization> readOnlyWrapper;
         private readonly IDisposable unregisterCallback;
-        private ObservableCollection<IAnalysisIssueVisualization> TaintVulnerabilities { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
-        private ReadOnlyObservableCollection<IAnalysisIssueVisualization> ReadOnlyWrapper => new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(TaintVulnerabilities);
 
         [ImportingConstructor]
         public TaintStore(IIssueStoreObserver issueStoreObserver)
         {
-            unregisterCallback = issueStoreObserver.Register(ReadOnlyWrapper);
+            taintVulnerabilities = new ObservableCollection<IAnalysisIssueVisualization>();
+            readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(taintVulnerabilities);
+            unregisterCallback = issueStoreObserver.Register(readOnlyWrapper);
         }
 
-        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => ReadOnlyWrapper;
+        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => readOnlyWrapper;
 
-        public void Initialize(IEnumerable<IAnalysisIssueVisualization> issueVisualizations)
+        public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations)
         {
             if (issueVisualizations == null)
             {
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            TaintVulnerabilities.Clear();
+            taintVulnerabilities.Clear();
 
             foreach (var issueViz in issueVisualizations)
             {
-                TaintVulnerabilities.Add(issueViz);
+                taintVulnerabilities.Add(issueViz);
             }
         }
 
