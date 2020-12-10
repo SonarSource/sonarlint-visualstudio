@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
@@ -31,7 +32,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
-    internal interface IObservingIssueLocationStore : IDisposable
+    internal interface IIssueStoreObserver : IDisposable
     {
         /// <summary>
         /// Begins to observe the given collection if it was not already observed.
@@ -40,14 +41,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         IDisposable Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
     }
 
-    [Export(typeof(IObservingIssueLocationStore))]
+    [Export(typeof(IIssueStoreObserver))]
     [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ObservingIssueLocationStore : IObservingIssueLocationStore, IIssueLocationStore
+    internal sealed class IssueStoreObserver : IIssueStoreObserver, IIssueLocationStore
     {
         private HashSet<ReadOnlyObservableCollection<IAnalysisIssueVisualization>> ObservableIssueVisualizations { get; } = new HashSet<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>();
 
-        IDisposable IObservingIssueLocationStore.Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
+        IDisposable IIssueStoreObserver.Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
         {
             if (issueVisualizations == null)
             {
@@ -62,6 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 
             if (ObservableIssueVisualizations.Contains(issueVisualizations))
             {
+                Debug.Assert(!ObservableIssueVisualizations.Contains(issueVisualizations), "Not expecting the collection to be registered twice");
                 return unregisterCallback;
             }
 
@@ -86,9 +88,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 
         void IIssueLocationStore.Refresh(IEnumerable<string> affectedFilePaths)
         {
+            // Implementation is not required:
+            // This method was originally added in order to notify the error list sinks that the taggers changed the span of the issue visualizations.
+            // The newer issue stores display their data in plain xaml lists, and the span changes are tracked via NotifyPropertyChanged mechanism in IAnalysisIssueVisualization.
         }
 
-        private void IssueVisualizations_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void IssueVisualizations_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             var addedItems = e.NewItems ?? Array.Empty<IAnalysisIssueVisualization>();
             var removedItems = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
