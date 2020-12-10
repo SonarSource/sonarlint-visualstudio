@@ -80,8 +80,11 @@ namespace SonarQube.Client.Api.V7_20
         }
 
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(ComputePath(issue.Component), issue.Hash, issue.Line, issue.Message, ComputeModuleKey(issue),
-                GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED", ToIssueFlows(issue.Flows));
+            new SonarQubeIssue(ComputePath(issue.Component), issue.Hash, issue.Message, ComputeModuleKey(issue),
+                GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED",
+                SonarQubeIssueSeverityConverter.Convert(issue.Severity),
+                ToIssueTextRange(issue.TextRange),
+                ToIssueFlows(issue.Flows));
 
         private string ComputePath(string component) =>
             FilePathNormalizer.NormalizeSonarQubePath(componentKeyPathLookup[component].FirstOrDefault() ?? string.Empty);
@@ -102,8 +105,15 @@ namespace SonarQube.Client.Api.V7_20
         private IssueLocation ToIssueLocation(ServerIssueLocation serverIssueLocation) =>
             new IssueLocation(ComputePath(serverIssueLocation.Component), serverIssueLocation.Component, ToIssueTextRange(serverIssueLocation.TextRange), serverIssueLocation.Message);
 
-        private static IssueTextRange ToIssueTextRange(ServerIssueTextRange serverIssueTextRange) =>
-            new IssueTextRange(serverIssueTextRange.StartLine, serverIssueTextRange.EndLine, serverIssueTextRange.StartOffset, serverIssueTextRange.EndOffset);
+        private static IssueTextRange ToIssueTextRange(ServerIssueTextRange serverIssueTextRange)
+        {
+            return serverIssueTextRange == null
+                ? null
+                : new IssueTextRange(serverIssueTextRange.StartLine,
+                    serverIssueTextRange.EndLine,
+                    serverIssueTextRange.StartOffset,
+                    serverIssueTextRange.EndOffset);
+        }
 
         #endregion Json data classes -> public read-only class conversion methods
 
@@ -113,18 +123,28 @@ namespace SonarQube.Client.Api.V7_20
         {
             [JsonProperty("rule")]
             public string CompositeRuleKey { get; set; }
+
             [JsonProperty("component")]
             public string Component { get; set; }
+
             [JsonProperty("subProject")]
             public string SubProject { get; set; }
+
             [JsonProperty("hash")]
             public string Hash { get; set; }
-            [JsonProperty("line")]
-            public int? Line { get; set; }
+
             [JsonProperty("message")]
             public string Message { get; set; }
+
             [JsonProperty("status")]
             public string Status { get; set; }
+
+            [JsonProperty("severity")]
+            public string Severity { get; set; }
+
+            [JsonProperty("textRange")]
+            public ServerIssueTextRange TextRange { get; set; }
+
             [JsonProperty("flows")]
             public ServerIssueFlow[] Flows { get; set; }
         }

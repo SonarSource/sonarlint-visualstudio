@@ -616,7 +616,6 @@ namespace SonarQube.Client.Tests
             taint1.Message.Should().Be("Refactor this code to not construct the OS command from tainted, user-controlled data.");
             taint1.FilePath.Should().Be("src\\main\\java\\foo\\security\\injection\\CommandInjectionVulnerability.java");
             taint1.Hash.Should().Be("1703916771e6abb765843e62a76fcb5a");
-            taint1.Line.Should().Be(17);
             taint1.Flows.Should().NotBeEmpty();
             taint1.Flows.Count.Should().Be(1);
             taint1.Flows[0].Locations.Count.Should().Be(8);
@@ -626,6 +625,7 @@ namespace SonarQube.Client.Tests
             taint1.Flows[0].Locations[3].FilePath.Should().Be("src\\main\\java\\foo\\security\\injection\\Servlet.java");
             taint1.Flows[0].Locations[3].TextRange.Should().BeEquivalentTo(new IssueTextRange(38, 38, 6, 54));
             taint1.Flows[0].Locations[3].Message.Should().Be("taint value is propagated");
+            taint1.TextRange.Should().BeEquivalentTo(new IssueTextRange(17, 17, 4, 25));
 
             var taint2 = result[1];
 
@@ -633,7 +633,6 @@ namespace SonarQube.Client.Tests
             taint2.Message.Should().Be("Refactor this code to not construct SQL queries directly from tainted user-controlled data.");
             taint2.FilePath.Should().Be("src\\main\\java\\foo\\security\\injection\\SQLInjectionVulnerabilityCollectionMultipleFiles.java");
             taint2.Hash.Should().Be("b07a403eb4e77c8d6c4b3fa5c6408064");
-            taint2.Line.Should().Be(20);
             taint2.Flows.Should().NotBeEmpty();
             taint2.Flows.Count.Should().Be(1);
             taint2.Flows[0].Locations.Count.Should().Be(16);
@@ -643,6 +642,7 @@ namespace SonarQube.Client.Tests
             taint2.Flows[0].Locations[15].FilePath.Should().Be("src\\main\\java\\foo\\security\\injection\\Servlet.java");
             taint2.Flows[0].Locations[15].TextRange.Should().BeEquivalentTo(new IssueTextRange(34, 34, 20, 59));
             taint2.Flows[0].Locations[15].Message.Should().Be("this value can be controlled by the user");
+            taint2.TextRange.Should().BeEquivalentTo(new IssueTextRange(20, 20, 6, 23));
         }
     }
 }

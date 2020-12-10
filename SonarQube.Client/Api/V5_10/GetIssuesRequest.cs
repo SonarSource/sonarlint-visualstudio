@@ -88,7 +88,10 @@ namespace SonarQube.Client.Api.V5_10
         }
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(FilePathNormalizer.NormalizeSonarQubePath(issue.Path), issue.Checksum, issue.Line, issue.Msg, issue.ModuleKey, issue.RuleKey,
-                issue.Status == "RESOLVED", flows: null);
+            new SonarQubeIssue(FilePathNormalizer.NormalizeSonarQubePath(issue.Path), issue.Checksum, issue.Msg,
+                issue.ModuleKey, issue.RuleKey, issue.Status == "RESOLVED",
+                severity: SonarQubeIssueSeverity.Unknown,
+                textRange: new IssueTextRange(issue.Line, issue.Line, 0, 0),
+                flows: null);
     }
 }
