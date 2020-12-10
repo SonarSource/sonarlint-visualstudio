@@ -20,14 +20,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
+using System.Collections.ObjectModel;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
@@ -38,35 +36,57 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
     public class HotspotsStoreTests
     {
         [TestMethod]
-        public void MefCtor_CheckExports()
+        public void MefCtor_CheckIsExported()
         {
-            var batch = new CompositionBatch();
+            var issueStoreObserver = new Mock<IIssueStoreObserver>();
+            issueStoreObserver
+                .Setup(x => x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()))
+                .Returns(Mock.Of<IDisposable>());
 
-            var hotspotsStoreImporter = new SingleObjectImporter<IHotspotsStore>();
-            var issueLocationStoreImporter = new SingleObjectImporter<IIssueLocationStore>();
-            batch.AddPart(hotspotsStoreImporter);
-            batch.AddPart(issueLocationStoreImporter);
+            MefTestHelpers.CheckTypeCanBeImported<HotspotsStore, IHotspotsStore>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IIssueStoreObserver>(issueStoreObserver.Object)
+            });
+        }
 
-            var catalog = new TypeCatalog(typeof(HotspotsStore));
-            using var container = new CompositionContainer(catalog);
-            container.Compose(batch);
+        [TestMethod]
+        public void Ctor_RegisterToIssueStoreObserver()
+        {
+            var issueStoreObserver = new Mock<IIssueStoreObserver>();
+            CreateTestSubject(issueStoreObserver.Object);
 
-            hotspotsStoreImporter.Import.Should().NotBeNull();
-            issueLocationStoreImporter.Import.Should().NotBeNull();
+            issueStoreObserver.Verify(x=> x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()), Times.Once);
+            issueStoreObserver.VerifyNoOtherCalls();
+        }
 
-            hotspotsStoreImporter.Import.Should().BeSameAs(issueLocationStoreImporter.Import);
+        [TestMethod]
+        public void Dispose_InnerIssueVizStoreIsDisposed()
+        {
+            var unregisterMock = new Mock<IDisposable>();
+            var issueStoreObserver = new Mock<IIssueStoreObserver>();
+            issueStoreObserver
+                .Setup(x => x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()))
+                .Returns(unregisterMock.Object);
+
+            var testSubject = CreateTestSubject(issueStoreObserver.Object);
+
+            unregisterMock.VerifyNoOtherCalls();
+
+            testSubject.Dispose();
+
+            unregisterMock.Verify(x => x.Dispose(), Times.Once);
         }
 
         [TestMethod]
         public void GetAll_ReturnsReadOnlyObservableWrapper()
         {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
+            var testSubject = CreateTestSubject();
             var readOnlyWrapper = testSubject.GetAll();
 
             readOnlyWrapper.Should().BeAssignableTo<IReadOnlyCollection<IAnalysisIssueVisualization>>();
 
-            var issueViz1 = CreateIssueViz();
-            var issueViz2 = CreateIssueViz();
+            var issueViz1 = CreateIssueViz("some hotspot1");
+            var issueViz2 = CreateIssueViz("some hotspot2");
 
             testSubject.GetOrAdd(issueViz1);
             testSubject.GetOrAdd(issueViz2);
@@ -84,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void GetOrAdd_NoExistingHotspots_HotspotAdded()
         {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
+            var testSubject = CreateTestSubject();
 
             var hotspotToAdd = CreateIssueViz(hotspotKey:"some hotspot");
             var addedHotspot = testSubject.GetOrAdd(hotspotToAdd);
@@ -97,7 +117,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void GetOrAdd_NoMatchingHotspot_HotspotAdded()
         {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
+            var testSubject = CreateTestSubject();
 
             var someOtherHotspot = CreateIssueViz(hotspotKey: "some hotspot 1");
             testSubject.GetOrAdd(someOtherHotspot);
@@ -114,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         [TestMethod]
         public void GetOrAdd_HasMatchingHotspot_HotspotNotAdded()
         {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
+            var testSubject = CreateTestSubject();
 
             var firstHotspot = CreateIssueViz(hotspotKey: "some hotspot");
             var secondHotspot = CreateIssueViz(hotspotKey: "some hotspot");
@@ -128,190 +148,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         }
 
         [TestMethod]
-        public void GetOrAdd_HasMatchingHotspot_SubscribersNotNotified()
+        public void Remove_HotspotRemoved()
         {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
+            var testSubject = CreateTestSubject();
 
-            var eventCount = 0;
-            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
+            var firstHotspot = CreateIssueViz(hotspotKey: "some hotspot1");
+            var secondHotspot = CreateIssueViz(hotspotKey: "some hotspot2");
 
-            var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot");
-            testSubject.GetOrAdd(hotspotToAdd);
+            testSubject.GetOrAdd(firstHotspot);
+            testSubject.GetOrAdd(secondHotspot);
+            testSubject.Remove(firstHotspot);
 
-            eventCount.Should().Be(1);
-
-            testSubject.GetOrAdd(hotspotToAdd);
-
-            eventCount.Should().Be(1);
+            testSubject.GetAll().Count.Should().Be(1);
+            testSubject.GetAll()[0].Should().BeSameAs(secondHotspot);
         }
 
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        public void GetOrAdd_HotspotHasNoFilePath_SubscribersNotNotified(string filePath)
+        private static IAnalysisIssueVisualization CreateIssueViz(string hotspotKey)
         {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
-
-            var eventCount = 0;
-            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
-
-            var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot", filePath: filePath);
-            testSubject.GetOrAdd(hotspotToAdd);
-
-            eventCount.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void GetOrAdd_NoSubscribersToIssuesChangedEvent_NoException()
-        {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
-
-            var act = new Action(() => testSubject.GetOrAdd(CreateIssueViz()));
-            act.Should().NotThrow();
-        }
-
-        [TestMethod]
-        public void GetOrAdd_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
-        {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
-
-            IssuesChangedEventArgs suppliedArgs = null;
-            var eventCount = 0;
-            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
-
-            var location1 = new Mock<IAnalysisIssueLocationVisualization>();
-            location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
-            var location2 = new Mock<IAnalysisIssueLocationVisualization>();
-            location2.SetupGet(x => x.CurrentFilePath).Returns("B.cpp");
-            var issueViz = CreateIssueViz(filePath: "a.cpp", locations: new [] {location1.Object, location2.Object});
-
-            testSubject.GetOrAdd(issueViz);
-
-            eventCount.Should().Be(1);
-            suppliedArgs.Should().NotBeNull();
-            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp");
-        }
-
-        [TestMethod]
-        public void Remove_NoSubscribersToIssuesChangedEvent_NoException()
-        {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
-
-            var act = new Action(() => testSubject.Remove(CreateIssueViz()));
-            act.Should().NotThrow();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        public void Remove_HotspotHasNoFilePath_SubscribersNotNotified(string filePath)
-        {
-            var testSubject = new HotspotsStore() as IHotspotsStore;
-
-            var eventCount = 0;
-            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
-
-            var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot", filePath: filePath);
-            testSubject.GetOrAdd(hotspotToAdd);
-
-            eventCount.Should().Be(0);
-
-            testSubject.Remove(hotspotToAdd);
-
-            eventCount.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void Remove_HasSubscribersToIssuesChangedEvent_SubscribersNotified()
-        {
-            var location1 = new Mock<IAnalysisIssueLocationVisualization>();
-            location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
-            var location2 = new Mock<IAnalysisIssueLocationVisualization>();
-            location2.SetupGet(x => x.CurrentFilePath).Returns("B.cpp");
-            var issueViz = CreateIssueViz(filePath: "a.cpp", locations: new [] {location1.Object, location2.Object});
-
-            var testSubject = new HotspotsStore() as IHotspotsStore;
-            testSubject.GetOrAdd(issueViz);
-
-            IssuesChangedEventArgs suppliedArgs = null;
-            var eventCount = 0;
-            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
-
-            testSubject.Remove(issueViz);
-
-            eventCount.Should().Be(1);
-            suppliedArgs.Should().NotBeNull();
-            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp");
-        }
-
-        [TestMethod]
-        public void GetLocations_NoHotspots_EmptyList()
-        {
-            var testSubject = new HotspotsStore() as IIssueLocationStore;
-
-            var locations = testSubject.GetLocations("test.cpp");
-            locations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void GetLocations_NoHotspotsForGivenFilePath_EmptyList()
-        {
-            var testSubject = new HotspotsStore() as IIssueLocationStore;
-            ((IHotspotsStore)testSubject).GetOrAdd(CreateIssueViz("file1.cpp"));
-
-            var locations = testSubject.GetLocations("file2.cpp");
-            locations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        [DataRow(null)]
-        [DataRow("")]
-        [Description("Regression test for #1958")]
-        public void GetLocations_HotspotHasNoFilePath_EmptyList(string filePath)
-        {
-            var issueViz = CreateIssueViz(filePath: filePath);
-
-            var testSubject = new HotspotsStore() as IIssueLocationStore;
-            ((IHotspotsStore)testSubject).GetOrAdd(issueViz);
-
-            var locations = testSubject.GetLocations("somefile.cpp");
-            locations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public void GetLocations_HasHotspotsForGivenFilePath_ReturnsMatchingLocations()
-        {
-            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
-            locationViz.Setup(x => x.CurrentFilePath).Returns("SomeFile.cpp");
-
-            var issueViz1 = CreateIssueViz(filePath:"somefile.cpp");
-            var issueViz2 = CreateIssueViz(filePath: "someotherfile.cpp", locations: locationViz.Object);
-            var issueViz3 = CreateIssueViz(filePath: "SOMEFILE.cpp");
-
-            var testSubject = new HotspotsStore() as IIssueLocationStore;
-            ((IHotspotsStore)testSubject).GetOrAdd(issueViz1);
-            ((IHotspotsStore)testSubject).GetOrAdd(issueViz2);
-            ((IHotspotsStore)testSubject).GetOrAdd(issueViz3);
-
-            var locations = testSubject.GetLocations("somefile.cpp");
-            locations.Should().BeEquivalentTo(issueViz1, issueViz3, locationViz.Object);
-        }
-
-        private static IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string hotspotKey = null, params IAnalysisIssueLocationVisualization[] locations)
-        {
-            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
-            flowViz.Setup(x => x.Locations).Returns(locations);
-
-            hotspotKey ??= Guid.NewGuid().ToString();
             var hotspot = new Mock<IHotspot>();
             hotspot.Setup(x => x.HotspotKey).Returns(hotspotKey);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
-            issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
-            issueViz.Setup(x => x.Flows).Returns(new[] { flowViz.Object });
 
             return issueViz.Object;
+        }
+
+        private IHotspotsStore CreateTestSubject(IIssueStoreObserver issueStoreObserver = null)
+        {
+            issueStoreObserver ??= Mock.Of<IIssueStoreObserver>();
+            return new HotspotsStore(issueStoreObserver);
         }
     }
 }
