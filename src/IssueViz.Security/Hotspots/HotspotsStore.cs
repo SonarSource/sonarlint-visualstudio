@@ -19,18 +19,15 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using System.Linq;
-using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
-    internal interface IHotspotsStore
+    internal interface IHotspotsStore : IDisposable
     {
         ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
 
@@ -44,13 +41,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     }
 
     [Export(typeof(IHotspotsStore))]
-    [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class HotspotsStore : IHotspotsStore, IIssueLocationStore
+    internal sealed class HotspotsStore : IHotspotsStore
     {
+        private readonly IDisposable unregisterCallback;
         private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
+        private ReadOnlyObservableCollection<IAnalysisIssueVisualization> ReadOnlyWrapper => new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
 
-        IAnalysisIssueVisualization IHotspotsStore.GetOrAdd(IAnalysisIssueVisualization hotspotViz)
+        [ImportingConstructor]
+        public HotspotsStore(IIssueStoreObserver issueStoreObserver)
+        {
+            unregisterCallback = issueStoreObserver.Register(ReadOnlyWrapper);
+        }
+
+        public IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspotViz)
         {
             var existingHotspot = FindExisting(hotspotViz);
 
@@ -60,34 +64,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             }
 
             Hotspots.Add(hotspotViz);
-            NotifyHotspotChanged(hotspotViz);
 
             return hotspotViz;
         }
 
-        void IHotspotsStore.Remove(IAnalysisIssueVisualization hotspotViz)
+        public void Remove(IAnalysisIssueVisualization hotspotViz)
         {
             Hotspots.Remove(hotspotViz);
-            NotifyHotspotChanged(hotspotViz);
-        }
-
-        private void NotifyHotspotChanged(IAnalysisIssueVisualization changedHotspotViz)
-        {
-            if (IssuesChanged == null)
-            {
-                return;
-            }
-
-            var hotspotFilePaths = changedHotspotViz
-                .GetAllLocations()
-                .Select(x => x.CurrentFilePath)
-                .Where(x=> !string.IsNullOrEmpty(x))
-                .Distinct(StringComparer.OrdinalIgnoreCase);
-
-            if (hotspotFilePaths.Any())
-            {
-                IssuesChanged.Invoke(this, new IssuesChangedEventArgs(hotspotFilePaths));
-            }
         }
 
         private IAnalysisIssueVisualization FindExisting(IAnalysisIssueVisualization hotspotViz)
@@ -97,25 +80,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return Hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
-        ReadOnlyObservableCollection<IAnalysisIssueVisualization> IHotspotsStore.GetAll()
+        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => ReadOnlyWrapper;
+
+        public void Dispose()
         {
-            return new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
-        }
-
-        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
-
-        IEnumerable<IAnalysisIssueLocationVisualization> IIssueLocationStore.GetLocations(string filePath)
-        {
-            var matchingLocations = Hotspots
-                .SelectMany(hotspotViz => hotspotViz.GetAllLocations())
-                .Where(locationViz => !string.IsNullOrEmpty(locationViz.CurrentFilePath) &&
-                                      PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
-
-            return matchingLocations;
-        }
-
-        void IIssueLocationStore.Refresh(IEnumerable<string> affectedFilePaths)
-        {
+            unregisterCallback.Dispose();
         }
     }
 }
