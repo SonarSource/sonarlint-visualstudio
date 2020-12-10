@@ -43,58 +43,32 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
     internal sealed class HotspotViewModel : IHotspotViewModel
     {
         private readonly ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider;
+        private readonly IIssueVizDisplayPositionCalculator positionCalculator;
 
         public HotspotViewModel(IAnalysisIssueVisualization hotspot)
-            : this(hotspot, new SecurityCategoryDisplayNameProvider())
+            : this(hotspot, new SecurityCategoryDisplayNameProvider(), new IssueVizDisplayPositionCalculator())
         {
         }
 
-        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider)
+        internal HotspotViewModel(IAnalysisIssueVisualization hotspot, ISecurityCategoryDisplayNameProvider categoryDisplayNameProvider, IIssueVizDisplayPositionCalculator positionCalculator)
         {
             this.categoryDisplayNameProvider = categoryDisplayNameProvider;
+            this.positionCalculator = positionCalculator;
             Hotspot = hotspot;
             Hotspot.PropertyChanged += Hotspot_PropertyChanged;
         }
 
         public IAnalysisIssueVisualization Hotspot { get; }
 
-        public int Line =>
-            CanUseSpan()
-                ? Hotspot.Span.Value.Start.GetContainingLine().LineNumber + 1
-                : Hotspot.Issue.StartLine;
+        public int Line => positionCalculator.GetLine(Hotspot);
 
-        public int Column
-        {
-            get
-            {
-                int zeroBasedColumn;
-
-                if (!CanUseSpan())
-                {
-                    zeroBasedColumn = Hotspot.Issue.StartLineOffset;
-                }
-                else
-                {
-                    var position = Hotspot.Span.Value.Start;
-                    var line = position.GetContainingLine();
-                    zeroBasedColumn = position.Position - line.Start.Position;
-                }
-
-                // both SQ hotspot column and VS column are zero-based
-                return zeroBasedColumn + 1;
-            }
-        }
+        public int Column => positionCalculator.GetColumn(Hotspot);
 
         public string DisplayPath =>
             Path.GetFileName(Hotspot.CurrentFilePath ?? ((IHotspot)Hotspot.Issue).ServerFilePath);
 
         public string CategoryDisplayName =>
             categoryDisplayNameProvider.Get(((IHotspot) Hotspot.Issue).Rule.SecurityCategory);
-
-        private bool CanUseSpan()   
-        {
-            return Hotspot.Span.HasValue && !Hotspot.Span.Value.IsEmpty;
-        }
 
         private void Hotspot_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {

@@ -25,6 +25,7 @@ using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
@@ -35,6 +36,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
     [TestClass]
     public class HotspotsControlViewModelTests
     {
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            // HotspotsControlViewModel needs to be created on the UI thread
+            ThreadHelper.SetCurrentThreadAsUIThread();
+        }
+
         [TestMethod]
         public void Ctor_RegisterToHotspotsCollectionChanges()
         {
