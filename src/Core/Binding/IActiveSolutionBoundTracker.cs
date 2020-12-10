@@ -19,10 +19,31 @@
  */
 
 using System;
-using SonarLint.VisualStudio.Core.Binding;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core.Binding
 {
+    /// <summary>
+    /// Allows checking if the current Visual Studio solution is bound to a SonarQube project or not
+    /// </summary>
+    public interface IActiveSolutionBoundTracker
+    {
+        /// <summary>
+        /// Get the current binding configuration.
+        /// </summary>
+        /// <remarks>
+        /// This is never null.
+        /// </remarks>
+        BindingConfiguration CurrentConfiguration { get; }
+
+        /// <summary>
+        /// Event to notify subscribers when the binding status of a solution have changed.
+        /// This occurs when a new solution is opened, or the SonarQube binding status of the solution changes.
+        /// </summary>
+        event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
+
+        event EventHandler SolutionBindingUpdated;
+    }
+
     public class ActiveSolutionBindingEventArgs : EventArgs
     {
         public ActiveSolutionBindingEventArgs(BindingConfiguration configuration)
