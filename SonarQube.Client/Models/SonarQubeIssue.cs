@@ -26,16 +26,17 @@ namespace SonarQube.Client.Models
     {
         private static readonly IReadOnlyList<IssueFlow> EmptyFlows = new List<IssueFlow>().AsReadOnly();
 
-        public SonarQubeIssue(string filePath, string hash, int? line, string message, string moduleKey, string ruleId,
-            bool isResolved, List<IssueFlow> flows)
+        public SonarQubeIssue(string filePath, string hash, string message, string moduleKey, string ruleId, bool isResolved, 
+            SonarQubeIssueSeverity severity, IssueTextRange textRange, List<IssueFlow> flows)
         {
             FilePath = filePath;
             Hash = hash;
-            Line = line;
             Message = message;
             ModuleKey = moduleKey;
             RuleId = ruleId;
             IsResolved = isResolved;
+            Severity = severity;
+            TextRange = textRange;
             Flows = flows ?? EmptyFlows;
         }
 
@@ -48,11 +49,12 @@ namespace SonarQube.Client.Models
         /// </remarks>
         public string FilePath { get; }
         public string Hash { get; }
-        public int? Line { get; }
         public string Message { get; }
         public string ModuleKey { get; }
         public string RuleId { get; }
         public bool IsResolved { get; }
+        public SonarQubeIssueSeverity Severity { get; }
+        public IssueTextRange TextRange { get; }
         public IReadOnlyList<IssueFlow> Flows { get; }
     }
 
