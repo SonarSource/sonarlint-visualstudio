@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     internal interface IObservingIssueLocationStore : IDisposable
     {
         /// <summary>
-        /// Begins to observe the given collection.
+        /// Begins to observe the given collection if it was not already observed.
         /// Returns a disposable handle that unregisters the collection.
         /// </summary>
         IDisposable Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ObservingIssueLocationStore : IObservingIssueLocationStore, IIssueLocationStore
     {
-        private IList<ReadOnlyObservableCollection<IAnalysisIssueVisualization>> ObservableIssueVisualizations { get; } = new List<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>();
+        private HashSet<ReadOnlyObservableCollection<IAnalysisIssueVisualization>> ObservableIssueVisualizations { get; } = new HashSet<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>();
 
         IDisposable IObservingIssueLocationStore.Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
         {
@@ -54,14 +54,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            ObservableIssueVisualizations.Add(issueVisualizations);
-            ((INotifyCollectionChanged)issueVisualizations).CollectionChanged += IssueVisualizations_CollectionChanged;
-
-            return new ExecuteOnDispose(() =>
+            var unregisterCallback = new ExecuteOnDispose(() =>
             {
                 ObservableIssueVisualizations.Remove(issueVisualizations);
                 ((INotifyCollectionChanged)issueVisualizations).CollectionChanged -= IssueVisualizations_CollectionChanged;
             });
+
+            if (ObservableIssueVisualizations.Contains(issueVisualizations))
+            {
+                return unregisterCallback;
+            }
+
+            ObservableIssueVisualizations.Add(issueVisualizations);
+            ((INotifyCollectionChanged)issueVisualizations).CollectionChanged += IssueVisualizations_CollectionChanged;
+
+            return unregisterCallback;
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
