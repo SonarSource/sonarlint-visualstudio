@@ -260,36 +260,40 @@ namespace SonarQube.Client.Tests
             // Module level issues don't have FilePath, hash and line
             result[0].FilePath.Should().Be(string.Empty);
             result[0].Hash.Should().BeNull();
-            result[0].Line.Should().BeNull();
+            result[0].TextRange.Should().BeNull();
             result[0].Message.Should().Be("Mark this assembly with 'System.CLSCompliantAttribute'");
             result[0].ModuleKey.Should().Be("shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082");
             result[0].IsResolved.Should().BeTrue();
             result[0].RuleId.Should().Be("S3990");
+            result[0].Severity.Should().Be(SonarQubeIssueSeverity.Major);
 
             result[1].FilePath.Should().Be("Program.cs");
             result[1].Hash.Should().Be("0afa1b5e62aa3cfaf1cd9a4e63571cb5");
-            result[1].Line.Should().Be(6);
+            result[1].TextRange.Should().BeEquivalentTo(new IssueTextRange(6, 6, 10, 17));
             result[1].Message.Should().Be("Add a 'protected' constructor or the 'static' keyword to the class declaration.");
             result[1].ModuleKey.Should().Be("shared:shared:2B470B7D-D47B-4E41-B105-D3938E196082");
             result[1].IsResolved.Should().BeTrue();
             result[1].RuleId.Should().Be("S1118");
+            result[1].Severity.Should().Be(SonarQubeIssueSeverity.Major);
 
             // File level issues don't have hash and line
             result[2].FilePath.Should().Be("SharedProject1\\SharedClass1.cs");
             result[2].Hash.Should().BeNull();
-            result[2].Line.Should().BeNull();
+            result[2].TextRange.Should().BeNull();
             result[2].Message.Should().Be("Add or update the header of this file.");
             result[2].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
             result[2].IsResolved.Should().BeTrue();
             result[2].RuleId.Should().Be("S1451");
+            result[2].Severity.Should().Be(SonarQubeIssueSeverity.Blocker);
 
             result[3].FilePath.Should().Be("SharedProject1\\SharedClass1.cs");
             result[3].Hash.Should().Be("be411c6cf1ae5ba7d7c5d6da7355afa1");
-            result[3].Line.Should().Be(5);
+            result[3].TextRange.Should().BeEquivalentTo(new IssueTextRange(5, 5, 27, 30));
             result[3].Message.Should().Be("Remove this method and declare a constant for this value.");
             result[3].ModuleKey.Should().Be("shared:SharedProject1/SharedClass1.cs");
             result[3].IsResolved.Should().BeTrue();
             result[3].RuleId.Should().Be("S3400");
+            result[3].Severity.Should().Be(SonarQubeIssueSeverity.Minor);
 
             messageHandler.VerifyAll();
         }

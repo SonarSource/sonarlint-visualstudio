@@ -31,23 +31,23 @@ namespace SonarQube.Client.Tests.Models
         [TestMethod]
         public void Ctor_FilePathCanBeNull()
         {
-            var testSubject = new SonarQubeIssue(null, "any", 1, "any", "any", "any", false, new List<IssueFlow>());
+            var testSubject = new SonarQubeIssue(null, "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, textRange: null, flows: null);
 
             testSubject.FilePath.Should().BeNull();
         }
 
         [TestMethod]
-        public void Ctor_LineCanBeNull()
+        public void Ctor_TextRangeCanBeNull()
         {
-            var testSubject = new SonarQubeIssue("any", "any", null, "any", "any", "any", false, new List<IssueFlow>());
+            var testSubject = new SonarQubeIssue("file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, textRange: null, flows: null);
 
-            testSubject.Line.Should().BeNull();
+            testSubject.TextRange.Should().BeNull();
         }
 
         [TestMethod]
         public void Ctor_FlowsAreNeverNull()
         {
-            var testSubject = new SonarQubeIssue("any", "any", 1, "any", "any", "any", false, null);
+            var testSubject = new SonarQubeIssue("file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, new IssueTextRange(123, 456, 7, 8), flows: null);
 
             testSubject.Flows.Should().BeEmpty();
         }
@@ -59,15 +59,16 @@ namespace SonarQube.Client.Tests.Models
             {
                 new IssueFlow(null), new IssueFlow(null)
             };
-            var testSubject = new SonarQubeIssue("file", "hash", 123, "message", "module", "rule", true, flows);
+            var testSubject = new SonarQubeIssue("file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, new IssueTextRange(123, 456, 7, 8), flows);
 
             testSubject.FilePath.Should().Be("file");
             testSubject.Hash.Should().Be("hash");
-            testSubject.Line.Should().Be(123);
             testSubject.Message.Should().Be("message");
             testSubject.ModuleKey.Should().Be("module");
             testSubject.RuleId.Should().Be("rule");
             testSubject.IsResolved.Should().BeTrue();
+            testSubject.Severity.Should().Be(SonarQubeIssueSeverity.Info);
+            testSubject.TextRange.Should().BeEquivalentTo(new IssueTextRange(123, 456, 7, 8));
             testSubject.Flows.Should().BeEquivalentTo(flows);
         }
     }
