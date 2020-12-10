@@ -59,6 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             {
                 ObservableIssueVisualizations.Remove(issueVisualizations);
                 ((INotifyCollectionChanged)issueVisualizations).CollectionChanged -= IssueVisualizations_CollectionChanged;
+                NotifyIssuesChanged(issueVisualizations);
             });
 
             if (ObservableIssueVisualizations.Contains(issueVisualizations))
@@ -69,6 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 
             ObservableIssueVisualizations.Add(issueVisualizations);
             ((INotifyCollectionChanged)issueVisualizations).CollectionChanged += IssueVisualizations_CollectionChanged;
+            NotifyIssuesChanged(issueVisualizations);
 
             return unregisterCallback;
         }
@@ -99,10 +101,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             var removedItems = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
             var changedItems = addedItems.Cast<IAnalysisIssueVisualization>().Union(removedItems.Cast<IAnalysisIssueVisualization>());
 
-            NotifyIssueChanged(changedItems);
+            NotifyIssuesChanged(changedItems);
         }
 
-        private void NotifyIssueChanged(IEnumerable<IAnalysisIssueVisualization> changedIssueVizs)
+        private void NotifyIssuesChanged(IEnumerable<IAnalysisIssueVisualization> changedIssueVizs)
         {
             if (IssuesChanged == null)
             {

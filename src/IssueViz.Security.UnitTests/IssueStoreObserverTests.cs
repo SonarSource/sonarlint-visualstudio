@@ -66,6 +66,47 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         }
 
         [TestMethod]
+        public void Register_SubscribersNotified()
+        {
+            var issueViz1 = CreateIssueViz("a.cpp");
+            var issueViz2 = CreateIssueViz("b.cpp");
+            var originalCollection = new ObservableCollection<IAnalysisIssueVisualization> {issueViz1, issueViz2};
+           
+            var testSubject = new IssueStoreObserver() as IIssueStoreObserver;
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; suppliedArgs = args; };
+
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
+
+            eventCount.Should().Be(1);
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp");
+        }
+
+        [TestMethod]
+        public void Register_DisposeCallback_SubscribersNotified()
+        {
+            var issueViz1 = CreateIssueViz("a.cpp");
+            var issueViz2 = CreateIssueViz("b.cpp");
+            var originalCollection1 = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
+            var originalCollection2 = new ObservableCollection<IAnalysisIssueVisualization> { CreateIssueViz("c.cpp") };
+
+            var testSubject = new IssueStoreObserver() as IIssueStoreObserver;
+            var unregisterCollection1 = testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection1));
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection2));
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; suppliedArgs = args; };
+
+            unregisterCollection1.Dispose();
+
+            eventCount.Should().Be(1);
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("a.cpp", "b.cpp");
+        }
+
+        [TestMethod]
         public void Register_DisposeCallback_StopTrackingCollection()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
