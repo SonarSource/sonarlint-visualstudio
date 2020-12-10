@@ -59,49 +59,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         [TestMethod]
         public void Register_NullCollection_ArgumentNullException()
         {
-            var testSubject = new ObservingIssueLocationStore();
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
 
             Action act = () => testSubject.Register(null);
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualizations");
         }
 
         [TestMethod]
-        public void Unregister_NullCollection_ArgumentNullException()
-        {
-            var testSubject = new ObservingIssueLocationStore();
-
-            Action act = () => testSubject.Unregister(null);
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualizations");
-        }
-
-        [TestMethod]
-        public void Unregister_StopTrackingCollection()
+        public void Register_DisposeCallback_StopTrackingCollection()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            var unregisterCallback = testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             var eventCount = 0;
-            testSubject.IssuesChanged += (sender, args) => { eventCount++; };
+            ((IIssueLocationStore) testSubject).IssuesChanged += (sender, args) => { eventCount++; };
 
-            testSubject.Unregister(originalCollection);
+            unregisterCallback.Dispose();
             originalCollection.Add(CreateIssueViz());
 
             eventCount.Should().Be(0);
         }
 
         [TestMethod]
-        public void Unregister_RemoveUnderlyingCollections()
+        public void Register_DisposeCallback_RemoveUnderlyingCollections()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            var unregisterCallback = testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             originalCollection.Add(CreateIssueViz("somefile.cpp"));
 
-            testSubject.Unregister(originalCollection);
+            unregisterCallback.Dispose();
 
-            var locations = testSubject.GetLocations("somefile.cpp");
+            var locations = ((IIssueLocationStore)testSubject).GetLocations("somefile.cpp");
             locations.Should().BeEmpty();
         }
 
@@ -110,8 +101,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
 
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             var act = new Action(() => originalCollection.Add(CreateIssueViz()));
             act.Should().NotThrow();
@@ -123,13 +114,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             var originalCollection1 = new ObservableCollection<IAnalysisIssueVisualization>();
             var originalCollection2 = new ObservableCollection<IAnalysisIssueVisualization>();
 
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection1);
-            testSubject.Register(originalCollection2);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection1));
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection2));
 
             IssuesChangedEventArgs suppliedArgs = null;
             var eventCount = 0;
-            testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
 
             var location1 = new Mock<IAnalysisIssueLocationVisualization>();
             location1.SetupGet(x => x.CurrentFilePath).Returns("b.cpp");
@@ -165,11 +156,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
 
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             var eventCount = 0;
-            testSubject.IssuesChanged += (sender, args) => { eventCount++; };
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
 
             var issueViz = CreateIssueViz(filePath);
             originalCollection.Add(issueViz);
@@ -180,7 +171,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         [TestMethod]
         public void GetLocations_NoUnderlyingCollections_EmptyList()
         {
-            var testSubject = new ObservingIssueLocationStore();
+            var testSubject = new ObservingIssueLocationStore() as IIssueLocationStore;
 
             var locations = testSubject.GetLocations("test.cpp");
             locations.Should().BeEmpty();
@@ -190,12 +181,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         public void GetLocations_NoIssueVizsForGivenFilePath_EmptyList()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             originalCollection.Add(CreateIssueViz("file1.cpp"));
 
-            var locations = testSubject.GetLocations("file2.cpp");
+            var locations = ((IIssueLocationStore)testSubject).GetLocations("file2.cpp");
             locations.Should().BeEmpty();
         }
 
@@ -206,8 +197,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         public void GetLocations_HasIssueVizWithoutFilePath_IssueVizIgnored(string filePath)
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             var issueVizWithoutFilePath = CreateIssueViz(filePath);
             var issueVizWithFilePath = CreateIssueViz("somefile.cpp");
@@ -215,7 +206,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             originalCollection.Add(issueVizWithoutFilePath);
             originalCollection.Add(issueVizWithFilePath);
 
-            var locations = testSubject.GetLocations("somefile.cpp");
+            var locations = ((IIssueLocationStore)testSubject).GetLocations("somefile.cpp");
             locations.Should().NotBeEmpty();
             locations.Count().Should().Be(1);
             locations.First().Should().Be(issueVizWithFilePath);
@@ -238,11 +229,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             originalCollection2.Add(issueViz2);
             originalCollection2.Add(issueViz3);
 
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection1);
-            testSubject.Register(originalCollection2);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection1));
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection2));
 
-            var locations = testSubject.GetLocations("somefile.cpp");
+            var locations = ((IIssueLocationStore)testSubject).GetLocations("somefile.cpp");
             locations.Should().BeEquivalentTo(issueViz1, issueViz3, locationViz.Object);
         }
 
@@ -250,11 +241,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         public void Dispose_UnsubscribeFromUnderlyingCollectionEvents_SubscribersNoLongerNotified()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             var eventCount = 0;
-            testSubject.IssuesChanged += (sender, args) => { eventCount++; };
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
 
             testSubject.Dispose();
             originalCollection.Add(CreateIssueViz());
@@ -266,14 +257,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         public void Dispose_RemoveUnderlyingCollections()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = new ObservingIssueLocationStore();
-            testSubject.Register(originalCollection);
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection));
 
             originalCollection.Add(CreateIssueViz("somefile.cpp"));
 
             testSubject.Dispose();
 
-            var locations = testSubject.GetLocations("somefile.cpp");
+            var locations = ((IIssueLocationStore)testSubject).GetLocations("somefile.cpp");
             locations.Should().BeEmpty();
         }
 
