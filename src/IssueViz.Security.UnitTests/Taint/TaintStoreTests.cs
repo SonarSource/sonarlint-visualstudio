@@ -99,6 +99,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             readOnlyWrapper.First().Should().Be(issueViz2);
         }
 
+        [TestMethod]
+        public void Initialize_NullCollection_ArgumentNullException()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.Initialize(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualizations");
+        }
+
         private ITaintStore CreateTestSubject(IIssueStoreObserver issueStoreObserver = null)
         {
             issueStoreObserver ??= Mock.Of<IIssueStoreObserver>();
