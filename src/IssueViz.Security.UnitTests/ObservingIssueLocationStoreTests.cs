@@ -97,6 +97,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         }
 
         [TestMethod]
+        public void Register_CollectionAlreadyObserved_CollectionNotAddedAgain()
+        {
+            var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
+            var readonlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
+
+            var testSubject = new ObservingIssueLocationStore() as IObservingIssueLocationStore;
+            testSubject.Register(readonlyWrapper);
+            testSubject.Register(readonlyWrapper);
+
+            var eventCount = 0;
+            ((IIssueLocationStore)testSubject).IssuesChanged += (sender, args) => { eventCount++; };
+
+            originalCollection.Add(CreateIssueViz());
+
+            eventCount.Should().Be(1);
+        }
+
+        [TestMethod]
         public void UnderlyingCollectionsChanged_NoSubscribersToIssuesChangedEvent_NoException()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();
