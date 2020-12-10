@@ -21,28 +21,33 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel.Composition;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
-    internal interface IObservingIssueLocationStore : IIssueLocationStore, IDisposable
+    internal interface IObservingIssueLocationStore : IDisposable
     {
-        void Register(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
-        void Unregister(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
+        /// <summary>
+        /// Begins to observe the given collection.
+        /// Returns a disposable handle that unregisters the collection.
+        /// </summary>
+        IDisposable Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations);
     }
 
     [Export(typeof(IObservingIssueLocationStore))]
     [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ObservingIssueLocationStore : IObservingIssueLocationStore
+    internal sealed class ObservingIssueLocationStore : IObservingIssueLocationStore, IIssueLocationStore
     {
-        private IList<ObservableCollection<IAnalysisIssueVisualization>> ObservableIssueVisualizations { get; } = new List<ObservableCollection<IAnalysisIssueVisualization>>();
+        private IList<ReadOnlyObservableCollection<IAnalysisIssueVisualization>> ObservableIssueVisualizations { get; } = new List<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>();
 
-        public void Register(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
+        IDisposable IObservingIssueLocationStore.Register(ReadOnlyObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
         {
             if (issueVisualizations == null)
             {
@@ -50,23 +55,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             }
 
             ObservableIssueVisualizations.Add(issueVisualizations);
-            issueVisualizations.CollectionChanged += IssueVisualizations_CollectionChanged;
-        }
+            ((INotifyCollectionChanged)issueVisualizations).CollectionChanged += IssueVisualizations_CollectionChanged;
 
-        public void Unregister(ObservableCollection<IAnalysisIssueVisualization> issueVisualizations)
-        {
-            if (issueVisualizations == null)
+            return new ExecuteOnDispose(() =>
             {
-                throw new ArgumentNullException(nameof(issueVisualizations));
-            }
-
-            ObservableIssueVisualizations.Remove(issueVisualizations);
-            issueVisualizations.CollectionChanged -= IssueVisualizations_CollectionChanged;
+                ObservableIssueVisualizations.Remove(issueVisualizations);
+                ((INotifyCollectionChanged)issueVisualizations).CollectionChanged -= IssueVisualizations_CollectionChanged;
+            });
         }
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-        public IEnumerable<IAnalysisIssueLocationVisualization> GetLocations(string filePath)
+        IEnumerable<IAnalysisIssueLocationVisualization> IIssueLocationStore.GetLocations(string filePath)
         {
             var matchingLocations = ObservableIssueVisualizations
                 .SelectMany(issueVizsCollection => issueVizsCollection )
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             return matchingLocations;
         }
 
-        public void Refresh(IEnumerable<string> affectedFilePaths)
+        void IIssueLocationStore.Refresh(IEnumerable<string> affectedFilePaths)
         {
         }
 
@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         {
             foreach (var collection in ObservableIssueVisualizations)
             {
-                collection.CollectionChanged -= IssueVisualizations_CollectionChanged;
+                ((INotifyCollectionChanged) collection).CollectionChanged -= IssueVisualizations_CollectionChanged;
             }
 
             ObservableIssueVisualizations.Clear();
