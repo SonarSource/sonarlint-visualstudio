@@ -44,14 +44,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class HotspotsStore : IHotspotsStore
     {
+        private readonly ObservableCollection<IAnalysisIssueVisualization> hotspots;
+        private readonly ReadOnlyObservableCollection<IAnalysisIssueVisualization> readOnlyWrapper;
         private readonly IDisposable unregisterCallback;
-        private ObservableCollection<IAnalysisIssueVisualization> Hotspots { get; } = new ObservableCollection<IAnalysisIssueVisualization>();
-        private ReadOnlyObservableCollection<IAnalysisIssueVisualization> ReadOnlyWrapper => new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(Hotspots);
 
         [ImportingConstructor]
         public HotspotsStore(IIssueStoreObserver issueStoreObserver)
         {
-            unregisterCallback = issueStoreObserver.Register(ReadOnlyWrapper);
+            hotspots = new ObservableCollection<IAnalysisIssueVisualization>();
+            readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(hotspots);
+            unregisterCallback = issueStoreObserver.Register(readOnlyWrapper);
         }
 
         public IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspotViz)
@@ -63,24 +65,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 return existingHotspot;
             }
 
-            Hotspots.Add(hotspotViz);
+            hotspots.Add(hotspotViz);
 
             return hotspotViz;
         }
 
         public void Remove(IAnalysisIssueVisualization hotspotViz)
         {
-            Hotspots.Remove(hotspotViz);
+            hotspots.Remove(hotspotViz);
         }
 
         private IAnalysisIssueVisualization FindExisting(IAnalysisIssueVisualization hotspotViz)
         {
             var key = ((IHotspot)hotspotViz.Issue).HotspotKey;
 
-            return Hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
+            return hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
-        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => ReadOnlyWrapper;
+        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => readOnlyWrapper;
 
         public void Dispose()
         {
