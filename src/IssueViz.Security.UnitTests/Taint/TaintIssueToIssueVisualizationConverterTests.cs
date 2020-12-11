@@ -34,12 +34,12 @@ using SonarQube.Client.Models;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 {
     [TestClass]
-    public class SonarQubeIssueToIssueVisualizationConverterTests
+    public class TaintIssueToIssueVisualizationConverterTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<SonarQubeIssueToIssueVisualizationConverter, ISonarQubeIssueToIssueVisualizationConverter>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<TaintIssueToIssueVisualizationConverter, ITaintIssueToIssueVisualizationConverter>(null, new[]
             {
                 MefTestHelpers.CreateExport<IAnalysisIssueVisualizationConverter>(Mock.Of<IAnalysisIssueVisualizationConverter>()),
                 MefTestHelpers.CreateExport<IAbsoluteFilePathLocator>(Mock.Of<IAbsoluteFilePathLocator>())
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [DataRow(SonarQubeIssueSeverity.Minor, AnalysisIssueSeverity.Minor)]
         public void Convert_Severity(SonarQubeIssueSeverity sqSeverity, AnalysisIssueSeverity expectedSeverity)
         {
-            var result = SonarQubeIssueToIssueVisualizationConverter.Convert(sqSeverity);
+            var result = TaintIssueToIssueVisualizationConverter.Convert(sqSeverity);
 
             result.Should().Be(expectedSeverity);
         }
@@ -162,17 +162,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         [DataRow((SonarQubeIssueSeverity)1234)]
         public void Convert_UnknownSeverity_ArgumentOutOfRangeException(SonarQubeIssueSeverity sqSeverity)
         {
-            Action act = () => SonarQubeIssueToIssueVisualizationConverter.Convert(sqSeverity);
+            Action act = () => TaintIssueToIssueVisualizationConverter.Convert(sqSeverity);
 
             act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
-        private SonarQubeIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null, IAbsoluteFilePathLocator absoluteFilePathLocator = null)
+        private TaintIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null, IAbsoluteFilePathLocator absoluteFilePathLocator = null)
         {
             issueVizConverter ??= Mock.Of<IAnalysisIssueVisualizationConverter>();
             absoluteFilePathLocator ??= Mock.Of<IAbsoluteFilePathLocator>();
 
-            return new SonarQubeIssueToIssueVisualizationConverter(issueVizConverter, absoluteFilePathLocator);
+            return new TaintIssueToIssueVisualizationConverter(issueVizConverter, absoluteFilePathLocator);
         }
 
         private SonarQubeIssue CreateServerIssue(string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 

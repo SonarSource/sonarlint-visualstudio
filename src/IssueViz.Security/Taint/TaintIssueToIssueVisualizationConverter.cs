@@ -29,19 +29,19 @@ using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
-    interface ISonarQubeIssueToIssueVisualizationConverter
+    interface ITaintIssueToIssueVisualizationConverter
     {
         IAnalysisIssueVisualization Convert(SonarQubeIssue sonarQubeIssue);
     }
 
-    [Export(typeof(ISonarQubeIssueToIssueVisualizationConverter))]
-    internal class SonarQubeIssueToIssueVisualizationConverter : ISonarQubeIssueToIssueVisualizationConverter
+    [Export(typeof(ITaintIssueToIssueVisualizationConverter))]
+    internal class TaintIssueToIssueVisualizationConverter : ITaintIssueToIssueVisualizationConverter
     {
         private readonly IAnalysisIssueVisualizationConverter issueVisualizationConverter;
         private readonly IAbsoluteFilePathLocator absoluteFilePathLocator;
 
         [ImportingConstructor]
-        public SonarQubeIssueToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter, IAbsoluteFilePathLocator absoluteFilePathLocator)
+        public TaintIssueToIssueVisualizationConverter(IAnalysisIssueVisualizationConverter issueVisualizationConverter, IAbsoluteFilePathLocator absoluteFilePathLocator)
         {
             this.issueVisualizationConverter = issueVisualizationConverter;
             this.absoluteFilePathLocator = absoluteFilePathLocator;
