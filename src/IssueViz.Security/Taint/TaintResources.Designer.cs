@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to sync taint vulnerabilities: {0}..
+        ///   Looks up a localized string similar to Failed to synchronize taint vulnerabilities with the connected server: {0}..
         /// </summary>
         internal static string Synchronizer_Failure {
             get {

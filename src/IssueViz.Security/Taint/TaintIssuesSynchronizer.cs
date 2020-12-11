@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// <summary>
         /// Fetches taint vulnerabilities from the server, converts them into visualizations and populates <see cref="ITaintStore"/>.
         /// </summary>
-        Task Sync();
+        Task SynchronizeWithServer();
     }
 
     [Export(typeof(ITaintIssuesSynchronizer))]
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.logger = logger;
         }
 
-        public async Task Sync()
+        public async Task SynchronizeWithServer()
         {
             var bindingConfiguration = configurationProvider.GetConfiguration();
 
@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
 
-                var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToList();
+                var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
                 taintStore.Set(taintIssueVizs);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

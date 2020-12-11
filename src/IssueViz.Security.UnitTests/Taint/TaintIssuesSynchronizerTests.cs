@@ -26,7 +26,6 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -53,8 +52,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             });
         }
 
-        [TestMethod]
-        public async Task Sync_NotInConnectedMode_NoChanges()
+        [TestMethod]    
+        public async Task SynchronizeWithServer_NotInConnectedMode_NoChanges()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
@@ -67,9 +66,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 taintStore.Object,
                 sonarQubeServer.Object,
                 converter.Object,
-                configurationProvider.Object);
+                configurationProvider.Object, 
+                Mock.Of<ILogger>());
 
-            await testSubject.Sync();
+            await testSubject.SynchronizeWithServer();
 
             sonarQubeServer.Invocations.Count.Should().Be(0);
             converter.Invocations.Count.Should().Be(0);
@@ -77,52 +77,55 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public async Task Sync_NoIssues_StoreSynced()
+        public async Task SynchronizeWithServer_NoIssues_StoreSynced()
         {
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
             var taintStore = new Mock<ITaintStore>();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object);
-            await testSubject.Sync();
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>());
+            await testSubject.SynchronizeWithServer();
 
             converter.Invocations.Count.Should().Be(0);
             taintStore.Verify(x => x.Set(It.Is((IEnumerable<IAnalysisIssueVisualization> list) => !list.Any())), Times.Once);
         }
 
         [TestMethod]
-        public async Task Sync_NonCriticalException_ExceptionCaught()
+        public async Task SynchronizeWithServer_NonCriticalException_ExceptionCaughtAndLogged()
         {
             var serverIssue = new TestSonarQubeIssue();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
-            converter.Setup(x => x.Convert(serverIssue)).Throws<ArgumentException>();
+            converter.Setup(x => x.Convert(serverIssue)).Throws(new NotImplementedException("this is a test"));
             var taintStore = new Mock<ITaintStore>();
+            var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, serverIssue);
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, logger, serverIssue);
 
-            Func<Task> act = async () => await testSubject.Sync();
+            Func<Task> act = async () => await testSubject.SynchronizeWithServer();
             await act.Should().NotThrowAsync();
 
             taintStore.Invocations.Count.Should().Be(0);
+
+            logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]
-        public async Task Sync_CriticalException_ExceptionNotCaught()
+        public async Task SynchronizeWithServer_CriticalException_ExceptionNotCaught()
         {
             var serverIssue = new TestSonarQubeIssue();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
             converter.Setup(x => x.Convert(serverIssue)).Throws<StackOverflowException>();
             var taintStore = new Mock<ITaintStore>();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, serverIssue);
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>(), serverIssue);
 
-            Func<Task> act = async () => await testSubject.Sync();
+            Func<Task> act = async () => await testSubject.SynchronizeWithServer();
             await act.Should().ThrowAsync<StackOverflowException>();
 
             taintStore.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
-        public async Task Sync_IssuesConverted_IssuesAddedToStore()
+        public async Task SynchronizeWithServer_IssuesConverted_IssuesAddedToStore()
         {
             var serverIssue1 = new TestSonarQubeIssue();
             var serverIssue2 = new TestSonarQubeIssue();
@@ -135,14 +138,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var taintStore = new Mock<ITaintStore>();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, serverIssue1, serverIssue2);
-            await testSubject.Sync();
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>(), serverIssue1, serverIssue2);
+            await testSubject.SynchronizeWithServer();
 
             taintStore.Verify(x => x.Set(new[] {issueViz1, issueViz2}), Times.Once);
         }
 
-        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore, 
+        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore,
             ITaintIssueToIssueVisualizationConverter converter,
+            ILogger logger,
             params SonarQubeIssue[] serverIssues)
         {
             const string projectKey = "test";
@@ -156,15 +160,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             sonarQubeServer.Setup(x => x.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None))
                 .ReturnsAsync(serverIssues);
 
-            return CreateTestSubject(taintStore, sonarQubeServer.Object, converter, configurationProvider.Object);
+            return CreateTestSubject(taintStore, sonarQubeServer.Object, converter, configurationProvider.Object, logger);
         }
 
         private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore,
             ISonarQubeService sonarQubeServer,
             ITaintIssueToIssueVisualizationConverter converter,
-            IConfigurationProvider configurationProvider)
+            IConfigurationProvider configurationProvider,
+            ILogger logger)
         {
-            return new TaintIssuesSynchronizer(taintStore, sonarQubeServer, converter, configurationProvider, Mock.Of<ILogger>());
+            return new TaintIssuesSynchronizer(taintStore, sonarQubeServer, converter, configurationProvider, logger);
         }
 
         private class TestSonarQubeIssue : SonarQubeIssue
