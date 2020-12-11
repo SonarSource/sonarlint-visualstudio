@@ -80,6 +80,12 @@
       <AutoGen>True</AutoGen>
     </Compile>
 
+    <Compile Update="Taint\TaintResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TaintResources.resx</DependentUpon>
+    </Compile>
+
     <EmbeddedResource Update="OpenInIDE\OpenInIDEResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>OpenInIDEResources.Designer.cs</LastGenOutput>
@@ -88,6 +94,11 @@
     <EmbeddedResource Update="Resources.resx">
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+
+    <EmbeddedResource Update="Taint\TaintResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TaintResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
 
     <VSCTCompile Include="Commands\IssueVizSecurityPackage.vsct">
