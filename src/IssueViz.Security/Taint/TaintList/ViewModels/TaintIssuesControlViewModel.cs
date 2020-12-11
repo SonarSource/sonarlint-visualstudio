@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public ObservableCollection<ITaintIssueViewModel> Issues { get; } = new ObservableCollection<ITaintIssueViewModel>();
 
-        public ICommand NavigateCommand { get; }
+        public ICommand NavigateCommand { get; private set; }
 
         public TaintIssuesControlViewModel(ITaintStore store, ILocationNavigator locationNavigator)
         {
@@ -65,13 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             observableIssuesCollection.CollectionChanged += TaintStore_CollectionChanged;
 
             UpdateIssues(allIssues, Array.Empty<IAnalysisIssueVisualization>());
-
-            NavigateCommand = new DelegateCommand(
-                parameter => {
-                    var selected = (ITaintIssueViewModel)parameter;
-                    locationNavigator.TryNavigate(selected.TaintIssueViz);
-                },
-                parameter => parameter is ITaintIssueViewModel);
+            SetCommands(locationNavigator);
         }
 
         /// <summary>
@@ -81,6 +75,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             ThreadHelper.ThrowIfNotOnUIThread();
             BindingOperations.EnableCollectionSynchronization(Issues, Lock);
+        }
+
+        private void SetCommands(ILocationNavigator locationNavigator)
+        {
+            NavigateCommand = new DelegateCommand(
+                parameter => {
+                    var selected = (ITaintIssueViewModel)parameter;
+                    locationNavigator.TryNavigate(selected.TaintIssueViz);
+                },
+                parameter => parameter is ITaintIssueViewModel);
         }
 
         private void UpdateIssues(IEnumerable<IAnalysisIssueVisualization> addedIssueVizs, IEnumerable<IAnalysisIssueVisualization> removedIssueVizs)
