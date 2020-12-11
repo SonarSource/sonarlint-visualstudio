@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
@@ -47,13 +46,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 zeroBasedColumn = position.Position - line.Start.Position;
             }
 
-            // both SQ hotspot column and VS column are zero-based
+            // Both SQ issue column and VS spans are zero-based.
+            // The editor displays lines and columns as one-based.
             return zeroBasedColumn + 1;
-
         }
 
         int IIssueVizDisplayPositionCalculator.GetLine(IAnalysisIssueVisualization issueViz) =>
                         CanUseSpan(issueViz)
+                // VS spans are zero-based, Sonar line numbers are one-based
+                // The editor displays lines and columns as one-based.
                 ? issueViz.Span.Value.Start.GetContainingLine().LineNumber + 1
                 : issueViz.Issue.StartLine;
 

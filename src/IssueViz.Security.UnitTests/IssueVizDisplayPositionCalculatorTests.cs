@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void Line_NoSpan_ReturnsHotspotStartLine(bool spanIsNull)
+        public void Line_NoSpan_ReturnsIssueVizStartLine(bool spanIsNull)
         {
             const int originalLineNumber = 123;
             var issueViz = CreateIssueVizWithoutSpan(spanIsNull, originalLineNumber: originalLineNumber);
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void Column_NoSpan_ReturnsOneBasedHotspotStartLineOffset(bool spanIsNull)
+        public void Column_NoSpan_ReturnsOneBasedIssueVizStartLineOffset(bool spanIsNull)
         {
             const int originalColumnNumber = 456;
             var issueViz = CreateIssueVizWithoutSpan(spanIsNull, originalColumnNumber: originalColumnNumber);
@@ -79,12 +79,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
 
         private static IAnalysisIssueVisualization CreateIssueVizWithoutSpan(bool spanIsNull, int originalLineNumber = 123, int originalColumnNumber = 456)
         {
-            var hotspot = new Mock<IAnalysisIssueBase>();
-            hotspot.SetupGet(x => x.StartLine).Returns(originalLineNumber);
-            hotspot.SetupGet(x => x.StartLineOffset).Returns(originalColumnNumber);
+            var issue = new Mock<IAnalysisIssueBase>();
+            issue.SetupGet(x => x.StartLine).Returns(originalLineNumber);
+            issue.SetupGet(x => x.StartLineOffset).Returns(originalColumnNumber);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.Setup(x => x.Issue).Returns(hotspot.Object);
+            issueViz.Setup(x => x.Issue).Returns(issue.Object);
             issueViz.SetupProperty(x => x.Span);
             issueViz.Object.Span = spanIsNull ? (SnapshotSpan?)null : new SnapshotSpan();
 

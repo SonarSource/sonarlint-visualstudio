@@ -21,9 +21,7 @@
 using System.ComponentModel;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
@@ -36,38 +34,38 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_RegisterToHotspotPropertyChangedEvent()
         {
-            var hotspot = new Mock<IAnalysisIssueVisualization>();
-            hotspot.SetupAdd(x => x.PropertyChanged += null);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.SetupAdd(x => x.PropertyChanged += null);
 
-            CreateTestSubject(hotspot.Object);
+            CreateTestSubject(issueViz.Object);
 
-            hotspot.VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
+            issueViz.VerifyAdd(x => x.PropertyChanged += It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
 
         [TestMethod]
         public void Dispose_UnregisterFromHotspotPropertyChangedEvent()
         {
-            var hotspot = new Mock<IAnalysisIssueVisualization>();
-            hotspot.SetupRemove(x => x.PropertyChanged -= null);
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.SetupRemove(x => x.PropertyChanged -= null);
 
-            var testSubject = CreateTestSubject(hotspot.Object);
+            var testSubject = CreateTestSubject(issueViz.Object);
             testSubject.Dispose();
 
-            hotspot.VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
+            issueViz.VerifyRemove(x => x.PropertyChanged -= It.IsAny<PropertyChangedEventHandler>(), Times.Once);
         }
 
         [TestMethod]
         public void HotspotPropertyChanged_UnknownProperty_NoPropertyChangedEvent()
         {
             var eventHandler = new Mock<PropertyChangedEventHandler>();
-            var hotspot = new Mock<IAnalysisIssueVisualization>();
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = CreateTestSubject(hotspot.Object);
+            var testSubject = CreateTestSubject(issueViz.Object);
             testSubject.PropertyChanged += eventHandler.Object;
 
             eventHandler.VerifyNoOtherCalls();
 
-            hotspot.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs("some dummy property"));
+            issueViz.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs("some dummy property"));
 
             eventHandler.VerifyNoOtherCalls();
         }
@@ -76,14 +74,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public void HotspotPropertyChanged_SpanProperty_RaisesPropertyChangedForLineAndColumn()
         {
             var eventHandler = new Mock<PropertyChangedEventHandler>();
-            var hotspot = new Mock<IAnalysisIssueVisualization>();
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = CreateTestSubject(hotspot.Object);
+            var testSubject = CreateTestSubject(issueViz.Object);
             testSubject.PropertyChanged += eventHandler.Object;
 
             eventHandler.VerifyNoOtherCalls();
 
-            hotspot.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.Span)));
+            issueViz.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.Span)));
 
             eventHandler.Verify(x => x(testSubject,
                     It.Is((PropertyChangedEventArgs args) => args.PropertyName == nameof(IHotspotViewModel.Line))),
@@ -170,14 +168,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public void HotspotPropertyChanged_CurrentFilePathProperty_RaisesPropertyChangedForDisplayPath()
         {
             var eventHandler = new Mock<PropertyChangedEventHandler>();
-            var hotspot = new Mock<IAnalysisIssueVisualization>();
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
 
-            var testSubject = CreateTestSubject(hotspot.Object);
+            var testSubject = CreateTestSubject(issueViz.Object);
             testSubject.PropertyChanged += eventHandler.Object;
 
             eventHandler.VerifyNoOtherCalls();
 
-            hotspot.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.CurrentFilePath)));
+            issueViz.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueVisualization.CurrentFilePath)));
 
             eventHandler.Verify(x => x(testSubject,
                     It.Is((PropertyChangedEventArgs args) => args.PropertyName == nameof(IHotspotViewModel.DisplayPath))),
