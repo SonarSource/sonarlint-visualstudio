@@ -26,8 +26,10 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarQube.Client;
@@ -38,6 +40,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
     [TestClass]
     public class TaintIssuesSynchronizerTests
     {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<TaintIssuesSynchronizer, ITaintIssuesSynchronizer>(null, new[]
+            {
+                MefTestHelpers.CreateExport<ITaintStore>(Mock.Of<ITaintStore>()),
+                MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
+                MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(Mock.Of<ITaintIssueToIssueVisualizationConverter>()),
+                MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
+
         [TestMethod]
         public async Task Sync_NotInConnectedMode_NoChanges()
         {
