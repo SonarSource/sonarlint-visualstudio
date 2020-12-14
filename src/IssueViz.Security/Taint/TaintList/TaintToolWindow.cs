@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 
             var viewModel = new TaintIssuesControlViewModel(store, locationNavigator);
 
-            Content = new TaintVulnerabilitiesControl(viewModel);
+            Content = new TaintIssuesControl(viewModel);
         }
 
         protected override void Dispose(bool disposing)
