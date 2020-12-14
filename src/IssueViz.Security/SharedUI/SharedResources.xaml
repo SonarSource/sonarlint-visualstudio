@@ -2,8 +2,23 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
                     xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
-                    >
-    
+                    xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+                    xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
+                >
+
+    <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
+
+    <!-- Converters for navigability indicators -->
+    <issueVisualizationControl:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter"/>
+    <core:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
+        <issueVisualizationControl:SpanToNavigabilityConverter />
+        <core:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
+    </core:AggregatorValueConverter>
+    <core:AggregatorValueConverter x:Key="SpanToVisibilityConverter">
+        <issueVisualizationControl:SpanToNavigabilityConverter />
+        <core:BoolToVisibilityConverter TrueValue="Visible" FalseValue="Collapsed" />
+    </core:AggregatorValueConverter>
+
     <!-- Common data grid styles -->
     <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
         <Setter Property="Width" Value="8"/>

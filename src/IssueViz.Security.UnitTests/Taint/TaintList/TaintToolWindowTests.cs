@@ -19,9 +19,15 @@
  */
 
 using System;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
@@ -29,6 +35,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
     [TestClass]
     public class TaintToolWindowTests
     {
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            // TiantViewModel needs to be created on the UI thread
+            ThreadHelper.SetCurrentThreadAsUIThread();
+        }
+
         [TestMethod]
         public void Dispose_FrameIsClosed()
         {
@@ -44,7 +57,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
         private TaintToolWindow CreateTestSubject(Mock<IVsWindowFrame> frameMock)
         {
+            var componentModelMock = new Mock<IComponentModel>();
+
+            var store = new Mock<ITaintStore>();
+            store.Setup(x => x.GetAll())
+                .Returns(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(
+                    new ObservableCollection<IAnalysisIssueVisualization>()));
+
+            componentModelMock
+                .Setup(x => x.GetService<ITaintStore>())
+                .Returns(store.Object);
+
+            componentModelMock
+                .Setup(x => x.GetService<ILocationNavigator>())
+                .Returns(Mock.Of<ILocationNavigator>());
+
             var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SComponentModel)))
+                .Returns(componentModelMock.Object);
 
             frameMock ??= new Mock<IVsWindowFrame>();
 
