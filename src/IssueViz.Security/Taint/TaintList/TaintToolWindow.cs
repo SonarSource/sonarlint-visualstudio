@@ -20,8 +20,11 @@
 
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
@@ -35,11 +38,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
         {
             Caption = Resources.TaintToolWindowCaption;
 
-            // WIP - fetch required services and construct the view model
+            var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var store = componentModel.GetService<ITaintStore>();
+            var locationNavigator = componentModel.GetService<ILocationNavigator>();
 
-            var hotspotsControl = new TaintVulnerabilitiesControl();
+            var viewModel = new TaintIssuesControlViewModel(store, locationNavigator);
 
-            Content = hotspotsControl;
+            Content = new TaintVulnerabilitiesControl(viewModel);
         }
 
         protected override void Dispose(bool disposing)

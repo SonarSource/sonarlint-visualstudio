@@ -19,13 +19,18 @@
  */
 
 using System.Windows.Controls;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
     internal sealed partial class TaintVulnerabilitiesControl : UserControl
     {
-        public TaintVulnerabilitiesControl()
+        public ITaintIssuesControlViewModel ViewModel { get; }
+
+        public TaintVulnerabilitiesControl(ITaintIssuesControlViewModel viewModel)
         {
+            ViewModel = viewModel;
+
             InitializeComponent();
         }
     }
