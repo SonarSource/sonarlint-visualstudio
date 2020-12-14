@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
+using System;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Package
 {
     internal static class Constants
     {
-        /// <summary>
-        /// https://docs.microsoft.com/en-us/dotnet/api/envdte80.windowkinds.vswindowkinderrorlist?view=visualstudiosdk-2019
-        /// </summary>
-        public const string VsWindowKindErrorList = "{D78612C7-9962-4B83-95D9-268046DAD23A}";
+        public static readonly Guid CommandSetGuid = new Guid("38E6816C-81BD-4404-B42E-B58571926A89");
+        public const int TaintToolWindowCommandId = 0x0100;
     }
 }

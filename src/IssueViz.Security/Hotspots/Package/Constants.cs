@@ -18,13 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
+using System;
+
+namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Package
 {
     internal static class Constants
     {
-        /// <summary>
-        /// https://docs.microsoft.com/en-us/dotnet/api/envdte80.windowkinds.vswindowkinderrorlist?view=visualstudiosdk-2019
-        /// </summary>
-        public const string VsWindowKindErrorList = "{D78612C7-9962-4B83-95D9-268046DAD23A}";
+        public static readonly Guid CommandSetGuid = new Guid("97856422-20A2-4DB5-A468-1BAA9B6EEC38");
+        public const int HotspotsToolWindowCommandId = 0x0100;
     }
 }
