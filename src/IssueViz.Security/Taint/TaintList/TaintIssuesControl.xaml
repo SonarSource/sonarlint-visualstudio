@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.TaintVulnerabilitiesControl"
+﻿<UserControl x:Class="SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.TaintIssuesControl"
              x:ClassModifier="internal"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -37,6 +37,16 @@
                   SelectedItem="{Binding SelectedIssue, Mode=TwoWay}"
                   ItemsSource="{Binding Issues}"
                   >
+            <DataGrid.InputBindings>
+                <MouseBinding
+                    MouseAction="LeftDoubleClick"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Issues/}"/>
+                <KeyBinding
+                    Key="Enter"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Issues/}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
                     <DataGridTemplateColumn.HeaderStyle>

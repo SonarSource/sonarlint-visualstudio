@@ -370,7 +370,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             private readonly AutoResetEvent callbackFromCLangReceived = new AutoResetEvent(false);
             private readonly AutoResetEvent noMoreIssues = new AutoResetEvent(false);
 
-            public void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
+            public void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, 8 w1CancellationToken cancellationToken)
             {
                 // When this method exits the analyzer will finish processing, so we need to
                 // block until we we want that to happen.

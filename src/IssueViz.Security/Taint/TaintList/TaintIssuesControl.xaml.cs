@@ -23,11 +23,11 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewMod
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
 {
-    internal sealed partial class TaintVulnerabilitiesControl : UserControl
+    internal sealed partial class TaintIssuesControl : UserControl
     {
         public ITaintIssuesControlViewModel ViewModel { get; }
 
-        public TaintVulnerabilitiesControl(ITaintIssuesControlViewModel viewModel)
+        public TaintIssuesControl(ITaintIssuesControlViewModel viewModel)
         {
             ViewModel = viewModel;
 
