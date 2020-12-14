@@ -63,7 +63,7 @@
     <Page Include="SharedUI\SharedResources.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
     </Page>
-    <Page Include="Taint\TaintList\TaintVulnerabilitiesControl.xaml">
+    <Page Include="Taint\TaintList\TaintIssuesControl.xaml">
       <Generator>XamlIntelliSenseFileGenerator</Generator>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Page>
