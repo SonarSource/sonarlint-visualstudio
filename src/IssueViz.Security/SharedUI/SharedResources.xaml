@@ -38,6 +38,20 @@
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
         <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="CanUserAddRows" Value="False" />
+        <Setter Property="CanUserDeleteRows" Value="False" />
+        <Setter Property="CanUserReorderColumns" Value="True" /> 
+        <Setter Property="CanUserReorderColumns" Value="True"/>
+        <Setter Property="CanUserResizeColumns" Value="True"/> 
+        <Setter Property="CanUserResizeRows" Value="False"/>
+        <Setter Property="CanUserSortColumns" Value="True"/>
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="SelectionUnit" Value="FullRow"/>
+        <Setter Property="IsSynchronizedWithCurrentItem" Value="True"/>
+        <Setter Property="vsTheming:ImageThemingUtilities.ImageBackgroundColor" Value="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
     </Style>
     <Style TargetType="DataGridColumnHeader">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextActiveKey}}"/>

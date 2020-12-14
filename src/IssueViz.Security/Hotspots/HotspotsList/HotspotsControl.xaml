@@ -53,21 +53,9 @@
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
         <DataGrid Grid.Column="0" 
-                  IsReadOnly="True" 
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"
-                  CanUserResizeRows="False"
-                  CanUserSortColumns="True"
-                  AutoGenerateColumns="False"
-                  SelectionMode="Single"
-                  SelectionUnit="FullRow"
-                  IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding SelectedHotspot, Mode=TwoWay}"
                   ItemsSource="{Binding Hotspots}"
-                  vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}"
-                  HorizontalScrollBarVisibility="Auto">
+                  >
             <DataGrid.InputBindings>
                 <MouseBinding
                     MouseAction="LeftDoubleClick"

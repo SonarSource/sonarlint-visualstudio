@@ -34,20 +34,9 @@
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
         <DataGrid Grid.Column="0" 
-                  IsReadOnly="True" 
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  CanUserReorderColumns="True"
-                  CanUserResizeColumns="True"
-                  CanUserResizeRows="False"
-                  CanUserSortColumns="True"
-                  AutoGenerateColumns="False"
-                  SelectionMode="Single"
-                  SelectionUnit="FullRow"
-                  IsSynchronizedWithCurrentItem="True"
                   SelectedItem="{Binding SelectedIssue, Mode=TwoWay}"
                   ItemsSource="{Binding Issues}"
-                  vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
+                  >
             <DataGrid.Columns>
                 <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
                     <DataGridTemplateColumn.HeaderStyle>
