@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -42,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IConfigurationProviderService configurationProvider;
         private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly ILogger logger;
+        private readonly uint boundSolutionContextCookie;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
         public event EventHandler SolutionBindingUpdated;
@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.Integration
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+            vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionContextCookie);
 
             configurationProvider = extensionHost.GetService<IConfigurationProviderService>();
             configurationProvider.AssertLocalServiceIsNotNull();
@@ -70,7 +71,8 @@ namespace SonarLint.VisualStudio.Integration
             solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
             CurrentConfiguration = configurationProvider.GetConfiguration();
-            SetBoundSolutionUiContext();
+
+            SetBoundSolutionUIContext();
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -140,16 +142,13 @@ namespace SonarLint.VisualStudio.Integration
                 SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             }
 
-            SetBoundSolutionUiContext();
+            SetBoundSolutionUIContext();
         }
 
-        private void SetBoundSolutionUiContext()
+        private void SetBoundSolutionUIContext()
         {
-            if (vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionVsUiContext.Guid, out var cookie) == VSConstants.S_OK)
-            {
-                var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
-                vsMonitorSelection.SetCmdUIContext(cookie, isContextActive ? 1 : 0);
-            }
+            var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
+            vsMonitorSelection.SetCmdUIContext(boundSolutionContextCookie, isContextActive ? 1 : 0);
         }
 
         #region IPartImportsSatisfiedNotification

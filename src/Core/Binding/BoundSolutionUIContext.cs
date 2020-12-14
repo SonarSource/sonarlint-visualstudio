@@ -19,10 +19,10 @@
  */
 
 using System;
-
+    
 namespace SonarLint.VisualStudio.Core.Binding
 {
-    public static class BoundSolutionVsUiContext
+    public static class BoundSolutionUIContext
     {
         public const string GuidString = "C10779BB-5071-427D-9BE1-6F60EE064469";
 

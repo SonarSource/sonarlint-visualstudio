@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     [TestClass]
     public class ActiveSolutionBoundTrackerTests
     {
-        private uint boundSolutionUiContextCookie = 999;
+        private uint boundSolutionUIContextCookie = 999;
 
         private readonly Expression<Func<ISonarQubeService, Task>> connectMethod = x => x.ConnectAsync(It.IsAny<ConnectionInformation>(), It.IsAny<CancellationToken>());
         private readonly Expression<Action<ISonarQubeService>> disconnectMethod = x => x.Disconnect();
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             vsMonitorMock = new Mock<IVsMonitorSelection>();
             vsMonitorMock
-                .Setup(x => x.GetCmdUIContextCookie(ref BoundSolutionVsUiContext.Guid, out boundSolutionUiContextCookie))
+                .Setup(x => x.GetCmdUIContextCookie(ref BoundSolutionUIContext.Guid, out boundSolutionUIContextCookie))
                 .Returns(VSConstants.S_OK);
 
             serviceProvider.RegisterService(typeof(SVsShellMonitorSelection), vsMonitorMock.Object, replaceExisting: true);
@@ -190,7 +190,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.RefreshCalledCount.Should().Be(0);
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 solutionBindingChangedEventCount.Should().Be(0, "no events raised during construction");
-                VerifyBoundSolutionUiContextIsSet(isActive: true);
+                VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Case 1: Clear bound project
                 ConfigureSolutionBinding(null);
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.RefreshCalledCount.Should().Be(0);
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 solutionBindingChangedEventCount.Should().Be(1, "Unbind should trigger reanalysis");
-                VerifyBoundSolutionUiContextIsSet(isActive: false);
+                VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
                 VerifyServiceDisconnect(Times.Never());
                 VerifyServiceConnect(Times.Never());
@@ -218,7 +218,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.RefreshCalledCount.Should().Be(0);
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 solutionBindingChangedEventCount.Should().Be(2, "Bind should trigger reanalysis");
-                VerifyBoundSolutionUiContextIsSet(isActive: true);
+                VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Notifications from the Team Explorer should not trigger connect/disconnect
                 VerifyServiceDisconnect(Times.Never());
@@ -234,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.RefreshCalledCount.Should().Be(1);
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 solutionBindingChangedEventCount.Should().Be(3, "Solution change should trigger reanalysis");
-                VerifyBoundSolutionUiContextIsSet(isActive: false);
+                VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
                 // Closing an unbound solution should not call disconnect/connect
                 VerifyServiceDisconnect(Times.Never());
@@ -250,7 +250,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 this.errorListController.RefreshCalledCount.Should().Be(2);
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 solutionBindingChangedEventCount.Should().Be(4, "Solution change should trigger reanalysis");
-                VerifyBoundSolutionUiContextIsSet(isActive: true);
+                VerifyAndResetBoundSolutionUIContextMock(isActive: true);
 
                 // Loading a bound solution should call connect
                 VerifyServiceDisconnect(Times.Never());
@@ -265,7 +265,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 // TODO: this.errorListController.RefreshCalledCount.Should().Be(4);
                 this.errorListController.ResetCalledCount.Should().Be(0);
                 solutionBindingChangedEventCount.Should().Be(5, "Solution change should trigger reanalysis");
-                VerifyBoundSolutionUiContextIsSet(isActive: false);
+                VerifyAndResetBoundSolutionUIContextMock(isActive: false);
 
                 // SonarQubeService.Disconnect should be called since the WPF DisconnectCommand is not available
                 VerifyServiceDisconnect(Times.Once());
@@ -560,10 +560,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             sonarQubeServiceMock.Verify(disconnectMethod, expected);
         }
 
-        private void VerifyBoundSolutionUiContextIsSet(bool isActive)
+        private void VerifyAndResetBoundSolutionUIContextMock(bool isActive)
         {
             var isActiveInt = isActive ? 1 : 0;
-            vsMonitorMock.Verify(x => x.SetCmdUIContext(boundSolutionUiContextCookie, isActiveInt), Times.Once);
+            vsMonitorMock.Verify(x => x.SetCmdUIContext(boundSolutionUIContextCookie, isActiveInt), Times.Once);
             vsMonitorMock.Verify(x => x.SetCmdUIContext(It.IsAny<uint>(), It.IsAny<int>()), Times.Once);
             vsMonitorMock.Invocations.Clear();
         }
