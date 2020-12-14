@@ -23,6 +23,8 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.State;
@@ -38,6 +40,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly IErrorListInfoBarController errorListInfoBarController;
         private readonly IConfigurationProviderService configurationProvider;
+        private readonly IVsMonitorSelection vsMonitorSelection;
         private readonly ILogger logger;
 
         public event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
@@ -48,36 +51,26 @@ namespace SonarLint.VisualStudio.Integration
         [ImportingConstructor]
         public ActiveSolutionBoundTracker(IHost host, IActiveSolutionTracker activeSolutionTracker, ILogger logger)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-            if (activeSolutionTracker == null)
-            {
-                throw new ArgumentNullException(nameof(activeSolutionTracker));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
+            extensionHost = host ?? throw new ArgumentNullException(nameof(host));
+            solutionTracker = activeSolutionTracker ?? throw new ArgumentNullException(nameof(activeSolutionTracker));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            this.extensionHost = host;
-            this.solutionTracker = activeSolutionTracker;
-            this.logger = logger;
+            vsMonitorSelection = host.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
 
-            this.configurationProvider = this.extensionHost.GetService<IConfigurationProviderService>();
-            this.configurationProvider.AssertLocalServiceIsNotNull();
+            configurationProvider = extensionHost.GetService<IConfigurationProviderService>();
+            configurationProvider.AssertLocalServiceIsNotNull();
 
-            this.errorListInfoBarController = this.extensionHost.GetService<IErrorListInfoBarController>();
-            this.errorListInfoBarController.AssertLocalServiceIsNotNull();
+            errorListInfoBarController = extensionHost.GetService<IErrorListInfoBarController>();
+            errorListInfoBarController.AssertLocalServiceIsNotNull();
 
             // The user changed the binding through the Team Explorer
-            this.extensionHost.VisualStateManager.BindingStateChanged += this.OnBindingStateChanged;
+            extensionHost.VisualStateManager.BindingStateChanged += OnBindingStateChanged;
 
             // The solution changed inside the IDE
-            this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
+            solutionTracker.ActiveSolutionChanged += OnActiveSolutionChanged;
 
-            CurrentConfiguration = this.configurationProvider.GetConfiguration();
+            CurrentConfiguration = configurationProvider.GetConfiguration();
+            SetBoundSolutionUiContext();
         }
 
         private async void OnActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs args)
@@ -135,20 +128,27 @@ namespace SonarLint.VisualStudio.Integration
 
         private void RaiseAnalyzersChangedIfBindingChanged(bool? isBindingCleared = null)
         {
-            var newBindingConfiguration = this.configurationProvider.GetConfiguration();
+            var newBindingConfiguration = configurationProvider.GetConfiguration();
 
             if (!CurrentConfiguration.Equals(newBindingConfiguration))
             {
                 CurrentConfiguration = newBindingConfiguration;
-                this.SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
+                SolutionBindingChanged?.Invoke(this, new ActiveSolutionBindingEventArgs(newBindingConfiguration));
             }
             else if (isBindingCleared == false)
             {
                 SolutionBindingUpdated?.Invoke(this, EventArgs.Empty);
             }
-            else
+
+            SetBoundSolutionUiContext();
+        }
+
+        private void SetBoundSolutionUiContext()
+        {
+            if (vsMonitorSelection.GetCmdUIContextCookie(ref BoundSolutionVsUiContext.Guid, out var cookie) == VSConstants.S_OK)
             {
-                // do nothing
+                var isContextActive = !CurrentConfiguration.Equals(BindingConfiguration.Standalone);
+                vsMonitorSelection.SetCmdUIContext(cookie, isContextActive ? 1 : 0);
             }
         }
 
