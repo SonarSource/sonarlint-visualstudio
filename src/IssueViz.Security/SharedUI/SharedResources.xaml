@@ -2,8 +2,23 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:vsShell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.14.0"
                     xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
-                    >
-    
+                    xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
+                    xmlns:issueVisualizationControl="clr-namespace:SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;assembly=SonarLint.VisualStudio.IssueVisualization"
+                >
+
+    <vsTheming:BrushToColorConverter x:Key="BrushToColorConverter"/>
+
+    <!-- Converters for navigability indicators -->
+    <issueVisualizationControl:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter"/>
+    <core:AggregatorValueConverter x:Key="SpanToInvertedVisibilityConverter">
+        <issueVisualizationControl:SpanToNavigabilityConverter />
+        <core:BoolToVisibilityConverter TrueValue="Collapsed" FalseValue="Visible" />
+    </core:AggregatorValueConverter>
+    <core:AggregatorValueConverter x:Key="SpanToVisibilityConverter">
+        <issueVisualizationControl:SpanToNavigabilityConverter />
+        <core:BoolToVisibilityConverter TrueValue="Visible" FalseValue="Collapsed" />
+    </core:AggregatorValueConverter>
+
     <!-- Common data grid styles -->
     <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
         <Setter Property="Width" Value="8"/>
@@ -23,6 +38,20 @@
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="HorizontalScrollBarVisibility" Value="Hidden"/>
         <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="CanUserAddRows" Value="False" />
+        <Setter Property="CanUserDeleteRows" Value="False" />
+        <Setter Property="CanUserReorderColumns" Value="True" /> 
+        <Setter Property="CanUserReorderColumns" Value="True"/>
+        <Setter Property="CanUserResizeColumns" Value="True"/> 
+        <Setter Property="CanUserResizeRows" Value="False"/>
+        <Setter Property="CanUserSortColumns" Value="True"/>
+        <Setter Property="AutoGenerateColumns" Value="False"/>
+        <Setter Property="SelectionMode" Value="Single"/>
+        <Setter Property="SelectionUnit" Value="FullRow"/>
+        <Setter Property="IsSynchronizedWithCurrentItem" Value="True"/>
+        <Setter Property="vsTheming:ImageThemingUtilities.ImageBackgroundColor" Value="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}"/>
+        <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
     </Style>
     <Style TargetType="DataGridColumnHeader">
         <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextActiveKey}}"/>
