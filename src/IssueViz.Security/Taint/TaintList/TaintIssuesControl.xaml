@@ -37,6 +37,16 @@
                   SelectedItem="{Binding SelectedIssue, Mode=TwoWay}"
                   ItemsSource="{Binding Issues}"
                   >
+            <DataGrid.InputBindings>
+                <MouseBinding
+                    MouseAction="LeftDoubleClick"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Issues/}"/>
+                <KeyBinding
+                    Key="Enter"
+                    Command="{Binding NavigateCommand}"
+                    CommandParameter="{Binding Issues/}"/>
+            </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
                     <DataGridTemplateColumn.HeaderStyle>
