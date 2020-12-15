@@ -25,12 +25,15 @@ using SonarLint.VisualStudio.Core.Binding;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
+    /// <summary>
+    /// Listens to binding changes and triggers fetching of taint vulnerabilities from the connected server.
+    /// </summary>
     internal interface ITaintIssuesBindingMonitor : IDisposable
     {
-        void ListenToBindingChanges();
     }
 
     [Export(typeof(ITaintIssuesBindingMonitor))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintIssuesBindingMonitor : ITaintIssuesBindingMonitor
     {
         private readonly IActiveSolutionBoundTracker activeSolutionBoundTracker;
@@ -41,14 +44,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
             this.taintIssuesSynchronizer = taintIssuesSynchronizer;
-        }
 
-        public void ListenToBindingChanges()
-        {
-            activeSolutionBoundTracker.SolutionBindingChanged -= ActiveSolutionBoundTracker_SolutionBindingChanged;
             activeSolutionBoundTracker.SolutionBindingChanged += ActiveSolutionBoundTracker_SolutionBindingChanged;
-
-            activeSolutionBoundTracker.SolutionBindingUpdated -= ActiveSolutionBoundTracker_SolutionBindingUpdated;
             activeSolutionBoundTracker.SolutionBindingUpdated += ActiveSolutionBoundTracker_SolutionBindingUpdated;
         }
 

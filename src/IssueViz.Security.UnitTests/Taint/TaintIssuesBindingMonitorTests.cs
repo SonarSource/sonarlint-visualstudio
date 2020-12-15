@@ -42,20 +42,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void ListenToBindingChanges_SubscribeToEventsOnlyOnce()
+        public void Ctor_SubscribeToSolutionBindingUpdated()
         {
             var synchronizer = new Mock<ITaintIssuesSynchronizer>();
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
 
-            var testSubject = new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, synchronizer.Object);
-
-            testSubject.ListenToBindingChanges();
-            testSubject.ListenToBindingChanges();
+            new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, synchronizer.Object);
 
             activeSolutionBoundTracker.Raise(x=> x.SolutionBindingUpdated += null, EventArgs.Empty);
 
             synchronizer.Verify(x=> x.SynchronizeWithServer(), Times.Once);
-            synchronizer.Reset();
+        }
+
+        [TestMethod]
+        public void Ctor_SubscribeToSolutionBindingChanged()
+        {
+            var synchronizer = new Mock<ITaintIssuesSynchronizer>();
+            var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
+
+            new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, synchronizer.Object);
 
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingChanged += null, new ActiveSolutionBindingEventArgs(BindingConfiguration.Standalone));
 
@@ -69,8 +74,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var activeSolutionBoundTracker = new Mock<IActiveSolutionBoundTracker>();
 
             var testSubject = new TaintIssuesBindingMonitor(activeSolutionBoundTracker.Object, synchronizer.Object);
-
-            testSubject.ListenToBindingChanges();
             testSubject.Dispose();
 
             activeSolutionBoundTracker.Raise(x => x.SolutionBindingUpdated += null, EventArgs.Empty);
