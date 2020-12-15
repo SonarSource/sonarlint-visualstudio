@@ -70,11 +70,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Finished initializing security package..
+        /// </summary>
+        internal static string FinishedPackageInitialization {
+            get {
+                return ResourceManager.GetString("FinishedPackageInitialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SonarLint Security Hotspots.
         /// </summary>
         internal static string HotspotsToolWindowCaption {
             get {
                 return ResourceManager.GetString("HotspotsToolWindowCaption", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initializing security package....
+        /// </summary>
+        internal static string StartedPackageInitialization {
+            get {
+                return ResourceManager.GetString("StartedPackageInitialization", resourceCulture);
             }
         }
         

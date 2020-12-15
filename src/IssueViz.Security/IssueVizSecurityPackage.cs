@@ -23,9 +23,13 @@ using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using Task = System.Threading.Tasks.Task;
 
@@ -33,12 +37,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
     [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+    [ProvideAutoLoad(BoundSolutionUIContext.GuidString, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid("D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     [ProvideToolWindow(typeof(TaintToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
     public sealed class IssueVizSecurityPackage : AsyncPackage
     {
+        private ITaintIssuesBindingMonitor bindingMonitor;
+
         /// <summary>
         /// https://docs.microsoft.com/en-us/dotnet/api/envdte80.windowkinds.vswindowkinderrorlist?view=visualstudiosdk-2019
         /// </summary>
@@ -47,6 +54,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            var logger = componentModel.GetService<ILogger>();
+            logger.WriteLine(Resources.StartedPackageInitialization);
 
             // We're not storing references to the command handler instances.
             // We relying on the fact that the command handler instance registers a
@@ -58,6 +69,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             await ShowToolWindowCommand.CreateAsync(this,
                 new CommandID(Constants.CommandSetGuid, Constants.TaintToolWindowCommandId),
                 TaintToolWindow.ToolWindowId);
+
+            bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
+            await componentModel.GetService<ITaintIssuesSynchronizer>().SynchronizeWithServer();
+
+            logger.WriteLine(Resources.FinishedPackageInitialization);
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
@@ -73,6 +89,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             }
 
             return base.InstantiateToolWindow(toolWindowType);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+
+            bindingMonitor.Dispose();
         }
     }
 }
