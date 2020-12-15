@@ -22,7 +22,6 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
 
@@ -48,17 +47,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             var hotspotsControl = new HotspotsControl(viewModel);
 
             Content = hotspotsControl;
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                var vsWindowFrame = Frame as IVsWindowFrame;
-                vsWindowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
-            }
-
-            base.Dispose(disposing);
         }
     }
 }
