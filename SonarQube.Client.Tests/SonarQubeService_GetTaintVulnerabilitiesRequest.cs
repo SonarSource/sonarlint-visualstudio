@@ -49,7 +49,7 @@ namespace SonarQube.Client.Tests
         [TestMethod]
         public async Task GetTaintVulnerabilities_Response_From_SonarQube()
         {
-            await ConnectToSonarQube("7.2.0.0");
+            await ConnectToSonarQube("8.6.0.0");
 
             SetupRequest("api/issues/search?projects=shared&statuses=OPEN%2CCONFIRMED%2CREOPENED&types=VULNERABILITY&p=1&ps=500", @"
 {

@@ -22,10 +22,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarQube.Client.Api.V7_20;
 using SonarQube.Client.Logging;
 using SonarQube.Client.Models;
 
-namespace SonarQube.Client.Api.V7_20
+namespace SonarQube.Client.Api.V8_6
 {
     public class GetTaintVulnerabilitiesRequest : IGetTaintVulnerabilitiesRequest
     {
