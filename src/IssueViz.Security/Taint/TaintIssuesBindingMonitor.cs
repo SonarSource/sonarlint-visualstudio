@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
     /// <summary>
     /// Listens to binding changes and triggers fetching of taint vulnerabilities from the connected server.
+    /// Doesn't do initial sync - only triggers the fetch when the binding changes.
     /// </summary>
     internal interface ITaintIssuesBindingMonitor : IDisposable
     {
