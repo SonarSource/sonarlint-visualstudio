@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <ProjectGuid>{9CBAB074-AB53-4AC5-85E0-FD064D71B170}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Infrastructure.VS</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Infrastructure.VS</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+  </ItemGroup>
+
+  <ItemGroup Label="Package references">
+  </ItemGroup>
+
+</Project>

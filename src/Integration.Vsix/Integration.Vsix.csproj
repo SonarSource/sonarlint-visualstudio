@@ -127,6 +127,7 @@
       <Name>SonarQube.Client.2015</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
     <ProjectReference Include="..\Integration.TeamExplorer\Integration.TeamExplorer.csproj">
       <Project>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</Project>
       <Name>Integration.TeamExplorer</Name>
