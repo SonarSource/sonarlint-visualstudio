@@ -89,5 +89,11 @@ namespace SonarQube.Client
         /// </summary>
         /// <remarks>The method does not check whether the project or issue exists or not</remarks>
         Uri GetViewIssueUrl(string projectKey, string issueKey);
+
+        /// <summary>
+        /// Returns the URI to view the specified hotspot on the server
+        /// </summary>
+        /// <remarks>The method does not check whether the project or hotspot exists or not</remarks>
+        Uri GetViewHotspotUrl(string projectKey, string hotspotKey);
     }
 }
