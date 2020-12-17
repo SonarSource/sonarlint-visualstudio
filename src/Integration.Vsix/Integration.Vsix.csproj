@@ -133,6 +133,7 @@
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
+    <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
     <ProjectReference Include="..\Integration.TeamExplorer\Integration.TeamExplorer.csproj">
       <Project>{9FCAEACD-EDEA-42D3-A8E4-16E42D1CF8F4}</Project>
       <Name>Integration.TeamExplorer</Name>
