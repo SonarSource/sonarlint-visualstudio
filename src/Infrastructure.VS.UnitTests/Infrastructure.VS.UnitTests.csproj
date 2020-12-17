@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+
+    <ProjectGuid>{407919AF-3AEA-483D-9183-1063EDECDBC3}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.Infrastructure.VS.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.Infrastructure.VS.UnitTests</AssemblyName>
+    <LangVersion>latest</LangVersion>
+
+  </PropertyGroup>
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
