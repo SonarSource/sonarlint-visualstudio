@@ -29,6 +29,7 @@ namespace SonarQube.Client.Models
     /// </summary>
     public sealed class ConnectionInformation : ICloneable, IDisposable
     {
+        internal static readonly Uri FixedSonarCloudUri = new Uri("https://sonarcloud.io/");
         private bool isDisposed;
 
         public ConnectionInformation(Uri serverUri, string userName, SecureString password)
@@ -38,10 +39,11 @@ namespace SonarQube.Client.Models
                 throw new ArgumentNullException(nameof(serverUri));
             }
 
-            this.ServerUri = FixSonarCloudUri(serverUri).EnsureTrailingSlash();
-            this.UserName = userName;
-            this.Password = password?.CopyAsReadOnly();
-            this.Authentication = AuthenticationType.Basic; // Only one supported at this point
+            ServerUri = FixSonarCloudUri(serverUri).EnsureTrailingSlash();
+            UserName = userName;
+            Password = password?.CopyAsReadOnly();
+            Authentication = AuthenticationType.Basic; // Only one supported at this point
+            IsSonarCloud = ServerUri == FixedSonarCloudUri;
         }
 
         public ConnectionInformation(Uri serverUri)
@@ -49,38 +51,28 @@ namespace SonarQube.Client.Models
         {
         }
 
-        public Uri ServerUri
-        {
-            get;
-        }
+        public Uri ServerUri { get; }
 
-        public string UserName
-        {
-            get;
-        }
+        public bool IsSonarCloud { get; }
 
-        public SecureString Password
-        {
-            get;
-        }
+        public string UserName { get; }
 
-        public AuthenticationType Authentication
-        {
-            get;
-        }
+        public SecureString Password { get; }
 
-        public bool IsDisposed => this.isDisposed;
+        public AuthenticationType Authentication { get; }
+
+        public bool IsDisposed => isDisposed;
 
         public SonarQubeOrganization Organization { get; set; }
 
         public ConnectionInformation Clone()
         {
-            return new ConnectionInformation(this.ServerUri, this.UserName, this.Password?.CopyAsReadOnly()) { Organization = Organization };
+            return new ConnectionInformation(ServerUri, UserName, Password?.CopyAsReadOnly()) { Organization = Organization };
         }
 
         object ICloneable.Clone()
         {
-            return this.Clone();
+            return Clone();
         }
 
         /// <summary>
@@ -92,17 +84,17 @@ namespace SonarQube.Client.Models
         private static Uri FixSonarCloudUri(Uri serverUri) =>
             (serverUri.Host.Equals("sonarcloud.io", StringComparison.OrdinalIgnoreCase) ||
              serverUri.Host.Equals("www.sonarcloud.io", StringComparison.OrdinalIgnoreCase))
-                ? new Uri("https://sonarcloud.io/")
+                ? FixedSonarCloudUri
                 : serverUri;
 
         #region IDisposable Support
 
         public void Dispose()
         {
-            if (!this.isDisposed)
+            if (!isDisposed)
             {
-                this.Password?.Dispose();
-                this.isDisposed = true;
+                Password?.Dispose();
+                isDisposed = true;
             }
         }
 
