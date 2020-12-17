@@ -80,9 +80,11 @@ namespace SonarQube.Client.Api.V7_20
         }
 
         private SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(ComputePath(issue.Component), issue.Hash, issue.Message, ComputeModuleKey(issue),
+            new SonarQubeIssue(issue.IssueKey, ComputePath(issue.Component), issue.Hash, issue.Message, ComputeModuleKey(issue),
                 GetRuleKey(issue.CompositeRuleKey), issue.Status == "RESOLVED",
                 SonarQubeIssueSeverityConverter.Convert(issue.Severity),
+                issue.CreationDate,
+                issue.UpdateDate,
                 ToIssueTextRange(issue.TextRange),
                 ToIssueFlows(issue.Flows));
 
@@ -121,6 +123,9 @@ namespace SonarQube.Client.Api.V7_20
 
         private class ServerIssue
         {
+            [JsonProperty("key")]
+            public string IssueKey { get; set; }
+
             [JsonProperty("rule")]
             public string CompositeRuleKey { get; set; }
 
@@ -144,6 +149,12 @@ namespace SonarQube.Client.Api.V7_20
 
             [JsonProperty("textRange")]
             public ServerIssueTextRange TextRange { get; set; }
+
+            [JsonProperty("creationDate")]
+            public virtual DateTimeOffset CreationDate { get; set; }
+
+            [JsonProperty("updateDate")]
+            public virtual DateTimeOffset UpdateDate { get; set; }
 
             [JsonProperty("flows")]
             public ServerIssueFlow[] Flows { get; set; }

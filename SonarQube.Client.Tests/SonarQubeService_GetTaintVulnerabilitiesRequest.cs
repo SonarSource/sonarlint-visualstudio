@@ -492,8 +492,8 @@ namespace SonarQube.Client.Tests
 				""assign""
 			],
 			""comments"": [],
-			""creationDate"": ""2019-09-11T12:25:08+0000"",
-			""updateDate"": ""2019-09-16T10:35:19+0000"",
+			""creationDate"": ""2019-09-11T12:25:08+0100"",
+			""updateDate"": ""2019-09-16T10:35:19+1300"",
 			""type"": ""VULNERABILITY"",
 			""organization"": ""default-organization"",
 			""scope"": ""MAIN""
@@ -612,10 +612,13 @@ namespace SonarQube.Client.Tests
 
             var taint1 = result[0];
 
+            taint1.IssueKey.Should().Be("AW0p2Qpn-y65ELkujuRf");
             taint1.RuleId.Should().Be("javasecurity:S2076");
             taint1.Message.Should().Be("Refactor this code to not construct the OS command from tainted, user-controlled data.");
             taint1.FilePath.Should().Be("src\\main\\java\\foo\\security\\injection\\CommandInjectionVulnerability.java");
             taint1.Hash.Should().Be("1703916771e6abb765843e62a76fcb5a");
+            taint1.CreationTimestamp.Should().Be(DateTimeOffset.Parse("2019-09-11T12:25:08+0000"));
+            taint1.LastUpdateTimestamp.Should().Be(DateTimeOffset.Parse("2019-09-11T12:29:47+0000"));
             taint1.Flows.Should().NotBeEmpty();
             taint1.Flows.Count.Should().Be(1);
             taint1.Flows[0].Locations.Count.Should().Be(8);
@@ -629,10 +632,13 @@ namespace SonarQube.Client.Tests
 
             var taint2 = result[1];
 
+            taint2.IssueKey.Should().Be("AW0p2QqO-y65ELkujuRk");
             taint2.RuleId.Should().Be("javasecurity:S3649");
             taint2.Message.Should().Be("Refactor this code to not construct SQL queries directly from tainted user-controlled data.");
             taint2.FilePath.Should().Be("src\\main\\java\\foo\\security\\injection\\SQLInjectionVulnerabilityCollectionMultipleFiles.java");
             taint2.Hash.Should().Be("b07a403eb4e77c8d6c4b3fa5c6408064");
+            taint2.CreationTimestamp.Should().Be(DateTimeOffset.Parse("2019-09-11T12:25:08+0100"));
+            taint2.LastUpdateTimestamp.Should().Be(DateTimeOffset.Parse("2019-09-16T10:35:19+1300"));
             taint2.Flows.Should().NotBeEmpty();
             taint2.Flows.Count.Should().Be(1);
             taint2.Flows[0].Locations.Count.Should().Be(16);
