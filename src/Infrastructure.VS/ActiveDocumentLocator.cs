@@ -24,11 +24,10 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.Infrastructure.VS;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    internal interface IActiveDocumentLocator
+    public interface IActiveDocumentLocator
     {
         /// <summary>
         /// Returns the current active document, or null if there is no active document
@@ -50,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             
             RunOnUIThread.Run(() =>
             {
-                monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+                monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
             });
         }
 
