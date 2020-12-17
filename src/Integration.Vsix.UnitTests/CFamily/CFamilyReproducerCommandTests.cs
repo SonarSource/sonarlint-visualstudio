@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 using ThreadHelper = SonarLint.VisualStudio.Integration.UnitTests.ThreadHelper;

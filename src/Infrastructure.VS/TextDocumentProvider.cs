@@ -26,7 +26,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    public interface ITextDocumentProvider
+    internal interface ITextDocumentProvider
     {
         ITextDocument GetFromFrame(IVsWindowFrame frame);
     }
