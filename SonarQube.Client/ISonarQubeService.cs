@@ -81,5 +81,11 @@ namespace SonarQube.Client
         Task<SonarQubeHotspot> GetHotspotAsync(string hotspotKey, CancellationToken token);
 
         Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token);
+
+        /// <summary>
+        /// Returns the URI to view the specified issue on the server
+        /// </summary>
+        /// <remarks>The method does not check whether the project or issue exists or not</remarks>
+        Uri GetViewIssueUrl(string projectKey, string issueKey);
     }
 }
