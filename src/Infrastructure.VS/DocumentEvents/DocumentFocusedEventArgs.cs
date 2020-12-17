@@ -21,9 +21,9 @@
 using System;
 using Microsoft.VisualStudio.Text;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
+namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 {
-    internal class DocumentFocusedEventArgs : EventArgs
+    public class DocumentFocusedEventArgs : EventArgs
     {
         public ITextDocument TextDocument { get; }
 

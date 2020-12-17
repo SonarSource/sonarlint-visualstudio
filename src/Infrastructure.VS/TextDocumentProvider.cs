@@ -24,9 +24,9 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace SonarLint.VisualStudio.Integration.Vsix
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
-    internal interface ITextDocumentProvider
+    public interface ITextDocumentProvider
     {
         ITextDocument GetFromFrame(IVsWindowFrame frame);
     }

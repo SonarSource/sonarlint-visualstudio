@@ -25,9 +25,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
+namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class TextDocumentProviderTests

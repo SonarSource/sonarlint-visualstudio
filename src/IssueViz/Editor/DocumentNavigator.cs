@@ -27,7 +27,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.TextManager.Interop;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {

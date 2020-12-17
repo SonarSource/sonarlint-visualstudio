@@ -24,7 +24,7 @@ using System.IO.Abstractions;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
