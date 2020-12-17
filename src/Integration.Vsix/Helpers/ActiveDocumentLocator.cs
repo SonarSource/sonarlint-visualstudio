@@ -24,7 +24,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {

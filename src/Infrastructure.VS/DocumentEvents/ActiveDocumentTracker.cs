@@ -23,11 +23,10 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
+namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 {
-    internal interface IActiveDocumentTracker : IDisposable
+    public interface IActiveDocumentTracker : IDisposable
     {
         /// <summary>
         /// Raises an event when a text document is brought into focus.
@@ -56,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents
 
             RunOnUIThread.Run(() =>
             {
-                monitorSelection = serviceProvider.GetService<SVsShellMonitorSelection, IVsMonitorSelection>();
+                monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
                 monitorSelection.AdviseSelectionEvents(this, out cookie);
             });
         }

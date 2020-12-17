@@ -25,10 +25,10 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix;
-using SonarLint.VisualStudio.Integration.Vsix.Helpers.DocumentEvents;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
+namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     [TestClass]
     public class ActiveDocumentTrackerTests
