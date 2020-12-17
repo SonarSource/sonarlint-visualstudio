@@ -27,6 +27,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -98,7 +99,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 return false;
             }
 
-            return ((ITaintIssueViewModel)viewModel).DisplayPath.Equals(activeDocumentFilePath);
+            var filePath = ((ITaintIssueViewModel) viewModel).TaintIssueViz.CurrentFilePath;
+
+            return PathHelper.IsMatchingPath(filePath, activeDocumentFilePath);
         }
 
         /// <summary>
