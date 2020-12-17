@@ -51,24 +51,42 @@ namespace SonarQube.Client.Tests
         }
 
         [TestMethod]
-        public void Connect_To_SonarQube_Invalid_Credentials()
+        [DataRow("http://localhost")]
+        [DataRow("https://localhost/")]
+        [DataRow("https://localhost:9000")]
+        public async Task Connect_SonarQube_IsSonarCloud_SonarQubeUrl_ReturnsFalse(string inputUrl)
         {
+            var canonicalUrl = inputUrl.TrimEnd('/');
+
             // The earliest version that supports authentication
-            SetupRequest("api/server/version", "3.3.0.0");
-            SetupRequest("api/authentication/validate", "{ \"valid\": false }");
+            SetupRequest("api/server/version", "3.3.0.0", serverUrl: canonicalUrl);
+            SetupRequest("api/authentication/validate", "{ \"valid\": true }", serverUrl: canonicalUrl);
 
-            service.IsConnected.Should().BeFalse();
-            service.SonarQubeVersion.Should().BeNull();
-
-            Func<Task> action = async () => await service.ConnectAsync(
-                new ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
+            await service.ConnectAsync(
+                new ConnectionInformation(new Uri(inputUrl), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
-            action.Should().ThrowExactly<InvalidOperationException>()
-                .And.Message.Should().Be("Invalid credentials");
+            service.IsSonarCloud.Should().BeFalse();
+        }
 
-            service.IsConnected.Should().BeFalse();
-            service.SonarQubeVersion.Should().BeNull();
+        [TestMethod]
+        [DataRow("http://sonarcloud.io")]
+        [DataRow("https://sonarcloud.io")]
+        [DataRow("http://SONARCLOUD.IO")]
+        [DataRow("http://www.sonarcloud.io")]
+        public async Task Connect_SonarQube_IsSonarCloud_SonarCloud_ReturnTrue(string inputUrl)
+        {
+            const string fixedSonarCloudUrl = "https://sonarcloud.io/";
+
+            // The earliest version that supports authentication
+            SetupRequest("api/server/version", "3.3.0.0", serverUrl: fixedSonarCloudUrl);
+            SetupRequest("api/authentication/validate", "{ \"valid\": true }", serverUrl: fixedSonarCloudUrl);
+
+            await service.ConnectAsync(
+                new ConnectionInformation(new Uri(inputUrl), "user", "pass".ToSecureString()),
+                CancellationToken.None);
+
+            service.IsSonarCloud.Should().BeTrue();
         }
 
         [TestMethod]

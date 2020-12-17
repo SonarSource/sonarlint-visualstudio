@@ -58,6 +58,8 @@ namespace SonarQube.Client
 
         public bool IsConnected { get; private set; }
 
+        public bool IsSonarCloud { get; private set; }
+
         public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
             : this(messageHandler, DefaultConfiguration.Configure(new RequestFactory(logger)), userAgent, logger)
         {
@@ -136,6 +138,7 @@ namespace SonarQube.Client
             httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
 
             IsConnected = true;
+            IsSonarCloud = connection.IsSonarCloud;
 
             logger.Debug($"Getting the version of SonarQube...");
 
