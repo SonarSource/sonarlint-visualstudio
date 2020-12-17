@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
 
         public IEnumerable<SonarQubeIssue> GetSuppressedIssues(string projectGuid, string filePath)
         {
-            // Block the call while the cache is being built.
+           // Block the call while the cache is being built.
             // If the task has already completed then this will return immediately
             // (e.g. on subsequent calls)
             // If we time out waiting for the initial fetch then we won't suppress any issues.
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Suppression
                 return suppressedIssues ?? Enumerable.Empty<SonarQubeIssue>();
             }
 
-            // we want a match for a file level issue (line level location or not)
+            // We want a match for a file level issue (line level location or not)
             Debug.Assert(Path.IsPathRooted(filePath) && !filePath.Contains("/"), 
                 $"Expecting an absolute path with only back-slashes delimiters but got '{filePath}'.");
 
