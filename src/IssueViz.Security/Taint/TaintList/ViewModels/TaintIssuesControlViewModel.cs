@@ -27,6 +27,8 @@ using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
@@ -48,17 +50,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
     /// <remarks>Monitors the taint store for changes and updates the view model accordingly.</remarks>
     internal sealed class TaintIssuesControlViewModel : ITaintIssuesControlViewModel
     {
+        private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly object Lock = new object();
         private readonly INotifyCollectionChanged observableIssuesCollection;
+        private string activeDocumentFilePath;
 
         public ObservableCollection<ITaintIssueViewModel> Issues { get; } = new ObservableCollection<ITaintIssueViewModel>();
 
         public ICommand NavigateCommand { get; private set; }
 
-        public TaintIssuesControlViewModel(ITaintStore store, ILocationNavigator locationNavigator)
+        public TaintIssuesControlViewModel(ITaintStore store, 
+            ILocationNavigator locationNavigator,
+            IActiveDocumentTracker activeDocumentTracker,
+            IActiveDocumentLocator activeDocumentLocator)
         {
-
             AllowMultiThreadedAccessToIssuesCollection();
+
+            activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
+            this.activeDocumentTracker = activeDocumentTracker;
+            activeDocumentTracker.OnDocumentFocused += ActiveDocumentTracker_OnDocumentFocused;
 
             var allIssues = store.GetAll();
             observableIssuesCollection = allIssues;
@@ -66,6 +76,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             UpdateIssues(allIssues, Array.Empty<IAnalysisIssueVisualization>());
             SetCommands(locationNavigator);
+            ApplyViewFilter(ActiveDocumentFilter);
+        }
+
+        private void ActiveDocumentTracker_OnDocumentFocused(object sender, DocumentFocusedEventArgs e)
+        {
+            activeDocumentFilePath = e.TextDocument?.FilePath;
+            ApplyViewFilter(ActiveDocumentFilter);
+        }
+
+        private void ApplyViewFilter(Predicate<object> filter)
+        {
+            var collectionView = CollectionViewSource.GetDefaultView(Issues);
+            collectionView.Filter = filter;
+        }
+
+        private bool ActiveDocumentFilter(object viewModel)
+        {
+            if (string.IsNullOrEmpty(activeDocumentFilePath))
+            {
+                return false;
+            }
+
+            return ((ITaintIssueViewModel)viewModel).DisplayPath.Equals(activeDocumentFilePath);
         }
 
         /// <summary>
@@ -115,6 +148,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public void Dispose()
         {
             observableIssuesCollection.CollectionChanged -= TaintStore_CollectionChanged;
+            activeDocumentTracker.OnDocumentFocused -= ActiveDocumentTracker_OnDocumentFocused;
         }
     }
 }

@@ -18,11 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows.Data;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -47,9 +52,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var storeCollection = new ObservableCollection<IAnalysisIssueVisualization>();
             var testSubject = CreateTestSubject(storeCollection);
 
-            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz1 = CreateIssueViz();
+            var issueViz2 = CreateIssueViz();
+            var issueViz3 = CreateIssueViz();
 
             storeCollection.Add(issueViz1);
 
@@ -74,8 +79,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [TestMethod]
         public void Ctor_InitializeListWithStoreCollection()
         {
-            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
-            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz1 = CreateIssueViz();
+            var issueViz2 = CreateIssueViz();
             var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> {issueViz1, issueViz2};
 
             var testSubject = CreateTestSubject(storeCollection);
@@ -86,6 +91,76 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
+        public void Ctor_NoActiveDocument_NoIssuesDisplayed()
+        {
+            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { CreateIssueViz() };
+
+            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
+            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns((ITextDocument) null);
+
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
+            testSubject.Issues.Count.Should().Be(1);
+
+            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
+            view.Filter.Should().NotBeNull();
+
+            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            filteredItems.Count().Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Ctor_ActiveDocumentExists_IssuesFilteredForActiveFilePath()
+        {
+            var issueViz1 = CreateIssueViz("test1.cpp");
+            var issueViz2 = CreateIssueViz("test2.cpp");
+            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
+
+            var activeDocument = new Mock<ITextDocument>();
+            activeDocument.Setup(x => x.FilePath).Returns("test2.cpp");
+
+            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
+            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns(activeDocument.Object);
+
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
+
+            testSubject.Issues.Count.Should().Be(2);
+
+            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
+            view.Filter.Should().NotBeNull();
+
+            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            filteredItems.Count().Should().Be(1);
+            filteredItems.First().TaintIssueViz.Should().Be(issueViz2);
+        }
+
+        [TestMethod]
+        public void Ctor_RegisterToActiveDocumentChanges()
+        {
+            var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
+            activeDocumentTracker.SetupAdd(x => x.OnDocumentFocused += null);
+
+            CreateTestSubject(activeDocumentTracker: activeDocumentTracker.Object);
+
+            activeDocumentTracker.VerifyAdd(x=> x.OnDocumentFocused += It.IsAny<EventHandler<DocumentFocusedEventArgs>>(), Times.Once);
+            activeDocumentTracker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_UnregisterFromActiveDocumentChanges()
+        {
+            var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
+            activeDocumentTracker.SetupRemove(x => x.OnDocumentFocused -= null);
+
+            var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTracker.Object);
+            activeDocumentTracker.Invocations.Clear();
+
+            testSubject.Dispose();
+
+            activeDocumentTracker.VerifyRemove(x => x.OnDocumentFocused -= It.IsAny<EventHandler<DocumentFocusedEventArgs>>(), Times.Once);
+            activeDocumentTracker.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void Dispose_UnregisterFromStoreCollectionChanges()
         {
             var storeCollection = new ObservableCollection<IAnalysisIssueVisualization>();
@@ -93,7 +168,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             testSubject.Dispose();
 
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz = CreateIssueViz();
             storeCollection.Add(issueViz);
 
             testSubject.Issues.Count.Should().Be(0);
@@ -140,7 +215,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var locationNavigator = new Mock<ILocationNavigator>();
 
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz = CreateIssueViz();
             var viewModel = new Mock<ITaintIssueViewModel>();
             viewModel.Setup(x => x.TaintIssueViz).Returns(issueViz);
 
@@ -151,9 +226,58 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             locationNavigator.VerifyNoOtherCalls();
         }
 
-        private static TaintIssuesControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
+        [TestMethod]
+        public void ActiveDocumentChanged_NoActiveDocument_NoIssuesDisplayed()
+        {
+            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { CreateIssueViz() };
+
+            var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
+
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentTracker: activeDocumentTracker.Object);
+
+            activeDocumentTracker.Raise(x=> x.OnDocumentFocused += null, new DocumentFocusedEventArgs(null));
+
+            testSubject.Issues.Count.Should().Be(1);
+
+            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
+            view.Filter.Should().NotBeNull();
+
+            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            filteredItems.Count().Should().Be(0);
+        }
+
+        [TestMethod]
+        public void ActiveDocumentChanged_ActiveDocumentExists_IssuesFilteredForActiveFilePath()
+        {
+            var issueViz1 = CreateIssueViz("test1.cpp");
+            var issueViz2 = CreateIssueViz("test2.cpp");
+            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
+
+            var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
+
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentTracker: activeDocumentTracker.Object);
+
+            var activeDocument = new Mock<ITextDocument>();
+            activeDocument.Setup(x => x.FilePath).Returns("test2.cpp");
+
+            activeDocumentTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(activeDocument.Object));
+
+            testSubject.Issues.Count.Should().Be(2);
+
+            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
+            view.Filter.Should().NotBeNull();
+
+            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            filteredItems.Count().Should().Be(1);
+            filteredItems.First().TaintIssueViz.Should().Be(issueViz2);
+        }
+
+        private static TaintIssuesControlViewModel CreateTestSubject(
+            ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
-            Mock<ITaintStore> store = null)
+            Mock<ITaintStore> store = null,
+            IActiveDocumentTracker activeDocumentTracker = null,
+            IActiveDocumentLocator activeDocumentLocator = null)
         {
             originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
@@ -161,7 +285,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             store ??= new Mock<ITaintStore>();
             store.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
 
-            return new TaintIssuesControlViewModel(store.Object, locationNavigator);
+            activeDocumentTracker ??= Mock.Of<IActiveDocumentTracker>();
+            activeDocumentLocator ??= Mock.Of<IActiveDocumentLocator>();
+
+            return new TaintIssuesControlViewModel(store.Object,
+                locationNavigator,
+                activeDocumentTracker,
+                activeDocumentLocator);
+        }
+
+        private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp")
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
+
+            return issueViz.Object;
         }
     }
 }
