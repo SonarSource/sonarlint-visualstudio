@@ -131,7 +131,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
             };
 
         private SonarQubeIssue CreateServerIssue(string ruleId, int? startLine, string lineHash)
-            => new SonarQubeIssue(null, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
+            => new SonarQubeIssue(null, null, lineHash, null, null, ruleId, false, SonarQubeIssueSeverity.Info,
+                DateTimeOffset.MinValue, DateTimeOffset.MinValue,
                 startLine.HasValue
                     ? new IssueTextRange(startLine.Value, 1, 1, 1)
                     : null,
