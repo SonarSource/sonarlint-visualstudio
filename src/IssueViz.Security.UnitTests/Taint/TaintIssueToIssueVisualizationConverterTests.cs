@@ -176,7 +176,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         private SonarQubeIssue CreateServerIssue(string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 
-            new SonarQubeIssue(filePath, hash, message, null, rule, true, severity, textRange, flows.ToList());
+            new SonarQubeIssue("any id", filePath, hash, message, null, rule, true, severity, DateTimeOffset.MaxValue, DateTimeOffset.MaxValue, textRange, flows.ToList());
 
         private IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message", IssueTextRange textRange = null) => 
             new IssueLocation(filePath, null, textRange, message);
