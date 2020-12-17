@@ -32,6 +32,8 @@ namespace SonarQube.Client
     {
         Version SonarQubeVersion { get; }
 
+        bool IsSonarCloud { get; }
+
         /// <summary>
         /// Returns whether organizations are available and being used
         /// on the server
