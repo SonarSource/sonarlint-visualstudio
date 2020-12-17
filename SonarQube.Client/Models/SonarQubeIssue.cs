@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 
 namespace SonarQube.Client.Models
@@ -26,9 +27,11 @@ namespace SonarQube.Client.Models
     {
         private static readonly IReadOnlyList<IssueFlow> EmptyFlows = new List<IssueFlow>().AsReadOnly();
 
-        public SonarQubeIssue(string filePath, string hash, string message, string moduleKey, string ruleId, bool isResolved, 
-            SonarQubeIssueSeverity severity, IssueTextRange textRange, List<IssueFlow> flows)
+        public SonarQubeIssue(string issueKey, string filePath, string hash, string message, string moduleKey, string ruleId, bool isResolved,
+            SonarQubeIssueSeverity severity, DateTimeOffset creationTimestamp, DateTimeOffset lastUpdateTimestamp,
+            IssueTextRange textRange, List<IssueFlow> flows)
         {
+            IssueKey = issueKey;
             FilePath = filePath;
             Hash = hash;
             Message = message;
@@ -36,9 +39,13 @@ namespace SonarQube.Client.Models
             RuleId = ruleId;
             IsResolved = isResolved;
             Severity = severity;
+            CreationTimestamp = creationTimestamp;
+            LastUpdateTimestamp = lastUpdateTimestamp;
             TextRange = textRange;
             Flows = flows ?? EmptyFlows;
         }
+
+        public string IssueKey { get; }
 
         /// <summary>
         /// Relative file path
@@ -55,6 +62,8 @@ namespace SonarQube.Client.Models
         public bool IsResolved { get; }
         public SonarQubeIssueSeverity Severity { get; }
         public IssueTextRange TextRange { get; }
+        public DateTimeOffset CreationTimestamp { get; }
+        public DateTimeOffset LastUpdateTimestamp { get; }
         public IReadOnlyList<IssueFlow> Flows { get; }
     }
 

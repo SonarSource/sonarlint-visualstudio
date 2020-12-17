@@ -88,9 +88,11 @@ namespace SonarQube.Client.Api.V5_10
         }
 
         private static SonarQubeIssue ToSonarQubeIssue(ServerIssue issue) =>
-            new SonarQubeIssue(FilePathNormalizer.NormalizeSonarQubePath(issue.Path), issue.Checksum, issue.Msg,
+            new SonarQubeIssue(issue.Key, FilePathNormalizer.NormalizeSonarQubePath(issue.Path), issue.Checksum, issue.Msg,
                 issue.ModuleKey, issue.RuleKey, issue.Status == "RESOLVED",
                 severity: SonarQubeIssueSeverity.Unknown,
+                creationTimestamp: DateTimeOffset.MinValue, // we don't support the timestamp fields for these versions of SQ
+                lastUpdateTimestamp: DateTimeOffset.MinValue,
                 textRange: new IssueTextRange(issue.Line, issue.Line, 0, 0),
                 flows: null);
     }

@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -28,10 +29,13 @@ namespace SonarQube.Client.Tests.Models
     [TestClass]
     public class SonarQubeIssueTests
     {
+        private static readonly DateTimeOffset ValidTimestamp = DateTimeOffset.UtcNow;
+
         [TestMethod]
         public void Ctor_FilePathCanBeNull()
         {
-            var testSubject = new SonarQubeIssue(null, "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, textRange: null, flows: null);
+            var testSubject = new SonarQubeIssue("issueKey", null, "hash", "message", "module", "rule", true,
+                SonarQubeIssueSeverity.Info, ValidTimestamp, ValidTimestamp, textRange: null, flows: null);
 
             testSubject.FilePath.Should().BeNull();
         }
@@ -39,7 +43,8 @@ namespace SonarQube.Client.Tests.Models
         [TestMethod]
         public void Ctor_TextRangeCanBeNull()
         {
-            var testSubject = new SonarQubeIssue("file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, textRange: null, flows: null);
+            var testSubject = new SonarQubeIssue("issueKey", "file", "hash", "message", "module", "rule", true,
+                SonarQubeIssueSeverity.Info, ValidTimestamp, ValidTimestamp, textRange: null, flows: null);
 
             testSubject.TextRange.Should().BeNull();
         }
@@ -47,7 +52,8 @@ namespace SonarQube.Client.Tests.Models
         [TestMethod]
         public void Ctor_FlowsAreNeverNull()
         {
-            var testSubject = new SonarQubeIssue("file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, new IssueTextRange(123, 456, 7, 8), flows: null);
+            var testSubject = new SonarQubeIssue("issueKey", "file", "hash", "message", "module", "rule", true,
+                SonarQubeIssueSeverity.Info, ValidTimestamp, ValidTimestamp, new IssueTextRange(123, 456, 7, 8), flows: null);
 
             testSubject.Flows.Should().BeEmpty();
         }
@@ -55,12 +61,17 @@ namespace SonarQube.Client.Tests.Models
         [TestMethod]
         public void Ctor_PropertiesAreSet()
         {
+            var creationTimestamp = DateTimeOffset.Parse("2001-12-13T10:11:12+0000");
+            var lastUpdateTimestamp = DateTimeOffset.Parse("2020-01-02T13:14:15+0000");
+
             var flows = new List<IssueFlow>
             {
                 new IssueFlow(null), new IssueFlow(null)
             };
-            var testSubject = new SonarQubeIssue("file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info, new IssueTextRange(123, 456, 7, 8), flows);
+            var testSubject = new SonarQubeIssue("issueKey", "file", "hash", "message", "module", "rule", true, SonarQubeIssueSeverity.Info,
+                creationTimestamp, lastUpdateTimestamp, new IssueTextRange(123, 456, 7, 8), flows);
 
+            testSubject.IssueKey.Should().Be("issueKey");
             testSubject.FilePath.Should().Be("file");
             testSubject.Hash.Should().Be("hash");
             testSubject.Message.Should().Be("message");
@@ -68,6 +79,8 @@ namespace SonarQube.Client.Tests.Models
             testSubject.RuleId.Should().Be("rule");
             testSubject.IsResolved.Should().BeTrue();
             testSubject.Severity.Should().Be(SonarQubeIssueSeverity.Info);
+            testSubject.CreationTimestamp.Should().Be(creationTimestamp);
+            testSubject.LastUpdateTimestamp.Should().Be(lastUpdateTimestamp);
             testSubject.TextRange.Should().BeEquivalentTo(new IssueTextRange(123, 456, 7, 8));
             testSubject.Flows.Should().BeEquivalentTo(flows);
         }
