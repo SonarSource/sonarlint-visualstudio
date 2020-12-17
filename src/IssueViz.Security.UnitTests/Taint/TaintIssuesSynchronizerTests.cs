@@ -188,7 +188,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         private class TestSonarQubeIssue : SonarQubeIssue
         {
             public TestSonarQubeIssue()
-                : base("test", "test", "test", "test", "test", true, SonarQubeIssueSeverity.Info, null, null)
+                : base("test", "test", "test", "test", "test", "test", true, SonarQubeIssueSeverity.Info,
+                      DateTimeOffset.MinValue, DateTimeOffset.MinValue, null, null)
             {
             }
         }
