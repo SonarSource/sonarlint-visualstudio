@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -69,6 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             if (bindingConfiguration.Mode == SonarLintMode.Standalone)
             {
                 logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
+                ClearStore();
                 return;
             }
             try
@@ -84,7 +86,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
+                ClearStore();
             }
+        }
+
+        private void ClearStore()
+        {
+            taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
         }
     }
 }

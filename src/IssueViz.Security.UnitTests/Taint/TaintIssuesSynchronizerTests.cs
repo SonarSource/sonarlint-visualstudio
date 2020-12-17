@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]    
-        public async Task SynchronizeWithServer_NotInConnectedMode_NoChanges()
+        public async Task SynchronizeWithServer_NotInConnectedMode_StoreCleared()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
@@ -71,9 +71,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             await testSubject.SynchronizeWithServer();
 
+            taintStore.Verify(x => x.Set(Enumerable.Empty<IAnalysisIssueVisualization>()), Times.Once());
+
             sonarQubeServer.Invocations.Count.Should().Be(0);
             converter.Invocations.Count.Should().Be(0);
-            taintStore.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -90,6 +91,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
+        public async Task SynchronizeWithServer_FailureToSync_StoreCleared()
+        {
+            var serverIssue = new TestSonarQubeIssue();
+            var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
+            converter.Setup(x => x.Convert(serverIssue)).Throws(new NotImplementedException("this is a test"));
+            var taintStore = new Mock<ITaintStore>();
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>(), serverIssue);
+
+            await testSubject.SynchronizeWithServer();
+
+            taintStore.Verify(x => x.Set(Enumerable.Empty<IAnalysisIssueVisualization>()), Times.Once());
+        }
+
+        [TestMethod]
         public async Task SynchronizeWithServer_NonCriticalException_ExceptionCaughtAndLogged()
         {
             var serverIssue = new TestSonarQubeIssue();
@@ -102,8 +117,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             Func<Task> act = async () => await testSubject.SynchronizeWithServer();
             await act.Should().NotThrowAsync();
-
-            taintStore.Invocations.Count.Should().Be(0);
 
             logger.AssertPartialOutputStringExists("this is a test");
         }
