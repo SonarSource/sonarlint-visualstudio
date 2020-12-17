@@ -28,9 +28,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
-namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
+namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
 {
     // These tests are slightly hacky in that they use "ThreadHelper.SetCurrentThreadAsUIThread()"
     // to fool the VS thread helper into thinking the current thread is the UI thread.

@@ -23,7 +23,7 @@ using System.Diagnostics;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Helpers
+namespace SonarLint.VisualStudio.Infrastructure.VS
 {
     public static class RunOnUIThread
     {
