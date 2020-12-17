@@ -22,6 +22,8 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 
@@ -38,10 +40,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
             Caption = Resources.TaintToolWindowCaption;
 
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var store = componentModel.GetService<ITaintStore>();
-            var locationNavigator = componentModel.GetService<ILocationNavigator>();
 
-            var viewModel = new TaintIssuesControlViewModel(store, locationNavigator);
+            var viewModel = new TaintIssuesControlViewModel(
+                componentModel.GetService<ITaintStore>(),
+                componentModel.GetService<ILocationNavigator>(),
+                componentModel.GetService<IActiveDocumentTracker>(),
+                componentModel.GetService<IActiveDocumentLocator>()
+            );
 
             Content = new TaintIssuesControl(viewModel);
         }
