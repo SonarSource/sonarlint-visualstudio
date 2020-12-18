@@ -76,6 +76,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 sonarQubeIssue.TextRange.EndOffset,
                 sonarQubeIssue.Hash,
                 Convert(sonarQubeIssue.Severity),
+                sonarQubeIssue.CreationTimestamp,
+                sonarQubeIssue.LastUpdateTimestamp,
                 Convert(sonarQubeIssue.Flows)
             );
         }
