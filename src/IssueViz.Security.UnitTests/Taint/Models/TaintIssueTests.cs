@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -33,7 +34,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         [TestMethod]
         public void Ctor_PropertiesSet()
         {
-            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash", AnalysisIssueSeverity.Major, null);
+            var created = DateTimeOffset.Parse("2001-01-31T01:02:03+0200");
+            var lastUpdated = DateTimeOffset.UtcNow;
+            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash",
+                AnalysisIssueSeverity.Major, created, lastUpdated, null);
 
             issue.IssueKey.Should().Be("issue key");
             issue.FilePath.Should().Be("local-path.cpp");
@@ -45,13 +49,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
             issue.EndLineOffset.Should().Be(4);
             issue.LineHash.Should().Be("hash");
             issue.Severity.Should().Be(AnalysisIssueSeverity.Major);
+            issue.CreationTimestamp.Should().Be(created);
+            issue.LastUpdateTimestamp.Should().Be(lastUpdated);
         }
 
         [TestMethod]
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash", AnalysisIssueSeverity.Major, flows);
+            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash",
+                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
 
             issue.Flows.Should().BeEmpty();
         }
@@ -60,7 +67,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Mod
         public void Ctor_HasFlows_CorrectFlows()
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
-            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash", AnalysisIssueSeverity.Major, flows);
+            var issue = new TaintIssue("issue key", "local-path.cpp", "rule key", "message", 1, 2, 3, 4, "hash",
+                AnalysisIssueSeverity.Major, DateTimeOffset.MinValue, DateTimeOffset.MaxValue, flows);
 
             issue.Flows.Should().BeEquivalentTo(flows);
         }
