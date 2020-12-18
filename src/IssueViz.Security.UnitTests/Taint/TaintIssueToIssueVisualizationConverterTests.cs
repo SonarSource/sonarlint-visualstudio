@@ -81,7 +81,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var location3 = CreateServerLocation("path3", "message3", new IssueTextRange(9, 10, 11, 12));
             var flow2 = CreateServerFlow(location3);
 
-            var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major, new IssueTextRange(13, 14, 15, 16), flow1, flow2);
+            var created = DateTimeOffset.Parse("2001-12-30T01:02:03+0000");
+            var lastUpdate = DateTimeOffset.Parse("2009-02-01T13:14:15+0200");
+
+            var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major,
+                new IssueTextRange(13, 14, 15, 16), created, lastUpdate, flow1, flow2);
 
             var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
             absoluteFilePathLocator.Setup(x => x.Locate("path1")).Returns("found1");
@@ -112,6 +116,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.StartLineOffset == 15 &&
                         taintIssue.EndLineOffset == 16 &&
                         taintIssue.Severity == AnalysisIssueSeverity.Major &&
+
+                        taintIssue.CreationTimestamp == created &&
+                        taintIssue.LastUpdateTimestamp == lastUpdate &&
 
                         taintIssue.Flows.Count == 2 &&
                         taintIssue.Flows[0].Locations.Count == 2 &&
@@ -176,8 +183,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return new TaintIssueToIssueVisualizationConverter(issueVizConverter, absoluteFilePathLocator);
         }
 
-        private SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 
-            new SonarQubeIssue(issueKey, filePath, hash, message, null, rule, true, severity, DateTimeOffset.MaxValue, DateTimeOffset.MaxValue, textRange, flows.ToList());
+        private SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule",
+            SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null,
+            DateTimeOffset created = default, DateTimeOffset lastUpdate = default, params IssueFlow[] flows) => 
+            new SonarQubeIssue(issueKey, filePath, hash, message, null, rule, true, severity, created, lastUpdate, textRange, flows.ToList());
 
         private IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message", IssueTextRange textRange = null) => 
             new IssueLocation(filePath, null, textRange, message);
