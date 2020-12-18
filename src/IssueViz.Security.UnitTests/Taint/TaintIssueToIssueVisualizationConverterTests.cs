@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
@@ -80,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var location3 = CreateServerLocation("path3", "message3", new IssueTextRange(9, 10, 11, 12));
             var flow2 = CreateServerFlow(location3);
 
-            var issue = CreateServerIssue("path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major, new IssueTextRange(13, 14, 15, 16), flow1, flow2);
+            var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major, new IssueTextRange(13, 14, 15, 16), flow1, flow2);
 
             var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
             absoluteFilePathLocator.Setup(x => x.Locate("path1")).Returns("found1");
@@ -100,45 +101,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             result.Should().BeSameAs(expectedConvertedIssueViz);
 
             issueVizConverter.Verify(x => x.Convert(
-                    It.Is((AnalysisIssue issueBase) =>
-                        issueBase.FilePath == "found4" &&
-                        issueBase.RuleKey == "rule" &&
-                        issueBase.LineHash == "hash" &&
-                        issueBase.Message == "message4" &&
-                        issueBase.StartLine == 13 &&
-                        issueBase.EndLine == 14 &&
-                        issueBase.StartLineOffset == 15 &&
-                        issueBase.EndLineOffset == 16 &&
-                        issueBase.Severity == AnalysisIssueSeverity.Major &&
-                        issueBase.Type == AnalysisIssueType.Vulnerability &&
+                    It.Is((TaintIssue taintIssue) =>
+                        taintIssue.IssueKey == "issue key" &&
+                        taintIssue.FilePath == "found4" &&
+                        taintIssue.RuleKey == "rule" &&
+                        taintIssue.LineHash == "hash" &&
+                        taintIssue.Message == "message4" &&
+                        taintIssue.StartLine == 13 &&
+                        taintIssue.EndLine == 14 &&
+                        taintIssue.StartLineOffset == 15 &&
+                        taintIssue.EndLineOffset == 16 &&
+                        taintIssue.Severity == AnalysisIssueSeverity.Major &&
 
-                        issueBase.Flows.Count == 2 &&
-                        issueBase.Flows[0].Locations.Count == 2 &&
-                        issueBase.Flows[1].Locations.Count == 1 &&
+                        taintIssue.Flows.Count == 2 &&
+                        taintIssue.Flows[0].Locations.Count == 2 &&
+                        taintIssue.Flows[1].Locations.Count == 1 &&
 
-                        issueBase.Flows[0].Locations[0].LineHash == null &&
-                        issueBase.Flows[0].Locations[0].Message == "message1" &&
-                        issueBase.Flows[0].Locations[0].FilePath == "found1" &&
-                        issueBase.Flows[0].Locations[0].StartLine == 1 &&
-                        issueBase.Flows[0].Locations[0].EndLine == 2 &&
-                        issueBase.Flows[0].Locations[0].StartLineOffset == 3 &&
-                        issueBase.Flows[0].Locations[0].EndLineOffset == 4 &&
+                        taintIssue.Flows[0].Locations[0].LineHash == null &&
+                        taintIssue.Flows[0].Locations[0].Message == "message1" &&
+                        taintIssue.Flows[0].Locations[0].FilePath == "found1" &&
+                        taintIssue.Flows[0].Locations[0].StartLine == 1 &&
+                        taintIssue.Flows[0].Locations[0].EndLine == 2 &&
+                        taintIssue.Flows[0].Locations[0].StartLineOffset == 3 &&
+                        taintIssue.Flows[0].Locations[0].EndLineOffset == 4 &&
 
-                        issueBase.Flows[0].Locations[1].LineHash == null &&
-                        issueBase.Flows[0].Locations[1].Message == "message2" &&
-                        issueBase.Flows[0].Locations[1].FilePath == "found2" &&
-                        issueBase.Flows[0].Locations[1].StartLine == 5 &&
-                        issueBase.Flows[0].Locations[1].EndLine == 6 &&
-                        issueBase.Flows[0].Locations[1].StartLineOffset == 7 &&
-                        issueBase.Flows[0].Locations[1].EndLineOffset == 8 &&
+                        taintIssue.Flows[0].Locations[1].LineHash == null &&
+                        taintIssue.Flows[0].Locations[1].Message == "message2" &&
+                        taintIssue.Flows[0].Locations[1].FilePath == "found2" &&
+                        taintIssue.Flows[0].Locations[1].StartLine == 5 &&
+                        taintIssue.Flows[0].Locations[1].EndLine == 6 &&
+                        taintIssue.Flows[0].Locations[1].StartLineOffset == 7 &&
+                        taintIssue.Flows[0].Locations[1].EndLineOffset == 8 &&
 
-                        issueBase.Flows[1].Locations[0].LineHash == null &&
-                        issueBase.Flows[1].Locations[0].Message == "message3" &&
-                        issueBase.Flows[1].Locations[0].FilePath == "found3" &&
-                        issueBase.Flows[1].Locations[0].StartLine == 9 &&
-                        issueBase.Flows[1].Locations[0].EndLine == 10 &&
-                        issueBase.Flows[1].Locations[0].StartLineOffset == 11 &&
-                        issueBase.Flows[1].Locations[0].EndLineOffset == 12
+                        taintIssue.Flows[1].Locations[0].LineHash == null &&
+                        taintIssue.Flows[1].Locations[0].Message == "message3" &&
+                        taintIssue.Flows[1].Locations[0].FilePath == "found3" &&
+                        taintIssue.Flows[1].Locations[0].StartLine == 9 &&
+                        taintIssue.Flows[1].Locations[0].EndLine == 10 &&
+                        taintIssue.Flows[1].Locations[0].StartLineOffset == 11 &&
+                        taintIssue.Flows[1].Locations[0].EndLineOffset == 12
                     ),
                     It.IsAny<ITextSnapshot>()),
                 Times.Once);
@@ -175,8 +176,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return new TaintIssueToIssueVisualizationConverter(issueVizConverter, absoluteFilePathLocator);
         }
 
-        private SonarQubeIssue CreateServerIssue(string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 
-            new SonarQubeIssue("any id", filePath, hash, message, null, rule, true, severity, DateTimeOffset.MaxValue, DateTimeOffset.MaxValue, textRange, flows.ToList());
+        private SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 
+            new SonarQubeIssue(issueKey, filePath, hash, message, null, rule, true, severity, DateTimeOffset.MaxValue, DateTimeOffset.MaxValue, textRange, flows.ToList());
 
         private IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message", IssueTextRange textRange = null) => 
             new IssueLocation(filePath, null, textRange, message);
