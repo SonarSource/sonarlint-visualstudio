@@ -13,9 +13,20 @@
                 <ResourceDictionary Source="../../SharedUI/SharedResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                <MenuItem Header="Open in browser" 
+                          CommandParameter="{Binding}"
+                          Command="{Binding DataContext.ShowInBrowserCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}">
+                    <MenuItem.Icon>
+                        <vsImaging:CrispImage Moniker="{x:Static vsCatalog:KnownMonikers.BrowserLink}"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+
             <!-- Extend the shared data grid row style to add the context menu and navigability data bindings -->
             <Style BasedOn="{StaticResource BaseDataGridRow}"
                        TargetType="DataGridRow">
+                <Setter Property="ContextMenu" Value="{StaticResource RowMenu}" />
                 <Setter Property="Background" Value="{DynamicResource {x:Static vsTheming:TreeViewColors.BackgroundBrushKey}}"/>
                 <Style.Triggers>
                     <DataTrigger Binding="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToNavigabilityConverter}}" Value="False">
