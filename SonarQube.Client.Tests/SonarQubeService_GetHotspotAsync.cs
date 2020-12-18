@@ -75,7 +75,7 @@ namespace SonarQube.Client.Tests
   ""assignee"": ""joe"",
   ""author"": ""joe"",
   ""creationDate"": ""2020-01-02T15:43:10+0100"",
-  ""updateDate"": ""2020-01-02T15:43:10+0100"",
+  ""updateDate"": ""2020-12-13T01:02:20+1300"",
   ""changelog"": [
     {
       ""user"": ""joe"",
@@ -169,6 +169,9 @@ namespace SonarQube.Client.Tests
 
             result.ComponentKey.Should().Be("com.sonarsource:test-project:src/main/java/com/sonarsource/FourthClass.java");
             result.FilePath.Should().Be("src\\main\\java\\com\\sonarsource\\FourthClass.java");
+
+            result.CreationTimestamp.Should().Be(DateTimeOffset.Parse("2020-01-02T15:43:10+0100"));
+            result.LastUpdateTimestamp.Should().Be(DateTimeOffset.Parse("2020-12-13T01:02:20+1300"));
 
             result.Rule.RuleKey.Should().Be("java:S4787");
             result.Rule.RuleName.Should().Be("rule-name");
