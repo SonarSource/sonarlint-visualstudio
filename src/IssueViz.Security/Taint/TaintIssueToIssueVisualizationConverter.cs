@@ -25,6 +25,7 @@ using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -64,17 +65,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
             var localFilePath = absoluteFilePathLocator.Locate(sonarQubeIssue.FilePath);
 
-            return new AnalysisIssue(
-                sonarQubeIssue.RuleId,
-                Convert(sonarQubeIssue.Severity),
-                AnalysisIssueType.Vulnerability,
-                sonarQubeIssue.Message,
+            return new TaintIssue(
+                sonarQubeIssue.IssueKey,
                 localFilePath,
+                sonarQubeIssue.RuleId,
+                sonarQubeIssue.Message,
                 sonarQubeIssue.TextRange.StartLine,
                 sonarQubeIssue.TextRange.EndLine,
                 sonarQubeIssue.TextRange.StartOffset,
                 sonarQubeIssue.TextRange.EndOffset,
                 sonarQubeIssue.Hash,
+                Convert(sonarQubeIssue.Severity),
                 Convert(sonarQubeIssue.Flows)
             );
         }
