@@ -73,6 +73,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 ClearStore();
                 return;
             }
+
+            if (!sonarQubeService.IsConnected)
+            {
+                logger.WriteLine(TaintResources.Synchronizer_ServerNotConnected);
+                return;
+            }
+
             try
             {
                 var projectKey = bindingConfiguration.Project.ProjectKey;

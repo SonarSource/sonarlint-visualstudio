@@ -118,12 +118,15 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Synchronizer_Failure" xml:space="preserve">
-    <value>Failed to synchronize taint vulnerabilities with the connected server: {0}.</value>
+    <value>[Taint] Failed to synchronize taint vulnerabilities with the connected server: {0}.</value>
   </data>
   <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
-    <value>Cannot fetch taint vulnerabilities: not in connected mode.</value>
+    <value>[Taint] Cannot fetch taint vulnerabilities: not in connected mode.</value>
+  </data>
+  <data name="Synchronizer_ServerNotConnected" xml:space="preserve">
+    <value>[Taint] Cannot fetch taint vulnerabilities: a connection to the server is not yet established.</value>
   </data>
   <data name="Synchronizer_NumberOfServerIssues" xml:space="preserve">
-    <value>Fetched {0} taint vulnerabilities.</value>
+    <value>[Taint] Fetched {0} taint vulnerabilities.</value>
   </data>
 </root>
