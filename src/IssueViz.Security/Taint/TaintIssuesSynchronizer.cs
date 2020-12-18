@@ -75,6 +75,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
             try
             {
+                if (!sonarQubeService.IsConnected)
+                {
+                    return;
+                }
+
                 var projectKey = bindingConfiguration.Project.ProjectKey;
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None);
 

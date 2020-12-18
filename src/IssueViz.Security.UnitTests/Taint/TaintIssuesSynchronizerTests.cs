@@ -78,6 +78,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
+        public async Task SynchronizeWithServer_SonarQubeServerNotYetConnected_NoChanges()
+        {
+            var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
+            var taintStore = new Mock<ITaintStore>();
+
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, isServerConnected: false);
+            await testSubject.SynchronizeWithServer();
+
+            converter.Invocations.Count.Should().Be(0);
+            taintStore.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
         public async Task SynchronizeWithServer_NoIssues_StoreSynced()
         {
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
@@ -97,7 +110,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
             converter.Setup(x => x.Convert(serverIssue)).Throws(new NotImplementedException("this is a test"));
             var taintStore = new Mock<ITaintStore>();
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>(), serverIssue);
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, serverIssues: new[] { serverIssue });
 
             await testSubject.SynchronizeWithServer();
 
@@ -113,7 +126,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var taintStore = new Mock<ITaintStore>();
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, logger, serverIssue);
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, logger, serverIssues: new[] { serverIssue });
 
             Func<Task> act = async () => await testSubject.SynchronizeWithServer();
             await act.Should().NotThrowAsync();
@@ -129,7 +142,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             converter.Setup(x => x.Convert(serverIssue)).Throws<StackOverflowException>();
             var taintStore = new Mock<ITaintStore>();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>(), serverIssue);
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, serverIssues: new[] {serverIssue});
 
             Func<Task> act = async () => await testSubject.SynchronizeWithServer();
             await act.Should().ThrowAsync<StackOverflowException>();
@@ -151,7 +164,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             var taintStore = new Mock<ITaintStore>();
 
-            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, Mock.Of<ILogger>(), serverIssue1, serverIssue2);
+            var testSubject = CreateTestSubject(taintStore.Object, converter.Object, serverIssues: new []{serverIssue1, serverIssue2});
             await testSubject.SynchronizeWithServer();
 
             taintStore.Verify(x => x.Set(new[] {issueViz1, issueViz2}), Times.Once);
@@ -159,7 +172,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
         private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore,
             ITaintIssueToIssueVisualizationConverter converter,
-            ILogger logger,
+            ILogger logger = null,
+            bool isServerConnected = true,
             params SonarQubeIssue[] serverIssues)
         {
             const string projectKey = "test";
@@ -170,8 +184,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 .Returns(new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = projectKey }, SonarLintMode.Connected, ""));
 
             var sonarQubeServer = new Mock<ISonarQubeService>();
+            sonarQubeServer.Setup(x => x.IsConnected).Returns(isServerConnected);
             sonarQubeServer.Setup(x => x.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None))
                 .ReturnsAsync(serverIssues);
+
+            logger ??= Mock.Of<ILogger>();
 
             return CreateTestSubject(taintStore, sonarQubeServer.Object, converter, configurationProvider.Object, logger);
         }
