@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+
 namespace SonarQube.Client.Models
 {
     public class SonarQubeHotspot
@@ -26,6 +28,7 @@ namespace SonarQube.Client.Models
             string hotspotKey, string message, string lineHash, string assignee, string status,
             string organization, string projectKey, string projectName,
             string componentKey, string filePath,
+            DateTimeOffset creationDate, DateTimeOffset updateDate,
             SonarQubeHotspotRule rule,
             IssueTextRange textRange)
         {
@@ -41,6 +44,9 @@ namespace SonarQube.Client.Models
 
             ComponentKey = componentKey;
             FilePath = filePath;
+
+            CreationTimestamp = creationDate;
+            LastUpdateTimestamp = updateDate;
 
             Rule = rule;
             TextRange = textRange;
@@ -66,5 +72,7 @@ namespace SonarQube.Client.Models
         public SonarQubeHotspotRule Rule { get; }
         public string ProjectKey { get; }
         public string ProjectName { get; }
+        public DateTimeOffset CreationTimestamp { get; }
+        public DateTimeOffset LastUpdateTimestamp { get; }
     }
 }

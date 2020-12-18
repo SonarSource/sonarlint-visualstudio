@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SonarQube.Client.Helpers;
@@ -58,6 +59,8 @@ namespace SonarQube.Client.Api.V8_6
                 serverResponse.Project.Name,
                 serverResponse.Component.Key,
                 FilePathNormalizer.NormalizeSonarQubePath(serverResponse.Component.Path),
+                serverResponse.CreationDate,
+                serverResponse.UpdateDate,
                 rule,
                 ToIssueTextRange(serverResponse.TextRange)
             );
@@ -90,6 +93,12 @@ namespace SonarQube.Client.Api.V8_6
 
             [JsonProperty("project")]
             public ServerProject Project { get; set; }
+
+            [JsonProperty("creationDate")]
+            public DateTimeOffset CreationDate { get; set; }
+
+            [JsonProperty("updateDate")]
+            public DateTimeOffset UpdateDate { get; set; }
 
             [JsonProperty("rule")]
             public ServerRule Rule { get; set; }
