@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
@@ -80,7 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var location3 = CreateServerLocation("path3", "message3", new IssueTextRange(9, 10, 11, 12));
             var flow2 = CreateServerFlow(location3);
 
-            var issue = CreateServerIssue("path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major, new IssueTextRange(13, 14, 15, 16), flow1, flow2);
+            var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major, new IssueTextRange(13, 14, 15, 16), flow1, flow2);
 
             var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
             absoluteFilePathLocator.Setup(x => x.Locate("path1")).Returns("found1");
@@ -100,7 +101,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             result.Should().BeSameAs(expectedConvertedIssueViz);
 
             issueVizConverter.Verify(x => x.Convert(
-                    It.Is((AnalysisIssue issueBase) =>
+                    It.Is((TaintIssue issueBase) =>
+                        issueBase.IssueKey == "issue key" &&
                         issueBase.FilePath == "found4" &&
                         issueBase.RuleKey == "rule" &&
                         issueBase.LineHash == "hash" &&
@@ -110,7 +112,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         issueBase.StartLineOffset == 15 &&
                         issueBase.EndLineOffset == 16 &&
                         issueBase.Severity == AnalysisIssueSeverity.Major &&
-                        issueBase.Type == AnalysisIssueType.Vulnerability &&
 
                         issueBase.Flows.Count == 2 &&
                         issueBase.Flows[0].Locations.Count == 2 &&
@@ -175,8 +176,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return new TaintIssueToIssueVisualizationConverter(issueVizConverter, absoluteFilePathLocator);
         }
 
-        private SonarQubeIssue CreateServerIssue(string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 
-            new SonarQubeIssue("any id", filePath, hash, message, null, rule, true, severity, DateTimeOffset.MaxValue, DateTimeOffset.MaxValue, textRange, flows.ToList());
+        private SonarQubeIssue CreateServerIssue(string issueKey = "issue key", string filePath = "test.cpp", string hash = "hash", string message = "message", string rule = "rule", SonarQubeIssueSeverity severity = SonarQubeIssueSeverity.Info, IssueTextRange textRange = null, params IssueFlow[] flows) => 
+            new SonarQubeIssue(issueKey, filePath, hash, message, null, rule, true, severity, DateTimeOffset.MaxValue, DateTimeOffset.MaxValue, textRange, flows.ToList());
 
         private IssueLocation CreateServerLocation(string filePath = "test.cpp", string message = "message", IssueTextRange textRange = null) => 
             new IssueLocation(filePath, null, textRange, message);
