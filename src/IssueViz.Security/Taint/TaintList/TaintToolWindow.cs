@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
@@ -45,7 +46,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<ITaintStore>(),
                 componentModel.GetService<ILocationNavigator>(),
                 componentModel.GetService<IActiveDocumentTracker>(),
-                componentModel.GetService<IActiveDocumentLocator>()
+                componentModel.GetService<IActiveDocumentLocator>(),
+                componentModel.GetService<IShowInBrowserService>()
             );
 
             Content = new TaintIssuesControl(viewModel);

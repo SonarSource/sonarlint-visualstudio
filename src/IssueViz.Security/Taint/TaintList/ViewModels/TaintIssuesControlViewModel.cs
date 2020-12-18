@@ -32,6 +32,8 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels
 {
@@ -41,6 +43,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         // WIP: add any other necessary commands
 
         ICommand NavigateCommand { get; }
+
+        ICommand ShowInBrowserCommand { get; }
 
         ObservableCollection<ITaintIssueViewModel> Issues { get; }
     }
@@ -52,6 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
     internal sealed class TaintIssuesControlViewModel : ITaintIssuesControlViewModel
     {
         private readonly IActiveDocumentTracker activeDocumentTracker;
+        private readonly IShowInBrowserService showInBrowserService;
         private readonly object Lock = new object();
         private readonly INotifyCollectionChanged observableIssuesCollection;
         private string activeDocumentFilePath;
@@ -60,16 +65,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public ICommand NavigateCommand { get; private set; }
 
+        public ICommand ShowInBrowserCommand { get; private set; }
+
         public TaintIssuesControlViewModel(ITaintStore store, 
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
-            IActiveDocumentLocator activeDocumentLocator)
+            IActiveDocumentLocator activeDocumentLocator,
+            IShowInBrowserService showInBrowserService)
         {
             AllowMultiThreadedAccessToIssuesCollection();
 
             activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
             this.activeDocumentTracker = activeDocumentTracker;
             activeDocumentTracker.OnDocumentFocused += ActiveDocumentTracker_OnDocumentFocused;
+
+            this.showInBrowserService = showInBrowserService;
 
             var allIssues = store.GetAll();
             observableIssuesCollection = allIssues;
@@ -116,9 +126,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private void SetCommands(ILocationNavigator locationNavigator)
         {
             NavigateCommand = new DelegateCommand(
-                parameter => {
-                    var selected = (ITaintIssueViewModel)parameter;
+                parameter =>
+                {
+                    var selected = (ITaintIssueViewModel) parameter;
                     locationNavigator.TryNavigate(selected.TaintIssueViz);
+                },
+                parameter => parameter is ITaintIssueViewModel);
+
+            ShowInBrowserCommand = new DelegateCommand(
+                parameter =>
+                {
+                    var selected = (ITaintIssueViewModel) parameter;
+                    var taintIssue = (ITaintIssue) selected.TaintIssueViz.Issue;
+                    showInBrowserService.ShowIssue(taintIssue.IssueKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
         }
