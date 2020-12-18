@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to synchronize taint vulnerabilities with the connected server: {0}..
+        ///   Looks up a localized string similar to [Taint] Failed to synchronize taint vulnerabilities with the connected server: {0}..
         /// </summary>
         internal static string Synchronizer_Failure {
             get {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot fetch taint vulnerabilities: not in connected mode..
+        ///   Looks up a localized string similar to [Taint] Cannot fetch taint vulnerabilities: not in connected mode..
         /// </summary>
         internal static string Synchronizer_NotInConnectedMode {
             get {
@@ -79,11 +79,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fetched {0} taint vulnerabilities..
+        ///   Looks up a localized string similar to [Taint] Fetched {0} taint vulnerabilities..
         /// </summary>
         internal static string Synchronizer_NumberOfServerIssues {
             get {
                 return ResourceManager.GetString("Synchronizer_NumberOfServerIssues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Taint] Cannot fetch taint vulnerabilities: a connection to the server is not yet established..
+        /// </summary>
+        internal static string Synchronizer_ServerNotConnected {
+            get {
+                return ResourceManager.GetString("Synchronizer_ServerNotConnected", resourceCulture);
             }
         }
     }
