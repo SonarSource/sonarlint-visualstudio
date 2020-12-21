@@ -29,6 +29,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models
         string IssueKey { get; }
 
         AnalysisIssueSeverity Severity { get; }
+
+        DateTimeOffset CreationTimestamp { get; }
+
+        DateTimeOffset LastUpdateTimestamp { get; }
     }
 
     internal class TaintIssue : ITaintIssue

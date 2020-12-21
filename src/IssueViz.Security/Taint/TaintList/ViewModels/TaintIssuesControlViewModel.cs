@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -67,7 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public ICommand ShowInBrowserCommand { get; private set; }
 
-        public TaintIssuesControlViewModel(ITaintStore store, 
+        public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
             IActiveDocumentLocator activeDocumentLocator,
@@ -88,6 +89,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             UpdateIssues(allIssues, Array.Empty<IAnalysisIssueVisualization>());
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
+            SetDefaultSortOrder();
         }
 
         private void ActiveDocumentTracker_OnDocumentFocused(object sender, DocumentFocusedEventArgs e)
@@ -112,6 +114,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             var filePath = ((ITaintIssueViewModel) viewModel).TaintIssueViz.CurrentFilePath;
 
             return PathHelper.IsMatchingPath(filePath, activeDocumentFilePath);
+        }
+
+        private void SetDefaultSortOrder()
+        {
+            var collectionView = CollectionViewSource.GetDefaultView(Issues);
+
+            collectionView.SortDescriptions.Add(
+                new SortDescription("TaintIssueViz.Issue.CreationTimestamp", ListSortDirection.Descending));
         }
 
         /// <summary>
