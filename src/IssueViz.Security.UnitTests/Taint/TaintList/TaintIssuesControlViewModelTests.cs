@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Data;
@@ -92,6 +93,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testSubject.Issues.First().TaintIssueViz.Should().Be(issueViz1);
             testSubject.Issues.Last().TaintIssueViz.Should().Be(issueViz2);
         }
+
+        [TestMethod]
+        public void Ctor_DefaultSortOrder_IsByCreationTimestampDescending()
+        {
+            const string filePath = "file1.txt";
+            var oldestIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2010-01-31T01:02:03+0000"));
+            var middleIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2012-06-30T01:02:03+0000"));
+            var newestIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2020-09-01T01:02:03+0000"));
+            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { middleIssueViz, oldestIssueViz, newestIssueViz };
+
+            var activeDocument = new Mock<ITextDocument>();
+            activeDocument.Setup(x => x.FilePath).Returns(filePath);
+
+            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
+            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns(activeDocument.Object);
+
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
+
+            // Check source collection ordering (should be unaffected)
+            testSubject.Issues.Count.Should().Be(3);
+            testSubject.Issues.Select(x => x.TaintIssueViz).Should().ContainInOrder(middleIssueViz, oldestIssueViz, newestIssueViz);
+
+            // Check the view ordering (should be sorted
+            var sortedIssueVizs = GetIssueVizsFromView(testSubject);
+            sortedIssueVizs.Count.Should().Be(3);
+
+            sortedIssueVizs.Should().ContainInOrder(newestIssueViz, middleIssueViz, oldestIssueViz);
+        }
+
 
         [TestMethod]
         public void Ctor_NoActiveDocument_NoIssuesDisplayed()
@@ -346,10 +376,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 showInBrowserService);
         }
 
-        private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string issueKey = "issue key")
+        private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string issueKey = "issue key",
+            DateTimeOffset created = default)
         {
             var issue = new Mock<ITaintIssue>();
             issue.Setup(x => x.IssueKey).Returns(issueKey);
+            issue.Setup(x => x.CreationTimestamp).Returns(created);
 
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
@@ -362,6 +394,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var result = command.CanExecute(parameter);
             result.Should().Be(canExecute);
+        }
+
+        private static IList<IAnalysisIssueVisualization> GetIssueVizsFromView(TaintIssuesControlViewModel controlViewModel)
+        {
+            var view = (ListCollectionView)CollectionViewSource.GetDefaultView(controlViewModel.Issues);
+
+            var taintIssueVizs = view.OfType<ITaintIssueViewModel>()
+                .Select(x => x.TaintIssueViz)
+                .ToList();
+
+            view.Count.Should().Be(taintIssueVizs.Count);
+
+            return taintIssueVizs;
         }
     }
 }
