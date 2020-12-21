@@ -111,17 +111,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
 
-            // Check source collection ordering (should be unaffected)
+            // Check source collection ordering (should be in creation order)
             testSubject.Issues.Count.Should().Be(3);
             testSubject.Issues.Select(x => x.TaintIssueViz).Should().ContainInOrder(middleIssueViz, oldestIssueViz, newestIssueViz);
 
-            // Check the view ordering (should be sorted
+            // Check the view ordering (should be sorted)
             var sortedIssueVizs = GetIssueVizsFromView(testSubject);
             sortedIssueVizs.Count.Should().Be(3);
 
             sortedIssueVizs.Should().ContainInOrder(newestIssueViz, middleIssueViz, oldestIssueViz);
         }
-
 
         [TestMethod]
         public void Ctor_NoActiveDocument_NoIssuesDisplayed()
