@@ -125,7 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         }
 
         /// <summary>
-        /// Allow the observable collection <see cref="Issues"/> to be modified from a non-UI thread. 
+        /// Allow the observable collection <see cref="Issues"/> to be modified from a non-UI thread.
         /// </summary>
         private void AllowMultiThreadedAccessToIssuesCollection()
         {

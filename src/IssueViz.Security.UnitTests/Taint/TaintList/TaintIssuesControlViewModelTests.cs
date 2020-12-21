@@ -103,13 +103,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var newestIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2020-09-01T01:02:03+0000"));
             var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { middleIssueViz, oldestIssueViz, newestIssueViz };
 
-            var activeDocument = new Mock<ITextDocument>();
-            activeDocument.Setup(x => x.FilePath).Returns(filePath);
+            var locator = CreateLocatorAndSetActiveDocument(filePath);
 
-            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
-            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns(activeDocument.Object);
-
-            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
 
             // Check source collection ordering (should be in creation order)
             testSubject.Issues.Count.Should().Be(3);
@@ -127,16 +123,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { CreateIssueViz() };
 
-            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
-            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns((ITextDocument) null);
+            var locator = CreateLocatorAndSetActiveDocument(null);
 
-            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
             testSubject.Issues.Count.Should().Be(1);
 
-            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
-            view.Filter.Should().NotBeNull();
+            VerifyFilterIsNotNull(testSubject);
 
-            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            var filteredItems = GetIssueVizsFromView(testSubject);
             filteredItems.Count().Should().Be(0);
         }
 
@@ -147,22 +141,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var issueViz2 = CreateIssueViz("test2.cpp");
             var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
 
-            var activeDocument = new Mock<ITextDocument>();
-            activeDocument.Setup(x => x.FilePath).Returns("test2.cpp");
+            var locator = CreateLocatorAndSetActiveDocument("test2.cpp");
 
-            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
-            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns(activeDocument.Object);
-
-            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: activeDocumentLocator.Object);
+            var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
 
             testSubject.Issues.Count.Should().Be(2);
 
-            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
-            view.Filter.Should().NotBeNull();
+            VerifyFilterIsNotNull(testSubject);
 
-            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            var filteredItems = GetIssueVizsFromView(testSubject);
             filteredItems.Count().Should().Be(1);
-            filteredItems.First().TaintIssueViz.Should().Be(issueViz2);
+            filteredItems[0].Should().Be(issueViz2);
         }
 
         [TestMethod]
@@ -317,10 +306,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             testSubject.Issues.Count.Should().Be(1);
 
-            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
-            view.Filter.Should().NotBeNull();
+            VerifyFilterIsNotNull(testSubject);
 
-            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            var filteredItems = GetIssueVizsFromView(testSubject);
             filteredItems.Count().Should().Be(0);
         }
 
@@ -342,12 +330,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             testSubject.Issues.Count.Should().Be(2);
 
-            var view = CollectionViewSource.GetDefaultView(testSubject.Issues);
-            view.Filter.Should().NotBeNull();
+            VerifyFilterIsNotNull(testSubject);
 
-            var filteredItems = testSubject.Issues.Where(x => view.Filter(x));
+            var filteredItems = GetIssueVizsFromView(testSubject);
             filteredItems.Count().Should().Be(1);
-            filteredItems.First().TaintIssueViz.Should().Be(issueViz2);
+            filteredItems[0].Should().Be(issueViz2);
         }
 
         private static TaintIssuesControlViewModel CreateTestSubject(
@@ -375,6 +362,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 showInBrowserService);
         }
 
+        private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)
+        {
+            var activeDocument = new Mock<ITextDocument>();
+            activeDocument.Setup(x => x.FilePath).Returns(activeFilePath);
+
+            var activeDocumentLocator = new Mock<IActiveDocumentLocator>();
+            activeDocumentLocator.Setup(x => x.FindActiveDocument()).Returns(activeDocument.Object);
+
+            return activeDocumentLocator.Object;
+        }
+
         private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string issueKey = "issue key",
             DateTimeOffset created = default)
         {
@@ -395,6 +393,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             result.Should().Be(canExecute);
         }
 
+        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel)
+        {
+            var view = CollectionViewSource.GetDefaultView(controlViewModel.Issues);
+            view.Filter.Should().NotBeNull();
+        }
+
+        /// <summary>
+        /// Returns the filtered and sorted list of issue viz items
+        /// that will be displayed in the grid
+        /// </summary>
         private static IList<IAnalysisIssueVisualization> GetIssueVizsFromView(TaintIssuesControlViewModel controlViewModel)
         {
             var view = (ListCollectionView)CollectionViewSource.GetDefaultView(controlViewModel.Issues);
@@ -403,6 +411,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 .Select(x => x.TaintIssueViz)
                 .ToList();
 
+            // All items should be issue viz instances
             view.Count.Should().Be(taintIssueVizs.Count);
 
             return taintIssueVizs;
