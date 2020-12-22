@@ -199,7 +199,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             IConfigurationProvider configurationProvider,
             ILogger logger)
         {
-            return new TaintIssuesSynchronizer(taintStore, sonarQubeServer, converter, configurationProvider, logger);
+            return new TaintIssuesSynchronizer(taintStore, sonarQubeServer, converter, configurationProvider,
+                Mock.Of<IServiceProvider>(), logger);
         }
 
         private class TestSonarQubeIssue : SonarQubeIssue

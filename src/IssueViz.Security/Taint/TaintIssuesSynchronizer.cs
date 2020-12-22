@@ -28,6 +28,8 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarQube.Client;
+using VSShell = Microsoft.VisualStudio.Shell;
+using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
@@ -49,11 +51,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private readonly IConfigurationProvider configurationProvider;
         private readonly ILogger logger;
 
+        private readonly VSShellInterop.IVsMonitorSelection vsMonitorSelection;
+        private readonly uint contextCookie;
+
         [ImportingConstructor]
         public TaintIssuesSynchronizer(ITaintStore taintStore,
             ISonarQubeService sonarQubeService,
             ITaintIssueToIssueVisualizationConverter converter,
             IConfigurationProvider configurationProvider,
+            [Import(typeof(VSShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger)
         {
             this.taintStore = taintStore;
@@ -61,6 +67,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.converter = converter;
             this.configurationProvider = configurationProvider;
             this.logger = logger;
+
+            vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider?.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
+            Guid localGuid = TaintIssuesExistUIContext.Guid;
+            vsMonitorSelection?.GetCmdUIContextCookie(ref localGuid, out contextCookie);
         }
 
         public async Task SynchronizeWithServer()
@@ -71,12 +81,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             {
                 logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
                 ClearStore();
+                SetHasTaintIssuesUIContext(false);
                 return;
             }
 
             if (!sonarQubeService.IsConnected)
             {
                 logger.WriteLine(TaintResources.Synchronizer_ServerNotConnected);
+                SetHasTaintIssuesUIContext(false);
                 return;
             }
 
@@ -89,6 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
                 taintStore.Set(taintIssueVizs);
+                SetHasTaintIssuesUIContext(taintIssueVizs.Any());
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -100,6 +113,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private void ClearStore()
         {
             taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
+        }
+
+        private void SetHasTaintIssuesUIContext(bool hasTaintIssues)
+        {
+            vsMonitorSelection?.SetCmdUIContext(contextCookie, hasTaintIssues ? 1 : 0);
         }
     }
 }
