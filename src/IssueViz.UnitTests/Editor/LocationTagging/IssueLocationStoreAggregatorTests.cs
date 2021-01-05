@@ -230,5 +230,63 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LocationTag
                 store.Verify(x=> x.Refresh(affectedFilePaths), Times.Once);
             }
         }
+
+        [TestMethod]
+        public void Contains_IssueVizIsNull_ArgumentNullException()
+        {
+            var testSubject = new IssueLocationStoreAggregator(Enumerable.Empty<IIssueLocationStore>());
+
+            Action act = () => testSubject.Contains(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
+        }
+
+        [TestMethod]
+        public void Contains_NoStores_False()
+        {
+            var testSubject = new IssueLocationStoreAggregator(Enumerable.Empty<IIssueLocationStore>());
+
+            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_HasStores_IssueDoesNotExist_False()
+        {
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+
+            var store1 = new Mock<IIssueLocationStore>();
+            store1.Setup(x => x.Contains(issueViz)).Returns(false);
+
+            var store2 = new Mock<IIssueLocationStore>();
+            store2.Setup(x => x.Contains(issueViz)).Returns(false);
+
+            var stores = new[] { store1.Object, store2.Object };
+            var testSubject = new IssueLocationStoreAggregator(stores);
+
+            var result = testSubject.Contains(issueViz);
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_HasStores_IssueExists_True()
+        {
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+
+            var store1 = new Mock<IIssueLocationStore>();
+            store1.Setup(x => x.Contains(issueViz)).Returns(false);
+
+            var store2 = new Mock<IIssueLocationStore>();
+            store2.Setup(x => x.Contains(issueViz)).Returns(true);
+
+            var stores = new[] { store1.Object, store2.Object };
+            var testSubject = new IssueLocationStoreAggregator(stores);
+
+            var result = testSubject.Contains(issueViz);
+
+            result.Should().BeTrue();
+        }
     }
 }

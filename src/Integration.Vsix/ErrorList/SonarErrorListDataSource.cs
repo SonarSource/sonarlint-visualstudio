@@ -239,6 +239,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             }
         }
 
+        public bool Contains(IAnalysisIssueVisualization issueVisualization)
+        {
+            if (issueVisualization == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualization));
+            }
+
+            lock (sinks)
+            {
+                return factories.Any(factory => factory.CurrentSnapshot.Issues.Contains(issueVisualization));
+            }
+        }
+
         #endregion IIssueLocationStore implementation
 
         private static void SafeOperation(ITableDataSink sink, string operationName, Action op)

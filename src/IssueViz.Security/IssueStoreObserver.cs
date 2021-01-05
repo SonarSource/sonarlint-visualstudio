@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         IEnumerable<IAnalysisIssueLocationVisualization> IIssueLocationStore.GetLocations(string filePath)
         {
             var matchingLocations = ObservableIssueVisualizations
-                .SelectMany(issueVizsCollection => issueVizsCollection )
+                .SelectMany(issueVizsCollection => issueVizsCollection)
                 .SelectMany(issueViz => issueViz.GetAllLocations())
                 .Where(locationViz => !string.IsNullOrEmpty(locationViz.CurrentFilePath) &&
                                       PathHelper.IsMatchingPath(locationViz.CurrentFilePath, filePath));
@@ -93,6 +93,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             // Implementation is not required:
             // This method was originally added in order to notify the error list sinks that the taggers changed the span of the issue visualizations.
             // The newer issue stores display their data in plain xaml lists, and the span changes are tracked via NotifyPropertyChanged mechanism in IAnalysisIssueVisualization.
+        }
+
+        bool IIssueLocationStore.Contains(IAnalysisIssueVisualization issueVisualization)
+        {
+            if (issueVisualization == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualization));
+            }
+
+            return ObservableIssueVisualizations
+                .SelectMany(issueVizsCollection => issueVizsCollection)
+                .Contains(issueVisualization);
         }
 
         private void IssueVisualizations_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
