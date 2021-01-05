@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
@@ -89,6 +88,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var actual = testSubject.GetLocations(ValidPath);
 
             actual.Should().BeEquivalentTo(expectedLoc1, expectedLoc2, expectedLoc3);
+        }
+
+        [TestMethod]
+        public void RemoveFactory_NoEventListeners_NoError()
+        {
+            var testSubject = CreateTestSubject();
+            var factory = CreateFactoryAndSnapshotWithSpecifiedFiles("file1.txt", "file2.txt");
+
+            Action act = () => testSubject.RemoveFactory(factory);
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void RemoveFactory_HasListener_EventRaised()
+        {
+            var testSubject = CreateTestSubject();
+            var factory = CreateFactoryAndSnapshotWithSpecifiedFiles("file1.txt", "file2.txt");
+            testSubject.AddFactory(factory);
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+
+            testSubject.RemoveFactory(factory);
+
+            eventCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("file1.txt", "file2.txt");
+        }
+
+        [TestMethod]
+        public void RemoveFactory_FactoryIsNotRegistered_EventNotRaised()
+        {
+            var testSubject = CreateTestSubject();
+            var factory = CreateFactoryAndSnapshotWithSpecifiedFiles("any.txt");
+
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => eventCount++;
+
+            testSubject.RemoveFactory(factory);
+
+            eventCount.Should().Be(0);
         }
 
         [TestMethod]
@@ -199,7 +240,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var providerMock = new Mock<ITableManagerProvider>();
             providerMock.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(managerMock.Object);
 
-            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>(), Mock.Of<IAnalysisIssueSelectionService>());
+            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>());
         }
 
         private static void CheckSnapshotGetLocationsCalled(IIssuesSnapshotFactory factory)

@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,7 +31,6 @@ using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
@@ -41,7 +39,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
     public class SonarErrorListDataSourceTests
     {
         private Mock<ITableManagerProvider> mockTableManagerProvider;
-        private Mock<IAnalysisIssueSelectionService> mockSelectionService;
         private Mock<ITableManager> mockTableManager;
         private IIssuesSnapshotFactory ValidFactory;
 
@@ -52,7 +49,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             Mock.Get(ValidFactory).SetupGet(x => x.CurrentSnapshot).Returns(Mock.Of<IIssuesSnapshot>());
 
             mockTableManagerProvider = new Mock<ITableManagerProvider>();
-            mockSelectionService = new Mock<IAnalysisIssueSelectionService>();
             mockTableManager = new Mock<ITableManager>();
             mockTableManagerProvider.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(mockTableManager.Object);
         }
@@ -68,9 +64,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             var tableManagerExport = MefTestHelpers.CreateExport<ITableManagerProvider>(mockTableManagerProvider.Object);
             batch.AddExport(tableManagerExport);
-
-            var selectionServiceExport = MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(mockSelectionService.Object);
-            batch.AddExport(selectionServiceExport);
 
             // Set up importers for each of the interfaces exported by the test subject
             var errorDataSourceImporter = new SingleObjectImporter<ISonarErrorListDataSource>();
@@ -98,14 +91,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void Ctor_WithInvalidArgs_Throws()
         {
-            Action act = () => new SonarErrorListDataSource(null, Mock.Of<IFileRenamesEventSource>(), Mock.Of<IAnalysisIssueSelectionService>());
+            Action act = () => new SonarErrorListDataSource(null, Mock.Of<IFileRenamesEventSource>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tableManagerProvider");
 
-            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, null, Mock.Of<IAnalysisIssueSelectionService>());
+            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileRenamesEventSource");
-
-            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, Mock.Of<IFileRenamesEventSource>(), null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("selectionService");
         }
 
         [TestMethod]
@@ -214,60 +204,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
-        public void Refresh_SelectedIssueNoLongerExists_IssueDeselected()
-        {
-            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
-            selectedIssue.SetupGet(x => x.CurrentFilePath).Returns("test.cpp");
-            mockSelectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue.Object);
-
-            var factory = new Mock<IIssuesSnapshotFactory>();
-            factory.SetupGet(x => x.CurrentSnapshot.AnalyzedFilePath).Returns("test.cpp");
-            factory.SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(new []{ Mock.Of<IAnalysisIssueVisualization>() });
-
-            var testSubject = CreateTestSubjectWithFactory(factory.Object);
-            testSubject.RefreshErrorList(factory.Object);
-
-            mockSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
-        }
-
-        [TestMethod]
-        public void Refresh_SelectedIssueStillExists_SelectedIssueUnchanged()
-        {
-            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
-            selectedIssue.SetupGet(x => x.CurrentFilePath).Returns("test.cpp");
-            mockSelectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue.Object);
-
-            var factory = new Mock<IIssuesSnapshotFactory>();
-            factory.SetupGet(x => x.CurrentSnapshot.AnalyzedFilePath).Returns("test.cpp");
-            factory.SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(new[] { selectedIssue.Object });
-
-            var testSubject = CreateTestSubjectWithFactory(factory.Object);
-            testSubject.RefreshErrorList(factory.Object);
-
-            mockSelectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
-        }
-
-        [TestMethod]
-        public void Refresh_FactoryChangedForDifferentFile_SelectedIssueUnchanged()
-        {
-            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
-            selectedIssue.SetupGet(x => x.CurrentFilePath).Returns("test1.cpp");
-            mockSelectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue.Object);
-
-            var factory = new Mock<IIssuesSnapshotFactory>();
-            factory.SetupGet(x => x.CurrentSnapshot.AnalyzedFilePath).Returns("test2.cpp");
-            factory.SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(Enumerable.Empty<IAnalysisIssueVisualization>());
-
-            var testSubject = CreateTestSubjectWithFactory(factory.Object);
-            testSubject.RefreshErrorList(factory.Object);
-
-            mockSelectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
-        }
-
-        [TestMethod]
         public void AddFactory_ExistingSinkManagersAreNotifiedOfNewFactory()
         {
             var testSubject = CreateTestSubject();
@@ -324,52 +260,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             CheckFactoryWasRemoved(mockSink1, factory.Object);
             CheckFactoryWasRemoved(mockSink2, factory.Object);
-        }
-
-        [TestMethod]
-        public void RemoveFactory_SelectedIssueIsInFactory_IssueDeselected()
-        {
-            var testSubject = CreateTestSubject();
-            testSubject.Subscribe(Mock.Of<ITableDataSink>());
-
-            var issues = new[]
-            {
-                Mock.Of<IAnalysisIssueVisualization>(),
-                Mock.Of<IAnalysisIssueVisualization>()
-            };
-
-            mockSelectionService.SetupGet(x => x.SelectedIssue).Returns(issues[1]);
-
-            var factory = new Mock<IIssuesSnapshotFactory>();
-            factory.SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(issues);
-
-            testSubject.RemoveFactory(factory.Object);
-
-            mockSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
-        }
-
-        [TestMethod]
-        public void RemoveFactory_SelectedIssueIsNotInFactory_SelectedIssueUnchanged()
-        {
-            var testSubject = CreateTestSubject();
-            testSubject.Subscribe(Mock.Of<ITableDataSink>());
-
-            var issues = new[]
-            {
-                Mock.Of<IAnalysisIssueVisualization>(),
-                Mock.Of<IAnalysisIssueVisualization>()
-            };
-
-            mockSelectionService.SetupGet(x => x.SelectedIssue).Returns(Mock.Of<IAnalysisIssueVisualization>());
-
-            var factory = new Mock<IIssuesSnapshotFactory>();
-            factory.SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(issues);
-
-            testSubject.RemoveFactory(factory.Object);
-
-            mockSelectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
         }
 
         [TestMethod]
@@ -552,7 +442,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         private SonarErrorListDataSource CreateTestSubject()
         {
-            return new SonarErrorListDataSource(mockTableManagerProvider.Object, Mock.Of<IFileRenamesEventSource>(), mockSelectionService.Object);
+            return new SonarErrorListDataSource(mockTableManagerProvider.Object, Mock.Of<IFileRenamesEventSource>());
         }
 
         private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink, IIssuesSnapshotFactory expectedFactory) =>
