@@ -22,8 +22,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
@@ -33,12 +34,15 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarQube.Client;
 using SonarQube.Client.Models;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 {
     [TestClass]
     public class TaintIssuesSynchronizerTests
     {
+        private const string SharedProjectKey = "test";
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -48,11 +52,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
                 MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(Mock.Of<ITaintIssueToIssueVisualizationConverter>()),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
+                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
-        [TestMethod]    
+        [TestMethod]
         public async Task SynchronizeWithServer_NotInConnectedMode_StoreCleared()
         {
             var sonarQubeServer = new Mock<ISonarQubeService>();
@@ -62,11 +67,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
 
-            var testSubject = CreateTestSubject(
+            var testSubject = new TaintIssuesSynchronizer(
                 taintStore.Object,
                 sonarQubeServer.Object,
                 converter.Object,
-                configurationProvider.Object, 
+                configurationProvider.Object,
+                Mock.Of<IServiceProvider>(),
                 Mock.Of<ILogger>());
 
             await testSubject.SynchronizeWithServer();
@@ -170,38 +176,157 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             taintStore.Verify(x => x.Set(new[] {issueViz1, issueViz2}), Times.Once);
         }
 
-        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore,
-            ITaintIssueToIssueVisualizationConverter converter,
+        [TestMethod]
+        public async Task SynchronizeWithServer_StandaloneMode_UIContextIsCleared()
+        {
+            const uint cookie = 123;
+            var sonarServiceMock = new Mock<ISonarQubeService>();
+
+            var monitorMock = CreateMonitorSelectionMock(cookie);
+
+            var testSubject = CreateTestSubject(mode: SonarLintMode.Standalone,
+                sonarService: sonarServiceMock.Object,
+                vsMonitor: monitorMock.Object);
+
+            await testSubject.SynchronizeWithServer();
+
+            sonarServiceMock.Invocations.Count().Should().Be(0);
+            CheckUIContextUpdated(monitorMock, cookie, 0);
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public async Task SynchronizeWithServer_ServerNotConnected_UIContextIsCleared(SonarLintMode sonarLintMode)
+        {
+            const uint cookie = 222;
+            var sonarServiceMock = CreateSonarServerMock(isServerConnected: false);
+
+            var monitorMock = CreateMonitorSelectionMock(cookie);
+
+            var testSubject = CreateTestSubject(
+                mode: sonarLintMode,
+                sonarService: sonarServiceMock.Object,
+                vsMonitor: monitorMock.Object);
+
+            await testSubject.SynchronizeWithServer();
+
+            CheckConnectedStatusIsChecked(sonarServiceMock);
+            CheckIssuesAreNotFetched(sonarServiceMock);
+            CheckUIContextUpdated(monitorMock, cookie, 0);
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public async Task SynchronizeWithServer_ConnectedModeWithNoIssues_UIContextIsCleared(SonarLintMode sonarLintMode)
+        {
+            const uint cookie = 999;
+            var sonarServiceMock = CreateSonarServerMock(isServerConnected: true /* no issues returned */);
+
+            var monitorMock = CreateMonitorSelectionMock(cookie);
+
+            var testSubject = CreateTestSubject(
+                mode: sonarLintMode,
+                sonarService: sonarServiceMock.Object,
+                vsMonitor: monitorMock.Object);
+
+            await testSubject.SynchronizeWithServer();
+
+            CheckConnectedStatusIsChecked(sonarServiceMock);
+            CheckIssuesAreFetched(sonarServiceMock);
+            CheckUIContextUpdated(monitorMock, cookie, 0);
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public async Task SynchronizeWithServer_ConnectedModeWithIssues_UIContextIsSet(SonarLintMode sonarLintMode)
+        {
+            const uint cookie = 212;
+            var sonarServiceMock = CreateSonarServerMock(isServerConnected: true, serverIssues: new TestSonarQubeIssue());
+
+            var monitorMock = CreateMonitorSelectionMock(cookie);
+
+            var testSubject = CreateTestSubject(
+                mode: sonarLintMode,
+                sonarService: sonarServiceMock.Object,
+                vsMonitor: monitorMock.Object);
+
+            await testSubject.SynchronizeWithServer();
+
+            CheckConnectedStatusIsChecked(sonarServiceMock);
+            CheckIssuesAreFetched(sonarServiceMock);
+            CheckUIContextUpdated(monitorMock, cookie, 1);
+        }
+
+        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore  = null,
+            ITaintIssueToIssueVisualizationConverter converter = null,
             ILogger logger = null,
             bool isServerConnected = true,
             params SonarQubeIssue[] serverIssues)
         {
-            const string projectKey = "test";
+            var sonarServiceMock = CreateSonarServerMock(isServerConnected, serverIssues);
+            return CreateTestSubject(taintStore, converter, logger, SonarLintMode.Connected, sonarServiceMock.Object);
+        }
+
+        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore = null,
+            ITaintIssueToIssueVisualizationConverter converter = null,
+            ILogger logger = null,
+            SonarLintMode mode = SonarLintMode.Connected,
+            ISonarQubeService sonarService = null,
+            IVsMonitorSelection vsMonitor = null)
+        {
+            taintStore ??= Mock.Of<ITaintStore>();
+            converter ??= Mock.Of<ITaintIssueToIssueVisualizationConverter>();
+
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(vsMonitor);
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider
                 .Setup(x => x.GetConfiguration())
-                .Returns(new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = projectKey }, SonarLintMode.Connected, ""));
+                .Returns(new BindingConfiguration(new BoundSonarQubeProject { ProjectKey = SharedProjectKey }, mode, ""));
 
-            var sonarQubeServer = new Mock<ISonarQubeService>();
-            sonarQubeServer.Setup(x => x.IsConnected).Returns(isServerConnected);
-            sonarQubeServer.Setup(x => x.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None))
-                .ReturnsAsync(serverIssues);
+            sonarService ??= CreateSonarServerMock(true).Object;
 
             logger ??= Mock.Of<ILogger>();
 
-            return CreateTestSubject(taintStore, sonarQubeServer.Object, converter, configurationProvider.Object, logger);
+            return new TaintIssuesSynchronizer(taintStore, sonarService, converter, configurationProvider.Object, serviceProvider.Object, logger);
         }
 
-        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore,
-            ISonarQubeService sonarQubeServer,
-            ITaintIssueToIssueVisualizationConverter converter,
-            IConfigurationProvider configurationProvider,
-            ILogger logger)
+        private static Mock<ISonarQubeService> CreateSonarServerMock(bool isServerConnected, params SonarQubeIssue[] serverIssues)
         {
-            return new TaintIssuesSynchronizer(taintStore, sonarQubeServer, converter, configurationProvider,
-                Mock.Of<IServiceProvider>(), logger);
+            var sonarServerMock = new Mock<ISonarQubeService>();
+            sonarServerMock.Setup(x => x.IsConnected).Returns(isServerConnected);
+            sonarServerMock.Setup(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, CancellationToken.None))
+                .ReturnsAsync(serverIssues);
+
+            return sonarServerMock;
         }
+
+        private static Mock<IVsMonitorSelection> CreateMonitorSelectionMock(uint cookieToReturn)
+        {
+            var monitorMock = new Mock<IVsMonitorSelection>();
+            var localGuid = TaintIssuesExistUIContext.Guid;
+            monitorMock.Setup(x => x.GetCmdUIContextCookie(ref localGuid, out cookieToReturn));
+
+            return monitorMock;
+        }
+
+        private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState)
+        {
+            monitorMock.Verify(x => x.SetCmdUIContext(expectedCookie, expectedState), Times.Once);
+        }
+
+        private static void CheckConnectedStatusIsChecked(Mock<ISonarQubeService> serviceMock) =>
+            serviceMock.Verify(x => x.IsConnected, Times.Once);
+
+        private static void CheckIssuesAreFetched(Mock<ISonarQubeService> serviceMock) =>
+            serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, It.IsAny<CancellationToken>()), Times.Once);
+
+        private static void CheckIssuesAreNotFetched(Mock<ISonarQubeService> serviceMock) =>
+            serviceMock.Verify(x => x.GetTaintVulnerabilitiesAsync(SharedProjectKey, It.IsAny<CancellationToken>()), Times.Never);
 
         private class TestSonarQubeIssue : SonarQubeIssue
         {
