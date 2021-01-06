@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            taintVulnerabilities.Clear();
+            taintVulnerabilities.RemoveAll();
 
             foreach (var issueViz in issueVisualizations)
             {
