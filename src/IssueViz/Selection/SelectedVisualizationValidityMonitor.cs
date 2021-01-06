@@ -26,6 +26,10 @@ using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection
 {
+    /// <summary>
+    /// Monitors changes to issue visualizations in <see cref="IIssueLocationStoreAggregator"/> and
+    /// clears the selection in <see cref="IAnalysisIssueSelectionService"/> when the selected visualization no longer exists  
+    /// </summary>
     internal interface ISelectedVisualizationValidityMonitor : IDisposable
     {
     }

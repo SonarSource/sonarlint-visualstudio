@@ -30,7 +30,6 @@ using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
@@ -260,71 +259,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             CheckFactoryWasRemoved(mockSink1, factory.Object);
             CheckFactoryWasRemoved(mockSink2, factory.Object);
-        }
-
-        [TestMethod]
-        public void Contains_NullArg_Throws()
-        {
-            var testSubject = CreateTestSubject();
-
-            Action act = () => testSubject.Contains(null);
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
-        }
-
-        [TestMethod]
-        public void Contains_NoFactories_False()
-        {
-            var testSubject = CreateTestSubject();
-
-            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
-
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void Contains_HasFactories_IssueVizDoesNotExist_False()
-        {
-            var factory1 = new Mock<IIssuesSnapshotFactory>();
-            factory1
-                .SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
-
-            var factory2 = new Mock<IIssuesSnapshotFactory>();
-            factory2
-                .SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
-
-            var testSubject = CreateTestSubject();
-            testSubject.AddFactory(factory1.Object);
-            testSubject.AddFactory(factory2.Object);
-
-            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
-
-            result.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void Contains_HasFactories_IssueVizExists_True()
-        {
-            var factory1 = new Mock<IIssuesSnapshotFactory>();
-            factory1
-                .SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
-
-            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-
-            var factory2 = new Mock<IIssuesSnapshotFactory>();
-            factory2
-                .SetupGet(x => x.CurrentSnapshot.Issues)
-                .Returns(new[] { issueViz });
-
-            var testSubject = CreateTestSubject();
-            testSubject.AddFactory(factory1.Object);
-            testSubject.AddFactory(factory2.Object);
-
-            var result = testSubject.Contains(issueViz);
-
-            result.Should().BeTrue();
         }
 
         #region Exception handling tests

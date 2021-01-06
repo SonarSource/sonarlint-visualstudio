@@ -211,6 +211,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2);
         }
 
+        [TestMethod]
+        public void Contains_NullArg_Throws()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.Contains(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
+        }
+
+        [TestMethod]
+        public void Contains_NoFactories_False()
+        {
+            var testSubject = CreateTestSubject();
+
+            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_HasFactories_IssueVizDoesNotExist_False()
+        {
+            var factory1 = new Mock<IIssuesSnapshotFactory>();
+            factory1
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+
+            var factory2 = new Mock<IIssuesSnapshotFactory>();
+            factory2
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddFactory(factory1.Object);
+            testSubject.AddFactory(factory2.Object);
+
+            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_HasFactories_IssueVizExists_True()
+        {
+            var factory1 = new Mock<IIssuesSnapshotFactory>();
+            factory1
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+
+            var factory2 = new Mock<IIssuesSnapshotFactory>();
+            factory2
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { issueViz });
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddFactory(factory1.Object);
+            testSubject.AddFactory(factory2.Object);
+
+            var result = testSubject.Contains(issueViz);
+
+            result.Should().BeTrue();
+        }
+
         private static IIssuesSnapshotFactory CreateFactoryWithLocationVizs(string filePathToMatch, params IAnalysisIssueLocationVisualization[] locVixsToReturn)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
