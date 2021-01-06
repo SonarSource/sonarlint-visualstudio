@@ -29,7 +29,6 @@ using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -45,14 +44,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         IDisposable
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
-        private readonly IAnalysisIssueSelectionService selectionService;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<IIssuesSnapshotFactory> factories = new HashSet<IIssuesSnapshotFactory>();
 
         [ImportingConstructor]
-        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, 
-            IFileRenamesEventSource fileRenamesEventSource,
-            IAnalysisIssueSelectionService selectionService)
+        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, IFileRenamesEventSource fileRenamesEventSource)
         {
             if (tableManagerProvider == null)
             {
@@ -60,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             }
 
             this.fileRenamesEventSource = fileRenamesEventSource ?? throw new ArgumentNullException(nameof(fileRenamesEventSource));
-            this.selectionService = selectionService ?? throw new ArgumentNullException(nameof(selectionService));
             fileRenamesEventSource.FilesRenamed += OnFilesRenamed;
 
             var errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
@@ -142,24 +137,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         private void NotifyIssuesChanged(IIssuesSnapshotFactory factory)
         {
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(factory.CurrentSnapshot.FilesInSnapshot));
-
-            if (selectionService.SelectedIssue == null)
-            {
-                return;
-            }
-
-            var issuesChangedInSelectedFile = PathHelper.IsMatchingPath(factory.CurrentSnapshot.AnalyzedFilePath,
-                selectionService.SelectedIssue.CurrentFilePath);
-
-            if (issuesChangedInSelectedFile)
-            {
-                var selectedIssueNoLongerExists = !factory.CurrentSnapshot.Issues.Contains(selectionService.SelectedIssue);
-
-                if (selectedIssueNoLongerExists)
-                {
-                    selectionService.SelectedIssue = null;
-                }
-            }
         }
 
         public void AddFactory(IIssuesSnapshotFactory factory)
@@ -178,16 +155,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         {
             lock (sinks)
             {
-                factories.Remove(factory);
+                var wasRemoved = factories.Remove(factory);
 
                 foreach (var sink in sinks)
                 {
                     SafeOperation(sink, "RemoveFactory", () => sink.RemoveFactory(factory));
                 }
 
-                if (factory.CurrentSnapshot.Issues.Contains(selectionService.SelectedIssue))
+                if (wasRemoved)
                 {
-                    selectionService.SelectedIssue = null;
+                    NotifyIssuesChanged(factory);
                 }
             }
         }
@@ -236,6 +213,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                         InternalRefreshErrorList(factory);
                     }
                 }
+            }
+        }
+
+        public bool Contains(IAnalysisIssueVisualization issueVisualization)
+        {
+            if (issueVisualization == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualization));
+            }
+
+            lock (sinks)
+            {
+                return factories.Any(factory => factory.CurrentSnapshot.Issues.Contains(issueVisualization));
             }
         }
 
