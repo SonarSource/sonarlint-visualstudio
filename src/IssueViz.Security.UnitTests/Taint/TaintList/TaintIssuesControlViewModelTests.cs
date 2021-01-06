@@ -138,20 +138,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_ActiveDocumentExists_IssuesFilteredForActiveFilePath()
         {
             var issueViz1 = CreateIssueViz("test1.cpp");
-            var issueViz2 = CreateIssueViz("test2.cpp");
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
+            var issueViz2 = CreateIssueViz(null);
+            var issueViz3 = CreateIssueViz("test2.cpp");
+            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2, issueViz3 };
 
             var locator = CreateLocatorAndSetActiveDocument("test2.cpp");
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
 
-            testSubject.Issues.Count.Should().Be(2);
+            testSubject.Issues.Count.Should().Be(3);
 
             VerifyFilterIsNotNull(testSubject);
 
             var filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count().Should().Be(1);
-            filteredItems[0].Should().Be(issueViz2);
+            filteredItems.Count.Should().Be(1);
+            filteredItems[0].Should().Be(issueViz3);
         }
 
         [TestMethod]
