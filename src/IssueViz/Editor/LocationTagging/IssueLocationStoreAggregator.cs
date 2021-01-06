@@ -82,5 +82,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
                 issueLocationStore.Refresh(affectedFilePaths);
             }
         }
+
+        public bool Contains(IAnalysisIssueVisualization issueVisualization)
+        {
+            if (issueVisualization == null)
+            {
+                throw new ArgumentNullException(nameof(issueVisualization));
+            }
+
+            return locationStores.Any(x => x.Contains(issueVisualization));
+        }
     }
 }

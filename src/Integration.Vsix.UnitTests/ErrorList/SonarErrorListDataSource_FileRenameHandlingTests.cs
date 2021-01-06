@@ -26,7 +26,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
@@ -116,7 +115,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             tableManagerProvider.Setup(x => x.GetTableManager(StandardTables.ErrorsTable))
                 .Returns(Mock.Of<ITableManager>());
 
-            var testSubject = new SonarErrorListDataSource(tableManagerProvider.Object, mockFileRenamesEventSource.Object, Mock.Of<IAnalysisIssueSelectionService>());
+            var testSubject = new SonarErrorListDataSource(tableManagerProvider.Object, mockFileRenamesEventSource.Object);
             testSubject.Subscribe(mockTableSync.Object);
 
             return testSubject;

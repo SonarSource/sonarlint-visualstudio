@@ -301,6 +301,61 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         }
 
         [TestMethod]
+        public void Contains_IssueVizIsNull_ArgumentNullException()
+        {
+            var testSubject = new IssueStoreObserver() as IIssueLocationStore;
+
+            Action act = () => testSubject.Contains(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
+        }
+
+        [TestMethod]
+        public void Contains_NoUnderlyingCollections_False()
+        {
+            var testSubject = new IssueStoreObserver() as IIssueLocationStore;
+
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+
+            var result = testSubject.Contains(issueViz);
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_GivenIssueVizDoesNotExist_False()
+        {
+            var issueViz = CreateIssueViz(filePath: "someFile.cpp");
+
+            var originalCollection1 = new ObservableCollection<IAnalysisIssueVisualization>();
+            var originalCollection2 = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
+
+            var testSubject = new IssueStoreObserver() as IIssueStoreObserver;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection1));
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection2));
+
+            var otherIssueViz = Mock.Of<IAnalysisIssueVisualization>();
+
+            var result = (testSubject as IIssueLocationStore).Contains(otherIssueViz);
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_GivenIssueVizExists_True()
+        {
+            var issueViz = CreateIssueViz(filePath: "someFile.cpp");
+
+            var originalCollection1 = new ObservableCollection<IAnalysisIssueVisualization>();
+            var originalCollection2 = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
+
+            var testSubject = new IssueStoreObserver() as IIssueStoreObserver;
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection1));
+            testSubject.Register(new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection2));
+
+            var result = (testSubject as IIssueLocationStore).Contains(issueViz);
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void Dispose_UnsubscribeFromUnderlyingCollectionEvents_SubscribersNoLongerNotified()
         {
             var originalCollection = new ObservableCollection<IAnalysisIssueVisualization>();

@@ -28,7 +28,6 @@ using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
-using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
@@ -89,6 +88,48 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var actual = testSubject.GetLocations(ValidPath);
 
             actual.Should().BeEquivalentTo(expectedLoc1, expectedLoc2, expectedLoc3);
+        }
+
+        [TestMethod]
+        public void RemoveFactory_NoEventListeners_NoError()
+        {
+            var testSubject = CreateTestSubject();
+            var factory = CreateFactoryAndSnapshotWithSpecifiedFiles("file1.txt", "file2.txt");
+
+            Action act = () => testSubject.RemoveFactory(factory);
+            act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void RemoveFactory_HasListener_EventRaised()
+        {
+            var testSubject = CreateTestSubject();
+            var factory = CreateFactoryAndSnapshotWithSpecifiedFiles("file1.txt", "file2.txt");
+            testSubject.AddFactory(factory);
+
+            IssuesChangedEventArgs suppliedArgs = null;
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { suppliedArgs = args; eventCount++; };
+
+            testSubject.RemoveFactory(factory);
+
+            eventCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.AnalyzedFiles.Should().BeEquivalentTo("file1.txt", "file2.txt");
+        }
+
+        [TestMethod]
+        public void RemoveFactory_FactoryIsNotRegistered_EventNotRaised()
+        {
+            var testSubject = CreateTestSubject();
+            var factory = CreateFactoryAndSnapshotWithSpecifiedFiles("any.txt");
+
+            var eventCount = 0;
+            testSubject.IssuesChanged += (sender, args) => eventCount++;
+
+            testSubject.RemoveFactory(factory);
+
+            eventCount.Should().Be(0);
         }
 
         [TestMethod]
@@ -170,6 +211,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2);
         }
 
+        [TestMethod]
+        public void Contains_NullArg_Throws()
+        {
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.Contains(null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueVisualization");
+        }
+
+        [TestMethod]
+        public void Contains_NoFactories_False()
+        {
+            var testSubject = CreateTestSubject();
+
+            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_HasFactories_IssueVizDoesNotExist_False()
+        {
+            var factory1 = new Mock<IIssuesSnapshotFactory>();
+            factory1
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+
+            var factory2 = new Mock<IIssuesSnapshotFactory>();
+            factory2
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddFactory(factory1.Object);
+            testSubject.AddFactory(factory2.Object);
+
+            var result = testSubject.Contains(Mock.Of<IAnalysisIssueVisualization>());
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void Contains_HasFactories_IssueVizExists_True()
+        {
+            var factory1 = new Mock<IIssuesSnapshotFactory>();
+            factory1
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+
+            var factory2 = new Mock<IIssuesSnapshotFactory>();
+            factory2
+                .SetupGet(x => x.CurrentSnapshot.Issues)
+                .Returns(new[] { issueViz });
+
+            var testSubject = CreateTestSubject();
+            testSubject.AddFactory(factory1.Object);
+            testSubject.AddFactory(factory2.Object);
+
+            var result = testSubject.Contains(issueViz);
+
+            result.Should().BeTrue();
+        }
+
         private static IIssuesSnapshotFactory CreateFactoryWithLocationVizs(string filePathToMatch, params IAnalysisIssueLocationVisualization[] locVixsToReturn)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
@@ -199,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var providerMock = new Mock<ITableManagerProvider>();
             providerMock.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(managerMock.Object);
 
-            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>(), Mock.Of<IAnalysisIssueSelectionService>());
+            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>());
         }
 
         private static void CheckSnapshotGetLocationsCalled(IIssuesSnapshotFactory factory)
