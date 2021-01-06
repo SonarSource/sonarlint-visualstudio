@@ -45,6 +45,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging
         /// too noisy.
         /// </remarks>
         void Refresh(IEnumerable<string> affectedFilePaths);
+
+        /// <summary>
+        /// Returns true/false if the given <see cref="issueVisualization"/> exists in the store
+        /// </summary>
+        bool Contains(IAnalysisIssueVisualization issueVisualization);
     }
 
     public class IssuesChangedEventArgs : EventArgs

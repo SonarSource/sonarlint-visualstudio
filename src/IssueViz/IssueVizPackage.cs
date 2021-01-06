@@ -22,10 +22,12 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.IssueVisualization.Commands;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using Constants = SonarLint.VisualStudio.IssueVisualization.Commands.Constants;
 using Task = System.Threading.Tasks.Task;
 
@@ -45,6 +47,9 @@ namespace SonarLint.VisualStudio.IssueVisualization
 
             await IssueVisualizationToolWindowCommand.InitializeAsync(this);
             await NavigationCommands.InitializeAsync(this);
+
+            var componentModel = await GetServiceAsync(typeof(SComponentModel)) as IComponentModel;
+            componentModel.GetService<ISelectedVisualizationValidityMonitor>();
         }
 
         protected override WindowPane InstantiateToolWindow(Type toolWindowType)
