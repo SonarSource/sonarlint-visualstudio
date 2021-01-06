@@ -106,14 +106,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private bool ActiveDocumentFilter(object viewModel)
         {
-            if (string.IsNullOrEmpty(activeDocumentFilePath))
+            var issueFilePath = ((ITaintIssueViewModel)viewModel).TaintIssueViz.CurrentFilePath;
+
+            if (string.IsNullOrEmpty(activeDocumentFilePath) || string.IsNullOrEmpty(issueFilePath))
             {
                 return false;
             }
 
-            var filePath = ((ITaintIssueViewModel) viewModel).TaintIssueViz.CurrentFilePath;
-
-            return PathHelper.IsMatchingPath(filePath, activeDocumentFilePath);
+            return PathHelper.IsMatchingPath(issueFilePath, activeDocumentFilePath);
         }
 
         private void SetDefaultSortOrder()
