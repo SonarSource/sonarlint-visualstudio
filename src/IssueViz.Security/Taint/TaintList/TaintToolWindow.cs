@@ -22,6 +22,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -51,6 +52,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
             );
 
             Content = new TaintIssuesControl(viewModel);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                var vsWindowFrame = (IVsWindowFrame)Frame;
+                vsWindowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
