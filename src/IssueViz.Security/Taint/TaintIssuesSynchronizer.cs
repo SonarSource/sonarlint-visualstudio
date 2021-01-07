@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.configurationProvider = configurationProvider;
             this.logger = logger;
 
-            vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider?.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
+            vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
             Guid localGuid = TaintIssuesExistUIContext.Guid;
             vsMonitorSelection.GetCmdUIContextCookie(ref localGuid, out contextCookie);
         }
