@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                 MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
                 MefTestHelpers.CreateExport<ITaintIssueToIssueVisualizationConverter>(Mock.Of<ITaintIssueToIssueVisualizationConverter>()),
                 MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateServiceProvider()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -63,17 +63,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var sonarQubeServer = new Mock<ISonarQubeService>();
             var converter = new Mock<ITaintIssueToIssueVisualizationConverter>();
             var taintStore = new Mock<ITaintStore>();
-            var configurationProvider = new Mock<IConfigurationProvider>();
 
-            configurationProvider.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
-
-            var testSubject = new TaintIssuesSynchronizer(
-                taintStore.Object,
-                sonarQubeServer.Object,
-                converter.Object,
-                configurationProvider.Object,
-                Mock.Of<IServiceProvider>(),
-                Mock.Of<ILogger>());
+            var testSubject = CreateTestSubject(
+                taintStore: taintStore.Object,
+                sonarService: sonarQubeServer.Object,
+                converter: converter.Object,
+                mode: SonarLintMode.Standalone);
 
             await testSubject.SynchronizeWithServer();
 
@@ -260,7 +255,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             CheckUIContextUpdated(monitorMock, cookie, 1);
         }
 
-        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore  = null,
+        private static TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore  = null,
             ITaintIssueToIssueVisualizationConverter converter = null,
             ILogger logger = null,
             bool isServerConnected = true,
@@ -270,7 +265,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             return CreateTestSubject(taintStore, converter, logger, SonarLintMode.Connected, sonarServiceMock.Object);
         }
 
-        private TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore = null,
+        private static TaintIssuesSynchronizer CreateTestSubject(ITaintStore taintStore = null,
             ITaintIssueToIssueVisualizationConverter converter = null,
             ILogger logger = null,
             SonarLintMode mode = SonarLintMode.Connected,
@@ -280,8 +275,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             taintStore ??= Mock.Of<ITaintStore>();
             converter ??= Mock.Of<ITaintIssueToIssueVisualizationConverter>();
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(vsMonitor);
+            var serviceProvider = CreateServiceProvider(vsMonitor);
 
             var configurationProvider = new Mock<IConfigurationProvider>();
             configurationProvider
@@ -292,7 +286,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
             logger ??= Mock.Of<ILogger>();
 
-            return new TaintIssuesSynchronizer(taintStore, sonarService, converter, configurationProvider.Object, serviceProvider.Object, logger);
+            return new TaintIssuesSynchronizer(taintStore, sonarService, converter, configurationProvider.Object, serviceProvider, logger);
         }
 
         private static Mock<ISonarQubeService> CreateSonarServerMock(bool isServerConnected, params SonarQubeIssue[] serverIssues)
@@ -312,6 +306,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             monitorMock.Setup(x => x.GetCmdUIContextCookie(ref localGuid, out cookieToReturn));
 
             return monitorMock;
+        }
+
+        private static IServiceProvider CreateServiceProvider(IVsMonitorSelection vsMonitor = null)
+        {
+            vsMonitor ??= Mock.Of<IVsMonitorSelection>();
+            var serviceProvider = new Mock<IServiceProvider>();
+            serviceProvider.Setup(x => x.GetService(typeof(SVsShellMonitorSelection))).Returns(vsMonitor);
+            return serviceProvider.Object;
         }
 
         private static void CheckUIContextUpdated(Mock<IVsMonitorSelection> monitorMock, uint expectedCookie, int expectedState)

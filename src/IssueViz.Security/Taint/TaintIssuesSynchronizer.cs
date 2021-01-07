@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
             vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider?.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
             Guid localGuid = TaintIssuesExistUIContext.Guid;
-            vsMonitorSelection?.GetCmdUIContextCookie(ref localGuid, out contextCookie);
+            vsMonitorSelection.GetCmdUIContextCookie(ref localGuid, out contextCookie);
         }
 
         public async Task SynchronizeWithServer()
@@ -81,14 +81,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             {
                 logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
                 ClearStore();
-                SetHasTaintIssuesUIContext(false);
+                UpdateTaintIssuesUIContext(false);
                 return;
             }
 
             if (!sonarQubeService.IsConnected)
             {
                 logger.WriteLine(TaintResources.Synchronizer_ServerNotConnected);
-                SetHasTaintIssuesUIContext(false);
+                UpdateTaintIssuesUIContext(false);
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
                 taintStore.Set(taintIssueVizs);
-                SetHasTaintIssuesUIContext(taintIssueVizs.Any());
+                UpdateTaintIssuesUIContext(taintIssueVizs.Any());
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -115,9 +115,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
         }
 
-        private void SetHasTaintIssuesUIContext(bool hasTaintIssues)
+        private void UpdateTaintIssuesUIContext(bool hasTaintIssues)
         {
-            vsMonitorSelection?.SetCmdUIContext(contextCookie, hasTaintIssues ? 1 : 0);
+            vsMonitorSelection.SetCmdUIContext(contextCookie, hasTaintIssues ? 1 : 0);
         }
     }
 }
