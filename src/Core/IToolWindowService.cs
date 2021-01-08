@@ -33,7 +33,8 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Creates the window if it does not already exist
         /// </summary>
-        /// <remarks>Does not affect the visibility or focus</remarks>
+        /// <remarks>If a new tool window is created it will not be brought to the front or given focus.
+        /// If the tool window already exists its visibility and focus will not be affected.</remarks>
         void EnsureToolWindowExists(Guid toolWindowId);
     }
 }
