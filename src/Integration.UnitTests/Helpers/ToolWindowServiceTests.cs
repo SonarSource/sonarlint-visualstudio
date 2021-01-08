@@ -102,6 +102,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             frameMock.Verify(x => x.Show(), Times.Once);
         }
 
+        [TestMethod]
+        [DataRow(VSConstants.S_OK)]
+        [DataRow(VSConstants.E_FAIL)]
+        [DataRow(VSConstants.E_OUTOFMEMORY)]
+        public void EnsureToolWindowExists_VsServiceCalled(int vsServiceResult)
+        {
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            var uiShellMock = new Mock<IVsUIShell>();
+            var frameMock = new Mock<IVsWindowFrame>();
+
+            SetupFindToolWindow(serviceProviderMock, uiShellMock, vsServiceResult, ValidToolWindowId, frameMock.Object);
+
+            var testSubject = new ToolWindowService(serviceProviderMock.Object);
+
+            // Act
+            using (new AssertIgnoreScope())
+            {
+                testSubject.EnsureToolWindowExists(ValidToolWindowId);
+            }
+
+            uiShellMock.VerifyAll();
+
+            // Should never attempt to show the frame
+            frameMock.Invocations.Should().BeEmpty();
+        }
+
         private void SetupFindToolWindow(Mock<IServiceProvider> serviceProvider, Mock<IVsUIShell> uiShell, int hrResult, Guid toolWindowId, IVsWindowFrame toolWindowObject)
         {
             serviceProvider.Setup(x => x.GetService(typeof(SVsUIShell))).Returns(uiShell.Object);

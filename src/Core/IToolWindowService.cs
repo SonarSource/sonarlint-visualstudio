@@ -25,8 +25,15 @@ namespace SonarLint.VisualStudio.Core
     public interface IToolWindowService
     {
         /// <summary>
-        /// Opens specified tool window
+        /// Opens specified tool window, brings it to the front and gives it focus
         /// </summary>
+        /// <remarks>The window will be created if it does not already exist</remarks>
         void Show(Guid toolWindowId);
+
+        /// <summary>
+        /// Creates the window if it does not already exist
+        /// </summary>
+        /// <remarks>Does not affect the visibility or focus</remarks>
+        void EnsureToolWindowExists(Guid toolWindowId);
     }
 }
