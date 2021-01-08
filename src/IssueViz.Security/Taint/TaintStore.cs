@@ -20,16 +20,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
+using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 {
-    internal interface ITaintStore : IDisposable
+    internal interface ITaintStore : IIssuesStore
     {
-        ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
-
         /// <summary>
         /// Removes all existing visualizations and initializes the store to the given collection.
         /// Can be called multiple times.
@@ -38,22 +37,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     }
 
     [Export(typeof(ITaintStore))]
+    [Export(typeof(IIssuesStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintStore : ITaintStore
     {
-        private readonly ObservableCollection<IAnalysisIssueVisualization> taintVulnerabilities;
-        private readonly ReadOnlyObservableCollection<IAnalysisIssueVisualization> readOnlyWrapper;
-        private readonly IDisposable unregisterCallback;
+        private IEnumerable<IAnalysisIssueVisualization> taintVulnerabilities = Enumerable.Empty<IAnalysisIssueVisualization>();
 
-        [ImportingConstructor]
-        public TaintStore(IIssueStoreObserver issueStoreObserver)
-        {
-            taintVulnerabilities = new ObservableCollection<IAnalysisIssueVisualization>();
-            readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(taintVulnerabilities);
-            unregisterCallback = issueStoreObserver.Register(readOnlyWrapper);
-        }
+        public IEnumerable<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
 
-        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => readOnlyWrapper;
+        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
         public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations)
         {
@@ -62,17 +54,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
 
-            taintVulnerabilities.Clear();
+            var oldIssues = taintVulnerabilities;
+            taintVulnerabilities = issueVisualizations;
 
-            foreach (var issueViz in issueVisualizations)
-            {
-                taintVulnerabilities.Add(issueViz);
-            }
-        }
-
-        public void Dispose()
-        {
-            unregisterCallback.Dispose();
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(oldIssues, taintVulnerabilities));
         }
     }
 }

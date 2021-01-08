@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -51,29 +50,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        public void Ctor_RegisterToSourceCollectionChanges()
+        public void Ctor_RegisterToStoreCollectionChanges()
         {
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = CreateTestSubject(storeCollection);
+            var store = new Mock<ITaintStore>();
+            var testSubject = CreateTestSubject(store: store);
 
             var issueViz1 = CreateIssueViz();
             var issueViz2 = CreateIssueViz();
             var issueViz3 = CreateIssueViz();
 
-            storeCollection.Add(issueViz1);
+            RaiseStoreIssuesChangedEvent(store, issueViz1);
 
             testSubject.Issues.Count.Should().Be(1);
             testSubject.Issues[0].TaintIssueViz.Should().Be(issueViz1);
 
-            storeCollection.Add(issueViz2);
-            storeCollection.Add(issueViz3);
+            RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz2, issueViz3);
 
             testSubject.Issues.Count.Should().Be(3);
             testSubject.Issues[0].TaintIssueViz.Should().Be(issueViz1);
             testSubject.Issues[1].TaintIssueViz.Should().Be(issueViz2);
             testSubject.Issues[2].TaintIssueViz.Should().Be(issueViz3);
 
-            storeCollection.Remove(issueViz2);
+            RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz3);
 
             testSubject.Issues.Count.Should().Be(2);
             testSubject.Issues[0].TaintIssueViz.Should().Be(issueViz1);
@@ -85,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var issueViz1 = CreateIssueViz();
             var issueViz2 = CreateIssueViz();
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> {issueViz1, issueViz2};
+            var storeCollection = new[] { issueViz1, issueViz2 };
 
             var testSubject = CreateTestSubject(storeCollection);
 
@@ -101,7 +99,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var oldestIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2010-01-31T01:02:03+0000"));
             var middleIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2012-06-30T01:02:03+0000"));
             var newestIssueViz = CreateIssueViz(filePath, created: DateTimeOffset.Parse("2020-09-01T01:02:03+0000"));
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { middleIssueViz, oldestIssueViz, newestIssueViz };
+            var storeCollection = new[] { middleIssueViz, oldestIssueViz, newestIssueViz };
 
             var locator = CreateLocatorAndSetActiveDocument(filePath);
 
@@ -121,7 +119,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [TestMethod]
         public void Ctor_NoActiveDocument_NoIssuesDisplayed()
         {
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { CreateIssueViz() };
+            var storeCollection = new[] { CreateIssueViz() };
 
             var locator = CreateLocatorAndSetActiveDocument(null);
 
@@ -140,7 +138,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var issueViz1 = CreateIssueViz("test1.cpp");
             var issueViz2 = CreateIssueViz(null);
             var issueViz3 = CreateIssueViz("test2.cpp");
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2, issueViz3 };
+            var storeCollection = new[] { issueViz1, issueViz2, issueViz3 };
 
             var locator = CreateLocatorAndSetActiveDocument("test2.cpp");
 
@@ -163,7 +161,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             CreateTestSubject(activeDocumentTracker: activeDocumentTracker.Object);
 
-            activeDocumentTracker.VerifyAdd(x=> x.OnDocumentFocused += It.IsAny<EventHandler<DocumentFocusedEventArgs>>(), Times.Once);
+            activeDocumentTracker.VerifyAdd(x => x.OnDocumentFocused += It.IsAny<EventHandler<DocumentFocusedEventArgs>>(), Times.Once);
             activeDocumentTracker.VerifyNoOtherCalls();
         }
 
@@ -185,13 +183,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [TestMethod]
         public void Dispose_UnregisterFromStoreCollectionChanges()
         {
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = CreateTestSubject(storeCollection);
+            var store = new Mock<ITaintStore>();
+            var testSubject = CreateTestSubject(store: store);
 
             testSubject.Dispose();
 
-            var issueViz = CreateIssueViz();
-            storeCollection.Add(issueViz);
+            RaiseStoreIssuesChangedEvent(store, CreateIssueViz());
 
             testSubject.Issues.Count.Should().Be(0);
         }
@@ -297,13 +294,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [TestMethod]
         public void ActiveDocumentChanged_NoActiveDocument_NoIssuesDisplayed()
         {
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { CreateIssueViz() };
+            var storeCollection = new[] { CreateIssueViz() };
 
             var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentTracker: activeDocumentTracker.Object);
 
-            activeDocumentTracker.Raise(x=> x.OnDocumentFocused += null, new DocumentFocusedEventArgs(null));
+            activeDocumentTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(null));
 
             testSubject.Issues.Count.Should().Be(1);
 
@@ -318,7 +315,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             var issueViz1 = CreateIssueViz("test1.cpp");
             var issueViz2 = CreateIssueViz("test2.cpp");
-            var storeCollection = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
+            var storeCollection = new[] { issueViz1, issueViz2 };
 
             var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
 
@@ -339,18 +336,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         private static TaintIssuesControlViewModel CreateTestSubject(
-            ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
+            IEnumerable<IAnalysisIssueVisualization> issueVizs = null,
             ILocationNavigator locationNavigator = null,
             Mock<ITaintStore> store = null,
             IActiveDocumentTracker activeDocumentTracker = null,
             IActiveDocumentLocator activeDocumentLocator = null,
             IShowInBrowserService showInBrowserService = null)
         {
-            originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
-            var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
-
+            issueVizs ??= Enumerable.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
-            store.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
+            store.Setup(x => x.GetAll()).Returns(issueVizs);
 
             activeDocumentTracker ??= Mock.Of<IActiveDocumentTracker>();
             activeDocumentLocator ??= Mock.Of<IActiveDocumentLocator>();
@@ -416,6 +411,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             view.Count.Should().Be(taintIssueVizs.Count);
 
             return taintIssueVizs;
+        }
+
+        private static void RaiseStoreIssuesChangedEvent(Mock<ITaintStore> store, params IAnalysisIssueVisualization[] issueVizs)
+        {
+            store.Setup(x => x.GetAll()).Returns(issueVizs);
+            store.Raise(x => x.IssuesChanged += null, null, null);
         }
     }
 }
