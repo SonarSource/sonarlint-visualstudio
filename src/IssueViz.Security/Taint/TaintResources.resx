@@ -129,4 +129,10 @@
   <data name="Synchronizer_NumberOfServerIssues" xml:space="preserve">
     <value>[Taint] Fetched {0} taint vulnerabilities.</value>
   </data>
+  <data name="SyncPackage_Initialized" xml:space="preserve">
+    <value>[Taint] Finished initializing taint issues synchronization package.</value>
+  </data>
+  <data name="SyncPackage_Initializing" xml:space="preserve">
+    <value>[Taint] Initializing taint issues synchronization package...</value>
+  </data>
 </root>

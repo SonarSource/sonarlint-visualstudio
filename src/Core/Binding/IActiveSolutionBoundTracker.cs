@@ -38,6 +38,8 @@ namespace SonarLint.VisualStudio.Core.Binding
         /// <summary>
         /// Event to notify subscribers when the binding status of a solution have changed.
         /// This occurs when a new solution is opened, or the SonarQube binding status of the solution changes.
+        /// The event is raised after the <see cref="ISonarQubeService"/> connection has finished
+        /// opening/closing.
         /// </summary>
         event EventHandler<ActiveSolutionBindingEventArgs> SolutionBindingChanged;
 
