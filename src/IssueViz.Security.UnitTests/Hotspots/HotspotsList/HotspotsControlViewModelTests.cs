@@ -44,29 +44,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
-        public void Ctor_RegisterToHotspotsCollectionChanges()
+        public void Ctor_RegisterToStoreCollectionChanges()
         {
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization>();
-            var testSubject = CreateTestSubject(storeHotspots);
+            var store = new Mock<IHotspotsStore>();
+            var testSubject = CreateTestSubject(hotspotsStore: store);
 
             var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
             var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
             var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
 
-            storeHotspots.Add(issueViz1);
+            RaiseStoreIssuesChangedEvent(store, issueViz1);
 
             testSubject.Hotspots.Count.Should().Be(1);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
 
-            storeHotspots.Add(issueViz2);
-            storeHotspots.Add(issueViz3);
+            RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz2, issueViz3);
 
             testSubject.Hotspots.Count.Should().Be(3);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
             testSubject.Hotspots[1].Hotspot.Should().Be(issueViz2);
             testSubject.Hotspots[2].Hotspot.Should().Be(issueViz3);
 
-            storeHotspots.Remove(issueViz2);
+            RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz3);
 
             testSubject.Hotspots.Count.Should().Be(2);
             testSubject.Hotspots[0].Hotspot.Should().Be(issueViz1);
@@ -78,7 +77,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
             var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> {issueViz1, issueViz2};
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz1, issueViz2 };
 
             var testSubject = CreateTestSubject(storeHotspots);
 
@@ -131,7 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public void SelectionChanged_SelectedHotspotExistsInList_HotspotSelected()
         {
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> {issueViz};
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
             var selectionService = new Mock<IHotspotsSelectionService>();
 
             var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
@@ -319,6 +318,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             selectionService ??= Mock.Of<IHotspotsSelectionService>();
 
             return new HotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService);
+        }
+
+        private static void RaiseStoreIssuesChangedEvent(Mock<IHotspotsStore> store, params IAnalysisIssueVisualization[] issueVizs)
+        {
+            store.Setup(x => x.GetAll()).Returns(issueVizs);
+            store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
         }
     }
 }
