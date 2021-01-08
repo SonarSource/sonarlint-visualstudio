@@ -31,6 +31,14 @@ using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    /// <summary>
+    /// Raises an event after the bound solution state has finished changing
+    /// i.e. the server connection has been opened/closed as appropriate.
+    /// </summary>
+    /// <remarks>
+    /// In addition to raising an event, this class will also set/clear the <see cref="BoundSolutionUIContext"/>
+    /// UIContext.
+    /// </remarks>
     [Export(typeof(IActiveSolutionBoundTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class ActiveSolutionBoundTracker : IActiveSolutionBoundTracker, IDisposable, IPartImportsSatisfiedNotification
