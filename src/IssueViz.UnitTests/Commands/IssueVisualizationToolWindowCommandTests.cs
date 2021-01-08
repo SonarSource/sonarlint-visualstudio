@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(IssueVisualizationToolWindow.ToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(IssueVisualizationToolWindow.ToolWindowId, true), Times.Once);
             logger.AssertNoOutputMessages();
         }
 
@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(IssueVisualizationToolWindow.ToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(IssueVisualizationToolWindow.ToolWindowId, true)).Throws(new InvalidOperationException("thrown by test"));
 
             var testSubject = new IssueVisualizationToolWindowCommand(toolwindowServiceMock.Object,
                 Mock.Of<IMenuCommandService>(), Mock.Of<IVsMonitorSelection>(), logger);
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(IssueVisualizationToolWindow.ToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(IssueVisualizationToolWindow.ToolWindowId, true), Times.Once);
             logger.AssertPartialOutputStringExists("thrown by test");
         }
 
@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(IssueVisualizationToolWindow.ToolWindowId)).Throws(new StackOverflowException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(IssueVisualizationToolWindow.ToolWindowId, true)).Throws(new StackOverflowException("thrown by test"));
 
             var testSubject = new IssueVisualizationToolWindowCommand(toolwindowServiceMock.Object,
                 Mock.Of<IMenuCommandService>(), Mock.Of<IVsMonitorSelection>(), logger);

@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
 
             if (ErrorHandler.Succeeded(hr))
             {
-                toolWindowService.Show(VSConstants.StandardToolWindows.Output);
+                toolWindowService.Show(VSConstants.StandardToolWindows.Output, true);
             }
         }
     }

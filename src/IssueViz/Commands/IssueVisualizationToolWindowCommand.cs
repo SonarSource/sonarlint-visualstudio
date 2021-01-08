@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Commands
 
             try
             {
-                toolWindowService.Show(IssueVisualizationToolWindow.ToolWindowId);
+                toolWindowService.Show(IssueVisualizationToolWindow.ToolWindowId, true);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {

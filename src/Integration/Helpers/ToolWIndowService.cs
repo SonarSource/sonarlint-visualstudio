@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
             Debug.Assert(shell != null, "Failed to retrieve the IVsUIShell");
         }
 
-        public void Show(Guid toolWindowId)
+        public void Show(Guid toolWindowId, bool activateWindow)
         {
             // We want VS to ask the package to create the tool window if it doesn't already exist
             const uint flags = (uint)__VSFINDTOOLWIN.FTW_fForceCreate;
@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Helpers
             var hr = shell.FindToolWindow(flags, toolWindowId, out var windowFrame);
             Debug.Assert(ErrorHandler.Succeeded(hr), $"Failed to find tool window. Guid: {toolWindowId}, hr: {hr} ");
 
-            if (ErrorHandler.Succeeded(hr))
+            if (activateWindow && ErrorHandler.Succeeded(hr))
             {
                 windowFrame?.Show();
             }

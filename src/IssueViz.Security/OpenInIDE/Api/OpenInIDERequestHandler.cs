@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             // request we'll show a gold bar in the window
             telemetryManager.ShowHotspotRequested();
             ideWindowService.BringToFront();
-            toolWindowService.Show(HotspotsToolWindow.ToolWindowId);
+            toolWindowService.Show(HotspotsToolWindow.ToolWindowId, true);
             await failureInfoBar.ClearAsync();
 
             if (!ideStateValidator.CanHandleOpenInIDERequest(request.ServerUrl, request.ProjectKey, request.OrganizationKey))

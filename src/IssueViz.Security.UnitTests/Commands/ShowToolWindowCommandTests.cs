@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(ValidToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(ValidToolWindowId, true), Times.Once);
             logger.AssertNoOutputMessages();
         }
 
@@ -96,14 +96,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(ValidToolWindowId)).Throws(new InvalidOperationException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(ValidToolWindowId, true)).Throws(new InvalidOperationException("thrown by test"));
 
             var testSubject = new ShowToolWindowCommand(ValidCommandId, ValidToolWindowId, toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 
             // Act
             testSubject.Execute(null, null);
 
-            toolwindowServiceMock.Verify(x => x.Show(ValidToolWindowId), Times.Once);
+            toolwindowServiceMock.Verify(x => x.Show(ValidToolWindowId, true), Times.Once);
             logger.AssertPartialOutputStringExists(ValidToolWindowId.ToString(), "thrown by test");
         }
 
@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Commands
         {
             var logger = new TestLogger(logToConsole: true);
             var toolwindowServiceMock = new Mock<IToolWindowService>();
-            toolwindowServiceMock.Setup(x => x.Show(ValidToolWindowId)).Throws(new StackOverflowException("thrown by test"));
+            toolwindowServiceMock.Setup(x => x.Show(ValidToolWindowId, true)).Throws(new StackOverflowException("thrown by test"));
 
             var testSubject = new ShowToolWindowCommand(ValidCommandId, ValidToolWindowId, toolwindowServiceMock.Object, Mock.Of<IMenuCommandService>(), logger);
 

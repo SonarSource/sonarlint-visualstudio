@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Act
             using (new AssertIgnoreScope())
             {
-                testSubject.Show(ValidToolWindowId);
+                testSubject.Show(ValidToolWindowId, true);
             }
 
             // Non-success HResult so shouldn't have attempted to show the frame
@@ -81,12 +81,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
             var testSubject = new ToolWindowService(serviceProviderMock.Object);
 
-            Action act = () => testSubject.Show(ValidToolWindowId);
+            Action act = () => testSubject.Show(ValidToolWindowId, true);
             act.Should().NotThrow();
         }
 
         [TestMethod]
-        public void Show_FindWindowSucceededAndNonNullToolWindow_ToolWindowShown()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Show_FindWindowSucceededAndNonNullToolWindow_ToolWindowShown(bool shouldActivateWindow)
         {
             var serviceProviderMock = new Mock<IServiceProvider>();
             var uiShellMock = new Mock<IVsUIShell>();
@@ -97,9 +99,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             var testSubject = new ToolWindowService(serviceProviderMock.Object);
 
             // Act
-            testSubject.Show(ValidToolWindowId);
+            testSubject.Show(ValidToolWindowId, shouldActivateWindow);
 
-            frameMock.Verify(x => x.Show(), Times.Once);
+            var expectedShowCallCount = shouldActivateWindow ? 1 : 0;
+            frameMock.Verify(x => x.Show(), Times.Exactly(expectedShowCallCount));
         }
 
         private void SetupFindToolWindow(Mock<IServiceProvider> serviceProvider, Mock<IVsUIShell> uiShell, int hrResult, Guid toolWindowId, IVsWindowFrame toolWindowObject)

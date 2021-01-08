@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Act
             testSubject.Show();
 
-            toolWindowServiceMock.Verify(x => x.Show(VSConstants.StandardToolWindows.Output), Times.Once);
+            toolWindowServiceMock.Verify(x => x.Show(VSConstants.StandardToolWindows.Output, true), Times.Once);
         }
 
         private static void SetupSonarLintPane(Mock<IServiceProvider> serviceProvider, IVsOutputWindowPane sonarLintPane)

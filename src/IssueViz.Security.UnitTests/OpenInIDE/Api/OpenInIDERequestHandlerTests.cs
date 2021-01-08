@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
 
             // The tool window should always be called with the same argument
             toolWindowServiceMock = new Mock<IToolWindowService>();
-            toolWindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId));
+            toolWindowServiceMock.Setup(x => x.Show(HotspotsToolWindow.ToolWindowId, true));
 
             ideWindowServiceMock = new Mock<IIDEWindowService>();
             stateValidatorMock = new Mock<IOpenInIDEStateValidator>();

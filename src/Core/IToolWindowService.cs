@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Core
         /// <summary>
         /// Opens specified tool window
         /// </summary>
-        void Show(Guid toolWindowId);
+        /// <param name="activateWindow">True if the window should receive focus, otherwise false</param>
+        void Show(Guid toolWindowId, bool activateWindow);
     }
 }

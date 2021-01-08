@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Commands
 
             try
             {
-                toolWindowService.Show(toolWindowId);
+                toolWindowService.Show(toolWindowId, true);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
