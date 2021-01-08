@@ -23,10 +23,8 @@ using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Security.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
@@ -36,9 +34,17 @@ using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security
 {
+    /*
+        This is a simple package that just provides the basic VS plumbing for the security commands
+        and tool windows.
+
+        It doesn't provide any other services, and doesn't need to be auto-loadable. It will be loaded
+        by VS only when needed i.e. when it has received a reqeust to to invoke a command or display a
+        tool window.
+    */
+
     [ExcludeFromCodeCoverage]
     [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-    [ProvideAutoLoad(BoundSolutionUIContext.GuidString, PackageAutoLoadFlags.BackgroundLoad)]
     [Guid("D7D54E08-45E1-49A6-AA53-AF1CFAA6EBDC")]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(HotspotsToolWindow), MultiInstances = false, Transient = true, Style = VsDockStyle.Tabbed, Window = VsWindowKindErrorList, Width = 700, Height = 250)]
@@ -47,8 +53,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
     [ProvideToolWindowVisibility(typeof(TaintToolWindow), TaintIssuesExistUIContext.GuidString)]
     public sealed class IssueVizSecurityPackage : AsyncPackage
     {
-        private ITaintIssuesBindingMonitor bindingMonitor;
-
         /// <summary>
         /// https://docs.microsoft.com/en-us/dotnet/api/envdte80.windowkinds.vswindowkinderrorlist?view=visualstudiosdk-2019
         /// </summary>
@@ -73,9 +77,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
                 new CommandID(Constants.CommandSetGuid, Constants.TaintToolWindowCommandId),
                 TaintToolWindow.ToolWindowId);
 
-            bindingMonitor = componentModel.GetService<ITaintIssuesBindingMonitor>();
-            await componentModel.GetService<ITaintIssuesSynchronizer>().SynchronizeWithServer();
-
             logger.WriteLine(Resources.FinishedPackageInitialization);
         }
 
@@ -92,13 +93,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
             }
 
             return base.InstantiateToolWindow(toolWindowType);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-
-            bindingMonitor.Dispose();
         }
     }
 }

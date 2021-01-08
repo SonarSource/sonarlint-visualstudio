@@ -95,5 +95,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
                 return ResourceManager.GetString("Synchronizer_ServerNotConnected", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Taint] Finished initializing taint issues synchronization package..
+        /// </summary>
+        internal static string SyncPackage_Initialized {
+            get {
+                return ResourceManager.GetString("SyncPackage_Initialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Taint] Initializing taint issues synchronization package....
+        /// </summary>
+        internal static string SyncPackage_Initializing {
+            get {
+                return ResourceManager.GetString("SyncPackage_Initializing", resourceCulture);
+            }
+        }
     }
 }
