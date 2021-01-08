@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     {
         private readonly List<IAnalysisIssueVisualization> hotspots = new List<IAnalysisIssueVisualization>();
 
-        public IEnumerable<IAnalysisIssueVisualization> GetAll() => hotspots;
+        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => hotspots;
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 return existingHotspot;
             }
 
-            var oldIssues = hotspots.ToList();
+            var oldIssues = hotspots.ToArray();
 
             hotspots.Add(hotspotViz);
 
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 
         public void Remove(IAnalysisIssueVisualization hotspotViz)
         {
-            var oldIssues = hotspots.ToList();
+            var oldIssues = hotspots.ToArray();
 
             hotspots.Remove(hotspotViz);
 
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
-        private void NotifyIssuesChanged(IEnumerable<IAnalysisIssueVisualization> oldIssues)
+        private void NotifyIssuesChanged(IReadOnlyCollection<IAnalysisIssueVisualization> oldIssues)
         {
             IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(oldIssues, hotspots));
         }
