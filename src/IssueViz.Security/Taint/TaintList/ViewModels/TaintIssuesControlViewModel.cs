@@ -19,11 +19,8 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
@@ -32,7 +29,7 @@ using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
-using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
@@ -40,9 +37,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 {
     internal interface ITaintIssuesControlViewModel : IDisposable
     {
-        // WIP: add selection handling
-        // WIP: add any other necessary commands
-
         ICommand NavigateCommand { get; }
 
         ICommand ShowInBrowserCommand { get; }
@@ -58,8 +52,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
     {
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IShowInBrowserService showInBrowserService;
+        private readonly ITaintStore store;
         private readonly object Lock = new object();
-        private readonly INotifyCollectionChanged observableIssuesCollection;
         private string activeDocumentFilePath;
 
         public ObservableCollection<ITaintIssueViewModel> Issues { get; } = new ObservableCollection<ITaintIssueViewModel>();
@@ -82,11 +76,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             this.showInBrowserService = showInBrowserService;
 
-            var allIssues = store.GetAll();
-            observableIssuesCollection = allIssues;
-            observableIssuesCollection.CollectionChanged += TaintStore_CollectionChanged;
+            this.store = store;
+            this.store.IssuesChanged += Store_IssuesChanged;
 
-            UpdateIssues(allIssues, Array.Empty<IAnalysisIssueVisualization>());
+            UpdateIssues();
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
             SetDefaultSortOrder();
@@ -138,7 +131,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             NavigateCommand = new DelegateCommand(
                 parameter =>
                 {
-                    var selected = (ITaintIssueViewModel) parameter;
+                    var selected = (ITaintIssueViewModel)parameter;
                     locationNavigator.TryNavigate(selected.TaintIssueViz);
                 },
                 parameter => parameter is ITaintIssueViewModel);
@@ -146,41 +139,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ShowInBrowserCommand = new DelegateCommand(
                 parameter =>
                 {
-                    var selected = (ITaintIssueViewModel) parameter;
-                    var taintIssue = (ITaintIssue) selected.TaintIssueViz.Issue;
+                    var selected = (ITaintIssueViewModel)parameter;
+                    var taintIssue = (ITaintIssue)selected.TaintIssueViz.Issue;
                     showInBrowserService.ShowIssue(taintIssue.IssueKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
         }
 
-        private void UpdateIssues(IEnumerable<IAnalysisIssueVisualization> addedIssueVizs, IEnumerable<IAnalysisIssueVisualization> removedIssueVizs)
+        private void UpdateIssues()
         {
-            foreach (var added in addedIssueVizs)
-            {
-                Issues.Add(new TaintIssueViewModel(added));
-            }
+            Issues.Clear();
 
-            var issueVizsToRemove = Issues.Where(x => removedIssueVizs.Contains(x.TaintIssueViz)).ToArray();
-
-            foreach (var removed in issueVizsToRemove)
+            foreach (var issueViz in store.GetAll())
             {
-                Issues.Remove(removed);
+                Issues.Add(new TaintIssueViewModel(issueViz));
             }
         }
 
-        private void TaintStore_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
-            var added = e.NewItems ?? Array.Empty<IAnalysisIssueVisualization>();
-            var removed = e.OldItems ?? Array.Empty<IAnalysisIssueVisualization>();
-
-            UpdateIssues(
-                added.Cast<IAnalysisIssueVisualization>(),
-                removed.Cast<IAnalysisIssueVisualization>());
+            UpdateIssues();
         }
 
         public void Dispose()
         {
-            observableIssuesCollection.CollectionChanged -= TaintStore_CollectionChanged;
+            store.IssuesChanged -= Store_IssuesChanged;
             activeDocumentTracker.OnDocumentFocused -= ActiveDocumentTracker_OnDocumentFocused;
         }
     }
