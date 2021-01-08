@@ -42,16 +42,16 @@ namespace SonarLint.VisualStudio.Integration.Helpers
 
         public void Show(Guid toolWindowId)
         {
-            var frame = FindToolWindowFrame(toolWindowId);
+            var frame = GetOrCreateWindowFrame(toolWindowId);
             frame?.Show();
         }
 
         public void EnsureToolWindowExists(Guid toolWindowId)
         {
-            FindToolWindowFrame(toolWindowId);
+            GetOrCreateWindowFrame(toolWindowId);
         }
 
-        private IVsWindowFrame FindToolWindowFrame(Guid toolWindowId)
+        private IVsWindowFrame GetOrCreateWindowFrame(Guid toolWindowId)
         {
             // We want VS to ask the package to create the tool window if it doesn't already exist
             const uint flags = (uint)__VSFINDTOOLWIN.FTW_fForceCreate;
