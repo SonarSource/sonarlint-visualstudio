@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security
         and tool windows.
 
         It doesn't provide any other services, and doesn't need to be auto-loadable. It will be loaded
-        by VS only when needed i.e. when it has received a reqeust to to invoke a command or display a
+        by VS only when needed i.e. when it has received a request to to invoke a command or display a
         tool window.
     */
 
