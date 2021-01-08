@@ -19,18 +19,17 @@
  */
 
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
 {
-    internal interface IHotspotsStore : IDisposable
+    internal interface IHotspotsStore : IIssuesStore
     {
-        ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll();
-
         /// <summary>
         /// Adds a given visualization to the list if it does not already exist.
         /// Returns the given visualization, or the existing visualization with the same hotspot key.
@@ -41,20 +40,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
     }
 
     [Export(typeof(IHotspotsStore))]
+    [Export(typeof(IIssuesStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class HotspotsStore : IHotspotsStore
     {
-        private readonly ObservableCollection<IAnalysisIssueVisualization> hotspots;
-        private readonly ReadOnlyObservableCollection<IAnalysisIssueVisualization> readOnlyWrapper;
-        private readonly IDisposable unregisterCallback;
+        private readonly List<IAnalysisIssueVisualization> hotspots = new List<IAnalysisIssueVisualization>();
 
-        [ImportingConstructor]
-        public HotspotsStore(IIssueStoreObserver issueStoreObserver)
-        {
-            hotspots = new ObservableCollection<IAnalysisIssueVisualization>();
-            readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(hotspots);
-            unregisterCallback = issueStoreObserver.Register(readOnlyWrapper);
-        }
+        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => hotspots;
+
+        public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
         public IAnalysisIssueVisualization GetOrAdd(IAnalysisIssueVisualization hotspotViz)
         {
@@ -65,14 +59,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
                 return existingHotspot;
             }
 
+            var oldIssues = hotspots.ToArray();
+
             hotspots.Add(hotspotViz);
+
+            NotifyIssuesChanged(oldIssues);
 
             return hotspotViz;
         }
 
         public void Remove(IAnalysisIssueVisualization hotspotViz)
         {
+            var oldIssues = hotspots.ToArray();
+
             hotspots.Remove(hotspotViz);
+
+            NotifyIssuesChanged(oldIssues);
         }
 
         private IAnalysisIssueVisualization FindExisting(IAnalysisIssueVisualization hotspotViz)
@@ -82,11 +84,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots
             return hotspots.FirstOrDefault(x => ((IHotspot)x.Issue).HotspotKey == key);
         }
 
-        public ReadOnlyObservableCollection<IAnalysisIssueVisualization> GetAll() => readOnlyWrapper;
-
-        public void Dispose()
+        private void NotifyIssuesChanged(IReadOnlyCollection<IAnalysisIssueVisualization> oldIssues)
         {
-            unregisterCallback.Dispose();
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(oldIssues, hotspots));
         }
     }
 }
