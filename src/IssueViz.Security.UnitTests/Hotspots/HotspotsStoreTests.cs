@@ -18,9 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.ComponentModel.Composition;
+using System.ComponentModel.Composition.Hosting;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,6 +28,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 {
@@ -36,69 +36,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
     public class HotspotsStoreTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public void MefCtor_CheckExports()
         {
-            var issueStoreObserver = new Mock<IIssueStoreObserver>();
-            issueStoreObserver
-                .Setup(x => x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()))
-                .Returns(Mock.Of<IDisposable>());
+            var batch = new CompositionBatch();
 
-            MefTestHelpers.CheckTypeCanBeImported<HotspotsStore, IHotspotsStore>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IIssueStoreObserver>(issueStoreObserver.Object)
-            });
-        }
+            var storeImport = new SingleObjectImporter<IHotspotsStore>();
+            var issuesStoreImport = new SingleObjectImporter<IIssuesStore>();
+            batch.AddPart(storeImport);
+            batch.AddPart(issuesStoreImport);
 
-        [TestMethod]
-        public void Ctor_RegisterToIssueStoreObserver()
-        {
-            var issueStoreObserver = new Mock<IIssueStoreObserver>();
-            CreateTestSubject(issueStoreObserver.Object);
+            var catalog = new TypeCatalog(typeof(HotspotsStore));
+            using var container = new CompositionContainer(catalog);
+            container.Compose(batch);
 
-            issueStoreObserver.Verify(x=> x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()), Times.Once);
-            issueStoreObserver.VerifyNoOtherCalls();
-        }
+            storeImport.Import.Should().NotBeNull();
+            issuesStoreImport.Import.Should().NotBeNull();
 
-        [TestMethod]
-        public void Dispose_InnerIssueVizStoreIsDisposed()
-        {
-            var unregisterMock = new Mock<IDisposable>();
-            var issueStoreObserver = new Mock<IIssueStoreObserver>();
-            issueStoreObserver
-                .Setup(x => x.Register(It.IsAny<ReadOnlyObservableCollection<IAnalysisIssueVisualization>>()))
-                .Returns(unregisterMock.Object);
-
-            var testSubject = CreateTestSubject(issueStoreObserver.Object);
-
-            unregisterMock.VerifyNoOtherCalls();
-
-            testSubject.Dispose();
-
-            unregisterMock.Verify(x => x.Dispose(), Times.Once);
-        }
-
-        [TestMethod]
-        public void GetAll_ReturnsReadOnlyObservableWrapper()
-        {
-            var testSubject = CreateTestSubject();
-            var readOnlyWrapper = testSubject.GetAll();
-
-            readOnlyWrapper.Should().BeAssignableTo<IReadOnlyCollection<IAnalysisIssueVisualization>>();
-
-            var issueViz1 = CreateIssueViz("some hotspot1");
-            var issueViz2 = CreateIssueViz("some hotspot2");
-
-            testSubject.GetOrAdd(issueViz1);
-            testSubject.GetOrAdd(issueViz2);
-
-            readOnlyWrapper.Count.Should().Be(2);
-            readOnlyWrapper.First().Should().Be(issueViz1);
-            readOnlyWrapper.Last().Should().Be(issueViz2);
-
-            testSubject.Remove(issueViz2);
-
-            readOnlyWrapper.Count.Should().Be(1);
-            readOnlyWrapper.First().Should().Be(issueViz1);
+            storeImport.Import.Should().BeSameAs(issuesStoreImport.Import);
         }
 
         [TestMethod]
@@ -106,12 +60,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
         {
             var testSubject = CreateTestSubject();
 
-            var hotspotToAdd = CreateIssueViz(hotspotKey:"some hotspot");
+            var hotspotToAdd = CreateIssueViz(hotspotKey: "some hotspot");
             var addedHotspot = testSubject.GetOrAdd(hotspotToAdd);
 
             addedHotspot.Should().BeSameAs(hotspotToAdd);
-            testSubject.GetAll().Count.Should().Be(1);
-            testSubject.GetAll()[0].Should().BeSameAs(hotspotToAdd);
+            testSubject.GetAll().Count().Should().Be(1);
+            testSubject.GetAll().First().Should().BeSameAs(hotspotToAdd);
         }
 
         [TestMethod]
@@ -126,9 +80,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             var addedHotspot = testSubject.GetOrAdd(hotspotToAdd);
 
             addedHotspot.Should().BeSameAs(hotspotToAdd);
-            testSubject.GetAll().Count.Should().Be(2);
-            testSubject.GetAll()[0].Should().BeSameAs(someOtherHotspot);
-            testSubject.GetAll()[1].Should().BeSameAs(hotspotToAdd);
+
+            var hotspots = testSubject.GetAll().ToList();
+            hotspots.Count.Should().Be(2);
+            hotspots[0].Should().BeSameAs(someOtherHotspot);
+            hotspots[1].Should().BeSameAs(hotspotToAdd);
         }
 
         [TestMethod]
@@ -138,13 +94,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
 
             var firstHotspot = CreateIssueViz(hotspotKey: "some hotspot");
             var secondHotspot = CreateIssueViz(hotspotKey: "some hotspot");
-            
+
             testSubject.GetOrAdd(firstHotspot);
             var secondAddedHotspot = testSubject.GetOrAdd(secondHotspot);
 
             secondAddedHotspot.Should().BeSameAs(firstHotspot);
-            testSubject.GetAll().Count.Should().Be(1);
-            testSubject.GetAll()[0].Should().BeSameAs(firstHotspot);
+            var hotspots = testSubject.GetAll().ToList();
+            hotspots.Count.Should().Be(1);
+            hotspots[0].Should().BeSameAs(firstHotspot);
         }
 
         [TestMethod]
@@ -159,8 +116,45 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             testSubject.GetOrAdd(secondHotspot);
             testSubject.Remove(firstHotspot);
 
-            testSubject.GetAll().Count.Should().Be(1);
-            testSubject.GetAll()[0].Should().BeSameAs(secondHotspot);
+            var hotspots = testSubject.GetAll().ToList();
+            hotspots.Count.Should().Be(1);
+            hotspots[0].Should().BeSameAs(secondHotspot);
+        }
+
+        [TestMethod]
+        public void GetOrAdd_HasSubscribersToIssuesChanged_SubscribersNotified()
+        {
+            var testSubject = CreateTestSubject();
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+
+            var addedIssueViz = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot"));
+
+            callCount.Should().Be(1);
+            suppliedArgs.OldIssues.Should().BeEmpty();
+            suppliedArgs.NewIssues.Should().BeEquivalentTo(addedIssueViz);
+        }
+
+        [TestMethod]
+        public void Remove_HasSubscribersToIssuesChanged_SubscribersNotified()
+        {
+            var testSubject = CreateTestSubject();
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+
+            var addedIssueViz1 = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot1"));
+            var addedIssueViz2 = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot2"));
+
+            callCount = 0;
+            testSubject.Remove(addedIssueViz1);
+
+            callCount.Should().Be(1);
+            suppliedArgs.OldIssues.Should().BeEquivalentTo(addedIssueViz1, addedIssueViz2);
+            suppliedArgs.NewIssues.Should().BeEquivalentTo(addedIssueViz2);
         }
 
         private static IAnalysisIssueVisualization CreateIssueViz(string hotspotKey)
@@ -174,10 +168,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             return issueViz.Object;
         }
 
-        private IHotspotsStore CreateTestSubject(IIssueStoreObserver issueStoreObserver = null)
+        private IHotspotsStore CreateTestSubject()
         {
-            issueStoreObserver ??= Mock.Of<IIssueStoreObserver>();
-            return new HotspotsStore(issueStoreObserver);
+            return new HotspotsStore();
         }
     }
 }
