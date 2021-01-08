@@ -29,24 +29,16 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
 {
     /// <summary>
-    /// Adapter between <see cref="IIssuesStore"/> and <see cref="IIssueLocationStore"/>
-    /// </summary>
-    internal interface IIssuesStoreToIssueLocationStoreAdapter : IIssueLocationStore, IDisposable
-    {
-    }
-
-    /// <summary>
     /// MEF-imports <see cref="IIssuesStore"/> and implements <see cref="IIssueLocationStore"/> on top of the given stores.
     /// </summary>
-    [Export(typeof(IIssuesStoreToIssueLocationStoreAdapter))]
     [Export(typeof(IIssueLocationStore))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class IssuesStoreToIssueLocationStoreAdapter : IIssuesStoreToIssueLocationStoreAdapter
+    internal sealed class AggregatingIssueLocationStoreAdapter : IIssueLocationStore, IDisposable
     {
         private readonly IEnumerable<IIssuesStore> issueStores;
 
         [ImportingConstructor]
-        public IssuesStoreToIssueLocationStoreAdapter([ImportMany] IEnumerable<IIssuesStore> issueStores)
+        public AggregatingIssueLocationStoreAdapter([ImportMany] IEnumerable<IIssuesStore> issueStores)
         {
             this.issueStores = issueStores;
 

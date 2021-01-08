@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
@@ -36,29 +35,40 @@ using IssuesChangedEventArgs = SonarLint.VisualStudio.IssueVisualization.Editor.
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
 {
     [TestClass]
-    public class IssuesStoreToIssueLocationStoreAdapterTests
+    public class AggregatingIssueLocationStoreAdapterTests
     {
         [TestMethod]
         public void MefCtor_CheckExports()
         {
             var batch = new CompositionBatch();
 
-            batch.AddExport(MefTestHelpers.CreateExport<IIssuesStore>(Mock.Of<IIssuesStore>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IIssuesStore>(Mock.Of<IIssuesStore>()));
-            batch.AddExport(MefTestHelpers.CreateExport<IIssuesStore>(Mock.Of<IIssuesStore>()));
+            var stores = new[]
+            {
+                new Mock<IIssuesStore>(), 
+                new Mock<IIssuesStore>(), 
+                new Mock<IIssuesStore>()
+            };
 
-            var adapterImport = new SingleObjectImporter<IIssuesStoreToIssueLocationStoreAdapter>();
-            batch.AddPart(adapterImport);
+            foreach (var issuesStore in stores)
+            {
+                issuesStore.SetupAdd(x => x.IssuesChanged += null);
+                batch.AddExport(MefTestHelpers.CreateExport<IIssuesStore>(issuesStore.Object));
+            }
 
             var locationStoreImport = new SingleObjectImporter<IIssueLocationStore>();
             batch.AddPart(locationStoreImport);
 
-            using var catalog = new TypeCatalog(typeof(IssuesStoreToIssueLocationStoreAdapter));
+            using var catalog = new TypeCatalog(typeof(AggregatingIssueLocationStoreAdapter));
             using var container = new CompositionContainer(catalog);
             container.Compose(batch);
 
-            adapterImport.Import.Should().NotBeNull();
             locationStoreImport.Import.Should().NotBeNull();
+
+            // Verify that the stores are used
+            foreach (var issuesStore in stores)
+            {
+                issuesStore.VerifyAdd(x=> x.IssuesChanged += It.IsAny<EventHandler<IssuesStore.IssuesChangedEventArgs>>(), Times.Once);
+            }
         }
 
         [TestMethod]
@@ -277,19 +287,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             return issueStore.Object;
         }
 
-        private static IssuesStoreToIssueLocationStoreAdapter CreateTestSubject(params IIssuesStore[] issueStores)
+        private static AggregatingIssueLocationStoreAdapter CreateTestSubject(params IIssuesStore[] issueStores)
         {
             issueStores ??= Array.Empty<IIssuesStore>();
 
-            return new IssuesStoreToIssueLocationStoreAdapter(issueStores);
+            return new AggregatingIssueLocationStoreAdapter(issueStores);
         }
 
         private static void RaiseIssuesChangedEvent(Mock<IIssuesStore> issuesStore, 
-            IEnumerable<IAnalysisIssueVisualization> oldIssues = null, 
-            IEnumerable<IAnalysisIssueVisualization> newIssues = null)
+            IAnalysisIssueVisualization[] oldIssues = null, 
+            IAnalysisIssueVisualization[] newIssues = null)
         {
-            oldIssues ??= Enumerable.Empty<IAnalysisIssueVisualization>();
-            newIssues ??= Enumerable.Empty<IAnalysisIssueVisualization>();
+            oldIssues ??= Array.Empty<IAnalysisIssueVisualization>();
+            newIssues ??= Array.Empty<IAnalysisIssueVisualization>();
 
             issuesStore.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(oldIssues, newIssues));
         }

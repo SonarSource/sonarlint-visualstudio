@@ -336,14 +336,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         private static TaintIssuesControlViewModel CreateTestSubject(
-            IEnumerable<IAnalysisIssueVisualization> issueVizs = null,
+            IAnalysisIssueVisualization[] issueVizs = null,
             ILocationNavigator locationNavigator = null,
             Mock<ITaintStore> store = null,
             IActiveDocumentTracker activeDocumentTracker = null,
             IActiveDocumentLocator activeDocumentLocator = null,
             IShowInBrowserService showInBrowserService = null)
         {
-            issueVizs ??= Enumerable.Empty<IAnalysisIssueVisualization>();
+            issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
             store.Setup(x => x.GetAll()).Returns(issueVizs);
 

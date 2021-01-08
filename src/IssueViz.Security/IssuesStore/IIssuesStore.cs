@@ -24,19 +24,30 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
 {
+    /// <summary>
+    /// Stores a collection of <see cref="IAnalysisIssueVisualization"/> and
+    /// raises <see cref="IssuesChanged"/> event when the collection is modified.
+    /// </summary>
     internal interface IIssuesStore
     {
-        IEnumerable<IAnalysisIssueVisualization> GetAll();
+        IReadOnlyCollection<IAnalysisIssueVisualization> GetAll();
 
         event EventHandler<IssuesChangedEventArgs> IssuesChanged;
     }
 
     internal class IssuesChangedEventArgs
     {
-        public IEnumerable<IAnalysisIssueVisualization> OldIssues { get; }
-        public IEnumerable<IAnalysisIssueVisualization> NewIssues { get; }
+        /// <summary>
+        /// Collection before the change
+        /// </summary>
+        public IReadOnlyCollection<IAnalysisIssueVisualization> OldIssues { get; }
+        
+        /// <summary>
+        /// Collection after the change
+        /// </summary>
+        public IReadOnlyCollection<IAnalysisIssueVisualization> NewIssues { get; }
 
-        public IssuesChangedEventArgs(IEnumerable<IAnalysisIssueVisualization> oldIssues, IEnumerable<IAnalysisIssueVisualization> newIssues)
+        public IssuesChangedEventArgs(IReadOnlyCollection<IAnalysisIssueVisualization> oldIssues, IReadOnlyCollection<IAnalysisIssueVisualization> newIssues)
         {
             OldIssues = oldIssues;
             NewIssues = newIssues;
