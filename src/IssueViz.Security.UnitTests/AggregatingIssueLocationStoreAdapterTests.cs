@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
@@ -296,11 +295,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
         }
 
         private static void RaiseIssuesChangedEvent(Mock<IIssuesStore> issuesStore, 
-            IEnumerable<IAnalysisIssueVisualization> oldIssues = null, 
-            IEnumerable<IAnalysisIssueVisualization> newIssues = null)
+            IAnalysisIssueVisualization[] oldIssues = null, 
+            IAnalysisIssueVisualization[] newIssues = null)
         {
-            oldIssues ??= Enumerable.Empty<IAnalysisIssueVisualization>();
-            newIssues ??= Enumerable.Empty<IAnalysisIssueVisualization>();
+            oldIssues ??= Array.Empty<IAnalysisIssueVisualization>();
+            newIssues ??= Array.Empty<IAnalysisIssueVisualization>();
 
             issuesStore.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(oldIssues, newIssues));
         }

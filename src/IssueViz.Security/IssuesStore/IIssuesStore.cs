@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
     /// </summary>
     internal interface IIssuesStore
     {
-        IEnumerable<IAnalysisIssueVisualization> GetAll();
+        IReadOnlyCollection<IAnalysisIssueVisualization> GetAll();
 
         event EventHandler<IssuesChangedEventArgs> IssuesChanged;
     }
@@ -40,14 +40,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
         /// <summary>
         /// Collection before the change
         /// </summary>
-        public IEnumerable<IAnalysisIssueVisualization> OldIssues { get; }
+        public IReadOnlyCollection<IAnalysisIssueVisualization> OldIssues { get; }
         
         /// <summary>
         /// Collection after the change
         /// </summary>
-        public IEnumerable<IAnalysisIssueVisualization> NewIssues { get; }
+        public IReadOnlyCollection<IAnalysisIssueVisualization> NewIssues { get; }
 
-        public IssuesChangedEventArgs(IEnumerable<IAnalysisIssueVisualization> oldIssues, IEnumerable<IAnalysisIssueVisualization> newIssues)
+        public IssuesChangedEventArgs(IReadOnlyCollection<IAnalysisIssueVisualization> oldIssues, IReadOnlyCollection<IAnalysisIssueVisualization> newIssues)
         {
             OldIssues = oldIssues;
             NewIssues = newIssues;

@@ -41,9 +41,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintStore : ITaintStore
     {
-        private IEnumerable<IAnalysisIssueVisualization> taintVulnerabilities = Enumerable.Empty<IAnalysisIssueVisualization>();
+        private IAnalysisIssueVisualization[] taintVulnerabilities = Array.Empty<IAnalysisIssueVisualization>();
 
-        public IEnumerable<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
+        public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
@@ -55,9 +55,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
 
             var oldIssues = taintVulnerabilities;
-            taintVulnerabilities = issueVisualizations;
+            taintVulnerabilities = issueVisualizations.ToArray();
 
-            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(oldIssues, taintVulnerabilities.ToList()));
+            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(oldIssues, taintVulnerabilities));
         }
     }
 }
