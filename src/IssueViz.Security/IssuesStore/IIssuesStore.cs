@@ -37,20 +37,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
 
     internal class IssuesChangedEventArgs
     {
-        /// <summary>
-        /// Collection before the change
-        /// </summary>
-        public IReadOnlyCollection<IAnalysisIssueVisualization> OldIssues { get; }
+        public IReadOnlyCollection<IAnalysisIssueVisualization> RemovedIssues { get; }
         
-        /// <summary>
-        /// Collection after the change
-        /// </summary>
-        public IReadOnlyCollection<IAnalysisIssueVisualization> NewIssues { get; }
+        public IReadOnlyCollection<IAnalysisIssueVisualization> AddedIssues { get; }
 
-        public IssuesChangedEventArgs(IReadOnlyCollection<IAnalysisIssueVisualization> oldIssues, IReadOnlyCollection<IAnalysisIssueVisualization> newIssues)
+        public IssuesChangedEventArgs(IReadOnlyCollection<IAnalysisIssueVisualization> removedIssues, IReadOnlyCollection<IAnalysisIssueVisualization> addedIssues)
         {
-            OldIssues = oldIssues;
-            NewIssues = newIssues;
+            RemovedIssues = removedIssues;
+            AddedIssues = addedIssues;
         }
     }
 }

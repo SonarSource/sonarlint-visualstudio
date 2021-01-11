@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
-            var changedItems = e.OldIssues.Union(e.NewIssues);
+            var changedItems = e.RemovedIssues.Union(e.AddedIssues);
 
             NotifyIssuesChanged(changedItems);
         }
