@@ -55,6 +55,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ShowHotspot = new ShowHotspot
                 {
                     NumberOfRequests = 567
+                },
+
+                Taint = new Taint
+                {
+                    NumberOfOpenedOnServer = 88,
+                    NumberOfOpenedIssues = 99
                 }
             };
 
@@ -86,6 +92,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             reloadedData.ShowHotspot.Should().NotBeNull();
             reloadedData.ShowHotspot.NumberOfRequests.Should().Be(567);
+
+            reloadedData.Taint.Should().NotBeNull();
+            reloadedData.Taint.NumberOfOpenedOnServer.Should().Be(88);
+            reloadedData.Taint.NumberOfOpenedIssues.Should().Be(99);
         }
     }
 }

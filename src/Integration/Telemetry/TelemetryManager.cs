@@ -199,6 +199,22 @@ namespace SonarLint.VisualStudio.Integration
             telemetryRepository.Save();
         }
 
+        public void TaintIssueOpened()
+        {
+            Debug.Assert(telemetryRepository.Data != null);
+
+            ++telemetryRepository.Data.Taint.NumberOfOpenedIssues;
+            telemetryRepository.Save();
+        }
+
+        public void TaintIssueRedirected()
+        {
+            Debug.Assert(telemetryRepository.Data != null);
+
+            ++telemetryRepository.Data.Taint.NumberOfOpenedOnServer;
+            telemetryRepository.Save();
+        }
+
         private async void OnTelemetryTimerElapsed(object sender, TelemetryTimerEventArgs e)
         {
             try
@@ -210,6 +226,7 @@ namespace SonarLint.VisualStudio.Integration
                 // Reset daily data
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
                 telemetryRepository.Data.ShowHotspot = new ShowHotspot();
+                telemetryRepository.Data.Taint = new Taint();
                 telemetryRepository.Save();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))

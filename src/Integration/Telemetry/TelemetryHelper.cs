@@ -79,7 +79,8 @@ namespace SonarLint.VisualStudio.Integration
                 SystemDate = now,
                 InstallDate = telemetryData.InstallationDate,
                 Analyses = telemetryData.Analyses,
-                ShowHotspot = telemetryData.ShowHotspot
+                ShowHotspot = telemetryData.ShowHotspot,
+                Taint = telemetryData.Taint,
             };
         }
 

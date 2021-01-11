@@ -66,6 +66,9 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("show_hotspot")]
         public ShowHotspot ShowHotspot { get; set; }
+
+        [JsonProperty("taint_vulnerabilities")]
+        public Taint Taint { get; set; }
     }
 
     // We want to produce the same format as for IntelliJ and Eclipse (although
@@ -97,5 +100,14 @@ namespace SonarLint.VisualStudio.Integration
     {
         [JsonProperty("requests_count")]
         public long NumberOfRequests { get; set; }
+    }
+
+    public sealed class Taint
+    {
+        [JsonProperty("opened_issues_count")]
+        public long NumberOfOpenedIssues { get; set; }
+
+        [JsonProperty("opened_on_server_count")]
+        public long NumberOfOpenedOnServer { get; set; }
     }
 }

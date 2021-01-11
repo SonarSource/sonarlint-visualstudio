@@ -64,6 +64,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ShowHotspot>
     <NumberOfRequests>0</NumberOfRequests>
   </ShowHotspot>
+  <Taint>
+    <NumberOfOpenedOnServer>55</NumberOfOpenedOnServer>
+    <NumberOfOpenedIssues>66</NumberOfOpenedIssues>
+  </Taint>
 </TelemetryData>"));
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
@@ -83,6 +87,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ShowHotspot>
     <NumberOfRequests>20</NumberOfRequests>
   </ShowHotspot>
+  <Taint>
+    <NumberOfOpenedOnServer>55</NumberOfOpenedOnServer>
+    <NumberOfOpenedIssues>66</NumberOfOpenedIssues>
+  </Taint>
 </TelemetryData>");
 
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
@@ -97,6 +105,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(20);
+            repository.Data.Taint.NumberOfOpenedOnServer.Should().Be(55);
+            repository.Data.Taint.NumberOfOpenedIssues.Should().Be(66);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -123,6 +133,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
             const bool newIsAnonymousDataShared = true;
             const int newDaysOfUse = 15;
             const int newHotspotsRequests = 25;
+            const int newTaintRedirects = 7;
+            const int newTaintOpenedIssues = 9;
+
             var newInstallationDate = new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
             var newLastSavedAnalysisDate = new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
             var newLastUploadDate = new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
@@ -137,6 +150,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ShowHotspot>
     <NumberOfRequests>{newHotspotsRequests}</NumberOfRequests>
   </ShowHotspot>
+  <Taint>
+    <NumberOfOpenedOnServer>{newTaintRedirects}</NumberOfOpenedOnServer>
+    <NumberOfOpenedIssues>{newTaintOpenedIssues}</NumberOfOpenedIssues>
+  </Taint>
 </TelemetryData>");
 
             fileSystemWatcherMock
@@ -149,6 +166,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastSavedAnalysisDate.Should().Be(newLastSavedAnalysisDate);
             repository.Data.LastUploadDate.Should().Be(newLastUploadDate);
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(newHotspotsRequests);
+            repository.Data.Taint.NumberOfOpenedOnServer.Should().Be(newTaintRedirects);
+            repository.Data.Taint.NumberOfOpenedIssues.Should().Be(newTaintOpenedIssues);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }
@@ -185,6 +204,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastUploadDate.Should().Be(expectedDateTimeOffset);
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(0);
+            repository.Data.Taint.NumberOfOpenedOnServer.Should().Be(0);
+            repository.Data.Taint.NumberOfOpenedIssues.Should().Be(0);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
