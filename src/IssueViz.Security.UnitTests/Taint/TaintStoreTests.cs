@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Linq;
@@ -77,53 +76,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void Set_NoPreviousItems_NoNewItems_CollectionChangedAndEventRaised()
+        public void Set_NoPreviousItems_NoNewItems_CollectionChangedAndEventNotRaised()
         {
-            var oldState = Enumerable.Empty<IAnalysisIssueVisualization>();
-            var newState = Enumerable.Empty<IAnalysisIssueVisualization>();
+            var testSubject = CreateTestSubject();
 
-            VerifyCollectionChanged(oldState, newState);
+            var callCount = 0;
+            testSubject.IssuesChanged += (sender, args) => { callCount++; };
+
+            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
+
+            testSubject.GetAll().Should().BeEmpty();
+            callCount.Should().Be(0);
         }
 
         [TestMethod]
         public void Set_NoPreviousItems_HasNewItems_CollectionChangedAndEventRaised()
-        {
-            var oldState = Enumerable.Empty<IAnalysisIssueVisualization>();
-            var newState = new[] { Mock.Of<IAnalysisIssueVisualization>() };
-
-            VerifyCollectionChanged(oldState, newState);
-        }
-
-        [TestMethod]
-        public void Set_HasPreviousItems_NoNewItems_CollectionChangedAndEventRaised()
-        {
-            var oldState = new[] { Mock.Of<IAnalysisIssueVisualization>() };
-            var newState = Enumerable.Empty<IAnalysisIssueVisualization>();
-
-            VerifyCollectionChanged(oldState, newState);
-        }
-
-        [TestMethod]
-        public void Set_HasPreviousItems_HasNewItems_CollectionChangedAndEventRaised()
-        {
-            var oldState = new[] { Mock.Of<IAnalysisIssueVisualization>() };
-            var newState = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
-
-            VerifyCollectionChanged(oldState, newState);
-        }
-
-        [TestMethod]
-        public void Set_HasPreviousItems_HasSomeNewItems_CollectionChangedAndEventRaised()
-        {
-            var mutualIssueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var oldState = new[] { mutualIssueViz, Mock.Of<IAnalysisIssueVisualization>() };
-            var newState = new[] { Mock.Of<IAnalysisIssueVisualization>(), mutualIssueViz };
-
-            VerifyCollectionChanged(oldState, newState);
-        }
-
-
-        private void VerifyCollectionChanged(IEnumerable<IAnalysisIssueVisualization> oldState, IEnumerable<IAnalysisIssueVisualization> newState)
         {
             var testSubject = CreateTestSubject();
 
@@ -131,23 +98,79 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             IssuesChangedEventArgs suppliedArgs = null;
             testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
-            testSubject.Set(oldState);
+            var newItems = new[] {Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>()};
+            testSubject.Set(newItems);
 
-            testSubject.GetAll().Should().BeEquivalentTo(oldState);
-
+            testSubject.GetAll().Should().BeEquivalentTo(newItems);
             callCount.Should().Be(1);
-            suppliedArgs.OldIssues.Should().BeEmpty();
-            suppliedArgs.NewIssues.Should().BeEquivalentTo(oldState);
+            suppliedArgs.RemovedIssues.Should().BeEmpty();
+            suppliedArgs.AddedIssues.Should().BeEquivalentTo(newItems);
+        }
 
-            callCount = 0;
+        [TestMethod]
+        public void Set_HasPreviousItems_NoNewItems_CollectionChangedAndEventRaised()
+        {
+            var testSubject = CreateTestSubject();
 
-            testSubject.Set(newState);
+            var oldItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
+            testSubject.Set(oldItems);
 
-            testSubject.GetAll().Should().BeEquivalentTo(newState);
-            suppliedArgs.OldIssues.Should().BeEquivalentTo(oldState);
-            suppliedArgs.NewIssues.Should().BeEquivalentTo(newState);
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
+            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
+
+            testSubject.GetAll().Should().BeEmpty();
             callCount.Should().Be(1);
+            suppliedArgs.RemovedIssues.Should().BeEquivalentTo(oldItems);
+            suppliedArgs.AddedIssues.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Set_HasPreviousItems_HasNewItems_CollectionChangedAndEventRaised()
+        {
+            var testSubject = CreateTestSubject();
+
+            var oldItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
+            testSubject.Set(oldItems);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+
+            var newItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
+            testSubject.Set(newItems);
+
+            testSubject.GetAll().Should().BeEquivalentTo(newItems);
+            callCount.Should().Be(1);
+            suppliedArgs.RemovedIssues.Should().BeEquivalentTo(oldItems);
+            suppliedArgs.AddedIssues.Should().BeEquivalentTo(newItems);
+        }
+
+        [TestMethod]
+        public void Set_HasPreviousItems_HasSomeNewItems_CollectionChangedAndEventRaised()
+        {
+            var testSubject = CreateTestSubject();
+
+            var issueViz1 = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz2 = Mock.Of<IAnalysisIssueVisualization>();
+            var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
+
+            var oldItems = new[] { issueViz1, issueViz2 };
+            testSubject.Set(oldItems);
+
+            var callCount = 0;
+            IssuesChangedEventArgs suppliedArgs = null;
+            testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+
+            var newItems = new[] { issueViz2, issueViz3 };
+            testSubject.Set(newItems);
+
+            testSubject.GetAll().Should().BeEquivalentTo(newItems);
+            callCount.Should().Be(1);
+            suppliedArgs.RemovedIssues.Should().BeEquivalentTo(issueViz1);
+            suppliedArgs.AddedIssues.Should().BeEquivalentTo(issueViz3);
         }
 
         private ITaintStore CreateTestSubject()

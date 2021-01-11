@@ -133,8 +133,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             var addedIssueViz = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot"));
 
             callCount.Should().Be(1);
-            suppliedArgs.OldIssues.Should().BeEmpty();
-            suppliedArgs.NewIssues.Should().BeEquivalentTo(addedIssueViz);
+            suppliedArgs.RemovedIssues.Should().BeEmpty();
+            suppliedArgs.AddedIssues.Should().BeEquivalentTo(addedIssueViz);
         }
 
         [TestMethod]
@@ -147,14 +147,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots
             testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
             var addedIssueViz1 = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot1"));
-            var addedIssueViz2 = testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot2"));
+            testSubject.GetOrAdd(CreateIssueViz(hotspotKey: "some hotspot2"));
 
             callCount = 0;
             testSubject.Remove(addedIssueViz1);
 
             callCount.Should().Be(1);
-            suppliedArgs.OldIssues.Should().BeEquivalentTo(addedIssueViz1, addedIssueViz2);
-            suppliedArgs.NewIssues.Should().BeEquivalentTo(addedIssueViz2);
+            suppliedArgs.RemovedIssues.Should().BeEquivalentTo(addedIssueViz1);
+            suppliedArgs.AddedIssues.Should().BeEmpty();
         }
 
         private static IAnalysisIssueVisualization CreateIssueViz(string hotspotKey)
