@@ -57,7 +57,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             var oldIssues = taintVulnerabilities;
             taintVulnerabilities = issueVisualizations.ToArray();
 
-            IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(oldIssues, taintVulnerabilities));
+            NotifyIssuesChanged(oldIssues);
+        }
+
+        private void NotifyIssuesChanged(IAnalysisIssueVisualization[] oldIssues)
+        {
+            var removedIssues = oldIssues.Except(taintVulnerabilities).ToArray();
+            var addedIssues = taintVulnerabilities.Except(oldIssues).ToArray();
+
+            if (removedIssues.Any() || addedIssues.Any())
+            {
+                IssuesChanged?.Invoke(this, new IssuesChangedEventArgs(removedIssues, addedIssues));
+            }
         }
     }
 }
