@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         ICommand ShowInBrowserCommand { get; }
 
-        ObservableCollection<ITaintIssueViewModel> Issues { get; }
+        ICollectionView IssuesView { get; }
     }
 
     /// <summary>
@@ -56,7 +56,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
 
-        public ObservableCollection<ITaintIssueViewModel> Issues { get; } = new ObservableCollection<ITaintIssueViewModel>();
+        // TODO: duncanp - make collection private
+        internal /* for testing */ ObservableCollection<ITaintIssueViewModel> Issues { get; } = new ObservableCollection<ITaintIssueViewModel>();
+
+        public ICollectionView IssuesView { get; }
 
         public ICommand NavigateCommand { get; private set; }
 
@@ -80,6 +83,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             this.store.IssuesChanged += Store_IssuesChanged;
 
             UpdateIssues();
+
+            IssuesView = CollectionViewSource.GetDefaultView(Issues);
+
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
             SetDefaultSortOrder();
@@ -91,11 +97,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ApplyViewFilter(ActiveDocumentFilter);
         }
 
-        private void ApplyViewFilter(Predicate<object> filter)
-        {
-            var collectionView = CollectionViewSource.GetDefaultView(Issues);
-            collectionView.Filter = filter;
-        }
+        private void ApplyViewFilter(Predicate<object> filter) =>
+            IssuesView.Filter = filter;
 
         private bool ActiveDocumentFilter(object viewModel)
         {
@@ -109,13 +112,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             return PathHelper.IsMatchingPath(issueFilePath, activeDocumentFilePath);
         }
 
-        private void SetDefaultSortOrder()
-        {
-            var collectionView = CollectionViewSource.GetDefaultView(Issues);
-
-            collectionView.SortDescriptions.Add(
+        private void SetDefaultSortOrder() =>
+            IssuesView.SortDescriptions.Add(
                 new SortDescription("TaintIssueViz.Issue.CreationTimestamp", ListSortDirection.Descending));
-        }
 
         /// <summary>
         /// Allow the observable collection <see cref="Issues"/> to be modified from a non-UI thread.

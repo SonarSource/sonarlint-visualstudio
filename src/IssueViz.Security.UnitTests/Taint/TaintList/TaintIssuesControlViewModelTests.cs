@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Data;
 using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -389,11 +388,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             result.Should().Be(canExecute);
         }
 
-        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel)
-        {
-            var view = CollectionViewSource.GetDefaultView(controlViewModel.Issues);
-            view.Filter.Should().NotBeNull();
-        }
+        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel) =>
+            controlViewModel.IssuesView.Filter.Should().NotBeNull();
 
         /// <summary>
         /// Returns the filtered and sorted list of issue viz items
@@ -401,14 +397,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         /// </summary>
         private static IList<IAnalysisIssueVisualization> GetIssueVizsFromView(TaintIssuesControlViewModel controlViewModel)
         {
-            var view = (ListCollectionView)CollectionViewSource.GetDefaultView(controlViewModel.Issues);
-
-            var taintIssueVizs = view.OfType<ITaintIssueViewModel>()
+            var taintIssueVizs = controlViewModel.IssuesView.OfType<ITaintIssueViewModel>()
                 .Select(x => x.TaintIssueViz)
                 .ToList();
-
             // All items should be issue viz instances
-            view.Count.Should().Be(taintIssueVizs.Count);
+            controlViewModel.IssuesView.OfType<object>().Count().Should().Be(taintIssueVizs.Count);
 
             return taintIssueVizs;
         }
