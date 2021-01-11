@@ -46,17 +46,17 @@
         </Grid.ColumnDefinitions>
         <DataGrid Grid.Column="0" 
                   SelectedItem="{Binding SelectedIssue, Mode=TwoWay}"
-                  ItemsSource="{Binding Issues}"
+                  ItemsSource="{Binding IssuesView}"
                   >
             <DataGrid.InputBindings>
                 <MouseBinding
                     MouseAction="LeftDoubleClick"
                     Command="{Binding NavigateCommand}"
-                    CommandParameter="{Binding Issues/}"/>
+                    CommandParameter="{Binding IssuesView.CurrentItem}"/>
                 <KeyBinding
                     Key="Enter"
                     Command="{Binding NavigateCommand}"
-                    CommandParameter="{Binding Issues/}"/>
+                    CommandParameter="{Binding IssuesView.CurrentItem}"/>
             </DataGrid.InputBindings>
             <DataGrid.Columns>
                 <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
