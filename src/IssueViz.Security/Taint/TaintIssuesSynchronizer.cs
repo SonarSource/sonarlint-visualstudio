@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList;
 using SonarQube.Client;
 using VSShell = Microsoft.VisualStudio.Shell;
 using VSShellInterop = Microsoft.VisualStudio.Shell.Interop;
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private readonly ISonarQubeService sonarQubeService;
         private readonly ITaintIssueToIssueVisualizationConverter converter;
         private readonly IConfigurationProvider configurationProvider;
+        private readonly IToolWindowService toolWindowService;
         private readonly ILogger logger;
 
         private readonly VSShellInterop.IVsMonitorSelection vsMonitorSelection;
@@ -59,6 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             ISonarQubeService sonarQubeService,
             ITaintIssueToIssueVisualizationConverter converter,
             IConfigurationProvider configurationProvider,
+            IToolWindowService toolWindowService,
             [Import(typeof(VSShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ILogger logger)
         {
@@ -66,6 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             this.sonarQubeService = sonarQubeService;
             this.converter = converter;
             this.configurationProvider = configurationProvider;
+            this.toolWindowService = toolWindowService;
             this.logger = logger;
 
             vsMonitorSelection = (VSShellInterop.IVsMonitorSelection)serviceProvider.GetService(typeof(VSShellInterop.SVsShellMonitorSelection));
@@ -101,7 +105,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
                 taintStore.Set(taintIssueVizs);
-                UpdateTaintIssuesUIContext(taintIssueVizs.Any());
+
+                var hasTaintIssues = taintIssueVizs.Length > 0;
+                UpdateTaintIssuesUIContext(hasTaintIssues);
+                if (hasTaintIssues)
+                {
+                    toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
+                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -115,9 +125,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
         }
 
-        private void UpdateTaintIssuesUIContext(bool hasTaintIssues)
-        {
+        private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>
             vsMonitorSelection.SetCmdUIContext(contextCookie, hasTaintIssues ? 1 : 0);
-        }
     }
 }
