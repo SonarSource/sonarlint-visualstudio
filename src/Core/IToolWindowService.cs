@@ -31,10 +31,17 @@ namespace SonarLint.VisualStudio.Core
         void Show(Guid toolWindowId);
 
         /// <summary>
-        /// Creates the window if it does not already exist
+        /// Creates the window and its content if it does not already exist
         /// </summary>
         /// <remarks>If a new tool window is created it will not be brought to the front or given focus.
-        /// If the tool window already exists its visibility and focus will not be affected.</remarks>
+        /// If the tool window already exists its visibility and focus will not be affected.
+        /// <para>
+        /// Note: VS will delay creating a window until it actually needs to render it. For example, if a
+        /// tool window is docked but not top-most then VS can create a tab that displays the tool window
+        /// caption without actually creating the tool window content (e.g. when showing a window based on
+        /// a UIContext). This method ensures the window content is created.
+        /// </para>
+        /// </remarks>
         void EnsureToolWindowExists(Guid toolWindowId);
     }
 }
