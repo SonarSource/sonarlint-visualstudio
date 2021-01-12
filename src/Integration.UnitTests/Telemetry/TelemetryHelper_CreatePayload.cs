@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 5,
                 ShowHotspot = new ShowHotspot{NumberOfRequests = 11},
-                Taint = new Taint{NumberOfOpenedOnServer = 44, NumberOfOpenedIssues = 55}
+                TaintVulnerabilities = new TaintVulnerabilities{NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55}
             };
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
@@ -75,8 +75,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10)));
             result.SystemDate.Should().Be(new DateTimeOffset(now));
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
-            result.Taint.NumberOfOpenedOnServer.Should().Be(44);
-            result.Taint.NumberOfOpenedIssues.Should().Be(55);
+            result.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(44);
+            result.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(55);
         }
 
         [TestMethod]

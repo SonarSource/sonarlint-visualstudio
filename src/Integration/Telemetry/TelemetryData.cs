@@ -67,8 +67,8 @@ namespace SonarLint.VisualStudio.Integration
         [XmlElement(nameof(ShowHotspot))]
         public ShowHotspot ShowHotspot { get; set; } = new ShowHotspot();
 
-        [XmlElement(nameof(Taint))]
-        public Taint Taint { get; set; } = new Taint();
+        [XmlElement(nameof(TaintVulnerabilities))]
+        public TaintVulnerabilities TaintVulnerabilities { get; set; } = new TaintVulnerabilities();
 
         private static DateTimeOffset ParseSavedString(string data)
         {

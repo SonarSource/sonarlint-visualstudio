@@ -28,7 +28,7 @@ namespace SonarLint.VisualStudio.Core.Telemetry
         void Update();
         void LanguageAnalyzed(string languageKey);
         void ShowHotspotRequested();
-        void TaintIssueOpened();
-        void TaintIssueOpenedInBrowser();
+        void TaintIssueInvestigatedLocally();
+        void TaintIssueInvestigatedRemotely();
     }
 }

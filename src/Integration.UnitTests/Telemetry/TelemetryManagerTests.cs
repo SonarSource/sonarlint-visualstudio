@@ -226,10 +226,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 {
                     NumberOfRequests = 123
                 },
-                Taint = new Taint
+                TaintVulnerabilities = new TaintVulnerabilities
                 {
-                    NumberOfOpenedOnServer = 777,
-                    NumberOfOpenedIssues = 888
+                    NumberOfIssuesInvestigatedRemotely = 777,
+                    NumberOfIssuesInvestigatedLocally = 888
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -244,8 +244,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.LastUploadDate.Should().Be(now);
             telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
             telemetryData.ShowHotspot.NumberOfRequests.Should().Be(0); // should have cleared the counter
-            telemetryData.Taint.NumberOfOpenedOnServer.Should().Be(0); // should have cleared the counter
-            telemetryData.Taint.NumberOfOpenedIssues.Should().Be(0); // should have cleared the counter
+            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(0); // should have cleared the counter
+            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(0); // should have cleared the counter
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -267,10 +267,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 {
                     NumberOfRequests = 123
                 },
-                Taint = new Taint
+                TaintVulnerabilities = new TaintVulnerabilities
                 {
-                    NumberOfOpenedOnServer = 777,
-                    NumberOfOpenedIssues = 888
+                    NumberOfIssuesInvestigatedRemotely = 777,
+                    NumberOfIssuesInvestigatedLocally = 888
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -285,8 +285,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.LastUploadDate.Should().Be(now);
             telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
             telemetryData.ShowHotspot.NumberOfRequests.Should().Be(0); // should have cleared the counter
-            telemetryData.Taint.NumberOfOpenedOnServer.Should().Be(0); // should have cleared the counter
-            telemetryData.Taint.NumberOfOpenedIssues.Should().Be(0); // should have cleared the counter
+            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(0); // should have cleared the counter
+            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(0); // should have cleared the counter
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
@@ -629,8 +629,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
-            // Set up the telemetry mock after creating the manager, since the manager will
-            // may saved data on initial creation
             telemetryRepositoryMock.Reset();
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
@@ -644,20 +642,18 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(0)]
         [DataRow(1)]
         [DataRow(100)]
-        public void TaintIssueOpened_CounterIncremented(int previousCounter)
+        public void TaintIssueInvestigatedLocally_CounterIncremented(int previousCounter)
         {
-            var telemetryData = new TelemetryData { Taint = new Taint { NumberOfOpenedIssues = previousCounter } };
+            var telemetryData = new TelemetryData { TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedLocally = previousCounter } };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
-            // Set up the telemetry mock after creating the manager, since the manager will
-            // may saved data on initial creation
             telemetryRepositoryMock.Reset();
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
-            testSubject.TaintIssueOpened();
+            testSubject.TaintIssueInvestigatedLocally();
 
-            telemetryData.Taint.NumberOfOpenedIssues.Should().Be(previousCounter + 1);
+            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(previousCounter + 1);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
@@ -665,20 +661,18 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(0)]
         [DataRow(1)]
         [DataRow(100)]
-        public void TaintIssueOpenedInBrowser_CounterIncremented(int previousCounter)
+        public void TaintIssueInvestigatedRemotely_CounterIncremented(int previousCounter)
         {
-            var telemetryData = new TelemetryData { Taint = new Taint { NumberOfOpenedOnServer = previousCounter } };
+            var telemetryData = new TelemetryData { TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = previousCounter } };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
-            // Set up the telemetry mock after creating the manager, since the manager will
-            // may saved data on initial creation
             telemetryRepositoryMock.Reset();
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
-            testSubject.TaintIssueOpenedInBrowser();
+            testSubject.TaintIssueInvestigatedRemotely();
 
-            telemetryData.Taint.NumberOfOpenedOnServer.Should().Be(previousCounter + 1);
+            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(previousCounter + 1);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 

@@ -64,10 +64,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ShowHotspot>
     <NumberOfRequests>0</NumberOfRequests>
   </ShowHotspot>
-  <Taint>
-    <NumberOfOpenedIssues>0</NumberOfOpenedIssues>
-    <NumberOfOpenedOnServer>0</NumberOfOpenedOnServer>
-  </Taint>
+  <TaintVulnerabilities>
+    <NumberOfIssuesInvestigatedLocally>0</NumberOfIssuesInvestigatedLocally>
+    <NumberOfIssuesInvestigatedRemotely>0</NumberOfIssuesInvestigatedRemotely>
+  </TaintVulnerabilities>
 </TelemetryData>"));
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
@@ -87,10 +87,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ShowHotspot>
     <NumberOfRequests>20</NumberOfRequests>
   </ShowHotspot>
-  <Taint>
-    <NumberOfOpenedIssues>66</NumberOfOpenedIssues>
-    <NumberOfOpenedOnServer>55</NumberOfOpenedOnServer>
-  </Taint>
+  <TaintVulnerabilities>
+    <NumberOfIssuesInvestigatedLocally>66</NumberOfIssuesInvestigatedLocally>
+    <NumberOfIssuesInvestigatedRemotely>55</NumberOfIssuesInvestigatedRemotely>
+  </TaintVulnerabilities>
 </TelemetryData>");
 
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
@@ -105,8 +105,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastSavedAnalysisDate.Should().Be(new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.LastUploadDate.Should().Be(new DateTimeOffset(new DateTime(2019, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1)));
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(20);
-            repository.Data.Taint.NumberOfOpenedOnServer.Should().Be(55);
-            repository.Data.Taint.NumberOfOpenedIssues.Should().Be(66);
+            repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(55);
+            repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(66);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -150,10 +150,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ShowHotspot>
     <NumberOfRequests>{newHotspotsRequests}</NumberOfRequests>
   </ShowHotspot>
-  <Taint>
-    <NumberOfOpenedIssues>{newTaintOpenedIssues}</NumberOfOpenedIssues>
-    <NumberOfOpenedOnServer>{newTaintRedirects}</NumberOfOpenedOnServer>
-  </Taint>
+  <TaintVulnerabilities>
+    <NumberOfIssuesInvestigatedLocally>{newTaintOpenedIssues}</NumberOfIssuesInvestigatedLocally>
+    <NumberOfIssuesInvestigatedRemotely>{newTaintRedirects}</NumberOfIssuesInvestigatedRemotely>
+  </TaintVulnerabilities>
 </TelemetryData>");
 
             fileSystemWatcherMock
@@ -166,8 +166,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastSavedAnalysisDate.Should().Be(newLastSavedAnalysisDate);
             repository.Data.LastUploadDate.Should().Be(newLastUploadDate);
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(newHotspotsRequests);
-            repository.Data.Taint.NumberOfOpenedOnServer.Should().Be(newTaintRedirects);
-            repository.Data.Taint.NumberOfOpenedIssues.Should().Be(newTaintOpenedIssues);
+            repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(newTaintRedirects);
+            repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(newTaintOpenedIssues);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }
@@ -204,8 +204,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.LastUploadDate.Should().Be(expectedDateTimeOffset);
             repository.Data.IsAnonymousDataShared.Should().BeFalse();
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(0);
-            repository.Data.Taint.NumberOfOpenedOnServer.Should().Be(0);
-            repository.Data.Taint.NumberOfOpenedIssues.Should().Be(0);
+            repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(0);
+            repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(0);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }

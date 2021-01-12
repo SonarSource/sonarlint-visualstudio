@@ -57,10 +57,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     NumberOfRequests = 567
                 },
 
-                Taint = new Taint
+                TaintVulnerabilities = new TaintVulnerabilities
                 {
-                    NumberOfOpenedOnServer = 88,
-                    NumberOfOpenedIssues = 99
+                    NumberOfIssuesInvestigatedRemotely = 88,
+                    NumberOfIssuesInvestigatedLocally = 99
                 }
             };
 
@@ -93,9 +93,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.ShowHotspot.Should().NotBeNull();
             reloadedData.ShowHotspot.NumberOfRequests.Should().Be(567);
 
-            reloadedData.Taint.Should().NotBeNull();
-            reloadedData.Taint.NumberOfOpenedOnServer.Should().Be(88);
-            reloadedData.Taint.NumberOfOpenedIssues.Should().Be(99);
+            reloadedData.TaintVulnerabilities.Should().NotBeNull();
+            reloadedData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(88);
+            reloadedData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(99);
         }
     }
 }

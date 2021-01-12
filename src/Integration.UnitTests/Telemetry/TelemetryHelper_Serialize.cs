@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new Analysis { Language = "vbnet" }
                 }.ToList(),
                 ShowHotspot = new ShowHotspot { NumberOfRequests = 567 },
-                Taint = new Taint { NumberOfOpenedIssues = 654, NumberOfOpenedOnServer = 321}
+                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedLocally = 654, NumberOfIssuesInvestigatedRemotely = 321}
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -85,8 +85,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     ""requests_count"": 567
   },
   ""taint_vulnerabilities"": {
-    ""opened_issues_count"": 654,
-    ""opened_on_server_count"": 321
+    ""investigated_locally_count"": 654,
+    ""investigated_remotely_count"": 321
   }
 }";
             serialized.Should().Be(expected);

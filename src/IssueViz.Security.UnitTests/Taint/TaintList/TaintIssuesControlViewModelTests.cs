@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             testSubject.NavigateCommand.Execute(viewModel.Object);
 
-            telemetryManager.Verify(x => x.TaintIssueOpened(), Times.Once);
+            telemetryManager.Verify(x => x.TaintIssueInvestigatedLocally(), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 
@@ -323,7 +323,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             testSubject.ShowInBrowserCommand.Execute(viewModel.Object);
 
-            telemetryManager.Verify(x => x.TaintIssueOpenedInBrowser(), Times.Once);
+            telemetryManager.Verify(x => x.TaintIssueInvestigatedRemotely(), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 

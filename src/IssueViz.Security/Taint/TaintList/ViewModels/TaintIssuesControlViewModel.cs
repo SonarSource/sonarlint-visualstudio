@@ -134,7 +134,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             NavigateCommand = new DelegateCommand(
                 parameter =>
                 {
-                    telemetryManager.TaintIssueOpened();
+                    telemetryManager.TaintIssueInvestigatedLocally();
 
                     var selected = (ITaintIssueViewModel)parameter;
                     locationNavigator.TryNavigate(selected.TaintIssueViz);
@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ShowInBrowserCommand = new DelegateCommand(
                 parameter =>
                 {
-                    telemetryManager.TaintIssueOpenedInBrowser();
+                    telemetryManager.TaintIssueInvestigatedRemotely();
 
                     var selected = (ITaintIssueViewModel)parameter;
                     var taintIssue = (ITaintIssue)selected.TaintIssueViz.Issue;
