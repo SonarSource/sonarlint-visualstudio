@@ -56,8 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
 
-        // TODO: duncanp - make collection private
-        internal /* for testing */ ObservableCollection<ITaintIssueViewModel> Issues { get; } = new ObservableCollection<ITaintIssueViewModel>();
+        private readonly ObservableCollection<ITaintIssueViewModel> unfilteredIssues;
 
         public ICollectionView IssuesView { get; }
 
@@ -71,6 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IActiveDocumentLocator activeDocumentLocator,
             IShowInBrowserService showInBrowserService)
         {
+            unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
 
             activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
@@ -84,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             UpdateIssues();
 
-            IssuesView = CollectionViewSource.GetDefaultView(Issues);
+            IssuesView = new ListCollectionView(unfilteredIssues);
 
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
@@ -117,12 +117,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 new SortDescription("TaintIssueViz.Issue.CreationTimestamp", ListSortDirection.Descending));
 
         /// <summary>
-        /// Allow the observable collection <see cref="Issues"/> to be modified from a non-UI thread.
+        /// Allow the observable collection <see cref="unfilteredIssues"/> to be modified from a non-UI thread.
         /// </summary>
         private void AllowMultiThreadedAccessToIssuesCollection()
         {
             ThreadHelper.ThrowIfNotOnUIThread();
-            BindingOperations.EnableCollectionSynchronization(Issues, Lock);
+            BindingOperations.EnableCollectionSynchronization(unfilteredIssues, Lock);
         }
 
         private void SetCommands(ILocationNavigator locationNavigator)
@@ -147,11 +147,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateIssues()
         {
-            Issues.Clear();
+            unfilteredIssues.Clear();
 
             foreach (var issueViz in store.GetAll())
             {
-                Issues.Add(new TaintIssueViewModel(issueViz));
+                unfilteredIssues.Add(new TaintIssueViewModel(issueViz));
             }
         }
 
