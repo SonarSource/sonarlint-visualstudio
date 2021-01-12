@@ -197,13 +197,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateCaption()
         {
-            // If there are no taint issues we won't add a suffix. This will have the effect
-            // of resetting the caption back to the default after a bound solution is closed,
-            // so if the user manually opens the tool window they will see the default caption.
-
+            // We'll show the default caption if:
+            // * there are no underlying issues, or
+            // * there is not ana active document.
+            // Otherwise, we'll add a suffix showing the number of issues in the active document.
             string suffix = null;
 
-            if (unfilteredIssues.Count != 0)
+            if (unfilteredIssues.Count != 0 && activeDocumentFilePath != null)
             {
                 suffix = $" ({GetFilteredIssuesCount()})";
             }
