@@ -67,6 +67,9 @@ namespace SonarLint.VisualStudio.Integration
         [XmlElement(nameof(ShowHotspot))]
         public ShowHotspot ShowHotspot { get; set; } = new ShowHotspot();
 
+        [XmlElement(nameof(TaintVulnerabilities))]
+        public TaintVulnerabilities TaintVulnerabilities { get; set; } = new TaintVulnerabilities();
+
         private static DateTimeOffset ParseSavedString(string data)
         {
             // ParseExact will throw an exception when value is invalid date, but
