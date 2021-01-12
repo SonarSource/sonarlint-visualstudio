@@ -84,9 +84,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""show_hotspot"": {
     ""requests_count"": 567
   },
-  ""taint"": {
+  ""taint_vulnerabilities"": {
     ""opened_issues_count"": 654,
-    ""server_redirects_count"": 321
+    ""opened_on_server_count"": 321
   }
 }";
             serialized.Should().Be(expected);

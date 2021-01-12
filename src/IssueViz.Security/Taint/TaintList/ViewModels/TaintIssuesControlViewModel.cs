@@ -26,6 +26,7 @@ using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -52,6 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
     {
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IShowInBrowserService showInBrowserService;
+        private readonly ITelemetryManager telemetryManager;
         private readonly ITaintStore store;
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
@@ -68,7 +70,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
             IActiveDocumentLocator activeDocumentLocator,
-            IShowInBrowserService showInBrowserService)
+            IShowInBrowserService showInBrowserService,
+            ITelemetryManager telemetryManager)
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
@@ -78,6 +81,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             activeDocumentTracker.OnDocumentFocused += ActiveDocumentTracker_OnDocumentFocused;
 
             this.showInBrowserService = showInBrowserService;
+            this.telemetryManager = telemetryManager;
 
             this.store = store;
             this.store.IssuesChanged += Store_IssuesChanged;
@@ -130,6 +134,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             NavigateCommand = new DelegateCommand(
                 parameter =>
                 {
+                    telemetryManager.TaintIssueOpened();
+
                     var selected = (ITaintIssueViewModel)parameter;
                     locationNavigator.TryNavigate(selected.TaintIssueViz);
                 },
@@ -138,6 +144,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             ShowInBrowserCommand = new DelegateCommand(
                 parameter =>
                 {
+                    telemetryManager.TaintIssueOpenedInBrowser();
+
                     var selected = (ITaintIssueViewModel)parameter;
                     var taintIssue = (ITaintIssue)selected.TaintIssueViz.Issue;
                     showInBrowserService.ShowIssue(taintIssue.IssueKey);

@@ -65,8 +65,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <NumberOfRequests>0</NumberOfRequests>
   </ShowHotspot>
   <Taint>
-    <NumberOfOpenedOnServer>55</NumberOfOpenedOnServer>
-    <NumberOfOpenedIssues>66</NumberOfOpenedIssues>
+    <NumberOfOpenedIssues>0</NumberOfOpenedIssues>
+    <NumberOfOpenedOnServer>0</NumberOfOpenedOnServer>
   </Taint>
 </TelemetryData>"));
 
@@ -88,8 +88,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <NumberOfRequests>20</NumberOfRequests>
   </ShowHotspot>
   <Taint>
-    <NumberOfOpenedOnServer>55</NumberOfOpenedOnServer>
     <NumberOfOpenedIssues>66</NumberOfOpenedIssues>
+    <NumberOfOpenedOnServer>55</NumberOfOpenedOnServer>
   </Taint>
 </TelemetryData>");
 
@@ -151,8 +151,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <NumberOfRequests>{newHotspotsRequests}</NumberOfRequests>
   </ShowHotspot>
   <Taint>
-    <NumberOfOpenedOnServer>{newTaintRedirects}</NumberOfOpenedOnServer>
     <NumberOfOpenedIssues>{newTaintOpenedIssues}</NumberOfOpenedIssues>
+    <NumberOfOpenedOnServer>{newTaintRedirects}</NumberOfOpenedOnServer>
   </Taint>
 </TelemetryData>");
 

@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -246,6 +247,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
+        public void Navigate_Execute_TelemetryUpdated()
+        {
+            var issueViz = CreateIssueViz(issueKey: "issue key 123");
+            var viewModel = new Mock<ITaintIssueViewModel>();
+            viewModel.Setup(x => x.TaintIssueViz).Returns(issueViz);
+
+            var telemetryManager = new Mock<ITelemetryManager>();
+            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
+
+            testSubject.NavigateCommand.Execute(viewModel.Object);
+
+            telemetryManager.Verify(x => x.TaintIssueOpened(), Times.Once);
+            telemetryManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void ShowInBrowserCommand_CanExecute_NullParameter_False()
         {
             var showInBrowserService = new Mock<IShowInBrowserService>();
@@ -292,6 +309,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             showInBrowserService.Verify(x => x.ShowIssue("issue key 123"), Times.Once);
             showInBrowserService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowInBrowserCommand_Execute_TelemetryUpdated()
+        {
+            var issueViz = CreateIssueViz(issueKey: "issue key 123");
+            var viewModel = new Mock<ITaintIssueViewModel>();
+            viewModel.Setup(x => x.TaintIssueViz).Returns(issueViz);
+
+            var telemetryManager = new Mock<ITelemetryManager>();
+            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
+
+            testSubject.ShowInBrowserCommand.Execute(viewModel.Object);
+
+            telemetryManager.Verify(x => x.TaintIssueOpenedInBrowser(), Times.Once);
+            telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -344,6 +377,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             Mock<ITaintStore> store = null,
             IActiveDocumentTracker activeDocumentTracker = null,
             IActiveDocumentLocator activeDocumentLocator = null,
+            ITelemetryManager telemetryManager = null,
             IShowInBrowserService showInBrowserService = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
@@ -353,12 +387,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             activeDocumentTracker ??= Mock.Of<IActiveDocumentTracker>();
             activeDocumentLocator ??= Mock.Of<IActiveDocumentLocator>();
             showInBrowserService ??= Mock.Of<IShowInBrowserService>();
+            locationNavigator ??= Mock.Of<ILocationNavigator>();
+            telemetryManager ??= Mock.Of<ITelemetryManager>();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
                 activeDocumentTracker,
                 activeDocumentLocator,
-                showInBrowserService);
+                showInBrowserService,
+                telemetryManager);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)

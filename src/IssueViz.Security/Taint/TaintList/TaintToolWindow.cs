@@ -22,6 +22,7 @@ using System;
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
@@ -47,7 +48,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<ILocationNavigator>(),
                 componentModel.GetService<IActiveDocumentTracker>(),
                 componentModel.GetService<IActiveDocumentLocator>(),
-                componentModel.GetService<IShowInBrowserService>()
+                componentModel.GetService<IShowInBrowserService>(),
+                componentModel.GetService<ITelemetryManager>()
             );
 
             Content = new TaintIssuesControl(viewModel);
