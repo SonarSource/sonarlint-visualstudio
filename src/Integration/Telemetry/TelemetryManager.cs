@@ -207,7 +207,7 @@ namespace SonarLint.VisualStudio.Integration
             telemetryRepository.Save();
         }
 
-        public void TaintIssueRedirected()
+        public void TaintIssueOpenedInBrowser()
         {
             Debug.Assert(telemetryRepository.Data != null);
 

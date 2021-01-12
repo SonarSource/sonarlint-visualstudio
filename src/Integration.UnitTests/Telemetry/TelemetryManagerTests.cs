@@ -665,7 +665,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(0)]
         [DataRow(1)]
         [DataRow(100)]
-        public void TaintIssueRedirected_CounterIncremented(int previousCounter)
+        public void TaintIssueOpenedInBrowser_CounterIncremented(int previousCounter)
         {
             var telemetryData = new TelemetryData { Taint = new Taint { NumberOfOpenedOnServer = previousCounter } };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -676,7 +676,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryRepositoryMock.Reset();
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
 
-            testSubject.TaintIssueRedirected();
+            testSubject.TaintIssueOpenedInBrowser();
 
             telemetryData.Taint.NumberOfOpenedOnServer.Should().Be(previousCounter + 1);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);

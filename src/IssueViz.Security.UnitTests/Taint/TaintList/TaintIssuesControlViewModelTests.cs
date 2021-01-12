@@ -20,8 +20,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Data;
 using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -61,21 +61,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             RaiseStoreIssuesChangedEvent(store, issueViz1);
 
-            testSubject.Issues.Count.Should().Be(1);
-            testSubject.Issues[0].TaintIssueViz.Should().Be(issueViz1);
+            var issues = GetSourceItems(testSubject);
+            issues.Count.Should().Be(1);
+            issues[0].TaintIssueViz.Should().Be(issueViz1);
 
             RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz2, issueViz3);
 
-            testSubject.Issues.Count.Should().Be(3);
-            testSubject.Issues[0].TaintIssueViz.Should().Be(issueViz1);
-            testSubject.Issues[1].TaintIssueViz.Should().Be(issueViz2);
-            testSubject.Issues[2].TaintIssueViz.Should().Be(issueViz3);
+            issues.Count.Should().Be(3);
+            issues[0].TaintIssueViz.Should().Be(issueViz1);
+            issues[1].TaintIssueViz.Should().Be(issueViz2);
+            issues[2].TaintIssueViz.Should().Be(issueViz3);
 
             RaiseStoreIssuesChangedEvent(store, issueViz1, issueViz3);
 
-            testSubject.Issues.Count.Should().Be(2);
-            testSubject.Issues[0].TaintIssueViz.Should().Be(issueViz1);
-            testSubject.Issues[1].TaintIssueViz.Should().Be(issueViz3);
+            issues.Count.Should().Be(2);
+            issues[0].TaintIssueViz.Should().Be(issueViz1);
+            issues[1].TaintIssueViz.Should().Be(issueViz3);
         }
 
         [TestMethod]
@@ -87,9 +88,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(storeCollection);
 
-            testSubject.Issues.Count.Should().Be(2);
-            testSubject.Issues.First().TaintIssueViz.Should().Be(issueViz1);
-            testSubject.Issues.Last().TaintIssueViz.Should().Be(issueViz2);
+            var issues = GetSourceItems(testSubject);
+            issues.Count.Should().Be(2);
+            issues.First().TaintIssueViz.Should().Be(issueViz1);
+            issues.Last().TaintIssueViz.Should().Be(issueViz2);
         }
 
         [TestMethod]
@@ -106,8 +108,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
 
             // Check source collection ordering (should be in creation order)
-            testSubject.Issues.Count.Should().Be(3);
-            testSubject.Issues.Select(x => x.TaintIssueViz).Should().ContainInOrder(middleIssueViz, oldestIssueViz, newestIssueViz);
+            var issues = GetSourceItems(testSubject);
+            issues.Count.Should().Be(3);
+            issues.Select(x => x.TaintIssueViz).Should().ContainInOrder(middleIssueViz, oldestIssueViz, newestIssueViz);
 
             // Check the view ordering (should be sorted)
             var sortedIssueVizs = GetIssueVizsFromView(testSubject);
@@ -124,7 +127,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var locator = CreateLocatorAndSetActiveDocument(null);
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
-            testSubject.Issues.Count.Should().Be(1);
+            CheckExpectedSourceIssueCount(testSubject, 1);
 
             VerifyFilterIsNotNull(testSubject);
 
@@ -144,7 +147,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
 
-            testSubject.Issues.Count.Should().Be(3);
+            CheckExpectedSourceIssueCount(testSubject, 3);
 
             VerifyFilterIsNotNull(testSubject);
 
@@ -190,7 +193,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             RaiseStoreIssuesChangedEvent(store, CreateIssueViz());
 
-            testSubject.Issues.Count.Should().Be(0);
+            CheckExpectedSourceIssueCount(testSubject, 0);
         }
 
         [TestMethod]
@@ -302,7 +305,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             activeDocumentTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(null));
 
-            testSubject.Issues.Count.Should().Be(1);
+            CheckExpectedSourceIssueCount(testSubject, 1);
 
             VerifyFilterIsNotNull(testSubject);
 
@@ -326,7 +329,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             activeDocumentTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(activeDocument.Object));
 
-            testSubject.Issues.Count.Should().Be(2);
+            CheckExpectedSourceIssueCount(testSubject, 2);
 
             VerifyFilterIsNotNull(testSubject);
 
@@ -389,11 +392,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             result.Should().Be(canExecute);
         }
 
-        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel)
-        {
-            var view = CollectionViewSource.GetDefaultView(controlViewModel.Issues);
-            view.Filter.Should().NotBeNull();
-        }
+        private static void VerifyFilterIsNotNull(TaintIssuesControlViewModel controlViewModel) =>
+            controlViewModel.IssuesView.Filter.Should().NotBeNull();
 
         /// <summary>
         /// Returns the filtered and sorted list of issue viz items
@@ -401,14 +401,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         /// </summary>
         private static IList<IAnalysisIssueVisualization> GetIssueVizsFromView(TaintIssuesControlViewModel controlViewModel)
         {
-            var view = (ListCollectionView)CollectionViewSource.GetDefaultView(controlViewModel.Issues);
-
-            var taintIssueVizs = view.OfType<ITaintIssueViewModel>()
+            var taintIssueVizs = controlViewModel.IssuesView.OfType<ITaintIssueViewModel>()
                 .Select(x => x.TaintIssueViz)
                 .ToList();
-
             // All items should be issue viz instances
-            view.Count.Should().Be(taintIssueVizs.Count);
+            controlViewModel.IssuesView.OfType<object>().Count().Should().Be(taintIssueVizs.Count);
 
             return taintIssueVizs;
         }
@@ -418,5 +415,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             store.Setup(x => x.GetAll()).Returns(issueVizs);
             store.Raise(x => x.IssuesChanged += null, null, null);
         }
+
+        private static void CheckExpectedSourceIssueCount(ITaintIssuesControlViewModel controlViewModel, int expected) =>
+            GetSourceItems(controlViewModel).Count.Should().Be(expected);
+
+        private static ObservableCollection<ITaintIssueViewModel> GetSourceItems(ITaintIssuesControlViewModel controlViewModel) =>
+            (ObservableCollection<ITaintIssueViewModel>)controlViewModel.IssuesView.SourceCollection;
     }
 }
