@@ -110,6 +110,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 UpdateTaintIssuesUIContext(hasTaintIssues);
                 if (hasTaintIssues)
                 {
+                    // We need the tool window content to exist so the issues are filtered and the
+                    // tool window caption is updated. See the "EnsureToolWindowExists" method comment
+                    // for more information.
                     toolWindowService.EnsureToolWindowExists(TaintToolWindow.ToolWindowId);
                 }
             }
