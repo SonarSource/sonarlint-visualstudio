@@ -21,6 +21,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
@@ -36,13 +38,17 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels
 {
-    internal interface ITaintIssuesControlViewModel : IDisposable
+    internal interface ITaintIssuesControlViewModel : INotifyPropertyChanged, IDisposable
     {
         ICommand NavigateCommand { get; }
 
         ICommand ShowInBrowserCommand { get; }
 
+        ICommand ShowDocumentationCommand { get; }
+
         ICollectionView IssuesView { get; }
+
+        bool HasServerIssues { get; }
     }
 
     /// <summary>
@@ -65,6 +71,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public ICommand NavigateCommand { get; private set; }
 
         public ICommand ShowInBrowserCommand { get; private set; }
+
+        public ICommand ShowDocumentationCommand { get; private set; }
+
+        public bool HasServerIssues => unfilteredIssues.Any();
 
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
@@ -151,6 +161,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                     showInBrowserService.ShowIssue(taintIssue.IssueKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
+
+            ShowDocumentationCommand = new DelegateCommand(parameter => showInBrowserService.ShowDocumentation());
         }
 
         private void UpdateIssues()
@@ -161,6 +173,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             {
                 unfilteredIssues.Add(new TaintIssueViewModel(issueViz));
             }
+
+            NotifyPropertyChanged(nameof(HasServerIssues));
         }
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
@@ -172,6 +186,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             store.IssuesChanged -= Store_IssuesChanged;
             activeDocumentTracker.OnDocumentFocused -= ActiveDocumentTracker_OnDocumentFocused;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
