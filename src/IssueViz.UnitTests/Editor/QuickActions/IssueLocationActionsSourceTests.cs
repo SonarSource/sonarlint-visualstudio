@@ -278,8 +278,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         }
 
         private static IssueLocationActionsSource CreateTestSubject(ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator, 
-            ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator, 
-            IAnalysisIssueSelectionService selectionService = null, 
+            ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator,
+            IIssueSelectionService selectionService = null, 
             ILightBulbBroker lightBulbBroker = null, 
             ITextView textView = null)
         {
@@ -295,11 +295,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(textView.TextBuffer))
                 .Returns(issueLocationsTagAggregator);
 
-            var analysisIssueSelectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            var analysisIssueSelectionServiceMock = new Mock<IIssueSelectionService>();
             analysisIssueSelectionServiceMock.Setup(x => x.SelectedIssue).Returns(Mock.Of<IAnalysisIssueVisualization>());
 
-            selectionService = selectionService ?? analysisIssueSelectionServiceMock.Object;
-            lightBulbBroker = lightBulbBroker ?? Mock.Of<ILightBulbBroker>();
+            selectionService ??= analysisIssueSelectionServiceMock.Object;
+            lightBulbBroker ??= Mock.Of<ILightBulbBroker>();
 
             return new IssueLocationActionsSource(lightBulbBroker, vsUiShell, bufferTagAggregatorFactoryService.Object, textView, selectionService);
         }
@@ -320,7 +320,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var selectedIssueLocationsTagAggregator = new Mock<ITagAggregator<ISelectedIssueLocationTag>>();
             selectedIssueLocationsTagAggregator.Setup(x => x.GetTags(mockSpan)).Returns(secondaryTagSpans);
 
-            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
 
             var testSubject = CreateTestSubject(selectedIssueLocationsTagAggregator.Object, issueLocationsTagAggregator.Object, selectionService.Object);

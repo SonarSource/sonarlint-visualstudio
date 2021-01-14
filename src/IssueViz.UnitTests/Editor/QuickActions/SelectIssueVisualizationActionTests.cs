@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         [TestMethod]
         public void Invoke_IssueIsSelected()
         {
-            var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            var selectionServiceMock = new Mock<IIssueSelectionService>();
             selectionServiceMock.SetupSet(x => x.SelectedIssue = null);
 
             var expectedIssue = Mock.Of<IAnalysisIssueVisualization>();
@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
         public void Invoke_IssueVisualizationToolWindowOpened()
         {
             var vsUiShell = new Mock<IVsUIShell>();
-            var testSubject = new SelectIssueVisualizationAction(vsUiShell.Object, Mock.Of<IAnalysisIssueSelectionService>(), Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = new SelectIssueVisualizationAction(vsUiShell.Object, Mock.Of<IIssueSelectionService>(), Mock.Of<IAnalysisIssueVisualization>());
 
             vsUiShell.VerifyNoOtherCalls();
 
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
             selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
 
-            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IAnalysisIssueSelectionService>(), selectedIssueMock.Object);
+            var testSubject = new SelectIssueVisualizationAction(Mock.Of<IVsUIShell>(), Mock.Of<IIssueSelectionService>(), selectedIssueMock.Object);
             testSubject.DisplayText.Should().Contain("test rule id");
         }
     }
