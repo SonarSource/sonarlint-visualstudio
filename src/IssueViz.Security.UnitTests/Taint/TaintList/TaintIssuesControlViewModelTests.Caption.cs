@@ -25,6 +25,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -47,8 +48,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_NoUnderlyingIssues_DefaultCaptionSet()
         {
             var testCase = new TestCase()
-                .SetStoreContents(/* none */)
-                .SetActiveDocument(null);
+                .ChangeStoreContents(/* none */)
+                .SetActiveDocument("any.txt");
 
             var testSubject = testCase.CreateTestSubject();
 
@@ -59,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_HasUnderlyingIssues_NoActiveDoc_DefaultCaptionSet()
         {
             var testCase = new TestCase()
-                .SetStoreContents("file1.txt", "file2.txt")
+                .ChangeStoreContents("file1.txt", "file2.txt")
                 .SetActiveDocument(null);
 
             var testSubject = testCase.CreateTestSubject();
@@ -71,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_HasUnderlyingIssues_ActiveDocWithNoIssues_ExpectedCaptionSet()
         {
             var testCase = new TestCase()
-                .SetStoreContents("file1.txt", "file2.txt")
+                .ChangeStoreContents("file1.txt", "file2.txt")
                 .SetActiveDocument("anotherFile.txt");
 
             var testSubject = testCase.CreateTestSubject();
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_HasUnderlyingIssues_ActiveDocWithIssues_ExpectedCaptionSet()
         {
             var testCase = new TestCase()
-                .SetStoreContents("active.txt", "anotherFile.txt", "active.txt")
+                .ChangeStoreContents("active.txt", "anotherFile.txt", "active.txt")
                 .SetActiveDocument("active.txt");
 
             var testSubject = testCase.CreateTestSubject();
@@ -95,7 +96,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void ActiveDocChanged_ExpectedCaptionSet()
         {
             var testCase = new TestCase()
-                .SetStoreContents("file1.txt", "file2.txt", "file2.txt");
+                .ChangeStoreContents("file1.txt", "file2.txt", "file2.txt");
 
             var testSubject = testCase.CreateTestSubject();
 
@@ -114,42 +115,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             // 4. No active file
             testCase.ChangeActiveDocument(null);
             testSubject.WindowCaption.Should().Be(DefaultCaption);
-        }
-
-        [TestMethod]
-        public void PropertyChange_EventRaisedIfCaptionChanges()
-        {
-            var testCase = new TestCase()
-                .SetActiveDocument(null)
-                .SetStoreContents(
-                    "file1.txt", // file with one issue
-                    "file2.txt", // another file one issue
-                    "file3.txt", "file3.txt"); // a file with two issues
-
-            var testSubject = testCase.CreateTestSubject();
-
-            int eventCount = 0;
-            PropertyChangedEventArgs suppliedArgs = null;
-            testSubject.PropertyChanged += (sender, args) => { eventCount++;  suppliedArgs = args; };
-            var originalCaption = testSubject.WindowCaption;
-
-            // 1. Change from no active doc with one item -> event
-            testCase.ChangeActiveDocument("file1.txt");
-            eventCount.Should().Be(1);
-            suppliedArgs.PropertyName.Should().Be(nameof(ITaintIssuesControlViewModel.WindowCaption));
-            testSubject.WindowCaption.Should().NotBe(originalCaption);
-
-            // 2. Change to another doc with one item -> same caption -> no event
-            var modifiedCaption1 = testSubject.WindowCaption;
-            testCase.ChangeActiveDocument("file2.txt");
-            
-            eventCount.Should().Be(1);
-            testSubject.WindowCaption.Should().Be(modifiedCaption1);
-
-            // 3. Change to another doc with two items -> caption changed -> event raised
-            testCase.ChangeActiveDocument("file3.txt");
-            eventCount.Should().Be(2);
-            testSubject.WindowCaption.Should().NotBe(modifiedCaption1);
         }
 
         [TestMethod]
@@ -172,15 +137,51 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             testSubject.WindowCaption.Should().Be(DefaultCaption + " (0)");
         }
 
+        [TestMethod]
+        public void PropertyChange_EventRaisedIfCaptionChanges()
+        {
+            var testCase = new TestCase()
+                .SetActiveDocument(null)
+                .ChangeStoreContents(
+                    "file1.txt", // file with one issue
+                    "file2.txt", // another file one issue
+                    "file3.txt", "file3.txt"); // a file with two issues
+
+            var testSubject = testCase.CreateTestSubject();
+
+            int eventCount = 0;
+            PropertyChangedEventArgs suppliedArgs = null;
+            testSubject.PropertyChanged += (sender, args) => { eventCount++;  suppliedArgs = args; };
+            var originalCaption = testSubject.WindowCaption;
+
+            // 1. Change from no active doc with one item -> event
+            testCase.ChangeActiveDocument("file1.txt");
+            eventCount.Should().Be(1);
+            suppliedArgs.PropertyName.Should().Be(nameof(ITaintIssuesControlViewModel.WindowCaption));
+            testSubject.WindowCaption.Should().NotBe(originalCaption);
+
+            // 2. Change to another doc with one item -> same caption -> no event
+            var modifiedCaption1 = testSubject.WindowCaption;
+            testCase.ChangeActiveDocument("file2.txt");
+
+            eventCount.Should().Be(1);
+            testSubject.WindowCaption.Should().Be(modifiedCaption1);
+
+            // 3. Change to another doc with two items -> caption changed -> event raised
+            testCase.ChangeActiveDocument("file3.txt");
+            eventCount.Should().Be(2);
+            testSubject.WindowCaption.Should().NotBe(modifiedCaption1);
+        }
+
         private class TestCase
         {
-            private readonly Mock<ITaintStore> store = new Mock<ITaintStore>();
-            private readonly Mock<IActiveDocumentTracker> activeDocTracker = new Mock<IActiveDocumentTracker>();
-            private readonly Mock<IActiveDocumentLocator> activeDocLocator = new Mock<IActiveDocumentLocator>();
+            private readonly Mock<ITaintStore> store = new();
+            private readonly Mock<IActiveDocumentTracker> activeDocTracker = new();
+            private readonly Mock<IActiveDocumentLocator> activeDocLocator = new();
 
             public TestCase()
             {
-                SetStoreContents(/* empty */);
+                ChangeStoreContents(/* empty */);
             }
 
             public TestCase SetActiveDocument(string filePath)
@@ -190,23 +191,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 return this;
             }
 
-            /// <summary>
-            /// Sets the store contents without raising the store changed event
-            /// </summary>
-            public TestCase SetStoreContents(params string[] issueVizFilePath)
-            {
-                var issueVizs = issueVizFilePath.Select(x => CreateIssueViz(x)).ToArray();
-                store.Setup(x => x.GetAll()).Returns(issueVizs);
-                return this;
-            }
-
             public TaintIssuesControlViewModel CreateTestSubject()
             {
                 // The ViewModel needs to be created on the UI thread
                 ThreadHelper.SetCurrentThreadAsUIThread();
 
-                return new TaintIssuesControlViewModel(store.Object, Mock.Of<ILocationNavigator>(),
-                    activeDocTracker.Object, activeDocLocator.Object, Mock.Of<IShowInBrowserService>());
+                return new TaintIssuesControlViewModel(
+                    store.Object,
+                    Mock.Of<ILocationNavigator>(),
+                    activeDocTracker.Object,
+                    activeDocLocator.Object,
+                    Mock.Of<IShowInBrowserService>(),
+                    Mock.Of<ITelemetryManager>());
             }
 
             public void ChangeActiveDocument(string filePath)
@@ -221,8 +217,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             /// </remarks>
             public TestCase ChangeStoreContents(params string[] issueVizFilePaths)
             {
-                var issueVizs = issueVizFilePaths.Select(x => CreateIssueViz(x)).ToArray();
-                store.Setup(x => x.GetAll()).Returns(issueVizs);
+                SetStoreContents(issueVizFilePaths);
 
                 // Note: we don't expect the control to care about the specific issues that
                 // have been added or removed, so we're returning empty lists for simplicity.
@@ -231,6 +226,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     addedIssues: Array.Empty<IAnalysisIssueVisualization>()));
 
                 return this;
+            }
+
+            private void SetStoreContents(params string[] issueVizFilePaths)
+            {
+                var issueVizs = issueVizFilePaths.Select(x => CreateIssueViz(x)).ToArray();
+                store.Setup(x => x.GetAll()).Returns(issueVizs);
             }
 
             private static ITextDocument CreateTextDoc(string filePath)
@@ -245,7 +246,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 return textDoc.Object;
             }
 
-            private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp")
+            private static IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp")
             {
                 var issue = new Mock<ITaintIssue>();
 
