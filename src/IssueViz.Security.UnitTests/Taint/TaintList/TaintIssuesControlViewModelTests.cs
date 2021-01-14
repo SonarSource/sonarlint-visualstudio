@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 using FluentAssertions;
@@ -328,6 +329,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
+        public void ShowDocumentation_CanExecute_True()
+        {
+            var showInBrowserService = new Mock<IShowInBrowserService>();
+            var testSubject = CreateTestSubject(showInBrowserService: showInBrowserService.Object);
+
+            VerifyCommandExecution(testSubject.ShowDocumentationCommand, null, true);
+
+            showInBrowserService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowDocumentation_Execute_BrowserServiceIsCalled()
+        {
+            var showInBrowserService = new Mock<IShowInBrowserService>();
+            var testSubject = CreateTestSubject(showInBrowserService: showInBrowserService.Object);
+
+            testSubject.ShowDocumentationCommand.Execute(null);
+
+            showInBrowserService.Verify(x=> x.ShowDocumentation(), Times.Once);
+            showInBrowserService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void ActiveDocumentChanged_NoActiveDocument_NoIssuesDisplayed()
         {
             var storeCollection = new[] { CreateIssueViz() };
@@ -369,6 +393,50 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var filteredItems = GetIssueVizsFromView(testSubject);
             filteredItems.Count().Should().Be(1);
             filteredItems[0].Should().Be(issueViz2);
+        }
+
+        [TestMethod]
+        public void HasServerIssues_IssuesExist_True()
+        {
+            var storeCollection = new[] { Mock.Of<IAnalysisIssueVisualization>() };
+
+            var testSubject = CreateTestSubject(storeCollection);
+
+            testSubject.HasServerIssues.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void HasServerIssues_NoIssues_False()
+        {
+            var storeCollection = Array.Empty<IAnalysisIssueVisualization>();
+
+            var testSubject = CreateTestSubject(storeCollection);
+
+            testSubject.HasServerIssues.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HasServerIssues_IssuesChanged_RaisesPropertyChanged()
+        {
+            var store = new Mock<ITaintStore>();
+            var testSubject = CreateTestSubject(store: store);
+
+            var callCount = 0;
+            PropertyChangedEventArgs suppliedArgs = null;
+            testSubject.PropertyChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+
+            RaiseStoreIssuesChangedEvent(store, Mock.Of<IAnalysisIssueVisualization>());
+
+            callCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.PropertyName.Should().Be(nameof(testSubject.HasServerIssues));
+
+            callCount = 0;
+            RaiseStoreIssuesChangedEvent(store);
+
+            callCount.Should().Be(1);
+            suppliedArgs.Should().NotBeNull();
+            suppliedArgs.PropertyName.Should().Be(nameof(testSubject.HasServerIssues));
         }
 
         private static TaintIssuesControlViewModel CreateTestSubject(
