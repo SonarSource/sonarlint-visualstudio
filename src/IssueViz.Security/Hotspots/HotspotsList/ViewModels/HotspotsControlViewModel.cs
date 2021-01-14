@@ -29,6 +29,7 @@ using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels
 {
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
     internal sealed class HotspotsControlViewModel : IHotspotsControlViewModel, INotifyPropertyChanged
     {
         private readonly object Lock = new object();
-        private readonly IHotspotsSelectionService selectionService;
+        private readonly IIssueSelectionService selectionService;
         private readonly IHotspotsStore store;
 
         public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
@@ -59,12 +60,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         public HotspotsControlViewModel(IHotspotsStore hotspotsStore,
             ILocationNavigator locationNavigator,
-            IHotspotsSelectionService selectionService)
+            IIssueSelectionService selectionService)
         {
             AllowMultiThreadedAccessToHotspotsList();
 
             this.selectionService = selectionService;
-            selectionService.SelectionChanged += SelectionService_SelectionChanged;
+            selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
             this.store = hotspotsStore;
             store.IssuesChanged += Store_IssuesChanged;
@@ -113,16 +114,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             UpdateHotspotsList();
         }
 
-        private void SelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void SelectionService_SelectionChanged(object sender, EventArgs e)
         {
-            SelectedHotspot = Hotspots.FirstOrDefault(x => x.Hotspot == e.SelectedHotspot);
+            SelectedHotspot = Hotspots.FirstOrDefault(x => x.Hotspot == selectionService.SelectedIssue);
             NotifyPropertyChanged(nameof(SelectedHotspot));
         }
 
         public void Dispose()
         {
             store.IssuesChanged -= Store_IssuesChanged;
-            selectionService.SelectionChanged -= SelectionService_SelectionChanged;
+            selectionService.SelectedIssueChanged -= SelectionService_SelectionChanged;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
