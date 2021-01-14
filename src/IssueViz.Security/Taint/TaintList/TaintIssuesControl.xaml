@@ -69,9 +69,7 @@
                     <LineBreak/>
                 </TextBlock>
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
-                    <Run>SonarLint Taint Vulnerabilities are available in Connected Mode for SonarCloud and SonarQube version 8.6 or higher.</Run>
-                    <LineBreak/>
-                    <Run>Please ensure that you are connected to a supported server and that taint vulnerabilities exist in your Sonar project.</Run>
+                    <Run>Please ensure that your solution is bound to a Sonar project that contains taint vulnerabilities.</Run>
                 </TextBlock>
                 <TextBlock Style="{StaticResource OverlayTextBlockStyle}">
                     <Hyperlink Command="{Binding ShowDocumentationCommand}">
