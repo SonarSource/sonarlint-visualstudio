@@ -37,10 +37,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
         private const string ToolWindowIdAsString = "537833A5-E0F1-4405-821D-D83D89370B78";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
 
+        private TaintIssuesControl control;
+
         public TaintToolWindow(IServiceProvider serviceProvider)
         {
-            Caption = Resources.TaintToolWindowCaption;
-
             var componentModel = serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
 
             var viewModel = new TaintIssuesControlViewModel(
@@ -52,7 +52,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<ITelemetryManager>()
             );
 
-            Content = new TaintIssuesControl(viewModel);
+            Initialize(viewModel);
+        }
+
+        internal /* for testing */ TaintToolWindow(ITaintIssuesControlViewModel viewModel) =>
+            Initialize(viewModel);
+
+        private void Initialize(ITaintIssuesControlViewModel viewModel)
+        {
+            control = new TaintIssuesControl(viewModel);
+            control.ViewModel.PropertyChanged += OnPropertyChanged;
+            Caption = control.ViewModel.WindowCaption;
+            Content = control;
+        }
+
+        private void OnPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(ITaintIssuesControlViewModel.WindowCaption))
+            {
+                Caption = control.ViewModel.WindowCaption;
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                control.ViewModel.PropertyChanged -= OnPropertyChanged;
+            }
+
+            base.Dispose(disposing);
         }
     }
 }
