@@ -139,7 +139,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var issueViz = CreateIssueViz(Mock.Of<IAnalysisIssueLocationVisualization>());
 
-            VerifyFlowStepSelectionIsSet(issueViz, issueViz);
+            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
+            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
+
+            flowStepSelectionService.Reset();
+
+            testSubject.SelectedIssue = issueViz;
+
+            flowStepSelectionService.VerifySet(x => x.SelectedIssue = issueViz, Times.Once);
         }
 
         [TestMethod]
@@ -147,13 +154,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var issueViz = CreateIssueViz();
 
-            VerifyFlowStepSelectionIsSet(issueViz, null);
+            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
+            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
+
+            flowStepSelectionService.Reset();
+
+            testSubject.SelectedIssue = issueViz;
+
+            flowStepSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
         }
 
         [TestMethod]
         public void SetSelectedIssue_IssueIsNull_FlowStepSelectionIsCleared()
         {
-            VerifyFlowStepSelectionIsSet(null, null);
+            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
+            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
+
+            var oldSelection = CreateIssueViz();
+            testSubject.SelectedIssue = oldSelection;
+
+            flowStepSelectionService.Reset();
+            flowStepSelectionService.SetupGet(x => x.SelectedIssue).Returns(oldSelection);
+
+            testSubject.SelectedIssue = null;
+
+            flowStepSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
         }
 
         [TestMethod]
@@ -172,11 +197,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             var callCount = 0;
             testSubject.SelectedIssueChanged += (sender, args) => callCount++;
 
-            flowStepSelectionService.Raise(x => x.SelectionChanged += null, null,
-                new SelectionChangedEventArgs(SelectionChangeLevel.Issue,
-                    newSelection,
-                    null,
-                    null));
+            SetFlowStepSelection(flowStepSelectionService, newSelection);
 
             testSubject.SelectedIssue.Should().Be(newSelection);
             callCount.Should().Be(1);
@@ -191,28 +212,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
 
             var newSelection = CreateIssueViz(Mock.Of<IAnalysisIssueLocationVisualization>());
 
-            flowStepSelectionService.Raise(x => x.SelectionChanged += null, null,
-                new SelectionChangedEventArgs(SelectionChangeLevel.Issue,
-                    newSelection,
-                    null,
-                    null));
+            SetFlowStepSelection(flowStepSelectionService, newSelection);
 
             testSubject.SelectedIssue.Should().Be(newSelection);
 
             flowStepSelectionService.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
-        }
-
-        private void VerifyFlowStepSelectionIsSet(IAnalysisIssueVisualization originalSelection, IAnalysisIssueVisualization expectedFlowStepSelection)
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.Reset();
-
-            testSubject.SelectedIssue = originalSelection;
-
-            flowStepSelectionService.VerifySet(x => x.SelectedIssue = expectedFlowStepSelection, Times.Once);
-            flowStepSelectionService.VerifyNoOtherCalls();
         }
 
         private IAnalysisIssueVisualization CreateIssueViz(params IAnalysisIssueLocationVisualization[] locationVizs)
@@ -231,6 +235,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             flowStepSelectionService ??= Mock.Of<IAnalysisIssueSelectionService>();
 
             return new IssueSelectionService(flowStepSelectionService);
+        }
+
+        private void SetFlowStepSelection(Mock<IAnalysisIssueSelectionService> flowStepSelectionService, IAnalysisIssueVisualization selectedIssue)
+        {
+            flowStepSelectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue);
+
+            flowStepSelectionService.Raise(x => x.SelectionChanged += null, null,
+                new SelectionChangedEventArgs(SelectionChangeLevel.Issue,
+                    selectedIssue,
+                    null,
+                    null));
         }
     }
 }

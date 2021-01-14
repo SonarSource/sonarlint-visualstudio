@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         event EventHandler SelectedIssueChanged;
 
         IAnalysisIssueVisualization SelectedIssue { get; set; }
-
     }
 
     [Export(typeof(IIssueSelectionService))]
@@ -59,27 +58,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             get => selectedIssue;
             set
             {
-                SetSelection(value);
+                var selectionChanged = selectedIssue != value;
 
-                var hasSecondaryLocations = value != null && value.Flows.SelectMany(x => x.Locations).Any();
-                flowStepSelectionService.SelectedIssue = hasSecondaryLocations ? value : null;
-            }
-        }
+                if (selectionChanged)
+                {
+                    selectedIssue = value;
+                    SelectedIssueChanged?.Invoke(this, EventArgs.Empty);
 
-        private void SetSelection(IAnalysisIssueVisualization issue)
-        {
-            var selectionChanged = selectedIssue != issue;
-
-            if (selectionChanged)
-            {
-                selectedIssue = issue;
-                SelectedIssueChanged?.Invoke(this, EventArgs.Empty);
+                    if (flowStepSelectionService.SelectedIssue != value)
+                    {
+                        var hasSecondaryLocations = value != null && value.Flows.SelectMany(x => x.Locations).Any();
+                        flowStepSelectionService.SelectedIssue = hasSecondaryLocations ? value : null;
+                    }
+                }
             }
         }
 
         private void FlowStepSelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SetSelection(e.SelectedIssue);
+            SelectedIssue = e.SelectedIssue;
         }
 
         public void Dispose()
