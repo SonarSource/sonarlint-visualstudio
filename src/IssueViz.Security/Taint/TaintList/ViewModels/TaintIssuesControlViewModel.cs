@@ -21,6 +21,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -43,7 +44,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         ICommand ShowInBrowserCommand { get; }
 
+        ICommand ShowDocumentationCommand { get; }
+
         ICollectionView IssuesView { get; }
+
+        bool HasServerIssues { get; }
     }
 
     /// <summary>
@@ -66,6 +71,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public ICommand NavigateCommand { get; private set; }
 
         public ICommand ShowInBrowserCommand { get; private set; }
+
+        public ICommand ShowDocumentationCommand { get; private set; }
+
+        public bool HasServerIssues => unfilteredIssues.Any();
 
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
@@ -152,6 +161,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                     showInBrowserService.ShowIssue(taintIssue.IssueKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
+
+            ShowDocumentationCommand = new DelegateCommand(parameter => showInBrowserService.ShowDocumentation());
         }
 
         private void UpdateIssues()
@@ -162,6 +173,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             {
                 unfilteredIssues.Add(new TaintIssueViewModel(issueViz));
             }
+
+            NotifyPropertyChanged(nameof(HasServerIssues));
         }
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)

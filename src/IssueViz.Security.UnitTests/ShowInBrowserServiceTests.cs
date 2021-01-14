@@ -91,7 +91,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, showInBrowserAction.Object);
             testSubject.ShowIssue(issueKey);
 
-            showInBrowserAction.Verify(x=> x("http://localhost:123/expected/issue?id=1"));
+            showInBrowserAction.Verify(x=> x("http://localhost:123/expected/issue?id=1"), Times.Once);
+            showInBrowserAction.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowDocumentation_BrowserOpened()
+        {
+            var showInBrowserAction = new Mock<Action<string>>();
+
+            var testSubject = CreateTestSubject(showInBrowserAction: showInBrowserAction.Object);
+
+            testSubject.ShowDocumentation();
+
+            showInBrowserAction.Verify(x => x("https://github.com/SonarSource/sonarlint-visualstudio/wiki"), Times.Once());
+            showInBrowserAction.VerifyNoOtherCalls();
         }
 
         private ShowInBrowserService CreateTestSubject(ISonarQubeService sonarQubeService = null,
