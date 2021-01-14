@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             MefTestHelpers.CheckTypeCanBeImported<SelectedVisualizationValidityMonitor, ISelectedVisualizationValidityMonitor>(null, new[]
             {
-                MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>()),
+                MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>()),
                 MefTestHelpers.CreateExport<IIssueLocationStoreAggregator>(Mock.Of<IIssueLocationStoreAggregator>())
             });
         }
@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [TestMethod]
         public void IssuesChanged_NoSelectedIssueViz_NoChanges()
         {
-            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
             SetupSelectedIssue(selectionService, null);
 
             var locationStoreAggregator = new Mock<IIssueLocationStoreAggregator>();
@@ -87,7 +87,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [TestMethod]
         public void IssuesChanged_SelectedIssueVizIsInADifferentFile_NoChanges()
         {
-            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
             SetupSelectedIssue(selectionService, CreateIssueViz("someFile.cpp"));
 
             var locationStoreAggregator = new Mock<IIssueLocationStoreAggregator>();
@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var issueViz = CreateIssueViz("someFile.cpp");
 
-            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
             SetupSelectedIssue(selectionService, issueViz);
 
             var locationStoreAggregator = new Mock<IIssueLocationStoreAggregator>();
@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var issueViz = CreateIssueViz("someFile.cpp");
 
-            var selectionService = new Mock<IAnalysisIssueSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
             SetupSelectedIssue(selectionService, issueViz);
 
             var locationStoreAggregator = new Mock<IIssueLocationStoreAggregator>();
@@ -135,9 +135,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             VerifySelectedIssueCleared(selectionService);
         }
 
-        private SelectedVisualizationValidityMonitor CreateTestSubject(IIssueLocationStoreAggregator storeAggregator, IAnalysisIssueSelectionService selectionService = null)
+        private SelectedVisualizationValidityMonitor CreateTestSubject(IIssueLocationStoreAggregator storeAggregator, IIssueSelectionService selectionService = null)
         {
-            selectionService ??= Mock.Of<IAnalysisIssueSelectionService>();
+            selectionService ??= Mock.Of<IIssueSelectionService>();
             return new SelectedVisualizationValidityMonitor(selectionService, storeAggregator);
         }
 
@@ -146,17 +146,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             locationStoreAggregator.Raise(x => x.IssuesChanged += null, new IssuesChangedEventArgs(new[] { filePath }));
         }
 
-        private static void SetupSelectedIssue(Mock<IAnalysisIssueSelectionService> selectionService, IAnalysisIssueVisualization selectedIssue)
+        private static void SetupSelectedIssue(Mock<IIssueSelectionService> selectionService, IAnalysisIssueVisualization selectedIssue)
         {
             selectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue);
         }
 
-        private static void VerifySelectedIssueNotChanged(Mock<IAnalysisIssueSelectionService> selectionService)
+        private static void VerifySelectedIssueNotChanged(Mock<IIssueSelectionService> selectionService)
         {
             selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
         }
 
-        private static void VerifySelectedIssueCleared(Mock<IAnalysisIssueSelectionService> selectionService)
+        private static void VerifySelectedIssueCleared(Mock<IIssueSelectionService> selectionService)
         {
             selectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
         }
