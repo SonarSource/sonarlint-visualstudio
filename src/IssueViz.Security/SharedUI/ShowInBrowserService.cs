@@ -29,6 +29,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
     internal interface IShowInBrowserService
     {
         void ShowIssue(string issueKey);
+
+        void ShowDocumentation();
     }
 
     [Export(typeof(IShowInBrowserService))]
@@ -72,6 +74,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
             var viewIssueUrl = sonarQubeService.GetViewIssueUrl(projectKey, issueKey);
 
             showInBrowser(viewIssueUrl.ToString());
+        }
+
+        public void ShowDocumentation()
+        {
+            showInBrowser("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
         }
     }
 }
