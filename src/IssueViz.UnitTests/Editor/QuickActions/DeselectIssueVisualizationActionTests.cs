@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
             selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
 
-            var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            var selectionServiceMock = new Mock<IIssueSelectionService>();
             selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
             selectionServiceMock.SetupSet(x => x.SelectedIssue = null);
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             var selectedIssueMock = new Mock<IAnalysisIssueVisualization>();
             selectedIssueMock.Setup(x => x.RuleId).Returns("test rule id");
 
-            var selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
+            var selectionServiceMock = new Mock<IIssueSelectionService>();
             selectionServiceMock.SetupGet(x => x.SelectedIssue).Returns(selectedIssueMock.Object);
 
             var testSubject = new DeselectIssueVisualizationAction(selectionServiceMock.Object);

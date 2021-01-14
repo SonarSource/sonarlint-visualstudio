@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
             {
                 MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
                 MefTestHelpers.CreateExport<IBufferTagAggregatorFactoryService>(Mock.Of<IBufferTagAggregatorFactoryService>()),
-                MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>()),
+                MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>()),
                 MefTestHelpers.CreateExport<ILightBulbBroker>(Mock.Of<ILightBulbBroker>())
             });
         }
@@ -94,11 +94,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.QuickAction
                 .Setup(x => x.CreateTagAggregator<IIssueLocationTag>(buffer))
                 .Returns(Mock.Of<ITagAggregator<IIssueLocationTag>>());
 
-            var analysisIssueSelectionService = Mock.Of<IAnalysisIssueSelectionService>();
+            var selectionService = Mock.Of<IIssueSelectionService>();
             var serviceProvider = Mock.Of<IServiceProvider>();
             var lightBulbBroker = Mock.Of<ILightBulbBroker>();
 
-            return new IssueLocationActionsSourceProvider(serviceProvider, bufferTagAggregatorFactoryService.Object, analysisIssueSelectionService, lightBulbBroker);
+            return new IssueLocationActionsSourceProvider(serviceProvider, bufferTagAggregatorFactoryService.Object, selectionService, lightBulbBroker);
         }
     }
 }

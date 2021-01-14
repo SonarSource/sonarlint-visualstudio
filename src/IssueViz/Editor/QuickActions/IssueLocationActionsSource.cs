@@ -41,15 +41,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         private readonly ILightBulbBroker lightBulbBroker;
         private readonly IVsUIShell vsUiShell;
         private readonly ITextView textView;
-        private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IIssueSelectionService selectionService;
         private readonly ITagAggregator<IIssueLocationTag> issueLocationsTagAggregator;
         private readonly ITagAggregator<ISelectedIssueLocationTag> selectedIssueLocationsTagAggregator;
 
         public IssueLocationActionsSource(ILightBulbBroker lightBulbBroker, 
             IVsUIShell vsUiShell, 
             IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
-            ITextView textView, 
-            IAnalysisIssueSelectionService selectionService)
+            ITextView textView,
+            IIssueSelectionService selectionService)
         {
             this.lightBulbBroker = lightBulbBroker;
             this.vsUiShell = vsUiShell;

@@ -29,10 +29,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
     {
         internal IAnalysisIssueVisualization Issue { get; }
 
-        private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IIssueSelectionService selectionService;
         private readonly IVsUIShell vsUiShell;
 
-        public SelectIssueVisualizationAction(IVsUIShell vsUiShell, IAnalysisIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization)
+        public SelectIssueVisualizationAction(IVsUIShell vsUiShell, IIssueSelectionService selectionService, IAnalysisIssueVisualization issueVisualization)
         {
             this.vsUiShell = vsUiShell;
             this.selectionService = selectionService;

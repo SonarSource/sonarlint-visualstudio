@@ -37,14 +37,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
     internal class IssueLocationActionsSourceProvider : ISuggestedActionsSourceProvider
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
-        private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IIssueSelectionService selectionService;
         private readonly ILightBulbBroker lightBulbBroker;
         private readonly IVsUIShell vsUiShell;
 
         [ImportingConstructor]
         public IssueLocationActionsSourceProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
-            IAnalysisIssueSelectionService selectionService,
+            IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService,
+            IIssueSelectionService selectionService,
             ILightBulbBroker lightBulbBroker)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
