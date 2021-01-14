@@ -199,7 +199,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             // We'll show the default caption if:
             // * there are no underlying issues, or
-            // * there is not ana active document.
+            // * there is not an active document.
             // Otherwise, we'll add a suffix showing the number of issues in the active document.
             string suffix = null;
 
