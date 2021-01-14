@@ -21,6 +21,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.VisualStudio.PlatformUI;
@@ -36,7 +37,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels
 {
-    internal interface ITaintIssuesControlViewModel : IDisposable
+    internal interface ITaintIssuesControlViewModel : INotifyPropertyChanged, IDisposable
     {
         ICommand NavigateCommand { get; }
 
@@ -172,6 +173,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             store.IssuesChanged -= Store_IssuesChanged;
             activeDocumentTracker.OnDocumentFocused -= ActiveDocumentTracker_OnDocumentFocused;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
