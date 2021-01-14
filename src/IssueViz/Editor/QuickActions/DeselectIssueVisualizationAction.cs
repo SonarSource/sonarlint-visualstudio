@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
 {
     internal class DeselectIssueVisualizationAction : BaseSuggestedAction
     {
-        private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IIssueSelectionService selectionService;
 
         /// <summary>
         /// If the user quickly reopens the lightbulb after activating this action, there can be a race condition and this action can appear in the menu even though the issue has already been deselected.
@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.QuickActions
         /// </summary>
         private readonly string cachedSelectedIssueRuleId;
 
-        public DeselectIssueVisualizationAction(IAnalysisIssueSelectionService selectionService)
+        public DeselectIssueVisualizationAction(IIssueSelectionService selectionService)
         {
             this.selectionService = selectionService;
             cachedSelectedIssueRuleId = selectionService.SelectedIssue.RuleId;
