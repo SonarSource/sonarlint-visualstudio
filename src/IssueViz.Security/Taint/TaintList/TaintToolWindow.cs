@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
         private const string ToolWindowIdAsString = "537833A5-E0F1-4405-821D-D83D89370B78";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
 
-        private readonly TaintIssuesControl control;
+        private TaintIssuesControl control;
 
         public TaintToolWindow(IServiceProvider serviceProvider)
         {
@@ -52,9 +52,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<ITelemetryManager>()
             );
 
+            Initialize(viewModel);
+        }
+
+        internal /* for testing */ TaintToolWindow(ITaintIssuesControlViewModel viewModel) =>
+            Initialize(viewModel);
+
+        private void Initialize(ITaintIssuesControlViewModel viewModel)
+        {
             control = new TaintIssuesControl(viewModel);
             control.ViewModel.PropertyChanged += OnPropertyChanged;
-
             Caption = control.ViewModel.WindowCaption;
             Content = control;
         }
