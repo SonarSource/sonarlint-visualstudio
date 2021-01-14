@@ -49,6 +49,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         ICollectionView IssuesView { get; }
 
         bool HasServerIssues { get; }
+
+        string WindowCaption { get; }
     }
 
     /// <summary>
@@ -63,6 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly ITaintStore store;
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
+        private string windowCaption;
 
         private readonly ObservableCollection<ITaintIssueViewModel> unfilteredIssues;
 
@@ -75,6 +78,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         public ICommand ShowDocumentationCommand { get; private set; }
 
         public bool HasServerIssues => unfilteredIssues.Any();
+
+        public string WindowCaption
+        {
+            get { return windowCaption; }
+            set
+            {
+                if (windowCaption != value)
+                {
+                    windowCaption = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
@@ -103,12 +119,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
             SetDefaultSortOrder();
+            UpdateCaption();
         }
 
         private void ActiveDocumentTracker_OnDocumentFocused(object sender, DocumentFocusedEventArgs e)
         {
             activeDocumentFilePath = e.TextDocument?.FilePath;
             ApplyViewFilter(ActiveDocumentFilter);
+            UpdateCaption();
         }
 
         private void ApplyViewFilter(Predicate<object> filter) =>
@@ -177,9 +195,29 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             NotifyPropertyChanged(nameof(HasServerIssues));
         }
 
+        private void UpdateCaption()
+        {
+            // We'll show the default caption if:
+            // * there are no underlying issues, or
+            // * there is not an active document.
+            // Otherwise, we'll add a suffix showing the number of issues in the active document.
+            string suffix = null;
+
+            if (unfilteredIssues.Count != 0 && activeDocumentFilePath != null)
+            {
+                suffix = $" ({GetFilteredIssuesCount()})";
+            }
+
+            WindowCaption = Resources.TaintToolWindowCaption + suffix;
+        }
+
+        private int GetFilteredIssuesCount() =>
+            IssuesView.OfType<object>().Count();
+
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
             UpdateIssues();
+            UpdateCaption();
         }
 
         public void Dispose()
