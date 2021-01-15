@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
@@ -35,8 +36,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         private Mock<IWpfTableControl> mockTable;
         private Mock<ITableEntryHandle> mockSelectedItem;
         private Mock<ITableEntriesSnapshot> mockSnapshot;
-
-        private Mock<IIssueTablesSelectionMonitor> mockMonitor;
+        private Mock<IIssueSelectionService> mockSelectionService;
         private VSTableEventProcessorProvider.EventProcessor testSubject;
 
         // Note: this must be a field as we are using it as an out parameter
@@ -48,29 +48,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             mockTable = new Mock<IWpfTableControl>();
             mockSelectedItem = new Mock<ITableEntryHandle>();
             mockSnapshot = new Mock<ITableEntriesSnapshot>();
+            mockSelectionService = new Mock<IIssueSelectionService>();
 
-            mockMonitor = new Mock<IIssueTablesSelectionMonitor>();
-
-            testSubject = new VSTableEventProcessorProvider.EventProcessor(mockTable.Object, mockMonitor.Object);
+            testSubject = new VSTableEventProcessorProvider.EventProcessor(mockTable.Object, mockSelectionService.Object);
         }
 
         [TestMethod]
         [DataRow(0)]
         [DataRow(2)]
-        public void SelectionChanged_TooManyOrTooFewSelectedItems_PassesNullToMonitor(int numberOfSelectedItems)
+        public void SelectionChanged_TooManyOrTooFewSelectedItems_PassesNullToSelectionService(int numberOfSelectedItems)
         {
             // Set up the first check to fail
             SetSelectedEntryCount(numberOfSelectedItems);
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(null);
+            CheckSelectionServiceCalledOnce(null);
 
             SanityCheckSnapshotNotAccessed();
         }
 
         [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetSnapshotReturnsFalse_PassesNullToMonitor()
+        public void SelectionChanged_SingleItem_TryGetSnapshotReturnsFalse_PassesNullToSelectionService()
         {
             // Set up preceeding checks to succeed
             SetSelectedEntryCount(1);
@@ -80,13 +79,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(null);
+            CheckSelectionServiceCalledOnce(null);
 
             SanityCheckSnapshotNotAccessed();
         }
 
         [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetValueReturnsFalse_PassesNullToMonitor()
+        public void SelectionChanged_SingleItem_TryGetValueReturnsFalse_PassesNullToSelectionService()
         {
             // Set up preceeding checks to succeed
             SetSelectedEntryCount(1);
@@ -97,13 +96,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(null);
+            CheckSelectionServiceCalledOnce(null);
 
             SanityCheckSnapshotAccessedOnce();
         }
 
         [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueButObjectIsNull_PassesNullToMonitor()
+        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueButObjectIsNull_PassesNullToSelectionService()
         {
             // Set up preceeding checks to succeed
             SetSelectedEntryCount(1);
@@ -114,13 +113,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(null);
+            CheckSelectionServiceCalledOnce(null);
 
             SanityCheckSnapshotAccessedOnce();
         }
 
         [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueButValueIsNotIssue_PassesNullToMonitor()
+        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueButValueIsNotIssue_PassesNullToSelectionService()
         {
             // Set up preceeding checks to succeed
             SetSelectedEntryCount(1);
@@ -131,48 +130,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(null);
+            CheckSelectionServiceCalledOnce(null);
 
             SanityCheckSnapshotAccessedOnce();
         }
 
         [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueAndValueIsIssueButWithoutSecondaryLocations_PassesNullToMonitor()
+        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueAndValueIsIssue_PassesIssueToSelectionService()
         {
             // Set up all checks to succeed
             SetSelectedEntryCount(1);
             SetupTryGetSnapshot(true);
 
-            var issueWithoutLocations = new Mock<IAnalysisIssueVisualization>();
-            issueWithoutLocations.Setup(x => x.Flows).Returns(Array.Empty<IAnalysisIssueFlowVisualization>());
+            var issue = Mock.Of<IAnalysisIssueVisualization>();
 
-            SetupTryGetValue(issueWithoutLocations, true);
-
-            SimulatePostProcessEvent();
-
-            CheckMonitorCalledOnce(null);
-
-            SanityCheckSnapshotAccessedOnce();
-        }
-
-        [TestMethod]
-        public void SelectionChanged_SingleItem_TryGetValueReturnsTrueAndValueIsIssueWithSecondaryLocations_PassesIssueToMonitor()
-        {
-            // Set up all checks to succeed
-            SetSelectedEntryCount(1);
-            SetupTryGetSnapshot(true);
-
-            var flowWithLocation = new Mock<IAnalysisIssueFlowVisualization>();
-            flowWithLocation.Setup(x => x.Locations).Returns(new[] {Mock.Of<IAnalysisIssueLocationVisualization>()});
-
-            var issueWithLocations = new Mock<IAnalysisIssueVisualization>();
-            issueWithLocations.Setup(x => x.Flows).Returns(new[] {flowWithLocation.Object});
-
-            SetupTryGetValue(issueWithLocations.Object, true);
+            SetupTryGetValue(issue, true);
 
             SimulatePostProcessEvent();
 
-            CheckMonitorCalledOnce(issueWithLocations.Object);
+            CheckSelectionServiceCalledOnce(issue);
 
             SanityCheckSnapshotAccessedOnce();
         }
@@ -182,7 +158,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         {
             mockTable.Setup(x => x.SelectedEntries).Throws(new InvalidOperationException());
 
-            CheckDoesNotThrowOrCallMonitor(SimulatePostProcessEvent);
+            CheckDoesNotThrowOrCallSelectionService(SimulatePostProcessEvent);
         }
 
         [TestMethod]
@@ -193,7 +169,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             Action act = SimulatePostProcessEvent;
 
             act.Should().ThrowExactly<StackOverflowException>();
-            CheckMonitorIsNotCalled();
+            CheckSelectionServiceIsNotCalled();
         }
 
         [TestMethod]
@@ -203,52 +179,52 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
 
             var tableControlProcess = ((ITableControlEventProcessor)testSubject);
 
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.KeyDown(null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.KeyUp(null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.KeyDown(null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.KeyUp(null));
 
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragEnter(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragLeave(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragLeave(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDragOver(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessDrop(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessGiveFeedback(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseEnter(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeave(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeftButtonDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseLeftButtonUp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseMove(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseRightButtonUp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseUp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessMouseWheel(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessNavigate(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessNavigateToHelp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PostprocessQueryContinueDrag(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessDragEnter(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessDragOver(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessDrop(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessGiveFeedback(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseDown(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseEnter(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseLeave(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseLeftButtonDown(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseLeftButtonUp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseMove(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseRightButtonUp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseUp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessMouseWheel(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessNavigate(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessNavigateToHelp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PostprocessQueryContinueDrag(null, null));
 
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragEnter(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragLeave(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragLeave(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDragOver(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessDrop(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessGiveFeedback(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseEnter(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeave(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeftButtonDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseLeftButtonUp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseMove(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonDown(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseRightButtonUp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseUp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessMouseWheel(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessNavigate(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessNavigateToHelp(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessQueryContinueDrag(null, null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreprocessSelectionChanged(null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessDragEnter(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessDragLeave(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessDragOver(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessDrop(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessGiveFeedback(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseDown(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseEnter(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseLeave(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseLeftButtonDown(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseLeftButtonUp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseMove(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseRightButtonDown(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseRightButtonUp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseUp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessMouseWheel(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessNavigate(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessNavigateToHelp(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessQueryContinueDrag(null, null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreprocessSelectionChanged(null));
 
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreviewKeyDown(null));
-            CheckDoesNotThrowOrCallMonitor(() => tableControlProcess.PreviewKeyUp(null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreviewKeyDown(null));
+            CheckDoesNotThrowOrCallSelectionService(() => tableControlProcess.PreviewKeyUp(null));
         }
 
         private void SetSelectedEntryCount(int numberOfEntries)
@@ -275,16 +251,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
             ((ITableControlEventProcessor)testSubject).PostprocessSelectionChanged(new TableSelectionChangedEventArgs(null));
         }
 
-        private void CheckMonitorCalledOnce(IAnalysisIssueVisualization expected)
+        private void CheckSelectionServiceCalledOnce(IAnalysisIssueVisualization expected)
         {
-            mockMonitor.Verify(x => x.SelectionChanged(expected), Times.Once);
-            mockMonitor.VerifyNoOtherCalls();
+            mockSelectionService.VerifySet(x => x.SelectedIssue = expected, Times.Once);
+            mockSelectionService.VerifyNoOtherCalls();
         }
 
-        private void CheckMonitorIsNotCalled()
+        private void CheckSelectionServiceIsNotCalled()
         {
-            mockMonitor.Verify(x => x.SelectionChanged(It.IsAny<IAnalysisIssueVisualization>()), Times.Never);
-            mockMonitor.VerifyNoOtherCalls();
+            mockSelectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
+            mockSelectionService.VerifyNoOtherCalls();
         }
 
         // Sanity check that a test didn't get as far as using the snapshot
@@ -295,10 +271,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         private void SanityCheckSnapshotAccessedOnce() =>
             mockSnapshot.Invocations.Count.Should().Be(1);
 
-        private void CheckDoesNotThrowOrCallMonitor(Action act)
+        private void CheckDoesNotThrowOrCallSelectionService(Action act)
         {
             act.Should().NotThrow();
-            CheckMonitorIsNotCalled();
+            CheckSelectionServiceIsNotCalled();
         }
     }
 }
