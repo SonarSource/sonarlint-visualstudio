@@ -40,35 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
                     MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>())
                 });
         }
-
-        [TestMethod]
-        public void Ctor_RegisterToFlowStepSelectionEvent()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            flowStepSelectionService.SetupAdd(x => x.SelectionChanged += null);
-
-            CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.VerifyAdd(x=> x.SelectionChanged += It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
-            flowStepSelectionService.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Dispose_UnregisterFromFlowStepSelectionEvent()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.Reset();
-            flowStepSelectionService.SetupRemove(x => x.SelectionChanged -= null);
-
-            testSubject.Dispose();
-
-            flowStepSelectionService.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
-            flowStepSelectionService.VerifyNoOtherCalls();
-        }
-
+      
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
@@ -76,7 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var testSubject = CreateTestSubject();
 
-            var issueViz = isSetToNull ? null : CreateIssueViz();
+            var issueViz = isSetToNull ? null : Mock.Of<IAnalysisIssueVisualization>();
             testSubject.SelectedIssue = issueViz;
 
             testSubject.SelectedIssue.Should().Be(issueViz);
@@ -89,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var testSubject = CreateTestSubject();
 
-            var issueViz = isSetToNull ? null : CreateIssueViz();
+            var issueViz = isSetToNull ? null : Mock.Of<IAnalysisIssueVisualization>();
 
             Action act = () => testSubject.SelectedIssue = issueViz;
             act.Should().NotThrow();
@@ -100,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         [DataRow(false)]
         public void SetSelectedIssue_SameValue_SubscribersNotNotified(bool isSetToNull)
         {
-            var oldSelection = isSetToNull ? null : CreateIssueViz();
+            var oldSelection = isSetToNull ? null : Mock.Of<IAnalysisIssueVisualization>();
 
             var testSubject = CreateTestSubject();
             
@@ -121,8 +93,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
         {
             var testSubject = CreateTestSubject();
 
-            var oldSelection = isSetToNull ? CreateIssueViz() : null;
-            var newSelection = isSetToNull ? null : CreateIssueViz();
+            var oldSelection = isSetToNull ? Mock.Of<IAnalysisIssueVisualization>() : null;
+            var newSelection = isSetToNull ? null : Mock.Of<IAnalysisIssueVisualization>();
 
             testSubject.SelectedIssue = oldSelection;
 
@@ -134,118 +106,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             callCount.Should().Be(1);
         }
 
-        [TestMethod]
-        public void SetSelectedIssue_IssueHasSecondaryLocations_FlowStepSelectionIsSet()
+        private IssueSelectionService CreateTestSubject()
         {
-            var issueViz = CreateIssueViz(Mock.Of<IAnalysisIssueLocationVisualization>());
-
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.Reset();
-
-            testSubject.SelectedIssue = issueViz;
-
-            flowStepSelectionService.VerifySet(x => x.SelectedIssue = issueViz, Times.Once);
-        }
-
-        [TestMethod]
-        public void SetSelectedIssue_IssueHasNoSecondaryLocations_FlowStepSelectionIsCleared()
-        {
-            var issueViz = CreateIssueViz();
-
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.Reset();
-
-            testSubject.SelectedIssue = issueViz;
-
-            flowStepSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
-        }
-
-        [TestMethod]
-        public void SetSelectedIssue_IssueIsNull_FlowStepSelectionIsCleared()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            var oldSelection = CreateIssueViz();
-            testSubject.SelectedIssue = oldSelection;
-
-            flowStepSelectionService.Reset();
-            flowStepSelectionService.SetupGet(x => x.SelectedIssue).Returns(oldSelection);
-
-            testSubject.SelectedIssue = null;
-
-            flowStepSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void FlowStepSelectionChanges_SelectedIssueIsSetAndSubscribersNotified(bool isSetToNull)
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            var oldSelection = isSetToNull ? CreateIssueViz() : null;
-            var newSelection = isSetToNull ? null : CreateIssueViz();
-
-            testSubject.SelectedIssue = oldSelection;
-
-            var callCount = 0;
-            testSubject.SelectedIssueChanged += (sender, args) => callCount++;
-
-            SetFlowStepSelection(flowStepSelectionService, newSelection);
-
-            testSubject.SelectedIssue.Should().Be(newSelection);
-            callCount.Should().Be(1);
-        }
-
-        [TestMethod]
-        [Description("Verify that there is no infinite loop")]
-        public void FlowStepSelectionChanges_FlowStepSelectionServiceNotCalledAgain()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            var newSelection = CreateIssueViz(Mock.Of<IAnalysisIssueLocationVisualization>());
-
-            SetFlowStepSelection(flowStepSelectionService, newSelection);
-
-            testSubject.SelectedIssue.Should().Be(newSelection);
-
-            flowStepSelectionService.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
-        }
-
-        private IAnalysisIssueVisualization CreateIssueViz(params IAnalysisIssueLocationVisualization[] locationVizs)
-        {
-            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
-            flowViz.SetupGet(x => x.Locations).Returns(locationVizs);
-
-            var issueViz = new Mock<IAnalysisIssueVisualization>();
-            issueViz.SetupGet(x => x.Flows).Returns(new[] {flowViz.Object});
-
-            return issueViz.Object;
-        }
-
-        private IssueSelectionService CreateTestSubject(IAnalysisIssueSelectionService flowStepSelectionService = null)
-        {
-            flowStepSelectionService ??= Mock.Of<IAnalysisIssueSelectionService>();
-
-            return new IssueSelectionService(flowStepSelectionService);
-        }
-
-        private void SetFlowStepSelection(Mock<IAnalysisIssueSelectionService> flowStepSelectionService, IAnalysisIssueVisualization selectedIssue)
-        {
-            flowStepSelectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue);
-
-            flowStepSelectionService.Raise(x => x.SelectionChanged += null, null,
-                new SelectionChangedEventArgs(SelectionChangeLevel.Issue,
-                    selectedIssue,
-                    null,
-                    null));
+            return new IssueSelectionService();
         }
     }
 }
