@@ -25,7 +25,7 @@ using SonarQube.Client.Logging;
 
 namespace SonarQube.Client.Requests
 {
-    public class RequestFactory
+    internal class RequestFactory : IRequestFactory
     {
         /// <summary>
         /// Map between request type and a list with versioned request implementation factories.
@@ -94,17 +94,18 @@ namespace SonarQube.Client.Requests
         /// Creates a new TRequest implementation for the specified SonarQube version.
         /// </summary>
         /// <typeparam name="TRequest">The type of the request implementation to create.</typeparam>
-        /// <param name="version">
+        /// <param name="serverInfo">
         /// SonarQube version to return a request implementation for. When the provided value is null
         /// returns the registered implementation with the highest version number.
         /// </param>
         /// <returns>New the newest TRequest implementation for the specified SonarQube version.</returns>
-        public TRequest Create<TRequest>(Version version)
+        public TRequest Create<TRequest>(ServerInfo serverInfo)
             where TRequest : IRequest
         {
             SortedList<Version, Func<IRequest>> map;
             if (registrations.TryGetValue(typeof(TRequest), out map))
             {
+                var version = serverInfo?.Version;
                 logger.Debug($"Looking up implementation of '{typeof(TRequest).Name}' for version '{version}' on thread '{System.Threading.Thread.CurrentThread.ManagedThreadId}'");
 
                 var factory = map

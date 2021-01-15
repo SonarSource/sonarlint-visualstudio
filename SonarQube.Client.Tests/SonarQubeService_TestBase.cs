@@ -91,12 +91,14 @@ namespace SonarQube.Client.Tests
             // Sanity checks
             service.IsConnected.Should().BeTrue();
 
-            service.SonarQubeVersion.Should().Be(new Version(version));
+            service.ServerInfo.Version.Should().Be(new Version(version));
             logger.InfoMessages.Should().Contain(
                 x => x.StartsWith($"Connecting to '{serverUrl}", StringComparison.OrdinalIgnoreCase));
 
+            var serverTypeText = service.ServerInfo.ServerType == ServerType.SonarCloud ? "SonarCloud" : "SonarQube";
+
             logger.InfoMessages.Should().Contain(
-                x => x.StartsWith($"Connected to SonarQube '{version}'."));
+                x => x.StartsWith($"Connected to {serverTypeText} '{version}'."));
         }
 
         protected void ResetService()
