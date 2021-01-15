@@ -40,14 +40,14 @@ namespace SonarQube.Client.Tests
             SetupRequest("api/authentication/validate", "{ \"valid\": true }");
 
             service.IsConnected.Should().BeFalse();
-            service.SonarQubeVersion.Should().BeNull();
+            service.ServerInfo.Should().BeNull();
 
             await service.ConnectAsync(
                 new ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
             service.IsConnected.Should().BeTrue();
-            service.SonarQubeVersion.Should().Be(new Version("3.3.0.0"));
+            service.ServerInfo.Version.Should().Be(new Version("3.3.0.0"));
         }
 
         [TestMethod]
@@ -66,7 +66,7 @@ namespace SonarQube.Client.Tests
                 new ConnectionInformation(new Uri(inputUrl), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
-            service.IsSonarCloud.Should().BeFalse();
+            service.ServerInfo.ServerType.Should().Be(ServerType.SonarQube);
         }
 
         [TestMethod]
@@ -86,7 +86,7 @@ namespace SonarQube.Client.Tests
                 new ConnectionInformation(new Uri(inputUrl), "user", "pass".ToSecureString()),
                 CancellationToken.None);
 
-            service.IsSonarCloud.Should().BeTrue();
+            service.ServerInfo.ServerType.Should().Be(ServerType.SonarCloud);
         }
 
         [TestMethod]
@@ -105,7 +105,7 @@ namespace SonarQube.Client.Tests
 
             // Assert
             service.IsConnected.Should().BeFalse();
-            service.SonarQubeVersion.Should().BeNull();
+            service.ServerInfo.Should().BeNull();
             disposed.Should().BeFalse();
         }
 
@@ -123,7 +123,7 @@ namespace SonarQube.Client.Tests
 
             // Assert
             service.IsConnected.Should().BeFalse();
-            service.SonarQubeVersion.Should().BeNull();
+            service.ServerInfo.Should().BeNull();
             disposed.Should().BeTrue();
         }
     }

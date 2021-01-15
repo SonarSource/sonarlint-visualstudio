@@ -22,7 +22,7 @@ using SonarQube.Client.Requests;
 
 namespace SonarQube.Client.Api
 {
-    public static class DefaultConfiguration
+    internal static class DefaultConfiguration
     {
         public static RequestFactory Configure(RequestFactory requestFactory)
         {

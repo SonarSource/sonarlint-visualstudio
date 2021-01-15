@@ -42,7 +42,7 @@ namespace SonarQube.Client.Tests.Requests
         public void Create_Throws_When_Not_Registered()
         {
             var factory = new RequestFactory(logger);
-            Action action = () => factory.Create<ITestRequest>(new Version(1, 0, 0));
+            Action action = () => factory.Create<ITestRequest>(CreateServerInfo("1.0.0"));
             action.Should().ThrowExactly<InvalidOperationException>()
                 .WithMessage("Could not find factory for 'ITestRequest'.");
 
@@ -55,7 +55,7 @@ namespace SonarQube.Client.Tests.Requests
             var factory = new RequestFactory(logger);
             factory.RegisterRequest<ITestRequest, TestRequest1>("2.0.0");
 
-            Action action = () => factory.Create<ITestRequest>(new Version(1, 0, 0));
+            Action action = () => factory.Create<ITestRequest>(CreateServerInfo("1.0.0"));
             action.Should().ThrowExactly<InvalidOperationException>()
                 .WithMessage("Could not find compatible implementation of 'ITestRequest' for SonarQube 1.0.0.");
 
@@ -68,7 +68,7 @@ namespace SonarQube.Client.Tests.Requests
             var factory = new RequestFactory(logger);
             factory.RegisterRequest<ITestRequest, TestRequest1>("1.1.0");
 
-            factory.Create<ITestRequest>(new Version(1, 2, 3)).Should().BeOfType<TestRequest1>();
+            factory.Create<ITestRequest>(CreateServerInfo("1.2.3")).Should().BeOfType<TestRequest1>();
         }
 
         [TestMethod]
@@ -82,7 +82,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Tests.Requests.RequestFactoryTests+TestRequest1 for 1.0.0",
                 });
 
-            factory.Create<ITestRequest>(new Version(1, 0, 0)).Should().BeOfType<TestRequest1>();
+            factory.Create<ITestRequest>(CreateServerInfo("1.0.0")).Should().BeOfType<TestRequest1>();
             logger.DebugMessages.Should().ContainInOrder(
                 new[]
                 {
@@ -98,8 +98,8 @@ namespace SonarQube.Client.Tests.Requests
             factory.RegisterRequest<ITestRequest, TestRequest1>("1.0.0");
             factory.RegisterRequest<IAnotherRequest, AnotherRequest1>("1.0.0");
 
-            factory.Create<IAnotherRequest>(new Version(1, 0, 0)).Should().BeOfType<AnotherRequest1>();
-            factory.Create<ITestRequest>(new Version(1, 0, 0)).Should().BeOfType<TestRequest1>();
+            factory.Create<IAnotherRequest>(CreateServerInfo("1.0.0")).Should().BeOfType<AnotherRequest1>();
+            factory.Create<ITestRequest>(CreateServerInfo("1.0.0")).Should().BeOfType<TestRequest1>();
         }
 
         [TestMethod]
@@ -140,6 +140,9 @@ namespace SonarQube.Client.Tests.Requests
             action.Should().ThrowExactly<ArgumentException>().And
                 .ParamName.Should().Be("version");
         }
+
+        private static ServerInfo CreateServerInfo(string version) =>
+            new ServerInfo(new Version(version), ServerType.SonarQube);
 
         public interface ITestRequest : IRequest
         {
