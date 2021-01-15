@@ -359,7 +359,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var oldSelection = Mock.Of<IAnalysisIssueVisualization>();
             testSubject.SelectedIssue = oldSelection;
 
-            testSubject.SelectedIssue.Should().NotBeNull();
+            testSubject.SelectedIssue.Should().Be(oldSelection);
 
             RaiseSelectedIssueChangedEvent(selectionService, issue);
 
@@ -377,7 +377,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             var oldSelection = Mock.Of<IAnalysisIssueVisualization>();
             testSubject.SelectedIssue = oldSelection;
 
-            testSubject.SelectedIssue.Should().NotBeNull();
+            testSubject.SelectedIssue.Should().Be(oldSelection);
 
             RaiseSelectedIssueChangedEvent(selectionService, null);
 
