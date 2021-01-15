@@ -34,67 +34,90 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
     [TestClass]
     public class AnalysisIssueSelectionServiceTests
     {
-        private Mock<IVsMonitorSelection> monitorSelectionMock;
-
-        private AnalysisIssueSelectionService testSubject;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            monitorSelectionMock = new Mock<IVsMonitorSelection>();
-
-            var serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
-                .Returns(monitorSelectionMock.Object);
-
-            testSubject = new AnalysisIssueSelectionService(serviceProviderMock.Object);
-        }
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<AnalysisIssueSelectionService, IAnalysisIssueSelectionService>(null,
                 new[]
                 {
-                    MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>())
+                    MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                    MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>())
                 });
+        }
+
+        [TestMethod]
+        public void Ctor_RegisterToIssueSelectionEvent()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.SetupAdd(x => x.SelectedIssueChanged += null);
+
+            CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.VerifyAdd(x => x.SelectedIssueChanged += It.IsAny<EventHandler>(), Times.Once);
+            selectionService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_UnregisterFromIssueSelectionEvent()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.Reset();
+            selectionService.SetupRemove(x => x.SelectedIssueChanged -= null);
+
+            testSubject.Dispose();
+
+            selectionService.VerifyRemove(x => x.SelectedIssueChanged -= It.IsAny<EventHandler>(), Times.Once);
+            selectionService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void SetSelectedIssue_IssueIsNull_UiContextIsHidden()
         {
-            var cookie = SetupContextMock();
+            var monitorSelection = new Mock<IVsMonitorSelection>();
+            var cookie = SetupContextMock(monitorSelection);
+
+            var testSubject = CreateTestSubject(monitorSelection: monitorSelection.Object);
 
             testSubject.SelectedIssue = null;
 
-            monitorSelectionMock.Verify(x=> x.SetCmdUIContext(cookie, 0), Times.Once);
+            monitorSelection.Verify(x=> x.SetCmdUIContext(cookie, 0), Times.Once);
         }
 
         [TestMethod]
         public void SetSelectedIssue_IssueIsNotNull_UiContextIsShown()
         {
-            var cookie = SetupContextMock();
+            var monitorSelection = new Mock<IVsMonitorSelection>();
+            var cookie = SetupContextMock(monitorSelection);
+
+            var testSubject = CreateTestSubject(monitorSelection: monitorSelection.Object);
 
             testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
 
-            monitorSelectionMock.Verify(x => x.SetCmdUIContext(cookie, 1), Times.Once);
+            monitorSelection.Verify(x => x.SetCmdUIContext(cookie, 1), Times.Once);
         }
 
         [TestMethod]
         public void SetSelectedIssue_FailsToGetContext_NoException()
-        { 
-            SetupContextMock(VSConstants.E_FAIL);
+        {
+            var monitorSelection = new Mock<IVsMonitorSelection>();
+            SetupContextMock(monitorSelection, VSConstants.E_FAIL);
+
+            var testSubject = CreateTestSubject(monitorSelection: monitorSelection.Object);
 
             Action act = () => testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
             act.Should().NotThrow();
 
-            monitorSelectionMock.Verify(x => x.SetCmdUIContext(It.IsAny<uint>(), It.IsAny<int>()), Times.Never);
+            monitorSelection.Verify(x => x.SetCmdUIContext(It.IsAny<uint>(), It.IsAny<int>()), Times.Never);
         }
 
         [TestMethod]
         public void SetSelectedIssue_NoSubscribers_NoException()
         {
+            var testSubject = CreateTestSubject();
+
             Action act = () => testSubject.SelectedIssue = Mock.Of<IAnalysisIssueVisualization>();
 
             act.Should().NotThrow();
@@ -103,6 +126,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SetSelectedFlow_NoSubscribers_NoException()
         {
+            var testSubject = CreateTestSubject();
+
             Action act = () => testSubject.SelectedFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
 
             act.Should().NotThrow();
@@ -111,6 +136,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SetSelectedLocation_NoSubscribers_NoException()
         {
+            var testSubject = CreateTestSubject();
+
             Action act = () => testSubject.SelectedLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
 
             act.Should().NotThrow();
@@ -121,6 +148,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [DataRow(false)]
         public void SetSelectedIssue_HasSubscribers_RaisesSelectionChangedEventWithChangeLevelIssue(bool isNewIssueNull)
         {
+            var testSubject = CreateTestSubject();
+
             var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
             testSubject.SelectionChanged += eventHandler.Object;
 
@@ -139,6 +168,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [DataRow(false)]
         public void SetSelectedFlow_HasSubscribers_RaisesSelectionChangedEventWithChangeLevelFlow(bool isNewFlowNull)
         {
+            var testSubject = CreateTestSubject();
+
             var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
             testSubject.SelectionChanged += eventHandler.Object;
 
@@ -157,6 +188,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [DataRow(false)]
         public void SetSelectedLocation_HasSubscribers_RaisesSelectionChangedEventWithChangeLevelLocation(bool isNewLocationNull)
         {
+            var testSubject = CreateTestSubject();
+
             var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
             testSubject.SelectionChanged += eventHandler.Object;
 
@@ -175,6 +208,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [DataRow(false)]
         public void GetSelectedIssue_ReturnsValue(bool isNewIssueNull)
         {
+            var testSubject = CreateTestSubject();
+
             testSubject.SelectedIssue.Should().BeNull();
 
             var expectedIssue = isNewIssueNull ? null : Mock.Of<IAnalysisIssueVisualization>();
@@ -189,6 +224,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [DataRow(false)]
         public void GetSelectedFlow_ReturnsValue(bool isNewFlowNull)
         {
+            var testSubject = CreateTestSubject();
+
             testSubject.SelectedFlow.Should().BeNull();
 
             var expectedFlow = isNewFlowNull ? null : Mock.Of<IAnalysisIssueFlowVisualization>();
@@ -203,6 +240,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [DataRow(false)]
         public void GetSelectedLocation_ReturnsValue(bool isNewLocationNull)
         {
+            var testSubject = CreateTestSubject();
+
             testSubject.SelectedLocation.Should().BeNull();
 
             var expectedLocation = isNewLocationNull ? null : Mock.Of<IAnalysisIssueLocationVisualization>();
@@ -215,6 +254,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void Dispose_HasSubscribers_RemovesSubscribers()
         {
+            var testSubject = CreateTestSubject();
+
             var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
             testSubject.SelectionChanged += eventHandler.Object;
 
@@ -228,11 +269,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SelectedFlowChanged_ChangesSelectedLocation()
         {
+            var testSubject = CreateTestSubject();
+
             var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
             testSubject.SelectionChanged += eventHandler.Object;
 
             // Set flow to value
-            var firstFlow = GetFlowWithLocation(out var firstFlowFirstLocation);
+            var firstFlowFirstLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var firstFlow = CreateFlow(firstFlowFirstLocation);
             testSubject.SelectedFlow = firstFlow;
 
             eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedLocation == firstFlowFirstLocation)), Times.Once());
@@ -245,7 +289,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             testSubject.SelectedLocation.Should().BeNull();
 
             // Set flow to a different value
-            var secondFlow = GetFlowWithLocation(out var secondFlowFirstLocation);
+            var secondFlowFirstLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var secondFlow = CreateFlow(secondFlowFirstLocation);
             testSubject.SelectedFlow = secondFlow;
 
             eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedLocation == secondFlowFirstLocation)), Times.Once());
@@ -257,11 +302,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
         [TestMethod]
         public void SelectedIssueChanged_ChangesSelectedFlow()
         {
+            var testSubject = CreateTestSubject();
+
             var eventHandler = new Mock<EventHandler<SelectionChangedEventArgs>>();
             testSubject.SelectionChanged += eventHandler.Object;
 
             // Set issue to value
-            var firstIssue = GetIssueWithFlow(out var firstIssueFirstFlow);
+            var firstIssueFirstFlow = CreateFlow();
+            var firstIssue = CreateIssue(firstIssueFirstFlow);
             testSubject.SelectedIssue = firstIssue;
 
             eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedFlow == firstIssueFirstFlow)), Times.Once());
@@ -274,7 +322,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             testSubject.SelectedFlow.Should().BeNull();
 
             // Set issue to different value
-            var secondIssue = GetIssueWithFlow(out var secondIssueFirstFlow);
+            var secondIssueFirstFlow = CreateFlow();
+            var secondIssue = CreateIssue(secondIssueFirstFlow);
             testSubject.SelectedIssue = secondIssue;
             eventHandler.Verify(x => x(testSubject, It.Is((SelectionChangedEventArgs args) => args.SelectedFlow == secondIssueFirstFlow)), Times.Once());
             testSubject.SelectedFlow.Should().Be(secondIssueFirstFlow);
@@ -282,33 +331,74 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
             eventHandler.VerifyNoOtherCalls();
         }
 
-        private static IAnalysisIssueFlowVisualization GetFlowWithLocation(out IAnalysisIssueLocationVisualization firstLocation)
+        [TestMethod]
+        public void IssueSelectionServiceEvent_IssueHasSecondaryLocations_SelectedIssueIsSet()
         {
-            firstLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
-            var otherLocation = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var location = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var flow = CreateFlow(location);
+            var issue = CreateIssue(flow);
 
-            var mockFlow = new Mock<IAnalysisIssueFlowVisualization>();
-            mockFlow
-                .Setup(x => x.Locations)
-                .Returns(new[] {firstLocation, otherLocation});
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            return mockFlow.Object;
+            RaiseSelectedIssueChangedEvent(selectionService, issue);
+
+            testSubject.SelectedIssue.Should().Be(issue);
+            testSubject.SelectedFlow.Should().Be(flow);
+            testSubject.SelectedLocation.Should().Be(location);
         }
 
-        private IAnalysisIssueVisualization GetIssueWithFlow(out IAnalysisIssueFlowVisualization firstFlow)
+        [TestMethod]
+        public void IssueSelectionServiceEvent_IssueHasNoSecondaryLocations_SelectedIssueIsCleared()
         {
-            firstFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
-            var otherFlow = Mock.Of<IAnalysisIssueFlowVisualization>();
+            var issue = CreateIssue();
 
-            var mockIssue = new Mock<IAnalysisIssueVisualization>();
-            mockIssue
-                .Setup(x => x.Flows)
-                .Returns(new[] { firstFlow, otherFlow });
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            return mockIssue.Object;
+            RaiseSelectedIssueChangedEvent(selectionService, issue);
+
+            testSubject.SelectedIssue.Should().BeNull();
+            testSubject.SelectedFlow.Should().BeNull();
+            testSubject.SelectedLocation.Should().BeNull();
         }
 
-        private uint SetupContextMock(int result = VSConstants.S_OK)
+        [TestMethod]
+        public void IssueSelectionServiceEvent_IssueIsNull_SelectedIssueIsCleared()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            RaiseSelectedIssueChangedEvent(selectionService, null);
+
+            testSubject.SelectedIssue.Should().BeNull();
+            testSubject.SelectedFlow.Should().BeNull();
+            testSubject.SelectedLocation.Should().BeNull();
+        }
+
+        private void RaiseSelectedIssueChangedEvent(Mock<IIssueSelectionService> selectionService, IAnalysisIssueVisualization issue)
+        {
+            selectionService.Setup(x => x.SelectedIssue).Returns(issue);
+            selectionService.Raise(x => x.SelectedIssueChanged += null, null, EventArgs.Empty);
+        }
+
+        private IAnalysisIssueVisualization CreateIssue(params IAnalysisIssueFlowVisualization[] flows)
+        {
+            var issue = new Mock<IAnalysisIssueVisualization>();
+            issue.Setup(x => x.Flows).Returns(flows);
+
+            return issue.Object;
+        }
+
+        private IAnalysisIssueFlowVisualization CreateFlow(params IAnalysisIssueLocationVisualization[] locations)
+        {
+            var flow = new Mock<IAnalysisIssueFlowVisualization>();
+            flow.Setup(x => x.Locations).Returns(locations);
+
+            return flow.Object;
+        }
+
+        private uint SetupContextMock(Mock<IVsMonitorSelection> monitorSelectionMock, int result = VSConstants.S_OK)
         {
             uint cookie = 0;
 
@@ -317,6 +407,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests
                 .Returns(result);
 
             return cookie;
+        }
+
+        private AnalysisIssueSelectionService CreateTestSubject(
+            IVsMonitorSelection monitorSelection = null,
+            IIssueSelectionService selectionService = null)
+        {
+            monitorSelection ??= Mock.Of<IVsMonitorSelection>();
+            selectionService ??= Mock.Of<IIssueSelectionService>();
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
+                .Returns(monitorSelection);
+
+            return new AnalysisIssueSelectionService(serviceProviderMock.Object, selectionService);
         }
     }
 }

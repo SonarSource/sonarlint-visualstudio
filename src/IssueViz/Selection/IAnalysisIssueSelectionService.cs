@@ -27,7 +27,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     {
         event EventHandler<SelectionChangedEventArgs> SelectionChanged; 
 
-        IAnalysisIssueVisualization SelectedIssue { get; set; }
+        IAnalysisIssueVisualization SelectedIssue { get; }
         IAnalysisIssueFlowVisualization SelectedFlow { get; set; }
         IAnalysisIssueLocationVisualization SelectedLocation { get; set; }
     }

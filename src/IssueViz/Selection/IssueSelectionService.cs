@@ -20,7 +20,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Selection
@@ -40,14 +39,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class IssueSelectionService : IIssueSelectionService
     {
-        private readonly IAnalysisIssueSelectionService flowStepSelectionService;
         private IAnalysisIssueVisualization selectedIssue;
-
-        [ImportingConstructor]
-        public IssueSelectionService(IAnalysisIssueSelectionService flowStepSelectionService)
-        {
-            this.flowStepSelectionService = flowStepSelectionService;
-        }
 
         public event EventHandler SelectedIssueChanged;
 
@@ -62,12 +54,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                 {
                     selectedIssue = value;
                     SelectedIssueChanged?.Invoke(this, EventArgs.Empty);
-
-                    if (flowStepSelectionService.SelectedIssue != value)
-                    {
-                        var hasSecondaryLocations = value != null && value.Flows.SelectMany(x => x.Locations).Any();
-                        flowStepSelectionService.SelectedIssue = hasSecondaryLocations ? value : null;
-                    }
                 }
             }
         }
