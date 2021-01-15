@@ -176,9 +176,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
 
             var expectedOneBasedLineNumber = zeroBasedLineNumber + 1;
             testSubject.LineNumber.Should().Be(expectedOneBasedLineNumber);
-
-            selectionServiceMock.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), 
-                Times.Never);
         }
 
         #endregion

@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     {
         private Guid uiContextGuid = new Guid(Commands.Constants.UIContextGuid);
         private readonly IVsMonitorSelection monitorSelection;
+        private readonly IIssueSelectionService selectionService;
 
         private IAnalysisIssueVisualization selectedIssue;
         private IAnalysisIssueFlowVisualization selectedFlow;
@@ -42,9 +43,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         public event EventHandler<SelectionChangedEventArgs> SelectionChanged;
 
         [ImportingConstructor]
-        public AnalysisIssueSelectionService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public AnalysisIssueSelectionService(
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IIssueSelectionService selectionService)
         {
             monitorSelection = serviceProvider.GetService(typeof(SVsShellMonitorSelection)) as IVsMonitorSelection;
+            this.selectionService = selectionService;
+            this.selectionService.SelectedIssueChanged += SelectionService_SelectedIssueChanged;
         }
 
         public IAnalysisIssueVisualization SelectedIssue
@@ -110,9 +115,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
             return selectedFlow?.Locations?.FirstOrDefault();
         }
 
+        private void SelectionService_SelectedIssueChanged(object sender, EventArgs e)
+        {
+            if (selectionService.SelectedIssue != SelectedIssue)
+            {
+                var hasSecondaryLocations = selectionService.SelectedIssue != null && 
+                                            selectionService.SelectedIssue.Flows.SelectMany(x => x.Locations).Any();
+                
+                SelectedIssue = hasSecondaryLocations ? selectionService.SelectedIssue : null;
+            }
+        }
+
         public void Dispose()
         {
             SelectionChanged = null;
+            selectionService.SelectedIssueChanged -= SelectionService_SelectedIssueChanged;
         }
     }
 }
