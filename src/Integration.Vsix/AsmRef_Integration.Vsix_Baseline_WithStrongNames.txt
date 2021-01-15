@@ -162,9 +162,8 @@ Referenced assemblies:
 - 'Microsoft.VisualStudio.TextManager.Interop, Version=7.1.40304.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'Microsoft.VisualStudio.Threading, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'
 - 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-- 'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
 - 'System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-# Number of references: 11
+# Number of references: 10
 
 ---
 Assembly: 'SonarLint.VisualStudio.Integration, Version=4.30.0.0, Culture=neutral, PublicKeyToken=c5b62af9de6d7244'
