@@ -27,6 +27,7 @@ using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.TableControls
 {
@@ -39,12 +40,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     [DataSource(SonarLintTableControlConstants.ErrorListDataSourceIdentifier)]
     internal class VSTableEventProcessorProvider : ITableControlEventProcessorProvider
     {
-        private readonly IIssueTablesSelectionMonitor issueTableSelectionMonitor;
+        private readonly IIssueSelectionService selectionService;
 
         [ImportingConstructor]
-        internal VSTableEventProcessorProvider(IIssueTablesSelectionMonitor issueTableSelectionMonitor)
+        internal VSTableEventProcessorProvider(IIssueSelectionService selectionService)
         {
-            this.issueTableSelectionMonitor = issueTableSelectionMonitor;
+            this.selectionService = selectionService;
         }
 
         ITableControlEventProcessor ITableControlEventProcessorProvider.GetAssociatedEventProcessor(IWpfTableControl tableControl)
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
                 return null;
             }
 
-            return new EventProcessor(tableControl, issueTableSelectionMonitor);
+            return new EventProcessor(tableControl, selectionService);
         }
 
         /// <summary>
@@ -64,12 +65,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
         internal /* for testing */ class EventProcessor : ITableControlEventProcessor
         {
             private readonly IWpfTableControl wpfTableControl;
-            private readonly IIssueTablesSelectionMonitor selectionMonitor;
+            private readonly IIssueSelectionService selectionService;
 
-            public EventProcessor(IWpfTableControl wpfTableControl, IIssueTablesSelectionMonitor errorListSelectionMonitor)
+            public EventProcessor(IWpfTableControl wpfTableControl, IIssueSelectionService selectionService)
             {
                 this.wpfTableControl = wpfTableControl;
-                this.selectionMonitor = errorListSelectionMonitor;
+                this.selectionService = selectionService;
             }
 
             void ITableControlEventProcessor.PostprocessSelectionChanged(TableSelectionChangedEventArgs e)
@@ -81,13 +82,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
                     if (wpfTableControl.SelectedEntries.Count() == 1 &&
                         wpfTableControl.SelectedEntry.TryGetSnapshot(out var snapshot, out var index) &&
                         snapshot.TryGetValue(index, SonarLintTableControlConstants.IssueVizColumnName, out var issueObject) &&
-                        issueObject is IAnalysisIssueVisualization issueFromTable &&
-                        issueFromTable.Flows.SelectMany(x=> x.Locations).Any())
+                        issueObject is IAnalysisIssueVisualization issueFromTable)
                     {
                         selected = issueFromTable;
                     }
 
-                    selectionMonitor.SelectionChanged(selected);
+                    selectionService.SelectedIssue = selected;
                 }
                 catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
                 {

@@ -40,35 +40,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
                     MefTestHelpers.CreateExport<IAnalysisIssueSelectionService>(Mock.Of<IAnalysisIssueSelectionService>())
                 });
         }
-
-        [TestMethod]
-        public void Ctor_RegisterToFlowStepSelectionEvent()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            flowStepSelectionService.SetupAdd(x => x.SelectionChanged += null);
-
-            CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.VerifyAdd(x=> x.SelectionChanged += It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
-            flowStepSelectionService.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Dispose_UnregisterFromFlowStepSelectionEvent()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            flowStepSelectionService.Reset();
-            flowStepSelectionService.SetupRemove(x => x.SelectionChanged -= null);
-
-            testSubject.Dispose();
-
-            flowStepSelectionService.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once);
-            flowStepSelectionService.VerifyNoOtherCalls();
-        }
-
+      
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
@@ -181,44 +153,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             flowStepSelectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
         }
 
-        [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void FlowStepSelectionChanges_SelectedIssueIsSetAndSubscribersNotified(bool isSetToNull)
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            var oldSelection = isSetToNull ? CreateIssueViz() : null;
-            var newSelection = isSetToNull ? null : CreateIssueViz();
-
-            testSubject.SelectedIssue = oldSelection;
-
-            var callCount = 0;
-            testSubject.SelectedIssueChanged += (sender, args) => callCount++;
-
-            SetFlowStepSelection(flowStepSelectionService, newSelection);
-
-            testSubject.SelectedIssue.Should().Be(newSelection);
-            callCount.Should().Be(1);
-        }
-
-        [TestMethod]
-        [Description("Verify that there is no infinite loop")]
-        public void FlowStepSelectionChanges_FlowStepSelectionServiceNotCalledAgain()
-        {
-            var flowStepSelectionService = new Mock<IAnalysisIssueSelectionService>();
-            var testSubject = CreateTestSubject(flowStepSelectionService.Object);
-
-            var newSelection = CreateIssueViz(Mock.Of<IAnalysisIssueLocationVisualization>());
-
-            SetFlowStepSelection(flowStepSelectionService, newSelection);
-
-            testSubject.SelectedIssue.Should().Be(newSelection);
-
-            flowStepSelectionService.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
-        }
-
         private IAnalysisIssueVisualization CreateIssueViz(params IAnalysisIssueLocationVisualization[] locationVizs)
         {
             var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
@@ -235,17 +169,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Selection
             flowStepSelectionService ??= Mock.Of<IAnalysisIssueSelectionService>();
 
             return new IssueSelectionService(flowStepSelectionService);
-        }
-
-        private void SetFlowStepSelection(Mock<IAnalysisIssueSelectionService> flowStepSelectionService, IAnalysisIssueVisualization selectedIssue)
-        {
-            flowStepSelectionService.SetupGet(x => x.SelectedIssue).Returns(selectedIssue);
-
-            flowStepSelectionService.Raise(x => x.SelectionChanged += null, null,
-                new SelectionChangedEventArgs(SelectionChangeLevel.Issue,
-                    selectedIssue,
-                    null,
-                    null));
         }
     }
 }

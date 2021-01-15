@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     /// Represents the currently selected <see cref="IAnalysisIssueVisualization"/>.
     /// Raises an event <see cref="SelectedIssueChanged"/> when selection changes.
     /// </summary>
-    public interface IIssueSelectionService : IDisposable
+    public interface IIssueSelectionService
     {
         event EventHandler SelectedIssueChanged;
 
@@ -47,8 +47,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
         public IssueSelectionService(IAnalysisIssueSelectionService flowStepSelectionService)
         {
             this.flowStepSelectionService = flowStepSelectionService;
-
-            flowStepSelectionService.SelectionChanged += FlowStepSelectionService_SelectionChanged;
         }
 
         public event EventHandler SelectedIssueChanged;
@@ -72,16 +70,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
                     }
                 }
             }
-        }
-
-        private void FlowStepSelectionService_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SelectedIssue = e.SelectedIssue;
-        }
-
-        public void Dispose()
-        {
-            flowStepSelectionService.SelectionChanged -= FlowStepSelectionService_SelectionChanged;
         }
     }
 }

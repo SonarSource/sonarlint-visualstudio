@@ -38,11 +38,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Selection
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class SelectedVisualizationValidityMonitor : ISelectedVisualizationValidityMonitor
     {
-        private readonly IAnalysisIssueSelectionService selectionService;
+        private readonly IIssueSelectionService selectionService;
         private readonly IIssueLocationStoreAggregator locationStoreAggregator;
 
         [ImportingConstructor]
-        public SelectedVisualizationValidityMonitor(IAnalysisIssueSelectionService selectionService, IIssueLocationStoreAggregator locationStoreAggregator)
+        public SelectedVisualizationValidityMonitor(IIssueSelectionService selectionService, IIssueLocationStoreAggregator locationStoreAggregator)
         {
             this.selectionService = selectionService;
             this.locationStoreAggregator = locationStoreAggregator;

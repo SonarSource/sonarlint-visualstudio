@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 {
     internal interface IIssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
-        int LineNumber { get; }
+        int? LineNumber { get; }
         string FileName { get; }
         string Description { get; }
         string RuleKey { get; }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 selectionService.SelectedLocation);
         }
 
-        public int LineNumber
+        public int? LineNumber
         {
             get
             {
@@ -91,8 +91,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
                 if (issueSpan == null || issueSpan.Value.IsEmpty)
                 {
-                    selectionService.SelectedIssue = null;
-                    return 0;
+                    return null;
                 }
 
                 var position = issueSpan.Value.Start;
