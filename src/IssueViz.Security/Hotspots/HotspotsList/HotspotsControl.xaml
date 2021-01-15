@@ -6,6 +6,7 @@
              xmlns:vsImaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:vsTheming="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
              xmlns:hotspotsList="clr-namespace:SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList"
+             xmlns:core="clr-namespace:SonarLint.VisualStudio.Core.WPF;assembly=SonarLint.VisualStudio.Core"
              DataContext="{Binding ViewModel, RelativeSource={RelativeSource Mode=Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -14,6 +15,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <hotspotsList:PriorityToBackgroundConverter x:Key="PriorityToBackgroundConverter" />
+            <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
 
             <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="Remove" 
@@ -53,7 +55,7 @@
             <ColumnDefinition Name="Table" Width="*"/>
         </Grid.ColumnDefinitions>
         <DataGrid Grid.Column="0" 
-                  SelectedItem="{Binding SelectedHotspot, Mode=TwoWay}"
+                  SelectedItem="{Binding SelectedHotspot, Mode=TwoWay, Converter={StaticResource NullableSelectedItemConverter}}"
                   ItemsSource="{Binding Hotspots}"
                   >
             <DataGrid.InputBindings>
