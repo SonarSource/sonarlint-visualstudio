@@ -16,6 +16,7 @@
   <ItemGroup Label="Framework references">
     <Reference Include="PresentationCore" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   
   <ItemGroup Label="Test framework">
