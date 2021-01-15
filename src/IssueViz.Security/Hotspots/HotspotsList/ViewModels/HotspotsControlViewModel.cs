@@ -49,10 +49,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
         private readonly object Lock = new object();
         private readonly IIssueSelectionService selectionService;
         private readonly IHotspotsStore store;
+        private IHotspotViewModel selectedHotspot;
 
         public ObservableCollection<IHotspotViewModel> Hotspots { get; } = new ObservableCollection<IHotspotViewModel>();
-
-        public IHotspotViewModel SelectedHotspot { get; set; }
 
         public ICommand NavigateCommand { get; private set; }
 
@@ -73,6 +72,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
             UpdateHotspotsList();
 
             SetCommands(hotspotsStore, locationNavigator);
+        }
+
+        public IHotspotViewModel SelectedHotspot
+        {
+            get => selectedHotspot;
+            set
+            {
+                if (selectedHotspot != value)
+                {
+                    selectedHotspot = value;
+                    selectionService.SelectedIssue = selectedHotspot?.Hotspot;
+                }
+            }
         }
 
         /// <summary>
@@ -116,7 +128,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
         private void SelectionService_SelectionChanged(object sender, EventArgs e)
         {
-            SelectedHotspot = Hotspots.FirstOrDefault(x => x.Hotspot == selectionService.SelectedIssue);
+            selectedHotspot = Hotspots.FirstOrDefault(x => x.Hotspot == selectionService.SelectedIssue);
             NotifyPropertyChanged(nameof(SelectedHotspot));
         }
 
