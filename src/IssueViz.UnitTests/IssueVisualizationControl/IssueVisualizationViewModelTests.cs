@@ -128,33 +128,31 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         #region LineNumber
 
         [TestMethod]
-        public void LineNumber_CurrentIssueIsNull_Zero()
+        public void LineNumber_CurrentIssueIsNull_Null()
         {
-            testSubject.LineNumber.Should().Be(0);
+            testSubject.LineNumber.Should().BeNull();
         }
 
         [TestMethod]
-        public void LineNumber_CurrentIssueHasNoSpan_SelectionServiceIssueSetToNull()
+        public void LineNumber_CurrentIssueHasNoSpan_Null()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Span).Returns((SnapshotSpan?)null);
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
-            testSubject.LineNumber.Should().Be(0);
-            selectionServiceMock.VerifySet(x=> x.SelectedIssue = null, Times.Once);
+            testSubject.LineNumber.Should().BeNull();
         }
 
         [TestMethod]
-        public void LineNumber_CurrentIssueHasEmptySpan_SelectionServiceIssueSetToNull()
+        public void LineNumber_CurrentIssueHasEmptySpan_Null()
         {
             var issueViz = new Mock<IAnalysisIssueVisualization>();
             issueViz.Setup(x => x.Span).Returns(new SnapshotSpan());
 
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz.Object);
 
-            testSubject.LineNumber.Should().Be(0);
-            selectionServiceMock.VerifySet(x => x.SelectedIssue = null, Times.Once);
+            testSubject.LineNumber.Should().BeNull();
         }
 
         [TestMethod]
