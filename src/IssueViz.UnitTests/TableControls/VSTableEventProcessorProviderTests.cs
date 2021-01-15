@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
@@ -34,8 +35,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         public void MefCtor_CheckIsExported()
         {
             // Arrange
-            var monitor = Mock.Of<IIssueTablesSelectionMonitor>();
-            var monitorExport = MefTestHelpers.CreateExport<IIssueTablesSelectionMonitor>(monitor);
+            var monitor = Mock.Of<IIssueSelectionService>();
+            var monitorExport = MefTestHelpers.CreateExport<IIssueSelectionService>(monitor);
 
             // Act & Assert
             MefTestHelpers.CheckTypeCanBeImported<VSTableEventProcessorProvider, ITableControlEventProcessorProvider>(null, new[] { monitorExport });
@@ -44,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         [TestMethod]
         public void GetProcessor_NullTableControl_ReturnsNull()
         {
-            var testSubject = (ITableControlEventProcessorProvider)new VSTableEventProcessorProvider(Mock.Of<IIssueTablesSelectionMonitor>());
+            var testSubject = (ITableControlEventProcessorProvider)new VSTableEventProcessorProvider(Mock.Of<IIssueSelectionService>());
 
             testSubject.GetAssociatedEventProcessor(null)
                 .Should().BeNull();
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.TableControls
         public void GetProcessor_ReturnsNewProcessorInstanceForEachCall()
         {
             var mockTable = Mock.Of<IWpfTableControl>();
-            var monitorMock = new Mock<IIssueTablesSelectionMonitor>();
+            var monitorMock = new Mock<IIssueSelectionService>();
             var testSubject = (ITableControlEventProcessorProvider)new VSTableEventProcessorProvider(monitorMock.Object);
 
             // First call
