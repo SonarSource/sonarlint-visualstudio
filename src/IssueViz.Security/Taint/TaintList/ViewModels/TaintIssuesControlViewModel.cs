@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         ICollectionView IssuesView { get; }
 
-        ITaintIssueViewModel SelectedIssue { get; }
+        ITaintIssueViewModel SelectedIssue { get; set; }
 
         bool HasServerIssues { get; }
 
