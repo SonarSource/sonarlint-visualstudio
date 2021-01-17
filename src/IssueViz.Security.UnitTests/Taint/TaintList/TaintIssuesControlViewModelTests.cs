@@ -38,6 +38,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
 {
@@ -79,6 +80,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             issues.Count.Should().Be(2);
             issues[0].TaintIssueViz.Should().Be(issueViz1);
             issues[1].TaintIssueViz.Should().Be(issueViz3);
+        }
+
+        [TestMethod]
+        public void Ctor_RegisterToSelectionChangedEvent()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.SetupAdd(x => x.SelectedIssueChanged += null);
+
+            CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.VerifyAdd(x => x.SelectedIssueChanged += It.IsAny<EventHandler>(), Times.Once());
+            selectionService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -196,6 +209,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             RaiseStoreIssuesChangedEvent(store, CreateIssueViz());
 
             CheckExpectedSourceIssueCount(testSubject, 0);
+        }
+
+        [TestMethod]
+        public void Dispose_UnregisterFromSelectionChangedEvent()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.Reset();
+            selectionService.SetupRemove(x => x.SelectedIssueChanged -= null);
+
+            testSubject.Dispose();
+
+            selectionService.VerifyRemove(x => x.SelectedIssueChanged -= It.IsAny<EventHandler>(), Times.Once());
         }
 
         [TestMethod]
@@ -439,6 +466,146 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             suppliedArgs.PropertyName.Should().Be(nameof(testSubject.HasServerIssues));
         }
 
+        [TestMethod]
+        public void SelectionChanged_SelectedIssueExistsInList_IssueSelected()
+        {
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var storeIssues = new []{ issueViz };
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            var testSubject = CreateTestSubject(storeIssues, selectionService: selectionService.Object);
+
+            testSubject.SelectedIssue.Should().BeNull();
+
+            RaiseSelectionChangedEvent(selectionService, issueViz);
+
+            testSubject.SelectedIssue.Should().NotBeNull();
+            testSubject.SelectedIssue.TaintIssueViz.Should().Be(issueViz);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SelectionChanged_SelectedIssueIsNotInList_SelectionSetToNull(bool isSelectedNull)
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            testSubject.SelectedIssue.Should().BeNull();
+
+            var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
+
+            RaiseSelectionChangedEvent(selectionService, selectedIssue);
+
+            testSubject.SelectedIssue.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void SelectionChanged_SelectedIssueExistsInList_RaisesPropertyChanged()
+        {
+            var issueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var storeHotspots = new[] {issueViz};
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            eventHandler.VerifyNoOtherCalls();
+
+            RaiseSelectionChangedEvent(selectionService, issueViz);
+
+            eventHandler.Verify(x => x(testSubject,
+                It.Is((PropertyChangedEventArgs args) =>
+                    args.PropertyName == nameof(testSubject.SelectedIssue))), Times.Once);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SelectionChanged_SelectedIssueIsNotInList_RaisesPropertyChanged(bool isSelectedNull)
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            eventHandler.VerifyNoOtherCalls();
+
+            var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
+
+            RaiseSelectionChangedEvent(selectionService, selectedIssue);
+
+            eventHandler.Verify(x => x(testSubject,
+                It.Is((PropertyChangedEventArgs args) =>
+                    args.PropertyName == nameof(testSubject.SelectedIssue))), Times.Once);
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.Description("Verify that there is no callback, selection service -> property -> selection service")]
+        public void SelectionChanged_IssueSelected_SelectionServiceNotCalledAgain()
+        {
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            var storeIssues = new [] { selectedIssue };
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            CreateTestSubject(storeIssues, selectionService: selectionService.Object);
+
+            RaiseSelectionChangedEvent(selectionService, selectedIssue);
+
+            selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
+        }
+
+        [TestMethod]
+        public void SetSelectedIssue_IssueSet()
+        {
+            var testSubject = CreateTestSubject();
+
+            var selection = new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedIssue = selection;
+
+            testSubject.SelectedIssue.Should().Be(selection);
+        }
+
+        [TestMethod]
+        public void SetSelectedIssue_SelectionServiceIsCalled()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            selectionService.Reset();
+
+            var selection = new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedIssue = selection;
+
+            selectionService.VerifySet(x => x.SelectedIssue = selection.TaintIssueViz, Times.Once);
+            selectionService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SetSelectedIssue_ValueIsTheSame_SelectionServiceNotCalled()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            var selection = new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedIssue = selection;
+
+            selectionService.Reset();
+
+            testSubject.SelectedIssue = selection;
+
+            selectionService.VerifyNoOtherCalls();
+        }
+
         private static TaintIssuesControlViewModel CreateTestSubject(
             IAnalysisIssueVisualization[] issueVizs = null,
             ILocationNavigator locationNavigator = null,
@@ -446,7 +613,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             IActiveDocumentTracker activeDocumentTracker = null,
             IActiveDocumentLocator activeDocumentLocator = null,
             ITelemetryManager telemetryManager = null,
-            IShowInBrowserService showInBrowserService = null)
+            IShowInBrowserService showInBrowserService = null,
+            IIssueSelectionService selectionService = null)
         {
             issueVizs ??= Array.Empty<IAnalysisIssueVisualization>();
             store ??= new Mock<ITaintStore>();
@@ -457,13 +625,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             showInBrowserService ??= Mock.Of<IShowInBrowserService>();
             locationNavigator ??= Mock.Of<ILocationNavigator>();
             telemetryManager ??= Mock.Of<ITelemetryManager>();
+            selectionService ??= Mock.Of<IIssueSelectionService>();
 
             return new TaintIssuesControlViewModel(store.Object,
                 locationNavigator,
                 activeDocumentTracker,
                 activeDocumentLocator,
                 showInBrowserService,
-                telemetryManager);
+                telemetryManager,
+                selectionService);
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)
@@ -526,5 +696,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
         private static ObservableCollection<ITaintIssueViewModel> GetSourceItems(ITaintIssuesControlViewModel controlViewModel) =>
             (ObservableCollection<ITaintIssueViewModel>)controlViewModel.IssuesView.SourceCollection;
+
+        private static void RaiseSelectionChangedEvent(Mock<IIssueSelectionService> selectionService, IAnalysisIssueVisualization selectedIssue)
+        {
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
+            selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
+        }
     }
 }
