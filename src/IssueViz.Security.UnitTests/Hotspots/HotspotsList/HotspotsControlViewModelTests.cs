@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.HotspotsList
 {
@@ -103,27 +104,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_RegisterToSelectionChangedEvent()
         {
-            var selectionService = new Mock<IHotspotsSelectionService>();
-            selectionService.SetupAdd(x => x.SelectionChanged += null);
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.SetupAdd(x => x.SelectedIssueChanged += null);
 
             CreateTestSubject(selectionService: selectionService.Object);
 
-            selectionService.VerifyAdd(x => x.SelectionChanged += It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once());
+            selectionService.VerifyAdd(x => x.SelectedIssueChanged += It.IsAny<EventHandler>(), Times.Once());
             selectionService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void Dispose_UnregisterFromSelectionChangedEvent()
         {
-            var selectionService = new Mock<IHotspotsSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
             selectionService.Reset();
-            selectionService.SetupRemove(x => x.SelectionChanged -= null);
+            selectionService.SetupRemove(x => x.SelectedIssueChanged -= null);
 
             testSubject.Dispose();
 
-            selectionService.VerifyRemove(x => x.SelectionChanged -= It.IsAny<EventHandler<SelectionChangedEventArgs>>(), Times.Once());
+            selectionService.VerifyRemove(x => x.SelectedIssueChanged -= It.IsAny<EventHandler>(), Times.Once());
         }
 
         [TestMethod]
@@ -131,28 +132,34 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
             var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
-            var selectionService = new Mock<IHotspotsSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
 
             var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
 
             testSubject.SelectedHotspot.Should().BeNull();
 
-            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(issueViz));
+            RaiseSelectionChangedEvent(selectionService, issueViz);
 
             testSubject.SelectedHotspot.Should().NotBeNull();
             testSubject.SelectedHotspot.Hotspot.Should().Be(issueViz);
         }
 
         [TestMethod]
-        public void SelectionChanged_SelectedHotspotIsNotInList_SelectionSetToNull()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SelectionChanged_SelectedHotspotIsNotInList_SelectionSetToNull(bool isSelectedNull)
         {
-            var selectionService = new Mock<IHotspotsSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
 
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            testSubject.SelectedHotspot.Should().BeNull();
+            var oldSelection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedHotspot = oldSelection;
+            testSubject.SelectedHotspot.Should().Be(oldSelection);
 
-            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(Mock.Of<IAnalysisIssueVisualization>()));
+            var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
+
+            RaiseSelectionChangedEvent(selectionService, selectedIssue);
 
             testSubject.SelectedHotspot.Should().BeNull();
         }
@@ -162,7 +169,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
             var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { issueViz };
-            var selectionService = new Mock<IHotspotsSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
 
             var testSubject = CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
 
@@ -171,7 +178,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             eventHandler.VerifyNoOtherCalls();
 
-            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(issueViz));
+            RaiseSelectionChangedEvent(selectionService, issueViz);
 
             eventHandler.Verify(x => x(testSubject,
                 It.Is((PropertyChangedEventArgs args) =>
@@ -181,9 +188,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         }
 
         [TestMethod]
-        public void SelectionChanged_SelectedHotspotIsNotInList_RaisesPropertyChanged()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SelectionChanged_SelectedHotspotIsNotInList_RaisesPropertyChanged(bool isSelectedNull)
         {
-            var selectionService = new Mock<IHotspotsSelectionService>();
+            var selectionService = new Mock<IIssueSelectionService>();
 
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
@@ -192,13 +201,30 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
 
             eventHandler.VerifyNoOtherCalls();
 
-            selectionService.Raise(x => x.SelectionChanged += null, new SelectionChangedEventArgs(Mock.Of<IAnalysisIssueVisualization>()));
+            var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
+
+            RaiseSelectionChangedEvent(selectionService, selectedIssue);
 
             eventHandler.Verify(x => x(testSubject,
                 It.Is((PropertyChangedEventArgs args) =>
                     args.PropertyName == nameof(IHotspotsControlViewModel.SelectedHotspot))), Times.Once);
 
             eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [Microsoft.VisualStudio.TestTools.UnitTesting.Description("Verify that there is no callback, selection service -> property -> selection service")]
+        public void SelectionChanged_HotspotSelected_SelectionServiceNotCalledAgain()
+        {
+            var selectedIssue = Mock.Of<IAnalysisIssueVisualization>();
+            var storeHotspots = new ObservableCollection<IAnalysisIssueVisualization> { selectedIssue };
+            var selectionService = new Mock<IIssueSelectionService>();
+
+            CreateTestSubject(storeHotspots, selectionService: selectionService.Object);
+
+            RaiseSelectionChangedEvent(selectionService, selectedIssue);
+
+            selectionService.VerifySet(x=> x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
         }
 
         [TestMethod]
@@ -304,10 +330,58 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspotsStore.Verify(x => x.Remove(hotspot), Times.Once);
         }
 
+        [TestMethod]
+        public void SetSelectedHotspot_HotspotSet()
+        {
+            var testSubject = CreateTestSubject();
+
+            var selection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedHotspot = selection;
+
+            testSubject.SelectedHotspot.Should().Be(selection);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SetSelectedHotspot_SelectionChanged_SelectionServiceIsCalled(bool isSelectedNull)
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            var oldSelection = isSelectedNull ? new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>()) : null;
+            var newSelection = isSelectedNull ? null : new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
+
+            testSubject.SelectedHotspot = oldSelection;
+
+            selectionService.Reset();
+
+            testSubject.SelectedHotspot = newSelection;
+
+            selectionService.VerifySet(x=> x.SelectedIssue = newSelection?.Hotspot, Times.Once);
+            selectionService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SetSelectedHotspot_ValueIsTheSame_SelectionServiceNotCalled()
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            var testSubject = CreateTestSubject(selectionService: selectionService.Object);
+
+            var selection = new HotspotViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedHotspot = selection;
+
+            selectionService.Reset();
+
+            testSubject.SelectedHotspot = selection;
+
+            selectionService.VerifyNoOtherCalls();
+        }
+
         private static HotspotsControlViewModel CreateTestSubject(ObservableCollection<IAnalysisIssueVisualization> originalCollection = null,
             ILocationNavigator locationNavigator = null,
             Mock<IHotspotsStore> hotspotsStore = null,
-            IHotspotsSelectionService selectionService = null)
+            IIssueSelectionService selectionService = null)
         {
             originalCollection ??= new ObservableCollection<IAnalysisIssueVisualization>();
             var readOnlyWrapper = new ReadOnlyObservableCollection<IAnalysisIssueVisualization>(originalCollection);
@@ -315,7 +389,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspotsStore ??= new Mock<IHotspotsStore>();
             hotspotsStore.Setup(x => x.GetAll()).Returns(readOnlyWrapper);
 
-            selectionService ??= Mock.Of<IHotspotsSelectionService>();
+            selectionService ??= Mock.Of<IIssueSelectionService>();
 
             return new HotspotsControlViewModel(hotspotsStore.Object, locationNavigator, selectionService);
         }
@@ -324,6 +398,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         {
             store.Setup(x => x.GetAll()).Returns(issueVizs);
             store.Raise(x => x.IssuesChanged += null, null, new IssuesStore.IssuesChangedEventArgs(null, null));
+        }
+
+        private static void RaiseSelectionChangedEvent(Mock<IIssueSelectionService> selectionService, IAnalysisIssueVisualization selectedIssue)
+        {
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
+            selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
         }
     }
 }
