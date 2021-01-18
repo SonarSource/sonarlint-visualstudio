@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -35,7 +36,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         [TestMethod]
         public void Ctor_PropertiesSet()
         {
-            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, null);
+            var creationDate = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(123));
+            var lastUpdated = DateTimeOffset.UtcNow;
+
+            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, creationDate, lastUpdated, null);
 
             hotspot.HotspotKey.Should().Be("hotspot key");
             hotspot.FilePath.Should().Be("local-path.cpp");
@@ -48,13 +52,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
             hotspot.LineHash.Should().Be("hash");
             hotspot.RuleKey.Should().Be(ValidRule.RuleKey);
             hotspot.Rule.Should().BeSameAs(ValidRule);
+            hotspot.CreationTimestamp.Should().Be(creationDate);
+            hotspot.LastUpdateTimestamp.Should().Be(lastUpdated);
         }
 
         [TestMethod]
         public void Ctor_NoFlows_EmptyFlows()
         {
             IReadOnlyList<IAnalysisIssueFlow> flows = null;
-            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, flows);
+            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, DateTimeOffset.MinValue, DateTimeOffset.MinValue, flows);
 
             hotspot.Flows.Should().BeEmpty();
         }
@@ -63,7 +69,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Hotspots.
         public void Ctor_HasFlows_CorrectFlows()
         {
             var flows = new[] { Mock.Of<IAnalysisIssueFlow>(), Mock.Of<IAnalysisIssueFlow>() };
-            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, flows);
+            var hotspot = new Hotspot("hotspot key", "local-path.cpp", "server-path", "message", 1, 2, 3, 4, "hash", ValidRule, DateTimeOffset.MinValue, DateTimeOffset.MinValue, flows);
 
             hotspot.Flows.Should().BeEquivalentTo(flows);
         }

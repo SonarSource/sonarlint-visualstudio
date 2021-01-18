@@ -38,6 +38,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         [TestMethod]
         public void Convert_CreatedIssueVisualization()
         {
+            var creationDate = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(10342));
+            var lastUpdated = DateTimeOffset.Now;
+
             var sonarQubeHotspot = CreateSonarQubeHotspot(
                 hotspotKey: "some key",
                 filePath: "some path",
@@ -45,6 +48,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 textRange: new IssueTextRange(5, 10, 15, 20),
                 message: "message",
                 ruleKey: "rule key",
+
                 lineHash: "hash-xxx");
 
             var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("some path", "some absolute path");
@@ -142,7 +146,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 Times.Once);
         }
 
-        private SonarQubeHotspot CreateSonarQubeHotspot(string hotspotKey = "some key", string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message", string ruleKey = "rule key", string lineHash = "linehash") =>
+        private SonarQubeHotspot CreateSonarQubeHotspot(string hotspotKey = "some key", string probability = "high", string filePath = "some path", IssueTextRange textRange = null, string message = "message",
+            string ruleKey = "rule key", DateTimeOffset creationDate = default(DateTimeOffset), DateTimeOffset updateDate = default(DateTimeOffset), string lineHash = "linehash") =>
             new SonarQubeHotspot(hotspotKey,
                 message,
                 lineHash,
@@ -153,6 +158,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                 "projectName",
                 "componentKey",
                 filePath,
+                creationDate,
+                updateDate,
                 new SonarQubeHotspotRule(ruleKey, "rule name", "sec category", probability, "risk desc", "vuln desc", "fix req"),
                 textRange ?? new IssueTextRange(5, 10, 15, 20));
 
