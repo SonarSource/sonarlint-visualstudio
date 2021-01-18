@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList
 {
@@ -41,7 +42,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsLi
 
             var store = componentModel.GetService<IHotspotsStore>();
             var locationNavigator = componentModel.GetService<ILocationNavigator>();
-            var selectionService = componentModel.GetService<IHotspotsSelectionService>();
+            var selectionService = componentModel.GetService<IIssueSelectionService>();
 
             var viewModel = new HotspotsControlViewModel(store, locationNavigator, selectionService);
             var hotspotsControl = new HotspotsControl(viewModel);

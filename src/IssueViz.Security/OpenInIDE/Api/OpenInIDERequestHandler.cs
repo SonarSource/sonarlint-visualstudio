@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
         private readonly ILocationNavigator navigator;
         private readonly IHotspotsStore hotspotsStore;
         private readonly IOpenInIDEFailureInfoBar failureInfoBar;
-        private readonly IHotspotsSelectionService hotspotsSelectionService;
+        private readonly IIssueSelectionService issueSelectionService;
         private readonly ITelemetryManager telemetryManager;
         private readonly ILogger logger;
 
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             ILocationNavigator navigator,
             IHotspotsStore hotspotsStore,
             IOpenInIDEFailureInfoBar failureInfoBar,
-            IHotspotsSelectionService hotspotsSelectionService,
+            IIssueSelectionService issueSelectionService,
             ITelemetryManager telemetryManager,
             ILogger logger)
         {
@@ -73,7 +74,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
             this.navigator = navigator;
             this.hotspotsStore = hotspotsStore;
             this.failureInfoBar = failureInfoBar;
-            this.hotspotsSelectionService = hotspotsSelectionService;
+            this.issueSelectionService = issueSelectionService;
             this.telemetryManager = telemetryManager;
             this.logger = logger;
         }
@@ -129,7 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
 
             // Add to store and select regardless of whether navigation succeeded
             var addedHotspot = hotspotsStore.GetOrAdd(hotspotViz);
-            hotspotsSelectionService.Select(addedHotspot);
+            issueSelectionService.SelectedIssue = addedHotspot;
         }
 
         private async Task<SonarQubeHotspot> TryGetHotspotData(string hotspotKey)
