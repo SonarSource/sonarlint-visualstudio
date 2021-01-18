@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots;
 using SonarLint.VisualStudio.IssueVisualization.Security.Hotspots.HotspotsList;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api;
 using SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Contract;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarQube.Client;
 using SonarQube.Client.Models;
 
@@ -55,7 +56,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
                     MefTestHelpers.CreateExport<ILocationNavigator>(Mock.Of<ILocationNavigator>()),
                     MefTestHelpers.CreateExport<IHotspotsStore>(Mock.Of<IHotspotsStore>()),
                     MefTestHelpers.CreateExport<IOpenInIDEFailureInfoBar>(Mock.Of<IOpenInIDEFailureInfoBar>()),
-                    MefTestHelpers.CreateExport<IHotspotsSelectionService>(Mock.Of<IHotspotsSelectionService>()),
+                    MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>()),
                     MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                     MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
                 });
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
         private Mock<ILocationNavigator> navigatorMock;
         private Mock<IHotspotsStore> storeMock;
         private Mock<IOpenInIDEFailureInfoBar> failureInfoBarMock;
-        private Mock<IHotspotsSelectionService> selectionServiceMock;
+        private Mock<IIssueSelectionService> selectionServiceMock;
         private Mock<ITelemetryManager> telemetryManagerMock;
         private TestLogger logger;
 
@@ -105,7 +106,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             navigatorMock = new Mock<ILocationNavigator>();
             storeMock = new Mock<IHotspotsStore>();
             failureInfoBarMock = new Mock<IOpenInIDEFailureInfoBar>();
-            selectionServiceMock = new Mock<IHotspotsSelectionService>();
+            selectionServiceMock = new Mock<IIssueSelectionService>();
             telemetryManagerMock = new Mock<ITelemetryManager>();
             logger = new TestLogger(logToConsole: true);
 
@@ -300,7 +301,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.OpenInIDE
             storeMock.Setup(x => x.GetOrAdd(expected)).Returns(response);
 
         private void SetSelectionServiceExpectedItem(IAnalysisIssueVisualization expected) =>
-            selectionServiceMock.Setup(x => x.Select(expected));
+            selectionServiceMock.SetupSet(x => x.SelectedIssue = expected);
 
         private void CheckInvariantBehaviours()
         {
