@@ -492,7 +492,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
-            testSubject.SelectedIssue.Should().BeNull();
+            var oldSelection = new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>());
+            testSubject.SelectedIssue = oldSelection;
+            testSubject.SelectedIssue.Should().Be(oldSelection);
 
             var selectedIssue = isSelectedNull ? null : Mock.Of<IAnalysisIssueVisualization>();
 
@@ -576,17 +578,23 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        public void SetSelectedIssue_SelectionServiceIsCalled()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void SetSelectedIssue_SelectionChanged_SelectionServiceIsCalled(bool isSelectedNull)
         {
             var selectionService = new Mock<IIssueSelectionService>();
             var testSubject = CreateTestSubject(selectionService: selectionService.Object);
 
+            var oldSelection = isSelectedNull ? new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>()) : null;
+            var newSelection = isSelectedNull ? null : new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>());
+
+            testSubject.SelectedIssue = oldSelection;
+
             selectionService.Reset();
 
-            var selection = new TaintIssueViewModel(Mock.Of<IAnalysisIssueVisualization>());
-            testSubject.SelectedIssue = selection;
+            testSubject.SelectedIssue = newSelection;
 
-            selectionService.VerifySet(x => x.SelectedIssue = selection.TaintIssueViz, Times.Once);
+            selectionService.VerifySet(x => x.SelectedIssue = newSelection?.TaintIssueViz, Times.Once);
             selectionService.VerifyNoOtherCalls();
         }
 
