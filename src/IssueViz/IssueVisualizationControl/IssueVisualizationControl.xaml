@@ -212,7 +212,7 @@
           vsTheming:ImageThemingUtilities.ImageBackgroundColor="{Binding Background, RelativeSource={RelativeSource Self}, Converter={StaticResource BrushToColorConverter}}">
         <Grid x:Name="Overlay" Style="{StaticResource OverlayGridStyle}" Panel.ZIndex="1000">
             <StackPanel VerticalAlignment="Center">
-                <TextBlock Style="{StaticResource OverlayTitleTextStyle}" Text="Please select a SonarLint issue with secondary locations from the Error List."/>
+                <TextBlock Style="{StaticResource OverlayTitleTextStyle}" Text="Please select a SonarLint issue with secondary locations."/>
                 <TextBlock Style="{StaticResource OverlayTextStyle}">
                     <Hyperlink NavigateUri="https://github.com/SonarSource/sonarlint-visualstudio/wiki" 
                                RequestNavigate="Hyperlink_OnRequestNavigate">
