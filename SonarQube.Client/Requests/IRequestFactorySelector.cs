@@ -38,7 +38,7 @@ namespace SonarQube.Client.Requests
             if (isSonarCloud)
             {
                 logger.Debug("Selected SonarCloud request factory");
-                // TODO: return SC factory (currently falling through to SQ factory)
+                return DefaultConfiguration.ConfigureSonarCloud(new UnversionedRequestFactory(logger));
             }
 
             logger.Debug("Selected SonarQube request factory");
