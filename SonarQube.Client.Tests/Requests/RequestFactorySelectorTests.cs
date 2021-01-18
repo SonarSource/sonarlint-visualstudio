@@ -55,7 +55,12 @@ namespace SonarQube.Client.Tests.Requests
 
             actual.Should().NotBeNull();
 
-            // TODO - validate returned factory
+            Assert.Inconclusive("TODO - implement SonarCloud factory checks");
+
+            // TODO
+            //actual.Should().BeOfType<UnversionedRequestFactory>();
+            //var actualRequest = actual.Create<IGetVersionRequest>(new ServerInfo(new Version(8, 0), ServerType.SonarCloud));
+            //actualRequest.Should().NotBeNull();
         }
     }
 }

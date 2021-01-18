@@ -24,7 +24,7 @@ namespace SonarQube.Client.Api
 {
     internal static class DefaultConfiguration
     {
-        public static RequestFactory Configure(RequestFactory requestFactory)
+        public static RequestFactory ConfigureSonarQube(RequestFactory requestFactory)
         {
             requestFactory
                 .RegisterRequest<IGetPluginsRequest, V2_10.GetPluginsRequest>("2.1")
@@ -52,6 +52,30 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>("7.2")
                 .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>("8.6")
                 .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>("8.6");
+            return requestFactory;
+        }
+
+        public static UnversionedRequestFactory ConfigureSonarCloud(UnversionedRequestFactory requestFactory)
+        {
+            requestFactory
+                .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>()
+                .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>()
+                .RegisterRequest<IGetLanguagesRequest, V5_10.GetLanguagesRequest>()
+                .RegisterRequest<IGetModulesRequest, V5_40.GetModulesRequest>()
+                .RegisterRequest<IGetRulesRequest, V5_50.GetRulesRequest>()
+                .RegisterRequest<IDownloadStaticFile, V5_50.DownloadStaticFile>()
+                .RegisterRequest<IGetProjectsRequest, V6_20.GetProjectsRequest>()
+                .RegisterRequest<IGetPluginsRequest, V6_30.GetPluginsRequest>()
+                .RegisterRequest<IGetPropertiesRequest, V6_30.GetPropertiesRequest>()
+                .RegisterRequest<IGetQualityProfileChangeLogRequest, V6_50.GetQualityProfileChangeLogRequest>()
+                .RegisterRequest<IGetQualityProfilesRequest, V6_50.GetQualityProfilesRequest>()
+                .RegisterRequest<IGetNotificationsRequest, V6_60.GetNotificationsRequest>()
+                .RegisterRequest<IGetRoslynExportProfileRequest, V6_60.GetRoslynExportProfileRequest>()
+                .RegisterRequest<IGetOrganizationsRequest, V7_00.GetOrganizationsRequest>()
+                .RegisterRequest<IGetIssuesRequest, V7_20.GetIssuesRequestWrapper>()
+                .RegisterRequest<IGetHotspotRequest, V8_6.GetHotspotRequest>()
+                .RegisterRequest<IGetTaintVulnerabilitiesRequest, V8_6.GetTaintVulnerabilitiesRequest>();
+
             return requestFactory;
         }
     }
