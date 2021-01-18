@@ -42,7 +42,7 @@ namespace SonarQube.Client.Requests
             }
 
             logger.Debug("Selected SonarQube request factory");
-            return DefaultConfiguration.Configure(new RequestFactory(logger));
+            return DefaultConfiguration.ConfigureSonarQube(new RequestFactory(logger));
         }
     }
 }
