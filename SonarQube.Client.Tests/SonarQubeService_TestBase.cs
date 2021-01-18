@@ -29,7 +29,6 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
-using SonarQube.Client.Api;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
@@ -42,7 +41,7 @@ namespace SonarQube.Client.Tests
         protected SonarQubeService service;
         protected TestLogger logger;
 
-        private RequestFactory requestFactory;
+        private RequestFactorySelector requestFactorySelector;
 
         private const string DefaultBasePath = "http://localhost/";
 
@@ -59,8 +58,7 @@ namespace SonarQube.Client.Tests
 
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
-            requestFactory = new RequestFactory(logger);
-            DefaultConfiguration.Configure(requestFactory);
+            requestFactorySelector = new RequestFactorySelector();
 
             ResetService();
         }
@@ -104,7 +102,7 @@ namespace SonarQube.Client.Tests
         protected void ResetService()
         {
             messageHandler.Reset();
-            service = new SonarQubeService(messageHandler.Object, requestFactory, UserAgent, logger);
+            service = new SonarQubeService(messageHandler.Object, requestFactorySelector, UserAgent, logger);
         }
     }
 }
