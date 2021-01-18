@@ -36,6 +36,7 @@ using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.TaintList
 {
@@ -202,7 +203,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     activeDocTracker.Object,
                     activeDocLocator.Object,
                     Mock.Of<IShowInBrowserService>(),
-                    Mock.Of<ITelemetryManager>());
+                    Mock.Of<ITelemetryManager>(),
+                    Mock.Of<IIssueSelectionService>());
             }
 
             public void ChangeActiveDocument(string filePath)
