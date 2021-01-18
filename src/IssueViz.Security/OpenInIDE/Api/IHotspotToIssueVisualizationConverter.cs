@@ -87,6 +87,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.OpenInIDE.Api
                 endLineOffset: sonarQubeHotspot.TextRange.EndOffset,
                 lineHash: sonarQubeHotspot.LineHash,
                 rule: rule,
+                createTimestamp: sonarQubeHotspot.CreationTimestamp,
+                lastUpdateTimestamp: sonarQubeHotspot.LastUpdateTimestamp,
                 flows: null);
 
             return hotspot;
