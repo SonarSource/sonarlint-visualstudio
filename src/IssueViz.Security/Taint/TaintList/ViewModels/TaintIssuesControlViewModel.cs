@@ -35,6 +35,7 @@ using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels
 {
@@ -47,6 +48,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         ICommand ShowDocumentationCommand { get; }
 
         ICollectionView IssuesView { get; }
+
+        ITaintIssueViewModel SelectedIssue { get; set; }
 
         bool HasServerIssues { get; }
 
@@ -62,10 +65,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         private readonly IActiveDocumentTracker activeDocumentTracker;
         private readonly IShowInBrowserService showInBrowserService;
         private readonly ITelemetryManager telemetryManager;
+        private readonly IIssueSelectionService selectionService;
         private readonly ITaintStore store;
         private readonly object Lock = new object();
         private string activeDocumentFilePath;
         private string windowCaption;
+        private ITaintIssueViewModel selectedIssue;
 
         private readonly ObservableCollection<ITaintIssueViewModel> unfilteredIssues;
 
@@ -81,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public string WindowCaption
         {
-            get { return windowCaption; }
+            get => windowCaption;
             set
             {
                 if (windowCaption != value)
@@ -92,12 +97,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             }
         }
 
+        public ITaintIssueViewModel SelectedIssue
+        {
+            get => selectedIssue;
+            set
+            {
+                if (selectedIssue != value)
+                {
+                    selectedIssue = value;
+                    selectionService.SelectedIssue = selectedIssue?.TaintIssueViz;
+                }
+            }
+        }
+
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
             IActiveDocumentTracker activeDocumentTracker,
             IActiveDocumentLocator activeDocumentLocator,
             IShowInBrowserService showInBrowserService,
-            ITelemetryManager telemetryManager)
+            ITelemetryManager telemetryManager,
+            IIssueSelectionService selectionService)
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
@@ -108,6 +127,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             this.showInBrowserService = showInBrowserService;
             this.telemetryManager = telemetryManager;
+
+            this.selectionService = selectionService;
+            this.selectionService.SelectedIssueChanged += SelectionService_SelectionChanged;
 
             this.store = store;
             this.store.IssuesChanged += Store_IssuesChanged;
@@ -220,8 +242,15 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             UpdateCaption();
         }
 
+        private void SelectionService_SelectionChanged(object sender, EventArgs e)
+        {
+            selectedIssue = unfilteredIssues.FirstOrDefault(x => x.TaintIssueViz == selectionService.SelectedIssue);
+            NotifyPropertyChanged(nameof(SelectedIssue));
+        }
+
         public void Dispose()
         {
+            selectionService.SelectedIssueChanged -= SelectionService_SelectionChanged;
             store.IssuesChanged -= Store_IssuesChanged;
             activeDocumentTracker.OnDocumentFocused -= ActiveDocumentTracker_OnDocumentFocused;
         }
