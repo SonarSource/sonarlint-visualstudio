@@ -37,9 +37,10 @@ namespace SonarQube.Client
     public class SonarQubeService : ISonarQubeService, IDisposable
     {
         private readonly HttpMessageHandler messageHandler;
-        private readonly IRequestFactory requestFactory;
+        private IRequestFactory requestFactory;
         private readonly string userAgent;
         private readonly ILogger logger;
+        private readonly IRequestFactorySelector requestFactorySelector;
 
         private HttpClient httpClient;
 
@@ -57,19 +58,19 @@ namespace SonarQube.Client
         public ServerInfo ServerInfo { get; private set; }
 
         public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
-            : this(messageHandler, DefaultConfiguration.Configure(new RequestFactory(logger)), userAgent, logger)
+            : this(messageHandler, new RequestFactorySelector(), userAgent, logger)
         {
         }
 
-        internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, IRequestFactory requestFactory, string userAgent, ILogger logger)
+        internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, IRequestFactorySelector requestFactorySelector, string userAgent, ILogger logger)
         {
             if (messageHandler == null)
             {
                 throw new ArgumentNullException(nameof(messageHandler));
             }
-            if (requestFactory == null)
+            if (requestFactorySelector == null)
             {
-                throw new ArgumentNullException(nameof(requestFactory));
+                throw new ArgumentNullException(nameof(requestFactorySelector));
             }
             if (userAgent == null)
             {
@@ -80,7 +81,7 @@ namespace SonarQube.Client
                 throw new ArgumentNullException(nameof(logger));
             }
             this.messageHandler = messageHandler;
-            this.requestFactory = requestFactory;
+            this.requestFactorySelector = requestFactorySelector;
             this.userAgent = userAgent;
             this.logger = logger;
         }
@@ -133,6 +134,8 @@ namespace SonarQube.Client
 
             httpClient.DefaultRequestHeaders.Add("User-Agent", userAgent);
 
+            requestFactory = requestFactorySelector.Select(connection.IsSonarCloud, logger);
+
             IsConnected = true;
             var serverTypeDescription = connection.IsSonarCloud ? "SonarCloud" : "SonarQube";
 
@@ -166,6 +169,7 @@ namespace SonarQube.Client
             // the caller connects to another server.
             IsConnected = false;
             ServerInfo = null;
+            requestFactory = null;
         }
 
         private void EnsureIsConnected()
