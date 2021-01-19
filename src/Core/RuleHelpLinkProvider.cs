@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+
 namespace SonarLint.VisualStudio.Core
 {
     public interface IRuleHelpLinkProvider
@@ -27,24 +29,59 @@ namespace SonarLint.VisualStudio.Core
 
     public class RuleHelpLinkProvider : IRuleHelpLinkProvider
     {
+        private static readonly IDictionary<string, string> repoKeyToFolderNameMap = new Dictionary<string, string>
+        {
+            { "roslyn.sonaranalyzer.security.cs", "csharp" }
+        };
+
         public string GetHelpLink(string ruleKey)
         {
-            var colonIndex = ruleKey.IndexOf(':');
             // ruleKey is in format "javascript:S1234" (or javascript:SOMETHING for legacy keys)
+            // NB: there are some "common" rules that are implemented on the server-side. We do
+            // need to handle these case as they will never be raised in the IDE (and don't seem
+            // to be documented on the rule site anyway).
+            //   e.g. common-c:DuplicatedBlocks, common-cpp:FailedUnitTests
 
-            // language is "javascript"
-            var language = ruleKey.Substring(0, colonIndex);
-
-            // ruleId should be "1234" (or SOMETHING for legacy keys)
+            var colonIndex = ruleKey.IndexOf(':');
+            var repoKey = ruleKey.Substring(0, colonIndex);
             var ruleId = ruleKey.Substring(colonIndex + 1);
+
+            var languageFolderName = GetWebsiteFolderName(repoKey);
+            var webSiteRuleId = GetWebsiteRuleId(ruleId);
+
+            return $"https://rules.sonarsource.com/{languageFolderName}/{webSiteRuleId}";
+        }
+
+        private string GetWebsiteFolderName(string repoKey)
+        {
+            // The rules for each language are in a separate folder in the rules website.
+            // For some languages, the folder name happens to match the repo key.
+            // The dictionary provides the mapping to use in cases where they are not the same.
+            if (repoKeyToFolderNameMap.TryGetValue(repoKey, out var folderName))
+            {
+                return folderName;
+            }
+
+            // Assume the folder name is the same as the repo key
+            return repoKey;
+        }
+
+        private static string GetWebsiteRuleId(string ruleId)
+        {
+            // Website ruleId should be "RSPEC-1234" (or RSPEC-SOMETHING for legacy keys)
+            string webSiteId;
             if (ruleId.Length > 1 &&
                 ruleId[0] == 'S' &&
                 char.IsDigit(ruleId[1]))
             {
-                ruleId = ruleId.Substring(1);
+                webSiteId = ruleId.Substring(1);
+            }
+            else
+            {
+                webSiteId = ruleId; // assume it's a legacy key
             }
 
-            return $"https://rules.sonarsource.com/{language}/RSPEC-{ruleId}";
+            return "RSPEC-" + webSiteId;
         }
     }
 }
