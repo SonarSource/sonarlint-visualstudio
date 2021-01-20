@@ -94,17 +94,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
     public static class AnalysisIssueVisualizationExtensions
     {
         /// <summary>
-        /// Returns primary and secondary locations of IssueVisualization
+        /// Returns primary and all secondary locations of the given <see cref="issueVisualization"/>
         /// </summary>
         public static IEnumerable<IAnalysisIssueLocationVisualization> GetAllLocations(this IAnalysisIssueVisualization issueVisualization)
         {
             var primaryLocation = issueVisualization;
-            var secondaryLocations = issueVisualization.Flows.SelectMany(x => x.Locations);
+            var secondaryLocations = issueVisualization.GetSecondaryLocations();
 
             var allLocations = new List<IAnalysisIssueLocationVisualization> {primaryLocation};
             allLocations.AddRange(secondaryLocations);
 
             return allLocations;
+        }
+
+        /// <summary>
+        /// Returns all secondary locations of the given <see cref="issueVisualization"/>
+        /// </summary>
+        public static IEnumerable<IAnalysisIssueLocationVisualization> GetSecondaryLocations(this IAnalysisIssueVisualization issueVisualization)
+        {
+            var secondaryLocations = issueVisualization.Flows.SelectMany(x => x.Locations);
+
+            return secondaryLocations;
         }
     }
 }
