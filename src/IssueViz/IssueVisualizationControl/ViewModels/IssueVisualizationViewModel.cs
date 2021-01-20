@@ -84,8 +84,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 selectionService.SelectedLocation);
         }
 
-        public bool HasNonNavigableLocations => CurrentIssue != null && 
-                                                CurrentIssue.GetAllLocations().Any(x => !x.IsNavigable());
+        public bool HasNonNavigableLocations { get; private set; }
 
         public int? LineNumber
         {
@@ -131,6 +130,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                     }
 
                     currentIssue = value;
+                    CalculateNonNavigableLocations();
 
                     if (currentIssue != null)
                     {
@@ -169,7 +169,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 case nameof(IAnalysisIssueVisualization.Span):
                     NotifyPropertyChanged(nameof(LineNumber));
-                    NotifyPropertyChanged(nameof(HasNonNavigableLocations));
+                    CalculateNonNavigableLocations();
                     break;
                 case nameof(IAnalysisIssueVisualization.CurrentFilePath):
                     NotifyPropertyChanged(nameof(FileName));
@@ -181,8 +181,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         {
             if (e.PropertyName == nameof(IAnalysisIssueLocationVisualization.Span))
             {
-                NotifyPropertyChanged(nameof(HasNonNavigableLocations));
+                CalculateNonNavigableLocations();
             }
+        }
+
+        private void CalculateNonNavigableLocations()
+        {
+            HasNonNavigableLocations = CurrentIssue != null &&
+                                       CurrentIssue.GetAllLocations().Any(x => !x.IsNavigable());
+
+            NotifyPropertyChanged(nameof(HasNonNavigableLocations));
         }
 
         public IAnalysisIssueFlowVisualization CurrentFlow
