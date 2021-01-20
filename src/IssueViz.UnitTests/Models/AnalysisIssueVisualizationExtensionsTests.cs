@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -33,32 +32,71 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         [TestMethod]
         public void GetAllLocations_NoSecondaryLocations_ListWithOnlyPrimaryLocation()
         {
-            var issue = new Mock<IAnalysisIssueVisualization>();
-            issue.Setup(x => x.Flows).Returns(Enumerable.Empty<IAnalysisIssueFlowVisualization>().ToList());
+            var issue = CreateIssue();
 
-            var locations = issue.Object.GetAllLocations();
-            locations.Should().BeEquivalentTo(issue.Object);
+            var locations = issue.GetAllLocations();
+            locations.Should().BeEquivalentTo(issue);
         }
 
         [TestMethod]
         public void GetAllLocations_HasSecondaryLocations_ListWithPrimaryAndLocations()
         {
             var location1 = Mock.Of<IAnalysisIssueLocationVisualization>();
-            var flow1 = new Mock<IAnalysisIssueFlowVisualization>();
-            flow1.Setup(x => x.Locations).Returns(new[] { location1 });
+            var flow1 = CreateFlow(location1);
 
             var location2 = Mock.Of<IAnalysisIssueLocationVisualization>();
             var location3 = Mock.Of<IAnalysisIssueLocationVisualization>();
-            var flow2 = new Mock<IAnalysisIssueFlowVisualization>();
-            flow2.Setup(x => x.Locations).Returns(new[] { location2, location3 });
+            var flow2 = CreateFlow(location2, location3);
 
-            var issue = new Mock<IAnalysisIssueVisualization>();
-            issue.Setup(x => x.Flows).Returns(new[] { flow1.Object, flow2.Object });
+            var issue = CreateIssue(flow1, flow2);
 
-            var expectedLocations = new[] { issue.Object, location1, location2, location3 };
-            var locations = issue.Object.GetAllLocations();
+            var expectedLocations = new[] { issue, location1, location2, location3 };
+            var locations = issue.GetAllLocations();
 
             locations.Should().BeEquivalentTo(expectedLocations, c => c.WithStrictOrdering());
+        }
+
+        [TestMethod]
+        public void GetSecondaryLocations_NoSecondaryLocations_EmptyList()
+        {
+            var issue = CreateIssue();
+
+            var locations = issue.GetSecondaryLocations();
+
+            locations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void GetSecondaryLocations_HasSecondaryLocations_ListWithLocations()
+        {
+            var location1 = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var flow1 = CreateFlow(location1);
+
+            var location2 = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var location3 = Mock.Of<IAnalysisIssueLocationVisualization>();
+            var flow2 = CreateFlow(location2, location3);
+
+            var issue = CreateIssue(flow1, flow2);
+
+            var locations = issue.GetSecondaryLocations();
+
+            locations.Should().BeEquivalentTo(location1, location2, location3);
+        }
+
+        private IAnalysisIssueFlowVisualization CreateFlow(params IAnalysisIssueLocationVisualization[] locations)
+        {
+            var flow = new Mock<IAnalysisIssueFlowVisualization>();
+            flow.Setup(x => x.Locations).Returns(locations);
+
+            return flow.Object;
+        }
+
+        private IAnalysisIssueVisualization CreateIssue(params IAnalysisIssueFlowVisualization[] flows)
+        {
+            var issue = new Mock<IAnalysisIssueVisualization>();
+            issue.Setup(x => x.Flows).Returns(flows);
+
+            return issue.Object;
         }
     }
 }

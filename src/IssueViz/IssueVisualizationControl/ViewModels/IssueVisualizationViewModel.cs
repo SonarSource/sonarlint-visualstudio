@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 {
     internal interface IIssueVisualizationViewModel : INotifyPropertyChanged, IDisposable
     {
+        bool HasNonNavigableLocations { get; }
         int? LineNumber { get; }
         string FileName { get; }
         string Description { get; }
@@ -83,6 +84,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 selectionService.SelectedLocation);
         }
 
+        public bool HasNonNavigableLocations { get; private set; }
+
         public int? LineNumber
         {
             get
@@ -123,19 +126,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 {
                     if (currentIssue != null)
                     {
-                        currentIssue.PropertyChanged -= CurrentIssue_OnPropertyChanged;
+                        UnsubscribeFromIssuePropertyChanges();
                     }
 
                     currentIssue = value;
+                    CalculateNonNavigableLocations();
 
                     if (currentIssue != null)
                     {
-                        currentIssue.PropertyChanged += CurrentIssue_OnPropertyChanged;
+                        SubscribeToIssuePropertyChanges();
                     }
 
                     // Trigger PropertyChanged for all properties
                     NotifyPropertyChanged(string.Empty);
                 }
+            }
+        }
+
+        private void SubscribeToIssuePropertyChanges()
+        {
+            currentIssue.PropertyChanged += CurrentIssue_OnPropertyChanged;
+
+            foreach (var location in currentIssue.GetSecondaryLocations())
+            {
+                location.PropertyChanged += Location_PropertyChanged;
+            }
+        }
+
+        private void UnsubscribeFromIssuePropertyChanges()
+        {
+            currentIssue.PropertyChanged -= CurrentIssue_OnPropertyChanged;
+
+            foreach (var location in currentIssue.GetSecondaryLocations())
+            {
+                location.PropertyChanged -= Location_PropertyChanged;
             }
         }
 
@@ -145,11 +169,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
             {
                 case nameof(IAnalysisIssueVisualization.Span):
                     NotifyPropertyChanged(nameof(LineNumber));
+                    CalculateNonNavigableLocations();
                     break;
                 case nameof(IAnalysisIssueVisualization.CurrentFilePath):
                     NotifyPropertyChanged(nameof(FileName));
                     break;
             }
+        }
+
+        private void Location_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(IAnalysisIssueLocationVisualization.Span))
+            {
+                CalculateNonNavigableLocations();
+            }
+        }
+
+        private void CalculateNonNavigableLocations()
+        {
+            HasNonNavigableLocations = CurrentIssue != null &&
+                                       CurrentIssue.GetAllLocations().Any(x => !x.IsNavigable());
+
+            NotifyPropertyChanged(nameof(HasNonNavigableLocations));
         }
 
         public IAnalysisIssueFlowVisualization CurrentFlow
@@ -307,7 +348,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         {
             if (currentIssue != null)
             {
-                currentIssue.PropertyChanged -= CurrentIssue_OnPropertyChanged;
+                UnsubscribeFromIssuePropertyChanges();
             }
 
             selectionService.SelectionChanged -= SelectionEvents_OnSelectionChanged;
