@@ -86,7 +86,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             flows.Select(x => new AnalysisIssueFlow(Convert(x.Locations))).ToArray();
 
         private IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
-            locations.Select(location =>
+            locations.Reverse().Select(location =>
             {
                 var localFilePath = absoluteFilePathLocator.Locate(location.FilePath);
 
