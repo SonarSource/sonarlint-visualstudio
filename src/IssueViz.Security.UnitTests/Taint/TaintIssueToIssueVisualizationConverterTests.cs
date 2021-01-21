@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         }
 
         [TestMethod]
-        public void Convert_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueViz()
+        public void Convert_IssueVizConverterCalledWithCorrectParameters_ReturnsConvertedIssueVizWithReversedLocations()
         {
             var location1 = CreateServerLocation("path1", "message1", new IssueTextRange(1,2,3,4));
             var location2 = CreateServerLocation("path2", "message2", new IssueTextRange(5, 6, 7, 8));
@@ -119,20 +119,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
                         taintIssue.Flows[1].Locations.Count == 1 &&
 
                         taintIssue.Flows[0].Locations[0].LineHash == null &&
-                        taintIssue.Flows[0].Locations[0].Message == "message1" &&
-                        taintIssue.Flows[0].Locations[0].FilePath == "path1" &&
-                        taintIssue.Flows[0].Locations[0].StartLine == 1 &&
-                        taintIssue.Flows[0].Locations[0].EndLine == 2 &&
-                        taintIssue.Flows[0].Locations[0].StartLineOffset == 3 &&
-                        taintIssue.Flows[0].Locations[0].EndLineOffset == 4 &&
+                        taintIssue.Flows[0].Locations[0].Message == "message2" &&
+                        taintIssue.Flows[0].Locations[0].FilePath == "path2" &&
+                        taintIssue.Flows[0].Locations[0].StartLine == 5 &&
+                        taintIssue.Flows[0].Locations[0].EndLine == 6 &&
+                        taintIssue.Flows[0].Locations[0].StartLineOffset == 7 &&
+                        taintIssue.Flows[0].Locations[0].EndLineOffset == 8 &&
 
                         taintIssue.Flows[0].Locations[1].LineHash == null &&
-                        taintIssue.Flows[0].Locations[1].Message == "message2" &&
-                        taintIssue.Flows[0].Locations[1].FilePath == "path2" &&
-                        taintIssue.Flows[0].Locations[1].StartLine == 5 &&
-                        taintIssue.Flows[0].Locations[1].EndLine == 6 &&
-                        taintIssue.Flows[0].Locations[1].StartLineOffset == 7 &&
-                        taintIssue.Flows[0].Locations[1].EndLineOffset == 8 &&
+                        taintIssue.Flows[0].Locations[1].Message == "message1" &&
+                        taintIssue.Flows[0].Locations[1].FilePath == "path1" &&
+                        taintIssue.Flows[0].Locations[1].StartLine == 1 &&
+                        taintIssue.Flows[0].Locations[1].EndLine == 2 &&
+                        taintIssue.Flows[0].Locations[1].StartLineOffset == 3 &&
+                        taintIssue.Flows[0].Locations[1].EndLineOffset == 4 &&
 
                         taintIssue.Flows[1].Locations[0].LineHash == null &&
                         taintIssue.Flows[1].Locations[0].Message == "message3" &&
@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             absoluteFilePathLocator.Setup(x => x.Locate("server-path3")).Returns("local3");
             absoluteFilePathLocator.Setup(x => x.Locate("server-path4")).Returns("local4");
 
-            var testSubject = CreateTestSubject(issueVizConverter.Object);
+            var testSubject = CreateTestSubject(issueVizConverter.Object, absoluteFilePathLocator.Object);
 
             var serverIssue = CreateServerIssue(filePath:"server-path4",textRange: new IssueTextRange(1, 2, 3, 4));
             var result = testSubject.Convert(serverIssue);
