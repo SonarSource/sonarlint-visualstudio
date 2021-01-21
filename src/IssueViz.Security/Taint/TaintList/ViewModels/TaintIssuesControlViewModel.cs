@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -156,14 +157,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private bool ActiveDocumentFilter(object viewModel)
         {
-            var issueFilePath = ((ITaintIssueViewModel)viewModel).TaintIssueViz.CurrentFilePath;
-
-            if (string.IsNullOrEmpty(activeDocumentFilePath) || string.IsNullOrEmpty(issueFilePath))
+            if (string.IsNullOrEmpty(activeDocumentFilePath))
             {
                 return false;
             }
 
-            return PathHelper.IsMatchingPath(issueFilePath, activeDocumentFilePath);
+            var allFilePaths = ((ITaintIssueViewModel) viewModel).TaintIssueViz.GetAllLocations()
+                .Select(x => x.CurrentFilePath)
+                .Where(x => !string.IsNullOrEmpty(x));
+
+            return allFilePaths.Any(x=> PathHelper.IsMatchingPath(x, activeDocumentFilePath));
         }
 
         private void SetDefaultSortOrder() =>
