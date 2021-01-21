@@ -53,7 +53,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             var analysisIssue = ConvertToAnalysisIssue(sonarQubeIssue);
             var issueViz = issueVisualizationConverter.Convert(analysisIssue);
 
+            CalculateLocalFilePaths(issueViz);
+
             return issueViz;
+        }
+
+        private void CalculateLocalFilePaths(IAnalysisIssueVisualization issueViz)
+        {
+            var allLocations = issueViz.GetAllLocations();
+
+            foreach (var location in allLocations)
+            {
+                location.CurrentFilePath = absoluteFilePathLocator.Locate(location.Location.FilePath);
+            }
         }
 
         private IAnalysisIssueBase ConvertToAnalysisIssue(SonarQubeIssue sonarQubeIssue)
@@ -63,11 +75,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 throw new ArgumentNullException(nameof(sonarQubeIssue.TextRange));
             } 
 
-            var localFilePath = absoluteFilePathLocator.Locate(sonarQubeIssue.FilePath);
-
             return new TaintIssue(
                 sonarQubeIssue.IssueKey,
-                localFilePath,
+                sonarQubeIssue.FilePath,
                 sonarQubeIssue.RuleId,
                 sonarQubeIssue.Message,
                 sonarQubeIssue.TextRange.StartLine,
@@ -88,15 +98,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         private IReadOnlyList<IAnalysisIssueLocation> Convert(IEnumerable<IssueLocation> locations) =>
             locations.Select(location =>
             {
-                var localFilePath = absoluteFilePathLocator.Locate(location.FilePath);
-
                 if (location.TextRange == null)
                 {
                     throw new ArgumentNullException(nameof(location.TextRange));
                 }
 
                 return new AnalysisIssueLocation(location.Message,
-                    localFilePath,
+                    location.FilePath,
                     location.TextRange.StartLine,
                     location.TextRange.EndLine,
                     location.TextRange.StartOffset,

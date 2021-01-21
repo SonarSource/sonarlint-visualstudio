@@ -87,19 +87,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var issue = CreateServerIssue("issue key", "path4", "hash", "message4", "rule", SonarQubeIssueSeverity.Major,
                 new IssueTextRange(13, 14, 15, 16), created, lastUpdate, flow1, flow2);
 
-            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
-            absoluteFilePathLocator.Setup(x => x.Locate("path1")).Returns("found1");
-            absoluteFilePathLocator.Setup(x => x.Locate("path2")).Returns("found2");
-            absoluteFilePathLocator.Setup(x => x.Locate("path3")).Returns("found3");
-            absoluteFilePathLocator.Setup(x => x.Locate("path4")).Returns("found4");
-
-            var expectedConvertedIssueViz = Mock.Of<IAnalysisIssueVisualization>();
+            var expectedConvertedIssueViz = CreateIssueViz();
             var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
             issueVizConverter
                 .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
                 .Returns(expectedConvertedIssueViz);
 
-            var testSubject = CreateTestSubject(issueVizConverter.Object, absoluteFilePathLocator.Object);
+            var testSubject = CreateTestSubject(issueVizConverter.Object);
             var result = testSubject.Convert(issue);
 
             result.Should().BeSameAs(expectedConvertedIssueViz);
@@ -107,7 +101,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             issueVizConverter.Verify(x => x.Convert(
                     It.Is((TaintIssue taintIssue) =>
                         taintIssue.IssueKey == "issue key" &&
-                        taintIssue.FilePath == "found4" &&
+                        taintIssue.FilePath == "path4" &&
                         taintIssue.RuleKey == "rule" &&
                         taintIssue.LineHash == "hash" &&
                         taintIssue.Message == "message4" &&
@@ -126,7 +120,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
                         taintIssue.Flows[0].Locations[0].LineHash == null &&
                         taintIssue.Flows[0].Locations[0].Message == "message1" &&
-                        taintIssue.Flows[0].Locations[0].FilePath == "found1" &&
+                        taintIssue.Flows[0].Locations[0].FilePath == "path1" &&
                         taintIssue.Flows[0].Locations[0].StartLine == 1 &&
                         taintIssue.Flows[0].Locations[0].EndLine == 2 &&
                         taintIssue.Flows[0].Locations[0].StartLineOffset == 3 &&
@@ -134,7 +128,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
                         taintIssue.Flows[0].Locations[1].LineHash == null &&
                         taintIssue.Flows[0].Locations[1].Message == "message2" &&
-                        taintIssue.Flows[0].Locations[1].FilePath == "found2" &&
+                        taintIssue.Flows[0].Locations[1].FilePath == "path2" &&
                         taintIssue.Flows[0].Locations[1].StartLine == 5 &&
                         taintIssue.Flows[0].Locations[1].EndLine == 6 &&
                         taintIssue.Flows[0].Locations[1].StartLineOffset == 7 &&
@@ -142,7 +136,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
                         taintIssue.Flows[1].Locations[0].LineHash == null &&
                         taintIssue.Flows[1].Locations[0].Message == "message3" &&
-                        taintIssue.Flows[1].Locations[0].FilePath == "found3" &&
+                        taintIssue.Flows[1].Locations[0].FilePath == "path3" &&
                         taintIssue.Flows[1].Locations[0].StartLine == 9 &&
                         taintIssue.Flows[1].Locations[0].EndLine == 10 &&
                         taintIssue.Flows[1].Locations[0].StartLineOffset == 11 &&
@@ -175,6 +169,40 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             act.Should().Throw<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueSeverity");
         }
 
+        [TestMethod]
+        public void Convert_CalculatesLocalFilePaths()
+        {
+            var locationViz1 = CreateLocationViz("server-path1");
+            var locationViz2 = CreateLocationViz("server-path2");
+            var locationViz3 = CreateLocationViz("server-path3");
+            var expectedIssueViz = CreateIssueViz("server-path4", locationViz1, locationViz2, locationViz3);
+
+            var issueVizConverter = new Mock<IAnalysisIssueVisualizationConverter>();
+            issueVizConverter
+                .Setup(x => x.Convert(It.IsAny<IAnalysisIssueBase>(), null))
+                .Returns(expectedIssueViz);
+
+            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
+            absoluteFilePathLocator.Setup(x => x.Locate("server-path1")).Returns("local1");
+            absoluteFilePathLocator.Setup(x => x.Locate("server-path2")).Returns((string)null);
+            absoluteFilePathLocator.Setup(x => x.Locate("server-path3")).Returns("local3");
+            absoluteFilePathLocator.Setup(x => x.Locate("server-path4")).Returns("local4");
+
+            var testSubject = CreateTestSubject(issueVizConverter.Object);
+
+            var serverIssue = CreateServerIssue(filePath:"server-path4",textRange: new IssueTextRange(1, 2, 3, 4));
+            var result = testSubject.Convert(serverIssue);
+
+            result.Should().Be(expectedIssueViz);
+
+            expectedIssueViz.CurrentFilePath.Should().Be("local4");
+
+            var secondaryLocations = expectedIssueViz.GetSecondaryLocations().ToList();
+            secondaryLocations[0].CurrentFilePath.Should().Be("local1");
+            secondaryLocations[1].CurrentFilePath.Should().Be(null);
+            secondaryLocations[2].CurrentFilePath.Should().Be("local3");
+        }
+
         private TaintIssueToIssueVisualizationConverter CreateTestSubject(IAnalysisIssueVisualizationConverter issueVizConverter = null, IAbsoluteFilePathLocator absoluteFilePathLocator = null)
         {
             issueVizConverter ??= Mock.Of<IAnalysisIssueVisualizationConverter>();
@@ -193,5 +221,28 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
 
         private IssueFlow CreateServerFlow(params IssueLocation[] locations) => 
             new IssueFlow(locations.ToList());
+
+        private IAnalysisIssueVisualization CreateIssueViz(string serverFilePath = null, params IAnalysisIssueLocationVisualization[] locationVizs)
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+
+            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
+            flowViz.Setup(x => x.Locations).Returns(locationVizs);
+
+            issueViz.Setup(x => x.Flows).Returns(new[] { flowViz.Object });
+            issueViz.SetupGet(x => x.Location.FilePath).Returns(serverFilePath);
+            issueViz.SetupProperty(x => x.CurrentFilePath);
+
+            return issueViz.Object;
+        }
+
+        private IAnalysisIssueLocationVisualization CreateLocationViz(string serverFilePath)
+        {
+            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locationViz.SetupGet(x => x.Location.FilePath).Returns(serverFilePath);
+            locationViz.SetupProperty(x => x.CurrentFilePath);
+
+            return locationViz.Object;
+        }
     }
 }

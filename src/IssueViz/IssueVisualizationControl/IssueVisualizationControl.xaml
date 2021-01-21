@@ -14,6 +14,7 @@
         <vsUtilities:BrushToColorConverter x:Key="BrushToColorConverter"/>
         <visualization:SeverityToMonikerConverter x:Key="SeverityToMonikerConverter" />
         <visualization:SpanToNavigabilityConverter x:Key="SpanToNavigabilityConverter" />
+        <core:BoolToVisibilityConverter x:Key="BooleanToInvertedVisibilityConverter" TrueValue="Collapsed" FalseValue="Visible" />
 
         <core:AggregatorValueConverter x:Key="NullToVisibilityConverter">
             <core:NullToBooleanConverter />
@@ -66,6 +67,7 @@
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="SelectionMode" Value="Single"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled"/>
         </Style>
 
         <!-- Overlay and Data grid styles -->
@@ -150,6 +152,8 @@
             <EventSetter Event="KeyDown" Handler="LocationsList_OnKeyDown"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="3"/>
+            <Setter Property="ToolTipService.IsEnabled" Value="true"/>
+            <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListViewItem}">
@@ -189,8 +193,9 @@
                     <Setter Property="IsEnabled" Value="False"/>
                     <Setter Property="Focusable" Value="false"/>
                     <Setter Property="ToolTip" Value="Cannot navigate to step. The source code is different from the analyzed version"/>
-                    <Setter Property="ToolTipService.IsEnabled" Value="true"/>
-                    <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Path=FileExists, TargetNullValue=true}" Value="false">
+                    <Setter Property="ToolTip" Value="Cannot locate file in the current solution"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -223,6 +228,15 @@
             <Setter Property="Padding" Value="1"/>
             <Setter Property="ToolTipService.IsEnabled" Value="true"/>
             <Setter Property="ToolTipService.ShowOnDisabled" Value="true"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding FileExists}" Value="true">
+                    <Setter Property="ToolTip" Value="{Binding FullPath}"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding FileExists}" Value="false">
+                    <Setter Property="FontStyle" Value="Italic"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarTextInactiveKey}}"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </UserControl.Resources>
     <Grid UseLayoutRounding="True" 
@@ -306,15 +320,18 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Name="FileType" Width="Auto"/>
                                 <ColumnDefinition Name="FileName" Width="*"/>
+                                <ColumnDefinition Name="Navigability" Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <vsImaging:CrispImage Grid.Column="0" 
                                             Height="16" Width="16"
                                             Moniker="{Binding Icon}"/>
-
                             <TextBlock Grid.Column="1" 
                                        Style="{StaticResource FileNameLocationListItemTextBlockStyle}" 
-                                       ToolTip="{Binding FullPath}"
                                        Text="{Binding FileName}" />
+                            <vsImaging:CrispImage Grid.Column="2"
+                                                  Height="16" Width="16"
+                                                  Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
+                                                  Visibility="{Binding FileExists, Converter={StaticResource BooleanToInvertedVisibilityConverter}, Mode=OneWay}"/>
                         </Grid>
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type viewModels:LocationListItem}">
