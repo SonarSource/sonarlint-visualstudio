@@ -153,12 +153,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         [TestMethod]
         public void Ctor_ActiveDocumentExists_IssuesFilteredForActiveFilePath()
         {
-            var issueViz1 = CreateIssueViz("test1.cpp");
-            var issueViz2 = CreateIssueViz(null);
-            var issueViz3 = CreateIssueViz("test2.cpp");
+            var location1 = CreateLocationViz("current.cpp");
+            var issueViz1 = CreateIssueViz(null, locations: new[] {location1});
+
+            var location2 = CreateLocationViz(null);
+            var issueViz2 = CreateIssueViz("current.cpp", locations: new[] {location2});
+
+            var location3 = CreateLocationViz("someOtherFile.cpp");
+            var issueViz3 = CreateIssueViz(null, locations: new[] { location3 });
+
             var storeCollection = new[] { issueViz1, issueViz2, issueViz3 };
 
-            var locator = CreateLocatorAndSetActiveDocument("test2.cpp");
+            var locator = CreateLocatorAndSetActiveDocument("current.cpp");
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentLocator: locator);
 
@@ -167,8 +173,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             VerifyFilterIsNotNull(testSubject);
 
             var filteredItems = GetIssueVizsFromView(testSubject);
-            filteredItems.Count.Should().Be(1);
-            filteredItems[0].Should().Be(issueViz3);
+            filteredItems.Count.Should().Be(2);
+            filteredItems[0].Should().Be(issueViz1);
+            filteredItems[1].Should().Be(issueViz2);
         }
 
         [TestMethod]
@@ -656,7 +663,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         private IAnalysisIssueVisualization CreateIssueViz(string filePath = "test.cpp", string issueKey = "issue key",
-            DateTimeOffset created = default)
+            DateTimeOffset created = default, params IAnalysisIssueLocationVisualization[] locations)
         {
             var issue = new Mock<ITaintIssue>();
             issue.Setup(x => x.IssueKey).Returns(issueKey);
@@ -666,7 +673,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             issueViz.Setup(x => x.CurrentFilePath).Returns(filePath);
             issueViz.Setup(x => x.Issue).Returns(issue.Object);
 
+            var flowViz = new Mock<IAnalysisIssueFlowVisualization>();
+            flowViz.Setup(x => x.Locations).Returns(locations);
+            issueViz.Setup(x => x.Flows).Returns(new[] {flowViz.Object});
+
             return issueViz.Object;
+        }
+
+        private IAnalysisIssueLocationVisualization CreateLocationViz(string filePath)
+        {
+            var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
+            locationViz.Setup(x => x.CurrentFilePath).Returns(filePath);
+
+            return locationViz.Object;
         }
 
         private void VerifyCommandExecution(ICommand command, object parameter, bool canExecute)
