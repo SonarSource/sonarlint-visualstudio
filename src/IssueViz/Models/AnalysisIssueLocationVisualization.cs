@@ -85,6 +85,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             {
                 filePath = value;
                 NotifyPropertyChanged();
+
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    this.InvalidateSpan();
+                }
             }
         }
 
