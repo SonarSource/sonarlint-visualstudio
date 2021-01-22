@@ -49,15 +49,35 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void Ctor_InitializeWithLocationData()
+        public void Ctor_FileLocated_InitializeWithLocationData()
         {
             var location = CreateMockLocation("c:\\test.cpp", KnownMonikers.CPPFile);
 
             var testSubject = CreateTestSubject(location.Object);
 
+            testSubject.FileLocated.Should().BeTrue();
             testSubject.FileName.Should().Be("test.cpp");
             testSubject.FullPath.Should().Be("c:\\test.cpp");
             testSubject.Icon.Should().BeEquivalentTo(KnownMonikers.CPPFile, c=> c.ComparingByMembers<ImageMoniker>());
+        }
+
+        [TestMethod]
+        public void Ctor_FileNotLocated_InitializeWithLocationData()
+        {
+            const string originalFilePath = "c:\\test.cpp";
+            var location = CreateMockLocation(filePath: null);
+            location.Setup(x => x.Location.FilePath).Returns(originalFilePath);
+
+            imageServiceMock
+                .Setup(x => x.GetImageMonikerForFile(originalFilePath))
+                .Returns(KnownMonikers.CPPFile);
+
+            var testSubject = CreateTestSubject(location.Object);
+
+            testSubject.FileLocated.Should().BeFalse();
+            testSubject.FileName.Should().Be("test.cpp");
+            testSubject.FullPath.Should().Be(null);
+            testSubject.Icon.Should().BeEquivalentTo(KnownMonikers.CPPFile, c => c.ComparingByMembers<ImageMoniker>());
         }
 
         [TestMethod]
@@ -97,6 +117,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             location.Object.CurrentFilePath = "c:\\should-not-be-queried.cpp";
             location.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs("dummy property"));
 
+            testSubject.FileLocated.Should().BeTrue();
             testSubject.FileName.Should().Be("old file.cpp");
             testSubject.FullPath.Should().Be("c:\\old file.cpp");
             testSubject.Icon.Should().BeEquivalentTo(KnownMonikers.CPPFile, c => c.ComparingByMembers<ImageMoniker>());
@@ -105,12 +126,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         }
 
         [TestMethod]
-        public void LocationPropertyChanged_FilePathProperty_AllPropertiesAreUpdated()
+        public void LocationPropertyChanged_FilePathProperty_NewFilePathIsNotNull_AllPropertiesAreUpdated()
         {
             const string oldFilePath = "c:\\old.cpp";
             const string newFilePath = "c:\\new.c";
-            object oldIcon = KnownMonikers.CPPFile;
-            object newIcon = KnownMonikers.CFile;
+            var oldIcon = KnownMonikers.CPPFile;
+            var newIcon = KnownMonikers.CFile;
 
             var location = CreateMockLocation(oldFilePath, oldIcon);
             var testSubject = CreateTestSubject(location.Object);
@@ -124,12 +145,36 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
                     x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == string.Empty)),
                 Times.Once);
 
+            testSubject.FileLocated.Should().BeTrue();
             testSubject.FileName.Should().Be(Path.GetFileName(newFilePath));
             testSubject.FullPath.Should().Be(newFilePath);
             testSubject.Icon.Should().BeEquivalentTo(newIcon, c => c.ComparingByMembers<ImageMoniker>());
         }
 
-        private Mock<IAnalysisIssueLocationVisualization> CreateMockLocation(string filePath, object imageMoniker, Exception failsToRetrieveMoniker = null)
+        [TestMethod]
+        public void LocationPropertyChanged_FilePathProperty_NewFilePathIsNull_AllPropertiesAreUpdated()
+        {
+            const string oldFilePath = "c:\\old.cpp";
+            var oldIcon = KnownMonikers.CPPFile;
+
+            var location = CreateMockLocation(oldFilePath, oldIcon);
+            var testSubject = CreateTestSubject(location.Object);
+
+            location.Object.CurrentFilePath = null;
+            location.Setup(x => x.Location.FilePath).Returns(oldFilePath);
+            location.Raise(x => x.PropertyChanged += null, new PropertyChangedEventArgs(nameof(IAnalysisIssueLocationVisualization.CurrentFilePath)));
+
+            propertyChangedEventHandler.Verify(x =>
+                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == string.Empty)),
+                Times.Once);
+
+            testSubject.FileLocated.Should().BeFalse();
+            testSubject.FileName.Should().Be("old.cpp");
+            testSubject.FullPath.Should().Be(null);
+            testSubject.Icon.Should().BeEquivalentTo(oldIcon, c => c.ComparingByMembers<ImageMoniker>());
+        }
+
+        private Mock<IAnalysisIssueLocationVisualization> CreateMockLocation(string filePath, ImageMoniker imageMoniker = default, Exception failsToRetrieveMoniker = null)
         {
             if (failsToRetrieveMoniker != null)
             {
@@ -139,7 +184,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             }
             else
             {
-                imageServiceMock.Setup(x => x.GetImageMonikerForFile(filePath)).Returns((ImageMoniker) imageMoniker);
+                imageServiceMock.Setup(x => x.GetImageMonikerForFile(filePath)).Returns(imageMoniker);
             }
 
             var locationViz = new Mock<IAnalysisIssueLocationVisualization>();
