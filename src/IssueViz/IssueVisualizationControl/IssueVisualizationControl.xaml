@@ -331,7 +331,7 @@
                             <vsImaging:CrispImage Grid.Column="2"
                                                   Height="16" Width="16"
                                                   Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
-                                                  Visibility="{Binding FileExists, Converter={StaticResource BooleanToInvertedVisibilityConverter}, Mode=OneWay}"/>
+                                                  Visibility="{Binding FileLocated, Converter={StaticResource BooleanToInvertedVisibilityConverter}, Mode=OneWay}"/>
                         </Grid>
                     </DataTemplate>
                     <DataTemplate DataType="{x:Type viewModels:LocationListItem}">

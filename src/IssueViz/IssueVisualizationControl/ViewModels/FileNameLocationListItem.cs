@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         string FullPath { get; }
         string FileName { get; }
         object Icon { get; }
-        bool FileExists { get; }
+        bool FileLocated { get; }
     }
 
     internal sealed class FileNameLocationListItem : IFileNameLocationListItem
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         public string FullPath { get; private set; }
         public string FileName { get; private set; }
         public object Icon { get; private set; }
-        public bool FileExists => !string.IsNullOrEmpty(FullPath);
+        public bool FileLocated => !string.IsNullOrEmpty(FullPath);
 
         public FileNameLocationListItem(IAnalysisIssueLocationVisualization location, IVsImageService2 vsImageService, ILogger logger)
         {
@@ -71,7 +71,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         {
             FullPath = location.CurrentFilePath;
 
-            if (FileExists)
+            if (FileLocated)
             {
                 FileName = Path.GetFileName(FullPath);
                 Icon = GetImageMonikerForFile(FullPath);
