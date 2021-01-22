@@ -32,10 +32,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
         IAnalysisIssueLocation Location { get; }
 
         /// <summary>
-        /// Up-to-date file path associated with the issue location
+        /// Up-to-date full file path associated with the issue location.
         /// </summary>
         /// <remarks>
         /// If the file was renamed after the analysis, this property will contain the new value and will be different from the underlying <see cref="IAnalysisIssueLocation.FilePath"/>.
+        /// Can be null if the original <see cref="IAnalysisIssueLocation.FilePath"/> could not be found in the current solution (e.g. file was not included in the solution, or included in an unloaded project).
         /// </remarks>
         string CurrentFilePath { get; set; }
 
