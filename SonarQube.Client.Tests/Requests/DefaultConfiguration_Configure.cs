@@ -42,6 +42,7 @@ namespace SonarQube.Client.Tests.Requests
                     "Registered SonarQube.Client.Api.V2_10.GetVersionRequest for 2.1",
                     "Registered SonarQube.Client.Api.V2_60.GetPropertiesRequest for 2.6",
                     "Registered SonarQube.Client.Api.V3_30.ValidateCredentialsRequest for 3.3",
+                    "Registered SonarQube.Client.Api.V5_00.GetSourceCodeRequest for 5.0",
                     "Registered SonarQube.Client.Api.V5_10.GetIssuesRequest for 5.1",
                     "Registered SonarQube.Client.Api.V5_10.GetLanguagesRequest for 5.1",
                     "Registered SonarQube.Client.Api.V5_20.GetQualityProfileChangeLogRequest for 5.2",
@@ -81,6 +82,7 @@ namespace SonarQube.Client.Tests.Requests
                 {
                     "Registered SonarQube.Client.Api.V2_10.GetVersionRequest",
                     "Registered SonarQube.Client.Api.V3_30.ValidateCredentialsRequest",
+                    "Registered SonarQube.Client.Api.V5_00.GetSourceCodeRequest",
                     "Registered SonarQube.Client.Api.V5_10.GetLanguagesRequest",
                     "Registered SonarQube.Client.Api.V5_40.GetModulesRequest",
                     "Registered SonarQube.Client.Api.V5_50.GetRulesRequest",
@@ -129,6 +131,7 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IGetTaintVulnerabilitiesRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetVersionRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IValidateCredentialsRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<IGetSourceCodeRequest>(serverInfo).Should().NotBeNull();
         }
 
         [TestMethod]
@@ -154,6 +157,7 @@ namespace SonarQube.Client.Tests.Requests
             testSubject.Create<IGetTaintVulnerabilitiesRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IGetVersionRequest>(serverInfo).Should().NotBeNull();
             testSubject.Create<IValidateCredentialsRequest>(serverInfo).Should().NotBeNull();
+            testSubject.Create<IGetSourceCodeRequest>(serverInfo).Should().NotBeNull();
         }
 
         private static void DumpDebugMessages(TestLogger logger)
