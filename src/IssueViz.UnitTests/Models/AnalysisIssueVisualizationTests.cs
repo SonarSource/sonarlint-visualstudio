@@ -83,6 +83,58 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
         }
 
         [TestMethod]
+        public void SetCurrentFilePath_FilePathIsNull_SpanIsInvalidated()
+        {
+            // Arrange
+            var oldFilePath = "oldpath.txt";
+            var oldSpan = CreateSpan();
+
+            var testSubject = CreateTestSubject(oldFilePath, oldSpan);
+            testSubject.Span.Should().Be(oldSpan);
+            testSubject.CurrentFilePath.Should().Be(oldFilePath);
+
+            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+
+            // Act
+            testSubject.CurrentFilePath = null;
+
+            // Assert
+            testSubject.Span.Value.IsEmpty.Should().BeTrue();
+            testSubject.CurrentFilePath.Should().BeNull();
+
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.CurrentFilePath));
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.Span));
+            propertyChangedEventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void SetCurrentFilePath_FilePathIsNotNull_SpanNotChanged()
+        {
+            // Arrange
+            var oldFilePath = "oldpath.txt";
+            var oldSpan = CreateSpan();
+
+            var testSubject = CreateTestSubject(oldFilePath, oldSpan);
+            testSubject.Span.Should().Be(oldSpan);
+            testSubject.CurrentFilePath.Should().Be(oldFilePath);
+
+            var propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += propertyChangedEventHandler.Object;
+
+            // Act
+            testSubject.CurrentFilePath = "newpath.txt";
+
+            // Assert
+            testSubject.Span.Should().Be(oldSpan);
+            testSubject.CurrentFilePath.Should().Be("newpath.txt");
+
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.CurrentFilePath));
+            VerifyPropertyChangedNotRaised(propertyChangedEventHandler, nameof(testSubject.Span));
+            propertyChangedEventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void SetCurrentFilePath_NoSubscribers_NoException()
         {
             var testSubject = CreateTestSubject();
@@ -103,10 +155,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
 
             testSubject.CurrentFilePath = "new path";
 
-            propertyChangedEventHandler.Verify(x =>
-                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == nameof(IAnalysisIssueVisualization.CurrentFilePath))),
-                Times.Once);
-
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.CurrentFilePath));
             propertyChangedEventHandler.VerifyNoOtherCalls();
 
             testSubject.CurrentFilePath.Should().Be("new path");
@@ -135,10 +184,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
 
             testSubject.Span = newSpan;
 
-            propertyChangedEventHandler.Verify(x =>
-                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == nameof(IAnalysisIssueVisualization.Span))),
-                Times.Once);
-
+            VerifyPropertyChangedRaised(propertyChangedEventHandler, nameof(testSubject.Span));
             propertyChangedEventHandler.VerifyNoOtherCalls();
 
             testSubject.Span.Should().Be(newSpan);
@@ -180,6 +226,20 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Models
             issue.SetupGet(x => x.FilePath).Returns(filePath);
 
             return new AnalysisIssueVisualization(null, issue.Object, span);
+        }
+
+        private void VerifyPropertyChangedRaised(Mock<PropertyChangedEventHandler> propertyChangedEventHandler, string propertyName)
+        {
+            propertyChangedEventHandler.Verify(x =>
+                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == propertyName)),
+                Times.Once);
+        }
+
+        private void VerifyPropertyChangedNotRaised(Mock<PropertyChangedEventHandler> propertyChangedEventHandler, string propertyName)
+        {
+            propertyChangedEventHandler.Verify(x =>
+                    x(It.IsAny<object>(), It.Is((PropertyChangedEventArgs e) => e.PropertyName == propertyName)),
+                Times.Never);
         }
     }
 }
