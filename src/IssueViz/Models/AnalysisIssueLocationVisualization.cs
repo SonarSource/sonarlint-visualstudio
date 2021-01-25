@@ -54,6 +54,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
 
     public class AnalysisIssueLocationVisualization : IAnalysisIssueLocationVisualization
     {
+        private static readonly SnapshotSpan EmptySpan = new SnapshotSpan();
         private string filePath;
         private SnapshotSpan? span;
 
@@ -84,6 +85,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Models
             set
             {
                 filePath = value;
+
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    Span = EmptySpan;
+                }
+
                 NotifyPropertyChanged();
             }
         }
