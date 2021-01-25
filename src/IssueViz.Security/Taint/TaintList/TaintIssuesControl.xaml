@@ -16,6 +16,7 @@
             </ResourceDictionary.MergedDictionaries>
 
             <core:NullableSelectedItemConverter x:Key="NullableSelectedItemConverter"/>
+            <core:DateTimeConverter x:Key="DateTimeConverter"/>
 
             <ContextMenu x:Key="RowMenu" DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                 <MenuItem Header="Open in browser" 
@@ -174,7 +175,7 @@
                     <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.CreationTimestamp" Header="Created" Width="138"  MinWidth="100">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding TaintIssueViz.Issue.CreationTimestamp, StringFormat=G}" 
+                                <TextBlock Text="{Binding TaintIssueViz.Issue.CreationTimestamp, Converter={StaticResource DateTimeConverter}}" 
                                        Style="{StaticResource CellTextBlockStyle}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
