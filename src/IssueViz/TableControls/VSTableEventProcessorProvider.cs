@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.TableControls
     // We can specify multiple data source types and data source i.e. the same provider can be used for
     // multiple table controls/sources
     [DataSourceType(StandardTableDataSources.ErrorTableDataSource)]
-    [DataSource(SonarLintTableControlConstants.ErrorListDataSourceIdentifier)]
+    [DataSource(StandardTableDataSources.AnyDataSource)]
     internal class VSTableEventProcessorProvider : ITableControlEventProcessorProvider
     {
         private readonly IIssueSelectionService selectionService;
