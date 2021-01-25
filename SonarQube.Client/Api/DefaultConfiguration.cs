@@ -32,6 +32,7 @@ namespace SonarQube.Client.Api
                 .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>("2.1")
                 .RegisterRequest<IGetPropertiesRequest, V2_60.GetPropertiesRequest>("2.6")
                 .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>("3.3")
+                .RegisterRequest<IGetSourceCodeRequest, V5_00.GetSourceCodeRequest>("5.0")
                 .RegisterRequest<IGetIssuesRequest, V5_10.GetIssuesRequest>("5.1")
                 .RegisterRequest<IGetLanguagesRequest, V5_10.GetLanguagesRequest>("5.1")
                 .RegisterRequest<IGetQualityProfileChangeLogRequest, V5_20.GetQualityProfileChangeLogRequest>("5.2")
@@ -60,6 +61,7 @@ namespace SonarQube.Client.Api
             requestFactory
                 .RegisterRequest<IGetVersionRequest, V2_10.GetVersionRequest>()
                 .RegisterRequest<IValidateCredentialsRequest, V3_30.ValidateCredentialsRequest>()
+                .RegisterRequest<IGetSourceCodeRequest, V5_00.GetSourceCodeRequest>()
                 .RegisterRequest<IGetLanguagesRequest, V5_10.GetLanguagesRequest>()
                 .RegisterRequest<IGetModulesRequest, V5_40.GetModulesRequest>()
                 .RegisterRequest<IGetRulesRequest, V5_50.GetRulesRequest>()
