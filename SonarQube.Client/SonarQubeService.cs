@@ -363,6 +363,14 @@ namespace SonarQube.Client
             return new Uri(httpClient.BaseAddress, string.Format(urlFormat, projectKey, hotspotKey));
         }
 
+        public async Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetSourceCodeRequest, string>(
+                request =>
+                {
+                    request.FileKey = fileKey;
+                },
+                token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 

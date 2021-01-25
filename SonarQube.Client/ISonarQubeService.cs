@@ -93,5 +93,11 @@ namespace SonarQube.Client
         /// </summary>
         /// <remarks>The method does not check whether the project or hotspot exists or not</remarks>
         Uri GetViewHotspotUrl(string projectKey, string hotspotKey);
+
+        /// <summary>
+        /// Returns the source code for the specified file
+        /// </summary>
+        /// <param name="fileKey">e.g. my_project:src/foo/Bar.php</param>
+        Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token);
     }
 }
