@@ -24,19 +24,23 @@ using System.Windows.Data;
 
 namespace SonarLint.VisualStudio.Core.WPF
 {
+    /// <summary>
+    /// Workaround for https://github.com/dotnet/wpf/issues/1946
+    /// Fixes SLVS #2126
+    /// </summary>
     [ValueConversion(typeof(DateTime), typeof(string))]
     public class DateTimeConverter : IValueConverter
     {
-        private readonly Func<CultureInfo> getMachineCulture;
+        private readonly CultureInfo userCulture;
 
         public DateTimeConverter()
-            : this(() => CultureInfo.CurrentUICulture)
+            : this(CultureInfo.CurrentUICulture)
         {
         }
 
-        internal DateTimeConverter(Func<CultureInfo> getMachineCulture)
+        internal DateTimeConverter(CultureInfo userCulture)
         {
-            this.getMachineCulture = getMachineCulture;
+            this.userCulture = userCulture;
         }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -47,7 +51,7 @@ namespace SonarLint.VisualStudio.Core.WPF
             }
 
             var date = (DateTimeOffset) value;
-            return date.ToString("G", getMachineCulture());
+            return date.ToString("G", userCulture);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

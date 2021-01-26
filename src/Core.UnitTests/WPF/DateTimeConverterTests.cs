@@ -32,13 +32,13 @@ namespace SonarLint.VisualStudio.Core.UnitTests.WPF
         [TestMethod]
         public void Convert_UsesUICulture()
         {
-            var machineCulture = CultureInfo.GetCultureInfo("fr-fr");
+            var userCulture = CultureInfo.GetCultureInfo("fr-fr");
             var wpfCulture = CultureInfo.GetCultureInfo("en-US");
 
             var date = new DateTimeOffset(2020, 01, 25, 16, 50, 04, 0, TimeSpan.Zero);
-            var expectedDate = date.ToString("G", machineCulture);
+            var expectedDate = date.ToString("G", userCulture);
 
-            var testSubject = new DateTimeConverter(() => machineCulture);
+            var testSubject = new DateTimeConverter(userCulture);
             var result = testSubject.Convert(date, typeof(string), null, wpfCulture);
 
             result.Should().Be(expectedDate);
