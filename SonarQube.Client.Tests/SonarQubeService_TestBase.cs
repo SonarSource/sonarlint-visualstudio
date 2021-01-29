@@ -29,6 +29,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
@@ -40,6 +41,8 @@ namespace SonarQube.Client.Tests
         protected Mock<HttpMessageHandler> messageHandler;
         protected SonarQubeService service;
         protected TestLogger logger;
+        // Note: can't be protected because the hash updater interface is internal
+        internal Mock<ISecondaryIssueHashUpdater> secondaryIssueHashUpdater;
 
         private RequestFactorySelector requestFactorySelector;
 
@@ -59,6 +62,7 @@ namespace SonarQube.Client.Tests
             messageHandler = new Mock<HttpMessageHandler>(MockBehavior.Strict);
 
             requestFactorySelector = new RequestFactorySelector();
+            secondaryIssueHashUpdater = new Mock<ISecondaryIssueHashUpdater>();
 
             ResetService();
         }
@@ -102,7 +106,7 @@ namespace SonarQube.Client.Tests
         protected void ResetService()
         {
             messageHandler.Reset();
-            service = new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector);
+            service = new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector, secondaryIssueHashUpdater.Object);
         }
     }
 }
