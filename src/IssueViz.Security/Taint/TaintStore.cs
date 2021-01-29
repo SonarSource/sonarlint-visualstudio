@@ -33,7 +33,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// Removes all existing visualizations and initializes the store to the given collection.
         /// Can be called multiple times.
         /// </summary>
-        void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations);
+        void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, AnalysisInformation analysisInformation);
+
+        /// <summary>
+        /// Returns additional analysis information for the existing visualizations in the store.
+        /// </summary>
+        /// <returns></returns>
+        AnalysisInformation GetAnalysisInformation();
     }
 
     [Export(typeof(ITaintStore))]
@@ -42,17 +48,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     internal sealed class TaintStore : ITaintStore
     {
         private IAnalysisIssueVisualization[] taintVulnerabilities = Array.Empty<IAnalysisIssueVisualization>();
+        private AnalysisInformation analysisInformation;
 
         public IReadOnlyCollection<IAnalysisIssueVisualization> GetAll() => taintVulnerabilities;
+        
+        public AnalysisInformation GetAnalysisInformation() => analysisInformation;
 
         public event EventHandler<IssuesChangedEventArgs> IssuesChanged;
 
-        public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations)
+        public void Set(IEnumerable<IAnalysisIssueVisualization> issueVisualizations, AnalysisInformation analysisInformation)
         {
             if (issueVisualizations == null)
             {
                 throw new ArgumentNullException(nameof(issueVisualizations));
             }
+
+            this.analysisInformation = analysisInformation;
 
             var oldIssues = taintVulnerabilities;
             taintVulnerabilities = issueVisualizations.ToArray();
