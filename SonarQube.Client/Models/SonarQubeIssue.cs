@@ -93,6 +93,12 @@ namespace SonarQube.Client.Models
         public string ModuleKey { get; }
         public IssueTextRange TextRange { get; }
         public string Message { get; }
+
+        /// <summary>
+        /// Note: currently the hash for secondary locations is calculated
+        /// post-construction, so we need to be able to update this property
+        /// </summary>
+        public string Hash { get; internal set; }
     }
 
     public class IssueTextRange
