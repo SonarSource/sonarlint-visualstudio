@@ -99,5 +99,10 @@ namespace SonarQube.Client
         /// </summary>
         /// <param name="fileKey">e.g. my_project:src/foo/Bar.php</param>
         Task<string> GetSourceCodeAsync(string fileKey, CancellationToken token);
+
+        /// <summary>
+        /// Returns branch information for the specified project key
+        /// </summary>
+        Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken cancellation);
     }
 }

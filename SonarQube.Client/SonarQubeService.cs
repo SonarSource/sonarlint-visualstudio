@@ -376,6 +376,13 @@ namespace SonarQube.Client
                 },
                 token);
 
+        public async Task<IList<SonarQubeProjectBranch>> GetProjectBranchesAsync(string projectKey, CancellationToken token) =>
+            await InvokeRequestAsync<IGetProjectBranchesRequest, SonarQubeProjectBranch[]>(
+                request =>
+                {
+                    request.ProjectKey = projectKey;
+                }, token);
+
         #region IDisposable Support
         private bool disposedValue; // To detect redundant calls
 
