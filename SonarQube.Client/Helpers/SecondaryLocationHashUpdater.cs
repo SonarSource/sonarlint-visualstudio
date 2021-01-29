@@ -41,17 +41,16 @@ namespace SonarQube.Client.Helpers
     /// concurrent calls.
     /// </para>
     /// </remarks>
-    internal class SecondaryIssueHashUpdater
+    internal class SecondaryLocationHashUpdater
     {
         private readonly IChecksumCalculator checksumCalculator;
 
-
-        public SecondaryIssueHashUpdater()
+        public SecondaryLocationHashUpdater()
             : this(new ChecksumCalculator())
         {
         }
 
-        internal /* for testing */ SecondaryIssueHashUpdater(IChecksumCalculator checksumCalculator)
+        internal /* for testing */ SecondaryLocationHashUpdater(IChecksumCalculator checksumCalculator)
         {
             this.checksumCalculator = checksumCalculator;
         }
