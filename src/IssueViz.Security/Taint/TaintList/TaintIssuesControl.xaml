@@ -61,6 +61,17 @@
                     </DataTrigger>
                 </Style.Triggers>
             </Style>
+
+            <Style x:Key="DisclaimerBorderStyle" TargetType="Border">
+                <Setter Property="Padding" Value="6,3,3,3"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsShell:VsBrushes.TitleBarActiveGradientBeginKey}}"/>
+                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            </Style>
+
+            <Style x:Key="DisclaimerTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="TextAlignment" Value="Left"/>
+                <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"/>
+            </Style>
         </ResourceDictionary>
 
     </UserControl.Resources>
@@ -83,105 +94,119 @@
                 </TextBlock>
             </StackPanel>
         </Grid>
-
-        <Grid x:Name="TaintList">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Name="Table" Width="*"/>
-            </Grid.ColumnDefinitions>
-            <DataGrid Grid.Column="0" 
+        <Grid x:Name="Content">
+            <Grid.RowDefinitions>
+                <RowDefinition Name="Disclaimer" Height="Auto"/>
+                <RowDefinition Name="List" Height="*"/>
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Style="{StaticResource DisclaimerBorderStyle}">
+                <TextBlock Style="{StaticResource DisclaimerTextBlockStyle}">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="{}Server issues found in current file (branch '{0}', last analyzed on {1})">
+                            <Binding Path="AnalysisInformation.BranchName" />
+                            <Binding Path="AnalysisInformation.AnalysisTimestamp" Converter="{StaticResource DateTimeConverter}" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+            </Border>
+            <Grid x:Name="TaintList" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Name="Table" Width="*"/>
+                </Grid.ColumnDefinitions>
+                <DataGrid Grid.Column="0" 
                   SelectedItem="{Binding SelectedIssue, Mode=TwoWay, Converter={StaticResource NullableSelectedItemConverter}}"
-                  ItemsSource="{Binding IssuesView}"
-                  >
-                <DataGrid.InputBindings>
-                    <MouseBinding
+                  ItemsSource="{Binding IssuesView}">
+                    <DataGrid.InputBindings>
+                        <MouseBinding
                     MouseAction="LeftDoubleClick"
                     Command="{Binding NavigateCommand}"
                     CommandParameter="{Binding IssuesView.CurrentItem}"/>
-                    <KeyBinding
+                        <KeyBinding
                     Key="Enter"
                     Command="{Binding NavigateCommand}"
                     CommandParameter="{Binding IssuesView.CurrentItem}"/>
-                </DataGrid.InputBindings>
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
-                        <DataGridTemplateColumn.HeaderStyle>
-                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
-                                <Setter Property="ToolTipService.ToolTip" Value="Location navigability status" />
-                            </Style>
-                        </DataGridTemplateColumn.HeaderStyle>
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Grid>
-                                    <vsImaging:CrispImage Height="16" Width="16"
+                    </DataGrid.InputBindings>
+                    <DataGrid.Columns>
+                        <DataGridTemplateColumn CanUserSort="False" CanUserResize="False" Width="30">
+                            <DataGridTemplateColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+                                    <Setter Property="ToolTipService.ToolTip" Value="Location navigability status" />
+                                </Style>
+                            </DataGridTemplateColumn.HeaderStyle>
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <vsImaging:CrispImage Height="16" Width="16"
                                                       Moniker="{x:Static vsCatalog:KnownMonikers.DocumentWarning}" 
                                                       Visibility="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToInvertedVisibilityConverter}, Mode=OneWay}"/>
-                                    <vsImaging:CrispImage Height="16" Width="16"
+                                        <vsImaging:CrispImage Height="16" Width="16"
                                                       Margin="-5,0,0,0"
                                                       ToolTipService.ToolTip="Location is navigable. Use double-click or Enter to open the document."
                                                       Moniker="{x:Static vsCatalog:KnownMonikers.DocumentSource}" 
                                                       Visibility="{Binding TaintIssueViz.Span, Converter={StaticResource SpanToVisibilityConverter}, Mode=OneWay}"/>
-                                </Grid>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.RuleKey" Header="Code" Width="130" MinWidth="54">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding TaintIssueViz.Issue.RuleKey}" 
+                                    </Grid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.RuleKey" Header="Code" Width="130" MinWidth="54">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.RuleKey}" 
                                        Style="{StaticResource CellTextBlockStyle}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Severity" Header="Severity" Width="68"  MinWidth="68">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding TaintIssueViz.Issue.Severity}" 
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Severity" Header="Severity" Width="68"  MinWidth="68">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.Severity}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Message" Header="Description" Width="*" MinWidth="150">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding TaintIssueViz.Issue.Message}" 
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.Message" Header="Description" Width="*" MinWidth="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.Message}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="180"  MinWidth="80">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding DisplayPath}" 
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="DisplayPath" Header="File" Width="180"  MinWidth="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding DisplayPath}" 
                                        Style="{StaticResource CellTextBlockStyle}"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Line" Header="Line" Width="48"  MinWidth="48">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Line}" 
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Line" Header="Line" Width="48"  MinWidth="48">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Line}" 
                                        Style="{StaticResource CellTextBlockStyle}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Column" Header="Col" Width="44"  MinWidth="44">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Column}" 
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="Column" Header="Col" Width="44"  MinWidth="44">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Column}" 
                                        Style="{StaticResource CellTextBlockStyle}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.CreationTimestamp" Header="Created" Width="138"  MinWidth="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding TaintIssueViz.Issue.CreationTimestamp, Converter={StaticResource DateTimeConverter}}" 
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn CanUserSort="True" SortMemberPath="TaintIssueViz.Issue.CreationTimestamp" Header="Created" Width="138"  MinWidth="100">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding TaintIssueViz.Issue.CreationTimestamp, Converter={StaticResource DateTimeConverter}}" 
                                        Style="{StaticResource CellTextBlockStyle}" />
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Grid>
     </Grid>
 </UserControl>
