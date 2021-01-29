@@ -20,7 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
-using SonarLint.VisualStudio.Core.Helpers;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
 {
