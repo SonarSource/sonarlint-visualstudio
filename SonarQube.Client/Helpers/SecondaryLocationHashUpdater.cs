@@ -31,17 +31,22 @@ namespace SonarQube.Client.Helpers
     /// Sets the hashes for any secondary locations in the supplied list of issues
     /// </summary>
     /// <remarks>
-    /// <para>
     /// Currently secondary location hashes are not stored server-side, so we have to
     /// calculate them ourselves. This means fetching the source code for each file
     /// so we can get the line text and calculate the hash.
-    /// </para>
-    /// <para>
+    /// </remarks>
+    internal interface ISecondaryIssueHashUpdater
+    {
+        Task UpdateHashesAsync(IEnumerable<SonarQubeIssue> issues,
+            ISonarQubeService sonarQubeService,
+            CancellationToken cancellationToken);
+    }
+
+    /// <summary>
     /// This component does not have any mutable state, so it can safely handle multiple
     /// concurrent calls.
-    /// </para>
-    /// </remarks>
-    internal class SecondaryLocationHashUpdater
+    /// </summary>
+    internal class SecondaryLocationHashUpdater : ISecondaryIssueHashUpdater
     {
         private readonly IChecksumCalculator checksumCalculator;
 
@@ -55,7 +60,7 @@ namespace SonarQube.Client.Helpers
             this.checksumCalculator = checksumCalculator;
         }
 
-        internal async Task UpdateHashesAsync(IEnumerable<SonarQubeIssue> issues,
+        public async Task UpdateHashesAsync(IEnumerable<SonarQubeIssue> issues,
             ISonarQubeService sonarQubeService,
             CancellationToken cancellationToken)
         {

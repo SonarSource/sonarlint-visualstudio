@@ -41,6 +41,7 @@ namespace SonarQube.Client
         private readonly string userAgent;
         private readonly ILogger logger;
         private readonly IRequestFactorySelector requestFactorySelector;
+        private readonly ISecondaryIssueHashUpdater secondaryIssueHashUpdater;
 
         private HttpClient httpClient;
 
@@ -58,12 +59,12 @@ namespace SonarQube.Client
         public ServerInfo ServerInfo { get; private set; }
 
         public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
-            : this(messageHandler, userAgent, logger, new RequestFactorySelector())
+            : this(messageHandler, userAgent, logger, new RequestFactorySelector(), new SecondaryLocationHashUpdater())
         {
         }
 
         internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger,
-            IRequestFactorySelector requestFactorySelector)
+            IRequestFactorySelector requestFactorySelector, ISecondaryIssueHashUpdater secondaryIssueHashUpdater)
         {
             if (messageHandler == null)
             {
@@ -78,9 +79,11 @@ namespace SonarQube.Client
                 throw new ArgumentNullException(nameof(logger));
             }
             this.messageHandler = messageHandler;
-            this.requestFactorySelector = requestFactorySelector;
             this.userAgent = userAgent;
             this.logger = logger;
+
+            this.requestFactorySelector = requestFactorySelector;
+            this.secondaryIssueHashUpdater = secondaryIssueHashUpdater;
         }
 
         /// <summary>
@@ -323,12 +326,17 @@ namespace SonarQube.Client
                 },
                 token);
 
-        public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token) =>
-            await InvokeRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
+        public async Task<IList<SonarQubeIssue>> GetTaintVulnerabilitiesAsync(string projectKey, CancellationToken token)
+        {
+            var issues = await InvokeRequestAsync<IGetTaintVulnerabilitiesRequest, SonarQubeIssue[]>(
                 request =>
                 {
                     request.ProjectKey = projectKey;
                 }, token);
+
+            await secondaryIssueHashUpdater.UpdateHashesAsync(issues, this, token);
+            return issues;
+        }
 
         public Uri GetViewIssueUrl(string projectKey, string issueKey)
         {

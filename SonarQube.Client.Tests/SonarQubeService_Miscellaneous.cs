@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarQube.Client.Api;
+using SonarQube.Client.Helpers;
 using SonarQube.Client.Models;
 using SonarQube.Client.Requests;
 using SonarQube.Client.Tests.Infra;
@@ -81,7 +82,7 @@ namespace SonarQube.Client.Tests
             var selectorMock = new Mock<IRequestFactorySelector>();
             selectorMock.Setup(x => x.Select(isSonarCloud, logger)).Returns(requestFactoryMock.Object);
 
-            var testSubject = new SonarQubeService(Mock.Of<HttpMessageHandler>(), "user-agent", logger, selectorMock.Object);
+            var testSubject = new SonarQubeService(Mock.Of<HttpMessageHandler>(), "user-agent", logger, selectorMock.Object, Mock.Of<ISecondaryIssueHashUpdater>());
             await testSubject.ConnectAsync(connectionInfo, CancellationToken.None);
 
             selectorMock.Verify(x => x.Select(isSonarCloud, logger), Times.Once);
@@ -108,7 +109,7 @@ namespace SonarQube.Client.Tests
             selectorMock.Setup(x => x.Select(false /* isSonarCloud */, logger)).Returns(qubeFactoryMock.Object);
             selectorMock.Setup(x => x.Select(true /* isSonarCloud */, logger)).Returns(cloudFactoryMock.Object);
 
-            var testSubject = new SonarQubeService(Mock.Of<HttpMessageHandler>(), "user-agent", logger, selectorMock.Object);
+            var testSubject = new SonarQubeService(Mock.Of<HttpMessageHandler>(), "user-agent", logger, selectorMock.Object, Mock.Of<ISecondaryIssueHashUpdater>());
 
             // 1. Connect to SonarQube
             await testSubject.ConnectAsync(sonarQubeConnectionInfo, CancellationToken.None);
