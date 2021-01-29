@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.Set(null);
+            Action act = () => testSubject.Set(null, null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("issueVisualizations");
         }
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.Set(new[] { Mock.Of<IAnalysisIssueVisualization>() });
+            Action act = () => testSubject.Set(new[] { Mock.Of<IAnalysisIssueVisualization>() }, null);
 
             act.Should().NotThrow();
         }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var callCount = 0;
             testSubject.IssuesChanged += (sender, args) => { callCount++; };
 
-            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
+            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
 
             testSubject.GetAll().Should().BeEmpty();
             callCount.Should().Be(0);
@@ -98,8 +98,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             IssuesChangedEventArgs suppliedArgs = null;
             testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
-            var newItems = new[] {Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>()};
-            testSubject.Set(newItems);
+            var newItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
+            testSubject.Set(newItems, null);
 
             testSubject.GetAll().Should().BeEquivalentTo(newItems);
             callCount.Should().Be(1);
@@ -113,13 +113,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var testSubject = CreateTestSubject();
 
             var oldItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
-            testSubject.Set(oldItems);
+            testSubject.Set(oldItems, null);
 
             var callCount = 0;
             IssuesChangedEventArgs suppliedArgs = null;
             testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
-            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
+            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
 
             testSubject.GetAll().Should().BeEmpty();
             callCount.Should().Be(1);
@@ -133,14 +133,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var testSubject = CreateTestSubject();
 
             var oldItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
-            testSubject.Set(oldItems);
+            testSubject.Set(oldItems, null);
 
             var callCount = 0;
             IssuesChangedEventArgs suppliedArgs = null;
             testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
             var newItems = new[] { Mock.Of<IAnalysisIssueVisualization>(), Mock.Of<IAnalysisIssueVisualization>() };
-            testSubject.Set(newItems);
+            testSubject.Set(newItems, null);
 
             testSubject.GetAll().Should().BeEquivalentTo(newItems);
             callCount.Should().Be(1);
@@ -158,19 +158,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             var issueViz3 = Mock.Of<IAnalysisIssueVisualization>();
 
             var oldItems = new[] { issueViz1, issueViz2 };
-            testSubject.Set(oldItems);
+            testSubject.Set(oldItems, null);
 
             var callCount = 0;
             IssuesChangedEventArgs suppliedArgs = null;
             testSubject.IssuesChanged += (sender, args) => { callCount++; suppliedArgs = args; };
 
             var newItems = new[] { issueViz2, issueViz3 };
-            testSubject.Set(newItems);
+            testSubject.Set(newItems, null);
 
             testSubject.GetAll().Should().BeEquivalentTo(newItems);
             callCount.Should().Be(1);
             suppliedArgs.RemovedIssues.Should().BeEquivalentTo(issueViz1);
             suppliedArgs.AddedIssues.Should().BeEquivalentTo(issueViz3);
+        }
+
+        [TestMethod]
+        public void GetAnalysisInformation_NoInformation_ReturnsNull()
+        {
+            var testSubject = CreateTestSubject();
+            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
+
+            var result = testSubject.GetAnalysisInformation();
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetAnalysisInformation_HasInformation_ReturnsInformation()
+        {
+            var analysisInformation = new AnalysisInformation("some branch", DateTimeOffset.Now);
+
+            var testSubject = CreateTestSubject();
+            testSubject.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), analysisInformation);
+
+            var result = testSubject.GetAnalysisInformation();
+            result.Should().BeSameAs(analysisInformation);
         }
 
         private ITaintStore CreateTestSubject()
