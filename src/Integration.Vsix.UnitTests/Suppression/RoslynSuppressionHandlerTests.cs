@@ -25,9 +25,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Suppression;
 using SonarLint.VisualStudio.Integration.Vsix.Suppression;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Suppression
 {
