@@ -374,12 +374,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint
             }
         }
 
-        private void SetupAnalysisInformation(Mock<ISonarQubeService> sonarQubeService, AnalysisInformation analysisInformation)
+        private void SetupAnalysisInformation(Mock<ISonarQubeService> sonarQubeService, AnalysisInformation mainBranchInformation)
         {
             var projectBranches = new[]
                 {
                     new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, DateTimeOffset.MaxValue),
-                    new SonarQubeProjectBranch(analysisInformation.BranchName, true, analysisInformation.AnalysisTimestamp),
+                    new SonarQubeProjectBranch(mainBranchInformation.BranchName, true, mainBranchInformation.AnalysisTimestamp),
                     new SonarQubeProjectBranch(Guid.NewGuid().ToString(), false, DateTimeOffset.MinValue)
                 };
 

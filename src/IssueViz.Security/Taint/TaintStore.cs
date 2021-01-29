@@ -38,7 +38,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         /// <summary>
         /// Returns additional analysis information for the existing visualizations in the store.
         /// </summary>
-        /// <returns></returns>
         AnalysisInformation GetAnalysisInformation();
     }
 

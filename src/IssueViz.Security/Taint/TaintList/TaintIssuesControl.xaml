@@ -102,7 +102,7 @@
             <Border Grid.Row="0" Style="{StaticResource DisclaimerBorderStyle}">
                 <TextBlock Style="{StaticResource DisclaimerTextBlockStyle}">
                     <TextBlock.Text>
-                        <MultiBinding StringFormat="{}Server issues found in current file (branch {0}, last analyzed on {1})">
+                        <MultiBinding StringFormat="{}Server issues found in current file (branch '{0}', last analyzed on {1})">
                             <Binding Path="AnalysisInformation.BranchName" />
                             <Binding Path="AnalysisInformation.AnalysisTimestamp" Converter="{StaticResource DateTimeConverter}" />
                         </MultiBinding>
