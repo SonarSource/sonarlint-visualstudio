@@ -30,7 +30,7 @@ using SonarQube.Client.Models;
 namespace SonarQube.Client.Helpers.Tests
 {
     [TestClass]
-    public class SecondaryIssueHashUpdaterTests
+    public class SecondaryLocationHashUpdaterTests
     {
         private const string PrimaryIssueHash = "the primary issue hash should not be affected";
 
@@ -39,7 +39,7 @@ namespace SonarQube.Client.Helpers.Tests
         {
             var serviceMock = new Mock<ISonarQubeService>();
 
-            var testSubject = new SecondaryIssueHashUpdater();
+            var testSubject = new SecondaryLocationHashUpdater();
             await testSubject.UpdateHashesAsync(Array.Empty<SonarQubeIssue>(), serviceMock.Object, CancellationToken.None);
 
             serviceMock.Invocations.Count.Should().Be(0);
@@ -55,7 +55,7 @@ namespace SonarQube.Client.Helpers.Tests
                 CreateIssue("project2:key2" /* no flows */)
             };
 
-            var testSubject = new SecondaryIssueHashUpdater();
+            var testSubject = new SecondaryLocationHashUpdater();
             await testSubject.UpdateHashesAsync(issues, serviceMock.Object, CancellationToken.None);
 
             serviceMock.Invocations.Count.Should().Be(0);
@@ -91,7 +91,7 @@ namespace SonarQube.Client.Helpers.Tests
             AddSourceFile(serviceMock, "unique3");
             AddSourceFile(serviceMock, "unique4");
 
-            var testSubject = new SecondaryIssueHashUpdater();
+            var testSubject = new SecondaryLocationHashUpdater();
             await testSubject.UpdateHashesAsync(issues, serviceMock.Object, CancellationToken.None);
 
             serviceMock.VerifyAll();
@@ -132,7 +132,7 @@ namespace SonarQube.Client.Helpers.Tests
             AddSourceFile(serviceMock, "file1", file1Contents);
             AddSourceFile(serviceMock, "file2", file2Contents);
 
-            var testSubject = new SecondaryIssueHashUpdater(calcMock.Object);
+            var testSubject = new SecondaryLocationHashUpdater(calcMock.Object);
 
             // Act
             await testSubject.UpdateHashesAsync(issues, serviceMock.Object, CancellationToken.None);
