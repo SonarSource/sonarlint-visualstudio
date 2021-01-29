@@ -606,6 +606,7 @@ namespace SonarQube.Client.Tests
             var result = await service.GetTaintVulnerabilitiesAsync("shared", CancellationToken.None);
 
             messageHandler.VerifyAll();
+            secondaryIssueHashUpdater.Verify(x => x.UpdateHashesAsync(result, service, It.IsAny<CancellationToken>()));
 
             // should return only 2 taint out of 4 vulnerabilities
             result.Count.Should().Be(2);
