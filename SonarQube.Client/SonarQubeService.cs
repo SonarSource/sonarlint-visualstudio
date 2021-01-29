@@ -58,19 +58,16 @@ namespace SonarQube.Client
         public ServerInfo ServerInfo { get; private set; }
 
         public SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger)
-            : this(messageHandler, new RequestFactorySelector(), userAgent, logger)
+            : this(messageHandler, userAgent, logger, new RequestFactorySelector())
         {
         }
 
-        internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, IRequestFactorySelector requestFactorySelector, string userAgent, ILogger logger)
+        internal /* for testing */ SonarQubeService(HttpMessageHandler messageHandler, string userAgent, ILogger logger,
+            IRequestFactorySelector requestFactorySelector)
         {
             if (messageHandler == null)
             {
                 throw new ArgumentNullException(nameof(messageHandler));
-            }
-            if (requestFactorySelector == null)
-            {
-                throw new ArgumentNullException(nameof(requestFactorySelector));
             }
             if (userAgent == null)
             {
