@@ -102,7 +102,7 @@ namespace SonarQube.Client.Tests
         protected void ResetService()
         {
             messageHandler.Reset();
-            service = new SonarQubeService(messageHandler.Object, requestFactorySelector, UserAgent, logger);
+            service = new SonarQubeService(messageHandler.Object, UserAgent, logger, requestFactorySelector);
         }
     }
 }
