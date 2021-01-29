@@ -55,6 +55,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         bool HasServerIssues { get; }
 
         string WindowCaption { get; }
+
+        AnalysisInformation AnalysisInformation { get; }
     }
 
     /// <summary>
@@ -110,6 +112,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 }
             }
         }
+
+        public AnalysisInformation AnalysisInformation { get; private set; }
 
         public TaintIssuesControlViewModel(ITaintStore store,
             ILocationNavigator locationNavigator,
@@ -217,7 +221,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 unfilteredIssues.Add(new TaintIssueViewModel(issueViz));
             }
 
+            AnalysisInformation = store.GetAnalysisInformation();
+
             NotifyPropertyChanged(nameof(HasServerIssues));
+            NotifyPropertyChanged(nameof(AnalysisInformation));
         }
 
         private void UpdateCaption()

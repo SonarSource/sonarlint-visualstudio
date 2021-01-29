@@ -100,16 +100,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             {
                 var projectKey = bindingConfiguration.Project.ProjectKey;
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None);
-
+                
                 logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
 
-                var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
-                taintStore.Set(taintIssueVizs);
+                var hasTaintIssues = taintVulnerabilities.Count > 0;
 
-                var hasTaintIssues = taintIssueVizs.Length > 0;
-                UpdateTaintIssuesUIContext(hasTaintIssues);
-                if (hasTaintIssues)
+                if (!hasTaintIssues)
                 {
+                    ClearStore();
+                    UpdateTaintIssuesUIContext(false);
+                }
+                else
+                {
+                    var analysisInformation = await GetAnalysisInformation(projectKey);
+                    var taintIssueVizs = taintVulnerabilities.Select(converter.Convert).ToArray();
+                    taintStore.Set(taintIssueVizs, analysisInformation);
+
+                    UpdateTaintIssuesUIContext(true);
+
                     // We need the tool window content to exist so the issues are filtered and the
                     // tool window caption is updated. See the "EnsureToolWindowExists" method comment
                     // for more information.
@@ -123,9 +131,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             }
         }
 
+        private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey)
+        {
+            var branches = await sonarQubeService.GetProjectBranchesAsync(projectKey, CancellationToken.None);
+            var issuesBranch = branches.First(x => x.IsMain);
+
+            return new AnalysisInformation(issuesBranch.Name, issuesBranch.LastAnalysisTimestamp);
+        }
+
         private void ClearStore()
         {
-            taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>());
+            taintStore.Set(Enumerable.Empty<IAnalysisIssueVisualization>(), null);
         }
 
         private void UpdateTaintIssuesUIContext(bool hasTaintIssues) =>
