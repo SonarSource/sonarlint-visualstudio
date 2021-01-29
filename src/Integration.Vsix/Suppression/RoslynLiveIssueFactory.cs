@@ -24,7 +24,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core.Helpers;
+using SonarQube.Client;
 
 /* To map from a diagnostic to a SonarQube issue we need to work out the SQ moduleId
  * corresponding to the MSBuild project.
