@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
@@ -42,17 +43,17 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ErrorTagTooltipProvider : IErrorTagTooltipProvider
     {
-        private readonly IBrowserService browserService;
+        private readonly IVsBrowserService browserService;
         private readonly IVsThemeColorProvider vsThemeColorProvider;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         [ImportingConstructor]
-        public ErrorTagTooltipProvider(IBrowserService browserService, IVsThemeColorProvider vsThemeColorProvider)
+        public ErrorTagTooltipProvider(IVsBrowserService browserService, IVsThemeColorProvider vsThemeColorProvider)
             : this(browserService, vsThemeColorProvider, new RuleHelpLinkProvider())
         {
         }
 
-        internal ErrorTagTooltipProvider(IBrowserService browserService, IVsThemeColorProvider vsThemeColorProvider, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        internal ErrorTagTooltipProvider(IVsBrowserService browserService, IVsThemeColorProvider vsThemeColorProvider, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.browserService = browserService;
             this.vsThemeColorProvider = vsThemeColorProvider;

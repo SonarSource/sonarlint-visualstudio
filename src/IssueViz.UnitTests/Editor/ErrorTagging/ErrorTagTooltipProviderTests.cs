@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             MefTestHelpers.CheckTypeCanBeImported<ErrorTagTooltipProvider, IErrorTagTooltipProvider>(null,
                 new[]
                 {
-                    MefTestHelpers.CreateExport<IBrowserService>(Mock.Of<IBrowserService>()),
+                    MefTestHelpers.CreateExport<IVsBrowserService>(Mock.Of<IVsBrowserService>()),
                     MefTestHelpers.CreateExport<IVsThemeColorProvider>(Mock.Of<IVsThemeColorProvider>())
                 });
         }
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             var ruleHelpLinkProvider = new Mock<IRuleHelpLinkProvider>();
             ruleHelpLinkProvider.Setup(x => x.GetHelpLink("some rule")).Returns("some url");
 
-            var browserService = new Mock<IBrowserService>();
+            var browserService = new Mock<IVsBrowserService>();
 
             var testSubject = new ErrorTagTooltipProvider(browserService.Object, Mock.Of<IVsThemeColorProvider>(), ruleHelpLinkProvider.Object);
             var result = testSubject.Create(issue.Object);

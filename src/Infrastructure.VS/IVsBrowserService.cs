@@ -26,18 +26,18 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     /// <summary>
     /// Testable wrapper for <see cref="VsShellUtilities.OpenBrowser(string)"/>
     /// </summary>
-    public interface IBrowserService
+    public interface IVsBrowserService
     {
         void Navigate(string url);
     }
 
-    [Export(typeof(IBrowserService))]
+    [Export(typeof(IVsBrowserService))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class BrowserService : IBrowserService
+    internal class VsBrowserService : IVsBrowserService
     {
         public void Navigate(string url)
         {
-            VsShellUtilities.OpenBrowser(url);
+            VsShellUtilities.OpenSystemBrowser(url);
         }
     }
 }
