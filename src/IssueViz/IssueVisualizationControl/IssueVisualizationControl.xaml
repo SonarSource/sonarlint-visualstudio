@@ -476,7 +476,7 @@
                     <DataTemplate DataType="{x:Type models:IAnalysisIssueFlowVisualization}">
                         <TextBlock Style="{StaticResource BaseNumberInShapeTextBlockStyle}">
                             <TextBlock.Text>
-                                <MultiBinding StringFormat="{}Flow {0} ({1} locations)">
+                                <MultiBinding StringFormat="Flow {0} ({1} locations)">
                                     <Binding Path="FlowNumber" />
                                     <Binding Path="Locations.Count" />
                                 </MultiBinding>
