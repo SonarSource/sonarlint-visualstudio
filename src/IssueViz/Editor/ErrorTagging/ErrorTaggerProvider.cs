@@ -34,12 +34,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     {
         private readonly IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService;
         private readonly ITaggableBufferIndicator taggableBufferIndicator;
+        private readonly IErrorTagTooltipProvider errorTagTooltipProvider;
 
         [ImportingConstructor]
-        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, ITaggableBufferIndicator taggableBufferIndicator)
+        public ErrorTaggerProvider(IBufferTagAggregatorFactoryService bufferTagAggregatorFactoryService, 
+            ITaggableBufferIndicator taggableBufferIndicator,
+            IErrorTagTooltipProvider errorTagTooltipProvider)
         {
             this.bufferTagAggregatorFactoryService = bufferTagAggregatorFactoryService;
             this.taggableBufferIndicator = taggableBufferIndicator;
+            this.errorTagTooltipProvider = errorTagTooltipProvider;
         }
 
         public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
@@ -61,7 +65,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
         private ErrorTagger Create(ITextBuffer buffer)
         {
             var aggregator = bufferTagAggregatorFactoryService.CreateTagAggregator<IIssueLocationTag>(buffer);
-            return new ErrorTagger(aggregator, buffer);
+            return new ErrorTagger(aggregator, buffer, errorTagTooltipProvider);
         }
     }
 }
