@@ -30,15 +30,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
     internal class ErrorTagger : FilteringTaggerBase<IIssueLocationTag, IErrorTag>
     {
-        public ErrorTagger(ITagAggregator<IIssueLocationTag> tagAggregator, ITextBuffer textBuffer)
+        private readonly IErrorTagTooltipProvider errorTagTooltipProvider;
+
+        public ErrorTagger(ITagAggregator<IIssueLocationTag> tagAggregator, ITextBuffer textBuffer, IErrorTagTooltipProvider errorTagTooltipProvider)
             : base(tagAggregator, textBuffer)
         {
+            this.errorTagTooltipProvider = errorTagTooltipProvider;
         }
 
         protected override TagSpan<IErrorTag> CreateTagSpan(IIssueLocationTag trackedTag, NormalizedSnapshotSpanCollection spans)
         {
             var issueViz = (IAnalysisIssueVisualization)trackedTag.Location;
-            var tooltip = $"{issueViz.Issue.RuleKey}: {issueViz.Issue.Message}";
+            var tooltip = errorTagTooltipProvider.Create(issueViz.Issue);
             return new TagSpan<IErrorTag>(trackedTag.Location.Span.Value, new ErrorTag(PredefinedErrorTypeNames.Warning, tooltip));
         }
 

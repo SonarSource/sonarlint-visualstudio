@@ -23,8 +23,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
+using Moq;
 using SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Models;
 using static SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common.TaggerTestHelper;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging
@@ -45,15 +47,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             var secondary2 = CreateTagSpanWithSecondaryLocation(snapshot, new Span(30, 5));
             var aggregator = CreateAggregator(primary1, secondary1, primary2, secondary2);
 
-            var testSubject = new ErrorTagger(aggregator, snapshot.TextBuffer);
+            var tooltipProvider = new Mock<IErrorTagTooltipProvider>();
+            var issue1 = (primary1.Tag.Location as IAnalysisIssueVisualization).Issue;
+            var issue2 = (primary2.Tag.Location as IAnalysisIssueVisualization).Issue;
+            tooltipProvider.Setup(x => x.Create(issue1)).Returns("some tooltip1");
+            tooltipProvider.Setup(x => x.Create(issue2)).Returns("some tooltip2");
+
+            var testSubject = new ErrorTagger(aggregator, snapshot.TextBuffer, tooltipProvider.Object);
 
             // Act
             var actual = testSubject.GetTags(inputSpans).ToArray();
 
-            actual[0].Tag.ToolTipContent.Should().Be((object)"cpp:S5350: error message 1");
+            actual[0].Tag.ToolTipContent.Should().Be("some tooltip1");
             actual[0].Span.Span.Should().Be(primary1.Tag.Location.Span.Value.Span);
 
-            actual[1].Tag.ToolTipContent.Should().Be((object)"cpp:emptyCompoundStatement: error message 2");
+            actual[1].Tag.ToolTipContent.Should().Be("some tooltip2");
             actual[1].Span.Span.Should().Be(primary2.Tag.Location.Span.Value.Span);
         }
 
