@@ -238,159 +238,13 @@
 
         <!-- Flows Combo-box styles -->
 
-        <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="ToggleButton">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition Width="20" />
-                </Grid.ColumnDefinitions>
-                <Border Grid.Column="0"
-                        Grid.ColumnSpan="2" 
-                        Name="Border"
-                        BorderThickness="1" 
-                        BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBorderKey}}" 
-                        Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" />
-                <Border Grid.Column="1" 
-                        Name="ButtonBorder"
-                        Margin="1" 
-                        BorderThickness="1,0,0,0" 
-                        BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBorderKey}}" 
-                        Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"/>
-                <Path x:Name="Arrow" 
-                      Grid.Column="1" 
-                      Data="M 0,0 L 1,0 0.5,1 z" 
-                      Stretch="Fill"
-                      Width="8"
-                      Height="6" 
-                      Fill="{DynamicResource {x:Static vsShell:VsBrushes.DockTargetGlyphArrowKey}}" 
-                      HorizontalAlignment="Center" 
-                      VerticalAlignment="Center" 
-                      RenderTransformOrigin="0.5, 0.4"/>
-            </Grid>
-            <ControlTemplate.Triggers>
-                <Trigger SourceName="ButtonBorder" Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" TargetName="Border" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="BorderBrush" TargetName="ButtonBorder" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="Background" TargetName="ButtonBorder">
-                        <Setter.Value>
-                            <SolidColorBrush Color="{DynamicResource {x:Static vsShell:VsColors.ComboBoxMouseDownBorderKey}}" Opacity="0.2"/>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-                <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
-                    <Setter Property="BorderBrush" TargetName="Border" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="BorderBrush" TargetName="ButtonBorder" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="Background" TargetName="ButtonBorder">
-                        <Setter.Value>
-                            <SolidColorBrush Color="{DynamicResource {x:Static vsShell:VsColors.ComboBoxMouseDownBorderKey}}" Opacity="0.2"/>
-                        </Setter.Value>
-                    </Setter>
-                </Trigger>
-                <Trigger Property="ToggleButton.IsChecked" Value="True">
-                    <Setter Property="BorderBrush" TargetName="Border" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="BorderBrush" TargetName="ButtonBorder" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="Background" TargetName="ButtonBorder" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxMouseDownBorderKey}}"/>
-                    <Setter Property="Fill" TargetName="Arrow" Value="{DynamicResource {x:Static vsShell:VsBrushes.ToolWindowButtonActiveGlyphKey}}"/>
-                </Trigger>
-            </ControlTemplate.Triggers>
-        </ControlTemplate>
-
-        <Style x:Key="FlowsComboBox" TargetType="{x:Type ComboBox}">
-            <Setter Property="Visibility" Value="Visible"/>
-            <Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
-            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
-            <Setter Property="Margin" Value="3"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsShell:VsBrushes.CaptionTextKey}}"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="ComboBox">
-                        <Grid x:Name="ComboBoxGrid">
-                            <ToggleButton Name="ToggleButton" 
-                                          Template="{StaticResource ComboBoxToggleButton}" 
-                                          Grid.Column="2" 
-                                          Focusable="false"
-                                          IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
-                                          ClickMode="Press"/>
-                            <ContentPresenter Name="ContentSite" 
-                                              IsHitTestVisible="False"
-                                              HorizontalAlignment="Left" 
-                                              VerticalAlignment="Center"          
-                                              Margin="{TemplateBinding Margin}" 
-                                              Content="{TemplateBinding ComboBox.SelectionBoxItem}" 
-                                              ContentTemplate="{TemplateBinding ComboBox.SelectionBoxItemTemplate}"
-                                              ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"/>
-                            <Popup Name="Popup" 
-                                   Placement="Bottom"
-                                   Focusable="False" 
-                                   AllowsTransparency="True"
-                                   IsOpen="{TemplateBinding ComboBox.IsDropDownOpen}"
-                                   PopupAnimation="Slide">
-                                <Grid Name="DropDown" 
-                                      SnapsToDevicePixels="True"
-                                      MinWidth="{TemplateBinding FrameworkElement.ActualWidth}"
-                                      MaxHeight="{TemplateBinding ComboBox.MaxDropDownHeight}">
-                                    <Border Name="DropDownBorder" 
-                                            Background="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}" 
-                                            Margin="0,1,0,0"
-                                            CornerRadius="0" 
-                                            BorderThickness="1" 
-                                            BorderBrush="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBorderKey}}"/>
-                                    <ScrollViewer Margin="4" SnapsToDevicePixels="True">
-                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
-                                    </ScrollViewer>
-                                </Grid>
-                            </Popup>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="true">
-                                <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="0"/>
-                                <Setter TargetName="DropDownBorder" Property="Margin" Value="0,2,0,0"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
+        <Style x:Key="FlowsComboBox" TargetType="{x:Type ComboBox}" BasedOn="{StaticResource {x:Static vsShell:VsResourceKeys.ComboBoxStyleKey}}">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding CurrentIssue.Flows.Count}" Value="1">
                     <Setter Property="Visibility" Value="Collapsed"/>
                 </DataTrigger>
             </Style.Triggers>
         </Style>
-
-        <Style x:Key="FlowsComboBoxItemStyle" TargetType="ComboBoxItem">
-            <Setter Property="OverridesDefaultStyle" Value="True"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.ComboBoxBackgroundKey}}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ComboBoxItem}">
-                        <Border BorderThickness="1" 
-                                Background="{TemplateBinding Background}" 
-                                Padding="{TemplateBinding Padding}" 
-                                BorderBrush="{TemplateBinding Background}"
-                                SnapsToDevicePixels="true">
-                            <ContentPresenter 
-                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
-                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
-                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarHoverOverSelectedKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource {x:Static vsShell:VsBrushes.CommandBarSelectedKey}}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
     </UserControl.Resources>
     <Grid UseLayoutRounding="True" 
           Background="{DynamicResource {x:Static vsShell:VsBrushes.BrandedUIBackgroundKey}}"
@@ -474,7 +328,6 @@
             <ComboBox Name="FlowsPicker" 
                       Grid.Row="1" 
                       Style="{StaticResource FlowsComboBox}"
-                      ItemContainerStyle="{StaticResource FlowsComboBoxItemStyle}"
                       ItemsSource="{Binding CurrentIssue.Flows}"
                       SelectedItem="{Binding CurrentFlow, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
