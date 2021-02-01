@@ -22,9 +22,9 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
 {

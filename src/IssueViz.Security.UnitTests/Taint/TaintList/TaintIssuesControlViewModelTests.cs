@@ -455,29 +455,24 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var store = new Mock<ITaintStore>();
             var testSubject = CreateTestSubject(store: store);
 
-            var callCount = 0;
-            PropertyChangedEventArgs suppliedArgs = null;
-            testSubject.PropertyChanged += (sender, args) => { callCount++; suppliedArgs = args; };
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
 
             RaiseStoreIssuesChangedEvent(store, Mock.Of<IAnalysisIssueVisualization>());
 
-            callCount.Should().Be(1);
-            suppliedArgs.Should().NotBeNull();
-            suppliedArgs.PropertyName.Should().Be(nameof(testSubject.HasServerIssues));
+            VerifyPropertyChangedWasRaised(eventHandler, nameof(testSubject.HasServerIssues));
+            eventHandler.Reset();
 
-            callCount = 0;
             RaiseStoreIssuesChangedEvent(store);
 
-            callCount.Should().Be(1);
-            suppliedArgs.Should().NotBeNull();
-            suppliedArgs.PropertyName.Should().Be(nameof(testSubject.HasServerIssues));
+            VerifyPropertyChangedWasRaised(eventHandler, nameof(testSubject.HasServerIssues));
         }
 
         [TestMethod]
         public void SelectionChanged_SelectedIssueExistsInList_IssueSelected()
         {
             var issueViz = Mock.Of<IAnalysisIssueVisualization>();
-            var storeIssues = new []{ issueViz };
+            var storeIssues = new[] { issueViz };
             var selectionService = new Mock<IIssueSelectionService>();
 
             var testSubject = CreateTestSubject(storeIssues, selectionService: selectionService.Object);
@@ -621,6 +616,48 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             selectionService.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public void AnalysisInformation_NoAnalysisInformation_Null()
+        {
+            var store = new Mock<ITaintStore>();
+            SetupAnalysisInformation(store, null);
+
+            var testSubject = CreateTestSubject(store: store);
+
+            testSubject.AnalysisInformation.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void AnalysisInformation_HasAnalysisInformation_PropertySet()
+        {
+            var store = new Mock<ITaintStore>();
+            var analysisInformation = new AnalysisInformation("some branch", default);
+            SetupAnalysisInformation(store, analysisInformation);
+
+            var testSubject = CreateTestSubject(store: store);
+
+            testSubject.AnalysisInformation.Should().BeSameAs(analysisInformation);
+        }
+
+        [TestMethod]
+        public void AnalysisInformation_IssuesChanged_RaisesPropertyChanged()
+        {
+            var store = new Mock<ITaintStore>();
+            var testSubject = CreateTestSubject(store: store);
+
+            var eventHandler = new Mock<PropertyChangedEventHandler>();
+            testSubject.PropertyChanged += eventHandler.Object;
+
+            var analysisInformation = new AnalysisInformation("some branch", default);
+
+            SetupAnalysisInformation(store, analysisInformation);
+            RaiseStoreIssuesChangedEvent(store);
+
+            VerifyPropertyChangedWasRaised(eventHandler, nameof(testSubject.AnalysisInformation));
+
+            testSubject.AnalysisInformation.Should().BeSameAs(analysisInformation);
+        }
+
         private static TaintIssuesControlViewModel CreateTestSubject(
             IAnalysisIssueVisualization[] issueVizs = null,
             ILocationNavigator locationNavigator = null,
@@ -728,6 +765,18 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         {
             selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
             selectionService.Raise(x => x.SelectedIssueChanged += null, EventArgs.Empty);
+        }
+
+        private void VerifyPropertyChangedWasRaised(Mock<PropertyChangedEventHandler> eventHandler, string expectedProperty)
+        {
+            eventHandler.Verify(x => x(It.IsAny<object>(),
+                    It.Is((PropertyChangedEventArgs e) => e.PropertyName == expectedProperty)),
+                Times.Once);
+        }
+
+        private void SetupAnalysisInformation(Mock<ITaintStore> store, AnalysisInformation analysisInformation)
+        {
+            store.Setup(x => x.GetAnalysisInformation()).Returns(analysisInformation);
         }
     }
 }
