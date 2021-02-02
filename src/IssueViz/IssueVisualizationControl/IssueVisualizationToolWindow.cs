@@ -37,8 +37,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
         private const string ToolWindowIdAsString = "bb3677d1-3b5c-45a3-8a3a-897108c3ba28";
         public static readonly Guid ToolWindowId = new Guid(ToolWindowIdAsString);
 
-        private readonly IssueVisualizationViewModel viewModel;
-
         public IssueVisualizationToolWindow(IServiceProvider serviceProvider) : base(null)
         {
             Caption = Resources.IssueVisualizationToolWindowCaption;
@@ -55,7 +53,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             var navigateToRuleDescriptionCommand = componentModel.GetService<INavigateToRuleDescriptionCommand>();
             var navigateToDocumentationCommand = componentModel.GetService<INavigateToDocumentationCommand>();
 
-            viewModel = new IssueVisualizationViewModel(
+            var viewModel = new IssueVisualizationViewModel(
                 selectionService,
                 locationNavigator,
                 fileNameLocationListItemCreator,
@@ -64,19 +62,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
                 navigateToDocumentationCommand);
 
             Content = new IssueVisualizationControl(viewModel);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                viewModel.Dispose();
-
-                var vsWindowFrame = Frame as IVsWindowFrame;
-                vsWindowFrame.CloseFrame((uint)__FRAMECLOSE.FRAMECLOSE_NoSave);
-            }
-
-            base.Dispose(disposing);
         }
     }
 }
