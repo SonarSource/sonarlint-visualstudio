@@ -127,8 +127,6 @@
         <!-- Data grid items styles -->
 
         <Style x:Key="IssueDescriptionBorderStyle" TargetType="Border">
-            <EventSetter Event="MouseLeftButtonDown" Handler="IssueDescription_OnMouseLeftButtonDown"/>
-            <EventSetter Event="KeyDown" Handler="IssueDescription_OnKeyDown"/>
             <Setter Property="Margin" Value="0"/>
             <Setter Property="Padding" Value="5"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -149,8 +147,6 @@
         </Style>
 
         <Style x:Key="LocationsListViewItemStyle" TargetType="ListViewItem">
-            <EventSetter Event="PreviewMouseLeftButtonDown" Handler="LocationsList_OnMouseLeftButtonDown"/>
-            <EventSetter Event="KeyDown" Handler="LocationsList_OnKeyDown"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="3"/>
             <Setter Property="ToolTipService.IsEnabled" Value="true"/>
@@ -403,8 +399,7 @@
             <StackPanel VerticalAlignment="Center">
                 <TextBlock Style="{StaticResource OverlayTitleTextStyle}" Text="Please select a SonarLint issue with secondary locations."/>
                 <TextBlock Style="{StaticResource OverlayTextStyle}">
-                    <Hyperlink NavigateUri="https://github.com/SonarSource/sonarlint-visualstudio/wiki" 
-                               RequestNavigate="Hyperlink_OnRequestNavigate">
+                    <Hyperlink Command="{Binding NavigateToDocumentationCommand}">
                         <LineBreak/>
                         <Run Text="Click here to go online and find out more about this and other SonarLint features." />
                     </Hyperlink>
@@ -426,6 +421,16 @@
             <Border Name="IssueDescription" 
                     Grid.Row="0"
                     Style="{StaticResource IssueDescriptionBorderStyle}">
+                <Border.InputBindings>
+                    <MouseBinding 
+                        MouseAction="LeftClick"
+                        Command="{Binding NavigateToCodeLocationCommand}"
+                        CommandParameter="{Binding CurrentIssue}"/>
+                    <KeyBinding
+                        Key="Enter"
+                        Command="{Binding NavigateToCodeLocationCommand}"
+                        CommandParameter="{Binding CurrentIssue}"/>
+                </Border.InputBindings>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
@@ -455,8 +460,8 @@
                                Grid.Column="1" 
                                Style="{StaticResource BaseTextBlockStyle}">
                         <Run Text="{Binding Description, Mode=OneWay}"/>
-                        <Hyperlink NavigateUri="{Binding RuleHelpLink}" 
-                                   RequestNavigate="Hyperlink_OnRequestNavigate">
+                        <Hyperlink Command="{Binding NavigateToRuleDescriptionCommand}"
+                                   CommandParameter="{Binding RuleKey}">
                             <Hyperlink.ToolTip>
                                 <TextBlock Text="{Binding Path=RuleKey, StringFormat=Open description of rule {0}}" />
                             </Hyperlink.ToolTip>

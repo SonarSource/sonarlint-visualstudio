@@ -22,12 +22,14 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 {
     [TestClass]
     public class ShowInBrowserServiceTests
@@ -38,7 +40,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             MefTestHelpers.CheckTypeCanBeImported<ShowInBrowserService, IShowInBrowserService>(null, new[]
             {
                 MefTestHelpers.CreateExport<ISonarQubeService>(Mock.Of<ISonarQubeService>()),
-                MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>())
+                MefTestHelpers.CreateExport<IConfigurationProvider>(Mock.Of<IConfigurationProvider>()),
+                MefTestHelpers.CreateExport<IVsBrowserService>(Mock.Of<IVsBrowserService>())
             });
         }
 
@@ -61,13 +64,13 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
             configurationProvider.Setup(x => x.GetConfiguration()).Returns(BindingConfiguration.Standalone);
 
             var sonarQubeService = new Mock<ISonarQubeService>();
-            var showInBrowserAction = new Mock<Action<string>>();
+            var browserService = new Mock<IVsBrowserService>();
 
-            var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, showInBrowserAction.Object);
+            var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue("issue");
 
             sonarQubeService.Invocations.Count.Should().Be(0);
-            showInBrowserAction.Invocations.Count.Should().Be(0);
+            browserService.Invocations.Count.Should().Be(0);
         }
 
         [TestMethod]
@@ -86,37 +89,57 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
                 .Setup(x => x.GetViewIssueUrl(projectKey, issueKey))
                 .Returns(new Uri("http://localhost:123/expected/issue?id=1"));
 
-            var showInBrowserAction = new Mock<Action<string>>();
+            var browserService = new Mock<IVsBrowserService>();
 
-            var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, showInBrowserAction.Object);
+            var testSubject = CreateTestSubject(sonarQubeService.Object, configurationProvider.Object, browserService.Object);
             testSubject.ShowIssue(issueKey);
 
-            showInBrowserAction.Verify(x=> x("http://localhost:123/expected/issue?id=1"), Times.Once);
-            showInBrowserAction.VerifyNoOtherCalls();
+            browserService.Verify(x=> x.Navigate("http://localhost:123/expected/issue?id=1"), Times.Once);
+            browserService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public void ShowDocumentation_BrowserOpened()
         {
-            var showInBrowserAction = new Mock<Action<string>>();
+            var browserService = new Mock<IVsBrowserService>();
 
-            var testSubject = CreateTestSubject(showInBrowserAction: showInBrowserAction.Object);
+            var testSubject = CreateTestSubject(browserService: browserService.Object);
 
             testSubject.ShowDocumentation();
 
-            showInBrowserAction.Verify(x => x("https://github.com/SonarSource/sonarlint-visualstudio/wiki"), Times.Once());
-            showInBrowserAction.VerifyNoOtherCalls();
+            browserService.Verify(x => x.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki"), Times.Once());
+            browserService.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void ShowRuleDescription_BrowserOpened()
+        {
+            const string ruleKey = "some key";
+            const string ruleUrl = "some url";
+
+            var helpLinkProvider = new Mock<IRuleHelpLinkProvider>();
+            var browserService = new Mock<IVsBrowserService>();
+            helpLinkProvider.Setup(x => x.GetHelpLink(ruleKey)).Returns(ruleUrl);
+
+            var testSubject = CreateTestSubject(browserService: browserService.Object, helpLinkProvider: helpLinkProvider.Object);
+
+            testSubject.ShowRuleDescription(ruleKey);
+
+            browserService.Verify(x => x.Navigate(ruleUrl), Times.Once());
+            browserService.VerifyNoOtherCalls();
         }
 
         private ShowInBrowserService CreateTestSubject(ISonarQubeService sonarQubeService = null,
             IConfigurationProvider configurationProvider = null,
-            Action<string> showInBrowserAction = null)
+            IVsBrowserService browserService = null,
+            IRuleHelpLinkProvider helpLinkProvider = null)
         {
             sonarQubeService ??= Mock.Of<ISonarQubeService>();
             configurationProvider ??= Mock.Of<IConfigurationProvider>();
-            showInBrowserAction ??= s => { };
+            browserService ??= Mock.Of<IVsBrowserService>();
+            helpLinkProvider ??= Mock.Of<IRuleHelpLinkProvider>();
 
-            return new ShowInBrowserService(sonarQubeService, configurationProvider, showInBrowserAction);
+            return new ShowInBrowserService(sonarQubeService, configurationProvider, browserService, helpLinkProvider);
         }
     }
 }

@@ -24,9 +24,9 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -39,18 +39,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         string FileName { get; }
         string Description { get; }
         string RuleKey { get; }
-        string RuleHelpLink { get; }
         AnalysisIssueSeverity Severity { get; }
         IAnalysisIssueVisualization CurrentIssue { get; }
         IAnalysisIssueFlowVisualization CurrentFlow { get; set; }
         IReadOnlyList<ILocationListItem> LocationListItems { get; }
         LocationListItem CurrentLocationListItem { get; set; }
+        INavigateToCodeLocationCommand NavigateToCodeLocationCommand { get; }
+        INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
+        INavigateToDocumentationCommand NavigateToDocumentationCommand { get; }
     }
 
     internal sealed class IssueVisualizationViewModel : IIssueVisualizationViewModel
     {
         private readonly IAnalysisIssueSelectionService selectionService;
-        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
         private readonly ILocationNavigator locationNavigator;
         private readonly IFileNameLocationListItemCreator fileNameLocationListItemCreator;
 
@@ -67,14 +68,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
         private bool pausePropertyChangeNotifications;
 
         public IssueVisualizationViewModel(IAnalysisIssueSelectionService selectionService, 
-            IRuleHelpLinkProvider ruleHelpLinkProvider,
             ILocationNavigator locationNavigator,
-            IFileNameLocationListItemCreator fileNameLocationListItemCreator)
+            IFileNameLocationListItemCreator fileNameLocationListItemCreator,
+            INavigateToCodeLocationCommand navigateToCodeLocationCommand,
+            INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand,
+            INavigateToDocumentationCommand navigateToDocumentationCommand)
         {
             this.selectionService = selectionService;
-            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.locationNavigator = locationNavigator;
             this.fileNameLocationListItemCreator = fileNameLocationListItemCreator;
+
+            NavigateToCodeLocationCommand = navigateToCodeLocationCommand;
+            NavigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
+            NavigateToDocumentationCommand = navigateToDocumentationCommand;
 
             selectionService.SelectionChanged += SelectionEvents_OnSelectionChanged;
 
@@ -83,6 +89,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
                 selectionService.SelectedFlow,
                 selectionService.SelectedLocation);
         }
+
+        public INavigateToCodeLocationCommand NavigateToCodeLocationCommand { get; }
+
+        public INavigateToRuleDescriptionCommand NavigateToRuleDescriptionCommand { get; }
+
+        public INavigateToDocumentationCommand NavigateToDocumentationCommand { get; }
 
         public bool HasNonNavigableLocations { get; private set; }
 
@@ -110,7 +122,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.Vi
 
         public string RuleKey => CurrentIssue?.Issue?.RuleKey;
 
-        public string RuleHelpLink => string.IsNullOrEmpty(RuleKey) ? null : ruleHelpLinkProvider.GetHelpLink(RuleKey);
 
         public AnalysisIssueSeverity Severity =>
             CurrentIssue?.Issue is IAnalysisIssue analysisIssue

@@ -26,10 +26,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.Common;
@@ -43,7 +43,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         private const AnalysisIssueSeverity DefaultNullIssueSeverity = AnalysisIssueSeverity.Info;
 
         private Mock<IAnalysisIssueSelectionService> selectionServiceMock;
-        private Mock<IRuleHelpLinkProvider> helpLinkProviderMock;
         private Mock<ILocationNavigator> locationNavigatorMock;
         private Mock<IFileNameLocationListItemCreator> fileNameLocationListItemCreatorMock;
 
@@ -55,7 +54,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         public void TestInitialize()
         {
             selectionServiceMock = new Mock<IAnalysisIssueSelectionService>();
-            helpLinkProviderMock = new Mock<IRuleHelpLinkProvider>();
             locationNavigatorMock = new Mock<ILocationNavigator>();
             fileNameLocationListItemCreatorMock = new Mock<IFileNameLocationListItemCreator>();
             propertyChangedEventHandler = new Mock<PropertyChangedEventHandler>();
@@ -68,9 +66,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
         private IssueVisualizationViewModel CreateTestSubject()
         {
             var viewModel = new IssueVisualizationViewModel(selectionServiceMock.Object,
-                helpLinkProviderMock.Object,
                 locationNavigatorMock.Object,
-                fileNameLocationListItemCreatorMock.Object);
+                fileNameLocationListItemCreatorMock.Object,
+                Mock.Of<INavigateToCodeLocationCommand>(),
+                Mock.Of<INavigateToRuleDescriptionCommand>(),
+                Mock.Of<INavigateToDocumentationCommand>());
 
             viewModel.PropertyChanged += propertyChangedEventHandler.Object;
 
@@ -343,41 +343,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.IssueVisualization
             RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
 
             testSubject.RuleKey.Should().Be("test RuleKey");
-        }
-
-        #endregion
-
-        #region RuleHelpLink
-
-        [TestMethod]
-        public void RuleHelpLink_CurrentIssueIsNull_Null()
-        {
-            testSubject.RuleHelpLink.Should().BeNullOrEmpty();
-        }
-
-        [TestMethod]
-        public void RuleHelpLink_CurrentIssueHasNoAnalysisIssue_Null()
-        {
-            var issueViz = CreateIssue();
-
-            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
-
-            testSubject.RuleHelpLink.Should().BeNullOrEmpty();
-        }
-
-        [TestMethod]
-        public void RuleHelpLink_CurrentIssueHasAnalysisIssue_HelpLinkFromLinkProvider()
-        {
-            var issue = new Mock<IAnalysisIssue>();
-            issue.SetupGet(x => x.RuleKey).Returns("test RuleKey");
-
-            helpLinkProviderMock.Setup(x => x.GetHelpLink("test RuleKey")).Returns("test link");
-
-            var issueViz = CreateIssue(issue: issue.Object);
-
-            RaiseSelectionChangedEvent(SelectionChangeLevel.Issue, issueViz);
-
-            testSubject.RuleHelpLink.Should().Be("test link");
         }
 
         #endregion
