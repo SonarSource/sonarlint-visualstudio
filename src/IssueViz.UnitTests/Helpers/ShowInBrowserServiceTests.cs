@@ -26,10 +26,10 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests
+namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Helpers
 {
     [TestClass]
     public class ShowInBrowserServiceTests

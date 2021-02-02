@@ -25,9 +25,9 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 
-namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
+namespace SonarLint.VisualStudio.IssueVisualization.Helpers
 {
-    internal interface IShowInBrowserService
+    public interface IShowInBrowserService
     {
         void ShowIssue(string issueKey);
 
