@@ -32,9 +32,9 @@ using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
-using SonarLint.VisualStudio.IssueVisualization.Security.SharedUI;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
