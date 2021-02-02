@@ -18,20 +18,25 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Windows.Controls;
-using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
+using System.ComponentModel.Composition;
+using System.Windows.Input;
+using Microsoft.VisualStudio.PlatformUI;
+using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
-namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
+namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
 {
-    internal sealed partial class IssueVisualizationControl : UserControl
+    internal interface INavigateToDocumentationCommand : ICommand
     {
-        public IIssueVisualizationViewModel ViewModel { get; }
+    }
 
-        public IssueVisualizationControl(IIssueVisualizationViewModel viewModel)
+    [Export(typeof(INavigateToDocumentationCommand))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class NavigateToDocumentationCommand : DelegateCommand, INavigateToDocumentationCommand
+    {
+        [ImportingConstructor]
+        public NavigateToDocumentationCommand(IShowInBrowserService showInBrowserService)
+            : base(parameter => showInBrowserService.ShowDocumentation())
         {
-            ViewModel = viewModel;
-
-            InitializeComponent();
         }
     }
 }

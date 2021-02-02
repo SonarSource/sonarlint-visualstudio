@@ -23,10 +23,10 @@ using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
@@ -51,8 +51,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
             var logger = componentModel.GetService<ILogger>();
             var fileNameLocationListItemCreator = new FileNameLocationListItemCreator(imageService, logger);
 
-            viewModel = new IssueVisualizationViewModel(selectionService, new RuleHelpLinkProvider(), locationNavigator, fileNameLocationListItemCreator);
-            Content = new IssueVisualizationControl(viewModel, locationNavigator);
+            var navigateToCodeLocationCommand = componentModel.GetService<INavigateToCodeLocationCommand>();
+            var navigateToRuleDescriptionCommand = componentModel.GetService<INavigateToRuleDescriptionCommand>();
+            var navigateToDocumentationCommand = componentModel.GetService<INavigateToDocumentationCommand>();
+
+            viewModel = new IssueVisualizationViewModel(
+                selectionService,
+                locationNavigator,
+                fileNameLocationListItemCreator,
+                navigateToCodeLocationCommand,
+                navigateToRuleDescriptionCommand,
+                navigateToDocumentationCommand);
+
+            Content = new IssueVisualizationControl(viewModel);
         }
 
         protected override void Dispose(bool disposing)
