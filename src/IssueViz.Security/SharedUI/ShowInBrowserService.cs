@@ -20,8 +20,9 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
@@ -31,6 +32,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
         void ShowIssue(string issueKey);
 
         void ShowDocumentation();
+
+        void ShowRuleDescription(string ruleKey);
     }
 
     [Export(typeof(IShowInBrowserService))]
@@ -39,21 +42,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
     {
         private readonly ISonarQubeService sonarQubeService;
         private readonly IConfigurationProvider configurationProvider;
-        private readonly Action<string> showInBrowser;
+        private readonly IVsBrowserService vsBrowserService;
+        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
         [ImportingConstructor]
-        public ShowInBrowserService(ISonarQubeService sonarQubeService, IConfigurationProvider configurationProvider)
-            : this(sonarQubeService, configurationProvider, VsShellUtilities.OpenBrowser)
+        public ShowInBrowserService(ISonarQubeService sonarQubeService,
+            IConfigurationProvider configurationProvider,
+            IVsBrowserService vsBrowserService)
+            : this(sonarQubeService, configurationProvider, vsBrowserService, new RuleHelpLinkProvider())
         {
         }
 
         internal ShowInBrowserService(ISonarQubeService sonarQubeService,
             IConfigurationProvider configurationProvider,
-            Action<string> showInBrowser)
+            IVsBrowserService vsBrowserService,
+            IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             this.sonarQubeService = sonarQubeService;
             this.configurationProvider = configurationProvider;
-            this.showInBrowser = showInBrowser;
+            this.vsBrowserService = vsBrowserService;
+            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
         }
 
         public void ShowIssue(string issueKey)
@@ -73,12 +81,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.SharedUI
             var projectKey = bindingConfiguration.Project.ProjectKey;
             var viewIssueUrl = sonarQubeService.GetViewIssueUrl(projectKey, issueKey);
 
-            showInBrowser(viewIssueUrl.ToString());
+            vsBrowserService.Navigate(viewIssueUrl.ToString());
         }
 
         public void ShowDocumentation()
         {
-            showInBrowser("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
+            vsBrowserService.Navigate("https://github.com/SonarSource/sonarlint-visualstudio/wiki");
+        }
+
+        public void ShowRuleDescription(string ruleKey)
+        {
+            var helpLink = ruleHelpLinkProvider.GetHelpLink(ruleKey);
+
+            vsBrowserService.Navigate(helpLink);
         }
     }
 }
