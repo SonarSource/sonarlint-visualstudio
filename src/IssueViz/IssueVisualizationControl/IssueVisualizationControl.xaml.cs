@@ -19,75 +19,19 @@
  */
 
 using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Navigation;
-using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels;
-using SonarLint.VisualStudio.IssueVisualization.Models;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl
 {
     internal sealed partial class IssueVisualizationControl : UserControl
     {
-        private readonly ILocationNavigator locationNavigator;
-
         public IIssueVisualizationViewModel ViewModel { get; }
 
-        public IssueVisualizationControl(IIssueVisualizationViewModel viewModel, ILocationNavigator locationNavigator)
+        public IssueVisualizationControl(IIssueVisualizationViewModel viewModel)
         {
-            this.locationNavigator = locationNavigator;
             ViewModel = viewModel;
 
             InitializeComponent();
-        }
-
-        private void Hyperlink_OnRequestNavigate(object sender, RequestNavigateEventArgs e)
-        {
-            if (e.Uri == null)
-            {
-                return;
-            }
-
-            VsShellUtilities.OpenSystemBrowser(e.Uri.AbsoluteUri);
-            e.Handled = true;
-        }
-
-        internal void IssueDescription_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            NavigateToLocation(ViewModel.CurrentIssue);
-        }
-
-        internal void IssueDescription_OnKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                NavigateToLocation(ViewModel.CurrentIssue);
-            }
-        }
-
-        internal void LocationsList_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (e.OriginalSource is TextBlock container && 
-                container.DataContext is LocationListItem listItem)
-            {
-                NavigateToLocation(listItem.Location);
-            }
-        }
-
-        internal void LocationsList_OnKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter && 
-                e.OriginalSource is ListViewItem container && 
-                container.Content is LocationListItem listItem)
-            {
-                NavigateToLocation(listItem.Location);
-            }
-        }
-
-        private void NavigateToLocation(IAnalysisIssueLocationVisualization locationVisualization)
-        {
-            locationNavigator.TryNavigate(locationVisualization);
         }
     }
 }
