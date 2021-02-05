@@ -21,17 +21,13 @@
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Media;
 using FluentAssertions;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging;
-using Color = System.Drawing.Color;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using IVsThemeColorProvider = SonarLint.VisualStudio.Infrastructure.VS.IVsThemeColorProvider;
 
 namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTagging
@@ -45,7 +41,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             MefTestHelpers.CheckTypeCanBeImported<ErrorTagTooltipProvider, IErrorTagTooltipProvider>(null,
                 new[]
                 {
-                    MefTestHelpers.CreateExport<IVsBrowserService>(Mock.Of<IVsBrowserService>()),
+                    MefTestHelpers.CreateExport<INavigateToRuleDescriptionCommand>(Mock.Of<INavigateToRuleDescriptionCommand>()),
                     MefTestHelpers.CreateExport<IVsThemeColorProvider>(Mock.Of<IVsThemeColorProvider>())
                 });
         }
@@ -57,12 +53,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             issue.Setup(x => x.RuleKey).Returns("some rule");
             issue.Setup(x => x.Message).Returns("some message");
 
-            var ruleHelpLinkProvider = new Mock<IRuleHelpLinkProvider>();
-            ruleHelpLinkProvider.Setup(x => x.GetHelpLink("some rule")).Returns("some url");
-
-            var browserService = new Mock<IVsBrowserService>();
-
-            var testSubject = new ErrorTagTooltipProvider(browserService.Object, Mock.Of<IVsThemeColorProvider>(), ruleHelpLinkProvider.Object);
+            var navigateCommand = Mock.Of<INavigateToRuleDescriptionCommand>();
+            
+            var testSubject = new ErrorTagTooltipProvider(Mock.Of<IVsThemeColorProvider>(), navigateCommand);
             var result = testSubject.Create(issue.Object);
 
             result.Should().NotBeNull();
@@ -77,13 +70,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.ErrorTaggin
             (inlines[2] as Run).Text.Should().Be("some message");
 
             var hyperlink = (Hyperlink)inlines[0];
-            hyperlink.Command.Should().NotBeNull();
-            hyperlink.Command.CanExecute(null).Should().BeTrue();
-
-            browserService.Invocations.Count.Should().Be(0);
-            hyperlink.Command.Execute(null);
-            browserService.Verify(x=> x.Navigate("some url"), Times.Once);
-            browserService.VerifyNoOtherCalls();
+            hyperlink.Command.Should().Be(navigateCommand);
+            hyperlink.CommandParameter.Should().Be("some rule");
         }
     }
 }
