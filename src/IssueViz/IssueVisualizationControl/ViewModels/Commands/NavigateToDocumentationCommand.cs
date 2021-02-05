@@ -25,7 +25,7 @@ using SonarLint.VisualStudio.IssueVisualization.Helpers;
 
 namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
 {
-    internal interface INavigateToDocumentationCommand : ICommand
+    public interface INavigateToDocumentationCommand : ICommand
     {
     }
 

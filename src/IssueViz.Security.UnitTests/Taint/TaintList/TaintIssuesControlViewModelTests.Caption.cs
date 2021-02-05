@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
@@ -204,7 +205,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     activeDocLocator.Object,
                     Mock.Of<IShowInBrowserService>(),
                     Mock.Of<ITelemetryManager>(),
-                    Mock.Of<IIssueSelectionService>());
+                    Mock.Of<IIssueSelectionService>(),
+                    Mock.Of<INavigateToDocumentationCommand>());
             }
 
             public void ChangeActiveDocument(string filePath)

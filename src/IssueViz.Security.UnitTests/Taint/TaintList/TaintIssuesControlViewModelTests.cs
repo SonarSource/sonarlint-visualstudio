@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -363,29 +364,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         }
 
         [TestMethod]
-        public void ShowDocumentation_CanExecute_True()
-        {
-            var showInBrowserService = new Mock<IShowInBrowserService>();
-            var testSubject = CreateTestSubject(showInBrowserService: showInBrowserService.Object);
-
-            VerifyCommandExecution(testSubject.ShowDocumentationCommand, null, true);
-
-            showInBrowserService.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void ShowDocumentation_Execute_BrowserServiceIsCalled()
-        {
-            var showInBrowserService = new Mock<IShowInBrowserService>();
-            var testSubject = CreateTestSubject(showInBrowserService: showInBrowserService.Object);
-
-            testSubject.ShowDocumentationCommand.Execute(null);
-
-            showInBrowserService.Verify(x=> x.ShowDocumentation(), Times.Once);
-            showInBrowserService.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public void ActiveDocumentChanged_NoActiveDocument_NoIssuesDisplayed()
         {
             var storeCollection = new[] { CreateIssueViz() };
@@ -685,7 +663,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                 activeDocumentLocator,
                 showInBrowserService,
                 telemetryManager,
-                selectionService);
+                selectionService,
+                Mock.Of<INavigateToDocumentationCommand>());
         }
 
         private static IActiveDocumentLocator CreateLocatorAndSetActiveDocument(string activeFilePath)

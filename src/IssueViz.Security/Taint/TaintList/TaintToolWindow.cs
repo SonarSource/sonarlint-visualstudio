@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.ViewModels;
 using SonarLint.VisualStudio.IssueVisualization.Selection;
 
@@ -51,7 +52,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList
                 componentModel.GetService<IActiveDocumentLocator>(),
                 componentModel.GetService<IShowInBrowserService>(),
                 componentModel.GetService<ITelemetryManager>(),
-                componentModel.GetService<IIssueSelectionService>()
+                componentModel.GetService<IIssueSelectionService>(),
+                componentModel.GetService<INavigateToDocumentationCommand>()
             );
 
             Initialize(viewModel);
