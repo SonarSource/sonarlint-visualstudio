@@ -29,6 +29,7 @@ using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
@@ -44,11 +45,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         IDisposable
     {
         private readonly IFileRenamesEventSource fileRenamesEventSource;
+        private readonly IIssueSelectionService issueSelectionService;
         private readonly ISet<ITableDataSink> sinks = new HashSet<ITableDataSink>();
         private readonly ISet<IIssuesSnapshotFactory> factories = new HashSet<IIssuesSnapshotFactory>();
 
         [ImportingConstructor]
-        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, IFileRenamesEventSource fileRenamesEventSource)
+        internal SonarErrorListDataSource(ITableManagerProvider tableManagerProvider, 
+            IFileRenamesEventSource fileRenamesEventSource,
+            IIssueSelectionService issueSelectionService)
         {
             if (tableManagerProvider == null)
             {
@@ -56,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             }
 
             this.fileRenamesEventSource = fileRenamesEventSource ?? throw new ArgumentNullException(nameof(fileRenamesEventSource));
+            this.issueSelectionService = issueSelectionService ?? throw new ArgumentNullException(nameof(issueSelectionService));
             fileRenamesEventSource.FilesRenamed += OnFilesRenamed;
 
             var errorTableManager = tableManagerProvider.GetTableManager(StandardTables.ErrorsTable);
@@ -207,10 +212,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                 foreach (var factory in factories)
                 {
                     var snapshot = factory.CurrentSnapshot;
+                    
                     if (snapshot.FilesInSnapshot.Any(snapshotPath => affectedFilePaths.Any(affected => PathHelper.IsMatchingPath(snapshotPath, affected))))
                     {
                         snapshot.IncrementVersion();
                         InternalRefreshErrorList(factory);
+                    }
+
+                    var selectedIssue = issueSelectionService.SelectedIssue;
+
+                    if (snapshot.Issues.Contains(selectedIssue) && !selectedIssue.IsNavigable())
+                    {
+                        issueSelectionService.SelectedIssue = null;
                     }
                 }
             }

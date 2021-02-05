@@ -22,12 +22,14 @@ using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
 using SonarLint.VisualStudio.IssueVisualization.Models;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 {
@@ -212,6 +214,62 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void LocationsUpdated_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
+        {
+            var selectedIssue = hasSelectedIssue ? Mock.Of<IAnalysisIssueVisualization>() : null;
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
+
+            var factory = CreateFactoryWithIssues(Mock.Of<IAnalysisIssueVisualization>());
+            var testSubject = CreateTestSubject(selectionService.Object);
+            testSubject.AddFactory(factory);
+
+            testSubject.Refresh(new[] { "test.txt" });
+
+            selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
+        }
+
+        [TestMethod]
+        public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
+        {
+            var navigableSpan = (SnapshotSpan?) null;
+            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
+            selectedIssue.Setup(x => x.Span).Returns(navigableSpan);
+
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue.Object);
+
+            var factory = CreateFactoryWithIssues(selectedIssue.Object);
+            var testSubject = CreateTestSubject(selectionService.Object);
+            testSubject.AddFactory(factory);
+
+            testSubject.Refresh(new[] { "test.txt" });
+
+            selectionService.VerifySet(x => x.SelectedIssue = It.IsAny<IAnalysisIssueVisualization>(), Times.Never);
+        }
+
+        [TestMethod]
+        public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared()
+        {
+            var nonNavigableSpan = new SnapshotSpan();
+            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
+            selectedIssue.Setup(x => x.Span).Returns(nonNavigableSpan);
+
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue.Object);
+
+            var factory = CreateFactoryWithIssues(selectedIssue.Object);
+            var testSubject = CreateTestSubject(selectionService.Object);
+            testSubject.AddFactory(factory);
+
+            testSubject.Refresh(new[] { "test.txt" });
+
+            selectionService.VerifySet(x => x.SelectedIssue = null, Times.Once);
+        }
+
+        [TestMethod]
         public void Contains_NullArg_Throws()
         {
             var testSubject = CreateTestSubject();
@@ -288,6 +346,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             return snapshotFactory.Object;
         }
 
+        private static IIssuesSnapshotFactory CreateFactoryWithIssues(params IAnalysisIssueVisualization[] issues)
+        {
+            var snapshotMock = new Mock<IIssuesSnapshot>();
+            snapshotMock.Setup(x => x.Issues).Returns(issues);
+
+            var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
+            snapshotFactory.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
+
+            return snapshotFactory.Object;
+        }
+
         private static IIssuesSnapshotFactory CreateFactoryAndSnapshotWithSpecifiedFiles(params string[] filePaths)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
@@ -299,13 +368,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             return snapshotFactory.Object;
         }
 
-        private static SonarErrorListDataSource CreateTestSubject()
+        private static SonarErrorListDataSource CreateTestSubject(IIssueSelectionService selectionService = null)
         {
             var managerMock = new Mock<ITableManager>();
             var providerMock = new Mock<ITableManagerProvider>();
             providerMock.Setup(x => x.GetTableManager(StandardTables.ErrorsTable)).Returns(managerMock.Object);
 
-            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>());
+            selectionService ??= Mock.Of<IIssueSelectionService>();
+
+            return new SonarErrorListDataSource(providerMock.Object, Mock.Of<IFileRenamesEventSource>(), selectionService);
         }
 
         private static void CheckSnapshotGetLocationsCalled(IIssuesSnapshotFactory factory)

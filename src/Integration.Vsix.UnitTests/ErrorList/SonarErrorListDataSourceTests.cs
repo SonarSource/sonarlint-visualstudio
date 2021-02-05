@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Integration.Vsix;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Editor.LocationTagging;
+using SonarLint.VisualStudio.IssueVisualization.Selection;
 using SonarLint.VisualStudio.IssueVisualization.TableControls;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
@@ -64,6 +65,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var tableManagerExport = MefTestHelpers.CreateExport<ITableManagerProvider>(mockTableManagerProvider.Object);
             batch.AddExport(tableManagerExport);
 
+            var selectionServiceExport = MefTestHelpers.CreateExport<IIssueSelectionService>(Mock.Of<IIssueSelectionService>());
+            batch.AddExport(selectionServiceExport);
+
             // Set up importers for each of the interfaces exported by the test subject
             var errorDataSourceImporter = new SingleObjectImporter<ISonarErrorListDataSource>();
             var issueLocationStoreImporter = new SingleObjectImporter<IIssueLocationStore>();
@@ -90,11 +94,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         [TestMethod]
         public void Ctor_WithInvalidArgs_Throws()
         {
-            Action act = () => new SonarErrorListDataSource(null, Mock.Of<IFileRenamesEventSource>());
+            Action act = () => new SonarErrorListDataSource(null, Mock.Of<IFileRenamesEventSource>(), Mock.Of<IIssueSelectionService>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("tableManagerProvider");
 
-            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, null);
+            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object, null, Mock.Of<IIssueSelectionService>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileRenamesEventSource");
+
+            act = () => new SonarErrorListDataSource(mockTableManagerProvider.Object,  Mock.Of<IFileRenamesEventSource>(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("issueSelectionService");
         }
 
         [TestMethod]
@@ -376,7 +383,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
         private SonarErrorListDataSource CreateTestSubject()
         {
-            return new SonarErrorListDataSource(mockTableManagerProvider.Object, Mock.Of<IFileRenamesEventSource>());
+            return new SonarErrorListDataSource(mockTableManagerProvider.Object,
+                Mock.Of<IFileRenamesEventSource>(),
+                Mock.Of<IIssueSelectionService>());
         }
 
         private static void CheckSinkWasNotified(Mock<ITableDataSink> mockSink, IIssuesSnapshotFactory expectedFactory) =>
