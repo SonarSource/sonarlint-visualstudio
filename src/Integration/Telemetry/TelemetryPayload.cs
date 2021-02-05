@@ -40,6 +40,12 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("ide_version")]
         public string VisualStudioVersion { get; set; }
 
+        [JsonProperty("ide_edition")]
+        public string VisualStudioEdition { get; set; }
+
+        [JsonProperty("ide_build")]
+        public string VisualStudioBuild { get; set; }
+
         [JsonProperty("days_since_installation")]
         public long NumberOfDaysSinceInstallation { get; set; }
 

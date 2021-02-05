@@ -23,7 +23,9 @@ using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,11 +35,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreatePayload_InvalidArg_Throws()
         {
-            Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone);
+            Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone, Mock.Of<IVsVersion>());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
 
-            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null);
+            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null, Mock.Of<IVsVersion>());
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
+
+            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, BindingConfiguration.Standalone, null);
+            action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("currentVsVersion");
         }
 
         [TestMethod]
@@ -57,13 +62,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
 
+            var vsVersion = new Mock<IVsVersion>();
+            vsVersion.Setup(x => x.BuildVersion).Returns("build version");
+            vsVersion.Setup(x => x.ShortName).Returns("short name");
+
             VisualStudioHelpers.VisualStudioVersion = "1.2.3.4";
 
             // Act
             var result = TelemetryHelper.CreatePayload(
                 telemetryData,
                 new DateTimeOffset(now),
-                binding);
+                binding, 
+                vsVersion.Object);
 
             // Assert
             result.NumberOfDaysOfUse.Should().Be(5);
@@ -72,6 +82,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.SonarLintVersion.Should().Be(
                 typeof(TelemetryData).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version);
             result.VisualStudioVersion.Should().Be("1.2.3.4");
+            result.VisualStudioBuild.Should().Be("build version");
+            result.VisualStudioEdition.Should().Be("short name");
             result.InstallDate.Should().Be(new DateTimeOffset(now.AddDays(-10)));
             result.SystemDate.Should().Be(new DateTimeOffset(now));
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
@@ -98,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var binding = CreateConfiguration(mode, serverUrl);
 
             // Act
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, Mock.Of<IVsVersion>());
 
             // Assert
             result.IsUsingConnectedMode.Should().Be(expectedIsConnected);
@@ -118,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, Mock.Of<IVsVersion>());
 
             result.NumberOfDaysSinceInstallation.Should().Be(0);
         }
@@ -135,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, Mock.Of<IVsVersion>());
 
             result.NumberOfDaysSinceInstallation.Should().Be(1);
         }
@@ -154,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding, Mock.Of<IVsVersion>());
 
             result.Analyses.Count.Should().Be(2);
             result.Analyses[0].Language.Should().Be("cs");

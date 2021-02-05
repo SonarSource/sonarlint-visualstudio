@@ -27,6 +27,7 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -41,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<IActiveSolutionBoundTracker> activeSolutionTrackerMock;
         private Mock<ITelemetryDataRepository> telemetryRepositoryMock;
         private Mock<ITelemetryClient> telemetryClientMock;
+        private Mock<IVsVersionProvider> vsVersionProviderMock;
         private Mock<ILogger> loggerMock;
         private Mock<ITelemetryTimer> telemetryTimerMock;
         private Mock<IKnownUIContexts> knownUIContexts;
@@ -51,19 +53,21 @@ namespace SonarLint.VisualStudio.Integration.Tests
         {
             activeSolutionTrackerMock = new Mock<IActiveSolutionBoundTracker>();
             telemetryRepositoryMock = new Mock<ITelemetryDataRepository>();
+            vsVersionProviderMock = new Mock<IVsVersionProvider>();
             loggerMock = new Mock<ILogger>();
             telemetryClientMock = new Mock<ITelemetryClient>();
             telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
 
             activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
+            vsVersionProviderMock.Setup(x => x.Version).Returns(Mock.Of<IVsVersion>());
         }
 
         [TestMethod]
         public void Ctor_WhenGivenANullActiveSolutionBoundTracker_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(null, telemetryRepositoryMock.Object, loggerMock.Object,
+            Action action = () => new TelemetryManager(null, telemetryRepositoryMock.Object, vsVersionProviderMock.Object, loggerMock.Object,
                 telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
@@ -74,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenGivenANullTelmetryRepository_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, null, loggerMock.Object,
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, null, vsVersionProviderMock.Object, loggerMock.Object,
                 telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
@@ -85,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenGivenANullLogger_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, null,
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, vsVersionProviderMock.Object, null,
                 telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
@@ -96,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenGivenANullTelemetryClient_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, vsVersionProviderMock.Object,
                 loggerMock.Object, null, telemetryTimerMock.Object, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
@@ -107,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenGivenANullTelemetryTimer_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, vsVersionProviderMock.Object,
                 loggerMock.Object, telemetryClientMock.Object, null, knownUIContexts.Object, currentTimeProvider);
 
             // Assert
@@ -118,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenGivenANullKnownUIContexts_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, vsVersionProviderMock.Object,
                 loggerMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, null, currentTimeProvider);
 
             // Assert
@@ -129,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         public void Ctor_WhenGivenANullCurrentTimeProvider_ThrowsArgumentNullException()
         {
             // Act
-            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object,
+            Action action = () => new TelemetryManager(activeSolutionTrackerMock.Object, telemetryRepositoryMock.Object, vsVersionProviderMock.Object,
                 loggerMock.Object, telemetryClientMock.Object, telemetryTimerMock.Object, knownUIContexts.Object, null);
 
             // Assert
@@ -430,7 +434,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => new TelemetryManager(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, loggerMock.Object, telemetryClientMock.Object,
+            telemetryRepositoryMock.Object, vsVersionProviderMock.Object, loggerMock.Object, telemetryClientMock.Object,
             telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
 
         #region Languages analyzed tests

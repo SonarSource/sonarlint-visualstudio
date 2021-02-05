@@ -151,7 +151,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 NumberOfDaysSinceInstallation = 230,
                 SonarLintProduct = "SonarLint for Visual Studio",
                 SonarLintVersion = "1.2.3.4",
-                VisualStudioVersion = "15.16"
+                VisualStudioVersion = "15.16",
+                VisualStudioBuild = "build",
+                VisualStudioEdition = "edition"
             });
 
             // Assert
@@ -161,6 +163,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""sonarlint_product"": ""SonarLint for Visual Studio"",
   ""sonarlint_version"": ""1.2.3.4"",
   ""ide_version"": ""15.16"",
+  ""ide_edition"": ""edition"",
+  ""ide_build"": ""build"",
   ""days_since_installation"": 230,
   ""days_of_use"": 200,
   ""connected_mode_used"": true,

@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
-            BindingConfiguration bindingConfiguration)
+            BindingConfiguration bindingConfiguration, IVsVersion currentVsVersion)
         {
             if (telemetryData == null)
             {
@@ -56,6 +57,11 @@ namespace SonarLint.VisualStudio.Integration
             if (bindingConfiguration == null)
             {
                 throw new ArgumentNullException(nameof(bindingConfiguration));
+            }
+
+            if (currentVsVersion == null)
+            {
+                throw new ArgumentNullException(nameof(currentVsVersion));
             }
 
             // Note: we are capturing the data about the connected mode at the point
@@ -71,6 +77,8 @@ namespace SonarLint.VisualStudio.Integration
                 SonarLintProduct = "SonarLint Visual Studio",
                 SonarLintVersion = SonarLintVersion,
                 VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
+                VisualStudioEdition = currentVsVersion.ShortName,
+                VisualStudioBuild = currentVsVersion.BuildVersion,
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,

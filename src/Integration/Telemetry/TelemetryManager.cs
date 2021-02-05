@@ -27,6 +27,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -40,17 +41,20 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ITelemetryDataRepository telemetryRepository;
         private readonly IKnownUIContexts knownUIContexts;
         private readonly ICurrentTimeProvider currentTimeProvider;
+        private readonly IVsVersion currentVsVersion;
 
         [ImportingConstructor]
-        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
+        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, 
+            ITelemetryDataRepository telemetryRepository,
+            IVsVersionProvider vsVersionProvider,
             ILogger logger)
-            : this(solutionBindingTracker, telemetryRepository, logger,
+            : this(solutionBindingTracker, telemetryRepository, vsVersionProvider, logger,
                   new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
                   new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
         {
         }
 
-        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository,
+        public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository, IVsVersionProvider vsVersionProvider,
             ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts,
             ICurrentTimeProvider currentTimeProvider)
         {
@@ -61,6 +65,8 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryTimer = telemetryTimer ?? throw new ArgumentNullException(nameof(telemetryTimer));
             this.knownUIContexts = knownUIContexts ?? throw new ArgumentNullException(nameof(knownUIContexts));
             this.currentTimeProvider = currentTimeProvider ?? throw new ArgumentNullException(nameof(currentTimeProvider));
+
+            currentVsVersion = vsVersionProvider.Version;
 
             if (this.telemetryRepository.Data.InstallationDate == DateTimeOffset.MinValue)
             {
@@ -144,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration
         private TelemetryPayload GetPayload(TelemetryData telemetryData)
         {
             return TelemetryHelper.CreatePayload(telemetryData, currentTimeProvider.Now,
-                solutionBindingTracker.CurrentConfiguration);
+                solutionBindingTracker.CurrentConfiguration, currentVsVersion);
         }
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
