@@ -219,8 +219,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void LocationsUpdated_SelectedIssueIsNotInFactory_SelectedIssueNotChanged(bool hasSelectedIssue)
         {
             var selectedIssue = hasSelectedIssue ? Mock.Of<IAnalysisIssueVisualization>() : null;
-            var selectionService = new Mock<IIssueSelectionService>();
-            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue);
+            var selectionService = CreateSelectionService(selectedIssue);
 
             var factory = CreateFactoryWithIssues(Mock.Of<IAnalysisIssueVisualization>());
             var testSubject = CreateTestSubject(selectionService.Object);
@@ -235,13 +234,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNavigable_SelectedIssueNotChanged()
         {
             var navigableSpan = (SnapshotSpan?) null;
-            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
-            selectedIssue.Setup(x => x.Span).Returns(navigableSpan);
+            var navigableIssue = CreateIssueVizWithSpan(navigableSpan);
+            var selectionService = CreateSelectionService(navigableIssue);
 
-            var selectionService = new Mock<IIssueSelectionService>();
-            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue.Object);
-
-            var factory = CreateFactoryWithIssues(selectedIssue.Object);
+            var factory = CreateFactoryWithIssues(navigableIssue);
             var testSubject = CreateTestSubject(selectionService.Object);
             testSubject.AddFactory(factory);
 
@@ -254,13 +250,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         public void LocationsUpdated_SelectedIssueIsInFactory_IssueIsNotNavigable_SelectedIssueIsCleared()
         {
             var nonNavigableSpan = new SnapshotSpan();
-            var selectedIssue = new Mock<IAnalysisIssueVisualization>();
-            selectedIssue.Setup(x => x.Span).Returns(nonNavigableSpan);
+            var nonNavigableIssue = CreateIssueVizWithSpan(nonNavigableSpan);
+            var selectionService = CreateSelectionService(nonNavigableIssue);
 
-            var selectionService = new Mock<IIssueSelectionService>();
-            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssue.Object);
-
-            var factory = CreateFactoryWithIssues(selectedIssue.Object);
+            var factory = CreateFactoryWithIssues(nonNavigableIssue);
             var testSubject = CreateTestSubject(selectionService.Object);
             testSubject.AddFactory(factory);
 
@@ -404,6 +397,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
                 sinkMock.Verify(x => x.FactorySnapshotChanged(factory), Times.Once);
             }
             sinkMock.Verify(x => x.FactorySnapshotChanged(It.IsAny<ITableEntriesSnapshotFactory>()), Times.Exactly(factories.Length));
+        }
+
+        private Mock<IIssueSelectionService> CreateSelectionService(IAnalysisIssueVisualization selectedIssueViz)
+        {
+            var selectionService = new Mock<IIssueSelectionService>();
+            selectionService.Setup(x => x.SelectedIssue).Returns(selectedIssueViz);
+
+            return selectionService;
+        }
+
+        private IAnalysisIssueVisualization CreateIssueVizWithSpan(SnapshotSpan? span)
+        {
+            var issueViz = new Mock<IAnalysisIssueVisualization>();
+            issueViz.Setup(x => x.Span).Returns(span);
+
+            return issueViz.Object;
         }
     }
 }
