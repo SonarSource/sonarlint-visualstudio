@@ -19,15 +19,14 @@
  */
 
 using System.ComponentModel.Composition;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
 {
@@ -43,33 +42,25 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.ErrorTagging
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ErrorTagTooltipProvider : IErrorTagTooltipProvider
     {
-        private readonly IVsBrowserService browserService;
         private readonly IVsThemeColorProvider vsThemeColorProvider;
-        private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
+        private readonly INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand;
 
         [ImportingConstructor]
-        public ErrorTagTooltipProvider(IVsBrowserService browserService, IVsThemeColorProvider vsThemeColorProvider)
-            : this(browserService, vsThemeColorProvider, new RuleHelpLinkProvider())
+        public ErrorTagTooltipProvider(IVsThemeColorProvider vsThemeColorProvider, INavigateToRuleDescriptionCommand navigateToRuleDescriptionCommand)
         {
-        }
-
-        internal ErrorTagTooltipProvider(IVsBrowserService browserService, IVsThemeColorProvider vsThemeColorProvider, IRuleHelpLinkProvider ruleHelpLinkProvider)
-        {
-            this.browserService = browserService;
             this.vsThemeColorProvider = vsThemeColorProvider;
-            this.ruleHelpLinkProvider = ruleHelpLinkProvider;
+            this.navigateToRuleDescriptionCommand = navigateToRuleDescriptionCommand;
         }
 
         public object Create(IAnalysisIssueBase analysisIssueBase)
         {
-            var ruleUrl = ruleHelpLinkProvider.GetHelpLink(analysisIssueBase.RuleKey);
-
             var hyperLink = new Hyperlink
             {
                 Inlines = {analysisIssueBase.RuleKey},
                 Foreground = GetVsThemedColor(EnvironmentColors.ControlLinkTextColorKey),
                 TextDecorations = null,
-                Command = new DelegateCommand(o => browserService.Navigate(ruleUrl))
+                Command = navigateToRuleDescriptionCommand,
+                CommandParameter = analysisIssueBase.RuleKey
             };
 
             var content = new TextBlock
