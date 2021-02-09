@@ -33,7 +33,6 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarLint.VisualStudio.IssueVisualization.Helpers;
-using SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands;
 using SonarLint.VisualStudio.IssueVisualization.Models;
 using SonarLint.VisualStudio.IssueVisualization.Security.IssuesStore;
 using SonarLint.VisualStudio.IssueVisualization.Security.Taint.Models;
@@ -47,7 +46,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         ICommand ShowInBrowserCommand { get; }
 
-        INavigateToDocumentationCommand ShowDocumentationCommand { get; }
+        ICommand ShowDocumentationCommand { get; }
 
         ICollectionView IssuesView { get; }
 
@@ -84,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public ICommand ShowInBrowserCommand { get; private set; }
 
-        public INavigateToDocumentationCommand ShowDocumentationCommand { get; private set; }
+        public ICommand ShowDocumentationCommand { get; }
 
         public bool HasServerIssues => unfilteredIssues.Any();
 
@@ -123,7 +122,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IShowInBrowserService showInBrowserService,
             ITelemetryManager telemetryManager,
             IIssueSelectionService selectionService,
-            INavigateToDocumentationCommand navigateToDocumentationCommand)
+            ICommand navigateToDocumentationCommand)
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
