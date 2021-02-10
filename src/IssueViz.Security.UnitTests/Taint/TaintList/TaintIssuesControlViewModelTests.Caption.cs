@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Input;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Text;
@@ -204,7 +205,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
                     activeDocLocator.Object,
                     Mock.Of<IShowInBrowserService>(),
                     Mock.Of<ITelemetryManager>(),
-                    Mock.Of<IIssueSelectionService>());
+                    Mock.Of<IIssueSelectionService>(),
+                    Mock.Of<ICommand>());
             }
 
             public void ChangeActiveDocument(string filePath)
