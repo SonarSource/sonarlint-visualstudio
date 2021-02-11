@@ -23,7 +23,9 @@ using System.Linq;
 using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.VsVersion;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -33,10 +35,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void CreatePayload_InvalidArg_Throws()
         {
-            Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone);
+            Action action = () => TelemetryHelper.CreatePayload(null, DateTimeOffset.Now, BindingConfiguration.Standalone, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("telemetryData");
 
-            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null);
+            action = () => TelemetryHelper.CreatePayload(new TelemetryData(), DateTimeOffset.Now, null, null);
             action.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("bindingConfiguration");
         }
 
@@ -51,8 +53,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 InstallationDate = now.AddDays(-10),
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 5,
-                ShowHotspot = new ShowHotspot{NumberOfRequests = 11},
-                TaintVulnerabilities = new TaintVulnerabilities{NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55}
+                ShowHotspot = new ShowHotspot { NumberOfRequests = 11 },
+                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 },
             };
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
@@ -63,7 +65,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var result = TelemetryHelper.CreatePayload(
                 telemetryData,
                 new DateTimeOffset(now),
-                binding);
+                binding,
+                null);
 
             // Assert
             result.NumberOfDaysOfUse.Should().Be(5);
@@ -98,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var binding = CreateConfiguration(mode, serverUrl);
 
             // Act
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, null);
 
             // Assert
             result.IsUsingConnectedMode.Should().Be(expectedIsConnected);
@@ -118,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.LegacyConnected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, null);
 
             result.NumberOfDaysSinceInstallation.Should().Be(0);
         }
@@ -135,7 +138,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, now, binding, null);
 
             result.NumberOfDaysSinceInstallation.Should().Be(1);
         }
@@ -145,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var telemetryData = new TelemetryData
             {
-                Analyses = new []
+                Analyses = new[]
                 {
                     new Analysis { Language ="cs" },
                     new Analysis { Language = "vbnet" }
@@ -154,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "http://localhost");
 
-            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding);
+            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTime(2017, 7, 25), binding, null);
 
             result.Analyses.Count.Should().Be(2);
             result.Analyses[0].Language.Should().Be("cs");
@@ -200,6 +203,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             CheckIsSonarCloud("https://WWW.SONARCLOUD.io");
             CheckIsSonarCloud("https://www.sonarcloud.io/");
             CheckIsSonarCloud("https://www.SONARCLOUD.io/");
+        }
+
+        [TestMethod]
+        public void CreatePayload_VsVersionIsNull_NullVsVersionInformation()
+        {
+            var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
+
+            var result = TelemetryHelper.CreatePayload(
+                new TelemetryData(),
+                new DateTimeOffset(),
+                binding,
+                null);
+
+            result.VisualStudioVersionInformation.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CreatePayload_VsVersionIsNotNull_VsVersionInformation()
+        {
+            var vsVersion = new Mock<IVsVersion>();
+            vsVersion.Setup(x => x.ProductName).Returns("Visual Studio Enterprise 2019");
+            vsVersion.Setup(x => x.ProductVersion).Returns("16.9.30914.41");
+            vsVersion.Setup(x => x.ProductDisplayVersion).Returns("16.9.0 Preview 3.0");
+
+            var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
+
+            // Act
+            var result = TelemetryHelper.CreatePayload(
+                new TelemetryData(), 
+                new DateTimeOffset(),
+                binding,
+                vsVersion.Object);
+
+            result.VisualStudioVersionInformation.Should().NotBeNull();
+            result.VisualStudioVersionInformation.ProductName.Should().Be("Visual Studio Enterprise 2019");
+            result.VisualStudioVersionInformation.ProductBuildVersion.Should().Be("16.9.30914.41");
+            result.VisualStudioVersionInformation.ProductDisplayVersion.Should().Be("16.9.0 Preview 3.0");
         }
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)

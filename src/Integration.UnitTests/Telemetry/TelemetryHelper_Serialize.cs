@@ -37,6 +37,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 SonarLintProduct = "my product",
                 SonarLintVersion = "1.2.3.4",
                 VisualStudioVersion = "15.0.1.2",
+                VisualStudioVersionInformation = new IdeVersionInformation
+                {
+                    ProductDisplayVersion = "16.9.0 Preview 3.0",
+                    ProductBuildVersion = "16.9.30914.41",
+                    ProductName = "Visual Studio Enterprise 2019"
+                },
                 NumberOfDaysSinceInstallation = 234,
                 NumberOfDaysOfUse = 123,
                 IsUsingConnectedMode = true,
@@ -63,6 +69,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""sonarlint_product"": ""my product"",
   ""sonarlint_version"": ""1.2.3.4"",
   ""ide_version"": ""15.0.1.2"",
+  ""ide_version_information"": {
+    ""name"": ""Visual Studio Enterprise 2019"",
+    ""build_version"": ""16.9.30914.41"",
+    ""display_version"": ""16.9.0 Preview 3.0""
+  },
   ""days_since_installation"": 234,
   ""days_of_use"": 123,
   ""connected_mode_used"": true,

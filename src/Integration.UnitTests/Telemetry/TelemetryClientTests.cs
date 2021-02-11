@@ -161,6 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""sonarlint_product"": ""SonarLint for Visual Studio"",
   ""sonarlint_version"": ""1.2.3.4"",
   ""ide_version"": ""15.16"",
+  ""ide_version_information"": null,
   ""days_since_installation"": 230,
   ""days_of_use"": 200,
   ""connected_mode_used"": true,
