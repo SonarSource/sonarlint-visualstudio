@@ -20,13 +20,16 @@
 
 namespace SonarLint.VisualStudio.Core.VsVersion
 {
+    /// <summary>
+    /// Provides the current VS version information.
+    /// Logs exceptions and returns null if a failure occurred.
+    /// </summary>
     public interface IVsVersionProvider
     {
         /// <summary>
-        /// Attempts to retrieve current VS version information.
-        /// Logs exceptions and returns null if a failure occurred.
+        /// Cached value of current VS version
         /// </summary>
-        IVsVersion TryGet();
+        IVsVersion Version { get; }
     }
 
 }

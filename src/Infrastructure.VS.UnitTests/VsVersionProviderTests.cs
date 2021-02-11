@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void TryGet_CalculatesVersion()
+        public void Version_CalculatesVersion()
         {
             const string name = "Microsoft Visual Studio Enterprise 2019";
             const string buildVersion = "16.9.30914.41";
@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var setupConfig = CreateSetupConfiguration(installDirectory, name, buildVersion, displayVersion);
 
             var testSubject = CreateTestSubject(vsShell.Object, setupConfig.Object);
-            var vsVersion = testSubject.TryGet();
+            var vsVersion = testSubject.Version;
 
             vsVersion.Should().NotBeNull();
             vsVersion.ProductName.Should().Be(name);
@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void TryGet_VersionIsCached()
+        public void Version_VersionIsCached()
         {
             const string installDirectory = "some directory";
 
@@ -75,13 +75,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var setupConfig = CreateSetupConfiguration(installDirectory);
 
             var testSubject = CreateTestSubject(vsShell.Object, setupConfig.Object);
-            
-            var vsVersion1 = testSubject.TryGet();
+
+            var vsVersion1 = testSubject.Version;
 
             vsShell.Invocations.Clear();
             setupConfig.Invocations.Clear();
 
-            var vsVersion2 = testSubject.TryGet();
+            var vsVersion2 = testSubject.Version;
 
             vsVersion1.Should().BeSameAs(vsVersion2);
 
@@ -90,10 +90,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void TryGet_FailureToGetVersion_Null()
+        public void Version_FailureToGetVersion_Null()
         {
             var testSubject = CreateTestSubject(null, null);
-            var vsVersion = testSubject.TryGet();
+            var vsVersion = testSubject.Version;
 
             vsVersion.Should().BeNull();
         }

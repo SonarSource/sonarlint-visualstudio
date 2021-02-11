@@ -33,10 +33,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsVersionProvider : IVsVersionProvider
     {
-        private readonly ISetupConfiguration setupConfiguration;
-        private readonly ILogger logger;
-        private readonly IVsShell vsShell;
-        private IVsVersion version;
+        public IVsVersion Version { get; }
 
         [ImportingConstructor]
         public VsVersionProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
@@ -46,22 +43,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 
         internal VsVersionProvider(IServiceProvider serviceProvider, ISetupConfiguration setupConfiguration, ILogger logger)
         {
-            this.setupConfiguration = setupConfiguration;
-            this.logger = logger;
-            vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
+            Version = CalculateVersion(serviceProvider, setupConfiguration, logger);
         }
 
-        IVsVersion IVsVersionProvider.TryGet()
-        {
-            version ??= CalculateVersion();
-
-            return version;
-        }
-
-        private IVsVersion CalculateVersion()
+        private static IVsVersion CalculateVersion(IServiceProvider serviceProvider, ISetupConfiguration setupConfiguration, ILogger logger)
         {
             try
             {
+                var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
                 vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out var installDir);
 
                 var setupInstance = setupConfiguration.GetInstanceForPath((string)installDir);
