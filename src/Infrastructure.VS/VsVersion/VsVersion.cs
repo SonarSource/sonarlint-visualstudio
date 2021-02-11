@@ -18,26 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using SonarLint.VisualStudio.Core.VsVersion;
+
 namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 {
-    public interface IVsVersion
-    {
-        /// <summary>
-        /// VS full product name, including edition. Example: "Visual Studio Enterprise 2019"
-        /// </summary>
-        string ProductName { get; }
-
-        /// <summary>
-        /// VS build version. Example: "16.9.30914.41"
-        /// </summary>
-        string ProductVersion { get; }
-
-        /// <summary>
-        /// VS display version, as seen in the About window. Example: "16.9.0 Preview 3.0"
-        /// </summary>
-        string ProductDisplayVersion { get; }
-    }
-
     internal class VsVersion : IVsVersion
     {
         public VsVersion(string productName, string productVersion, string productDisplayVersion)

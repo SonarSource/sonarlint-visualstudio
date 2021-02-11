@@ -23,20 +23,12 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Setup.Configuration;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 {
-    public interface IVsVersionProvider
-    {
-        /// <summary>
-        /// Attempts to retrieve current VS version information.
-        /// Logs exceptions and returns null if a failure occurred.
-        /// </summary>
-        IVsVersion TryGet();
-    }
-
     [Export(typeof(IVsVersionProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsVersionProvider : IVsVersionProvider
