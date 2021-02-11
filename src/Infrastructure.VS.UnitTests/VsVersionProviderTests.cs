@@ -92,10 +92,14 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void Version_FailureToGetVersion_Null()
         {
-            var testSubject = CreateTestSubject(null, null);
+            var vsShell = CreateVsShell(errorToReturn: new Exception("this is a test"));
+
+            var testSubject = CreateTestSubject(vsShell.Object, null);
             var vsVersion = testSubject.Version;
 
             vsVersion.Should().BeNull();
+
+            vsShell.VerifyAll();
         }
 
         private IVsVersionProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration setupConfiguration, ILogger logger = null)
@@ -113,11 +117,16 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             return serviceProvider.Object;
         }
 
-        private static Mock<IVsShell> CreateVsShell(string installDirectory)
+        private static Mock<IVsShell> CreateVsShell(string installDirectory = null, Exception errorToReturn = null)
         {
             object installDir = installDirectory;
             var vsShell = new Mock<IVsShell>();
-            vsShell.Setup(x => x.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out installDir));
+            var setup = vsShell.Setup(x => x.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out installDir));
+
+            if (errorToReturn != null)
+            {
+                setup.Throws(errorToReturn);
+            }
 
             return vsShell;
         }

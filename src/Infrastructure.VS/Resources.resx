@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="FailedToCalculateVsVersion" xml:space="preserve">
-    <value>Failed to calculate VS version, exception details: {0}</value>
+    <value>Failed to calculate VS version, error: {0}</value>
   </data>
   <data name="VsVersionDetails" xml:space="preserve">
     <value>Current VS version:

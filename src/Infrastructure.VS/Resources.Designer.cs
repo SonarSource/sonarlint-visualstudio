@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to calculate VS version, exception details: {0}.
+        ///   Looks up a localized string similar to Failed to calculate VS version, error: {0}.
         /// </summary>
         internal static string FailedToCalculateVsVersion {
             get {
