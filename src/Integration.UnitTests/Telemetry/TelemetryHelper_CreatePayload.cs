@@ -56,6 +56,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 NumberOfDaysOfUse = 5,
                 ShowHotspot = new ShowHotspot { NumberOfRequests = 11 },
                 TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 },
+                ServerNotifications = new ServerNotifications
+                {
+                    IsDisabled = true,
+                    ServerNotificationCounters = new ServerNotificationCounters
+                    {
+                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {
+                            ClickedCount = 11, 
+                            ReceivedCount = 22
+                        },
+                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                        {
+                            ClickedCount = 33,
+                            ReceivedCount = 44
+                        }
+                    }
+                }
             };
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
@@ -81,6 +98,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(44);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(55);
+            result.ServerNotifications.IsDisabled.Should().BeTrue();
+            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(11);
+            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(22);
+            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(33);
+            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(44);
         }
 
         [TestMethod]

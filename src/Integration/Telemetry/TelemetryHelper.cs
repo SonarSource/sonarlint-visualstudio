@@ -83,7 +83,8 @@ namespace SonarLint.VisualStudio.Integration
                 InstallDate = telemetryData.InstallationDate,
                 Analyses = telemetryData.Analyses,
                 ShowHotspot = telemetryData.ShowHotspot,
-                TaintVulnerabilities = telemetryData.TaintVulnerabilities
+                TaintVulnerabilities = telemetryData.TaintVulnerabilities,
+                ServerNotifications = telemetryData.ServerNotifications
             };
         }
 

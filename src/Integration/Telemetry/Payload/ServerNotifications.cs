@@ -28,16 +28,16 @@ namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
         public bool IsDisabled { get; set; }
 
         [JsonProperty("count_by_type")]
-        public ServerNotificationCounters ServerNotificationCounters { get; set; }
+        public ServerNotificationCounters ServerNotificationCounters { get; set; } = new ServerNotificationCounters();
     }
 
     public sealed class ServerNotificationCounters
     {
         [JsonProperty("QUALITY_GATE")]
-        public ServerNotificationCounter QualityGateNotificationCounter { get; set; }
+        public ServerNotificationCounter QualityGateNotificationCounter { get; set; } = new ServerNotificationCounter();
 
         [JsonProperty("NEW_ISSUES")]
-        public ServerNotificationCounter NewIssuesNotificationCounter { get; set; }
+        public ServerNotificationCounter NewIssuesNotificationCounter { get; set; } = new ServerNotificationCounter();
     }
 
     public sealed class ServerNotificationCounter

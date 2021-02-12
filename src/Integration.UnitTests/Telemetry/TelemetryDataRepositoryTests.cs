@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             var repository = new TelemetryDataRepository(fileSystemMock.Object, watcherFactoryMock.Object);
 
             // Assert
-            RemoveLineEndings(fileContents.ToString()).Should().Be(RemoveLineEndings(@"<?xml version=""1.0"" encoding=""utf-16""?>
+            fileContents.ToString().Should().Be(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <TelemetryData xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" xmlns:xsd=""http://www.w3.org/2001/XMLSchema"">
   <IsAnonymousDataShared>true</IsAnonymousDataShared>
   <NumberOfDaysOfUse>0</NumberOfDaysOfUse>
@@ -68,7 +68,20 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <NumberOfIssuesInvestigatedLocally>0</NumberOfIssuesInvestigatedLocally>
     <NumberOfIssuesInvestigatedRemotely>0</NumberOfIssuesInvestigatedRemotely>
   </TaintVulnerabilities>
-</TelemetryData>"));
+  <ServerNotifications>
+    <IsDisabled>false</IsDisabled>
+    <ServerNotificationCounters>
+      <QualityGateNotificationCounter>
+        <ReceivedCount>0</ReceivedCount>
+        <ClickedCount>0</ClickedCount>
+      </QualityGateNotificationCounter>
+      <NewIssuesNotificationCounter>
+        <ReceivedCount>0</ReceivedCount>
+        <ClickedCount>0</ClickedCount>
+      </NewIssuesNotificationCounter>
+    </ServerNotificationCounters>
+  </ServerNotifications>
+</TelemetryData>");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -91,6 +104,19 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <NumberOfIssuesInvestigatedLocally>66</NumberOfIssuesInvestigatedLocally>
     <NumberOfIssuesInvestigatedRemotely>55</NumberOfIssuesInvestigatedRemotely>
   </TaintVulnerabilities>
+  <ServerNotifications>
+    <IsDisabled>true</IsDisabled>
+    <ServerNotificationCounters>
+        <QualityGateNotificationCounter>
+            <ReceivedCount>11</ReceivedCount>
+            <ClickedCount>22</ClickedCount>
+        </QualityGateNotificationCounter>
+        <NewIssuesNotificationCounter>
+            <ReceivedCount>33</ReceivedCount>
+            <ClickedCount>44</ClickedCount>
+        </NewIssuesNotificationCounter>
+    </ServerNotificationCounters>
+  </ServerNotifications>
 </TelemetryData>");
 
             InitializeMocks(fileContents, fileExists: true, dirExists: true);
@@ -107,6 +133,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(20);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(55);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(66);
+            repository.Data.ServerNotifications.IsDisabled.Should().BeTrue();
+            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(22);
+            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(11);
+            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(44);
+            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(33);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -135,6 +166,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             const int newHotspotsRequests = 25;
             const int newTaintRedirects = 7;
             const int newTaintOpenedIssues = 9;
+            const bool notificationsDisabled = true;
+            const int qualityGateReceivedCount = 1234;
+            const int qualityGateClickedCount = 5678;
+            const int newIssuesReceivedCount = 8765;
+            const int newIssuesClickedCount = 4321;
 
             var newInstallationDate = new DateTimeOffset(new DateTime(2017, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
             var newLastSavedAnalysisDate = new DateTimeOffset(new DateTime(2018, 3, 15, 6, 15, 42, 123).AddTicks(4567), TimeSpan.FromHours(1));
@@ -154,6 +190,19 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <NumberOfIssuesInvestigatedLocally>{newTaintOpenedIssues}</NumberOfIssuesInvestigatedLocally>
     <NumberOfIssuesInvestigatedRemotely>{newTaintRedirects}</NumberOfIssuesInvestigatedRemotely>
   </TaintVulnerabilities>
+  <ServerNotifications>
+    <IsDisabled>{notificationsDisabled.ToString().ToLower()}</IsDisabled>
+    <ServerNotificationCounters>
+        <QualityGateNotificationCounter>
+            <ReceivedCount>{qualityGateReceivedCount}</ReceivedCount>
+            <ClickedCount>{qualityGateClickedCount}</ClickedCount>
+        </QualityGateNotificationCounter>
+        <NewIssuesNotificationCounter>
+            <ReceivedCount>{newIssuesReceivedCount}</ReceivedCount>
+            <ClickedCount>{newIssuesClickedCount}</ClickedCount>
+        </NewIssuesNotificationCounter>
+    </ServerNotificationCounters>
+  </ServerNotifications>
 </TelemetryData>");
 
             fileSystemWatcherMock
@@ -168,6 +217,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.ShowHotspot.NumberOfRequests.Should().Be(newHotspotsRequests);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(newTaintRedirects);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(newTaintOpenedIssues);
+            repository.Data.ServerNotifications.IsDisabled.Should().Be(notificationsDisabled);
+            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(qualityGateClickedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(qualityGateReceivedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(newIssuesClickedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(newIssuesReceivedCount);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }
@@ -231,11 +285,6 @@ namespace SonarLint.VisualStudio.Integration.Tests
             watcherFactoryMock
                 .Setup(x => x.CreateNew())
                 .Returns(fileSystemWatcher ?? new Mock<IFileSystemWatcher>().Object);
-        }
-
-        private string RemoveLineEndings(string text)
-        {
-            return text.Replace("\r\n", string.Empty).Replace("\n", string.Empty);
         }
     }
 }
