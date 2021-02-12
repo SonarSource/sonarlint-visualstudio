@@ -157,6 +157,15 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 {
                     NumberOfIssuesInvestigatedRemotely = 777,
                     NumberOfIssuesInvestigatedLocally = 888
+                },
+                ServerNotifications = new ServerNotifications
+                {
+                    IsDisabled = true,
+                    ServerNotificationCounters = new ServerNotificationCounters
+                    {
+                        QualityGateNotificationCounter = new ServerNotificationCounter{ClickedCount = 11, ReceivedCount = 22},
+                        NewIssuesNotificationCounter = new ServerNotificationCounter{ClickedCount = 33, ReceivedCount = 44}
+                    }
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -173,47 +182,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.ShowHotspot.NumberOfRequests.Should().Be(0); // should have cleared the counter
             telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(0); // should have cleared the counter
             telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(0); // should have cleared the counter
-            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
-            telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
-        }
-
-        [TestMethod]
-        public void WhenTryUploadDataTimerElapsedAndNewDay_ChangeLastUploadAndSaveAndSendPayload()
-        {
-            // Arrange
-            var telemetryData = new TelemetryData
-            {
-                IsAnonymousDataShared = true,
-                InstallationDate = DateTimeOffset.Now,
-                LastUploadDate = DateTimeOffset.Now.AddDays(-1),
-                Analyses = new System.Collections.Generic.List<Analysis>()
-                {
-                    new Analysis { Language = "csharp" }
-                },
-                ShowHotspot = new ShowHotspot
-                {
-                    NumberOfRequests = 123
-                },
-                TaintVulnerabilities = new TaintVulnerabilities
-                {
-                    NumberOfIssuesInvestigatedRemotely = 777,
-                    NumberOfIssuesInvestigatedLocally = 888
-                }
-            };
-            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
-
-            var manager = CreateManager();
-            var now = DateTimeOffset.Now;
-
-            // Act
-            telemetryTimerMock.Raise(x => x.Elapsed += null, new TelemetryTimerEventArgs(now));
-
-            // Assert
-            telemetryData.LastUploadDate.Should().Be(now);
-            telemetryData.Analyses.Count.Should().Be(0); // should have cleared the list of installed languages
-            telemetryData.ShowHotspot.NumberOfRequests.Should().Be(0); // should have cleared the counter
-            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(0); // should have cleared the counter
-            telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(0); // should have cleared the counter
+            telemetryData.ServerNotifications.IsDisabled.Should().BeFalse(); // should have cleared the value
+            telemetryData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(0); // should have cleared the value
+            telemetryData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(0); // should have cleared the value
+            telemetryData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(0); // should have cleared the value
+            telemetryData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(0); // should have cleared the value
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }
