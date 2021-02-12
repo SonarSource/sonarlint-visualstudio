@@ -55,24 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 5,
                 ShowHotspot = new ShowHotspot { NumberOfRequests = 11 },
-                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 },
-                ServerNotifications = new ServerNotifications
-                {
-                    IsDisabled = true,
-                    ServerNotificationCounters = new ServerNotificationCounters
-                    {
-                        QualityGateNotificationCounter = new ServerNotificationCounter
-                        {
-                            ClickedCount = 11, 
-                            ReceivedCount = 22
-                        },
-                        NewIssuesNotificationCounter = new ServerNotificationCounter
-                        {
-                            ClickedCount = 33,
-                            ReceivedCount = 44
-                        }
-                    }
-                }
+                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 }
             };
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
@@ -98,11 +81,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(44);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(55);
-            result.ServerNotifications.IsDisabled.Should().BeTrue();
-            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(11);
-            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(22);
-            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(33);
-            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(44);
         }
 
         [TestMethod]
@@ -263,6 +241,57 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.VisualStudioVersionInformation.DisplayName.Should().Be("Visual Studio Enterprise 2019");
             result.VisualStudioVersionInformation.InstallationVersion.Should().Be("16.9.30914.41");
             result.VisualStudioVersionInformation.DisplayVersion.Should().Be("16.9.0 Preview 3.0");
+        }
+
+        [TestMethod]
+        public void CreatePayload_StandaloneMode_ServerNotificationsAreNotSent()
+        {
+            var binding = BindingConfiguration.Standalone;
+
+            var telemetryData = new TelemetryData
+            {
+                ServerNotifications = new ServerNotifications {IsDisabled = false}
+            };
+
+            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
+
+            result.ServerNotifications.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CreatePayload_ConnectedMode_ServerNotificationsAreSent()
+        {
+            var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
+
+            var telemetryData = new TelemetryData
+            {
+                ServerNotifications = new ServerNotifications
+                {
+                    IsDisabled = true,
+                    ServerNotificationCounters = new ServerNotificationCounters
+                    {
+                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {
+                            ClickedCount = 11,
+                            ReceivedCount = 22
+                        },
+                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                        {
+                            ClickedCount = 33,
+                            ReceivedCount = 44
+                        }
+                    }
+                }
+            };
+
+            var result = TelemetryHelper.CreatePayload(telemetryData, new DateTimeOffset(), binding, null);
+
+            result.ServerNotifications.Should().NotBeNull();
+            result.ServerNotifications.IsDisabled.Should().BeTrue();
+            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(11);
+            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(22);
+            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(33);
+            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(44);
         }
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
