@@ -24,17 +24,17 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 {
     internal class VsVersion : IVsVersion
     {
-        public VsVersion(string productName, string productVersion, string productDisplayVersion)
+        public VsVersion(string displayName, string installationVersion, string displayVersion)
         {
-            ProductName = productName;
-            ProductVersion = productVersion;
-            ProductDisplayVersion = productDisplayVersion;
+            DisplayName = displayName;
+            InstallationVersion = installationVersion;
+            DisplayVersion = displayVersion;
         }
 
-        public string ProductName { get; }
+        public string DisplayName { get; }
 
-        public string ProductVersion { get; }
+        public string InstallationVersion { get; }
 
-        public string ProductDisplayVersion { get; }
+        public string DisplayVersion { get; }
     }
 }

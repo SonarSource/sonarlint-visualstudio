@@ -21,6 +21,7 @@
 using System;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.VsVersion;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
-            BindingConfiguration bindingConfiguration)
+            BindingConfiguration bindingConfiguration, IVsVersion vsVersion)
         {
             if (telemetryData == null)
             {
@@ -71,6 +72,7 @@ namespace SonarLint.VisualStudio.Integration
                 SonarLintProduct = "SonarLint Visual Studio",
                 SonarLintVersion = SonarLintVersion,
                 VisualStudioVersion = VisualStudioHelpers.VisualStudioVersion,
+                VisualStudioVersionInformation = GetVsVersion(vsVersion),
                 NumberOfDaysSinceInstallation = now.DaysPassedSince(telemetryData.InstallationDate),
                 NumberOfDaysOfUse = telemetryData.NumberOfDaysOfUse,
                 IsUsingConnectedMode = isConnected,
@@ -80,7 +82,22 @@ namespace SonarLint.VisualStudio.Integration
                 InstallDate = telemetryData.InstallationDate,
                 Analyses = telemetryData.Analyses,
                 ShowHotspot = telemetryData.ShowHotspot,
-                TaintVulnerabilities = telemetryData.TaintVulnerabilities,
+                TaintVulnerabilities = telemetryData.TaintVulnerabilities
+            };
+        }
+
+        private static IdeVersionInformation GetVsVersion(IVsVersion vsVersion)
+        {
+            if (vsVersion == null)
+            {
+                return null;
+            }
+
+            return new IdeVersionInformation
+            {
+                DisplayName = vsVersion.DisplayName,
+                InstallationVersion = vsVersion.InstallationVersion,
+                DisplayVersion = vsVersion.DisplayVersion
             };
         }
 
