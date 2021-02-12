@@ -22,6 +22,7 @@ using System;
 using System.Diagnostics;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 using SonarQube.Client.Helpers;
 
 namespace SonarLint.VisualStudio.Integration

@@ -23,6 +23,7 @@ using SonarLint.VisualStudio.Integration.Telemetry;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -72,57 +73,8 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("taint_vulnerabilities")]
         public TaintVulnerabilities TaintVulnerabilities { get; set; }
-    }
 
-    public sealed class IdeVersionInformation
-    {
-        [JsonProperty("name")]
-        public string DisplayName { get; set; }
-
-        [JsonProperty("install_version")]
-        public string InstallationVersion { get; set; }
-
-        [JsonProperty("display_version")]
-        public string DisplayVersion { get; set; }
-    }
-
-    // We want to produce the same format as for IntelliJ and Eclipse (although
-    // currently we are only recording the languages used, not the analysis durations).
-    //
-    // Example from Eclipse:
-    //   "analyses": [
-    //  {
-    //    "language": "java",
-    //    "rate_per_duration": {
-    //      "0-300": 0,
-    //      "300-500": 0,
-    //      "500-1000": 0,
-    //      "1000-2000": 28.57,
-    //      "2000-4000": 14.29,
-    //      "4000+": 57.14
-    //    }
-    //  }
-    //]
-
-    // Note that this class is also used when serializing data to the users machine (in XML format)
-    public sealed class Analysis
-    {
-        [JsonProperty("language")]
-        public string Language { get; set; }
-    }
-
-    public sealed class ShowHotspot
-    {
-        [JsonProperty("requests_count")]
-        public long NumberOfRequests { get; set; }
-    }
-
-    public sealed class TaintVulnerabilities
-    {
-        [JsonProperty("investigated_locally_count")]
-        public long NumberOfIssuesInvestigatedLocally { get; set; }
-
-        [JsonProperty("investigated_remotely_count")]
-        public long NumberOfIssuesInvestigatedRemotely { get; set; }
+        [JsonProperty("server_notifications")]
+        public ServerNotifications ServerNotifications { get; set; }
     }
 }

@@ -24,6 +24,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
