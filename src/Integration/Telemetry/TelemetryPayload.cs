@@ -40,6 +40,9 @@ namespace SonarLint.VisualStudio.Integration
         [JsonProperty("ide_version")]
         public string VisualStudioVersion { get; set; }
 
+        [JsonProperty("slvs_ide_info")]
+        public IdeVersionInformation VisualStudioVersionInformation { get; set; }
+
         [JsonProperty("days_since_installation")]
         public long NumberOfDaysSinceInstallation { get; set; }
 
@@ -69,6 +72,18 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("taint_vulnerabilities")]
         public TaintVulnerabilities TaintVulnerabilities { get; set; }
+    }
+
+    public sealed class IdeVersionInformation
+    {
+        [JsonProperty("name")]
+        public string DisplayName { get; set; }
+
+        [JsonProperty("install_version")]
+        public string InstallationVersion { get; set; }
+
+        [JsonProperty("display_version")]
+        public string DisplayVersion { get; set; }
     }
 
     // We want to produce the same format as for IntelliJ and Eclipse (although
