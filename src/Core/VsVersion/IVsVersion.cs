@@ -18,25 +18,23 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Windows.Input;
-using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
-
-namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
+namespace SonarLint.VisualStudio.Core.VsVersion
 {
-    public interface INavigateToDocumentationCommand : ICommand
+    public interface IVsVersion
     {
-    }
+        /// <summary>
+        /// VS full product name, including edition. Example: "Visual Studio Enterprise 2019"
+        /// </summary>
+        string DisplayName { get; }
 
-    [Export(typeof(INavigateToDocumentationCommand))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class NavigateToDocumentationCommand : DelegateCommand, INavigateToDocumentationCommand
-    {
-        [ImportingConstructor]
-        public NavigateToDocumentationCommand(IShowInBrowserService showInBrowserService)
-            : base(parameter => showInBrowserService.ShowDocumentation())
-        {
-        }
+        /// <summary>
+        /// VS build version. Example: "16.9.30914.41"
+        /// </summary>
+        string InstallationVersion { get; }
+
+        /// <summary>
+        /// VS display version, as seen in the About window. Example: "16.9.0 Preview 3.0"
+        /// </summary>
+        string DisplayVersion { get; }
     }
 }

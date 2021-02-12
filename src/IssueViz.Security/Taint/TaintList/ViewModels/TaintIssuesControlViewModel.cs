@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         public ICommand ShowInBrowserCommand { get; private set; }
 
-        public ICommand ShowDocumentationCommand { get; private set; }
+        public ICommand ShowDocumentationCommand { get; }
 
         public bool HasServerIssues => unfilteredIssues.Any();
 
@@ -121,7 +121,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             IActiveDocumentLocator activeDocumentLocator,
             IShowInBrowserService showInBrowserService,
             ITelemetryManager telemetryManager,
-            IIssueSelectionService selectionService)
+            IIssueSelectionService selectionService,
+            ICommand navigateToDocumentationCommand)
         {
             unfilteredIssues = new ObservableCollection<ITaintIssueViewModel>();
             AllowMultiThreadedAccessToIssuesCollection();
@@ -142,6 +143,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             UpdateIssues();
 
             IssuesView = new ListCollectionView(unfilteredIssues);
+
+            ShowDocumentationCommand = navigateToDocumentationCommand;
 
             SetCommands(locationNavigator);
             ApplyViewFilter(ActiveDocumentFilter);
@@ -208,8 +211,6 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                     showInBrowserService.ShowIssue(taintIssue.IssueKey);
                 },
                 parameter => parameter is ITaintIssueViewModel);
-
-            ShowDocumentationCommand = new DelegateCommand(parameter => showInBrowserService.ShowDocumentation());
         }
 
         private void UpdateIssues()

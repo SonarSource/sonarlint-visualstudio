@@ -18,25 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.Windows.Input;
-using Microsoft.VisualStudio.PlatformUI;
-using SonarLint.VisualStudio.IssueVisualization.Helpers;
-
-namespace SonarLint.VisualStudio.IssueVisualization.IssueVisualizationControl.ViewModels.Commands
+namespace SonarLint.VisualStudio.Core.VsVersion
 {
-    public interface INavigateToDocumentationCommand : ICommand
+    /// <summary>
+    /// Provides the current VS version information.
+    /// Logs exceptions and returns null if a failure occurred.
+    /// </summary>
+    public interface IVsVersionProvider
     {
+        /// <summary>
+        /// Cached value of current VS version
+        /// </summary>
+        IVsVersion Version { get; }
     }
 
-    [Export(typeof(INavigateToDocumentationCommand))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class NavigateToDocumentationCommand : DelegateCommand, INavigateToDocumentationCommand
-    {
-        [ImportingConstructor]
-        public NavigateToDocumentationCommand(IShowInBrowserService showInBrowserService)
-            : base(parameter => showInBrowserService.ShowDocumentation())
-        {
-        }
-    }
 }
