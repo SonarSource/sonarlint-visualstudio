@@ -25,16 +25,16 @@ namespace SonarLint.VisualStudio.Core.VsVersion
         /// <summary>
         /// VS full product name, including edition. Example: "Visual Studio Enterprise 2019"
         /// </summary>
-        string ProductName { get; }
+        string DisplayName { get; }
 
         /// <summary>
         /// VS build version. Example: "16.9.30914.41"
         /// </summary>
-        string ProductVersion { get; }
+        string InstallationVersion { get; }
 
         /// <summary>
         /// VS display version, as seen in the About window. Example: "16.9.0 Preview 3.0"
         /// </summary>
-        string ProductDisplayVersion { get; }
+        string DisplayVersion { get; }
     }
 }

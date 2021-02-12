@@ -50,20 +50,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void Version_CalculatesVersion()
         {
             const string name = "Microsoft Visual Studio Enterprise 2019";
-            const string buildVersion = "16.9.30914.41";
+            const string installationVersion = "16.9.30914.41";
             const string displayVersion = "16.9.0 Preview 3.0";
             const string installDirectory = "some directory";
 
             var vsShell = CreateVsShell(installDirectory);
-            var setupConfig = CreateSetupConfiguration(installDirectory, name, buildVersion, displayVersion);
+            var setupConfig = CreateSetupConfiguration(installDirectory, name, installationVersion, displayVersion);
 
             var testSubject = CreateTestSubject(vsShell.Object, setupConfig.Object);
             var vsVersion = testSubject.Version;
 
             vsVersion.Should().NotBeNull();
-            vsVersion.ProductName.Should().Be(name);
-            vsVersion.ProductVersion.Should().Be(buildVersion);
-            vsVersion.ProductDisplayVersion.Should().Be(displayVersion);
+            vsVersion.DisplayName.Should().Be(name);
+            vsVersion.InstallationVersion.Should().Be(installationVersion);
+            vsVersion.DisplayVersion.Should().Be(displayVersion);
         }
 
         [TestMethod]

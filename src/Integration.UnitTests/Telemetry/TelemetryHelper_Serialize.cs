@@ -39,9 +39,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 VisualStudioVersion = "15.0.1.2",
                 VisualStudioVersionInformation = new IdeVersionInformation
                 {
-                    ProductDisplayVersion = "16.9.0 Preview 3.0",
-                    ProductBuildVersion = "16.9.30914.41",
-                    ProductName = "Visual Studio Enterprise 2019"
+                    DisplayVersion = "16.9.0 Preview 3.0",
+                    InstallationVersion = "16.9.30914.41",
+                    DisplayName = "Visual Studio Enterprise 2019"
                 },
                 NumberOfDaysSinceInstallation = 234,
                 NumberOfDaysOfUse = 123,
@@ -69,9 +69,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""sonarlint_product"": ""my product"",
   ""sonarlint_version"": ""1.2.3.4"",
   ""ide_version"": ""15.0.1.2"",
-  ""ide_version_information"": {
+  ""slvs_ide_info"": {
     ""name"": ""Visual Studio Enterprise 2019"",
-    ""build_version"": ""16.9.30914.41"",
+    ""install_version"": ""16.9.30914.41"",
     ""display_version"": ""16.9.0 Preview 3.0""
   },
   ""days_since_installation"": 234,

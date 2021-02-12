@@ -223,9 +223,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void CreatePayload_VsVersionIsNotNull_VsVersionInformation()
         {
             var vsVersion = new Mock<IVsVersion>();
-            vsVersion.Setup(x => x.ProductName).Returns("Visual Studio Enterprise 2019");
-            vsVersion.Setup(x => x.ProductVersion).Returns("16.9.30914.41");
-            vsVersion.Setup(x => x.ProductDisplayVersion).Returns("16.9.0 Preview 3.0");
+            vsVersion.Setup(x => x.DisplayName).Returns("Visual Studio Enterprise 2019");
+            vsVersion.Setup(x => x.InstallationVersion).Returns("16.9.30914.41");
+            vsVersion.Setup(x => x.DisplayVersion).Returns("16.9.0 Preview 3.0");
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
 
@@ -237,9 +237,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 vsVersion.Object);
 
             result.VisualStudioVersionInformation.Should().NotBeNull();
-            result.VisualStudioVersionInformation.ProductName.Should().Be("Visual Studio Enterprise 2019");
-            result.VisualStudioVersionInformation.ProductBuildVersion.Should().Be("16.9.30914.41");
-            result.VisualStudioVersionInformation.ProductDisplayVersion.Should().Be("16.9.0 Preview 3.0");
+            result.VisualStudioVersionInformation.DisplayName.Should().Be("Visual Studio Enterprise 2019");
+            result.VisualStudioVersionInformation.InstallationVersion.Should().Be("16.9.30914.41");
+            result.VisualStudioVersionInformation.DisplayVersion.Should().Be("16.9.0 Preview 3.0");
         }
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)

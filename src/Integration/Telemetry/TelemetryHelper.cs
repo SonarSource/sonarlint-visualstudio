@@ -95,9 +95,9 @@ namespace SonarLint.VisualStudio.Integration
 
             return new IdeVersionInformation
             {
-                ProductName = vsVersion.ProductName,
-                ProductBuildVersion = vsVersion.ProductVersion,
-                ProductDisplayVersion = vsVersion.ProductDisplayVersion
+                DisplayName = vsVersion.DisplayName,
+                InstallationVersion = vsVersion.InstallationVersion,
+                DisplayVersion = vsVersion.DisplayVersion
             };
         }
 
