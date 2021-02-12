@@ -121,7 +121,7 @@ namespace SonarLint.VisualStudio.Integration
                         var fileContent = fileSystem.File.ReadAllText(StorageFilePath);
                         this.Data = telemetrySerializer.Deserialize(new StringReader(fileContent)) as TelemetryData;
                     }
-                    catch (InvalidOperationException ex)
+                    catch (InvalidOperationException)
                     {
                         fileSystem.File.Delete(StorageFilePath);
                         EnsureFileExists(StorageFilePath);
