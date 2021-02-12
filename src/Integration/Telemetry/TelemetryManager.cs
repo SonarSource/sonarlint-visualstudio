@@ -58,13 +58,13 @@ namespace SonarLint.VisualStudio.Integration
             ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts,
             ICurrentTimeProvider currentTimeProvider)
         {
-            this.solutionBindingTracker = solutionBindingTracker ?? throw new ArgumentNullException(nameof(solutionBindingTracker));
-            this.telemetryRepository = telemetryRepository ?? throw new ArgumentNullException(nameof(telemetryRepository));
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            this.telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
-            this.telemetryTimer = telemetryTimer ?? throw new ArgumentNullException(nameof(telemetryTimer));
-            this.knownUIContexts = knownUIContexts ?? throw new ArgumentNullException(nameof(knownUIContexts));
-            this.currentTimeProvider = currentTimeProvider ?? throw new ArgumentNullException(nameof(currentTimeProvider));
+            this.solutionBindingTracker = solutionBindingTracker;
+            this.telemetryRepository = telemetryRepository;
+            this.logger = logger;
+            this.telemetryClient = telemetryClient;
+            this.telemetryTimer = telemetryTimer;
+            this.knownUIContexts = knownUIContexts;
+            this.currentTimeProvider = currentTimeProvider;
 
             vsVersion = vsVersionProvider.Version;
 
