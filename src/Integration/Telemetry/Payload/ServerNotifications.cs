@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
+using System.Linq;
+using System.Xml.Serialization;
 using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
@@ -28,16 +31,16 @@ namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
         public bool IsDisabled { get; set; }
 
         [JsonProperty("count_by_type")]
-        public ServerNotificationCounters ServerNotificationCounters { get; set; } = new ServerNotificationCounters();
-    }
+        [XmlIgnore]
+        public Dictionary<string, ServerNotificationCounter>  ServerNotificationCounters { get; set; } = new Dictionary<string, ServerNotificationCounter>();
 
-    public sealed class ServerNotificationCounters
-    {
-        [JsonProperty("QUALITY_GATE")]
-        public ServerNotificationCounter QualityGateNotificationCounter { get; set; } = new ServerNotificationCounter();
-
-        [JsonProperty("NEW_ISSUES")]
-        public ServerNotificationCounter NewIssuesNotificationCounter { get; set; } = new ServerNotificationCounter();
+        [JsonIgnore]
+        [XmlArray(nameof(ServerNotificationCounters))]
+        public SerializableKeyValuePair<string, ServerNotificationCounter>[] ServerNotificationCountersAsArray
+        {
+            get { return ServerNotificationCounters?.Select(p => p.ToSerializablePair()).ToArray(); }
+            set { ServerNotificationCounters = value?.ToDictionary(p => p.Key, p => p.Value); }
+        }
     }
 
     public sealed class ServerNotificationCounter
@@ -47,5 +50,20 @@ namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
 
         [JsonProperty("clicked")]
         public int ClickedCount { get; set; }
+    }
+
+    [XmlType("KeyValue"), XmlRoot("KeyValue")]
+    public class SerializableKeyValuePair<TKey, TValue>
+    {
+        public TKey Key { get; set; }
+        public TValue Value { get; set; }
+    }
+
+    public static class SerializableKeyValuePairExtensions
+    {
+        public static SerializableKeyValuePair<TKey, TValue> ToSerializablePair<TKey, TValue>(this KeyValuePair<TKey, TValue> pair)
+        {
+            return new SerializableKeyValuePair<TKey, TValue> { Key = pair.Key, Value = pair.Value };
+        }
     }
 }

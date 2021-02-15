@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
@@ -147,7 +148,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 LastUploadDate = DateTimeOffset.Now.AddDays(-1),
                 Analyses = new System.Collections.Generic.List<Analysis>()
                 {
-                    new Analysis { Language = "csharp" }
+                    new Analysis {Language = "csharp"}
                 },
                 ShowHotspot = new ShowHotspot
                 {
@@ -161,10 +162,22 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 ServerNotifications = new ServerNotifications
                 {
                     IsDisabled = true,
-                    ServerNotificationCounters = new ServerNotificationCounters
+                    ServerNotificationCounters = new Dictionary<string, ServerNotificationCounter>
                     {
-                        QualityGateNotificationCounter = new ServerNotificationCounter{ClickedCount = 11, ReceivedCount = 22},
-                        NewIssuesNotificationCounter = new ServerNotificationCounter{ClickedCount = 33, ReceivedCount = 44}
+                        {
+                            "QUALITY_GATE", new ServerNotificationCounter
+                            {
+                                ReceivedCount = 11,
+                                ClickedCount = 22
+                            }
+                        },
+                        {
+                            "NEW_ISSUES", new ServerNotificationCounter
+                            {
+                                ReceivedCount = 33,
+                                ClickedCount = 44
+                            }
+                        }
                     }
                 }
             };
@@ -183,10 +196,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(0); // should have cleared the counter
             telemetryData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(0); // should have cleared the counter
             telemetryData.ServerNotifications.IsDisabled.Should().BeFalse(); // should have cleared the value
-            telemetryData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(0); // should have cleared the value
-            telemetryData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(0); // should have cleared the value
-            telemetryData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(0); // should have cleared the value
-            telemetryData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(0); // should have cleared the value
+            telemetryData.ServerNotifications.ServerNotificationCounters.Should().BeEmpty(); // should have cleared the value
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }

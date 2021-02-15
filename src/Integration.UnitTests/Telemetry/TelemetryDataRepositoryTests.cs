@@ -70,16 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
   </TaintVulnerabilities>
   <ServerNotifications>
     <IsDisabled>false</IsDisabled>
-    <ServerNotificationCounters>
-      <QualityGateNotificationCounter>
-        <ReceivedCount>0</ReceivedCount>
-        <ClickedCount>0</ClickedCount>
-      </QualityGateNotificationCounter>
-      <NewIssuesNotificationCounter>
-        <ReceivedCount>0</ReceivedCount>
-        <ClickedCount>0</ClickedCount>
-      </NewIssuesNotificationCounter>
-    </ServerNotificationCounters>
+    <ServerNotificationCounters />
   </ServerNotifications>
 </TelemetryData>");
 
@@ -107,14 +98,20 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ServerNotifications>
     <IsDisabled>true</IsDisabled>
     <ServerNotificationCounters>
-        <QualityGateNotificationCounter>
-            <ReceivedCount>11</ReceivedCount>
-            <ClickedCount>22</ClickedCount>
-        </QualityGateNotificationCounter>
-        <NewIssuesNotificationCounter>
-            <ReceivedCount>33</ReceivedCount>
-            <ClickedCount>44</ClickedCount>
-        </NewIssuesNotificationCounter>
+      <KeyValue>
+        <Key>QUALITY_GATE</Key>
+        <Value>
+          <ReceivedCount>11</ReceivedCount>
+          <ClickedCount>22</ClickedCount>
+        </Value>
+      </KeyValue>
+      <KeyValue>
+        <Key>NEW_ISSUES</Key>
+        <Value>
+          <ReceivedCount>33</ReceivedCount>
+          <ClickedCount>44</ClickedCount>
+        </Value>
+      </KeyValue>
     </ServerNotificationCounters>
   </ServerNotifications>
 </TelemetryData>");
@@ -134,10 +131,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(55);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(66);
             repository.Data.ServerNotifications.IsDisabled.Should().BeTrue();
-            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(22);
-            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(11);
-            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(44);
-            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(33);
+            repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ClickedCount.Should().Be(22);
+            repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ReceivedCount.Should().Be(11);
+            repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(44);
+            repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(33);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
         }
@@ -193,14 +190,20 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <ServerNotifications>
     <IsDisabled>{notificationsDisabled.ToString().ToLower()}</IsDisabled>
     <ServerNotificationCounters>
-        <QualityGateNotificationCounter>
-            <ReceivedCount>{qualityGateReceivedCount}</ReceivedCount>
-            <ClickedCount>{qualityGateClickedCount}</ClickedCount>
-        </QualityGateNotificationCounter>
-        <NewIssuesNotificationCounter>
-            <ReceivedCount>{newIssuesReceivedCount}</ReceivedCount>
-            <ClickedCount>{newIssuesClickedCount}</ClickedCount>
-        </NewIssuesNotificationCounter>
+      <KeyValue>
+        <Key>QUALITY_GATE</Key>
+        <Value>
+          <ReceivedCount>{qualityGateReceivedCount}</ReceivedCount>
+          <ClickedCount>{qualityGateClickedCount}</ClickedCount>
+        </Value>
+      </KeyValue>
+      <KeyValue>
+        <Key>NEW_ISSUES</Key>
+        <Value>
+          <ReceivedCount>{newIssuesReceivedCount}</ReceivedCount>
+          <ClickedCount>{newIssuesClickedCount}</ClickedCount>
+        </Value>
+      </KeyValue>
     </ServerNotificationCounters>
   </ServerNotifications>
 </TelemetryData>");
@@ -218,10 +221,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(newTaintRedirects);
             repository.Data.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(newTaintOpenedIssues);
             repository.Data.ServerNotifications.IsDisabled.Should().Be(notificationsDisabled);
-            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(qualityGateClickedCount);
-            repository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(qualityGateReceivedCount);
-            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(newIssuesClickedCount);
-            repository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(newIssuesReceivedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ClickedCount.Should().Be(qualityGateClickedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ReceivedCount.Should().Be(qualityGateReceivedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(newIssuesClickedCount);
+            repository.Data.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(newIssuesReceivedCount);
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock, fileSystemWatcherMock);
         }

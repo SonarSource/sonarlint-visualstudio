@@ -18,18 +18,18 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry
 {
-    internal interface IServerNotificationsTelemetryManager
+    public interface IServerNotificationsTelemetryManager
     {
-        void QualityGateNotificationReceived();
-        void QualityGateNotificationClicked();
-        void NewIssueNotificationReceived();
-        void NewIssueNotificationClicked();
         void NotificationsToggled(bool areNotificationsEnabled);
+        void NotificationReceived(string category);
+        void NotificationClicked(string category);
     }
 
     [Export(typeof(IServerNotificationsTelemetryManager))]
@@ -37,43 +37,12 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
     internal class ServerNotificationsTelemetryManager : IServerNotificationsTelemetryManager
     {
         private readonly ITelemetryDataRepository telemetryRepository;
+        private static object Lock = new Object();
 
         [ImportingConstructor]
         public ServerNotificationsTelemetryManager(ITelemetryDataRepository telemetryRepository)
         {
             this.telemetryRepository = telemetryRepository;
-        }
-
-        void IServerNotificationsTelemetryManager.QualityGateNotificationReceived()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount;
-            telemetryRepository.Save();
-        }
-
-        void IServerNotificationsTelemetryManager.QualityGateNotificationClicked()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount;
-            telemetryRepository.Save();
-        }
-
-        void IServerNotificationsTelemetryManager.NewIssueNotificationReceived()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount;
-            telemetryRepository.Save();
-        }
-
-        void IServerNotificationsTelemetryManager.NewIssueNotificationClicked()
-        {
-            Debug.Assert(telemetryRepository.Data != null);
-
-            ++telemetryRepository.Data.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount;
-            telemetryRepository.Save();
         }
 
         void IServerNotificationsTelemetryManager.NotificationsToggled(bool areNotificationsEnabled)
@@ -82,6 +51,44 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
 
             telemetryRepository.Data.ServerNotifications.IsDisabled = !areNotificationsEnabled;
             telemetryRepository.Save();
+        }
+
+        public void NotificationReceived(string category)
+        {
+            Debug.Assert(telemetryRepository.Data != null);
+
+            var counter = GetOrCreateCounter(category);
+            counter.ReceivedCount++;
+
+            telemetryRepository.Save();
+        }
+
+        public void NotificationClicked(string category)
+        {
+            Debug.Assert(telemetryRepository.Data != null);
+
+            var counter = GetOrCreateCounter(category);
+            counter.ClickedCount++;
+
+            telemetryRepository.Save();
+        }
+
+        private ServerNotificationCounter GetOrCreateCounter(string category)
+        {
+            var countersDictionary = telemetryRepository.Data.ServerNotifications.ServerNotificationCounters;
+
+            if (!countersDictionary.ContainsKey(category))
+            {
+                lock (Lock)
+                {
+                    if (!countersDictionary.ContainsKey(category))
+                    {
+                        countersDictionary[category] = new ServerNotificationCounter();
+                    }
+                }
+            }
+
+            return countersDictionary[category];
         }
     }
 }
