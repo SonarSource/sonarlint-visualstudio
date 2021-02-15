@@ -55,43 +55,49 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         }
 
         [TestMethod]
-        [DataRow(0)]
         [DataRow(1)]
-        public void NotificationReceived_CounterIncremented(int initialCounter)
+        [DataRow(2)]
+        public void NotificationReceived_CounterIncremented(int numberOfNotifications)
         {
+            const string counterName = "Test";
             var telemetryData = CreateServerNotificationsData();
-            telemetryData.ServerNotifications.ServerNotificationCounters["test"] = new ServerNotificationCounter
-            {
-                ReceivedCount = initialCounter
-            };
 
             var telemetryRepository = CreateTelemetryRepository(telemetryData);
             var testSubject = CreateTestSubject(telemetryRepository.Object);
 
-            testSubject.NotificationReceived("test");
+            telemetryData.ServerNotifications.ServerNotificationCounters.Should().NotContainKey(counterName);
 
-            telemetryData.ServerNotifications.ServerNotificationCounters["test"].ReceivedCount.Should().Be(initialCounter + 1);
-            telemetryRepository.Verify(x => x.Save(), Times.Once);
+            for (var i = 0; i < numberOfNotifications; i++)
+            {
+                testSubject.NotificationReceived(counterName);
+            }
+
+            telemetryData.ServerNotifications.ServerNotificationCounters[counterName].ReceivedCount.Should().Be(numberOfNotifications);
+
+            telemetryRepository.Verify(x => x.Save(), Times.Exactly(numberOfNotifications));
         }
 
         [TestMethod]
-        [DataRow(0)]
         [DataRow(1)]
-        public void NotificationClicked_CounterIncremented(int initialCounter)
+        [DataRow(2)]
+        public void NotificationClicked_CounterIncremented(int numberOfNotifications)
         {
+            const string counterName = "Test";
             var telemetryData = CreateServerNotificationsData();
-            telemetryData.ServerNotifications.ServerNotificationCounters["test"] = new ServerNotificationCounter
-            {
-                ClickedCount = initialCounter
-            };
 
             var telemetryRepository = CreateTelemetryRepository(telemetryData);
             var testSubject = CreateTestSubject(telemetryRepository.Object);
 
-            testSubject.NotificationClicked("test");
+            telemetryData.ServerNotifications.ServerNotificationCounters.Should().NotContainKey(counterName);
 
-            telemetryData.ServerNotifications.ServerNotificationCounters["test"].ClickedCount.Should().Be(initialCounter + 1);
-            telemetryRepository.Verify(x => x.Save(), Times.Once);
+            for (var i = 0; i < numberOfNotifications; i++)
+            {
+                testSubject.NotificationClicked(counterName);
+            }
+
+            telemetryData.ServerNotifications.ServerNotificationCounters[counterName].ClickedCount.Should().Be(numberOfNotifications);
+
+            telemetryRepository.Verify(x => x.Save(), Times.Exactly(numberOfNotifications));
         }
 
         private static IServerNotificationsTelemetryManager CreateTestSubject(ITelemetryDataRepository dataRepository)
