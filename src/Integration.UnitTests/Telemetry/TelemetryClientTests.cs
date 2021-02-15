@@ -171,7 +171,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
   ""system_time"": ""2018-03-15T18:55:10.123+01:00"",
   ""analyses"": null,
   ""show_hotspot"": null,
-  ""taint_vulnerabilities"": null
+  ""taint_vulnerabilities"": null,
+  ""server_notifications"": null
 }";
 
             httpHandlerMock.VerifyAll();

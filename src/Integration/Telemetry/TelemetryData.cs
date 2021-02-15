@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Xml.Serialization;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -69,6 +70,9 @@ namespace SonarLint.VisualStudio.Integration
 
         [XmlElement(nameof(TaintVulnerabilities))]
         public TaintVulnerabilities TaintVulnerabilities { get; set; } = new TaintVulnerabilities();
+
+        [XmlElement(nameof(ServerNotifications))]
+        public ServerNotifications ServerNotifications { get; set; } = new ServerNotifications();
 
         private static DateTimeOffset ParseSavedString(string data)
         {
