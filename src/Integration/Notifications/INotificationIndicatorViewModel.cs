@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Windows.Input;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications
@@ -36,5 +37,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
         bool IsToolTipVisible { get; set; }
 
         void SetNotificationEvents(IEnumerable<SonarQubeNotification> events);
+
+        ICommand NavigateToNotification { get; }
     }
 }

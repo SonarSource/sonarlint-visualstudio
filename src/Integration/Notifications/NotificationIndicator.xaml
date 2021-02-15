@@ -74,7 +74,9 @@
                                     <LineBreak FontSize="16" />
 
                                     <Run Text="{Binding Message, Mode=OneWay}" />
-                                    <Hyperlink NavigateUri="{Binding Link, Mode=OneWay}" RequestNavigate="Hyperlink_RequestNavigate">more...</Hyperlink></TextBlock>
+                                    <Hyperlink Command="{Binding DataContext.NavigateToNotification, RelativeSource={RelativeSource AncestorType={x:Type UserControl}}}" 
+                                               CommandParameter="{Binding}">more...</Hyperlink>
+                                </TextBlock>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>

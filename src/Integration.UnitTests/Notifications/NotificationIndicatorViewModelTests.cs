@@ -24,6 +24,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarQube.Client.Models;
 
@@ -214,7 +215,44 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             telemetryManager.Verify(x => x.NotificationReceived(It.IsAny<string>()), Times.Never);
         }
 
-        private SonarQubeNotification CreateNotification(string category) => new SonarQubeNotification(category, "test", new Uri("http://localhost:3000"), DateTimeOffset.Now);
+        [TestMethod]
+        public void NavigateToNotification_NotificationNavigated()
+        {
+            var vsBrowserService = new Mock<IVsBrowserService>();
+            var testSubject = CreateTestSubject(vsBrowserService: vsBrowserService.Object);
+
+            var notification = CreateNotification("test", "http://localhost:2000");
+            testSubject.NavigateToNotification.Execute(notification);
+
+            vsBrowserService.Verify(x=> x.Navigate("http://localhost:2000/"), Times.Once());
+        }
+
+        [TestMethod]
+        public void NavigateToNotification_TelemetrySent()
+        {
+            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
+            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
+
+            var notification = CreateNotification("test");
+            testSubject.NavigateToNotification.Execute(notification);
+
+            telemetryManager.Verify(x => x.NotificationClicked("test"), Times.Once());
+        }
+
+        [TestMethod]
+        public void NavigateToNotification_TooltipClosed()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.IsToolTipVisible = true;
+
+            var notification = CreateNotification("test");
+            testSubject.NavigateToNotification.Execute(notification);
+
+            testSubject.IsToolTipVisible.Should().BeFalse();
+        }
+
+        private SonarQubeNotification CreateNotification(string category, string url = "http://localhost") => new SonarQubeNotification(category, "test", new Uri(url), DateTimeOffset.Now);
 
         [TestMethod]
         public void ClearUnreadEventsCommand_Sets_HasUnreadEvents_False()
@@ -241,12 +279,15 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             return model;
         }
 
-        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, IServerNotificationsTelemetryManager telemetryManager = null)
+        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, 
+            IServerNotificationsTelemetryManager telemetryManager = null,
+            IVsBrowserService vsBrowserService = null)
         {
             timer ??= Mock.Of<ITimer>();
             telemetryManager ??= Mock.Of<IServerNotificationsTelemetryManager>();
+            vsBrowserService ??= Mock.Of<IVsBrowserService>();
 
-            return new NotificationIndicatorViewModel(telemetryManager, a => a(), timer);
+            return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, a => a(), timer);
         }
     }
 }
