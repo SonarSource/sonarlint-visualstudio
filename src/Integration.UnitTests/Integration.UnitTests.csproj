@@ -13,6 +13,7 @@
     <ProjectGuid>{CB59EF29-8193-4F32-866E-64FBB6199283}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Integration.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Integration.UnitTests</AssemblyName>
+    <LangVersion>latest</LangVersion>
 
   </PropertyGroup>
 

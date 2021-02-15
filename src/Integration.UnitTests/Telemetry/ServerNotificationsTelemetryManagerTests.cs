@@ -18,7 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -57,62 +57,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         [TestMethod]
         [DataRow(0)]
         [DataRow(1)]
-        public void QualityGateNotificationReceived_CounterIncremented(int initialCounter)
-        {
-            VerifyCounterIncreased(initialCounter,
-                notificationCounters => notificationCounters.QualityGateNotificationCounter.ReceivedCount = initialCounter,
-                notificationCounters => notificationCounters.QualityGateNotificationCounter.ReceivedCount,
-                manager => manager.QualityGateNotificationReceived());
-        }
-
-        [TestMethod]
-        [DataRow(0)]
-        [DataRow(1)]
-        public void QualityGateNotificationClicked_CounterIncremented(int initialCounter)
-        {
-            VerifyCounterIncreased(initialCounter, 
-                notificationCounters => notificationCounters.QualityGateNotificationCounter.ClickedCount = initialCounter,
-                notificationCounters => notificationCounters.QualityGateNotificationCounter.ClickedCount,
-                manager => manager.QualityGateNotificationClicked());
-        }
-
-        [TestMethod]
-        [DataRow(0)]
-        [DataRow(1)]
-        public void NewIssueNotificationReceived_CounterIncremented(int initialCounter)
-        {
-            VerifyCounterIncreased(initialCounter,
-                notificationCounters => notificationCounters.NewIssuesNotificationCounter.ReceivedCount = initialCounter,
-                notificationCounters => notificationCounters.NewIssuesNotificationCounter.ReceivedCount,
-                manager => manager.NewIssueNotificationReceived());
-        }
-
-        [TestMethod]
-        [DataRow(0)]
-        [DataRow(1)]
-        public void NewIssueNotificationClicked_CounterIncremented(int initialCounter)
-        {
-            VerifyCounterIncreased(initialCounter,
-                notificationCounters => notificationCounters.NewIssuesNotificationCounter.ClickedCount = initialCounter,
-                notificationCounters => notificationCounters.NewIssuesNotificationCounter.ClickedCount,
-                manager => manager.NewIssueNotificationClicked());
-        }
-
-        private void VerifyCounterIncreased(int initialCounter, 
-            Action<ServerNotificationCounters> setInitialCounter, 
-            Func<ServerNotificationCounters, int> getCounter,
-            Action<IServerNotificationsTelemetryManager> incrementCounter)
+        public void NotificationReceived_CounterIncremented(int initialCounter)
         {
             var telemetryData = CreateServerNotificationsData();
-            var serverNotificationCounters = telemetryData.ServerNotifications.ServerNotificationCounters;
-            setInitialCounter(serverNotificationCounters);
+            telemetryData.ServerNotifications.ServerNotificationCounters["test"] = new ServerNotificationCounter
+            {
+                ReceivedCount = initialCounter
+            };
 
             var telemetryRepository = CreateTelemetryRepository(telemetryData);
             var testSubject = CreateTestSubject(telemetryRepository.Object);
 
-            incrementCounter(testSubject);
+            testSubject.NotificationReceived("test");
 
-            getCounter(serverNotificationCounters).Should().Be(initialCounter + 1);
+            telemetryData.ServerNotifications.ServerNotificationCounters["test"].ReceivedCount.Should().Be(initialCounter + 1);
+            telemetryRepository.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(1)]
+        public void NotificationClicked_CounterIncremented(int initialCounter)
+        {
+            var telemetryData = CreateServerNotificationsData();
+            telemetryData.ServerNotifications.ServerNotificationCounters["test"] = new ServerNotificationCounter
+            {
+                ClickedCount = initialCounter
+            };
+
+            var telemetryRepository = CreateTelemetryRepository(telemetryData);
+            var testSubject = CreateTestSubject(telemetryRepository.Object);
+
+            testSubject.NotificationClicked("test");
+
+            telemetryData.ServerNotifications.ServerNotificationCounters["test"].ClickedCount.Should().Be(initialCounter + 1);
             telemetryRepository.Verify(x => x.Save(), Times.Once);
         }
 
@@ -134,11 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             {
                 ServerNotifications = new ServerNotifications
                 {
-                    ServerNotificationCounters = new ServerNotificationCounters
-                    {
-                        QualityGateNotificationCounter = new ServerNotificationCounter(),
-                        NewIssuesNotificationCounter = new ServerNotificationCounter()
-                    }
+                    ServerNotificationCounters = new Dictionary<string, ServerNotificationCounter>()
                 }
             };
     }

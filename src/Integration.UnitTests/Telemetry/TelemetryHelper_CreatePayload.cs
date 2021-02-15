@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using FluentAssertions;
@@ -268,18 +269,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ServerNotifications = new ServerNotifications
                 {
                     IsDisabled = true,
-                    ServerNotificationCounters = new ServerNotificationCounters
+                    ServerNotificationCounters = new Dictionary<string, ServerNotificationCounter>
                     {
-                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {"QUALITY_GATE", new ServerNotificationCounter
                         {
-                            ClickedCount = 11,
-                            ReceivedCount = 22
-                        },
-                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                            ReceivedCount = 22,
+                            ClickedCount = 11
+                        }},
+                        {"NEW_ISSUES", new ServerNotificationCounter
                         {
-                            ClickedCount = 33,
-                            ReceivedCount = 44
-                        }
+                            ReceivedCount = 44,
+                            ClickedCount = 33
+                        }}
                     }
                 }
             };
@@ -288,10 +289,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             result.ServerNotifications.Should().NotBeNull();
             result.ServerNotifications.IsDisabled.Should().BeTrue();
-            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(11);
-            result.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(22);
-            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(33);
-            result.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(44);
+            result.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ClickedCount.Should().Be(11);
+            result.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ReceivedCount.Should().Be(22);
+            result.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(33);
+            result.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(44);
         }
 
         private static BindingConfiguration CreateConfiguration(SonarLintMode mode, string serverUri)
