@@ -19,10 +19,13 @@
  */
 
 using System;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarQube.Client.Models;
 
 namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
@@ -40,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestMethod]
         public void Text_Raises_PropertyChanged()
         {
-            var model = new NotificationIndicatorViewModel();
+            var model = CreateTestSubject();
             var monitor = model.Monitor();
 
             model.ToolTipText = "test";
@@ -52,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestMethod]
         public void HasUnreadEvents_Raises_PropertyChanged()
         {
-            var model = new NotificationIndicatorViewModel();
+            var model = CreateTestSubject();
             var monitor = model.Monitor();
 
             model.HasUnreadEvents = true;
@@ -64,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestMethod]
         public void IsIconVisible_Raises_PropertyChanged()
         {
-            var model = new NotificationIndicatorViewModel();
+            var model = CreateTestSubject();
             var monitor = model.Monitor();
 
             model.IsIconVisible = true;
@@ -76,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestMethod]
         public void AreNotificationsEnabled_Raises_PropertyChanged()
         {
-            var model = new NotificationIndicatorViewModel();
+            var model = CreateTestSubject();
             var monitor = model.Monitor();
 
             model.AreNotificationsEnabled = true;
@@ -86,9 +89,28 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void AreNotificationsEnabled_UpdatesTelemetry(bool areEnabled)
+        {
+            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
+            var model = CreateTestSubject(telemetryManager: telemetryManager.Object);
+
+            model.AreNotificationsEnabled = areEnabled;
+
+            telemetryManager.Verify(x=> x.NotificationsToggled(areEnabled));
+            telemetryManager.VerifyNoOtherCalls();
+
+            model.AreNotificationsEnabled = !areEnabled;
+
+            telemetryManager.Verify(x => x.NotificationsToggled(!areEnabled));
+            telemetryManager.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public void IsToolTipVisible_Raises_PropertyChanged()
         {
-            var model = new NotificationIndicatorViewModel();
+            var model = CreateTestSubject();
             var monitor = model.Monitor();
 
             model.IsToolTipVisible = true;
@@ -103,10 +125,8 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             // Arrange
             var timerMock = new Mock<ITimer>();
 
-            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object)
-            {
-                IsToolTipVisible = true
-            };
+            var model = CreateTestSubject(timerMock.Object);
+            model.IsToolTipVisible = true;
 
             // Act
             model.IsToolTipVisible = false;
@@ -117,7 +137,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         [TestMethod]
         public void HasUnreadEvents_WithNo_Events_UpdatesTooltipText()
         {
-            var model = new NotificationIndicatorViewModel();
+            var model = CreateTestSubject();
             var monitor = model.Monitor();
 
             model.IsIconVisible = true;
@@ -132,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         public void HasUnreadEvents_WithEvents_UpdatesTooltipText()
         {
             var timerMock = new Mock<ITimer>();
-            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object);
+            var model = CreateTestSubject(timerMock.Object);
             var monitor = model.Monitor();
 
             model.IsIconVisible = true;
@@ -168,6 +188,73 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
         }
 
         [TestMethod]
+        public void SetNotificationEvents_SetEvents_UpdatesTelemetry()
+        {
+            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
+            var model = CreateTestSubject(telemetryManager: telemetryManager.Object);
+            model.AreNotificationsEnabled = true;
+            model.IsIconVisible = true;
+
+            var events = new[]
+            {
+                CreateNotification("category1"),
+                CreateNotification("category2"),
+                CreateNotification("category1"),
+                CreateNotification("category3"),
+            };
+
+            model.SetNotificationEvents(events);
+
+            telemetryManager.Verify(x=> x.NotificationReceived("category1"), Times.Exactly(2));
+            telemetryManager.Verify(x=> x.NotificationReceived("category2"), Times.Once());
+            telemetryManager.Verify(x=> x.NotificationReceived("category3"), Times.Once());
+
+            telemetryManager.Reset();
+            model.SetNotificationEvents(Enumerable.Empty<SonarQubeNotification>());
+
+            telemetryManager.Verify(x => x.NotificationReceived(It.IsAny<string>()), Times.Never);
+        }
+
+        [TestMethod]
+        public void NavigateToNotification_NotificationNavigated()
+        {
+            var vsBrowserService = new Mock<IVsBrowserService>();
+            var testSubject = CreateTestSubject(vsBrowserService: vsBrowserService.Object);
+
+            var notification = CreateNotification("test", "http://localhost:2000");
+            testSubject.NavigateToNotification.Execute(notification);
+
+            vsBrowserService.Verify(x=> x.Navigate("http://localhost:2000/"), Times.Once());
+        }
+
+        [TestMethod]
+        public void NavigateToNotification_TelemetrySent()
+        {
+            var telemetryManager = new Mock<IServerNotificationsTelemetryManager>();
+            var testSubject = CreateTestSubject(telemetryManager: telemetryManager.Object);
+
+            var notification = CreateNotification("test");
+            testSubject.NavigateToNotification.Execute(notification);
+
+            telemetryManager.Verify(x => x.NotificationClicked("test"), Times.Once());
+        }
+
+        [TestMethod]
+        public void NavigateToNotification_TooltipClosed()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.IsToolTipVisible = true;
+
+            var notification = CreateNotification("test");
+            testSubject.NavigateToNotification.Execute(notification);
+
+            testSubject.IsToolTipVisible.Should().BeFalse();
+        }
+
+        private SonarQubeNotification CreateNotification(string category, string url = "http://localhost") => new SonarQubeNotification(category, "test", new Uri(url), DateTimeOffset.Now);
+
+        [TestMethod]
         public void ClearUnreadEventsCommand_Sets_HasUnreadEvents_False()
         {
             // Arrange
@@ -181,18 +268,26 @@ namespace SonarLint.VisualStudio.Integration.Notifications.UnitTests
             model.HasUnreadEvents.Should().BeFalse();
         }
 
-        private NotificationIndicatorViewModel SetupModelWithNotifications(bool areEnabled,
-            bool areVisible, SonarQubeNotification[] events)
+        private NotificationIndicatorViewModel SetupModelWithNotifications(bool areEnabled, bool areVisible, SonarQubeNotification[] events)
         {
-            var timerMock = new Mock<ITimer>();
-            var model = new NotificationIndicatorViewModel(a => a(), timerMock.Object)
-            {
-                AreNotificationsEnabled = areEnabled,
-                IsIconVisible = areVisible
-            };
+            var model = CreateTestSubject();
+            model.AreNotificationsEnabled = areEnabled;
+            model.IsIconVisible = areVisible;
+            
             model.SetNotificationEvents(events);
 
             return model;
+        }
+
+        private NotificationIndicatorViewModel CreateTestSubject(ITimer timer = null, 
+            IServerNotificationsTelemetryManager telemetryManager = null,
+            IVsBrowserService vsBrowserService = null)
+        {
+            timer ??= Mock.Of<ITimer>();
+            telemetryManager ??= Mock.Of<IServerNotificationsTelemetryManager>();
+            vsBrowserService ??= Mock.Of<IVsBrowserService>();
+
+            return new NotificationIndicatorViewModel(telemetryManager, vsBrowserService, a => a(), timer);
         }
     }
 }
