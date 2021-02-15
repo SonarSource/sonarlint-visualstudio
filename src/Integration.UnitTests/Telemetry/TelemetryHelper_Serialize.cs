@@ -22,6 +22,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -60,7 +61,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                     new Analysis { Language = "vbnet" }
                 }.ToList(),
                 ShowHotspot = new ShowHotspot { NumberOfRequests = 567 },
-                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedLocally = 654, NumberOfIssuesInvestigatedRemotely = 321}
+                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedLocally = 654, NumberOfIssuesInvestigatedRemotely = 321},
+                ServerNotifications = new ServerNotifications
+                {
+                    IsDisabled = true,
+                    ServerNotificationCounters = new ServerNotificationCounters
+                    {
+                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {
+                            ClickedCount = 222,
+                            ReceivedCount = 111
+                        },
+                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                        {
+                            ClickedCount = 444,
+                            ReceivedCount = 333
+                        }
+                    }
+                }
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -98,6 +116,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   ""taint_vulnerabilities"": {
     ""investigated_locally_count"": 654,
     ""investigated_remotely_count"": 321
+  },
+  ""server_notifications"": {
+    ""disabled"": true,
+    ""count_by_type"": {
+      ""QUALITY_GATE"": {
+        ""received"": 111,
+        ""clicked"": 222
+      },
+      ""NEW_ISSUES"": {
+        ""received"": 333,
+        ""clicked"": 444
+      }
+    }
   }
 }";
             serialized.Should().Be(expected);

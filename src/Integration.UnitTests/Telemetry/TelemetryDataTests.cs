@@ -24,6 +24,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
@@ -61,6 +62,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     NumberOfIssuesInvestigatedRemotely = 88,
                     NumberOfIssuesInvestigatedLocally = 99
+                },
+
+                ServerNotifications = new ServerNotifications
+                {
+                    IsDisabled = true,
+                    ServerNotificationCounters = new ServerNotificationCounters
+                    {
+                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {
+                            ReceivedCount = 11,
+                            ClickedCount = 22
+                        },
+                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                        {
+                            ReceivedCount = 33,
+                            ClickedCount = 44
+                        }
+                    }
                 }
             };
 
@@ -96,6 +115,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.TaintVulnerabilities.Should().NotBeNull();
             reloadedData.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(88);
             reloadedData.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(99);
+
+            reloadedData.ServerNotifications.Should().NotBeNull();
+            reloadedData.ServerNotifications.IsDisabled.Should().BeTrue();
+            reloadedData.ServerNotifications.ServerNotificationCounters.Should().NotBeNull();
+            reloadedData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.Should().NotBeNull();
+            reloadedData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(11);
+            reloadedData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(22);
+            reloadedData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.Should().NotBeNull();
+            reloadedData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(33);
+            reloadedData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(44);
+
         }
     }
 }

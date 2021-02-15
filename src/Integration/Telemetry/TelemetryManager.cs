@@ -28,6 +28,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsVersion;
+using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -235,6 +236,7 @@ namespace SonarLint.VisualStudio.Integration
                 telemetryRepository.Data.Analyses = new System.Collections.Generic.List<Analysis>();
                 telemetryRepository.Data.ShowHotspot = new ShowHotspot();
                 telemetryRepository.Data.TaintVulnerabilities = new TaintVulnerabilities();
+                telemetryRepository.Data.ServerNotifications = new ServerNotifications();
                 telemetryRepository.Save();
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
