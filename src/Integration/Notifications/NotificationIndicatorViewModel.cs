@@ -25,6 +25,7 @@ using System.Linq;
 using System.Windows.Input;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
+using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarLint.VisualStudio.Integration.WPF;
 using SonarQube.Client.Models;
 
@@ -32,6 +33,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 {
     public class NotificationIndicatorViewModel : ViewModelBase, INotificationIndicatorViewModel
     {
+        private readonly IServerNotificationsTelemetryManager telemetryManager;
         private readonly ITimer autocloseTimer;
         private readonly Action<Action> uiThreadInvoker;
 
@@ -43,15 +45,16 @@ namespace SonarLint.VisualStudio.Integration.Notifications
 
         public ObservableCollection<SonarQubeNotification> NotificationEvents { get; }
 
-        public NotificationIndicatorViewModel()
-            : this(ThreadHelper.Generic.Invoke,
+        public NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager)
+            : this(telemetryManager, ThreadHelper.Generic.Invoke,
                   new TimerWrapper { AutoReset = false, Interval = 3000 /* 3 sec */})
         {
         }
 
         // For testing
-        internal NotificationIndicatorViewModel(Action<Action> uiThreadInvoker, ITimer autocloseTimer)
+        internal NotificationIndicatorViewModel(IServerNotificationsTelemetryManager telemetryManager, Action<Action> uiThreadInvoker, ITimer autocloseTimer)
         {
+            this.telemetryManager = telemetryManager;
             this.uiThreadInvoker = uiThreadInvoker;
             this.autocloseTimer = autocloseTimer;
 
@@ -111,6 +114,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
             set
             {
                 SetAndRaisePropertyChanged(ref areNotificationsEnabled, value);
+                telemetryManager.NotificationsToggled(value);
             }
         }
 
@@ -149,6 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Notifications
                     foreach (var ev in events)
                     {
                         NotificationEvents.Add(ev);
+                        telemetryManager.NotificationReceived(ev.Category);
                     }
 
                     HasUnreadEvents = true;

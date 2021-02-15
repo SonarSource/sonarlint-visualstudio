@@ -32,6 +32,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.Notifications;
+using SonarLint.VisualStudio.Integration.Telemetry;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
@@ -75,8 +76,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
             AddOptionKey(NotificationDataKey);
 
+            var telemetryManager = await this.GetMefServiceAsync<IServerNotificationsTelemetryManager>();
+
             notifications = new SonarQubeNotificationService(sonarqubeService,
-                new NotificationIndicatorViewModel(), new TimerWrapper { Interval = 60000 }, logger);
+                new NotificationIndicatorViewModel(telemetryManager), new TimerWrapper { Interval = 60000 }, logger);
             
             // Initialising the UI elements has to be on the main thread
             await JoinableTaskFactory.SwitchToMainThreadAsync();
