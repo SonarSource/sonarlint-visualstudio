@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
 
@@ -65,18 +66,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ServerNotifications = new ServerNotifications
                 {
                     IsDisabled = true,
-                    ServerNotificationCounters = new ServerNotificationCounters
+                    ServerNotificationCounters = new Dictionary<string, ServerNotificationCounter>()
                     {
-                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {"QUALITY_GATE", new ServerNotificationCounter
                         {
-                            ClickedCount = 222,
-                            ReceivedCount = 111
-                        },
-                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                            ReceivedCount = 111,
+                            ClickedCount = 222
+                        }},
+                        {"NEW_ISSUES", new ServerNotificationCounter
                         {
-                            ClickedCount = 444,
-                            ReceivedCount = 333
-                        }
+                            ReceivedCount = 333,
+                            ClickedCount = 444
+                        }}
                     }
                 }
             };

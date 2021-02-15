@@ -21,6 +21,7 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
@@ -67,18 +68,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ServerNotifications = new ServerNotifications
                 {
                     IsDisabled = true,
-                    ServerNotificationCounters = new ServerNotificationCounters
+                    ServerNotificationCounters = new Dictionary<string, ServerNotificationCounter>
                     {
-                        QualityGateNotificationCounter = new ServerNotificationCounter
+                        {"QUALITY_GATE", new ServerNotificationCounter
                         {
                             ReceivedCount = 11,
                             ClickedCount = 22
-                        },
-                        NewIssuesNotificationCounter = new ServerNotificationCounter
+                        }},
+                        {"NEW_ISSUES", new ServerNotificationCounter
                         {
                             ReceivedCount = 33,
                             ClickedCount = 44
-                        }
+                        }}
                     }
                 }
             };
@@ -119,12 +120,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.ServerNotifications.Should().NotBeNull();
             reloadedData.ServerNotifications.IsDisabled.Should().BeTrue();
             reloadedData.ServerNotifications.ServerNotificationCounters.Should().NotBeNull();
-            reloadedData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.Should().NotBeNull();
-            reloadedData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ReceivedCount.Should().Be(11);
-            reloadedData.ServerNotifications.ServerNotificationCounters.QualityGateNotificationCounter.ClickedCount.Should().Be(22);
-            reloadedData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.Should().NotBeNull();
-            reloadedData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ReceivedCount.Should().Be(33);
-            reloadedData.ServerNotifications.ServerNotificationCounters.NewIssuesNotificationCounter.ClickedCount.Should().Be(44);
+            reloadedData.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].Should().NotBeNull();
+            reloadedData.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ReceivedCount.Should().Be(11);
+            reloadedData.ServerNotifications.ServerNotificationCounters["QUALITY_GATE"].ClickedCount.Should().Be(22);
+            reloadedData.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].Should().NotBeNull();
+            reloadedData.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(33);
+            reloadedData.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(44);
 
         }
     }
