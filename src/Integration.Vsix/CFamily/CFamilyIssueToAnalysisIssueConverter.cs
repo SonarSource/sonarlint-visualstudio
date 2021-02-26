@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             return new AnalysisIssueLocation
             (
-                filePath: cFamilyIssueLocation.Filename.Replace('/', '\\'),
+                filePath: Path.GetFullPath(cFamilyIssueLocation.Filename),
                 message: cFamilyIssueLocation.Text,
                 lineHash: CalculateLineHash(cFamilyIssueLocation, fileContents),
                 startLine: cFamilyIssueLocation.Line,

@@ -77,8 +77,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             var messageParts = new List<MessagePart>
             {
-                new MessagePart("test1.cpp", 1, 2, 3, 4, "this is a test 1"),
-                new MessagePart("test2.cpp", 5, 6, 7, 8, "this is a test 2")
+                new MessagePart("c:\\test1.cpp", 1, 2, 3, 4, "this is a test 1"),
+                new MessagePart("c:\\test2.cpp", 5, 6, 7, 8, "this is a test 2")
             };
 
             var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", false, messageParts.ToArray());
@@ -87,8 +87,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 1, 3, null),
-                new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 5, 7, null),
+                new AnalysisIssueLocation("this is a test 1", "c:\\test1.cpp", 1, 3, 1, 3, null),
+                new AnalysisIssueLocation("this is a test 2", "c:\\test2.cpp", 5, 7, 5, 7, null),
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
@@ -101,12 +101,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void Convert_HasMessagePartsMakeFlow_FlowsAreReverted()
+        public void Convert_HasMessagePartsMakeFlow_FlowsAreReversed()
         {
             var messageParts = new List<MessagePart>
             {
-                new MessagePart("test1.cpp", 1, 2, 3, 4, "this is a test 1"),
-                new MessagePart("test2.cpp", 5, 6, 7, 8, "this is a test 2")
+                new MessagePart("c:\\test1.cpp", 1, 2, 3, 4, "this is a test 1"),
+                new MessagePart("c:\\test2.cpp", 5, 6, 7, 8, "this is a test 2")
             };
 
             var message = new Message("rule2", "file", 4, 3, 2, 1, "this is a test", true, messageParts.ToArray());
@@ -115,8 +115,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var expectedLocations = new List<AnalysisIssueLocation>
             {
-                new AnalysisIssueLocation("this is a test 2", "test2.cpp", 5, 7, 5, 7, null),
-                new AnalysisIssueLocation("this is a test 1", "test1.cpp", 1, 3, 1, 3, null),
+                new AnalysisIssueLocation("this is a test 2", "c:\\test2.cpp", 5, 7, 5, 7, null),
+                new AnalysisIssueLocation("this is a test 1", "c:\\test1.cpp", 1, 3, 1, 3, null),
             };
 
             var expectedFlows = new List<AnalysisIssueFlow>
