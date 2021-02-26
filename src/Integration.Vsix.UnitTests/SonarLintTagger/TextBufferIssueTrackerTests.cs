@@ -79,13 +79,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             testSubject = CreateTextBufferIssueTracker();
         }
 
-        private TextBufferIssueTracker CreateTextBufferIssueTracker()
+        private TextBufferIssueTracker CreateTextBufferIssueTracker(IVsSolution5 vsSolution = null)
         {
             logger = new TestLogger();
+            vsSolution ??= Mock.Of<IVsSolution5>();
 
             return new TextBufferIssueTracker(taggerProvider.dte, taggerProvider,
                 mockedJavascriptDocumentFooJs.Object, javascriptLanguage, issuesFilter.Object,
-                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), Mock.Of<IVsSolution5>(), logger);
+                mockSonarErrorDataSource.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), vsSolution, logger);
         }
 
         [TestMethod]
@@ -116,6 +117,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
 
             issuesSnapshot.AnalyzedFilePath.Should().Be(mockedJavascriptDocumentFooJs.Object.FilePath);
             issuesSnapshot.Issues.Count().Should().Be(0);
+        }
+
+        [TestMethod]
+        public void Ctor_FailsToRetrieveProjectGuid_ExceptionCaughtAndLogged()
+        {
+            var mockVsSolution = new Mock<IVsSolution5>();
+            mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
+                .Throws(new Exception("this is a test"));
+
+            Action act = () => CreateTextBufferIssueTracker(mockVsSolution.Object);
+
+            act.Should().NotThrow();
+            logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]

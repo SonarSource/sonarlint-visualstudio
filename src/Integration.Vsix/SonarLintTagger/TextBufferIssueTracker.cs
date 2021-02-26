@@ -195,7 +195,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 return Guid.Empty;
             }
 
-            return vsSolution.GetGuidOfProjectFile(project.FileName);
+            try
+            {
+                return vsSolution.GetGuidOfProjectFile(project.FileName);
+            }
+            catch (Exception ex)
+            {
+                logger.WriteLine(Strings.TextBufferIssueTracker_ProjectGuidError, FilePath, ex);
+
+                return Guid.Empty;
+            }
         }
 
         public IEnumerable<ITagSpan<IErrorTag>> GetTags(NormalizedSnapshotSpanCollection spans)
