@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Suppression;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Vsix.ErrorList;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 using SonarLint.VisualStudio.IssueVisualization.Models;
@@ -199,9 +200,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 return vsSolution.GetGuidOfProjectFile(project.FileName);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.TextBufferIssueTracker_ProjectGuidError, FilePath, ex);
+                logger.LogDebug(Strings.TextBufferIssueTracker_ProjectGuidError, FilePath, ex);
 
                 return Guid.Empty;
             }

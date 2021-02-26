@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
         }
 
         [TestMethod]
-        public void Ctor_FailsToRetrieveProjectGuid_ExceptionCaughtAndLogged()
+        public void Ctor_FailsToRetrieveProjectGuid_NonCriticalException_ExceptionCaught()
         {
             var mockVsSolution = new Mock<IVsSolution5>();
             mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
@@ -129,7 +129,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
             Action act = () => CreateTextBufferIssueTracker(mockVsSolution.Object);
 
             act.Should().NotThrow();
-            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void Ctor_FailsToRetrieveProjectGuid_CriticalException_ExceptionThrown()
+        {
+            var mockVsSolution = new Mock<IVsSolution5>();
+            mockVsSolution.Setup(x => x.GetGuidOfProjectFile("MyProject.csproj"))
+                .Throws(new StackOverflowException("this is a test"));
+
+            Action act = () => CreateTextBufferIssueTracker(mockVsSolution.Object);
+
+            act.Should().ThrowExactly<StackOverflowException>();
         }
 
         [TestMethod]
