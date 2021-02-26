@@ -135,4 +135,8 @@
   <data name="SyncPackage_Initializing" xml:space="preserve">
     <value>[Taint] Initializing taint issues synchronization package...</value>
   </data>
+  <data name="Synchronizer_UnsupportedSQVersion" xml:space="preserve">
+    <value>[Taint] Cannot fetch taint vulnerabilities: requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
+    Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features.</value>
+  </data>
 </root>
