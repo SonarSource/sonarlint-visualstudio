@@ -547,6 +547,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to calculate project guid of file {0}, error occurred: {1}.
+        /// </summary>
+        internal static string TextBufferIssueTracker_ProjectGuidError {
+            get {
+                return ResourceManager.GetString("TextBufferIssueTracker_ProjectGuidError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Error opening settings file &quot;{0}&quot;:
         ///  Error: {1}.
         /// </summary>

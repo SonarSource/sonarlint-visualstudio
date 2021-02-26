@@ -351,4 +351,7 @@
   <data name="IDEWindowService_WinAPICallFailed" xml:space="preserve">
     <value>{0} call failed. Last error code: {1}</value>
   </data>
+  <data name="TextBufferIssueTracker_ProjectGuidError" xml:space="preserve">
+    <value>Failed to calculate project guid of file {0}, error occurred: {1}</value>
+  </data>
 </root>
