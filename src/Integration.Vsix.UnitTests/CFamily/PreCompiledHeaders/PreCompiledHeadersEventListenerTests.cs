@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void OnDocumentFocused_LanguageIsUnsupported_PchGenerationNotScheduled()
         {
             var unsupportedLanguages = new List<AnalysisLanguage> {AnalysisLanguage.Javascript};
-            
+
             SetupDetectedLanguages(unsupportedLanguages);
 
             cFamilyAnalyzerMock.Setup(x => x.IsAnalysisSupported(unsupportedLanguages)).Returns(false).Verifiable();
@@ -168,10 +168,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 cancellationToken.Token));
         }
 
-        private void RaiseDocumentFocusedEvent()
+        [TestMethod]
+        public void OnDocumentFocused_NoActiveDocument_NoError()
         {
-            activeDocumentTrackerMock.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(CreateMockTextDocument()));
+            RaiseDocumentFocusedEvent(null);
+            languageRecognizerMock.Invocations.Count.Should().Be(0);
         }
+
+        private void RaiseDocumentFocusedEvent() =>
+            RaiseDocumentFocusedEvent(CreateMockTextDocument());
+
+        private void RaiseDocumentFocusedEvent(ITextDocument textDocument) =>
+            activeDocumentTrackerMock.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(textDocument));
 
         private ITextDocument CreateMockTextDocument()
         {

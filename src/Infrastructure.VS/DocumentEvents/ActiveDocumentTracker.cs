@@ -29,12 +29,13 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
     public interface IActiveDocumentTracker : IDisposable
     {
         /// <summary>
-        /// Raises an event when a text document is brought into focus.
+        /// Raises an event when the active text document changes
         /// </summary>
         /// <remarks>
-        /// Returned <see cref="DocumentFocusedEventArgs.TextDocument"/> cannot be null.
+        /// Returned <see cref="ActiveDocumentChangedEventArgs.TextDocument"/> can be null if there is not an active text document
+        /// e.g. if the last document has been closed, or if the active document is not a text document
         /// </remarks>
-        event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
+        event EventHandler<ActiveDocumentChangedEventArgs> ActiveDocumentChanged;
     }
 
     [Export(typeof(IActiveDocumentTracker))]
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         private uint cookie;
         private bool disposed;
 
-        public event EventHandler<DocumentFocusedEventArgs> OnDocumentFocused;
+        public event EventHandler<ActiveDocumentChangedEventArgs> ActiveDocumentChanged;
 
         [ImportingConstructor]
         public ActiveDocumentTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ITextDocumentProvider textDocumentProvider)
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 
                 if (textDocument != null)
                 {
-                    OnDocumentFocused?.Invoke(this, new DocumentFocusedEventArgs(textDocument));
+                    ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(textDocument));
                 }
             }
 
@@ -105,7 +106,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
             if (!disposed)
             {
                 monitorSelection.UnadviseSelectionEvents(cookie);
-                OnDocumentFocused = null;
+                ActiveDocumentChanged = null;
                 disposed = true;
             }
         }
