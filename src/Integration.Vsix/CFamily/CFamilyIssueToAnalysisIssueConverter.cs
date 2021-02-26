@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
@@ -139,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             return new AnalysisIssueLocation
             (
-                filePath: cFamilyIssueLocation.Filename,
+                filePath: cFamilyIssueLocation.Filename.Replace('/', '\\'),
                 message: cFamilyIssueLocation.Text,
                 lineHash: CalculateLineHash(cFamilyIssueLocation, fileContents),
                 startLine: cFamilyIssueLocation.Line,

@@ -325,6 +325,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2149")]
+        [DataRow("c:\\a.txt", "c:\\a.txt")]
+        [DataRow("c:/a.txt", "c:\\a.txt")]
+        [DataRow("c:/a/b/c.txt", "c:\\a\\b\\c.txt")]
+        [DataRow("c:/a\\b/c.txt", "c:\\a\\b\\c.txt")]
+        public void Convert_HasMessageParts_QualifiedFilePath(string originalPath, string expectedPath)
+        {
+            var messageParts = new List<MessagePart>
+            {
+                new MessagePart(originalPath, 10, 2, 3, 4, "this is a test 1"),
+            };
+
+            var message = new Message("rule2", "file2.cpp", 40, 3, 2, 1, "this is a test", false, messageParts.ToArray());
+
+            var issue = Convert(message);
+
+            issue.Flows[0].Locations[0].FilePath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
         [DataRow(IssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
         [DataRow(IssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
         [DataRow(IssueSeverity.Info, AnalysisIssueSeverity.Info)]
