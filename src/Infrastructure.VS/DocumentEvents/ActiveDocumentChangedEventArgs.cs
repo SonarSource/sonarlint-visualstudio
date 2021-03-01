@@ -23,13 +23,17 @@ using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 {
-    public class DocumentFocusedEventArgs : EventArgs
+    public class ActiveDocumentChangedEventArgs : EventArgs
     {
-        public ITextDocument TextDocument { get; }
+        /// <summary>
+        /// Will be null when the last document has closed, or if the active document
+        /// is not a text document (e.g. if it is graphical designer)
+        /// </summary>
+        public ITextDocument ActiveTextDocument { get; }
 
-        public DocumentFocusedEventArgs(ITextDocument textDocument)
+        public ActiveDocumentChangedEventArgs(ITextDocument textDocument)
         {
-            TextDocument = textDocument;
+            ActiveTextDocument = textDocument;
         }
     }
 }

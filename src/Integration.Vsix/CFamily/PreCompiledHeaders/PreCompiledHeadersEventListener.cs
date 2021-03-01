@@ -71,12 +71,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             pchJobTimeoutInMilliseconds = environmentSettings.PCHGenerationTimeoutInMs(60 * 1000);
 
-            activeDocumentTracker.OnDocumentFocused += OnActiveDocumentFocused;
+            activeDocumentTracker.ActiveDocumentChanged += OnActiveDocumentFocused;
         }
 
-        private void OnActiveDocumentFocused(object sender, DocumentFocusedEventArgs e)
+        private void OnActiveDocumentFocused(object sender, ActiveDocumentChangedEventArgs e)
         {
-            var detectedLanguages = sonarLanguageRecognizer.Detect(e.TextDocument.FilePath, e.TextDocument.TextBuffer.ContentType);
+            if (e.ActiveTextDocument == null)
+            {
+                return;
+            }
+
+            var detectedLanguages = sonarLanguageRecognizer.Detect(e.ActiveTextDocument.FilePath, e.ActiveTextDocument.TextBuffer.ContentType);
 
             if (!detectedLanguages.Any() || !cFamilyAnalyzer.IsAnalysisSupported(detectedLanguages))
             {
@@ -90,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             scheduler.Schedule(PchJobId, token =>
             {
-                cFamilyAnalyzer.ExecuteAnalysis(e.TextDocument.FilePath,
+                cFamilyAnalyzer.ExecuteAnalysis(e.ActiveTextDocument.FilePath,
                     detectedLanguages,
                     null,
                     cFamilyAnalyzerOptions,
@@ -103,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             if (!disposed)
             {
-                activeDocumentTracker.OnDocumentFocused -= OnActiveDocumentFocused;
+                activeDocumentTracker.ActiveDocumentChanged -= OnActiveDocumentFocused;
                 activeDocumentTracker?.Dispose();
 
                 try

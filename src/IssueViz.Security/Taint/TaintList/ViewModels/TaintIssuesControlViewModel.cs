@@ -129,7 +129,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
             activeDocumentFilePath = activeDocumentLocator.FindActiveDocument()?.FilePath;
             this.activeDocumentTracker = activeDocumentTracker;
-            activeDocumentTracker.OnDocumentFocused += ActiveDocumentTracker_OnDocumentFocused;
+            activeDocumentTracker.ActiveDocumentChanged += ActiveDocumentTracker_OnDocumentFocused;
 
             this.showInBrowserService = showInBrowserService;
             this.telemetryManager = telemetryManager;
@@ -152,9 +152,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
             UpdateCaption();
         }
 
-        private void ActiveDocumentTracker_OnDocumentFocused(object sender, DocumentFocusedEventArgs e)
+        private void ActiveDocumentTracker_OnDocumentFocused(object sender, ActiveDocumentChangedEventArgs e)
         {
-            activeDocumentFilePath = e.TextDocument?.FilePath;
+            activeDocumentFilePath = e.ActiveTextDocument?.FilePath;
             ApplyViewFilter(ActiveDocumentFilter);
             UpdateCaption();
         }
@@ -263,7 +263,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
         {
             selectionService.SelectedIssueChanged -= SelectionService_SelectionChanged;
             store.IssuesChanged -= Store_IssuesChanged;
-            activeDocumentTracker.OnDocumentFocused -= ActiveDocumentTracker_OnDocumentFocused;
+            activeDocumentTracker.ActiveDocumentChanged -= ActiveDocumentTracker_OnDocumentFocused;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

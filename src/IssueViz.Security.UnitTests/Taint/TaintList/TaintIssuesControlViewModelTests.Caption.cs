@@ -212,7 +212,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             public void ChangeActiveDocument(string filePath)
             {
                 var textDoc = CreateTextDoc(filePath);
-                activeDocTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(textDoc));
+                activeDocTracker.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(textDoc));
             }
 
             /// <summary>

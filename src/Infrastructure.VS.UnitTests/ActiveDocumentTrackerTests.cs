@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     {
         private Mock<IVsMonitorSelection> monitorSelectionMock;
         private Mock<IServiceProvider> serviceProviderMock;
-        private Mock<Action<DocumentFocusedEventArgs>> mockEventHandler;
+        private Mock<Action<ActiveDocumentChangedEventArgs>> mockEventHandler;
         private Mock<ITextDocumentProvider> textDocumentProviderMock;
         private ITextDocument textDocumentMock;
 
@@ -56,10 +56,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
                 .Returns(monitorSelectionMock.Object);
 
             textDocumentProviderMock = new Mock<ITextDocumentProvider>();
-            mockEventHandler = new Mock<Action<DocumentFocusedEventArgs>>();
+            mockEventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
 
             testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProviderMock.Object);
-            testSubject.OnDocumentFocused += (sender, e) => mockEventHandler.Object(e);
+            testSubject.ActiveDocumentChanged += (sender, e) => mockEventHandler.Object(e);
         }
 
         [TestMethod]
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             testSubject.Dispose();
             (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
 
-            mockEventHandler.Verify(x => x(It.IsAny<DocumentFocusedEventArgs>()), Times.Never);
+            mockEventHandler.Verify(x => x(It.IsAny<ActiveDocumentChangedEventArgs>()), Times.Never);
         }
 
         [TestMethod]
@@ -185,7 +185,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var result = (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.Verify(x => x(It.Is((DocumentFocusedEventArgs e) => e.TextDocument == textDocumentMock)), Times.Once);
+            mockEventHandler.Verify(x => x(It.Is((ActiveDocumentChangedEventArgs e) => e.ActiveTextDocument == textDocumentMock)), Times.Once);
         }
 
         [TestMethod]
