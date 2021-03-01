@@ -182,11 +182,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Ctor_RegisterToActiveDocumentChanges()
         {
             var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
-            activeDocumentTracker.SetupAdd(x => x.OnDocumentFocused += null);
+            activeDocumentTracker.SetupAdd(x => x.ActiveDocumentChanged += null);
 
             CreateTestSubject(activeDocumentTracker: activeDocumentTracker.Object);
 
-            activeDocumentTracker.VerifyAdd(x => x.OnDocumentFocused += It.IsAny<EventHandler<DocumentFocusedEventArgs>>(), Times.Once);
+            activeDocumentTracker.VerifyAdd(x => x.ActiveDocumentChanged += It.IsAny<EventHandler<ActiveDocumentChangedEventArgs>>(), Times.Once);
             activeDocumentTracker.VerifyNoOtherCalls();
         }
 
@@ -194,14 +194,14 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
         public void Dispose_UnregisterFromActiveDocumentChanges()
         {
             var activeDocumentTracker = new Mock<IActiveDocumentTracker>();
-            activeDocumentTracker.SetupRemove(x => x.OnDocumentFocused -= null);
+            activeDocumentTracker.SetupRemove(x => x.ActiveDocumentChanged -= null);
 
             var testSubject = CreateTestSubject(activeDocumentTracker: activeDocumentTracker.Object);
             activeDocumentTracker.Invocations.Clear();
 
             testSubject.Dispose();
 
-            activeDocumentTracker.VerifyRemove(x => x.OnDocumentFocused -= It.IsAny<EventHandler<DocumentFocusedEventArgs>>(), Times.Once);
+            activeDocumentTracker.VerifyRemove(x => x.ActiveDocumentChanged -= It.IsAny<EventHandler<ActiveDocumentChangedEventArgs>>(), Times.Once);
             activeDocumentTracker.VerifyNoOtherCalls();
         }
 
@@ -371,7 +371,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
 
             var testSubject = CreateTestSubject(storeCollection, activeDocumentTracker: activeDocumentTracker.Object);
 
-            activeDocumentTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(null));
+            activeDocumentTracker.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(null));
 
             CheckExpectedSourceIssueCount(testSubject, 1);
 
@@ -395,7 +395,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.UnitTests.Taint.Tai
             var activeDocument = new Mock<ITextDocument>();
             activeDocument.Setup(x => x.FilePath).Returns("test2.cpp");
 
-            activeDocumentTracker.Raise(x => x.OnDocumentFocused += null, new DocumentFocusedEventArgs(activeDocument.Object));
+            activeDocumentTracker.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(activeDocument.Object));
 
             CheckExpectedSourceIssueCount(testSubject, 2);
 
