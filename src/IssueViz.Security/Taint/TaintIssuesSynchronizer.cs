@@ -83,26 +83,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
         {
             var bindingConfiguration = configurationProvider.GetConfiguration();
 
-            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+            if (IsStandalone(bindingConfiguration) || !IsConnected() || !IsFeatureSupported())
             {
-                logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
-                ClearStore();
-                UpdateTaintIssuesUIContext(false);
-                return;
-            }
-
-            if (!sonarQubeService.IsConnected)
-            {
-                logger.WriteLine(TaintResources.Synchronizer_ServerNotConnected);
-                UpdateTaintIssuesUIContext(false);
-                return;
-            }
-
-            if (!IsFeatureSupported())
-            {
-                logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, sonarQubeService.ServerInfo.Version);
-                ClearStore();
-                UpdateTaintIssuesUIContext(false);
+                HandleNoTaintIssues();
                 return;
             }
 
@@ -117,8 +100,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
 
                 if (!hasTaintIssues)
                 {
-                    ClearStore();
-                    UpdateTaintIssuesUIContext(false);
+                    HandleNoTaintIssues();
                 }
                 else
                 {
@@ -137,13 +119,43 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(TaintResources.Synchronizer_Failure, ex);
-                ClearStore();
+                HandleNoTaintIssues();
             }
         }
 
-        private bool IsFeatureSupported() =>
-            sonarQubeService.ServerInfo.ServerType == ServerType.SonarCloud ||
-            sonarQubeService.ServerInfo.Version >= MinimumRequiredSonarQubeVersion;
+        private bool IsStandalone(BindingConfiguration bindingConfiguration)
+        {
+            if (bindingConfiguration.Mode == SonarLintMode.Standalone)
+            {
+                logger.WriteLine(TaintResources.Synchronizer_NotInConnectedMode);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool IsConnected()
+        {
+            if (sonarQubeService.IsConnected)
+            {
+                return true;
+            }
+
+            logger.WriteLine(TaintResources.Synchronizer_ServerNotConnected);
+            return false;
+        }
+
+        private bool IsFeatureSupported()
+        {
+            if (sonarQubeService.ServerInfo.ServerType == ServerType.SonarCloud ||
+                sonarQubeService.ServerInfo.Version >= MinimumRequiredSonarQubeVersion)
+            {
+                return true;
+            }
+
+            logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, sonarQubeService.ServerInfo.Version);
+            return false;
+        }
 
         private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey)
         {
@@ -151,6 +163,12 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
             var issuesBranch = branches.First(x => x.IsMain);
 
             return new AnalysisInformation(issuesBranch.Name, issuesBranch.LastAnalysisTimestamp);
+        }
+
+        private void HandleNoTaintIssues()
+        {
+            ClearStore();
+            UpdateTaintIssuesUIContext(false);
         }
 
         private void ClearStore()
