@@ -121,10 +121,10 @@
     <value>[Taint] Failed to synchronize taint vulnerabilities with the connected server: {0}.</value>
   </data>
   <data name="Synchronizer_NotInConnectedMode" xml:space="preserve">
-    <value>[Taint] Cannot fetch taint vulnerabilities: not in connected mode.</value>
+    <value>[Taint] Unable to fetch taint vulnerabilities: not in connected mode.</value>
   </data>
   <data name="Synchronizer_ServerNotConnected" xml:space="preserve">
-    <value>[Taint] Cannot fetch taint vulnerabilities: a connection to the server is not yet established.</value>
+    <value>[Taint] Unable to fetch taint vulnerabilities: a connection to the server is not yet established.</value>
   </data>
   <data name="Synchronizer_NumberOfServerIssues" xml:space="preserve">
     <value>[Taint] Fetched {0} taint vulnerabilities.</value>
@@ -134,5 +134,9 @@
   </data>
   <data name="SyncPackage_Initializing" xml:space="preserve">
     <value>[Taint] Initializing taint issues synchronization package...</value>
+  </data>
+  <data name="Synchronizer_UnsupportedSQVersion" xml:space="preserve">
+    <value>[Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
+    Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features.</value>
   </data>
 </root>

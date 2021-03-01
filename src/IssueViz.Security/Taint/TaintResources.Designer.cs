@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Cannot fetch taint vulnerabilities: not in connected mode..
+        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: not in connected mode..
         /// </summary>
         internal static string Synchronizer_NotInConnectedMode {
             get {
@@ -88,11 +88,21 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [Taint] Cannot fetch taint vulnerabilities: a connection to the server is not yet established..
+        ///   Looks up a localized string similar to [Taint] Unable to fetch taint vulnerabilities: a connection to the server is not yet established..
         /// </summary>
         internal static string Synchronizer_ServerNotConnected {
             get {
                 return ResourceManager.GetString("Synchronizer_ServerNotConnected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Taint] Displaying taint vulnerabilities in the IDE requires SonarQube v8.6 or later, or SonarCloud. Connected SonarQube version: v{0}
+        ///    Visit https://github.com/SonarSource/sonarlint-visualstudio/wiki to find out more about this and other SonarLint features..
+        /// </summary>
+        internal static string Synchronizer_UnsupportedSQVersion {
+            get {
+                return ResourceManager.GetString("Synchronizer_UnsupportedSQVersion", resourceCulture);
             }
         }
         
