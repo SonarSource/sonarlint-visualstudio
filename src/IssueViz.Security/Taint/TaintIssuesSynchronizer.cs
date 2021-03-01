@@ -46,6 +46,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class TaintIssuesSynchronizer : ITaintIssuesSynchronizer
     {
+        private static readonly Version MinimumRequiredSonarQubeVersion = new Version(8, 6);
+
         private readonly ITaintStore taintStore;
         private readonly ISonarQubeService sonarQubeService;
         private readonly ITaintIssueToIssueVisualizationConverter converter;
@@ -96,11 +98,19 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 return;
             }
 
+            if (!IsFeatureSupported())
+            {
+                logger.WriteLine(TaintResources.Synchronizer_UnsupportedSQVersion, sonarQubeService.ServerInfo.Version);
+                ClearStore();
+                UpdateTaintIssuesUIContext(false);
+                return;
+            }
+
             try
             {
                 var projectKey = bindingConfiguration.Project.ProjectKey;
                 var taintVulnerabilities = await sonarQubeService.GetTaintVulnerabilitiesAsync(projectKey, CancellationToken.None);
-                
+
                 logger.WriteLine(TaintResources.Synchronizer_NumberOfServerIssues, taintVulnerabilities.Count);
 
                 var hasTaintIssues = taintVulnerabilities.Count > 0;
@@ -130,6 +140,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint
                 ClearStore();
             }
         }
+
+        private bool IsFeatureSupported() =>
+            sonarQubeService.ServerInfo.ServerType == ServerType.SonarCloud ||
+            sonarQubeService.ServerInfo.Version >= MinimumRequiredSonarQubeVersion;
 
         private async Task<AnalysisInformation> GetAnalysisInformation(string projectKey)
         {
