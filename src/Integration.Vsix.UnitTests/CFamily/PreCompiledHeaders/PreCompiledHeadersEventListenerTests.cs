@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void Ctor_RegisterToDocumentFocusedEvent()
         {
-            RaiseDocumentFocusedEvent();
+            RaiseActiveDocumentChangedEvent();
 
             languageRecognizerMock.Verify(x => x.Detect(FocusedDocumentFilePath, focusedDocumentContentType), Times.Once);
         }
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             testSubject.Dispose();
 
-            RaiseDocumentFocusedEvent();
+            RaiseActiveDocumentChangedEvent();
 
             cFamilyAnalyzerMock.VerifyNoOtherCalls();
             schedulerMock.VerifyNoOtherCalls();
@@ -120,7 +120,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             SetupDetectedLanguages(Enumerable.Empty<AnalysisLanguage>());
 
-            RaiseDocumentFocusedEvent();
+            RaiseActiveDocumentChangedEvent();
 
             schedulerMock.VerifyNoOtherCalls();
             cFamilyAnalyzerMock.VerifyNoOtherCalls();
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             cFamilyAnalyzerMock.Setup(x => x.IsAnalysisSupported(unsupportedLanguages)).Returns(false).Verifiable();
 
-            RaiseDocumentFocusedEvent();
+            RaiseActiveDocumentChangedEvent();
 
             schedulerMock.VerifyNoOtherCalls();
             cFamilyAnalyzerMock.Verify();
@@ -157,7 +157,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 .Setup(x=> x.Schedule(PreCompiledHeadersEventListener.PchJobId, It.IsAny<Action<CancellationToken>>(), testSubject.pchJobTimeoutInMilliseconds))
                 .Callback((string jobId, Action<CancellationToken> action, int timeout) => action(cancellationToken.Token));
 
-            RaiseDocumentFocusedEvent();
+            RaiseActiveDocumentChangedEvent();
 
             cFamilyAnalyzerMock.Verify(x=> 
                 x.ExecuteAnalysis(FocusedDocumentFilePath, 
@@ -171,14 +171,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void OnDocumentFocused_NoActiveDocument_NoError()
         {
-            RaiseDocumentFocusedEvent(null);
+            RaiseActiveDocumentChangedEvent(null);
             languageRecognizerMock.Invocations.Count.Should().Be(0);
         }
 
-        private void RaiseDocumentFocusedEvent() =>
-            RaiseDocumentFocusedEvent(CreateMockTextDocument());
+        private void RaiseActiveDocumentChangedEvent() =>
+            RaiseActiveDocumentChangedEvent(CreateMockTextDocument());
 
-        private void RaiseDocumentFocusedEvent(ITextDocument textDocument) =>
+        private void RaiseActiveDocumentChangedEvent(ITextDocument textDocument) =>
             activeDocumentTrackerMock.Raise(x => x.ActiveDocumentChanged += null, new ActiveDocumentChangedEventArgs(textDocument));
 
         private ITextDocument CreateMockTextDocument()
