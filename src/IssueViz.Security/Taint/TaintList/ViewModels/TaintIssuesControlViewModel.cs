@@ -244,14 +244,11 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
                 }
 
                 WindowCaption = Resources.TaintToolWindowCaption + suffix;
+
+                // Must run on the UI thread.
+                int GetFilteredIssuesCount() => IssuesView.OfType<object>().Count();
             });
         }
-
-        /// <summary>
-        /// Must run on the UI thread.
-        /// </summary>
-        private int GetFilteredIssuesCount() => 
-            IssuesView.OfType<object>().Count();
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
         {
