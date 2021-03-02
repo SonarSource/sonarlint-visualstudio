@@ -230,21 +230,27 @@ namespace SonarLint.VisualStudio.IssueVisualization.Security.Taint.TaintList.Vie
 
         private void UpdateCaption()
         {
-            // We'll show the default caption if:
-            // * there are no underlying issues, or
-            // * there is not an active document.
-            // Otherwise, we'll add a suffix showing the number of issues in the active document.
-            string suffix = null;
-
-            if (unfilteredIssues.Count != 0 && activeDocumentFilePath != null)
+            RunOnUIThread.Run(() =>
             {
-                suffix = $" ({GetFilteredIssuesCount()})";
-            }
+                // We'll show the default caption if:
+                // * there are no underlying issues, or
+                // * there is not an active document.
+                // Otherwise, we'll add a suffix showing the number of issues in the active document.
+                string suffix = null;
 
-            WindowCaption = Resources.TaintToolWindowCaption + suffix;
+                if (unfilteredIssues.Count != 0 && activeDocumentFilePath != null)
+                {
+                    suffix = $" ({GetFilteredIssuesCount()})";
+                }
+
+                WindowCaption = Resources.TaintToolWindowCaption + suffix;
+            });
         }
 
-        private int GetFilteredIssuesCount() =>
+        /// <summary>
+        /// Must run on the UI thread.
+        /// </summary>
+        private int GetFilteredIssuesCount() => 
             IssuesView.OfType<object>().Count();
 
         private void Store_IssuesChanged(object sender, IssuesChangedEventArgs e)
