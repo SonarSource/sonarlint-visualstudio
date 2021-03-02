@@ -196,6 +196,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                             analyzerOptions, cancellationToken),
                     analysisTimeout);
             }
+            catch (NotSupportedException ex)
+            {
+                logger.WriteLine($"Analysis error: {ex.Message}");
+            }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Analysis error: {ex}");
