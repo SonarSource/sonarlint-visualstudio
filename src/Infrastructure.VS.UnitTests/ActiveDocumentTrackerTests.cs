@@ -33,6 +33,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     [TestClass]
     public class ActiveDocumentTrackerTests
     {
+        private static readonly IVsWindowFrame ValidWindowFrame = Mock.Of<IVsWindowFrame>();
+
         private Mock<IVsMonitorSelection> monitorSelectionMock;
         private Mock<IServiceProvider> serviceProviderMock;
         private Mock<Action<ActiveDocumentChangedEventArgs>> mockEventHandler;
@@ -91,12 +93,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         [TestMethod]
         public void Dispose_ShouldNoLongerRaiseEvents()
         {
-            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
+            var selectedFrame = ValidWindowFrame;
 
             testSubject.Dispose();
-            (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame);
 
-            mockEventHandler.Verify(x => x(It.IsAny<ActiveDocumentChangedEventArgs>()), Times.Never);
+            CheckEventNotRaised();
         }
 
         [TestMethod]
@@ -105,7 +107,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var result = (testSubject as IVsSelectionEvents).OnCmdUIContextChanged(1, 1);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.VerifyNoOtherCalls();
+            CheckEventNotRaised();
         }
 
         [TestMethod]
@@ -114,36 +116,21 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             var result = (testSubject as IVsSelectionEvents).OnSelectionChanged(null, 1, null, null, null, 1, null, null);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.VerifyNoOtherCalls();
+            CheckEventNotRaised();
         }
 
         [TestMethod]
-        public void OnElementValueChanged_NewValueIsNull_DoesNotRaiseEvent()
+        [DataRow(VSConstants.VSSELELEMID.SEID_PropertyBrowserSID)]
+        [DataRow(VSConstants.VSSELELEMID.SEID_ResultList)]
+        [DataRow(VSConstants.VSSELELEMID.SEID_StartupProject)]
+        [DataRow(VSConstants.VSSELELEMID.SEID_UndoManager)]
+        [DataRow(VSConstants.VSSELELEMID.SEID_UserContext)]
+        [DataRow(VSConstants.VSSELELEMID.SEID_WindowFrame)]
+        public void OnElementValueChanged_NonDocumentElementId_DoesNotRaiseEvent(VSConstants.VSSELELEMID elementId)
         {
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_WindowFrame, null);
-            result.Should().Be(VSConstants.S_OK);
+            var selectedFrame = Mock.Of<IVsWindowFrame>();
 
-            mockEventHandler.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void OnElementValueChanged_NonWindowFrameElement_DoesNotRaiseEvent()
-        {
-            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
-
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame.Object);
-            result.Should().Be(VSConstants.S_OK);
-
-            mockEventHandler.VerifyNoOtherCalls();
-            selectedFrame.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void OnElementValueChanged_FrameElement_CantQueryFrameType_DoesNotRaiseEvent()
-        {
-            var selectedFrame = CreateFrameWithoutType();
-
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_WindowFrame, selectedFrame.Object);
+            var result = SimulateElementValueChanged(elementId, selectedFrame);
             result.Should().Be(VSConstants.S_OK);
 
             mockEventHandler.VerifyNoOtherCalls();
@@ -151,41 +138,38 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         }
 
         [TestMethod]
-        public void OnElementValueChanged_FrameElement_ToolFrame_DoesNotRaiseEvent()
+        public void OnElementValueChanged_DocumentElement_NewValueIsNull_RaisesEventWithNullArg()
         {
-            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Tool);
-
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_WindowFrame, selectedFrame.Object);
+            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, null);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.VerifyNoOtherCalls();
-            textDocumentProviderMock.VerifyNoOtherCalls();
+            CheckEventRaised(null);
         }
 
         [TestMethod]
-        public void OnElementValueChanged_FrameElement_DocumentFrame_NullTextDocument_DoesNotRaiseEvent()
+        public void OnElementValueChanged_DocumentElement_NullTextDocument_RaisesEventWithNullArg()
         {
-            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
+            var selectedFrame = ValidWindowFrame;
 
-            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(null as ITextDocument);
+            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame)).Returns(null as ITextDocument);
 
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_WindowFrame, selectedFrame.Object);
+            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.VerifyNoOtherCalls();
+            CheckEventRaised(null);
         }
 
         [TestMethod]
-        public void OnElementValueChanged_FrameElement_DocumentFrame_ValidTextDocument_RaisesEvent()
+        public void OnElementValueChanged_DocumentElement_ValidTextDocument_RaisesEvent()
         {
-            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
+            var selectedFrame = ValidWindowFrame;
 
-            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(textDocumentMock);
+            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame)).Returns(textDocumentMock);
 
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_WindowFrame, selectedFrame.Object);
+            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.Verify(x => x(It.Is((ActiveDocumentChangedEventArgs e) => e.ActiveTextDocument == textDocumentMock)), Times.Once);
+            CheckEventRaised(textDocumentMock);
         }
 
         [TestMethod]
@@ -193,36 +177,24 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProviderMock.Object);
 
-            var selectedFrame = CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document);
-   
-            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame.Object)).Returns(textDocumentMock);
+            var selectedFrame = ValidWindowFrame;
 
-            Func<int> act = () => (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame.Object);
+            textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame)).Returns(textDocumentMock);
+
+            Func<int> act = () => (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame);
 
             act.Should().NotThrow().And.Subject().Should().Be(VSConstants.S_OK);
-        }
-
-        private Mock<IVsWindowFrame> CreateFrameWithoutType()
-        {
-            return CreateMockFrame(__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document, false);
-        }
-
-        private Mock<IVsWindowFrame> CreateMockFrame(__WindowFrameTypeFlags frameType, bool canQueryFrameType = true)
-        {
-            var frame = new Mock<IVsWindowFrame>();
-            var type = (object)(int)frameType;
-            var queryFrameTypeResult = canQueryFrameType ? VSConstants.S_OK : VSConstants.E_FAIL;
-
-            frame
-                .Setup(x => x.GetProperty((int)__VSFPROPID.VSFPROPID_Type, out type))
-                .Returns(queryFrameTypeResult);
-
-            return frame;
         }
 
         private int SimulateElementValueChanged(VSConstants.VSSELELEMID elementId, object newValue) =>
             (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)elementId,
                 "old value - can be anything",
                 newValue);
+
+        private void CheckEventRaised(ITextDocument expected) =>
+            mockEventHandler.Verify(x => x(It.Is((ActiveDocumentChangedEventArgs e) => e.ActiveTextDocument == expected)), Times.Once);
+
+        private void CheckEventNotRaised() =>
+            mockEventHandler.Verify(x => x(It.IsAny<ActiveDocumentChangedEventArgs>()), Times.Never);
     }
 }

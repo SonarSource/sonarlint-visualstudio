@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Text;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
 {
@@ -65,30 +66,24 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            if (newValue is IVsWindowFrame frame &&
-                IsFrameElement() && 
-                IsDocumentFrame())
+            // Note: this notification can fire multiple times with different elementId value
+            // when the doc frame changes. Two cases:
+            // [ tool or doc window ] -> [ tool or doc window ] => elementId == SEID_WindowFrame
+            // [ doc window ] -> [ doc window ] => elementId == SEID_DocumentFrame
+            // We are only interested in the second case. See bugs #2079 and #2091.
+            if (elementId == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
             {
-                var textDocument = textDocumentProvider.GetFromFrame(frame);
-
-                if (textDocument != null)
+                ITextDocument activeTextDoc = null;
+                if (newValue != null && newValue is IVsWindowFrame frame)
                 {
-                    ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(textDocument));
+                    activeTextDoc = textDocumentProvider.GetFromFrame(frame);
                 }
+
+                // The "active document" will be null if the last document has just been closed
+                ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(activeTextDoc));
             }
 
             return VSConstants.S_OK;
-
-            bool IsFrameElement()
-            {
-                return elementId == (uint)VSConstants.VSSELELEMID.SEID_WindowFrame;
-            }
-
-            bool IsDocumentFrame()
-            {
-                return ErrorHandler.Succeeded(frame.GetProperty((int)__VSFPROPID.VSFPROPID_Type, out var frameType)) &&
-                       (int)frameType == (int)__WindowFrameTypeFlags.WINDOWFRAMETYPE_Document;
-            }
         }
 
         int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
