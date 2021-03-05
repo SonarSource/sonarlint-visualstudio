@@ -233,29 +233,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void RequestAnalysis_NotSupportedException_IsLoggedWithoutCallStack()
         {
+            var ex = new NotSupportedException("thrown in a test");
+
             mockAnalysisScheduler
                 .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
-                .Throws(new NotSupportedException("thrown in a test"));
+                .Throws(ex);
 
             provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
 
             // Note: checking for an exact string here to be sure that the call stack is not included
             logger.AssertOutputStringExists("Analysis error: thrown in a test");
-            logger.AssertPartialOutputStringDoesNotExist($"{nameof(TaggerProvider)}.cs"); // call stack would contain the file name
+            logger.AssertPartialOutputStringDoesNotExist(ex.ToString());
         }
 
         [TestMethod]
         public void RequestAnalysis_InvalidOperationException_IsLoggedWithCallStack()
         {
+            var ex = new InvalidOperationException("thrown in a test");
+
             mockAnalysisScheduler
                 .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
-                .Throws(new InvalidOperationException("thrown in a test"));
+                .Throws(ex);
 
             provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
 
-            // Note: checking for an exact string here to be sure that the call stack is not included
-            logger.AssertPartialOutputStringExists("Analysis error: System.InvalidOperationException: thrown in a test" + Environment.NewLine);
-            logger.AssertPartialOutputStringExists($"{nameof(TaggerProvider)}.cs");
+            logger.AssertPartialOutputStringExists(ex.ToString());
         }
 
         [TestMethod]
