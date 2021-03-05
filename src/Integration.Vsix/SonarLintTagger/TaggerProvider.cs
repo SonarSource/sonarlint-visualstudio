@@ -196,6 +196,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                             analyzerOptions, cancellationToken),
                     analysisTimeout);
             }
+            catch (NotSupportedException ex)
+            {
+                // Display a simple user-friendly message for options we know are not supported.
+                // See https://github.com/SonarSource/sonarlint-visualstudio/pull/2212
+                logger.WriteLine($"Unable to analyze: {ex.Message}");
+            }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine($"Analysis error: {ex}");

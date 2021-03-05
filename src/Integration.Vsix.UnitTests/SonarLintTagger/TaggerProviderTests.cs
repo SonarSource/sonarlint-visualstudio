@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private Mock<ISonarErrorListDataSource> mockSonarErrorDataSource;
         private Mock<IAnalyzerController> mockAnalyzerController;
         private IAnalyzerController analyzerController;
-        private Mock<ILogger> mockLogger;
+        private TestLogger logger;
         private Mock<IScheduler> mockAnalysisScheduler;
         private Mock<ISonarLanguageRecognizer> mockSonarLanguageRecognizer;
 
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             dummyDocumentFactoryService = new DummyTextDocumentFactoryService();
 
-            mockLogger = new Mock<ILogger>();
+            logger = new TestLogger();
 
             mockSonarLanguageRecognizer = new Mock<ISonarLanguageRecognizer>();
             var mockAnalysisRequester = new Mock<IAnalysisRequester>();
@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var issuesFilter = new Mock<IIssuesFilter>();
             this.provider = new TaggerProvider(mockSonarErrorDataSource.Object, dummyDocumentFactoryService, issuesFilter.Object, analyzerController, serviceProvider,
-                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), mockLogger.Object, mockAnalysisScheduler.Object);
+                mockSonarLanguageRecognizer.Object, mockAnalysisRequester.Object, Mock.Of<IAnalysisIssueVisualizationConverter>(), logger, mockAnalysisScheduler.Object);
         }
 
         [TestMethod]
@@ -225,9 +225,39 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 .Throws<Exception>();
 
             Action act = () =>
-            provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
+                provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
 
             act.Should().NotThrow();
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_NotSupportedException_IsLoggedWithoutCallStack()
+        {
+            var ex = new NotSupportedException("thrown in a test");
+
+            mockAnalysisScheduler
+                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
+                .Throws(ex);
+
+            provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
+
+            // Note: checking for an exact string here to be sure that the call stack is not included
+            logger.AssertOutputStringExists("Unable to analyze: thrown in a test");
+            logger.AssertPartialOutputStringDoesNotExist(ex.ToString());
+        }
+
+        [TestMethod]
+        public void RequestAnalysis_InvalidOperationException_IsLoggedWithCallStack()
+        {
+            var ex = new InvalidOperationException("thrown in a test");
+
+            mockAnalysisScheduler
+                .Setup(x => x.Schedule("doc1.js", It.IsAny<Action<CancellationToken>>(), It.IsAny<int>()))
+                .Throws(ex);
+
+            provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
+
+            logger.AssertPartialOutputStringExists(ex.ToString());
         }
 
         [TestMethod]
