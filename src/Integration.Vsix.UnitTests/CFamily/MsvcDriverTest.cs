@@ -129,25 +129,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        [DataRow("/ZW")]
-        [DataRow("/clr")]
-        public void Should_Skip_Cx_And_Cli(string option)
-        {
-            Action action = () => MsvcDriver.ToRequest(new[] {
-                compiler,
-                new CFamilyHelper.Capture()
-                {
-                    Executable = "",
-                    Cwd = "basePath",
-                    Env = new List<string>(),
-                    Cmd = new List<string> { "cl.exe", option },
-                }
-            });
-
-            action.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Contain("CX and CLI are not supported");
-        }
-
-        [TestMethod]
         public void NoAnalyzedFiles_InvalidOperationException()
         {
             Action action = () => MsvcDriver.ToRequest(new[] {
@@ -646,9 +627,32 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(System.InvalidOperationException), "'/std:latest' is not supported. This test should throw an exception.")]
-        public void unsupported_std_version()
+        [DataRow("/std:latest", "/std:latest is not supported")]
+        [DataRow("/arch:foo", "/arch:foo is not supported")]
+        [DataRow("/ZW", "/ZW: CX and CLI are not supported")]
+        [DataRow("/clr", "/clr: CX and CLI are not supported")]
+        public void ValidOption_NotSupported_ThrowsNotSupportedException(string option, string expectedMessage)
         {
+            Action act = () =>
+            MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = new List<string>{ "cl.exe", option, "anyfile.txt" }
+                }
+            });
+
+            act.Should().ThrowExactly<NotSupportedException>().And.Message.Should().Be(expectedMessage);
+        }
+
+        [TestMethod]
+        [DataRow("@foo", "unexpanded response file")]
+        public void InvalidOption_NotSupported_ThrowsInvalidOperationException(string option, string expectedMessage)
+        {
+            Action act = () =>
             MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
                 new CFamilyHelper.Capture()
@@ -658,11 +662,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                     "cl.exe",
-                    "/std:latest",
-                    "/J"
+                    option,
+                    "anyfile.txt"
                     },
                 }
             });
+
+            act.Should().ThrowExactly<InvalidOperationException>().And.Message.Should().Be(expectedMessage);
         }
 
         [TestMethod]

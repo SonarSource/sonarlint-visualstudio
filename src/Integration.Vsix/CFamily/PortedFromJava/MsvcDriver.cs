@@ -32,6 +32,10 @@ using System.Text;
  */
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
+    // Note on error handling:
+    // * if a valid setting is not supported, throw a NotSupportedException with a message like "'/std:latest' is not supported."
+    // * if a setting or parameter is invalid, throw an InvalidOperationException e.g. the list of files to analyse is empty
+    // This affects how the error messages appear the SonarLint output window.
     internal static class MsvcDriver
     {
         public static Request ToRequest(CFamilyHelper.Capture[] captures)
@@ -124,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     else if (arg.StartsWith("/ZW") || arg.StartsWith("/clr"))
                     {
                         // C++/CX or C++/CLI
-                        throw new InvalidOperationException($"{arg}: CX and CLI are not supported");
+                        throw new NotSupportedException($"{arg}: CX and CLI are not supported");
                     }
                     else if (arg.StartsWith("/MT"))
                     {
@@ -330,7 +334,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     // Note that "IA32", "SSE" and "SSE2" are available only for x86, but we don't need to verify correctness
                     default:
-                        throw new InvalidOperationException("/arch:" + arch);
+                        throw new NotSupportedException("/arch:" + arch + " is not supported");
                     case "IA32":
                         predefines.Append("#define _M_IX86_FP 0\n");
                         break;
@@ -397,7 +401,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         switch (std)
                         {
                             default:
-                                throw new InvalidOperationException("/std:" + std + " is not supported.");
+                                throw new NotSupportedException("/std:" + std + " is not supported");
                             case "c++14":
                                 request.Flags |= Request.CPlusPlus11 | Request.CPlusPlus14;
                                 predefines.Append("#define __cplusplus 201402L\n");
