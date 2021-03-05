@@ -242,7 +242,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             provider.RequestAnalysis("doc1.js", "", new[] { AnalysisLanguage.CFamily }, null, null);
 
             // Note: checking for an exact string here to be sure that the call stack is not included
-            logger.AssertOutputStringExists("Analysis error: thrown in a test");
+            logger.AssertOutputStringExists("Unable to analyze: thrown in a test");
             logger.AssertPartialOutputStringDoesNotExist(ex.ToString());
         }
 

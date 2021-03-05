@@ -200,7 +200,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 // Display a simple user-friendly message for options we know are not supported.
                 // See https://github.com/SonarSource/sonarlint-visualstudio/pull/2212
-                logger.WriteLine($"Analysis error: {ex.Message}");
+                logger.WriteLine($"Unable to analyze: {ex.Message}");
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
