@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.VSSDK.Vsixsigntool": {
+        "type": "Direct",
+        "requested": "[15.0.26201, )",
+        "resolved": "15.0.26201",
+        "contentHash": "i5ggxKHwIUjUSou7EwT3oOGnCz8JYB0CeOwep8oCzH9rm/StImYEEnnc1UxeMrtY+eYVu/p+pSCCP8HiK6E29A=="
+      },
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "[6.0.8, )",
+        "resolved": "6.0.8",
+        "contentHash": "7ut47NDedTW19EbL0JpFDYUP62fcuz27hJrehCDNajdCS5NtqL+E39+7Um3OkNc2wl2ym7K8Ln5eNuLus6mVGQ=="
+      },
+      "System.IO.Abstractions": {
+        "type": "Direct",
+        "requested": "[7.1.10, )",
+        "resolved": "7.1.10",
+        "contentHash": "qseReDWlVNclqdze6nLnEqQxAyMS2mO5oCG4SIMgJHqTEPLNhGe9a+KReKHl6DFTarzueP4leQOhCXLxoKQL0g=="
+      },
+      "BouncyCastle": {
+        "type": "Transitive",
+        "resolved": "1.8.6.1",
+        "contentHash": "rkqpuKmJkdcfTMBkIj1b5nMdBAWKwAyh+I/BQYeqqSD2jkIlhwc9qBNKmSbnpmmm5c29qHZGLpvBSTNWvDLtQA=="
+      },
+      "Google.Protobuf": {
+        "type": "Transitive",
+        "resolved": "3.6.1",
+        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
+      },
+      "Grpc.Tools": {
+        "type": "Transitive",
+        "resolved": "1.4.1",
+        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
+      },
+      "System.Net.Http": {
+        "type": "Transitive",
+        "resolved": "4.0.0",
+        "contentHash": "mZuAl7jw/mFY8jUq4ITKECxVBh9a8SJt9BC/+lJbmo7cRKspxE3PsITz+KiaCEsexN5WYPzwBOx0oJH/0HlPyQ=="
+      },
+      "sonarqube.client": {
+        "type": "Project",
+        "dependencies": {
+          "BouncyCastle": "1.8.6.1",
+          "Google.Protobuf": "3.6.1",
+          "Grpc.Tools": "1.4.1",
+          "Microsoft.VSSDK.Vsixsigntool": "15.0.26201",
+          "Newtonsoft.Json": "6.0.8",
+          "System.Net.Http": "4.0.0"
+        }
+      }
+    }
+  }
+}

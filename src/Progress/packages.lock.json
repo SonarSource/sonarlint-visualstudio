@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.VSSDK.Vsixsigntool": {
+        "type": "Direct",
+        "requested": "[15.0.26201, )",
+        "resolved": "15.0.26201",
+        "contentHash": "i5ggxKHwIUjUSou7EwT3oOGnCz8JYB0CeOwep8oCzH9rm/StImYEEnnc1UxeMrtY+eYVu/p+pSCCP8HiK6E29A=="
+      }
+    }
+  }
+}
