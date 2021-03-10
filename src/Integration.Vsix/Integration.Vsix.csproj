@@ -38,11 +38,11 @@
   -->
 
   <Import Project="..\..\build\version.props" />
-  
+
   <PropertyGroup>
     <!-- Hack to prevent VS2017 from automatically attempting to upgrade the project -->
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
-    
+
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
 
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
@@ -50,11 +50,11 @@
 
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
-  
+
   <!-- Need to reference the Sonar Roslyn analyzers: we need to reference one of the assmblies,
        and embed all of them in the VSIX. -->
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
-  
+
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
 
@@ -63,7 +63,7 @@
     <AssemblyName>SonarLint.$(VersionSpecificSuffix)</AssemblyName>
     <RequiresSigning>true</RequiresSigning>
     <TargetVsixContainerName>SonarLint.VSIX-$(VsixVersion)-$(VersionSpecificSuffix).vsix</TargetVsixContainerName>
-    
+
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
@@ -88,7 +88,7 @@
     <!-- Suppress NuGet warning about the explicit downgrade to System.Collections.Immutable v1.1.37 -->
     <NoWarn>NU1605</NoWarn>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="EnvDTE" Version="8.0.0" />
     <PackageReference Include="Google.Protobuf" Version="3.6.1" />
@@ -116,11 +116,16 @@
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.3.2099" />
 
+    <!-- The VSIX signing package is only required for signed builds, but the use of package.lock.json
+         files means it's simpler to always include it so the contents of the lock file don't change for
+         signed builds. -->
+    <PackageReference Include="Microsoft.VSSDK.Vsixsigntool" Version="15.0.26201" />
+
     <!-- Workaround for NuGet bug https://github.com/NuGet/Home/issues/2365 
          EmbedInteropAssemblies isn't set for PackagReferences. -->
     <PackageReference Include="Microsoft.VisualStudio.SDK.EmbedInteropTypes" Version="15.0.27" />
-  </ItemGroup>  
-  
+  </ItemGroup>
+
   <ItemGroup Label="Project references">
     <ProjectReference Include="..\..\sonarqube-webclient\SonarQube.Client\SonarQube.Client.csproj">
       <Project>{BA771DF7-9F99-4DE3-B85B-3E5DB742A55C}</Project>
@@ -207,7 +212,7 @@
     <None Remove="Settings\GeneralOptionsDialogControl.xaml" />
     <None Remove="Settings\OtherOptionsDialogControl.xaml" />
     <None Remove="SonarLint.vsct" />
-    
+
     <Content Include="Resources\sonarlint_32.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
@@ -230,7 +235,7 @@
     </VSCTCompile>
 
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Update="Analysis\AnalysisStrings.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -293,7 +298,7 @@
   <ItemGroup>
     <VSIXesToSign Include="$(BinariesFolder)$(TargetVsixContainerName)" />
   </ItemGroup>
-  
+
   <Target Name="CopyVsixToBinariesAndSign" AfterTargets="Build" Inputs="$(TargetDir)$(TargetVsixContainerName)" Outputs="$(BinariesFolder)$(TargetVsixContainerName)">
     <Message Importance="high" Text="Copying vsix from $(TargetDir)$(TargetVsixContainerName) to $(BinariesFolder)$(TargetVsixContainerName)" />
     <Copy OverwriteReadOnlyFiles="true" SourceFiles="$(TargetDir)$(TargetVsixContainerName)" DestinationFiles="$(BinariesFolder)$(TargetVsixContainerName)" />
@@ -332,7 +337,7 @@
          is 3.0.1000.0. This is in the System.Interactive.Async net45 directory.
          By default, VS picks the version in the net46 directory (v3.0.3000.0) which is not the one we
          want. We've manually edited this file to reference the correct version. -->
-  
+
   <!-- This section relies on properties set by Sdk.targets so it needs to be AFTER the import of Sdk.targets -->
   <PropertyGroup>
     <!-- System.Interactive.Async might be in the user NuGet cache or the fallback cache -->
@@ -347,7 +352,7 @@
     <Reference Include="$(GrpcSystemInteractiveAsyncFilePath)" />
   </ItemGroup>
 
-  
+
   <!-- ********************************************************** -->
   <!-- CFamily plugin handling -->
   <!-- Download and unpack the jar, select the required files and -->
@@ -425,13 +430,13 @@
   <PropertyGroup>
     <!-- Automatically update the baseline when necessary if building in the IDE (simplifies development when working on new code) -->
     <AsmRefUpdateBaselineIfChanged Condition="$(AsmRefUpdateBaseline)=='' AND $(BuildingInsideVisualStudio)=='true'">true</AsmRefUpdateBaselineIfChanged>
-    
+
     <!-- Only check the VS2019 build -->
     <AsmRefDisableBaselining Condition=" $(VersionSpecificSuffix) != '2019' ">true</AsmRefDisableBaselining>
-    
+
     <!-- The version patch number changes in the CI every build so we ignore it when comparing versions -->
     <AsmRefSourceVersionCompatibility>MajorMinorBuild</AsmRefSourceVersionCompatibility>
-    
+
     <AsmRefTargetVersionCompatibility>Strict</AsmRefTargetVersionCompatibility>
 
 
@@ -452,7 +457,7 @@
     <AsmRefBaselineFilePath>$(BaselineWithoutStrongNames)</AsmRefBaselineFilePath>
     <AsmRefIgnoreSourcePublicKeyToken>true</AsmRefIgnoreSourcePublicKeyToken>
   </PropertyGroup>
-  <ItemGroup>  
+  <ItemGroup>
     <PackageReference Include="Devtility.CheckAsmRefs" Version="0.11.0-rc">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -490,3 +495,5 @@
   </Target>
 
 </Project>
+
+
