@@ -1,0 +1,7 @@
+<Project>
+
+  <PropertyGroup Label="Package locking">
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+  
+</Project>
