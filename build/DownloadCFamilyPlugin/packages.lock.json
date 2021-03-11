@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "dependencies": {
+    ".NETFramework,Version=v4.6": {
+      "Microsoft.Build.Utilities.Core": {
+        "type": "Direct",
+        "requested": "[14.3.0, )",
+        "resolved": "14.3.0",
+        "contentHash": "wGluB/diyYl0iZLjiJzWJTmK0RgOgzmzb19fRBgAyORe/N6Z1zwJHK/cLJcAsuvzbanrXsf3NuGlmbc5lOvTag==",
+        "dependencies": {
+          "Microsoft.Build.Framework": "[14.3.0]"
+        }
+      },
+      "SharpCompress": {
+        "type": "Direct",
+        "requested": "[0.23.0, )",
+        "resolved": "0.23.0",
+        "contentHash": "HBbT47JHvNrsZX2dTBzUBOSzBt+EmIRGLIBkbxcP6Jef7DB4eFWQX5iHWV3Nj7hABFPCjISrZ8s0z72nF2zFHQ=="
+      },
+      "SharpZipLib": {
+        "type": "Direct",
+        "requested": "[1.1.0, )",
+        "resolved": "1.1.0",
+        "contentHash": "6cwSz51tzupsfb8q5AVRDqvD4vSeDDJuv3CYWCvQ+T3wrAjQtniICiczb+++j93z3NNuCZN+TiRjZ5lnfWtleQ=="
+      },
+      "Microsoft.Build.Framework": {
+        "type": "Transitive",
+        "resolved": "14.3.0",
+        "contentHash": "GX3MdQMQ3YVx/jWerzd5vDW/VrcLxf80Ts4T9AVEUsrmL6wZK1YTGNX3jLapll+5Y7PBDbvf5R815A64hlEQ+g==",
+        "dependencies": {
+          "System.Collections": "4.0.11",
+          "System.Runtime": "4.1.0",
+          "System.Runtime.InteropServices": "4.1.0"
+        }
+      },
+      "System.Collections": {
+        "type": "Transitive",
+        "resolved": "4.0.11",
+        "contentHash": "YUJGz6eFKqS0V//mLt25vFGrrCvOnsXjlvFQs+KimpwNxug9x0Pzy4PlFMU3Q2IzqAa9G2L4LsK3+9vCBK7oTg=="
+      },
+      "System.Runtime": {
+        "type": "Transitive",
+        "resolved": "4.1.0",
+        "contentHash": "v6c/4Yaa9uWsq+JMhnOFewrYkgdNHNG2eMKuNqRn8P733rNXeRCGvV5FkkjBXn2dbVkPXOsO0xjsEeM1q2zC0g=="
+      },
+      "System.Runtime.InteropServices": {
+        "type": "Transitive",
+        "resolved": "4.1.0",
+        "contentHash": "16eu3kjHS633yYdkjwShDHZLRNMKVi/s0bY8ODiqJ2RfMhDMAwxZaUaWVnZ2P71kr/or+X9o/xFWtNqz8ivieQ=="
+      }
+    }
+  }
+}
