@@ -1,7 +1,15 @@
 <Project>
 
+  <!-- Include the parent Directory.Build.props, if there is one. This file is in a sub-module and we
+       don't want to hard-code an expected path for the parent, so we'll err on the side of caution and
+       do search for the parent file, which might not exist. -->
+  <PropertyGroup>
+    <ParentDirectoryBuildPropsPath>$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..\'))</ParentDirectoryBuildPropsPath>
+  </PropertyGroup>
+  <Import Project="$(ParentDirectoryBuildPropsPath)" Condition=" $(ParentDirectoryBuildPropsPath) != '' AND EXISTS($(ParentDirectoryBuildPropsPath)) " />
+
   <PropertyGroup Label="Package locking">
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
-  
+
 </Project>
