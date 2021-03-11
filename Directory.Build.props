@@ -20,4 +20,8 @@
     <DefineConstants>$(DefineConstants);SignAssembly</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Label="Package locking">
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+  </PropertyGroup>
+
 </Project>
