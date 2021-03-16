@@ -37,22 +37,23 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.VsVersion
 
         [ImportingConstructor]
         public VsVersionProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, new SetupConfiguration(), logger)
+            : this(serviceProvider, new SetupConfigurationProvider(), logger)
         {
         }
 
-        internal VsVersionProvider(IServiceProvider serviceProvider, ISetupConfiguration setupConfiguration, ILogger logger)
+        internal VsVersionProvider(IServiceProvider serviceProvider, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
         {
-            Version = CalculateVersion(serviceProvider, setupConfiguration, logger);
+            Version = CalculateVersion(serviceProvider, setupConfigurationProvider, logger);
         }
 
-        private static IVsVersion CalculateVersion(IServiceProvider serviceProvider, ISetupConfiguration setupConfiguration, ILogger logger)
+        private static IVsVersion CalculateVersion(IServiceProvider serviceProvider, ISetupConfigurationProvider setupConfigurationProvider, ILogger logger)
         {
             try
             {
                 var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
                 vsShell.GetProperty((int)__VSSPROPID.VSSPROPID_InstallDirectory, out var installDir);
 
+                var setupConfiguration = setupConfigurationProvider.Get();
                 var setupInstance = setupConfiguration.GetInstanceForPath((string)installDir);
                 var productName = setupInstance.GetDisplayName();
                 var productVersion = setupInstance.GetInstallationVersion();
