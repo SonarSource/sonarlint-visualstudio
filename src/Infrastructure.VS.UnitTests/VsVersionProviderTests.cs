@@ -102,11 +102,33 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             vsShell.VerifyAll();
         }
 
-        private IVsVersionProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration setupConfiguration, ILogger logger = null)
+        [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2229")]
+        public void Version_FailureToRetrieveSetupConfiguration_Null()
+        {
+            const string installDirectory = "some directory";
+            var vsShell = CreateVsShell(installDirectory);
+
+            var setupConfigurationProvider = new Mock<ISetupConfigurationProvider>();
+            setupConfigurationProvider
+                .Setup(x => x.Get())
+                .Throws(new Exception("this is a test"));
+
+            var testSubject = new VsVersionProvider(CreateServiceProvider(vsShell.Object), setupConfigurationProvider.Object, Mock.Of<ILogger>());;
+
+            testSubject.Version.Should().BeNull();
+
+            setupConfigurationProvider.VerifyAll();
+        }
+
+        private IVsVersionProvider CreateTestSubject(IVsShell vsShell, ISetupConfiguration2 setupConfiguration, ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
 
-            return new VsVersionProvider(CreateServiceProvider(vsShell), setupConfiguration, logger);
+            var setupConfigurationProvider = new Mock<ISetupConfigurationProvider>();
+            setupConfigurationProvider.Setup(x => x.Get()).Returns(setupConfiguration);
+
+            return new VsVersionProvider(CreateServiceProvider(vsShell), setupConfigurationProvider.Object, logger);
         }
 
         private IServiceProvider CreateServiceProvider(IVsShell vsShell)
@@ -131,7 +153,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             return vsShell;
         }
 
-        private static Mock<ISetupConfiguration> CreateSetupConfiguration(string installDirectory, string name = "some name", string buildVersion = "build version", string displayVersion = "display version")
+        private static Mock<ISetupConfiguration2> CreateSetupConfiguration(string installDirectory, string name = "some name", string buildVersion = "build version", string displayVersion = "display version")
         {
             var catalogInfo = new Mock<ISetupPropertyStore>();
             catalogInfo.Setup(x => x.GetValue("productDisplayVersion")).Returns(displayVersion);
@@ -141,7 +163,7 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             setupInstance.Setup(x => x.GetInstallationVersion()).Returns(buildVersion);
             setupInstance.As<ISetupInstanceCatalog>().Setup(x => x.GetCatalogInfo()).Returns(catalogInfo.Object);
 
-            var setupConfig = new Mock<ISetupConfiguration>();
+            var setupConfig = new Mock<ISetupConfiguration2>();
             setupConfig.Setup(x => x.GetInstanceForPath(installDirectory)).Returns(setupInstance.Object);
 
             return setupConfig;
