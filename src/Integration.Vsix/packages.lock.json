@@ -904,6 +904,9 @@
           "SonarLint.VisualStudio.Progress": "1.0.0"
         }
       },
+      "SonarLint.VisualStudio.TypeScript": {
+        "type": "Project"
+      },
       "sonarqube.client": {
         "type": "Project",
         "dependencies": {
