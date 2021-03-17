@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <ProjectGuid>{69C939D0-DFAF-42CB-98F8-134400B60779}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.TypeScript</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.TypeScript</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+
+  </PropertyGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+</Project>
