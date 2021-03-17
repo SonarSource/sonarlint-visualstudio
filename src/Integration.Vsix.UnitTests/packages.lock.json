@@ -898,6 +898,7 @@
           "SonarLint.VisualStudio.IssueVisualization.Security": "1.0.0",
           "SonarLint.VisualStudio.Progress": "1.0.0",
           "SonarLint.VisualStudio.ProgressVS": "1.0.0",
+          "SonarLint.VisualStudio.TypeScript": "1.0.0",
           "SonarQube.Client": "1.0.0",
           "System.Collections.Immutable": "1.1.37",
           "System.IO.Abstractions": "7.1.10",
@@ -1024,6 +1025,9 @@
           "Microsoft.VisualStudio.Shell.Interop.11.0": "11.0.61030",
           "SonarLint.VisualStudio.Progress": "1.0.0"
         }
+      },
+      "SonarLint.VisualStudio.TypeScript": {
+        "type": "Project"
       },
       "sonarqube.client": {
         "type": "Project",

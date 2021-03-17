@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+
+    <ProjectGuid>{2E4E6D75-4946-4E25-8F37-32840827066B}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.TypeScript.UnitTests</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.TypeScript.UnitTests</AssemblyName>
+    <LangVersion>latest</LangVersion>
+
+  </PropertyGroup>
+
+  <ItemGroup Label="Test framework">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="Moq" Version="4.14.5" />
+    <PackageReference Include="FluentAssertions" Version="5.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TypeScript\TypeScript.csproj" />
+    <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.Composition"/>
+  </ItemGroup>
+
+</Project>
