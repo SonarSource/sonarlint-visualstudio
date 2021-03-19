@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] The specified file `{0}` does not exist.
+        /// </summary>
+        internal static string ERR_EnvVarFileDoesNotExist {
+            get {
+                return ResourceManager.GetString("ERR_EnvVarFileDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Node version is incompatible, required version: 10 or &gt;= 12..
         /// </summary>
         internal static string ERR_IncompatibleVersion {
@@ -88,6 +97,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Found node.exe at `{0}`.
+        /// </summary>
+        internal static string INFO_EnvVarFileExists {
+            get {
+                return ResourceManager.GetString("INFO_EnvVarFileExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Found a compatible node.exe. Using {0}.
         /// </summary>
         internal static string INFO_FoundCompatibleVersion {
@@ -102,6 +120,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         internal static string INFO_NodeVersion {
             get {
                 return ResourceManager.GetString("INFO_NodeVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Environment variable is not specified.
+        /// </summary>
+        internal static string INFO_NoEnvVar {
+            get {
+                return ResourceManager.GetString("INFO_NoEnvVar", resourceCulture);
             }
         }
     }

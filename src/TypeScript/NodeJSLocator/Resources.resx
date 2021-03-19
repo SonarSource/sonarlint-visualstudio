@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ERR_EnvVarFileDoesNotExist" xml:space="preserve">
+    <value>[NodeJsLocator] The specified file `{0}` does not exist</value>
+  </data>
   <data name="ERR_IncompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Node version is incompatible, required version: 10 or &gt;= 12.</value>
   </data>
@@ -126,10 +129,16 @@
   <data name="ERR_NoCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Could not find a compatible node.exe</value>
   </data>
+  <data name="INFO_EnvVarFileExists" xml:space="preserve">
+    <value>[NodeJsLocator] Found node.exe at `{0}`</value>
+  </data>
   <data name="INFO_FoundCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found a compatible node.exe. Using {0}</value>
   </data>
   <data name="INFO_NodeVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found node.exe version: {0}, path: {1}</value>
+  </data>
+  <data name="INFO_NoEnvVar" xml:space="preserve">
+    <value>[NodeJsLocator] Environment variable is not specified</value>
   </data>
 </root>
