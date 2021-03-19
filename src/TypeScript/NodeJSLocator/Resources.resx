@@ -129,11 +129,17 @@
   <data name="ERR_NoCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Could not find a compatible node.exe</value>
   </data>
+  <data name="ERR_NotFoundInGlobalPath" xml:space="preserve">
+    <value>[NodeJsLocator] Could not find node.exe in PATH</value>
+  </data>
   <data name="INFO_EnvVarFileExists" xml:space="preserve">
     <value>[NodeJsLocator] Found node.exe at `{0}`</value>
   </data>
   <data name="INFO_FoundCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found a compatible node.exe. Using {0}</value>
+  </data>
+  <data name="INFO_FoundInGlobalPath" xml:space="preserve">
+    <value>[NodeJsLocator] Found node.exe in PATH at `{0}`</value>
   </data>
   <data name="INFO_NodeVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found node.exe version: {0}, path: {1}</value>
