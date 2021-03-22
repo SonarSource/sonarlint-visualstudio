@@ -135,4 +135,7 @@
   <data name="INFO_EnvVarValue" xml:space="preserve">
     <value>[NodeJsLocator] Environment variable value: {0}</value>
   </data>
+  <data name="INFO_CheckingEnvVar" xml:space="preserve">
+    <value>[NodeJSLocator] Checking environment variable {0}</value>
+  </data>
 </root>

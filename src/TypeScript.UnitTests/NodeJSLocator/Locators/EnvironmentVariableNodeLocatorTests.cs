@@ -21,8 +21,8 @@
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
@@ -31,39 +31,32 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
     public class EnvironmentVariableNodeLocatorTests
     {
         [TestMethod]
-        public void Locate_EnvironmentVariableDoesNotExist_Null()
+        [DataRow(null, null)]
+        [DataRow("", null)]
+        [DataRow("some path", "some path")]
+        public void Locate_ReturnsEnvironmentVariableValue(string envVarValue, string expected)
         {
-            var envSettings = SetupEnvironmentSettings(null);
+            using var scope = new EnvironmentVariableScope();
+            scope.SetVariable(EnvironmentVariableNodeLocator.NodeJsPathEnvVar, envVarValue);
 
-            var testSubject = CreateTestSubject(envSettings);
+            var testSubject = CreateTestSubject();
+            var result = testSubject.Locate();
+
+            result.Should().Be(expected);
+        }
+
+        [TestMethod]
+        public void Locate_NoEnvironmentVariable_Null()
+        {
+            var testSubject = CreateTestSubject();
             var result = testSubject.Locate();
 
             result.Should().BeNull();
         }
 
-        [TestMethod]
-        public void Locate_EnvironmentVariableHasValue_FilePath()
+        private EnvironmentVariableNodeLocator CreateTestSubject()
         {
-            const string filePath = "test";
-            var envSettings = SetupEnvironmentSettings(filePath);
-
-            var testSubject = CreateTestSubject(envSettings);
-            var result = testSubject.Locate();
-
-            result.Should().Be(filePath);
-        }
-
-        private IEnvironmentSettings SetupEnvironmentSettings(string nodeExePath)
-        {
-            var settings = new Mock<IEnvironmentSettings>();
-            settings.Setup(x => x.NodeJsExeFilePath()).Returns(nodeExePath);
-
-            return settings.Object;
-        }
-
-        private EnvironmentVariableNodeLocator CreateTestSubject(IEnvironmentSettings environmentSettings)
-        {
-            return new EnvironmentVariableNodeLocator(environmentSettings, Mock.Of<ILogger>());
+            return new EnvironmentVariableNodeLocator(Mock.Of<ILogger>());
         }
     }
 }

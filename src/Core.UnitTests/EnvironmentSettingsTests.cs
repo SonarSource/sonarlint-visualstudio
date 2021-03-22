@@ -121,18 +121,5 @@ namespace SonarLint.VisualStudio.Core.UnitTests
                 new EnvironmentSettings().ShouldLogDebugMessages().Should().Be(expected);
             }
         }
-
-        [TestMethod]
-        [DataRow(null, null)]
-        [DataRow("", null)]
-        [DataRow("some path", "some path")]
-        public void NodeJsExeFilePath_ReturnsExpectedValue(string envVarValue, string expected)
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(EnvironmentSettings.NodeJsPathEnvVar, envVarValue);
-                new EnvironmentSettings().NodeJsExeFilePath().Should().Be(expected);
-            }
-        }
     }
 }

@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJSLocator] Checking environment variable {0}.
+        /// </summary>
+        internal static string INFO_CheckingEnvVar {
+            get {
+                return ResourceManager.GetString("INFO_CheckingEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Environment variable value: {0}.
         /// </summary>
         internal static string INFO_EnvVarValue {
