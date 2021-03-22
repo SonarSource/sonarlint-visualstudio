@@ -34,7 +34,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
     public class GlobalPathNodeLocatorTests
     {
         private readonly string programFilesPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "nodejs\\node.exe");
-        private readonly string programFiles86Path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "nodejs\\node.exe");
 
         [TestMethod]
         public void Locate_FileNotFound_Null()
@@ -82,26 +81,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
             result.Should().Be(programFilesPath);
 
             fileSystem.Verify(x=> x.File.Exists(programFilesPath), Times.Once);
-            fileSystem.Verify(x=> x.File.Exists(programFiles86Path), Times.Never);
-        }
-
-
-        [TestMethod]
-        public void Locate_FileNotFoundInPath_FileFoundInProgramFiles86_FilePath()
-        {
-            using var scope = CreateEnvironmentVariableScope();
-
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.Exists(programFilesPath)).Returns(false);
-            fileSystem.Setup(x => x.File.Exists(programFiles86Path)).Returns(true);
-
-            var testSubject = CreateTestSubject(fileSystem.Object);
-            var result = testSubject.Locate();
-
-            result.Should().Be(programFiles86Path);
-
-            fileSystem.Verify(x => x.File.Exists(programFilesPath), Times.Once);
-            fileSystem.Verify(x => x.File.Exists(programFiles86Path), Times.Once);
         }
 
         private GlobalPathNodeLocator CreateTestSubject(IFileSystem fileSystem)
