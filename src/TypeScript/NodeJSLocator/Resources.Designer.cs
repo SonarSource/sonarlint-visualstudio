@@ -61,7 +61,16 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Node version is incompatible, required version: 10 or &gt;= 12..
+        ///   Looks up a localized string similar to [NodeJsLocator] File &apos;{0}&apos; does not exist..
+        /// </summary>
+        internal static string ERR_FileNotFound {
+            get {
+                return ResourceManager.GetString("ERR_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Found incompatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string ERR_IncompatibleVersion {
             get {
@@ -70,16 +79,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Node version is incompatible, node 11 is not supported. Required version: 10 or &gt;= 12..
-        /// </summary>
-        internal static string ERR_IncompatibleVersion11 {
-            get {
-                return ResourceManager.GetString("ERR_IncompatibleVersion11", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Could not find a compatible node.exe.
+        ///   Looks up a localized string similar to [NodeJsLocator] Could not find a compatible node version. Supported versions are v10 and v12+..
         /// </summary>
         internal static string ERR_NoCompatibleVersion {
             get {
@@ -95,9 +95,9 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
                 return ResourceManager.GetString("ERR_NotFoundInGlobalPath", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Found a compatible node.exe. Using {0}.
+        ///   Looks up a localized string similar to [NodeJsLocator] Found compatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string INFO_FoundCompatibleVersion {
             get {
@@ -111,15 +111,6 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         internal static string INFO_FoundInGlobalPath {
             get {
                 return ResourceManager.GetString("INFO_FoundInGlobalPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Found node.exe version: {0}, path: {1}.
-        /// </summary>
-        internal static string INFO_NodeVersion {
-            get {
-                return ResourceManager.GetString("INFO_NodeVersion", resourceCulture);
             }
         }
     }
