@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="INFO_NotFoundInGlobalPath" xml:space="preserve">
-    <value>[NodeJsLocator] Could not find node.exe in PATH environment variable</value>
+    <value>[NodeJsLocator] Could not find node.exe on the PATH</value>
   </data>
   <data name="INFO_FoundInGlobalPath" xml:space="preserve">
-    <value>[NodeJsLocator] Found node.exe in PATH environment variable: {0}</value>
+    <value>[NodeJsLocator] Found node.exe on the PATH: {0}</value>
   </data>
   <data name="ERR_FileNotFound" xml:space="preserve">
     <value>[NodeJsLocator] File '{0}' does not exist.</value>
