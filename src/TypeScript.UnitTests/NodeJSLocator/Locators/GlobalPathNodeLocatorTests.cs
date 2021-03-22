@@ -68,11 +68,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
         }
 
         [TestMethod]
-        public void Locate_FileNotFoundInPath_FileFoundInProgramFiles_FilePath()
+        [DataRow("")]
+        [DataRow("some folder")]
+        public void Locate_FileNotFoundInPath_FileFoundInProgramFiles_FilePath(string pathVar)
         {
-            using var scope = CreateEnvironmentVariableScope();
+            using var scope = CreateEnvironmentVariableScope(pathVar);
 
             var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(false);
             fileSystem.Setup(x => x.File.Exists(programFilesPath)).Returns(true);
 
             var testSubject = CreateTestSubject(fileSystem.Object);
@@ -93,7 +96,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
             var scope = new EnvironmentVariableScope();
 
             // remove any existing node.exe from machine's PATH for testing purposes
-            scope.SetPath(path ?? " ");
+            scope.SetPath(path);
 
             return scope;
         }

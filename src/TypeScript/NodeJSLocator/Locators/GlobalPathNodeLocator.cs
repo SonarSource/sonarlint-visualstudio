@@ -61,23 +61,31 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
         /// Copied from MS nodejstools repo: https://github.com/microsoft/nodejstools/blob/275e85d5cd95cad9122f59a76f9e49bead66101b/Nodejs/Product/Nodejs/Nodejs.cs#L112
         /// </summary>
         /// <remarks>
-        /// Copied as-is, except replacing `File.Exists` with <see cref="fileSystem.File.Exists"/> for testability
+        /// Copied mostly as-is, except null PATH check and replacement of `File.Exists` with <see cref="fileSystem.File.Exists"/> for testability
         /// </remarks>
         private string GetPathToNodeExecutableFromEnvironment()
         {
-            // If we didn't find node.js in the registry we should look at the user's path.
-            foreach (var dir in Environment.GetEnvironmentVariable("PATH").Split(Path.PathSeparator))
-            {
-                try
-                {
-                    var execPath = Path.Combine(dir, FileName);
+            var pathVar = Environment.GetEnvironmentVariable("PATH");
 
-                    if (fileSystem.File.Exists(execPath))
+            if (pathVar != null)
+            {
+                // If we didn't find node.js in the registry we should look at the user's path.
+                foreach (var dir in pathVar.Split(Path.PathSeparator))
+                {
+                    try
                     {
-                        return execPath;
+                        var execPath = Path.Combine(dir, FileName);
+
+                        if (fileSystem.File.Exists(execPath))
+                        {
+                            return execPath;
+                        }
+                    }
+                    catch (ArgumentException)
+                    {
+                        /*noop*/
                     }
                 }
-                catch (ArgumentException) { /*noop*/ }
             }
 
             // It wasn't in the users path.  Check Program Files for the nodejs folder.
