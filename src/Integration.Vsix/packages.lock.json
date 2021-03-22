@@ -905,7 +905,10 @@
         }
       },
       "SonarLint.VisualStudio.TypeScript": {
-        "type": "Project"
+        "type": "Project",
+        "dependencies": {
+          "SonarLint.VisualStudio.Core": "1.0.0"
+        }
       },
       "sonarqube.client": {
         "type": "Project",
