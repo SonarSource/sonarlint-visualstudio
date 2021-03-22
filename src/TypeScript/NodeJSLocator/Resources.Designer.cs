@@ -115,11 +115,29 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Found node.exe on the PATH: {0}.
+        /// </summary>
+        internal static string INFO_FoundInGlobalPath {
+            get {
+                return ResourceManager.GetString("INFO_FoundInGlobalPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Environment variable is not set.
         /// </summary>
         internal static string INFO_NoEnvVar {
             get {
                 return ResourceManager.GetString("INFO_NoEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Could not find node.exe on the PATH.
+        /// </summary>
+        internal static string INFO_NotFoundInGlobalPath {
+            get {
+                return ResourceManager.GetString("INFO_NotFoundInGlobalPath", resourceCulture);
             }
         }
     }
