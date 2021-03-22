@@ -126,7 +126,13 @@
   <data name="ERR_NoCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Could not find a compatible node version. Supported versions are v10 and v12+.</value>
   </data>
+  <data name="INFO_FoundBundledNode" xml:space="preserve">
+    <value>[NodeJsLocator] Found bundled node.exe. Path: {0}</value>
+  </data>
   <data name="INFO_FoundCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found compatible Node version: {0}. Path: {1}</value>
+  </data>
+  <data name="INFO_NoBundledNode" xml:space="preserve">
+    <value>[NodeJsLocator] Could not find bundled node.exe</value>
   </data>
 </root>
