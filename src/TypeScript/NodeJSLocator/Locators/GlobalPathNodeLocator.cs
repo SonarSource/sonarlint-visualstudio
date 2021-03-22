@@ -19,27 +19,19 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
 {
-    internal interface IGlobalPathNodeLocator : INodeLocator
-    {
-    }
-
-    [Export(typeof(IGlobalPathNodeLocator))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class GlobalPathNodeLocator : IGlobalPathNodeLocator
+    internal class GlobalPathNodeLocator : INodeLocator
     {
         private const string FileName = "node.exe";
 
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
-        [ImportingConstructor]
         public GlobalPathNodeLocator(ILogger logger)
             : this(new FileSystem(), logger)
         {
@@ -55,14 +47,14 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
         {
             var nodeExePath = GetPathToNodeExecutableFromEnvironment();
 
-            if (!string.IsNullOrEmpty(nodeExePath))
+            if (string.IsNullOrEmpty(nodeExePath))
             {
-                logger.WriteLine(Resources.INFO_FoundInGlobalPath, nodeExePath);
-                return nodeExePath;
+                logger.WriteLine(Resources.INFO_NotFoundInGlobalPath);
+                return null;
             }
 
-            logger.WriteLine(Resources.ERR_NotFoundInGlobalPath);
-            return null;
+            logger.WriteLine(Resources.INFO_FoundInGlobalPath, nodeExePath);
+            return nodeExePath;
         }
 
         /// <summary>

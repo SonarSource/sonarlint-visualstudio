@@ -37,15 +37,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
         private readonly string programFiles86Path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "nodejs\\node.exe");
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<GlobalPathNodeLocator, IGlobalPathNodeLocator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
-        }
-
-        [TestMethod]
         public void Locate_FileNotFound_Null()
         {
             using var scope = CreateEnvironmentVariableScope();
