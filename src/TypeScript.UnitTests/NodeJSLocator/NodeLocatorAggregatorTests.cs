@@ -20,7 +20,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.IO.Abstractions;
+using System.Reflection;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -33,8 +36,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
     [TestClass]
     public class NodeLocatorAggregatorTests
     {
-        private readonly Version compatibleNodeVersion = new(12, 0);
-
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -50,73 +51,81 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         {
             var testSubject = CreateTestSubject();
             var result = testSubject.Locate();
-            
-            result.Should().BeNull();
-        }
-
-        [TestMethod]
-        [DataRow(1)]
-        [DataRow(2)]
-        public void Locate_NoFoundPath_Null(int numberOfLocators)
-        {
-            var locators = new List<Mock<INodeLocator>>();
-            
-            for (var i = 0; i < numberOfLocators; i++)
-            {
-                locators.Add(SetupNodeLocator(path: null));
-            }
-
-            var testSubject = CreateTestSubject(getNodeExeVersion: null, locators: locators.Select(x=> x.Object).ToArray());
-            var result = testSubject.Locate();
 
             result.Should().BeNull();
-
-            foreach (var locator in locators)
-            {
-                VerifyLocatorCalled(locator);
-            }
         }
 
         [TestMethod]
-        [DataRow(9)]
-        [DataRow(11)]
-        public void Locate_OneLocatorHasIncompatibleVersion_LocatorSkipped(int incompatibleVersion)
+        public void Locate_ReturnsFirstCompatiblePath()
         {
-            var compatible = SetupNodeLocator("compatible");
-            var incompatible = SetupNodeLocator("incompatible");
-
-            var versions = new Dictionary<string, Version>
-            {
-                {"incompatible", new Version(incompatibleVersion, 0)},
-                {"compatible", compatibleNodeVersion}
-            };
-
-            Version GetNodeExeVersion(string path) => versions[path];
-            
-            var testSubject = CreateTestSubject(GetNodeExeVersion, incompatible.Object, compatible.Object);
-            var result = testSubject.Locate();
-
-            result.Should().Be("compatible");
-
-            VerifyLocatorCalled(compatible);
-            VerifyLocatorCalled(incompatible);
-        }
-
-        [TestMethod]
-        public void Locate_OneLocatorHasCompatibleVersion_OtherLocatorsNotCalled()
-        {
+            var nonExistingFile = SetupNodeLocator("does not exist");
+            var badVersion = SetupNodeLocator("bad version");
+            var nullPath = SetupNodeLocator(null);
             var compatible1 = SetupNodeLocator("compatible1");
             var compatible2 = SetupNodeLocator("compatible2");
 
-            Version GetNodeExeVersion(string path) => compatibleNodeVersion;
+            var fileSystem = new Mock<IFileSystem>();
+            SetupFileExists(fileSystem, "does not exist", false);
+            SetupFileExists(fileSystem, "bad version", true);
+            SetupFileExists(fileSystem, "compatible1", true);
+            SetupFileExists(fileSystem, "compatible2", true);
 
-            var testSubject = CreateTestSubject(GetNodeExeVersion, compatible1.Object, compatible2.Object);
+            var versions = new Dictionary<string, Version>
+            {
+                {"bad version", new Version(11, 0)},
+                {"compatible1", new Version(12, 0)},
+                {"compatible2", new Version(12, 0)}
+            };
+
+            Version GetNodeExeVersion(string path) => versions[path];
+
+            var testSubject = CreateTestSubject(
+                fileSystem.Object,
+                GetNodeExeVersion,
+                nonExistingFile.Object,
+                badVersion.Object,
+                nullPath.Object,
+                compatible1.Object,
+                compatible2.Object);
+
             var result = testSubject.Locate();
-
             result.Should().Be("compatible1");
 
+            VerifyLocatorCalled(nonExistingFile);
+            VerifyLocatorCalled(badVersion);
+            VerifyLocatorCalled(nullPath);
             VerifyLocatorCalled(compatible1);
             VerifyLocatorNotCalled(compatible2);
+        }
+
+        [TestMethod]
+        [DataRow(9, false)]
+        [DataRow(10, true)]
+        [DataRow(11, false)]
+        [DataRow(12, true)]
+        [DataRow(13, true)]
+        public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, bool expectedResult)
+        {
+            var version = new Version(majorVersion, 0);
+            var result = NodeLocatorAggregator.IsCompatibleVersion(version);
+
+            result.Should().Be(expectedResult);
+        }
+
+        [TestMethod]
+        public void GetNodeVersion_ReturnsFileProductVersion()
+        {
+            var assemblyPath = Assembly.GetAssembly(typeof(ExportAttribute)).Location;
+            var assemblyVersion = FileVersionInfo.GetVersionInfo(assemblyPath);
+
+            var expectedVersion = new Version(assemblyVersion.ProductMajorPart,
+                assemblyVersion.ProductMinorPart,
+                assemblyVersion.ProductBuildPart);
+
+            // The implementation relies on checking a file in the file system, so we pass a file that we know already exists and has a product version
+            var result = NodeLocatorAggregator.GetNodeVersion(assemblyPath);
+
+            result.Should().BeEquivalentTo(expectedVersion);
         }
 
         private Mock<INodeLocator> SetupNodeLocator(string path)
@@ -139,14 +148,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             locator.VerifyNoOtherCalls();
         }
 
-        private NodeLocatorAggregator CreateTestSubject(Func<string, Version> getNodeExeVersion = null, params INodeLocator[] locators)
+        private void SetupFileExists(Mock<IFileSystem> fileSystem, string path, bool exists)
+        {
+            fileSystem.Setup(x => x.File.Exists(path)).Returns(exists);
+        }
+
+        private NodeLocatorAggregator CreateTestSubject(IFileSystem fileSystem = null, Func<string, Version> getNodeExeVersion = null, params INodeLocator[] locators)
         {
             var locatorsProvider = new Mock<INodeLocatorsProvider>();
             locatorsProvider.Setup(x => x.Get()).Returns(locators);
 
             var logger = Mock.Of<ILogger>();
 
-            return new NodeLocatorAggregator(locatorsProvider.Object, logger, getNodeExeVersion);
+            return new NodeLocatorAggregator(locatorsProvider.Object, logger, fileSystem, getNodeExeVersion);
         }
     }
 }
