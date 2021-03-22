@@ -18,34 +18,24 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
-using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
 {
-    internal interface IEnvironmentVariableNodeLocator : INodeLocator
+    internal class EnvironmentVariableNodeLocator : INodeLocator
     {
-    }
-
-    [Export(typeof(IEnvironmentVariableNodeLocator))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class EnvironmentVariableNodeLocator : IEnvironmentVariableNodeLocator
-    {
-        private readonly IFileSystem fileSystem;
         private readonly IEnvironmentSettings environmentSettings;
         private readonly ILogger logger;
 
-        [ImportingConstructor]
         public EnvironmentVariableNodeLocator(ILogger logger)
-            : this(new FileSystem(), new EnvironmentSettings(), logger)
+            : this(new EnvironmentSettings(), logger)
         {
         }
 
-        internal EnvironmentVariableNodeLocator(IFileSystem fileSystem, IEnvironmentSettings environmentSettings, ILogger logger)
+        internal EnvironmentVariableNodeLocator(IEnvironmentSettings environmentSettings, ILogger logger)
         {
-            this.fileSystem = fileSystem;
             this.environmentSettings = environmentSettings;
             this.logger = logger;
         }
@@ -56,18 +46,12 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
 
             if (string.IsNullOrEmpty(nodeExePath))
             {
-                logger.WriteLine(Resources.INFO_NoEnvVar);
+                logger.LogDebug(Resources.INFO_NoEnvVar);
                 return null;
             }
 
-            if (fileSystem.File.Exists(nodeExePath))
-            {
-                logger.WriteLine(Resources.INFO_EnvVarFileExists, nodeExePath);
-                return nodeExePath;
-            }
-
-            logger.WriteLine(Resources.ERR_EnvVarFileDoesNotExist, nodeExePath);
-            return null;
+            logger.WriteLine(Resources.INFO_EnvVarValue, nodeExePath);
+            return nodeExePath;
         }
     }
 }

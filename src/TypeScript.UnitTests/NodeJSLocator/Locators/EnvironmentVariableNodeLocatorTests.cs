@@ -18,13 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.IO.Abstractions;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
@@ -33,61 +31,26 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
     public class EnvironmentVariableNodeLocatorTests
     {
         [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<EnvironmentVariableNodeLocator, IEnvironmentVariableNodeLocator>(null, new[]
-            {
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
-        }
-
-        [TestMethod]
         public void Locate_EnvironmentVariableDoesNotExist_Null()
         {
-            var fileSystem = new Mock<IFileSystem>();
             var envSettings = SetupEnvironmentSettings(null);
 
-            var testSubject = CreateTestSubject(fileSystem.Object, envSettings);
+            var testSubject = CreateTestSubject(envSettings);
             var result = testSubject.Locate();
 
             result.Should().BeNull();
-            fileSystem.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void Locate_EnvironmentVariableHasValue_FileDoesNotExist_Null()
+        public void Locate_EnvironmentVariableHasValue_FilePath()
         {
             const string filePath = "test";
             var envSettings = SetupEnvironmentSettings(filePath);
-            var fileSystem = SetupFileSystem(filePath, false);
 
-            var testSubject = CreateTestSubject(fileSystem.Object, envSettings);
-            var result = testSubject.Locate();
-
-            result.Should().BeNull();
-            fileSystem.VerifyAll();
-        }
-
-        [TestMethod]
-        public void Locate_EnvironmentVariableHasValue_FileExists_FilePath()
-        {
-            const string filePath = "test";
-            var envSettings = SetupEnvironmentSettings(filePath);
-            var fileSystem = SetupFileSystem(filePath, true);
-
-            var testSubject = CreateTestSubject(fileSystem.Object, envSettings);
+            var testSubject = CreateTestSubject(envSettings);
             var result = testSubject.Locate();
 
             result.Should().Be(filePath);
-            fileSystem.VerifyAll();
-        }
-
-        private static Mock<IFileSystem> SetupFileSystem(string filePath, bool fileExists)
-        {
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.Exists(filePath)).Returns(fileExists);
-
-            return fileSystem;
         }
 
         private IEnvironmentSettings SetupEnvironmentSettings(string nodeExePath)
@@ -98,9 +61,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
             return settings.Object;
         }
 
-        private EnvironmentVariableNodeLocator CreateTestSubject(IFileSystem fileSystem, IEnvironmentSettings environmentSettings)
+        private EnvironmentVariableNodeLocator CreateTestSubject(IEnvironmentSettings environmentSettings)
         {
-            return new EnvironmentVariableNodeLocator(fileSystem, environmentSettings, Mock.Of<ILogger>());
+            return new EnvironmentVariableNodeLocator(environmentSettings, Mock.Of<ILogger>());
         }
     }
 }
