@@ -135,4 +135,13 @@
   <data name="INFO_FoundCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found compatible Node version: {0}. Path: {1}</value>
   </data>
+  <data name="INFO_NoEnvVar" xml:space="preserve">
+    <value>[NodeJsLocator] Environment variable is not set</value>
+  </data>
+  <data name="INFO_EnvVarValue" xml:space="preserve">
+    <value>[NodeJsLocator] Environment variable value: {0}</value>
+  </data>
+  <data name="INFO_CheckingEnvVar" xml:space="preserve">
+    <value>[NodeJSLocator] Checking environment variable {0}</value>
+  </data>
 </root>
