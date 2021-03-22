@@ -50,5 +50,10 @@ namespace SonarLint.VisualStudio.Core
         /// Returns true if debug-level messages should be logged to the output window, otherwise false
         /// </summary>
         bool ShouldLogDebugMessages();
+
+        /// <summary>
+        /// Location of `node.exe` 
+        /// </summary>
+        string NodeJsExeFilePath();
     }
 }
