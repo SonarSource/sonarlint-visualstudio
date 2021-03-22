@@ -88,11 +88,38 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJSLocator] Checking environment variable {0}.
+        /// </summary>
+        internal static string INFO_CheckingEnvVar {
+            get {
+                return ResourceManager.GetString("INFO_CheckingEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Environment variable value: {0}.
+        /// </summary>
+        internal static string INFO_EnvVarValue {
+            get {
+                return ResourceManager.GetString("INFO_EnvVarValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Found compatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string INFO_FoundCompatibleVersion {
             get {
                 return ResourceManager.GetString("INFO_FoundCompatibleVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Environment variable is not set.
+        /// </summary>
+        internal static string INFO_NoEnvVar {
+            get {
+                return ResourceManager.GetString("INFO_NoEnvVar", resourceCulture);
             }
         }
     }
