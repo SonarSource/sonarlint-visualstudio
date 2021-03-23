@@ -493,6 +493,10 @@
       "SonarLint.VisualStudio.TypeScript": {
         "type": "Project",
         "dependencies": {
+          "Microsoft.VisualStudio.Shell.14.0": "14.3.25407",
+          "Microsoft.VisualStudio.Shell.Immutable.10.0": "10.0.30319",
+          "Microsoft.VisualStudio.Shell.Interop": "7.10.6071",
+          "Microsoft.VisualStudio.Shell.Interop.8.0": "8.0.50727",
           "SonarLint.VisualStudio.Core": "1.0.0"
         }
       },
