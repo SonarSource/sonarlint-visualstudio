@@ -106,6 +106,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Found bundled node.exe. Path: {0}.
+        /// </summary>
+        internal static string INFO_FoundBundledNode {
+            get {
+                return ResourceManager.GetString("INFO_FoundBundledNode", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Found compatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string INFO_FoundCompatibleVersion {
@@ -120,6 +129,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         internal static string INFO_FoundInGlobalPath {
             get {
                 return ResourceManager.GetString("INFO_FoundInGlobalPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Could not find bundled node.exe.
+        /// </summary>
+        internal static string INFO_NoBundledNode {
+            get {
+                return ResourceManager.GetString("INFO_NoBundledNode", resourceCulture);
             }
         }
         
