@@ -135,4 +135,7 @@
   <data name="INFO_CheckingEnvVar" xml:space="preserve">
     <value>[NodeJSLocator] Checking environment variable {0}</value>
   </data>
+  <data name="ERR_FailedToGetVsInstallDirectory" xml:space="preserve">
+    <value>[NodeJsLocator] Failed to retrieve VS install directory: {0}</value>
+  </data>
 </root>

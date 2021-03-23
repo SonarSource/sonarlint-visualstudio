@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
             {
                 new EnvironmentVariableNodeLocationsProvider(logger),
                 new GlobalPathNodeLocationsProvider(), 
-                new BundledNodeLocationsProvider(serviceProvider), 
+                new BundledNodeLocationsProvider(serviceProvider, logger), 
             })
         {
         }
@@ -63,7 +63,6 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
             return LocationProviders
                 .SelectMany(x => x.Get() ?? Enumerable.Empty<string>())
                 .Where(x => !string.IsNullOrEmpty(x))
-                .Distinct()
                 .ToArray();
         }
     }

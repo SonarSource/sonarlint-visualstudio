@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 {
@@ -32,16 +33,24 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
         internal const string VsBundledPath = "Common7\\ServiceHub\\Hosts\\ServiceHub.Host.Node.x86\\ServiceHub.Host.Node.x86.exe";
 
         private readonly IVsShell vsShell;
+        private readonly ILogger logger;
 
-        public BundledNodeLocationsProvider(IServiceProvider serviceProvider)
+        public BundledNodeLocationsProvider(IServiceProvider serviceProvider, ILogger logger)
         {
+            this.logger = logger;
             vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
         }
 
         public IReadOnlyCollection<string> Get()
         {
             // e.g. C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\
-            ErrorHandler.ThrowOnFailure(vsShell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir));
+            var hr = vsShell.GetProperty((int) __VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir);
+
+            if (ErrorHandler.Failed(hr))
+            {
+                logger.WriteLine(Resources.ERR_FailedToGetVsInstallDirectory, hr);
+                return Array.Empty<string>();
+            }
 
             var msbuildNodeExePath = Path.Combine((string)installDir, MsBuildPath);
             var bundledNodeExePath = Path.Combine((string)installDir, VsBundledPath);

@@ -19,12 +19,12 @@
  */
 
 using System;
-using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.LocationProviders
@@ -33,18 +33,18 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.LocationProv
     public class BundledNodeLocationsProviderTests
     {
         [TestMethod]
-        public void Get_FailsToRetrieveInstallDirectory_Exception()
+        public void Get_FailsToRetrieveVsInstallDirectory_EmptyList()
         {
             const string installDir = "c:\\test\\";
 
             var testSubject = CreateTestSubject(installDir, shellHrResult: VSConstants.E_FAIL);
-            Action act = () => testSubject.Get();
+            var result = testSubject.Get();
 
-            act.Should().Throw<COMException>();
+            result.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void Get_ReturnsFilePaths()
+        public void Get_RetrievesVsInstallDirectory_ReturnsFilePaths()
         {
             const string installDir = "c:\\test\\";
 
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.LocationProv
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(vsShell.Object);
 
-            return new BundledNodeLocationsProvider(serviceProvider.Object);
+            return new BundledNodeLocationsProvider(serviceProvider.Object, Mock.Of<ILogger>());
         }
     }
 }

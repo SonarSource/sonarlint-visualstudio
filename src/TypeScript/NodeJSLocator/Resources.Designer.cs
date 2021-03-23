@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [NodeJsLocator] Failed to retrieve VS install directory: {0}.
+        /// </summary>
+        internal static string ERR_FailedToGetVsInstallDirectory {
+            get {
+                return ResourceManager.GetString("ERR_FailedToGetVsInstallDirectory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Found incompatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string ERR_IncompatibleVersion {

@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
-        public void Ctor_InitializesCorrectProviders()
+        public void Ctor_InitializesCorrectProviders_InPriorityOrder()
         {
             var testSubject = new NodeLocationsProvider(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>());
 
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         }
 
         [TestMethod]
-        public void Get_HasLocationProviders_AggregatedDistinctList()
+        public void Get_HasLocationProviders_AggregatedNotDistinctList()
         {
             var provider1 = SetupLocationsProvider(new [] {"path1"});
             var provider2 = SetupLocationsProvider(null);
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             var testSubject = CreateTestSubject(provider1, provider2, provider3, provider4);
             var result = testSubject.Get();
 
-            result.Should().BeEquivalentTo("path1", "path2", "path3", "path4");
+            result.Should().BeEquivalentTo("path1", "path2", "path3", "path4", "path1");
         }
 
         private INodeLocationsProvider SetupLocationsProvider(string[] paths)
