@@ -20,7 +20,9 @@
 
 using System;
 using System.IO.Abstractions;
+using System.Runtime.InteropServices;
 using FluentAssertions;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -32,6 +34,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
     [TestClass]
     public class BundledNodeLocatorTests
     {
+        [TestMethod]
+        public void Locate_FailsToRetrieveInstallDirectory_Exception()
+        {
+            const string installDir = "c:\\test\\";
+
+            var testSubject = CreateTestSubject(installDir, shellHrResult: VSConstants.E_FAIL);
+            Action act = () => testSubject.Locate();
+
+            act.Should().Throw<COMException>();
+        }
+
         [TestMethod]
         public void Locate_FileFoundInMsBuild_FilePath()
         {
@@ -81,11 +94,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
             result.Should().BeNull();
         }
 
-        private BundledNodeLocator CreateTestSubject(string installDirectory, IFileSystem fileSystem)
+        private BundledNodeLocator CreateTestSubject(string installDirectory, IFileSystem fileSystem = null, int shellHrResult = VSConstants.S_OK)
         {
             object installDir = installDirectory;
             var vsShell = new Mock<IVsShell>();
-            vsShell.Setup(x => x.GetProperty((int) __VSSPROPID2.VSSPROPID_InstallRootDir, out installDir));
+            vsShell.Setup(x => x.GetProperty((int) __VSSPROPID2.VSSPROPID_InstallRootDir, out installDir)).Returns(shellHrResult);
 
             var serviceProvider = new Mock<IServiceProvider>();
             serviceProvider.Setup(x => x.GetService(typeof(SVsShell))).Returns(vsShell.Object);

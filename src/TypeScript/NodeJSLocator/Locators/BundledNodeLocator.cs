@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Integration;
 
@@ -33,8 +34,7 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
 
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
-        private readonly string msbuildNodeExePath;
-        private readonly string bundledNodeExePath;
+        private readonly IVsShell vsShell;
 
         public BundledNodeLocator(IServiceProvider serviceProvider, ILogger logger)
             : this(serviceProvider, new FileSystem(), logger)
@@ -45,17 +45,17 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
         {
             this.fileSystem = fileSystem;
             this.logger = logger;
-            var vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-
-            // e.g. C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\
-            vsShell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir);
-
-            msbuildNodeExePath = Path.Combine((string)installDir, MsBuildPath);
-            bundledNodeExePath = Path.Combine((string)installDir, VsBundledPath);
+            vsShell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
         }
 
         public string Locate()
         {
+            // e.g. C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\
+            ErrorHandler.ThrowOnFailure(vsShell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out var installDir));
+
+            var msbuildNodeExePath = Path.Combine((string)installDir, MsBuildPath);
+            var bundledNodeExePath = Path.Combine((string)installDir, VsBundledPath);
+
             var filePath = fileSystem.File.Exists(msbuildNodeExePath)
                 ? msbuildNodeExePath
                 : fileSystem.File.Exists(bundledNodeExePath)
