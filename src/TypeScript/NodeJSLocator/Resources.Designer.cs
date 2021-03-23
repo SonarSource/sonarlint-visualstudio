@@ -61,11 +61,11 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] File &apos;{0}&apos; does not exist..
+        ///   Looks up a localized string similar to [NodeJsLocator] Failed to retrieve VS install directory: {0}.
         /// </summary>
-        internal static string ERR_FileNotFound {
+        internal static string ERR_FailedToGetVsInstallDirectory {
             get {
-                return ResourceManager.GetString("ERR_FileNotFound", resourceCulture);
+                return ResourceManager.GetString("ERR_FailedToGetVsInstallDirectory", resourceCulture);
             }
         }
         
@@ -106,15 +106,6 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Found bundled node.exe. Path: {0}.
-        /// </summary>
-        internal static string INFO_FoundBundledNode {
-            get {
-                return ResourceManager.GetString("INFO_FoundBundledNode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Found compatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string INFO_FoundCompatibleVersion {
@@ -124,38 +115,11 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Found node.exe on the PATH: {0}.
-        /// </summary>
-        internal static string INFO_FoundInGlobalPath {
-            get {
-                return ResourceManager.GetString("INFO_FoundInGlobalPath", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Could not find bundled node.exe.
-        /// </summary>
-        internal static string INFO_NoBundledNode {
-            get {
-                return ResourceManager.GetString("INFO_NoBundledNode", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Environment variable is not set.
         /// </summary>
         internal static string INFO_NoEnvVar {
             get {
                 return ResourceManager.GetString("INFO_NoEnvVar", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] Could not find node.exe on the PATH.
-        /// </summary>
-        internal static string INFO_NotFoundInGlobalPath {
-            get {
-                return ResourceManager.GetString("INFO_NotFoundInGlobalPath", resourceCulture);
             }
         }
     }
