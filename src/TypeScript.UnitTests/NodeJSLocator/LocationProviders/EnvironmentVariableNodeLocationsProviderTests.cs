@@ -23,40 +23,42 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators;
+using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
-namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.Locators
+namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator.LocationProviders
 {
     [TestClass]
-    public class EnvironmentVariableNodeLocatorTests
+    public class EnvironmentVariableNodeLocationsProviderTests
     {
         [TestMethod]
-        [DataRow(null, null)]
-        [DataRow("", null)]
-        [DataRow("some path", "some path")]
-        public void Locate_ReturnsEnvironmentVariableValue(string envVarValue, string expected)
+        public void Get_HasEnvironmentVariable_ReturnsListWithValue()
         {
             using var scope = new EnvironmentVariableScope();
-            scope.SetVariable(EnvironmentVariableNodeLocator.NodeJsPathEnvVar, envVarValue);
+            scope.SetVariable(EnvironmentVariableNodeLocationsProvider.NodeJsPathEnvVar, "some path");
 
             var testSubject = CreateTestSubject();
-            var result = testSubject.Locate();
+            var result = testSubject.Get();
 
-            result.Should().Be(expected);
+            result.Should().BeEquivalentTo("some path");
         }
 
         [TestMethod]
-        public void Locate_NoEnvironmentVariable_Null()
+        [DataRow(null)]
+        [DataRow("")]
+        public void Get_NoEnvironmentVariable_EmptyList(string envVarValue)
         {
-            var testSubject = CreateTestSubject();
-            var result = testSubject.Locate();
+            using var scope = new EnvironmentVariableScope();
+            scope.SetVariable(EnvironmentVariableNodeLocationsProvider.NodeJsPathEnvVar, envVarValue);
 
-            result.Should().BeNull();
+            var testSubject = CreateTestSubject();
+            var result = testSubject.Get();
+
+            result.Should().BeEmpty();
         }
 
-        private EnvironmentVariableNodeLocator CreateTestSubject()
+        private EnvironmentVariableNodeLocationsProvider CreateTestSubject()
         {
-            return new EnvironmentVariableNodeLocator(Mock.Of<ILogger>());
+            return new EnvironmentVariableNodeLocationsProvider(Mock.Of<ILogger>());
         }
     }
 }

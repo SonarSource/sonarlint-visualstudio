@@ -18,9 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.VisualStudio.Shell;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
@@ -36,22 +40,27 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class NodeLocationsProvider : INodeLocationsProvider
     {
-        private readonly IEnumerable<INodeLocationsProvider> locationsProviders;
+        internal readonly IList<INodeLocationsProvider> LocationProviders;
 
         [ImportingConstructor]
-        public NodeLocationsProvider()
-            : this(Enumerable.Empty<INodeLocationsProvider>())
+        public NodeLocationsProvider([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
+            : this(new INodeLocationsProvider[]
+            {
+                new EnvironmentVariableNodeLocationsProvider(logger),
+                new GlobalPathNodeLocationsProvider(), 
+                new BundledNodeLocationsProvider(serviceProvider), 
+            })
         {
         }
 
-        internal NodeLocationsProvider(IEnumerable<INodeLocationsProvider> locationsProviders)
+        internal NodeLocationsProvider(IList<INodeLocationsProvider> locationProviders)
         {
-            this.locationsProviders = locationsProviders;
+            LocationProviders = locationProviders;
         }
 
         public IReadOnlyCollection<string> Get()
         {
-            return locationsProviders
+            return LocationProviders
                 .SelectMany(x => x.Get() ?? Enumerable.Empty<string>())
                 .Where(x => !string.IsNullOrEmpty(x))
                 .Distinct()

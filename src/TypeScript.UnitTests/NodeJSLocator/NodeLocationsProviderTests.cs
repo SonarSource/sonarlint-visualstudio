@@ -18,11 +18,15 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
+using SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 {
@@ -32,7 +36,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<NodeLocationsProvider, INodeLocationsProvider>(null, null);
+            MefTestHelpers.CheckTypeCanBeImported<NodeLocationsProvider, INodeLocationsProvider>(null, new []
+            {
+                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
+
+        [TestMethod]
+        public void Ctor_InitializesCorrectProviders()
+        {
+            var testSubject = new NodeLocationsProvider(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>());
+
+            testSubject.LocationProviders.Count.Should().Be(3);
+            testSubject.LocationProviders[0].Should().BeOfType<EnvironmentVariableNodeLocationsProvider>();
+            testSubject.LocationProviders[1].Should().BeOfType<GlobalPathNodeLocationsProvider>();
+            testSubject.LocationProviders[2].Should().BeOfType<BundledNodeLocationsProvider>();
         }
 
         [TestMethod]

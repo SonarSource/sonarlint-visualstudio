@@ -117,27 +117,15 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="INFO_NotFoundInGlobalPath" xml:space="preserve">
-    <value>[NodeJsLocator] Could not find node.exe on the PATH</value>
-  </data>
-  <data name="INFO_FoundInGlobalPath" xml:space="preserve">
-    <value>[NodeJsLocator] Found node.exe on the PATH: {0}</value>
-  </data>
   <data name="ERR_IncompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found incompatible Node version: {0}. Path: {1}</value>
   </data>
   <data name="ERR_NoCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Could not find a compatible node version. Supported versions are v10 and v12+.</value>
   </data>
-  <data name="INFO_FoundBundledNode" xml:space="preserve">
-    <value>[NodeJsLocator] Found bundled node.exe. Path: {0}</value>
-  </data>
   <data name="INFO_FoundCompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found compatible Node version: {0}. Path: {1}</value>
   </data>
-  <data name="INFO_NoBundledNode" xml:space="preserve">
-    <value>[NodeJsLocator] Could not find bundled node.exe</value>
-    </data>
   <data name="INFO_NoEnvVar" xml:space="preserve">
     <value>[NodeJsLocator] Environment variable is not set</value>
   </data>
