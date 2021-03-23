@@ -34,20 +34,20 @@ using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
 {
     [TestClass]
-    public class NodeLocatorAggregatorTests
+    public class NodeLocatorTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<NodeLocatorAggregator, INodeLocator>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<NodeLocator, INodeLocator>(null, new[]
             {
-                MefTestHelpers.CreateExport<INodeLocatorsProvider>(Mock.Of<INodeLocatorsProvider>()),
+                MefTestHelpers.CreateExport<INodeLocationsProvider>(Mock.Of<INodeLocationsProvider>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
         [TestMethod]
-        public void Locate_NoLocators_Null()
+        public void Locate_NoCandidateLocations_Null()
         {
             var testSubject = CreateTestSubject();
             var result = testSubject.Locate();
@@ -58,11 +58,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         [TestMethod]
         public void Locate_ReturnsFirstCompatiblePath()
         {
-            var nonExistingFile = SetupNodeLocator("does not exist");
-            var badVersion = SetupNodeLocator("bad version");
-            var nullPath = SetupNodeLocator(null);
-            var compatible1 = SetupNodeLocator("compatible1");
-            var compatible2 = SetupNodeLocator("compatible2");
+            var candidateLocations = new List<string>
+            {
+                "does not exist",
+                "bad version",
+                null,
+                "compatible1",
+                "compatible2"
+            };
 
             var fileSystem = new Mock<IFileSystem>();
             SetupFileExists(fileSystem, "does not exist", false);
@@ -82,20 +85,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             var testSubject = CreateTestSubject(
                 fileSystem.Object,
                 GetNodeExeVersion,
-                nonExistingFile.Object,
-                badVersion.Object,
-                nullPath.Object,
-                compatible1.Object,
-                compatible2.Object);
+                candidateLocations);
 
             var result = testSubject.Locate();
             result.Should().Be("compatible1");
-
-            VerifyLocatorCalled(nonExistingFile);
-            VerifyLocatorCalled(badVersion);
-            VerifyLocatorCalled(nullPath);
-            VerifyLocatorCalled(compatible1);
-            VerifyLocatorNotCalled(compatible2);
         }
 
         [TestMethod]
@@ -107,7 +100,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
         public void IsCompatibleVersion_ReturnsTrueFalse(int majorVersion, bool expectedResult)
         {
             var version = new Version(majorVersion, 0);
-            var result = NodeLocatorAggregator.IsCompatibleVersion(version);
+            var result = NodeLocator.IsCompatibleVersion(version);
 
             result.Should().Be(expectedResult);
         }
@@ -123,29 +116,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
                 assemblyVersion.ProductBuildPart);
 
             // The implementation relies on checking a file in the file system, so we pass a file that we know already exists and has a product version
-            var result = NodeLocatorAggregator.GetNodeVersion(assemblyPath);
+            var result = NodeLocator.GetNodeVersion(assemblyPath);
 
             result.Should().BeEquivalentTo(expectedVersion);
-        }
-
-        private Mock<INodeLocator> SetupNodeLocator(string path)
-        {
-            var nodeLocator = new Mock<INodeLocator>();
-            nodeLocator.Setup(x => x.Locate()).Returns(path);
-
-            return nodeLocator;
-        }
-
-        private void VerifyLocatorCalled(Mock<INodeLocator> locator)
-        {
-            locator.Verify(x=> x.Locate(), Times.Once);
-            locator.VerifyNoOtherCalls();
-        }
-
-        private void VerifyLocatorNotCalled(Mock<INodeLocator> locator)
-        {
-            locator.Verify(x => x.Locate(), Times.Never);
-            locator.VerifyNoOtherCalls();
         }
 
         private void SetupFileExists(Mock<IFileSystem> fileSystem, string path, bool exists)
@@ -153,14 +126,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.NodeJSLocator
             fileSystem.Setup(x => x.File.Exists(path)).Returns(exists);
         }
 
-        private NodeLocatorAggregator CreateTestSubject(IFileSystem fileSystem = null, Func<string, Version> getNodeExeVersion = null, params INodeLocator[] locators)
+        private NodeLocator CreateTestSubject(IFileSystem fileSystem = null, Func<string, Version> getNodeExeVersion = null, IReadOnlyCollection<string> candidateLocations = null)
         {
-            var locatorsProvider = new Mock<INodeLocatorsProvider>();
-            locatorsProvider.Setup(x => x.Get()).Returns(locators);
+            candidateLocations ??= Array.Empty<string>();
+            var locationsPovider = new Mock<INodeLocationsProvider>();
+            locationsPovider.Setup(x => x.Get()).Returns(candidateLocations);
 
             var logger = Mock.Of<ILogger>();
 
-            return new NodeLocatorAggregator(locatorsProvider.Object, logger, fileSystem, getNodeExeVersion);
+            return new NodeLocator(locationsPovider.Object, logger, fileSystem, getNodeExeVersion);
         }
     }
 }

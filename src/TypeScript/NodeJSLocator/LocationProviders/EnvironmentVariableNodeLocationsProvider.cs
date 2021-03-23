@@ -19,22 +19,23 @@
  */
 
 using System;
+using System.Collections.Generic;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
+namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.LocationProviders
 {
-    internal class EnvironmentVariableNodeLocator : INodeLocator
+    internal class EnvironmentVariableNodeLocationsProvider : INodeLocationsProvider
     {
         internal const string NodeJsPathEnvVar = "SONAR_NODEJS_PATH";
 
         private readonly ILogger logger;
 
-        public EnvironmentVariableNodeLocator(ILogger logger)
+        public EnvironmentVariableNodeLocationsProvider(ILogger logger)
         {
             this.logger = logger;
         }
 
-        public string Locate()
+        public IReadOnlyCollection<string> Get()
         {
             logger.WriteLine(Resources.INFO_CheckingEnvVar, NodeJsPathEnvVar);
             var nodeExePath = Environment.GetEnvironmentVariable(NodeJsPathEnvVar);
@@ -42,11 +43,11 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator.Locators
             if (string.IsNullOrEmpty(nodeExePath))
             {
                 logger.WriteLine(Resources.INFO_NoEnvVar);
-                return null;
+                return Array.Empty<string>();
             }
 
             logger.WriteLine(Resources.INFO_EnvVarValue, nodeExePath);
-            return nodeExePath;
+            return new[] {nodeExePath};
         }
     }
 }

@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO.Abstractions;
@@ -27,49 +26,46 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
-    [Export(typeof(INodeLocator))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class NodeLocatorAggregator : INodeLocator
+    internal interface INodeLocator
     {
-        private readonly ILogger logger;
-        private readonly IFileSystem fileSystem;
-        private readonly Func<string, Version> getNodeExeVersion;
-        private readonly IEnumerable<INodeLocator> nodeLocators;
-
-        [ImportingConstructor]
-        public NodeLocatorAggregator(INodeLocatorsProvider nodeLocatorsProvider, ILogger logger)
-            : this(nodeLocatorsProvider, logger, new FileSystem(),  GetNodeVersion)
-        {
-        }
-
-        internal NodeLocatorAggregator(INodeLocatorsProvider nodeLocatorsProvider, 
-            ILogger logger, 
-            IFileSystem fileSystem,
-            Func<string, Version> getNodeExeVersion)
-        {
-            this.logger = logger;
-            this.fileSystem = fileSystem;
-            this.getNodeExeVersion = getNodeExeVersion;
-            nodeLocators = nodeLocatorsProvider.Get();
-        }
-
         /// <summary>
         /// Returns the absolute file path of a compatible `node.exe`, or null if no compatible version was found.
         /// </summary>
+        string Locate();
+    }
+
+    [Export(typeof(INodeLocator))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class NodeLocator : INodeLocator
+    {
+        private readonly INodeLocationsProvider nodeLocationsProvider;
+        private readonly ILogger logger;
+        private readonly IFileSystem fileSystem;
+        private readonly Func<string, Version> getNodeExeVersion;
+
+        [ImportingConstructor]
+        public NodeLocator(INodeLocationsProvider nodeLocationsProvider, ILogger logger)
+            : this(nodeLocationsProvider, logger, new FileSystem(), GetNodeVersion)
+        {
+        }
+
+        internal NodeLocator(INodeLocationsProvider nodeLocationsProvider,
+            ILogger logger,
+            IFileSystem fileSystem,
+            Func<string, Version> getNodeExeVersion)
+        {
+            this.nodeLocationsProvider = nodeLocationsProvider;
+            this.logger = logger;
+            this.fileSystem = fileSystem;
+            this.getNodeExeVersion = getNodeExeVersion;
+        }
+
         public string Locate()
         {
-            foreach (var nodeLocator in nodeLocators)
+            foreach (var nodeExePath in nodeLocationsProvider.Get())
             {
-                var nodeExePath = nodeLocator.Locate();
-
-                if (string.IsNullOrEmpty(nodeExePath))
+                if (string.IsNullOrEmpty(nodeExePath) || !fileSystem.File.Exists(nodeExePath))
                 {
-                    continue;
-                }
-
-                if (!fileSystem.File.Exists(nodeExePath))
-                {
-                    logger.WriteLine(Resources.ERR_FileNotFound, nodeExePath);
                     continue;
                 }
 
