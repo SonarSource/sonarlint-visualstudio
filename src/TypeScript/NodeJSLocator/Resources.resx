@@ -123,9 +123,6 @@
   <data name="INFO_FoundInGlobalPath" xml:space="preserve">
     <value>[NodeJsLocator] Found node.exe on the PATH: {0}</value>
   </data>
-  <data name="ERR_FileNotFound" xml:space="preserve">
-    <value>[NodeJsLocator] File '{0}' does not exist.</value>
-  </data>
   <data name="ERR_IncompatibleVersion" xml:space="preserve">
     <value>[NodeJsLocator] Found incompatible Node version: {0}. Path: {1}</value>
   </data>

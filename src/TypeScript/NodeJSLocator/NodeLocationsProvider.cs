@@ -18,24 +18,44 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator
 {
-    internal interface INodeLocatorsProvider
+    internal interface INodeLocationsProvider
     {
         /// <summary>
-        /// Returns `node.exe` locator strategies, in precedence order.
+        /// Returns `node.exe` candidate file locations, in precedence order. The files might not exist on disk.
         /// </summary>
-        IReadOnlyCollection<INodeLocator> Get();
+        IReadOnlyCollection<string> Get();
     }
 
-    [Export(typeof(INodeLocatorsProvider))]
+    [Export(typeof(INodeLocationsProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class NodeLocatorsProvider : INodeLocatorsProvider
+    internal class NodeLocationsProvider : INodeLocationsProvider
     {
-        public IReadOnlyCollection<INodeLocator> Get() => Array.Empty<INodeLocator>();
+        private readonly IEnumerable<INodeLocationsProvider> locationsProviders;
+
+        [ImportingConstructor]
+        public NodeLocationsProvider()
+            : this(Enumerable.Empty<INodeLocationsProvider>())
+        {
+        }
+
+        internal NodeLocationsProvider(IEnumerable<INodeLocationsProvider> locationsProviders)
+        {
+            this.locationsProviders = locationsProviders;
+        }
+
+        public IReadOnlyCollection<string> Get()
+        {
+            return locationsProviders
+                .SelectMany(x => x.Get() ?? Enumerable.Empty<string>())
+                .Where(x => !string.IsNullOrEmpty(x))
+                .Distinct()
+                .ToArray();
+        }
     }
 }

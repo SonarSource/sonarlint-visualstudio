@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.TypeScript.NodeJSLocator {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [NodeJsLocator] File &apos;{0}&apos; does not exist..
-        /// </summary>
-        internal static string ERR_FileNotFound {
-            get {
-                return ResourceManager.GetString("ERR_FileNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [NodeJsLocator] Found incompatible Node version: {0}. Path: {1}.
         /// </summary>
         internal static string ERR_IncompatibleVersion {
