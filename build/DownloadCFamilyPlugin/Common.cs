@@ -165,13 +165,6 @@ namespace DownloadCFamilyPlugin
 
         public static void ExtractTarToDirectory(string sourceFilePath, string destinationDirectory, TaskLoggingHelper logger)
         {
-            if (Directory.GetDirectories(destinationDirectory).Length > 0)
-            {
-                // Unzipping the jar is slow so skip if possible
-                LogMessage($"Skipping unzipping the tar because the destination folder already contains a sub-folder.", logger);
-                return;
-            }
-
             using (var outputStream = new FileStream(sourceFilePath, FileMode.Open))
             {
                 ICSharpCode.SharpZipLib.Tar.TarArchive tarArchive = ICSharpCode.SharpZipLib.Tar.TarArchive.CreateInputTarArchive(outputStream);
