@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="SonarLint.TypeScript.EsLintBridge.Vsix.f75c4a49-b685-40d6-8867-7f73c61be2ba" Version="1.0" Language="en-US" Publisher="sonarsource" />
+        <DisplayName>SonarLint.TypeScript.EsLintBridge.Vsix</DisplayName>
+        <Description xml:space="preserve">Subsiduary VSIX used to package and deploy the eslint-bridge components.
+
+This VSIX is not externally visible and is not published separately.
+It is nested inside the main SLVS VSIX.
+
+The main reason for its existence is to work round a bug.
+Trying to include the eslint-bridge files directly in the main SLVS vsix failed with an out of memory error.
+However, packaging them in a separate VSIX and including that VSIX in the main VSIX works.</Description>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[14.0.25420.00,17.0)" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
+        <Dependency d:Source="Project" d:ProjectName="Payload" Version="[1.0,2.0)" d:InstallSource="Embed" d:VsixSubPath="Payload" Location="|Payload;VSIXContainerProjectOutputGroup|" DisplayName="|Payload;VSIXNameProjectOutputGroup|" Id="|Payload;VSIXIdentifierProjectOutputGroup|" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[14.0.25420.00,17.0)" DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+</PackageManifest>

@@ -419,14 +419,6 @@
         "resolved": "7.10.6070",
         "contentHash": "p7xNzxIoZWDqSGlCi84u1CsNSL9YL7HWBdurfBUW8TZOsfW/0DS8/2MQcicQZav2Csq1f7Pep+VRdZJZkmQKJA=="
       },
-      "Microsoft.VisualStudio.SDK.Analyzers": {
-        "type": "Transitive",
-        "resolved": "15.8.33",
-        "contentHash": "5rP5FqdiHID6AtB7m8LNQKXnjTFCErAtazW8gqY4z27kTp+K6S6ZMzBME7hryOCSo2laogjjL1GWp2bUaJZqRw==",
-        "dependencies": {
-          "Microsoft.VisualStudio.Threading.Analyzers": "15.8.122"
-        }
-      },
       "Microsoft.VisualStudio.SDK.EmbedInteropTypes": {
         "type": "Transitive",
         "resolved": "15.0.27",
@@ -583,11 +575,6 @@
           "Microsoft.VisualStudio.Validation": "14.1.111"
         }
       },
-      "Microsoft.VisualStudio.Threading.Analyzers": {
-        "type": "Transitive",
-        "resolved": "15.8.122",
-        "contentHash": "1gu3LopB8nLiomlMGx6Y8Glb+rwABHpksdpNH1X9/GGp6uJvnHAUZWsFUQz8sAuu1CKcQagJcSOUt4bb4pOFKg=="
-      },
       "Microsoft.VisualStudio.Utilities": {
         "type": "Transitive",
         "resolved": "14.3.25407",
@@ -597,14 +584,6 @@
         "type": "Transitive",
         "resolved": "14.1.111",
         "contentHash": "IUt6f56o4p+k2s0SX6Dlo02qj5r8zoWxMpxxNa1hZM+j+xQ6L3mTb/ZVbtbqpaVotA/j25dPa2VybLO/8MEw1Q=="
-      },
-      "Microsoft.VSSDK.BuildTools": {
-        "type": "Transitive",
-        "resolved": "16.3.2099",
-        "contentHash": "ERcGW2ckssSVmOKIVXLywcTbF6Ktkh+fuST5MNf3IJzA+XNqyRvfzWKrBIomQ2WtPsgQ3e0dG63DEFKH3snKcA==",
-        "dependencies": {
-          "Microsoft.VisualStudio.SDK.Analyzers": "15.8.33"
-        }
       },
       "Microsoft.VSSDK.Vsixsigntool": {
         "type": "Transitive",
@@ -874,7 +853,6 @@
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "1.3.2",
           "Microsoft.CodeAnalysis.Workspaces.Common": "1.3.2",
           "Microsoft.Composition": "1.0.30",
-          "Microsoft.VSSDK.BuildTools": "16.3.2099",
           "Microsoft.VSSDK.Vsixsigntool": "15.0.26201",
           "Microsoft.VisualStudio.ComponentModelHost": "14.0.25424",
           "Microsoft.VisualStudio.CoreUtility": "14.0.23205",
