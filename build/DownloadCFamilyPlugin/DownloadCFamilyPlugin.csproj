@@ -1,5 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <!-- This target exists to help test the code in this project.
+       Just build from the command line specifying the target e.g.
+          
+          msbuild.exe /t:Test
+        
+        Optionally, pass in the TargetDirectory and PluginUrl values to use.
+        To debug, add a call to "System.Diagnostics.Debugger.Launch();" in the code.
+  -->
+  <Target Name="Test">
+
+    <!-- Example URLs:
+      https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.17.0.27551.jar
+    
+    -->
+    
+    <PropertyGroup>
+      <TestTargetDirectory Condition=" $(TestTargetDirectory) == ''">$(MSBuildThisFileDirectory)TestOutput</TestTargetDirectory>
+      <PluginUrl Condition=" $(PluginUrl)=='' ">https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.17.0.27551.jar</PluginUrl>
+    </PropertyGroup>
+
+    <MSBuild Targets="Restore;Build;CopyEmbeddedFiles"
+             Projects ="$(MSBuildProjectFullPath)"
+             Properties="PluginUrl=$(PluginUrl);TargetDirectory=$(TestTargetDirectory)"
+             />
+  </Target>
+
+
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
     
