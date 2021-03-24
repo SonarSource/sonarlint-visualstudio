@@ -18,16 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Microsoft.Build.Framework;
-using Microsoft.Build.Utilities;
-using SharpCompress.Compressors.Xz;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net.Http;
+using Microsoft.Build.Framework;
+using Microsoft.Build.Utilities;
 
 namespace DownloadCFamilyPlugin
 {
@@ -84,188 +79,43 @@ namespace DownloadCFamilyPlugin
         {
             LogMessage($"Download url: {DownloadUrl}");
 
-            var pluginFileName = ExtractPluginFileName(DownloadUrl);
+            var pluginFileName = Common.ExtractPluginFileNameFromUrl(DownloadUrl, Log);
 
             // Ensure working directories exists
             var localWorkingFolder = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_CFamily_Build");
             var perVersionPluginFolder = Path.Combine(localWorkingFolder, Path.GetFileNameWithoutExtension(pluginFileName));
-            EnsureWorkingDirectoryExist(perVersionPluginFolder);
+            Common.EnsureWorkingDirectoryExist(perVersionPluginFolder, this.Log);
 
             // Download and unzip the jar
             var jarFilePath = Path.Combine(perVersionPluginFolder, pluginFileName);
-            DownloadJarFile(DownloadUrl, jarFilePath);
-            UnzipJar(jarFilePath, perVersionPluginFolder);
+            Common.DownloadJarFile(DownloadUrl, jarFilePath, Log);
+            Common.UnzipJar(jarFilePath, perVersionPluginFolder, Log);
 
             // Uncompress and extract the windows tar archive to get the subprocess exe
-            var tarFilePath = FindSingleFile(perVersionPluginFolder, WindowsTxzFilePattern);
+            var tarFilePath = Common.FindSingleFile(perVersionPluginFolder, WindowsTxzFilePattern, Log);
             var tarSubFolder = Path.Combine(perVersionPluginFolder, TarUnzipSubFolder);
-            UncompressAndUnzipTar(tarFilePath, tarSubFolder);
+            Common.UncompressAndUnzipTgx(tarFilePath, tarSubFolder, Log);
 
             // Locate the required files from the uncompressed jar and tar
             var fileList = FindFiles(perVersionPluginFolder);
 
             FilesToEmbed = fileList.ToArray();
-
             return !Log.HasLoggedErrors;
-        }
-
-        private string ExtractPluginFileName(string url)
-        {
-            if (!url.EndsWith(".jar", StringComparison.InvariantCultureIgnoreCase))
-            {
-                throw new ArgumentException("Expecting the url to end with '.jar'");
-            }
-
-            var fileName = url.Split('/').Last();
-
-            LogMessage($"Plugin file name: {fileName}");
-            return fileName;
         }
 
         private List<string> FindFiles(string searchRoot)
         {
             var files = new List<string>();
 
-            foreach(var file in SingleFilePatterns)
-            {
-                files.Add(FindSingleFile(searchRoot, file));
-            }
+            files.AddRange(Common.FindSingleFiles(searchRoot, SingleFilePatterns, Log));
+            files.AddRange(Common.FindMultipleFiles(searchRoot, MultipleFilesPatterns, Log));
 
-            foreach(var pattern in MultipleFilesPatterns)
-            {
-                var matches = Directory.GetFiles(searchRoot, pattern, SearchOption.AllDirectories);
-                if (matches.Any())
-                {
-                    LogMessage($"Found {matches.Count()} files matching for '{pattern}'");
-                    files.AddRange(matches);
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Failed to find any files matching the pattern '{pattern}'");
-                }
-            }
-            
             return files;
-        }
-            
-        private void EnsureWorkingDirectoryExist(string localWorkingFolder)
-        {
-            if (!Directory.Exists(localWorkingFolder))
-            {
-                LogMessage($"Creating working folder: {localWorkingFolder}");
-                Directory.CreateDirectory(localWorkingFolder);
-            }
-        }
-
-        private void DownloadJarFile(string url, string targetFilePath)
-        {
-            if (File.Exists(targetFilePath))
-            {
-                // Downloading the file is slow so skip if possible
-                LogMessage($"Jar file already exists at {targetFilePath}");
-                return;
-            }
-
-            LogMessage($"Downloading file from {url} to {targetFilePath}...");
-
-            var timer = Stopwatch.StartNew();
-
-            using (var httpClient = new HttpClient())
-            using (var response = httpClient.GetAsync(url).Result)
-            {
-                if (response.IsSuccessStatusCode)
-                {
-                    using (var fileStream = new FileStream(targetFilePath, FileMode.Create, FileAccess.Write))
-                    {
-                        response.Content.CopyToAsync(fileStream).Wait();
-                    }
-                }
-                else
-                {
-                    Log.LogError($"Failed to download the CFamily plugin: {response.Content}");
-                }
-            }
-            timer.Stop();
-            LogElapsedTime("Download completed. ", timer);
-        }
-
-        private void UnzipJar(string jarFilePath, string destinationFolder)
-        {
-            if (Directory.GetFiles(destinationFolder).Length > 1)
-            {
-                // Unzipping the jar is slow so skip if possible
-                LogMessage($"Skipping unzipping the jar because the destination folder already contains multiple files.");
-                return;
-            }
-
-            LogMessage($"Unzipping jar file...");
-            var timer = Stopwatch.StartNew();
-
-            ZipFile.ExtractToDirectory(jarFilePath, destinationFolder);
-
-            timer.Stop();
-            LogElapsedTime("Unzipped jar file", timer);
-        }
-
-        private void UncompressAndUnzipTar(string tarFilePath, string destinationFolder)
-        {
-            // The txz file is compressed using XZ compression and zipped using the tar format.
-            // There is no built-in framework support for these format so we are using two
-            // open source libraries, both licensed under the MIT license.
-            EnsureWorkingDirectoryExist(destinationFolder);
-
-            var uncompresssedFile = DecompressXZFile(tarFilePath, destinationFolder);
-            ExtractTarToDirectory(uncompresssedFile, destinationFolder);
-        }
-
-        private string DecompressXZFile(string sourceFilePath, string destinationDirectory)
-        {
-            var destFile = Path.Combine(destinationDirectory, Path.GetFileName(sourceFilePath)) + ".uncompressed";
-            if (File.Exists(destFile))
-            {
-                LogMessage($"Uncompressed tar file already exists: {destFile}");
-                return destFile;
-            }
-
-            using (Stream xz = new XZStream(File.OpenRead(sourceFilePath)))
-            using (Stream outputStream = new FileStream(destFile, FileMode.CreateNew))
-            {
-                xz.CopyTo(outputStream);
-            }
-            return destFile;
-        }
-
-        public static void ExtractTarToDirectory(string sourceFilePath, string destinationDirectory)
-        {
-            using (var outputStream = new FileStream(sourceFilePath, FileMode.Open))
-            {
-                ICSharpCode.SharpZipLib.Tar.TarArchive tarArchive = ICSharpCode.SharpZipLib.Tar.TarArchive.CreateInputTarArchive(outputStream);
-                tarArchive.ExtractContents(destinationDirectory);
-            }
-        }
-
-        private string FindSingleFile(string searchFolder, string pattern)
-        {
-            var files = Directory.GetFiles(searchFolder, pattern, SearchOption.AllDirectories);
-
-            if (files.Length != 1)
-            {
-                throw new InvalidOperationException($"Failed to locate one and only one file matching pattern {pattern} in {searchFolder}. Matching files: {files.Length}");
-            }
-
-            LogMessage($"Located file: {files[0]}");
-
-            return files[0];
         }
 
         private void LogMessage(string message)
         {
             Log.LogMessage(MessageImportance.High, message);
-        }
-
-        private void LogElapsedTime(string message, Stopwatch timer)
-        {
-            LogMessage($"{message} {timer.Elapsed.ToString("g")}");
         }
     }
 }
