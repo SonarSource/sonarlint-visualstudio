@@ -164,4 +164,5 @@ $RECYCLE.BIN/
 /.sonarqube
 /src/Integration.Vsix/.CFamilyEmbedded
 /src/Integration.Vsix/lib
+/build/DownloadCFamilyPlugin/ManualTestOutput
 /src/Payload/ts

@@ -27,62 +27,66 @@ using Microsoft.Build.Utilities;
 namespace DownloadCFamilyPlugin
 {
     /// <summary>
-    /// Downloads the CFamily jar and extracts the files that need to be
+    /// Downloads the Sonar JavaScript/TypeScript jar and extracts the files that need to be
     /// embedded in the SLVS vsix
     /// </summary>
     /// <remarks>
     /// Assumptions:
-    /// * we are downloading the CFamily plugin jar e.g. https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar
-    /// * the jar contains a .tarxz archive containing the Windows version of SubProcess.exe
-    /// * the jar contains various .json files, some with fixed names, some that we'll match using wildcards
+    /// * we are downloading the sonar-js plugin jar e.g. https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.2.0.12043.jar
+    /// * the jar contains a .tgz archive containing ESLintBridge (a NodeJS app)
+    /// * the jar contains various .json files, some with well-known names.
     /// 
     /// We want the task to fail if it cannot locate all of the expected files (otherwise we'll build an invalid VSIX).
     /// 
     /// Downloading and extracting the files can be slow so we want to skip those steps if possible.
     /// </remarks>
-    public class DownloadAndExtract: Task
+    public class DownloadAndExtractSonarJS: Task
     {
-        // The txz archive containing the subprocess.exe
-        private const string WindowsTxzFilePattern = "clang*-win.txz";
+        // Structure of the archive file:
+        // 
+        //      eslint-bridge-1.0.0.tgz -> eslint-bridge-1.0.0.tar ->
+        //          package\bin\
+        //          package\lib\
+        //          package\node_modules\
+        //          package\package.json
+
+        // The archive containing the eslintbridge
+        private const string SourceEsLintBridgeFilePattern = "eslint-bridge-*.tgz";
 
         // Sub-folder into which the tar file should be unzipped
-        private const string TarUnzipSubFolder = "tar_xz";
+        public const string TargetEslintBridgeFolderName = "eslint-bridge";
 
         // List of patterns to match single files in the uncompressed output
-        private readonly string[] SingleFilePatterns = new string[]
+        private readonly string[] SourceSingleFilePatterns = new string[]
         {
                 "Sonar_way_profile.json",
-                "RulesList.json",
-                TarUnzipSubFolder + @"\subprocess.exe",
-                TarUnzipSubFolder + @"\LICENSE_THIRD_PARTY.txt"
+                "Sonar_way_recommended_profile.json"
         };
 
-        // List of patterns to match multiple files in the uncompressed output
-        private readonly string[] MultipleFilesPatterns = new string[]
-        {
-            @"org\sonar\l10n\cpp\rules\params\*_params.json",
-            @"org\sonar\l10n\cpp\rules\cpp\*.json"
-        };
+        private readonly string SourceRelativePackageDirectory = TargetEslintBridgeFolderName + @"\package";
 
         #region MSBuild input / output properties (set/read in the project file)
 
-        // Example: https://binaries.sonarsource.com/CommercialDistribution/sonar-cfamily-plugin/sonar-cfamily-plugin-6.3.0.11371.jar
+        // Download url example: https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.2.0.12043.jar
         [Required]
         public string DownloadUrl { get; set; }
 
         [Output]
         public string[] FilesToEmbed { get; private set; }
 
+        [Output]
+        public string PackageDirectoryToEmbed { get; private set; }
+
         #endregion
 
         public override bool Execute()
         {
-            LogMessage($"Download url: {DownloadUrl}");
+            Log.LogMessage(MessageImportance.High, $"Download url: {DownloadUrl}");
 
             var pluginFileName = Common.ExtractPluginFileNameFromUrl(DownloadUrl, Log);
 
             // Ensure working directories exists
-            var localWorkingFolder = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_CFamily_Build");
+            var localWorkingFolder = Path.Combine(Environment.GetEnvironmentVariable("LocalAppData"), "SLVS_TypeScript_Build");
             var perVersionPluginFolder = Path.Combine(localWorkingFolder, Path.GetFileNameWithoutExtension(pluginFileName));
             Common.EnsureWorkingDirectoryExist(perVersionPluginFolder, this.Log);
 
@@ -91,31 +95,25 @@ namespace DownloadCFamilyPlugin
             Common.DownloadJarFile(DownloadUrl, jarFilePath, Log);
             Common.UnzipJar(jarFilePath, perVersionPluginFolder, Log);
 
-            // Uncompress and extract the windows tar archive to get the subprocess exe
-            var tarFilePath = Common.FindSingleFile(perVersionPluginFolder, WindowsTxzFilePattern, Log);
-            var tarSubFolder = Path.Combine(perVersionPluginFolder, TarUnzipSubFolder);
-            Common.UncompressAndUnzipTgx(tarFilePath, tarSubFolder, Log);
+            // Uncompress and extract the windows tar archive to get the eslint-bridge folder
+            var tarFilePath = Common.FindSingleFile(perVersionPluginFolder, SourceEsLintBridgeFilePattern, Log);
+            var tarSubFolder = Path.Combine(perVersionPluginFolder, TargetEslintBridgeFolderName);
+            Common.UncompressAndUnzipTgz(tarFilePath, tarSubFolder, Log);
 
             // Locate the required files from the uncompressed jar and tar
             var fileList = FindFiles(perVersionPluginFolder);
-
             FilesToEmbed = fileList.ToArray();
+
+            PackageDirectoryToEmbed =   Path.Combine(perVersionPluginFolder, SourceRelativePackageDirectory);
+
             return !Log.HasLoggedErrors;
         }
 
         private List<string> FindFiles(string searchRoot)
         {
             var files = new List<string>();
-
-            files.AddRange(Common.FindSingleFiles(searchRoot, SingleFilePatterns, Log));
-            files.AddRange(Common.FindMultipleFiles(searchRoot, MultipleFilesPatterns, Log));
-
+            files.AddRange(Common.FindSingleFiles(searchRoot, SourceSingleFilePatterns, Log));
             return files;
-        }
-
-        private void LogMessage(string message)
-        {
-            Log.LogMessage(MessageImportance.High, message);
         }
     }
 }
