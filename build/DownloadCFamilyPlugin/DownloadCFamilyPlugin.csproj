@@ -70,7 +70,8 @@
     <Message Importance="high" Text="Package directory: $(PackageDirectoryToEmbed)" />
 
     <ItemGroup>
-      <PackageSourceFiles Include="$(PackageDirectoryToEmbed)\**\*.*" />
+      <!-- Include everything except the map files -->
+      <PackageSourceFiles Include="$(PackageDirectoryToEmbed)\**\*.*" Exclude="$(PackageDirectoryToEmbed)\**\*.map" />
     </ItemGroup>
     
     <Message Importance="high" Text="List of packaged files to be embedded in the VSIX:" />
@@ -126,7 +127,7 @@
     
     <PropertyGroup>
       <OutputDir Condition=" $(OutputDir) == ''">$(MSBuildThisFileDirectory)ManualTestOutput</OutputDir>
-      <PluginUrl Condition=" $(PluginUrl)=='' ">https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-6.2.0.12043.jar</PluginUrl>
+      <PluginUrl Condition=" $(PluginUrl)=='' ">https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-7.3.0.15071.jar</PluginUrl>
     </PropertyGroup>
 
     <MSBuild Targets="Restore;Build;EmbedTypeScriptFiles"

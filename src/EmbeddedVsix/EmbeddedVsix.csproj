@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+    <TargetFrameworkProfile />
+    <!-- By default the SDK targets only zip Release builds. We'll always zip since the file is very large otherwise. -->
+    <ZipPackageCompressionLevel>Normal</ZipPackageCompressionLevel>
+  </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SonarLint.VisualStudio.AdditionalFiles</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.AdditionalFiles</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <GeneratePkgDefFile>false</GeneratePkgDefFile>
+    <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <StartAction>Program</StartAction>
+    <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
+    <StartArguments>/rootsuffix Exp</StartArguments>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
+      <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <Reference Include="System.ComponentModel.Composition" />
+
+    <Compile Include="PathExporter.cs" />
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <!-- Need to reference the Sonar Roslyn analyzers: we need to reference one of the assmblies,
+       and embed all of them in the VSIX. -->
+  <Import Project="..\EmbeddedSonarAnalyzer.props" />
+
+
+  <!-- ********************************************************** -->
+  <!-- SonarJS plugin handling -->
+  <!-- Download and unpack the jar, select the required files and -->
+  <!-- add them to the VSIX.                                      -->
+  <!-- ********************************************************** -->
+  <PropertyGroup>
+    <!-- Download url for the SonarJS plugin. Update this url to embed a new version of the plugin. -->
+	<PluginUrl>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
+    <TypeScriptFolderName>ts</TypeScriptFolderName>
+    <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
+    <TypeScriptTargetDirectory>$(MSBuildThisFileDirectory)$(TypeScriptFolderName)</TypeScriptTargetDirectory>
+    <!-- Hook the target that fetches the additiona lfiles into to the build process. 
+         This needs to be set after the SDK targets have been imported.
+    -->
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypeScriptFiles</PrepareForBuildDependsOn>
+  </PropertyGroup>
+  <Target Name="GetTypeScriptFiles">
+    <Message Importance="high" Text="Fetching the TypeScript files..." />
+    <!-- Note: building the helper project explicitly using MSBuild rather than referencing it via a ProjectReference.
+         This makes is easier for us to control when the build is performed, so we can trigger it early enough
+         to include the downloaded files as normal Content files in this project.
+         Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
+         DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
+    -->
+	
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+    
+	<ItemGroup>
+	  <!-- Note: the file name has to be relative. The "Include" value is used to set the value of the "vsixSubPath" metadata item.
+			If this is an absolute path the VSSDK tools won't complain, but the file won't be included in the vsix. -->
+      <Content Include="$(TypeScriptFolderName)\**\*" >
+        <!-- We need to include the files as content that is copied to the output directory so that
+             1) they get included in the VSIX, and 
+             2) they get copied to the bin folder of any test projects that reference this project.
+        -->
+        <!-- <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory> -->
+        <IncludeInVSIX>True</IncludeInVSIX>
+        <!-- Custom sub folder in the VSIX -->
+        <!-- <VSIXSubPath>$(TypeScriptFolderName)</VSIXSubPath> -->
+        <Visible>false</Visible>
+      </Content>
+    </ItemGroup>
+	
+	<!-- <Message Importance="high" Text="XXXX Files to include: %(Content.Identity)" /> -->
+  </Target>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

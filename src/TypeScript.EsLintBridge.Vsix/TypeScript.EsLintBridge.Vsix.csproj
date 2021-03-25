@@ -65,9 +65,9 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Payload\Payload.csproj">
+    <ProjectReference Include="..\EmbeddedVsix\EmbeddedVsix.csproj">
       <Project>{4bbe7b39-e00a-40fe-88fc-a53c7e49731f}</Project>
-      <Name>Payload</Name>
+      <Name>EmbeddedVsix</Name>
       <VSIXSubPath>Payload</VSIXSubPath>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
