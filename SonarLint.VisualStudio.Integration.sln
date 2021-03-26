@@ -100,6 +100,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypeScript", "src\TypeScrip
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TypeScript.UnitTests", "src\TypeScript.UnitTests\TypeScript.UnitTests.csproj", "{2E4E6D75-4946-4E25-8F37-32840827066B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EmbeddedVsix", "EmbeddedVsix", "{D0993E3E-A109-4AAE-973E-678CB745127E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddedVsix", "src\EmbeddedVsix\EmbeddedVsix.csproj", "{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -198,6 +202,10 @@ Global
 		{2E4E6D75-4946-4E25-8F37-32840827066B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E4E6D75-4946-4E25-8F37-32840827066B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E4E6D75-4946-4E25-8F37-32840827066B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -228,6 +236,7 @@ Global
 		{407919AF-3AEA-483D-9183-1063EDECDBC3} = {BE58232B-BE46-4D0D-9175-6BE0517F3EF0}
 		{69C939D0-DFAF-42CB-98F8-134400B60779} = {CECE4041-0983-4F2F-B420-FD2BE338CCD3}
 		{2E4E6D75-4946-4E25-8F37-32840827066B} = {CECE4041-0983-4F2F-B420-FD2BE338CCD3}
+		{4BBE7B39-E00A-40FE-88FC-A53C7E49731F} = {D0993E3E-A109-4AAE-973E-678CB745127E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DABC27C8-E761-4826-AD2D-056F677EF3C0}
