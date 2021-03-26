@@ -92,7 +92,15 @@
     -->
     <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
     <ItemGroup>
-      <!-- Note: the file name has to be relative. The "Include" value is used to set the value of the "vsixSubPath" metadata item.
+      <!-- Note (1): vsixutil.exe will fail with an OutOfMemory error if there are too many files in the VSIX (the size of the files
+                     doesn't matter, it's the number that counts.
+		     So, we are excluding some files that are not required i.e. the *.map files.
+		     If we need to exclude more files then other candidates are:
+		     * the localization files for the TypeScript compiler
+		     * some modules include "test" folders which may not be needed
+		     * *.d.ts files i.e. type definition files. Ones in modules other than the TypeScript compiler/eslint modules *might* not be needed
+      -->
+      <!-- Note (2): the file name has to be relative. The "Include" value is used to set the value of the "vsixSubPath" metadata item.
 			If this is an absolute path the VSSDK tools won't complain, but the file won't be included in the vsix. -->
       <Content Include="$(TypeScriptFolderName)\**\*"
                Exclude="$(TypeScriptFolderName)\**\*.map" >
