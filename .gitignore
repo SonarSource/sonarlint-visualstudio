@@ -165,3 +165,4 @@ $RECYCLE.BIN/
 /src/Integration.Vsix/.CFamilyEmbedded
 /src/Integration.Vsix/lib
 /build/DownloadCFamilyPlugin/ManualTestOutput
+/src/EmbeddedVsix/ts
