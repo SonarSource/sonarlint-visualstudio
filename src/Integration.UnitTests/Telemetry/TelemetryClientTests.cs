@@ -27,28 +27,13 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Moq.Protected;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
     [TestClass]
     public class TelemetryClientTests
     {
-        private class FakeHttpMessageHandler : HttpMessageHandler
-        {
-            private readonly Func<HttpRequestMessage, HttpResponseMessage> sendFunc;
-
-            public FakeHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> sendFunc)
-            {
-                this.sendFunc = sendFunc;
-            }
-
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-                CancellationToken cancellationToken)
-            {
-                return Task.FromResult(sendFunc(request));
-            }
-        }
-
         [TestMethod]
         public async Task OptOut_WhenMoreThanThreeFailures_ReturnsFalse()
         {

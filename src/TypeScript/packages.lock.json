@@ -50,6 +50,12 @@
           "Microsoft.VisualStudio.TextManager.Interop.8.0": "8.0.50727"
         }
       },
+      "Newtonsoft.Json": {
+        "type": "Direct",
+        "requested": "[6.0.8, )",
+        "resolved": "6.0.8",
+        "contentHash": "7ut47NDedTW19EbL0JpFDYUP62fcuz27hJrehCDNajdCS5NtqL+E39+7Um3OkNc2wl2ym7K8Ln5eNuLus6mVGQ=="
+      },
       "BouncyCastle": {
         "type": "Transitive",
         "resolved": "1.8.6.1",
@@ -146,11 +152,6 @@
         "type": "Transitive",
         "resolved": "14.1.111",
         "contentHash": "IUt6f56o4p+k2s0SX6Dlo02qj5r8zoWxMpxxNa1hZM+j+xQ6L3mTb/ZVbtbqpaVotA/j25dPa2VybLO/8MEw1Q=="
-      },
-      "Newtonsoft.Json": {
-        "type": "Transitive",
-        "resolved": "6.0.8",
-        "contentHash": "7ut47NDedTW19EbL0JpFDYUP62fcuz27hJrehCDNajdCS5NtqL+E39+7Um3OkNc2wl2ym7K8Ln5eNuLus6mVGQ=="
       },
       "System.IO.Abstractions": {
         "type": "Transitive",
