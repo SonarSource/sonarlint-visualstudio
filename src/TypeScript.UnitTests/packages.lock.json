@@ -497,6 +497,7 @@
           "Microsoft.VisualStudio.Shell.Immutable.10.0": "10.0.30319",
           "Microsoft.VisualStudio.Shell.Interop": "7.10.6071",
           "Microsoft.VisualStudio.Shell.Interop.8.0": "8.0.50727",
+          "Newtonsoft.Json": "6.0.8",
           "SonarLint.VisualStudio.Core": "1.0.0"
         }
       },
