@@ -42,18 +42,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>()))
                 .ReturnsAsync((string)null);
 
-            var tsConfigPathProvider = new Mock<IDefaultTsConfigPathProvider>();
-            tsConfigPathProvider.Setup(x => x.GetFilePath()).Returns("ts config path");
-
-            var testSubject = CreateTestSubject(httpWrapper.Object, tsConfigPathProvider.Object);
+            var testSubject = CreateTestSubject(httpWrapper.Object);
             await testSubject.AnalyzeJs("some path");
 
             httpWrapper.Verify(x => x.PostAsync("analyze-js",
                     It.Is((AnalysisRequest req) =>
                         req.IgnoreHeaderComments &&
                         req.FilePath == "some path" &&
-                        req.TSConfigFilePaths.Length == 1 &&
-                        req.TSConfigFilePaths[0] == "ts config path")),
+                        req.TSConfigFilePaths.Length == 0)),
                 Times.Once);
 
             httpWrapper.VerifyNoOtherCalls();
@@ -99,7 +95,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(httpWrapper.Object, logger: logger);
+            var testSubject = CreateTestSubject(httpWrapper.Object, logger);
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path");
             act.Should().NotThrow();
 
@@ -107,34 +103,16 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void AnalyzeJs_FailsToRetrieveTsConfig_ExceptionCaughtAndLogged()
-        {
-            var configPathProvider = new Mock<IDefaultTsConfigPathProvider>();
-            configPathProvider
-                .Setup(x => x.GetFilePath())
-                .Throws(new NotImplementedException("some exception"));
-
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(configPathProvider: configPathProvider.Object, logger: logger);
-
-            Func<Task> act = async () => await testSubject.AnalyzeJs("some path");
-            act.Should().NotThrow();
-
-            logger.AssertPartialOutputStringExists("some exception");
-        }
-
-        [TestMethod]
         public void AnalyzeJs_CriticalException_ExceptionNotCaught()
         {
-            var configPathProvider = new Mock<IDefaultTsConfigPathProvider>();
-            configPathProvider
-                .Setup(x => x.GetFilePath())
-                .Throws(new StackOverflowException());
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+            httpWrapper
+                .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>()))
+                .ThrowsAsync(new StackOverflowException());
 
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(configPathProvider: configPathProvider.Object, logger: logger);
+            var testSubject = CreateTestSubject(httpWrapper.Object, logger);
 
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path");
             act.Should().ThrowExactly<StackOverflowException>();
@@ -153,14 +131,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             httpWrapper.VerifyNoOtherCalls();
         }
 
-        private TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null,
-            IDefaultTsConfigPathProvider configPathProvider = null,
-            ILogger logger = null)
+        private TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null, ILogger logger = null)
         {
-            configPathProvider ??= Mock.Of<IDefaultTsConfigPathProvider>();
             logger ??= Mock.Of<ILogger>();
 
-            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, configPathProvider, logger);
+            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, logger);
         }
     }
 }

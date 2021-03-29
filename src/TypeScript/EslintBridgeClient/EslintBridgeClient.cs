@@ -38,21 +38,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     internal sealed class EslintBridgeClient : IEslintBridgeClient
     {
         private readonly IEslintBridgeHttpWrapper httpWrapper;
-        private readonly IDefaultTsConfigPathProvider defaultTsConfigPathProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, ILogger logger)
-            : this(httpWrapper, new DefaultTsConfigPathProvider(), logger)
-        {
-        }
-
-        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper,
-            IDefaultTsConfigPathProvider defaultTsConfigPathProvider,
-            ILogger logger)
         {
             this.httpWrapper = httpWrapper;
-            this.defaultTsConfigPathProvider = defaultTsConfigPathProvider;
             this.logger = logger;
         }
 
@@ -64,7 +55,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 {
                     FilePath = filePath,
                     IgnoreHeaderComments = true,
-                    TSConfigFilePaths = new[] { defaultTsConfigPathProvider.GetFilePath() }
+                    TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
                 };
 
                 var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest);
