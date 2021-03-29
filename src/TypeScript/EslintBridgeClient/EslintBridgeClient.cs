@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -30,6 +32,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     internal interface IEslintBridgeClient : IDisposable
     {
+        Task InitLinter(IEnumerable<Rule> rules);
+
         Task<AnalysisResponse> AnalyzeJs(string filePath);
     }
 
@@ -38,13 +42,34 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     internal sealed class EslintBridgeClient : IEslintBridgeClient
     {
         private readonly IEslintBridgeHttpWrapper httpWrapper;
+        private readonly IAnalysisConfiguration analysisConfiguration;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, ILogger logger)
+            : this(httpWrapper, new AnalysisConfiguration(), logger)
+        {
+        }
+
+        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, 
+            IAnalysisConfiguration analysisConfiguration,
+            ILogger logger)
         {
             this.httpWrapper = httpWrapper;
+            this.analysisConfiguration = analysisConfiguration;
             this.logger = logger;
+        }
+
+        public Task InitLinter(IEnumerable<Rule> rules)
+        {
+            var initLinterRequest = new InitLinterRequest
+            {
+                Rules = rules.ToArray(),
+                Globals = analysisConfiguration.GetGlobals(),
+                Environments = analysisConfiguration.GetEnvironments()
+            };
+
+            return httpWrapper.PostAsync("init-linter", initLinterRequest);
         }
 
         public async Task<AnalysisResponse> AnalyzeJs(string filePath)
