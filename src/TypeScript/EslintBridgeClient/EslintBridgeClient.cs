@@ -19,7 +19,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -30,21 +32,48 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     internal interface IEslintBridgeClient : IDisposable
     {
+        Task InitLinter(IEnumerable<Rule> rules);
+
         Task<AnalysisResponse> AnalyzeJs(string filePath);
     }
 
+    /// <summary>
+    /// Matching Java implementation: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/JavaScriptEslintBasedSensor.java#L51
+    /// Eslint-bridge methods: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/eslint-bridge/src/server.ts
+    /// </summary>
     [Export(typeof(IEslintBridgeClient))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class EslintBridgeClient : IEslintBridgeClient
     {
         private readonly IEslintBridgeHttpWrapper httpWrapper;
+        private readonly IAnalysisConfiguration analysisConfiguration;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, ILogger logger)
+            : this(httpWrapper, new AnalysisConfiguration(), logger)
+        {
+        }
+
+        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, 
+            IAnalysisConfiguration analysisConfiguration,
+            ILogger logger)
         {
             this.httpWrapper = httpWrapper;
+            this.analysisConfiguration = analysisConfiguration;
             this.logger = logger;
+        }
+
+        public Task InitLinter(IEnumerable<Rule> rules)
+        {
+            var initLinterRequest = new InitLinterRequest
+            {
+                Rules = rules.ToArray(),
+                Globals = analysisConfiguration.GetGlobals(),
+                Environments = analysisConfiguration.GetEnvironments()
+            };
+
+            return httpWrapper.PostAsync("init-linter", initLinterRequest);
         }
 
         public async Task<AnalysisResponse> AnalyzeJs(string filePath)

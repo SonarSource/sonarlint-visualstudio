@@ -35,34 +35,63 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     public class EslintBridgeClientTests
     {
         [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<TypeScript.EslintBridgeClient.EslintBridgeClient, IEslintBridgeClient>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IEslintBridgeHttpWrapper>(Mock.Of<IEslintBridgeHttpWrapper>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
+
+        [TestMethod]
+        public async Task InitLinter_HttpWrapperCalledWithCorrectArguments()
+        {
+            var analysisConfiguration = new Mock<IAnalysisConfiguration>();
+            analysisConfiguration.Setup(x => x.GetEnvironments()).Returns(new[] {"env1", "env2"});
+            analysisConfiguration.Setup(x => x.GetGlobals()).Returns(new[] {"global1", "global2"});
+
+            var rules = new[] { new Rule { Key = "test1" }, new Rule { Key = "test2" } };
+
+            var httpWrapper = SetupHttpWrapper("init-linter", assertReceivedRequest: receivedRequest =>
+            {
+                var initLinterRequest = receivedRequest as InitLinterRequest;
+                initLinterRequest.Should().NotBeNull();
+                initLinterRequest.Rules.Should().BeEquivalentTo(rules);
+                initLinterRequest.Environments.Should().BeEquivalentTo("env1", "env2");
+                initLinterRequest.Globals.Should().BeEquivalentTo("global1", "global2");
+            });
+
+            var testSubject = CreateTestSubject(httpWrapper.Object, analysisConfiguration.Object);
+            await testSubject.InitLinter(rules);
+
+            httpWrapper.Verify(x => x.PostAsync("init-linter", It.IsAny<object>()), Times.Once);
+            httpWrapper.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
         public async Task AnalyzeJs_HttpWrapperCalledWithCorrectArguments()
         {
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            httpWrapper
-                .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>()))
-                .ReturnsAsync((string)null);
+            var httpWrapper = SetupHttpWrapper("analyze-js", assertReceivedRequest: receivedRequest =>
+            {
+                var analysisRequest = receivedRequest as AnalysisRequest;
+                analysisRequest.Should().NotBeNull();
+                analysisRequest.IgnoreHeaderComments.Should().BeTrue();
+                analysisRequest.FilePath.Should().Be("some path");
+                analysisRequest.TSConfigFilePaths.Should().BeEmpty();
+            });
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
             await testSubject.AnalyzeJs("some path");
 
-            httpWrapper.Verify(x => x.PostAsync("analyze-js",
-                    It.Is((AnalysisRequest req) =>
-                        req.IgnoreHeaderComments &&
-                        req.FilePath == "some path" &&
-                        req.TSConfigFilePaths.Length == 0)),
-                Times.Once);
-
+            httpWrapper.Verify(x => x.PostAsync("analyze-js", It.IsAny<object>()), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         public async Task AnalyzeJs_NullResponse_Null()
         {
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            httpWrapper
-                .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>()))
-                .ReturnsAsync((string) null);
-
+            var httpWrapper = SetupHttpWrapper("analyze-js", response: null);
             var testSubject = CreateTestSubject(httpWrapper.Object);
             var result = await testSubject.AnalyzeJs("some path");
 
@@ -73,12 +102,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         public async Task AnalyzeJs_HasResponse_DeserializedResponse()
         {
             var analysisResponse = new AnalysisResponse {Issues = new[] {new Issue {Column = 1, EndColumn = 2}}};
-
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            httpWrapper
-                .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>()))
-                .ReturnsAsync(JsonConvert.SerializeObject(analysisResponse));
-
+            var httpWrapper = SetupHttpWrapper("analyze-js", JsonConvert.SerializeObject(analysisResponse));
             var testSubject = CreateTestSubject(httpWrapper.Object);
             var result = await testSubject.AnalyzeJs("some path");
 
@@ -95,7 +119,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(httpWrapper.Object, logger);
+            var testSubject = CreateTestSubject(httpWrapper.Object, logger: logger);
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path");
             act.Should().NotThrow();
 
@@ -112,7 +136,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             var logger = new TestLogger();
 
-            var testSubject = CreateTestSubject(httpWrapper.Object, logger);
+            var testSubject = CreateTestSubject(httpWrapper.Object, logger: logger);
 
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path");
             act.Should().ThrowExactly<StackOverflowException>();
@@ -131,11 +155,26 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             httpWrapper.VerifyNoOtherCalls();
         }
 
-        private TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null, ILogger logger = null)
+        private TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null, 
+            IAnalysisConfiguration analysisConfiguration = null,
+            ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
+            analysisConfiguration ??= Mock.Of<IAnalysisConfiguration>();
 
-            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, logger);
+            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, analysisConfiguration, logger);
+        }
+
+        private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = null, Action<object> assertReceivedRequest = null)
+        {
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+
+            httpWrapper
+                .Setup(x => x.PostAsync(endpoint, It.IsAny<object>()))
+                .Callback((string endpoint, object data) => assertReceivedRequest?.Invoke(data))
+                .ReturnsAsync(response);
+
+            return httpWrapper;
         }
     }
 }
