@@ -20,6 +20,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -76,13 +77,13 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
             catch (AggregateException ex) 
             {
-                var exceptions = string.Join(Environment.NewLine, ex.InnerExceptions);
+                var exceptions = string.Join(Environment.NewLine, ex.InnerExceptions.Select(x=> x.Message));
                 logger.WriteLine(Resources.ERR_RequestFailure, serverEndpoint, exceptions);
                 return null;
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.ERR_RequestFailure, serverEndpoint, ex);
+                logger.WriteLine(Resources.ERR_RequestFailure, serverEndpoint, ex.Message);
                 return null;
             }
         }

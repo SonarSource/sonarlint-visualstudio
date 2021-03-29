@@ -5,7 +5,6 @@
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
   </PropertyGroup>
   <Import Project="..\SonarLint.VSSpecificAssemblies.props" />
-  <Import Project="..\EmbeddedSonarAnalyzer.props" />
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -68,6 +67,14 @@
     <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="9.0.4" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
     
+  </ItemGroup>
+
+  <!-- Only need to reference the analyzer common assembly for testing. -->
+  <Import Project="..\EmbeddedSonarAnalyzer.props" />
+  <ItemGroup Label="Embedded SonarLint analyzers">
+    <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
+    <Reference Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.dll" />
   </ItemGroup>
 
   <ItemGroup Label="Test framework">

@@ -54,6 +54,20 @@
   <!-- Need to reference the Sonar Roslyn analyzers: we need to reference one of the assmblies,
        and embed all of them in the VSIX. -->
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
+  <ItemGroup Label="Embedded SonarLint analyzers">
+    <!-- Reference the packages we want to import, but we don't want to include them as analyzers for project -->
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
+
+    <!-- Select all of the analyzer binaries (we assume that the package restore has happened so the files are already on disc) -->
+    <SonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+    <SonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+
+    <Reference Include="@(SonarAnalyzerAssemblies)" />
+    <!-- need to reference the common SonarAnalyzer.dll assembly directly -> no harm in referencing them all -->
+    <VSIXSourceItem Include="@(SonarAnalyzerAssemblies)" />
+    <!-- ensure the binaries are embedded in the VSIX-->
+  </ItemGroup>
 
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
@@ -114,7 +128,10 @@
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
     <PackageReference Include="System.Reflection.Metadata" Version="1.2.0" />
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.3.2099" />
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
 
     <!-- The VSIX signing package is only required for signed builds, but the use of package.lock.json
          files means it's simpler to always include it so the contents of the lock file don't change for
@@ -154,6 +171,13 @@
       <Name>IssueViz</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3bPkgdefProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
+    </ProjectReference>
+    <ProjectReference Include="..\EmbeddedVsix\EmbeddedVsix.csproj">
+      <Name>EmbeddedVsix</Name>
+      <Project>{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}</Project>
+      <VSIXSubPath>EmbeddedVsix</VSIXSubPath>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\Progress\Progress.csproj">
       <Project>{140a6fe4-c8f7-4af7-b4c8-eeeae4e0b1a4}</Project>
