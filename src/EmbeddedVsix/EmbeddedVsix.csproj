@@ -1,11 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <RequiresSigning>true</RequiresSigning>
+  </PropertyGroup>
+
   <PropertyGroup>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -32,7 +38,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -40,10 +46,20 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  
+  <!-- ***************************************************************** -->
+  <!--    Do not add any project references to this project              -->
+  <!--                                                                   -->
+  <!-- This project should only need to be rebuilt when the embedded     -->
+  <!-- plugin version(s) changed, which happens once per sprint at most. -->
+  <!-- Adding a reference to another project in the solution will cause  -->
+  <!-- it to be built much more frequently.                              -->
+  <!-- ***************************************************************** -->
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
@@ -56,7 +72,9 @@
     <Content Include="ReadMe.txt" />
    <Compile Include="InternalsVisibleTo.cs" />
    <Compile Include="TypeScriptPathsProvider.cs" /> 
- </ItemGroup>
+  </ItemGroup>
+ 
+ 
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
   <!-- ********************************************************** -->
   <!-- SonarJS plugin handling -->
@@ -112,6 +130,7 @@
       </Content>
     </ItemGroup>
   </Target>
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>
