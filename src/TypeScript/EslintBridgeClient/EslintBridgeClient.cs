@@ -37,6 +37,10 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         Task<AnalysisResponse> AnalyzeJs(string filePath);
     }
 
+    /// <summary>
+    /// Matching Java implementation: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/JavaScriptEslintBasedSensor.java#L51
+    /// Eslint-bridge methods: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/eslint-bridge/src/server.ts
+    /// </summary>
     [Export(typeof(IEslintBridgeClient))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class EslintBridgeClient : IEslintBridgeClient

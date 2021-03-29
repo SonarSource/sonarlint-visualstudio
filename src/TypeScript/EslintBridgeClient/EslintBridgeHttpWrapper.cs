@@ -65,8 +65,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 logger.LogDebug(Resources.INFO_RequestDetails, serverEndpoint, serializedRequest);
 
                 var port = await eslintBridgeStartUp.Start();
-                logger.LogDebug(Resources.INFO_ServerStarted, port);
-
                 var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
                 var response = await httpClient.PostAsync($"http://localhost:{port}/{serverEndpoint}", content);
                 var responseString = await response.Content.ReadAsStringAsync();

@@ -131,6 +131,12 @@
     <value>[eslint-bridge] Endpoint: {0}, response:
 {1}</value>
   </data>
+  <data name="INFO_ServerHasExisted" xml:space="preserve">
+    <value>[eslint-bridge] Server process HasExited:</value>
+  </data>
+  <data name="INFO_ServerProcessId" xml:space="preserve">
+    <value>[eslint-bridge] Started eslint-bridge server. Process id:</value>
+  </data>
   <data name="INFO_ServerStarted" xml:space="preserve">
     <value>[eslint-bridge] Server running on port: {0}</value>
   </data>

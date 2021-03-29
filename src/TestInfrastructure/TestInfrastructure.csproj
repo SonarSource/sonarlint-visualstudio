@@ -14,6 +14,8 @@
     <ProjectGuid>{FBD8024A-9795-4E5B-938E-AFE44FCA240C}</ProjectGuid>
 
     <SonarQubeTestProject>true</SonarQubeTestProject>
+
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
   <ItemGroup Label="References">
