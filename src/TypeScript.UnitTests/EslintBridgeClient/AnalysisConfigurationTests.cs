@@ -32,6 +32,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void GetGlobals_NoEnvVar_ReturnsDefaults()
         {
+            using var environmentsScope = new EnvironmentVariableScope();
+            environmentsScope.SetVariable(AnalysisConfiguration.GlobalsVarName, null);
+
             var testSubject = CreateTestSubject();
             var result = testSubject.GetGlobals();
 
@@ -53,6 +56,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void GetEnvironments_NoEnvVar_ReturnsDefaults()
         {
+            using var environmentsScope = new EnvironmentVariableScope();
+            environmentsScope.SetVariable(AnalysisConfiguration.EnvironmentsVarName, null);
+
             var testSubject = CreateTestSubject();
             var result = testSubject.GetEnvironments();
 
