@@ -23,7 +23,7 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
 {
-    public class AnalysisResponse
+    internal class AnalysisResponse
     {
         // Other fields omitted
         // i.e. Hightlight[], HighlightedSymbol[], Metrics, CpdToken[]
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
         public ParsingError ParsingError { get; set; }
     }
 
-    public class ParsingError
+    internal class ParsingError
     {
         [JsonProperty("line")]
         public int Line { get; set; }
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
         public ParsingErrorCode Code { get; set; }
     }
 
-    public enum ParsingErrorCode
+    internal enum ParsingErrorCode
     {
         PARSING,
         MISSING_TYPESCRIPT,
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
         GENERAL_ERROR
     }
 
-    public class Issue
+    internal class Issue
     {
         [JsonProperty("line")]
         public int Line { get; set; }
@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
         public int? Cost { get; set; }
     }
 
-    public class IssueLocation
+    internal class IssueLocation
     {
         [JsonProperty("line")]
         public int Line { get; set; }
