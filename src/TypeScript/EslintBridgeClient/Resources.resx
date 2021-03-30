@@ -135,10 +135,10 @@
     <value>[eslint-bridge] EslintBridge process has already been terminated.</value>
   </data>
   <data name="INFO_ServerHasExisted" xml:space="preserve">
-    <value>[eslint-bridge] Server process HasExited:</value>
+    <value>[eslint-bridge] Server process HasExited: {0}</value>
   </data>
   <data name="INFO_ServerProcessId" xml:space="preserve">
-    <value>[eslint-bridge] Started eslint-bridge server. Process id:</value>
+    <value>[eslint-bridge] Started eslint-bridge server. Process id: {0}</value>
   </data>
   <data name="INFO_ServerStarted" xml:space="preserve">
     <value>[eslint-bridge] Server running on port: {0}</value>

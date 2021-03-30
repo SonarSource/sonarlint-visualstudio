@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] Server process HasExited:.
+        ///   Looks up a localized string similar to [eslint-bridge] Server process HasExited: {0}.
         /// </summary>
         internal static string INFO_ServerHasExisted {
             get {
@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] Started eslint-bridge server. Process id:.
+        ///   Looks up a localized string similar to [eslint-bridge] Started eslint-bridge server. Process id: {0}.
         /// </summary>
         internal static string INFO_ServerProcessId {
             get {
