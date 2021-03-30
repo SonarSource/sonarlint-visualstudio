@@ -33,14 +33,14 @@ using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
     [TestClass]
-    public class EslintBridgeStartUpTests
+    public class EslintBridgeProcessTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeStartUp, IEslintBridgeStartUp>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeProcess, IEslintBridgeProcess>(null, new[]
             {
-                MefTestHelpers.CreateExport<string>("some path", EslintBridgeStartUp.EslintBridgeDirectoryMefContractName),
+                MefTestHelpers.CreateExport<string>("some path", EslintBridgeProcess.EslintBridgeDirectoryMefContractName),
                 MefTestHelpers.CreateExport<INodeLocator>(Mock.Of<INodeLocator>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
@@ -178,14 +178,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return nodeLocator;
         }
 
-        private EslintBridgeStartUp CreateTestSubject(string startupScriptPath = null, INodeLocator nodeLocator = null, IFileSystem fileSystem = null, ILogger logger = null)
+        private EslintBridgeProcess CreateTestSubject(string startupScriptPath = null, INodeLocator nodeLocator = null, IFileSystem fileSystem = null, ILogger logger = null)
         {
             startupScriptPath ??= "somefile.txt";
             nodeLocator ??= SetupNodeLocator("some path").Object;
             fileSystem ??= SetupStartupScriptFile(startupScriptPath, true).Object;
             logger ??= Mock.Of<ILogger>();
 
-            return new EslintBridgeStartUp(startupScriptPath, nodeLocator, fileSystem, logger);
+            return new EslintBridgeProcess(startupScriptPath, nodeLocator, fileSystem, logger);
         }
 
         private static Mock<IFileSystem> SetupStartupScriptFile(string startupScriptPath, bool exists)

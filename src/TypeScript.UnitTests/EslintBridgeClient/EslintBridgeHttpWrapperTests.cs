@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             MefTestHelpers.CheckTypeCanBeImported<EslintBridgeHttpWrapper, IEslintBridgeHttpWrapper>(null, new []
             {
-                MefTestHelpers.CreateExport<IEslintBridgeStartUp>(Mock.Of<IEslintBridgeStartUp>()),
+                MefTestHelpers.CreateExport<IEslintBridgeProcess>(Mock.Of<IEslintBridgeProcess>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -51,13 +51,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task PostAsync_AlwaysStartsEslintBridgeServer()
         {
-            var startUp = SetupServerStartUp();
-            var testSubject = CreateTestSubject(startUp.Object);
+            var serverProcess = SetupServerProcess();
+            var testSubject = CreateTestSubject(serverProcess.Object);
 
             await testSubject.PostAsync("some-url", null, CancellationToken.None);
 
-            startUp.Verify(x=> x.Start(), Times.Once);
-            startUp.VerifyNoOtherCalls();
+            serverProcess.Verify(x=> x.Start(), Times.Once);
+            serverProcess.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -70,8 +70,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 requestUri = message.RequestUri;
             });
 
-            var startUp = SetupServerStartUp(port: 1234);
-            var testSubject = CreateTestSubject(startUp.Object, httpMessageHandler);
+            var serverProcess = SetupServerProcess(port: 1234);
+            var testSubject = CreateTestSubject(serverProcess.Object, httpMessageHandler);
 
             await testSubject.PostAsync("some-url", null, CancellationToken.None);
 
@@ -149,10 +149,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task PostAsync_FailsToStartEslintBridgeServer_ExceptionCaughtAndLogged()
         {
-            var startUp = new Mock<IEslintBridgeStartUp>();
-            startUp.Setup(x => x.Start()).ThrowsAsync(new NotImplementedException("this is a test"));
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            serverProcess.Setup(x => x.Start()).ThrowsAsync(new NotImplementedException("this is a test"));
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(startUp.Object, logger: logger);
+            var testSubject = CreateTestSubject(serverProcess.Object, logger: logger);
 
             var response = await testSubject.PostAsync("some-url", null, CancellationToken.None);
             response.Should().BeNull();
@@ -175,8 +175,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task PostAsync_AggregateException_ExceptionCaughtAndLogged()
         {
-            var startUp = new Mock<IEslintBridgeStartUp>();
-            startUp.Setup(x => x.Start()).ThrowsAsync(new AggregateException(
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            serverProcess.Setup(x => x.Start()).ThrowsAsync(new AggregateException(
                 new List<Exception>
                 {
                     new ArgumentNullException("this is a test1"),
@@ -184,7 +184,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 }));
 
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(startUp.Object, logger: logger);
+            var testSubject = CreateTestSubject(serverProcess.Object, logger: logger);
 
             var response = await testSubject.PostAsync("some-url", null, CancellationToken.None);
             response.Should().BeNull();
@@ -195,10 +195,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task PostAsync_CriticalException_ExceptionNotCaught()
         {
-            var startUp = new Mock<IEslintBridgeStartUp>();
-            startUp.Setup(x => x.Start()).ThrowsAsync(new StackOverflowException());
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            serverProcess.Setup(x => x.Start()).ThrowsAsync(new StackOverflowException());
 
-            var testSubject = CreateTestSubject(startUp.Object);
+            var testSubject = CreateTestSubject(serverProcess.Object);
 
             Func<Task> act = async () => await testSubject.PostAsync("some-url", null, CancellationToken.None);
             await act.Should().ThrowAsync<StackOverflowException>();
@@ -207,13 +207,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void Dispose_ClosesTheServer()
         {
-            var startUp = new Mock<IEslintBridgeStartUp>();
-            var testSubject = CreateTestSubject(startUp.Object);
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            var testSubject = CreateTestSubject(serverProcess.Object);
 
             testSubject.Dispose();
 
-            startUp.Verify(x=> x.Dispose(), Times.Once);
-            startUp.VerifyNoOtherCalls();
+            serverProcess.Verify(x=> x.Dispose(), Times.Once);
+            serverProcess.VerifyNoOtherCalls();
         }
 
         private FakeHttpMessageHandler SetupHttpMessageHandler(string response, Action<HttpRequestMessage> assertReceivedMessage = null)
@@ -228,21 +228,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return httpMessageHandler;
         }
 
-        private Mock<IEslintBridgeStartUp> SetupServerStartUp(int port = 123)
+        private Mock<IEslintBridgeProcess> SetupServerProcess(int port = 123)
         {
-            var startUp = new Mock<IEslintBridgeStartUp>();
-            startUp.Setup(x => x.Start()).ReturnsAsync(port);
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            serverProcess.Setup(x => x.Start()).ReturnsAsync(port);
 
-            return startUp;
+            return serverProcess;
         }
 
-        private EslintBridgeHttpWrapper CreateTestSubject(IEslintBridgeStartUp startUp = null, HttpMessageHandler httpMessageHandler = null, ILogger logger = null)
+        private EslintBridgeHttpWrapper CreateTestSubject(IEslintBridgeProcess process = null, HttpMessageHandler httpMessageHandler = null, ILogger logger = null)
         {
-            startUp ??= SetupServerStartUp().Object;
+            process ??= SetupServerProcess().Object;
             httpMessageHandler ??= SetupHttpMessageHandler("some response");
             logger ??= Mock.Of<ILogger>();
 
-            return new EslintBridgeHttpWrapper(startUp, httpMessageHandler, logger);
+            return new EslintBridgeHttpWrapper(process, httpMessageHandler, logger);
         }
     }
 }

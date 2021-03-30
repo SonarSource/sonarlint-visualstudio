@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
-    internal interface IEslintBridgeStartUp : IDisposable
+    internal interface IEslintBridgeProcess : IDisposable
     {
         /// <summary>
         /// Ensures that the process is running. Returns the port that server is running on.
@@ -39,9 +39,9 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         Task<int> Start();
     }
 
-    [Export(typeof(IEslintBridgeStartUp))]
+    [Export(typeof(IEslintBridgeProcess))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class EslintBridgeStartUp : IEslintBridgeStartUp
+    internal sealed class EslintBridgeProcess : IEslintBridgeProcess
     {
         internal const string EslintBridgeDirectoryMefContractName = "SonarLint.TypeScript.EsLintBridgeServerPath";
         
@@ -54,14 +54,14 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         internal Process Process;
 
         [ImportingConstructor]
-        public EslintBridgeStartUp([Import(EslintBridgeDirectoryMefContractName)] string eslintBridgeStartupScriptPath,
+        public EslintBridgeProcess([Import(EslintBridgeDirectoryMefContractName)] string eslintBridgeStartupScriptPath,
             INodeLocator nodeLocator,
             ILogger logger)
             : this(eslintBridgeStartupScriptPath, nodeLocator, new FileSystem(), logger)
         {
         }
 
-        internal EslintBridgeStartUp(string eslintBridgeStartupScriptPath,
+        internal EslintBridgeProcess(string eslintBridgeStartupScriptPath,
             INodeLocator nodeLocator,
             IFileSystem fileSystem,
             ILogger logger)
