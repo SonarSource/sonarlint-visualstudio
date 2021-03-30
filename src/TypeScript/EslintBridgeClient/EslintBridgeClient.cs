@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -32,9 +33,9 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     internal interface IEslintBridgeClient : IDisposable
     {
-        Task InitLinter(IEnumerable<Rule> rules);
+        Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken);
 
-        Task<AnalysisResponse> AnalyzeJs(string filePath);
+        Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             this.logger = logger;
         }
 
-        public Task InitLinter(IEnumerable<Rule> rules)
+        public Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
         {
             var initLinterRequest = new InitLinterRequest
             {
@@ -73,10 +74,10 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Environments = analysisConfiguration.GetEnvironments()
             };
 
-            return httpWrapper.PostAsync("init-linter", initLinterRequest);
+            return httpWrapper.PostAsync("init-linter", initLinterRequest, cancellationToken);
         }
 
-        public async Task<AnalysisResponse> AnalyzeJs(string filePath)
+        public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
         {
             try
             {
@@ -87,7 +88,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                     TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
                 };
 
-                var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest);
+                var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
 
                 return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
             }
@@ -100,7 +101,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private Task Close()
         {
-            return httpWrapper.PostAsync("close");
+            return httpWrapper.PostAsync("close", null, CancellationToken.None);
         }
 
         public async void Dispose()
