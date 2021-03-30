@@ -1,11 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <RequiresSigning>true</RequiresSigning>
+  </PropertyGroup>
+
   <PropertyGroup>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -21,7 +27,7 @@
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <StartAction>Program</StartAction>
     <StartProgram Condition="'$(DevEnvDir)' != ''">$(DevEnvDir)devenv.exe</StartProgram>
@@ -32,7 +38,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -40,20 +46,35 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  
+  <!-- ***************************************************************** -->
+  <!--    Do not add any project references to this project              -->
+  <!--                                                                   -->
+  <!-- This project should only need to be rebuilt when the embedded     -->
+  <!-- plugin version(s) changed, which happens once per sprint at most. -->
+  <!-- Adding a reference to another project in the solution will cause  -->
+  <!-- it to be built much more frequently.                              -->
+  <!-- ***************************************************************** -->
+  
   <ItemGroup>
     <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <None Include="source.extension.vsixmanifest">
+   <Reference Include="System.ComponentModel.Composition" />
+   <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
     <Content Include="ReadMe.txt" />
+   <Compile Include="InternalsVisibleTo.cs" />
+   <Compile Include="TypeScriptPathsProvider.cs" /> 
   </ItemGroup>
+ 
+ 
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
   <!-- ********************************************************** -->
   <!-- SonarJS plugin handling -->
@@ -64,10 +85,10 @@
     <!-- Download url for the SonarJS plugin. Update this url to embed a new version of the plugin. -->
     <PluginUrl>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
     <TypeScriptFolderName>ts</TypeScriptFolderName>
-    
+	
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <TypeScriptTargetDirectory>$(MSBuildThisFileDirectory)$(TypeScriptFolderName)</TypeScriptTargetDirectory>
-    
+	
     <!-- Hook the target that fetches the additional files into to the build process. 
          This needs to be set after the SDK targets have been imported.
     -->
@@ -75,14 +96,14 @@
     <!-- By default the SDK targets only zip Release builds. We'll always zip since the file is very large otherwise. -->
     <ZipPackageCompressionLevel>Normal</ZipPackageCompressionLevel>
   </PropertyGroup>
-  
+
   <ItemGroup Label="GetTypScriptFiles inputs and outputs">
     <!-- Specifies the target inputs and outputs so MSBuild can skip fetching the files if the analyzer version has not changed. -->
     <AdditionalFilesInput Include="..\EmbeddedSonarAnalyzer.props" />
     <AdditionalFilesOutput Include="$(OutputPath)$(AssemblyName).vsix" />
   </ItemGroup>
-  
-  <Target Name="GetTypeScriptFiles" Inputs="@(AdditionalFilesInput)" Outputs="@(AdditionalFilesOutput)" >
+ 
+  <Target Name="GetTypeScriptFiles" Inputs="@(AdditionalFilesInput)" Outputs="@(AdditionalFilesOutput)">
     <Message Importance="high" Text="Fetching the TypeScript files..." />
     <!-- Note: building the helper project explicitly using MSBuild rather than referencing it via a ProjectReference.
          This makes is easier for us to control when the build is performed, so we can trigger it early enough
@@ -102,14 +123,14 @@
       -->
       <!-- Note (2): the file name has to be relative. The "Include" value is used to set the value of the "vsixSubPath" metadata item.
 			If this is an absolute path the VSSDK tools won't complain, but the file won't be included in the vsix. -->
-      <Content Include="$(TypeScriptFolderName)\**\*"
-               Exclude="$(TypeScriptFolderName)\**\*.map" >
+      <Content Include="$(TypeScriptFolderName)\**\*" Exclude="$(TypeScriptFolderName)\**\*.map">
         <CopyToOutputDirectory>Never</CopyToOutputDirectory>
         <IncludeInVSIX>True</IncludeInVSIX>
         <Visible>false</Visible>
       </Content>
     </ItemGroup>
   </Target>
+
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 </Project>
