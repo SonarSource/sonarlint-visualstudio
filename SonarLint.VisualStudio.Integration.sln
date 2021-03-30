@@ -104,7 +104,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EmbeddedVsix", "EmbeddedVsi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmbeddedVsix", "src\EmbeddedVsix\EmbeddedVsix.csproj", "{4BBE7B39-E00A-40FE-88FC-A53C7E49731F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbeddedVsix.UnitTests", "src\ExtendedVsix.UnitTests\EmbeddedVsix.UnitTests.csproj", "{BCE50F3E-7916-4D8A-902E-1B2CB202385F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EmbeddedVsix.UnitTests", "src\EmbeddedVsix.UnitTests\EmbeddedVsix.UnitTests.csproj", "{BCE50F3E-7916-4D8A-902E-1B2CB202385F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
