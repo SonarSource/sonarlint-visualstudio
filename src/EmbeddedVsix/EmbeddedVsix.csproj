@@ -90,7 +90,18 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /nodeReuse:false /t:Restore;Build;EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+	
+	<!-- Workaround for a locking issue; the download project assembly might still be locked
+	     by the Integration.Vsix project, if it hasn't finished running. However, the project has
+         already been built it doesn't matter if we can't build it again here. We just need to running
+         execute the "EmbedTypeScriptFiles" target afterwards.
+         If there really is a problem with being unable to build the download assembly then the callout
+         to EmbedTypeScriptFiles will fail anyway. -->
+    <Message Importance="high" Text="Ensuring the download task project has been built..." />
+	<Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:UseSharedCompilation=false /nodeReuse:false /t:Restore;Build" LogStandardErrorAsError="false" IgnoreExitCode="true" />
+
+    <Message Importance="high" Text="Executing EmbedTypeScriptFiles target..." />
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /nodeReuse:false /t:EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
     <ItemGroup>
       <!-- Note (1): vsixutil.exe will fail with an OutOfMemory error if there are too many files in the VSIX (the size of the files
                      doesn't matter, it's the number that counts.
