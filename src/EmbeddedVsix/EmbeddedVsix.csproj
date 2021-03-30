@@ -97,7 +97,7 @@
     <ZipPackageCompressionLevel>Normal</ZipPackageCompressionLevel>
   </PropertyGroup>
 
-  <ItemGroup Label="GetTypScriptFiles inputs and outputs">
+  <ItemGroup Label="GetTypeScriptFiles inputs and outputs">
     <!-- Specifies the target inputs and outputs so MSBuild can skip fetching the files if the analyzer version has not changed. -->
     <AdditionalFilesInput Include="..\EmbeddedSonarAnalyzer.props" />
     <AdditionalFilesOutput Include="$(OutputPath)$(AssemblyName).vsix" />
@@ -111,7 +111,9 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+	<!-- NB we are specifying an output path for the task assembly to avoid potentially file locking issues
+	     with the version of the same project used by Integration.Vsix.csproj when fetching the CFamily files -->
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles /p:OutputPath=bin\GetTypeScriptFiles\" LogStandardErrorAsError="true" IgnoreExitCode="false" />
     <ItemGroup>
       <!-- Note (1): vsixutil.exe will fail with an OutOfMemory error if there are too many files in the VSIX (the size of the files
                      doesn't matter, it's the number that counts.
