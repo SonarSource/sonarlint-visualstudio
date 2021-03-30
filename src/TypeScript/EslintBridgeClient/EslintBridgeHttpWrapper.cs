@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
@@ -33,7 +34,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     internal interface IEslintBridgeHttpWrapper : IDisposable
     {
-        Task<string> PostAsync(string serverEndpoint, object request = null);
+        Task<string> PostAsync(string serverEndpoint, object request, CancellationToken cancellationToken);
     }
 
     [Export(typeof(IEslintBridgeHttpWrapper))]
@@ -57,7 +58,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             httpClient = new HttpClient(httpHandler);
         }
 
-        public async Task<string> PostAsync(string serverEndpoint, object request = null)
+        public async Task<string> PostAsync(string serverEndpoint, object request, CancellationToken cancellationToken)
         {
             try
             {
@@ -68,7 +69,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 logger.LogDebug(Resources.INFO_ServerStarted, port);
 
                 var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync($"http://localhost:{port}/{serverEndpoint}", content);
+                var response = await httpClient.PostAsync($"http://localhost:{port}/{serverEndpoint}", content, cancellationToken);
                 var responseString = await response.Content.ReadAsStringAsync();
 
                 logger.LogDebug(Resources.INFO_ResponseDetails, serverEndpoint, responseString);
