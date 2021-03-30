@@ -72,10 +72,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Start_ServerStarts_ReturnsPortNumber()
         {
-            var scriptPath = CreateScriptThatPrintsPortNumber(123);
-            var startupScriptPath = " "; // pass whitespace so it would not fail NullOrEmpty validation but also do nothing
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123);
+            var startupScriptPath = "dummy path";
 
-            var nodeLocator = SetupNodeLocator(scriptPath);
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
             var port = await testSubject.Start();
@@ -85,10 +85,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Start_TaskSucceeds_NextCallDoesNotStartAnotherServer()
         {
-            var scriptPath = CreateScriptThatPrintsPortNumber(123);
-            var startupScriptPath = " "; // pass whitespace so it would not fail NullOrEmpty validation but also do nothing
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123);
+            var startupScriptPath = "dummy path";
 
-            var nodeLocator = SetupNodeLocator(scriptPath);
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
             var port = await testSubject.Start();
@@ -103,13 +103,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Start_TaskFails_NextCallAttemptsAgain()
         {
-            var scriptPath = CreateScriptThatPrintsPortNumber(123);
-            var startupScriptPath = " "; // pass whitespace so it would not fail NullOrEmpty validation but also do nothing
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123);
+            var startupScriptPath = "dummy path";
 
             var nodeLocator = new Mock<INodeLocator>();
             nodeLocator.SetupSequence(x => x.Locate())
                 .Throws(new NotImplementedException("some exception"))
-                .Returns(scriptPath);
+                .Returns(fakeNodeExePath);
 
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
@@ -123,10 +123,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Dispose_KillsRunningProcess()
         {
-            var scriptPath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
-            var startupScriptPath = " "; // pass whitespace so it would not fail NullOrEmpty validation but also do nothing
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
 
-            var nodeLocator = SetupNodeLocator(scriptPath);
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
             await testSubject.Start();
@@ -152,10 +152,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task Dispose_ProcessAlreadyKilled_NoException()
         {
-            var scriptPath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
-            var startupScriptPath = " "; // pass whitespace so it would not fail NullOrEmpty validation but also do nothing
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
 
-            var nodeLocator = SetupNodeLocator(scriptPath);
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
             await testSubject.Start();

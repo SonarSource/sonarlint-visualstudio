@@ -99,6 +99,15 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] EslintBridge process has already been terminated..
+        /// </summary>
+        internal static string INFO_ServerAlreadyTerminated {
+            get {
+                return ResourceManager.GetString("INFO_ServerAlreadyTerminated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [eslint-bridge] Server process HasExited:.
         /// </summary>
         internal static string INFO_ServerHasExisted {
@@ -122,6 +131,24 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         internal static string INFO_ServerStarted {
             get {
                 return ResourceManager.GetString("INFO_ServerStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] EslintBridge process terminated..
+        /// </summary>
+        internal static string INFO_ServerTerminated {
+            get {
+                return ResourceManager.GetString("INFO_ServerTerminated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] Terminating EslintBridge process....
+        /// </summary>
+        internal static string INFO_TerminatingServer {
+            get {
+                return ResourceManager.GetString("INFO_TerminatingServer", resourceCulture);
             }
         }
     }

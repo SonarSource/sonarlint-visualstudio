@@ -113,8 +113,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Arguments = serverStartupScriptLocation
             };
 
-            psi.EnvironmentVariables.Add("NODE_PATH", @"%APPDATA%\npm\node_modules");
-
             Process = new Process {StartInfo = psi};
             Process.ErrorDataReceived += OnErrorDataReceived;
             Process.OutputDataReceived += OnOutputDataReceived;
@@ -162,9 +160,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private void Stop()
         {
+            logger.LogDebug(Resources.INFO_TerminatingServer);
+
             if (Process == null || Process.HasExited)
             {
-                logger.LogDebug("Node process has already terminated");
+                logger.LogDebug(Resources.INFO_ServerAlreadyTerminated);
                 Process?.Dispose();
                 Process = null;
                 return;
@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             Process.Kill();
             Process?.Dispose();
-            logger.LogDebug("Node process killed");
+            logger.LogDebug(Resources.INFO_ServerTerminated);
             Process = null;
         }
 
