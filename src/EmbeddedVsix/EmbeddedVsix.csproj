@@ -90,7 +90,7 @@
          Also, we are using the "Exec" task to invoke MSBuild.exe rather the "MSBuild" task when building
          DownloadCFamilyPlugin.csproj to avoid getting file-locking errors when rebuilding.
     -->
-    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /t:Restore;Build;EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
+    <Exec Command="&quot;$(MSBuildBinPath)\msbuild.exe&quot; ..\..\build\DownloadCFamilyPlugin\DownloadCFamilyPlugin.csproj /p:PluginUrl=$(PluginUrl) /p:TargetDirectory=&quot;$(TypeScriptTargetDirectory)&quot; /p:UseSharedCompilation=false /nodeReuse:false /t:Restore;Build;EmbedTypeScriptFiles" LogStandardErrorAsError="true" IgnoreExitCode="false" />
     <ItemGroup>
       <!-- Note (1): vsixutil.exe will fail with an OutOfMemory error if there are too many files in the VSIX (the size of the files
                      doesn't matter, it's the number that counts.
