@@ -27,7 +27,7 @@ using Microsoft.Build.Utilities;
 namespace DownloadCFamilyPlugin
 {
     /// <summary>
-    /// Downloads the CFamily jar and extracts the files that need to be
+    /// Downloads the CFamily jar and extracts the CFamily files that need to be
     /// embedded in the SLVS vsix
     /// </summary>
     /// <remarks>
@@ -40,7 +40,7 @@ namespace DownloadCFamilyPlugin
     /// 
     /// Downloading and extracting the files can be slow so we want to skip those steps if possible.
     /// </remarks>
-    public class DownloadAndExtract: Task
+    public class DownloadAndExtractCFamily: Task
     {
         // The txz archive containing the subprocess.exe
         private const string WindowsTxzFilePattern = "clang*-win.txz";
