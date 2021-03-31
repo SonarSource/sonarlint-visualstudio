@@ -59,8 +59,7 @@ namespace DownloadCFamilyPlugin
         // List of patterns to match single files in the uncompressed output
         private readonly string[] SourceSingleFilePatterns = new string[]
         {
-                "Sonar_way_profile.json",
-                "Sonar_way_recommended_profile.json"
+                "sonarlint-metadata.json"
         };
 
         private readonly string SourceRelativePackageDirectory = TargetEslintBridgeFolderName + @"\package";
