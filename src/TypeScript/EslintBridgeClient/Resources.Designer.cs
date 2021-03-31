@@ -99,11 +99,56 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] EslintBridge process has already been terminated..
+        /// </summary>
+        internal static string INFO_ServerAlreadyTerminated {
+            get {
+                return ResourceManager.GetString("INFO_ServerAlreadyTerminated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] Server process HasExited: {0}.
+        /// </summary>
+        internal static string INFO_ServerHasExisted {
+            get {
+                return ResourceManager.GetString("INFO_ServerHasExisted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] Started eslint-bridge server. Process id: {0}.
+        /// </summary>
+        internal static string INFO_ServerProcessId {
+            get {
+                return ResourceManager.GetString("INFO_ServerProcessId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [eslint-bridge] Server running on port: {0}.
         /// </summary>
         internal static string INFO_ServerStarted {
             get {
                 return ResourceManager.GetString("INFO_ServerStarted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] EslintBridge process terminated..
+        /// </summary>
+        internal static string INFO_ServerTerminated {
+            get {
+                return ResourceManager.GetString("INFO_ServerTerminated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [eslint-bridge] Terminating EslintBridge process....
+        /// </summary>
+        internal static string INFO_TerminatingServer {
+            get {
+                return ResourceManager.GetString("INFO_TerminatingServer", resourceCulture);
             }
         }
     }

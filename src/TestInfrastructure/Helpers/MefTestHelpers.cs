@@ -29,9 +29,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     public static class MefTestHelpers
     {
-        public static Export CreateExport<T>(object exportInstance)
+        public static Export CreateExport<T>(object exportInstance, string contractName = null)
         {
-            return CreateExport<T>(exportInstance, new Dictionary<string, object>());
+            return CreateExport<T>(exportInstance, new Dictionary<string, object>(), contractName);
         }
 
         public static Export CreateExportWithMetadata<T>(object exportInstance, string metadataKey, string metadataValue)
@@ -42,12 +42,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             return CreateExport<T>(exportInstance, metadata);
         }
 
-        public static Export CreateExport<T>(object exportInstance, IDictionary<string, object> metadata)
+        public static Export CreateExport<T>(object exportInstance, IDictionary<string, object> metadata, string contractName = null)
         {
             // Add the required export ID so that MEF knows which contract it exports.
             metadata.Add("ExportTypeIdentity", AttributedModelServices.GetTypeIdentity(typeof(T)));
 
-            string contractName = AttributedModelServices.GetContractName(typeof(T));
+            contractName ??= AttributedModelServices.GetContractName(typeof(T));
             Export export = new Export(contractName, metadata, () => exportInstance);
 
             return export;

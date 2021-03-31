@@ -41,19 +41,19 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class EslintBridgeHttpWrapper : IEslintBridgeHttpWrapper
     {
-        private readonly IEslintBridgeStartUp eslintBridgeStartUp;
+        private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly ILogger logger;
         private readonly HttpClient httpClient;
 
         [ImportingConstructor]
-        public EslintBridgeHttpWrapper(IEslintBridgeStartUp eslintBridgeStartUp, ILogger logger)
-            : this(eslintBridgeStartUp, new HttpClientHandler(), logger)
+        public EslintBridgeHttpWrapper(IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
+            : this(eslintBridgeProcess, new HttpClientHandler(), logger)
         {
         }
 
-        internal EslintBridgeHttpWrapper(IEslintBridgeStartUp eslintBridgeStartUp, HttpMessageHandler httpHandler, ILogger logger)
+        internal EslintBridgeHttpWrapper(IEslintBridgeProcess eslintBridgeProcess, HttpMessageHandler httpHandler, ILogger logger)
         {
-            this.eslintBridgeStartUp = eslintBridgeStartUp;
+            this.eslintBridgeProcess = eslintBridgeProcess;
             this.logger = logger;
             httpClient = new HttpClient(httpHandler);
         }
@@ -65,9 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 var serializedRequest = request == null ? string.Empty : JsonConvert.SerializeObject(request, Formatting.Indented);
                 logger.LogDebug(Resources.INFO_RequestDetails, serverEndpoint, serializedRequest);
 
-                var port = await eslintBridgeStartUp.Start();
-                logger.LogDebug(Resources.INFO_ServerStarted, port);
-
+                var port = await eslintBridgeProcess.Start();
                 var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
                 var response = await httpClient.PostAsync($"http://localhost:{port}/{serverEndpoint}", content, cancellationToken);
                 var responseString = await response.Content.ReadAsStringAsync();
@@ -91,7 +89,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public void Dispose()
         {
-            eslintBridgeStartUp?.Dispose();
+            eslintBridgeProcess?.Dispose();
             httpClient?.Dispose();
         }
     }
