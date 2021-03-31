@@ -131,7 +131,22 @@
     <value>[eslint-bridge] Endpoint: {0}, response:
 {1}</value>
   </data>
+  <data name="INFO_ServerAlreadyTerminated" xml:space="preserve">
+    <value>[eslint-bridge] EslintBridge process has already been terminated.</value>
+  </data>
+  <data name="INFO_ServerHasExisted" xml:space="preserve">
+    <value>[eslint-bridge] Server process HasExited: {0}</value>
+  </data>
+  <data name="INFO_ServerProcessId" xml:space="preserve">
+    <value>[eslint-bridge] Started eslint-bridge server. Process id: {0}</value>
+  </data>
   <data name="INFO_ServerStarted" xml:space="preserve">
     <value>[eslint-bridge] Server running on port: {0}</value>
+  </data>
+  <data name="INFO_ServerTerminated" xml:space="preserve">
+    <value>[eslint-bridge] EslintBridge process terminated.</value>
+  </data>
+  <data name="INFO_TerminatingServer" xml:space="preserve">
+    <value>[eslint-bridge] Terminating EslintBridge process...</value>
   </data>
 </root>
