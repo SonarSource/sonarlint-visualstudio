@@ -18,9 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
-using System.ComponentModel.Composition.Primitives;
 using System.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,27 +30,23 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
     public class TypeScriptPathsProviderTests
     {
         [TestMethod]
-        public void EsLintBridgeServerPath_IsExportedByContractName()
+        [DataRow("SonarLint.TypeScript.EsLintBridgeServerPath", @"\ts\bin\server")]
+        [DataRow("SonarLint.TypeScript.TypeScriptRulesMetadataFilePath", @"\ts\sonarlint-metadata.json")]
+        public void ExportPathByContractName_ReturnsExpectedValue(string contractName, string expectedEnding)
         {
-            var catalog = new TypeCatalog(typeof(TypeScriptPathsProvider), typeof(TestPathImporter));
-            var importer = new SingleObjectImporter<TestPathImporter>();
+            using var scope = new AssertIgnoreScope();
 
-            CompositionBatch batch = new CompositionBatch();
-            batch.AddPart(importer);
-            using (CompositionContainer container = new CompositionContainer(catalog))
-            {
-                container.Compose(batch);
-            }
+            var exportedValue = GetExportedString(contractName);
 
-            importer.Import.EsLintBridgeServerPath.Should().EndWith(@"ts\bin\server");
-            Path.IsPathRooted(importer.Import.EsLintBridgeServerPath).Should().BeTrue();
+            exportedValue.Should().EndWith(expectedEnding);
+            Path.IsPathRooted(exportedValue).Should().BeTrue();
         }
-    }
 
-    [Export]
-    internal class TestPathImporter
-    {
-        [Import("SonarLint.TypeScript.EsLintBridgeServerPath")]
-        public string EsLintBridgeServerPath { get; set; }
+        private static string GetExportedString(string contractName)
+        {
+            var catalog = new TypeCatalog(typeof(TypeScriptPathsProvider));
+            using var container = new CompositionContainer(catalog);
+            return container.GetExportedValue<string>(contractName);
+        }
     }
 }
