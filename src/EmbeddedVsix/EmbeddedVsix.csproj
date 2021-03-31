@@ -86,6 +86,10 @@
     <PluginUrl>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
     <TypeScriptFolderName>ts</TypeScriptFolderName>
 	
+	<!-- TODO - delete the following property once the new version of the SonarJS plugin has been released. See #2270 -->
+	<PluginUrl>https://repox.jfrog.io/artifactory/sonarsource-public-dev/org/sonarsource/javascript/sonar-javascript-plugin/7.4.0.15103/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
+	
+	
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <TypeScriptTargetDirectory>$(MSBuildThisFileDirectory)$(TypeScriptFolderName)</TypeScriptTargetDirectory>
 	
