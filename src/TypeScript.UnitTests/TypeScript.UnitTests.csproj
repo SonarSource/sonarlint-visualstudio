@@ -27,4 +27,10 @@
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Rules\SampleRuleMetadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
