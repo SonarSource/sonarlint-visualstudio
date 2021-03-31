@@ -19,6 +19,7 @@
  */
 
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 
 // NOTE: don't directly export this class.
@@ -33,8 +34,19 @@ namespace SonarLint.VisualStudio.AdditionalFiles
     internal class TypeScriptPathsProvider
     {
         [Export("SonarLint.TypeScript.EsLintBridgeServerPath")]
-        public string EsLintBridgeServerPath => Path.Combine(ExtensionFolderPath, "ts", "bin", "server");
+        public string EsLintBridgeServerPath => GetInstallationPath("ts", "bin", "server");
 
-        private string ExtensionFolderPath => System.IO.Path.GetDirectoryName(typeof(TypeScriptPathsProvider).Assembly.Location);
+        [Export("SonarLint.TypeScript.TypeScriptRulesMetadataFilePath")]
+        public string TypeScriptRulesMetadataFilePath => GetInstallationPath("ts", "sonarlint-metadata.json");
+
+        private static string GetInstallationPath(params string[] paths)
+        {
+            var subPath = Path.Combine(paths);
+            var fullPath = Path.Combine(ExtensionFolderPath, subPath);
+            Debug.Assert(File.Exists(fullPath), @"Could not find embedded file. Expected location: {fullPath}");
+            return fullPath;
+        }
+
+        private static string ExtensionFolderPath => Path.GetDirectoryName(typeof(TypeScriptPathsProvider).Assembly.Location);
     }
 }
