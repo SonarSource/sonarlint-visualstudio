@@ -79,24 +79,16 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
         {
-            try
+            var analysisRequest = new AnalysisRequest
             {
-                var analysisRequest = new AnalysisRequest
-                {
-                    FilePath = filePath,
-                    IgnoreHeaderComments = true,
-                    TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
-                };
+                FilePath = filePath,
+                IgnoreHeaderComments = true,
+                TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
+            };
 
-                var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
+            var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
 
-                return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Resources.ERR_AnalyzeJsFailure, filePath, ex);
-                return null;
-            }
+            return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
 
         private Task Close()

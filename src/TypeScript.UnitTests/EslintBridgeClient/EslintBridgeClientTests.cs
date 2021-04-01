@@ -115,20 +115,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void AnalyzeJs_FailsToDeserializedResponse_ExceptionCaughtAndLogged()
+        public void AnalyzeJs_FailsToDeserializedResponse_ExceptionThrown()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
                 .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("invalid json");
 
-            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(httpWrapper.Object);
 
-            var testSubject = CreateTestSubject(httpWrapper.Object, logger: logger);
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
-            act.Should().NotThrow();
-
-            logger.AssertPartialOutputStringExists("JsonReaderException");
+            act.Should().ThrowExactly<JsonReaderException>();
         }
 
         [TestMethod]
