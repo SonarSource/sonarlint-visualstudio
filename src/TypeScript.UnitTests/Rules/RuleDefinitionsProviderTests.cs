@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             tsRuleKeys.Should().BeEquivalentTo("typescript:S2092", "typescript:S3524", "TypeSCRIPT:S1135");
 
-            // 2. TypeScript
+            // 2. JavaScript
             var jsProvider = (IJavaScriptRuleDefinitionsProvider)testSubject;
             var jsRuleKeys = jsProvider.GetDefinitions()
                 .Select(x => x.RuleKey);
