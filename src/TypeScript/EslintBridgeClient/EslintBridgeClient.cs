@@ -25,8 +25,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
@@ -48,21 +46,17 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     {
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
-        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, ILogger logger)
-            : this(httpWrapper, new AnalysisConfiguration(), logger)
+        public EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper)
+            : this(httpWrapper, new AnalysisConfiguration())
         {
         }
 
-        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, 
-            IAnalysisConfiguration analysisConfiguration,
-            ILogger logger)
+        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, IAnalysisConfiguration analysisConfiguration)
         {
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
-            this.logger = logger;
         }
 
         public Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken)
@@ -79,24 +73,16 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
         {
-            try
+            var analysisRequest = new AnalysisRequest
             {
-                var analysisRequest = new AnalysisRequest
-                {
-                    FilePath = filePath,
-                    IgnoreHeaderComments = true,
-                    TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
-                };
+                FilePath = filePath,
+                IgnoreHeaderComments = true,
+                TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
+            };
 
-                var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
+            var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
 
-                return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Resources.ERR_AnalyzeJsFailure, filePath, ex);
-                return null;
-            }
+            return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
 
         private Task Close()

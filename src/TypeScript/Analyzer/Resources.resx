@@ -117,33 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ERR_RequestFailure" xml:space="preserve">
-    <value>[eslint-bridge] Failed to execute request to '{0}': {1}</value>
+  <data name="ERR_AnalysisFailure" xml:space="preserve">
+    <value>Failed to analyze file '{0}': {1}</value>
   </data>
-  <data name="INFO_RequestDetails" xml:space="preserve">
-    <value>[eslint-bridge] Endpoint: {0}, request: 
-{1}</value>
+  <data name="ERR_ParsingError_General" xml:space="preserve">
+    <value>Failed to parse file '{0}' at line {1}: {2} {3}</value>
   </data>
-  <data name="INFO_ResponseDetails" xml:space="preserve">
-    <value>[eslint-bridge] Endpoint: {0}, response:
-{1}</value>
+  <data name="ERR_ParsingError_MissingTypescript" xml:space="preserve">
+    <value>TypeScript dependency was not found and it is required for analysis.</value>
   </data>
-  <data name="INFO_ServerAlreadyTerminated" xml:space="preserve">
-    <value>[eslint-bridge] EslintBridge process has already been terminated.</value>
-  </data>
-  <data name="INFO_ServerHasExisted" xml:space="preserve">
-    <value>[eslint-bridge] Server process HasExited: {0}</value>
-  </data>
-  <data name="INFO_ServerProcessId" xml:space="preserve">
-    <value>[eslint-bridge] Started eslint-bridge server. Process id: {0}</value>
-  </data>
-  <data name="INFO_ServerStarted" xml:space="preserve">
-    <value>[eslint-bridge] Server running on port: {0}</value>
-  </data>
-  <data name="INFO_ServerTerminated" xml:space="preserve">
-    <value>[eslint-bridge] EslintBridge process terminated.</value>
-  </data>
-  <data name="INFO_TerminatingServer" xml:space="preserve">
-    <value>[eslint-bridge] Terminating EslintBridge process...</value>
+  <data name="ERR_ParsingError_UnsupportedTypescript" xml:space="preserve">
+    <value>If it's not possible to upgrade version of TypeScript used by the project, consider installing supported TypeScript version just for the time of analysis.</value>
   </data>
 </root>

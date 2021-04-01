@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] Failed to run JS analysis on &apos;{0}&apos;: {1}.
-        /// </summary>
-        internal static string ERR_AnalyzeJsFailure {
-            get {
-                return ResourceManager.GetString("ERR_AnalyzeJsFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [eslint-bridge] Failed to execute request to &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ERR_RequestFailure {
