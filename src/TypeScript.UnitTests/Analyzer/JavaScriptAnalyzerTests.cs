@@ -109,7 +109,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        internal async Task ExecuteAnalysis_ResponseWithParsingError_MissingTypescript_ParsingErrorLogged()
+        public async Task ExecuteAnalysis_ResponseWithParsingError_MissingTypescript_ParsingErrorLogged()
         {
             var logger = new TestLogger();
 
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        internal async Task ExecuteAnalysis_ResponseWithParsingError_UnsupportedTypescript_ParsingErrorLogged()
+        public async Task ExecuteAnalysis_ResponseWithParsingError_UnsupportedTypescript_ParsingErrorLogged()
         {
             var logger = new TestLogger();
 
@@ -147,13 +147,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [DataRow(ParsingErrorCode.GENERAL_ERROR)]
         [DataRow(ParsingErrorCode.PARSING)]
         [DataRow((ParsingErrorCode)1234)]
-        internal async Task ExecuteAnalysis_ResponseWithParsingError_ParsingErrorLogged(ParsingErrorCode errorCode)
+        public async Task ExecuteAnalysis_ResponseWithParsingError_ParsingErrorLogged(int errorCode)
         {
             var logger = new TestLogger();
 
             var parsingError = new ParsingError
             {
-                Code = errorCode,
+                Code = (ParsingErrorCode)errorCode,
                 Line = 5,
                 Message = "some message"
             };

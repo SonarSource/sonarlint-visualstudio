@@ -40,8 +40,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             MefTestHelpers.CheckTypeCanBeImported<TypeScript.EslintBridgeClient.EslintBridgeClient, IEslintBridgeClient>(null, new[]
             {
-                MefTestHelpers.CreateExport<IEslintBridgeHttpWrapper>(Mock.Of<IEslintBridgeHttpWrapper>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+                MefTestHelpers.CreateExport<IEslintBridgeHttpWrapper>(Mock.Of<IEslintBridgeHttpWrapper>())
             });
         }
 
@@ -136,9 +135,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new StackOverflowException());
 
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(httpWrapper.Object, logger: logger);
+            var testSubject = CreateTestSubject(httpWrapper.Object);
 
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
             act.Should().ThrowExactly<StackOverflowException>();
@@ -158,13 +155,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         private TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null, 
-            IAnalysisConfiguration analysisConfiguration = null,
-            ILogger logger = null)
+            IAnalysisConfiguration analysisConfiguration = null)
         {
-            logger ??= Mock.Of<ILogger>();
             analysisConfiguration ??= Mock.Of<IAnalysisConfiguration>();
 
-            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, analysisConfiguration, logger);
+            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, analysisConfiguration);
         }
 
         private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = null, Action<object> assertReceivedRequest = null)
