@@ -26,8 +26,6 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
-    // TODO: same or different file for JS rules?
-
     internal interface IRuleDefinitionProvider
     {
         /// <summary>
@@ -40,17 +38,20 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class RuleDefinitionProvider : IRuleDefinitionProvider
     {
-        internal const string TypeScriptMetadataFilePathContractName = "SonarLint.TypeScript.TypeScriptRulesMetadataFilePath";
+        // Note: the file contains rules for both JavaScript and TypeScript rules
+        internal const string RuleDefinitionsFilePathContractName = "SonarLint.TypeScript.RuleDefinitionsFilePath";
 
         private readonly IReadOnlyCollection<RuleDefinition> rules;
 
         [ImportingConstructor]
-        public RuleDefinitionProvider([Import(TypeScriptMetadataFilePathContractName)] string typeScriptMetadataFilePath)
-            => rules = Load(typeScriptMetadataFilePath).AsReadOnly();
+        public RuleDefinitionProvider([Import(RuleDefinitionsFilePathContractName)] string typeScriptMetadataFilePath)
+        {
+            rules = Load(typeScriptMetadataFilePath).AsReadOnly();
+        }
 
         public IEnumerable<RuleDefinition> GetAllRules() => rules;
 
-        internal static List<RuleDefinition> Load(string filePath) =>
+        private static List<RuleDefinition> Load(string filePath) =>
             JsonConvert.DeserializeObject<List<RuleDefinition>>(File.ReadAllText(filePath, Encoding.UTF8));
     }
 }

@@ -19,6 +19,7 @@
  */
 
 using System.IO;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             MefTestHelpers.CheckTypeCanBeImported<RuleDefinitionProvider, IRuleDefinitionProvider>(null, new[]
             {
-                MefTestHelpers.CreateExport<string>(jsonFilePath, RuleDefinitionProvider.TypeScriptMetadataFilePathContractName)
+                MefTestHelpers.CreateExport<string>(jsonFilePath, RuleDefinitionProvider.RuleDefinitionsFilePathContractName)
             });
         }
 
@@ -45,7 +46,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetValidMetadataFilePath();
 
-            var result = RuleDefinitionProvider.Load(jsonFilePath).ToArray();
+            var testSubject = new RuleDefinitionProvider(jsonFilePath);
+            var result = testSubject.GetAllRules().ToArray();
 
             result.Should().HaveCount(2);
 

@@ -36,8 +36,8 @@ namespace SonarLint.VisualStudio.AdditionalFiles
         [Export("SonarLint.TypeScript.EsLintBridgeServerPath")]
         public string EsLintBridgeServerPath => GetInstallationPath("ts", "bin", "server");
 
-        [Export("SonarLint.TypeScript.TypeScriptRulesMetadataFilePath")]
-        public string TypeScriptRulesMetadataFilePath => GetInstallationPath("ts", "sonarlint-metadata.json");
+        [Export("SonarLint.TypeScript.RuleDefinitionsFilePath")]
+        public string RuleMetadataFilePath => GetInstallationPath("ts", "sonarlint-metadata.json");
 
         private static string GetInstallationPath(params string[] paths)
         {

@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
     {
         [TestMethod]
         [DataRow("SonarLint.TypeScript.EsLintBridgeServerPath", @"\ts\bin\server")]
-        [DataRow("SonarLint.TypeScript.TypeScriptRulesMetadataFilePath", @"\ts\sonarlint-metadata.json")]
+        [DataRow("SonarLint.TypeScript.RuleDefinitionsFilePath", @"\ts\sonarlint-metadata.json")]
         public void ExportPathByContractName_ReturnsExpectedValue(string contractName, string expectedEnding)
         {
             using var scope = new AssertIgnoreScope();
