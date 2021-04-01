@@ -21,7 +21,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -31,15 +30,12 @@ using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
-    [Export(typeof(IAnalyzer))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class DaemonAnalyzer : IAnalyzer
     {
         private readonly ISonarLintDaemon daemon;
         private readonly IDaemonInstaller installer;
         private readonly ITelemetryManager telemetryManager;
 
-        [ImportingConstructor]
         public DaemonAnalyzer(ISonarLintDaemon daemon, IDaemonInstaller daemonInstaller, ITelemetryManager telemetryManager)
         {
             this.daemon = daemon;
