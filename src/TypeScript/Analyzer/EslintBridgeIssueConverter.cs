@@ -35,24 +35,25 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     {
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
-            // todo: get values from rule configuration
+            // todo: get values from rule configuration https://github.com/SonarSource/sonarlint-visualstudio/issues/2189
             var ruleSeverity = AnalysisIssueSeverity.Info;
             var ruleType = AnalysisIssueType.Vulnerability;
 
-            // todo: calculate line hash
-            string lineHash = null;
+            var eslintBridgeKey = issue.RuleId;
+            // todo: convert to sonarRuleKey https://github.com/SonarSource/sonarlint-visualstudio/issues/2191
+            var sonarRuleKey = eslintBridgeKey;
 
             return new AnalysisIssue(
-                issue.RuleId,
+                sonarRuleKey,
                 ruleSeverity,
                 ruleType,
                 issue.Message,
                 filePath,
                 issue.Line,
-                issue.EndLine,
+                issue.EndLine, // todo: do we need to handle EndLine=0?
                 issue.Column,
                 issue.EndColumn,
-                lineHash,
+                null,
                 Convert(filePath, issue.SecondaryLocations));
         }
 
@@ -65,19 +66,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 : new[] {new AnalysisIssueFlow(locations.ToArray())};
         }
 
-        private IAnalysisIssueLocation Convert(string filePath, IssueLocation issueLocation)
-        {
-            // todo: calculate line hash
-            string lineHash = null;
-
-            return new AnalysisIssueLocation(
+        private IAnalysisIssueLocation Convert(string filePath, IssueLocation issueLocation) =>
+            new AnalysisIssueLocation(
                 issueLocation.Message,
                 filePath,
                 issueLocation.Line,
                 issueLocation.EndLine,
                 issueLocation.Column,
                 issueLocation.EndColumn,
-                lineHash);
-        }
+                null);
     }
 }

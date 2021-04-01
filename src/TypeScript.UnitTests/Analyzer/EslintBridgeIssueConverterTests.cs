@@ -52,6 +52,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.EndLine.Should().Be(4);
             convertedIssue.EndLineOffset.Should().Be(2);
             convertedIssue.Message.Should().Be("some message");
+            convertedIssue.LineHash.Should().BeNull();
         }
 
         [TestMethod]
