@@ -22,10 +22,23 @@
   <ItemGroup>
     <ProjectReference Include="..\EmbeddedVsix\EmbeddedVsix.csproj" />
     <ProjectReference Include="..\TestInfrastructure\TestInfrastructure.csproj" />
+    <ProjectReference Include="..\TypeScript\TypeScript.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="System.ComponentModel.Composition" />
   </ItemGroup>
+  
+  <ItemGroup Label="HACK to make the TS/JS rule loader tests work">
+    <!-- We need the rule metadata json file from the Embedded VSIX to be copied under the test assembly folder.
+         Note: we're using the same approach for the C++ rule loader test files in Integration.Vsix.UnitTests.csproj.
+    -->
+    <Content Include="..\EmbeddedVsix\ts\sonarlint-metadata.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>ts\%(Filename)%(Extension)</Link>
+      <Visible>false</Visible>
+    </Content>
+  </ItemGroup>
+
 
 </Project>
