@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
 {
-    // Sanity checks that the json file extract from the SonarJS jar is in the format we expect
+    // Sanity checks that the json file extracted from the SonarJS jar is in the format we expect
 
     [TestClass]
     public class TypeScriptRuleDefinitions_SanityChecks
