@@ -49,13 +49,22 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             // Note: there's currently a bug on the SonarJS side - see https://github.com/SonarSource/sonarlint-visualstudio/issues/2282
             jsRules.Count().Should().Be(0);
             jsRules.Any(RuleHasParameters).Should().BeFalse();
+            jsRules.All(RuleKeyIsValid).Should().BeTrue();
 
             var tsRules = ((ITypeScriptRuleDefinitionsProvider)rulesProvider).GetDefinitions();
             tsRules.Count().Should().BeGreaterThan(50);
             tsRules.Any(RuleHasParameters).Should().BeTrue();
+            tsRules.All(RuleKeyIsValid).Should().BeTrue();
         }
 
         private static bool RuleHasParameters(RuleDefinition ruleDefinition) =>
             ruleDefinition.Params.Length > 0;
+
+        private static bool RuleKeyIsValid(RuleDefinition ruleDefinition) =>
+            ruleDefinition.RuleKey != null &&
+            (HasRepoPrefix(ruleDefinition, "javascript:") || HasRepoPrefix(ruleDefinition, "typescript:"));
+
+        private static bool HasRepoPrefix(RuleDefinition ruleDefinition, string prefix) =>
+            ruleDefinition.RuleKey.StartsWith(prefix) && ruleDefinition.RuleKey.Length > prefix.Length;
     }
 }
