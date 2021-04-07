@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using FluentAssertions;
@@ -46,15 +48,27 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             var rulesProvider = new RuleDefinitionsProvider(filePath);
 
             var jsRules = ((IJavaScriptRuleDefinitionsProvider)rulesProvider).GetDefinitions();
-            // Note: there's currently a bug on the SonarJS side - see https://github.com/SonarSource/sonarlint-visualstudio/issues/2282
-            jsRules.Count().Should().Be(0);
-            jsRules.Any(RuleHasParameters).Should().BeFalse();
-            jsRules.All(RuleKeyIsValid).Should().BeTrue();
+            CheckRules("JavaScript", jsRules);
 
             var tsRules = ((ITypeScriptRuleDefinitionsProvider)rulesProvider).GetDefinitions();
-            tsRules.Count().Should().BeGreaterThan(50);
-            tsRules.Any(RuleHasParameters).Should().BeTrue();
-            tsRules.All(RuleKeyIsValid).Should().BeTrue();
+            CheckRules("TypeScript", tsRules);
+        }
+
+        private static void CheckRules(string language, IEnumerable<RuleDefinition> rules)
+        {
+            var ruleCount = rules.Count();
+            var parameterisedRulesCount = rules.Count(RuleHasParameters);
+            Console.WriteLine($"{language}: rules: {ruleCount}, parameterised rules: {parameterisedRulesCount}");
+
+            ruleCount.Should().BeGreaterThan(200);
+            parameterisedRulesCount.Should().BeGreaterThan(10);
+
+            rules.All(RuleKeyIsValid).Should().BeTrue();
+            rules.All(EslintKeyIsValid).Should().BeTrue();
+
+            // All Sonar and ESLint rule keys should be distinct
+            rules.Select(r => r.RuleKey).Distinct().Count().Should().Be(ruleCount);
+            rules.Select(r => r.EslintKey).Distinct().Count().Should().Be(ruleCount);
         }
 
         private static bool RuleHasParameters(RuleDefinition ruleDefinition) =>
@@ -66,5 +80,10 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
 
         private static bool HasRepoPrefix(RuleDefinition ruleDefinition, string prefix) =>
             ruleDefinition.RuleKey.StartsWith(prefix) && ruleDefinition.RuleKey.Length > prefix.Length;
+
+        private static bool EslintKeyIsValid(RuleDefinition ruleDefinition) =>
+            !string.IsNullOrEmpty(ruleDefinition.EslintKey) ||
+            // Special case - "JavaScript parser failure"
+            ruleDefinition.RuleKey.EndsWith(":S2260");
     }
 }
