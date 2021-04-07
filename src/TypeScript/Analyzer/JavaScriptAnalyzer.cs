@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
+using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
@@ -42,8 +43,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient, ILogger logger)
-            : this(eslintBridgeClient, new EslintBridgeIssueConverter(), logger)
+        public JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient, IJavaScriptRuleKeyMapper keyMapper, ILogger logger)
+            : this(eslintBridgeClient, new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey), logger)
         {
         }
 
