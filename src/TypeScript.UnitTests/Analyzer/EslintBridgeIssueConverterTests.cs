@@ -43,10 +43,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 Message = "some message"
             };
 
-            var testSubject = CreateTestSubject();
+            ConvertToSonarRuleKey keyMapper = inputKey => "mapped " + inputKey;
+
+            var testSubject = CreateTestSubject(keyMapper);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
 
-            convertedIssue.RuleKey.Should().Be("rule id");
+            convertedIssue.RuleKey.Should().Be("mapped rule id");
             convertedIssue.StartLine.Should().Be(3);
             convertedIssue.StartLineOffset.Should().Be(1);
             convertedIssue.EndLine.Should().Be(4);
@@ -105,9 +107,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.Flows.Should().BeEquivalentTo(expectedFlows, config => config.WithStrictOrdering());
         }
 
-        private EslintBridgeIssueConverter CreateTestSubject()
+        private EslintBridgeIssueConverter CreateTestSubject(ConvertToSonarRuleKey keyMapper = null)
         {
-            return new EslintBridgeIssueConverter();
+            keyMapper ??= key => key;
+            return new EslintBridgeIssueConverter(keyMapper);
         }
     }
 }
