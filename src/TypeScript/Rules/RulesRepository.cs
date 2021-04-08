@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -27,26 +28,14 @@ using Newtonsoft.Json;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
-    internal interface ITypeScriptRuleDefinitionsProvider
-    {
-        /// <summary>
-        /// Returns the metadata descriptions for all TypeScript rules
-        /// </summary>
-        IEnumerable<RuleDefinition> GetDefinitions();
-    }
-
-    internal interface IJavaScriptRuleDefinitionsProvider
-    {
-        /// <summary>
-        /// Returns the metadata descriptions for all JavaScript rules
-        /// </summary>
-        IEnumerable<RuleDefinition> GetDefinitions();
-    }
-
     [Export(typeof(ITypeScriptRuleDefinitionsProvider))]
     [Export(typeof(IJavaScriptRuleDefinitionsProvider))]
+    [Export(typeof(ITypeScriptRuleKeyMapper))]
+    [Export(typeof(IJavaScriptRuleKeyMapper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class RuleDefinitionsProvider : ITypeScriptRuleDefinitionsProvider, IJavaScriptRuleDefinitionsProvider
+    internal class RulesRepository :
+        ITypeScriptRuleDefinitionsProvider, IJavaScriptRuleDefinitionsProvider,
+        ITypeScriptRuleKeyMapper, IJavaScriptRuleKeyMapper
     {
         // Note: the file contains rules for both JavaScript and TypeScript rules
         internal const string RuleDefinitionsFilePathContractName = "SonarLint.TypeScript.RuleDefinitionsFilePath";
@@ -58,7 +47,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         private const string RepoPrefix_JavaScript = "javascript:";
 
         [ImportingConstructor]
-        public RuleDefinitionsProvider([Import(RuleDefinitionsFilePathContractName)] string typeScriptMetadataFilePath)
+        public RulesRepository([Import(RuleDefinitionsFilePathContractName)] string typeScriptMetadataFilePath)
         {
             var allRules = Load(typeScriptMetadataFilePath);
             tsRules = FilterByRepo(RepoPrefix_TypeScript, allRules);
@@ -69,6 +58,12 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
         IEnumerable<RuleDefinition> IJavaScriptRuleDefinitionsProvider.GetDefinitions() => jsRules;
 
+        string ITypeScriptRuleKeyMapper.GetSonarRuleKey(string eslintRuleKey) =>
+            GetRuleKey(eslintRuleKey, tsRules);
+
+        string IJavaScriptRuleKeyMapper.GetSonarRuleKey(string eslintRuleKey) =>
+            GetRuleKey(eslintRuleKey, jsRules);
+
         private static List<RuleDefinition> Load(string filePath) =>
             JsonConvert.DeserializeObject<List<RuleDefinition>>(File.ReadAllText(filePath, Encoding.UTF8));
 
@@ -76,5 +71,25 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             rules.Where(x => x.RuleKey.StartsWith(repoPrefix, System.StringComparison.OrdinalIgnoreCase))
             .ToList()
             .AsReadOnly();
+
+        private static string GetRuleKey(string eslintRuleKey, IEnumerable<RuleDefinition> rules)
+        {
+            var repoAndKey = rules.FirstOrDefault(x => eslintRuleKey.Equals(x.EslintKey, System.StringComparison.OrdinalIgnoreCase))
+                ?.RuleKey;
+            return repoAndKey == null ? null : StripRepoPrefix(repoAndKey);
+        }
+
+        private static string StripRepoPrefix(string ruleKey)
+        {
+            // Expecting the key to be in the form [repo id]:[rule id]
+            Debug.Assert(ruleKey != null);
+
+            var separatorIndex = ruleKey.IndexOf(':');
+
+            Debug.Assert(separatorIndex > 0 && separatorIndex < ruleKey.Length - 1,
+                $"Invalid rule key: '{ruleKey}' Expecting [repo]:[rule id]");
+
+            return ruleKey.Substring(separatorIndex + 1);
+        }
     }
 }

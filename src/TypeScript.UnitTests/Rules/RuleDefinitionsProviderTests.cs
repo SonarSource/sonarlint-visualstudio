@@ -30,34 +30,45 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     [TestClass]
     public class RuleDefinitionsProviderTests
     {
-        [TestMethod]
-        public void MefCtor_CheckInterfaceIsExported_TypeScript()
-        {
-            CheckTypeIsExported<ITypeScriptRuleDefinitionsProvider>();
-        }
+
+        #region MEF tests
 
         [TestMethod]
-        public void MefCtor_CheckInterfaceIsExported_JavaScript()
-        {
+        public void MefCtor_CheckIsExported_ITypeScriptRuleDefinitionsProvider() =>
+            CheckTypeIsExported<ITypeScriptRuleDefinitionsProvider>();
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_IJavaScriptRuleDefinitionsProvider() =>
             CheckTypeIsExported<IJavaScriptRuleDefinitionsProvider>();
-        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_ITypeScriptRuleKeyMapper() =>
+            CheckTypeIsExported<ITypeScriptRuleKeyMapper>();
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported_IJavaScriptRuleKeyMapper() =>
+            CheckTypeIsExported<IJavaScriptRuleKeyMapper>();
 
         private static void CheckTypeIsExported<T>() where T : class
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
 
-            MefTestHelpers.CheckTypeCanBeImported<RuleDefinitionsProvider, T>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<RulesRepository, T>(null, new[]
             {
-                MefTestHelpers.CreateExport<string>(jsonFilePath, RuleDefinitionsProvider.RuleDefinitionsFilePathContractName)
+                MefTestHelpers.CreateExport<string>(jsonFilePath, RulesRepository.RuleDefinitionsFilePathContractName)
             });
         }
+
+        #endregion
+
+        #region Rules definition provider tests
 
         [TestMethod]
         public void GetAllRules_SameProviderInstances_ReturnsExpectedRulesForLanguage()
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckLanguageFiltering.json");
 
-            var testSubject = new RuleDefinitionsProvider(jsonFilePath);
+            var testSubject = new RulesRepository(jsonFilePath);
 
             // 1. TypeScript
             var tsProvider = (ITypeScriptRuleDefinitionsProvider)testSubject;
@@ -80,7 +91,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             // Checking the detailed definition properties for a single language
 
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDetailedProperties.json");
-            var testSubject = (ITypeScriptRuleDefinitionsProvider)new RuleDefinitionsProvider(jsonFilePath);
+            var testSubject = (ITypeScriptRuleDefinitionsProvider)new RulesRepository(jsonFilePath);
             var result = testSubject.GetDefinitions().ToArray();
 
             result.Should().HaveCount(2);
@@ -107,6 +118,44 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result[1].EslintKey.Should().Be("arrow-function-convention");
             result[1].ActivatedByDefault.Should().BeFalse();
         }
+
+        #endregion
+
+        #region Key mapper tests
+
+        [TestMethod]
+        [DataRow("not in file", null)]
+        [DataRow("not ts or js", null)]
+        [DataRow("eslint common", "common")]
+        [DataRow("eslint ts S1135", "S1135")]
+        [DataRow("ESLINT TS S1135", "S1135")] // case-insensitive
+        [DataRow("eslint js S1135", null)] // should not recognise JS-specific key
+        public void GetSonarRuleKey_TypeScript_ReturnsExpected(string eslintRuleKey, string expected)
+        {
+            var testSubject = CreateRuleKeyMapperUsingCommonDefinitionFile<ITypeScriptRuleKeyMapper>();
+            testSubject.GetSonarRuleKey(eslintRuleKey).Should().Be(expected);
+        }
+
+        [TestMethod]
+        [DataRow("not in file", null)]
+        [DataRow("not ts or js", null)]
+        [DataRow("eslint common", "common")]
+        [DataRow("eslint js S1135", "S1135")]
+        [DataRow("ESLINT JS S1135", "S1135")] // case-insensitive
+        [DataRow("eslint TS S1135", null)] // should not recognise TS-specific key
+        public void GetSonarRuleKey_JavaScriptScript_ReturnsExpected(string eslintRuleKey, string expected)
+        {
+            var testSubject = CreateRuleKeyMapperUsingCommonDefinitionFile<IJavaScriptRuleKeyMapper>();
+            testSubject.GetSonarRuleKey(eslintRuleKey).Should().Be(expected);
+        }
+
+        private static T CreateRuleKeyMapperUsingCommonDefinitionFile<T>() where T: class
+        {
+            var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckRuleKeyMappings.json");
+            return new RulesRepository(jsonFilePath) as T;
+        }
+
+        #endregion
 
         private static string GetRuleDefinitionFilePath(string fileName)
         {
