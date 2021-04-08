@@ -33,7 +33,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     [Export(typeof(ITypeScriptRuleKeyMapper))]
     [Export(typeof(IJavaScriptRuleKeyMapper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class RuleDefinitionsProvider :
+    internal class RulesRepository :
         ITypeScriptRuleDefinitionsProvider, IJavaScriptRuleDefinitionsProvider,
         ITypeScriptRuleKeyMapper, IJavaScriptRuleKeyMapper
     {
@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         private const string RepoPrefix_JavaScript = "javascript:";
 
         [ImportingConstructor]
-        public RuleDefinitionsProvider([Import(RuleDefinitionsFilePathContractName)] string typeScriptMetadataFilePath)
+        public RulesRepository([Import(RuleDefinitionsFilePathContractName)] string typeScriptMetadataFilePath)
         {
             var allRules = Load(typeScriptMetadataFilePath);
             tsRules = FilterByRepo(RepoPrefix_TypeScript, allRules);
