@@ -31,17 +31,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         IAnalysisIssue Convert(string filePath, Issue issue);
     }
 
+    internal delegate string ConvertToSonarRuleKey(string eslineRuleKey);
+
     internal class EslintBridgeIssueConverter : IEslintBridgeIssueConverter
     {
+        private readonly ConvertToSonarRuleKey keyMapper;
+
+        public EslintBridgeIssueConverter(ConvertToSonarRuleKey keyMapper)
+        {
+            this.keyMapper = keyMapper;
+        }
+
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
             // todo: get values from rule configuration https://github.com/SonarSource/sonarlint-visualstudio/issues/2189
             var ruleSeverity = AnalysisIssueSeverity.Info;
             var ruleType = AnalysisIssueType.Vulnerability;
 
-            var eslintBridgeKey = issue.RuleId;
-            // todo: convert to sonarRuleKey https://github.com/SonarSource/sonarlint-visualstudio/issues/2191
-            var sonarRuleKey = eslintBridgeKey;
+            var sonarRuleKey = keyMapper(issue.RuleId);
 
             return new AnalysisIssue(
                 sonarRuleKey,

@@ -32,6 +32,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
+using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 {
@@ -44,6 +45,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, new[]
             {
                 MefTestHelpers.CreateExport<IEslintBridgeClient>(Mock.Of<IEslintBridgeClient>()),
+                MefTestHelpers.CreateExport<IJavaScriptRuleKeyMapper>(Mock.Of<IJavaScriptRuleKeyMapper>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
