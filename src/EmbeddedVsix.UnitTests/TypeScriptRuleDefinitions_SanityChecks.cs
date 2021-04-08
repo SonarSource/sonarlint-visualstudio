@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             File.Exists(filePath).Should().BeTrue("Test setup error: could not find rule metadata file. Expected path: " + filePath);
 
             // Sanity check that the json file is loadable and has rules
-            var rulesProvider = new RuleDefinitionsProvider(filePath);
+            var rulesProvider = new RulesRepository(filePath);
 
             var jsRules = ((IJavaScriptRuleDefinitionsProvider)rulesProvider).GetDefinitions();
             CheckRules("JavaScript", jsRules);
