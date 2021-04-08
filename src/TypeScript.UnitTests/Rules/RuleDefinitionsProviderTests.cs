@@ -53,9 +53,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
 
-            MefTestHelpers.CheckTypeCanBeImported<RuleDefinitionsProvider, T>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<RulesRepository, T>(null, new[]
             {
-                MefTestHelpers.CreateExport<string>(jsonFilePath, RuleDefinitionsProvider.RuleDefinitionsFilePathContractName)
+                MefTestHelpers.CreateExport<string>(jsonFilePath, RulesRepository.RuleDefinitionsFilePathContractName)
             });
         }
 
@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckLanguageFiltering.json");
 
-            var testSubject = new RuleDefinitionsProvider(jsonFilePath);
+            var testSubject = new RulesRepository(jsonFilePath);
 
             // 1. TypeScript
             var tsProvider = (ITypeScriptRuleDefinitionsProvider)testSubject;
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             // Checking the detailed definition properties for a single language
 
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDetailedProperties.json");
-            var testSubject = (ITypeScriptRuleDefinitionsProvider)new RuleDefinitionsProvider(jsonFilePath);
+            var testSubject = (ITypeScriptRuleDefinitionsProvider)new RulesRepository(jsonFilePath);
             var result = testSubject.GetDefinitions().ToArray();
 
             result.Should().HaveCount(2);
@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static T CreateRuleKeyMapperUsingCommonDefinitionFile<T>() where T: class
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckRuleKeyMappings.json");
-            return new RuleDefinitionsProvider(jsonFilePath) as T;
+            return new RulesRepository(jsonFilePath) as T;
         }
 
         #endregion
