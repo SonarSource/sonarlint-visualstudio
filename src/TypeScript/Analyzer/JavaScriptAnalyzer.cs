@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     {
         private readonly IEslintBridgeClientFactory eslintBridgeClientFactory;
         private readonly IEslintBridgeProcess eslintBridgeProcess;
+        private readonly IActiveJavaScriptRulesProvider activeRulesProvider;
         private readonly IEslintBridgeIssueConverter issuesConverter;
         private readonly ILogger logger;
 
@@ -50,22 +51,25 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
             IEslintBridgeProcess eslintBridgeProcess,
             IJavaScriptRuleKeyMapper keyMapper,
-            IJavaScriptRuleDefinitionsProvider javaScriptRuleDefinitionsProvider,
+            IJavaScriptRuleDefinitionsProvider ruleDefinitionsProvider,
+            IActiveJavaScriptRulesProvider activeRulesProvider,
             ILogger logger)
-            : this(eslintBridgeClientFactory, eslintBridgeProcess,
+            : this(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider,
                 new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey,
-                    javaScriptRuleDefinitionsProvider.GetDefinitions),
+                    ruleDefinitionsProvider.GetDefinitions),
                 logger)
         {
         }
 
         internal JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
             IEslintBridgeProcess eslintBridgeProcess,
+            IActiveJavaScriptRulesProvider activeRulesProvider,
             IEslintBridgeIssueConverter issuesConverter,
             ILogger logger)
         {
             this.eslintBridgeClientFactory = eslintBridgeClientFactory;
             this.eslintBridgeProcess = eslintBridgeProcess;
+            this.activeRulesProvider = activeRulesProvider;
             this.issuesConverter = issuesConverter;
             this.logger = logger;
         }
@@ -94,7 +98,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             try
             {
-                var eslintBridgeClient = await GetJavaScriptClient();
+                var eslintBridgeClient = await GetJavaScriptClient(cancellationToken);
                 var analysisResponse = await eslintBridgeClient.AnalyzeJs(filePath, cancellationToken);
 
                 if (analysisResponse == null)
@@ -121,7 +125,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             }
         }
 
-        private async Task<IEslintBridgeClient> GetJavaScriptClient()
+        private async Task<IEslintBridgeClient> GetJavaScriptClient(CancellationToken token)
         {
             var port = await eslintBridgeProcess.Start();
 
@@ -130,6 +134,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 javascriptServerPort = port;
                 javascriptClient?.Dispose();
                 javascriptClient = eslintBridgeClientFactory.Create(javascriptServerPort);
+
+                await javascriptClient.InitLinter(activeRulesProvider.Get(), token);
             }
 
             return javascriptClient;
