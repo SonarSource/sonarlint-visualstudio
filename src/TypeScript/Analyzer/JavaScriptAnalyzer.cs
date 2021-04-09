@@ -36,29 +36,36 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
-    internal class JavaScriptAnalyzer : IAnalyzer
+    internal sealed class JavaScriptAnalyzer : IAnalyzer, IDisposable
     {
-        private readonly IEslintBridgeClient eslintBridgeClient;
+        private readonly IEslintBridgeClientFactory eslintBridgeClientFactory;
+        private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IEslintBridgeIssueConverter issuesConverter;
         private readonly ILogger logger;
 
+        private IEslintBridgeClient javascriptClient;
+        private int javascriptServerPort;
+
         [ImportingConstructor]
-        public JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient,
+        public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+            IEslintBridgeProcess eslintBridgeProcess,
             IJavaScriptRuleKeyMapper keyMapper,
             IJavaScriptRuleDefinitionsProvider javaScriptRuleDefinitionsProvider,
             ILogger logger)
-            : this(eslintBridgeClient,
+            : this(eslintBridgeClientFactory, eslintBridgeProcess,
                 new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey,
                     javaScriptRuleDefinitionsProvider.GetDefinitions),
                 logger)
         {
         }
 
-        internal JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient, 
-            IEslintBridgeIssueConverter issuesConverter, 
+        internal JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+            IEslintBridgeProcess eslintBridgeProcess,
+            IEslintBridgeIssueConverter issuesConverter,
             ILogger logger)
         {
-            this.eslintBridgeClient = eslintBridgeClient;
+            this.eslintBridgeClientFactory = eslintBridgeClientFactory;
+            this.eslintBridgeProcess = eslintBridgeProcess;
             this.issuesConverter = issuesConverter;
             this.logger = logger;
         }
@@ -87,6 +94,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             try
             {
+                var eslintBridgeClient = await GetJavaScriptClient();
                 var analysisResponse = await eslintBridgeClient.AnalyzeJs(filePath, cancellationToken);
 
                 if (analysisResponse == null)
@@ -113,6 +121,20 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             }
         }
 
+        private async Task<IEslintBridgeClient> GetJavaScriptClient()
+        {
+            var port = await eslintBridgeProcess.Start();
+
+            if (port != javascriptServerPort)
+            {
+                javascriptServerPort = port;
+                javascriptClient?.Dispose();
+                javascriptClient = eslintBridgeClientFactory.Create(javascriptServerPort);
+            }
+
+            return javascriptClient;
+        }
+
         private IEnumerable<IAnalysisIssue> ConvertIssues(string filePath, IEnumerable<Issue> analysisResponseIssues) =>
             analysisResponseIssues.Select(x => issuesConverter.Convert(filePath, x));
 
@@ -134,6 +156,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 logger.WriteLine(Resources.ERR_ParsingError_General, path, parsingError.Line, parsingError.Code, parsingError.Message);
             }
+        }
+
+        public void Dispose()
+        {
+            javascriptClient?.Dispose();
+            eslintBridgeProcess?.Dispose();
         }
     }
 }
