@@ -411,7 +411,7 @@
           "System.Runtime.CompilerServices.Unsafe": "4.5.0"
         }
       },
-      "SonarLint.VisualStudio.AdditionalFiles": {
+      "embeddedvsix": {
         "type": "Project"
       },
       "SonarLint.VisualStudio.Core": {
