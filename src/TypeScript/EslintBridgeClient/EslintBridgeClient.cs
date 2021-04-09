@@ -20,11 +20,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
@@ -40,21 +40,22 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     /// Matching Java implementation: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/JavaScriptEslintBasedSensor.java#L51
     /// Eslint-bridge methods: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/eslint-bridge/src/server.ts
     /// </summary>
-    [Export(typeof(IEslintBridgeClient))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class EslintBridgeClient : IEslintBridgeClient
     {
+        private readonly Uri baseServerUri;
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
 
-        [ImportingConstructor]
-        public EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper)
-            : this(httpWrapper, new AnalysisConfiguration())
+        public EslintBridgeClient(Uri baseServerUri, ILogger logger)
+            : this(baseServerUri, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
         {
         }
 
-        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, IAnalysisConfiguration analysisConfiguration)
+        internal EslintBridgeClient(Uri baseServerUri, 
+            IEslintBridgeHttpWrapper httpWrapper,
+            IAnalysisConfiguration analysisConfiguration)
         {
+            this.baseServerUri = baseServerUri;
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
         }
@@ -68,7 +69,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Environments = analysisConfiguration.GetEnvironments()
             };
 
-            return httpWrapper.PostAsync("init-linter", initLinterRequest, cancellationToken);
+            return httpWrapper.PostAsync(BuildServerUri("init-linter"), initLinterRequest, cancellationToken);
         }
 
         public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
@@ -80,14 +81,14 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
             };
 
-            var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
+            var responseString = await httpWrapper.PostAsync(BuildServerUri("analyze-js"), analysisRequest, cancellationToken);
 
             return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
 
         private Task Close()
         {
-            return httpWrapper.PostAsync("close", null, CancellationToken.None);
+            return httpWrapper.PostAsync(BuildServerUri("close"), null, CancellationToken.None);
         }
 
         public async void Dispose()
@@ -95,5 +96,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             await Close();
             httpWrapper.Dispose();
         }
+
+        private Uri BuildServerUri(string endpoint) => new Uri(baseServerUri, endpoint);
     }
 }
