@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
+using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
@@ -32,28 +33,29 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     }
 
     internal delegate string ConvertToSonarRuleKey(string eslineRuleKey);
+    internal delegate IEnumerable<RuleDefinition> GetRuleDefinitions();
 
     internal class EslintBridgeIssueConverter : IEslintBridgeIssueConverter
     {
         private readonly ConvertToSonarRuleKey keyMapper;
+        private readonly GetRuleDefinitions ruleDefinitionProvider;
 
-        public EslintBridgeIssueConverter(ConvertToSonarRuleKey keyMapper)
+        public EslintBridgeIssueConverter(ConvertToSonarRuleKey keyMapper, GetRuleDefinitions ruleDefinitionProvider)
         {
             this.keyMapper = keyMapper;
+            this.ruleDefinitionProvider = ruleDefinitionProvider;
         }
 
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
-            // todo: get values from rule configuration https://github.com/SonarSource/sonarlint-visualstudio/issues/2189
-            var ruleSeverity = AnalysisIssueSeverity.Info;
-            var ruleType = AnalysisIssueType.Vulnerability;
-
+            var ruleDefinitions = ruleDefinitionProvider();
+            var ruleDefinition = ruleDefinitions.SingleOrDefault(x => x.EslintKey == issue.RuleId);
             var sonarRuleKey = keyMapper(issue.RuleId);
 
             return new AnalysisIssue(
                 sonarRuleKey,
-                ruleSeverity,
-                ruleType,
+                Convert(ruleDefinition.Severity),
+                Convert(ruleDefinition.Type),
                 issue.Message,
                 filePath,
                 issue.Line,
@@ -62,6 +64,42 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 issue.EndColumn,
                 null,
                 Convert(filePath, issue.SecondaryLocations));
+        }
+
+        internal static /* for testing */ AnalysisIssueSeverity Convert(RuleSeverity ruleSeverity)
+        {
+            switch (ruleSeverity)
+            {
+                case RuleSeverity.BLOCKER:
+                    return AnalysisIssueSeverity.Blocker;
+                case RuleSeverity.CRITICAL:
+                    return AnalysisIssueSeverity.Critical;
+                case RuleSeverity.INFO:
+                    return AnalysisIssueSeverity.Info;
+                case RuleSeverity.MAJOR:
+                    return AnalysisIssueSeverity.Major;
+                case RuleSeverity.MINOR:
+                    return AnalysisIssueSeverity.Minor;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ruleSeverity));
+            }
+        }
+
+        internal static /* for testing */ AnalysisIssueType Convert(RuleType ruleType)
+        {
+            switch (ruleType)
+            {
+                case RuleType.BUG:
+                    return AnalysisIssueType.Bug;
+                case RuleType.CODE_SMELL:
+                    return AnalysisIssueType.CodeSmell;
+                case RuleType.VULNERABILITY:
+                    return AnalysisIssueType.Vulnerability;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(ruleType));
+            }
         }
 
         private IReadOnlyList<IAnalysisIssueFlow> Convert(string filePath, IssueLocation[] issueLocations)
