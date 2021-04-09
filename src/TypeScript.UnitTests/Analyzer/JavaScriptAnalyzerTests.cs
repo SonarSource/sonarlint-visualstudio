@@ -81,7 +81,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var client = SetupEslintBridgeClient(null);
             var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
             
-            var testSubject = CreateTestSubject(clientFactory, serverProcess.Object);
+            var testSubject = CreateTestSubject(clientFactory.Object, serverProcess.Object);
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
@@ -138,6 +138,31 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             client1.Verify(x => x.Dispose(), Times.Once);
             client2.Verify(x => x.Dispose(), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_EslintBridgePortUnchanged_DoesNotCreateNewClient()
+        {
+            const int port = 123;
+
+            var serverProcess = SetupServerProcess(port);
+            var client = SetupEslintBridgeClient(null);
+            var clientFactory = SetupEslintBridgeClientFactory(port, client.Object);
+
+            var testSubject = CreateTestSubject(clientFactory.Object, serverProcess.Object);
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.VerifyAll();
+            clientFactory.Verify(x => x.Create(port), Times.Once);
+            clientFactory.VerifyNoOtherCalls();
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.VerifyAll();
+            clientFactory.VerifyNoOtherCalls();
+            client.Verify(x => x.Dispose(), Times.Never);
+            client.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -329,7 +354,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var client = SetupEslintBridgeClient(null);
             var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
 
-            var testSubject = CreateTestSubject(clientFactory, serverProcess.Object);
+            var testSubject = CreateTestSubject(clientFactory.Object, serverProcess.Object);
 
             Action act = () => testSubject.Dispose();
             act.Should().NotThrow();
@@ -345,7 +370,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var client = SetupEslintBridgeClient(null);
             var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
 
-            var testSubject = CreateTestSubject(clientFactory, serverProcess.Object);
+            var testSubject = CreateTestSubject(clientFactory.Object, serverProcess.Object);
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
             testSubject.Dispose();
@@ -403,12 +428,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return serverProcess;
         }
 
-        private IEslintBridgeClientFactory SetupEslintBridgeClientFactory(int port, IEslintBridgeClient client)
+        private Mock<IEslintBridgeClientFactory> SetupEslintBridgeClientFactory(int port, IEslintBridgeClient client)
         {
             var factory = new Mock<IEslintBridgeClientFactory>();
             factory.Setup(x => x.Create(port)).Returns(client);
 
-            return factory.Object;
+            return factory;
         }
 
         private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClient client = null, IEslintBridgeIssueConverter issueConverter = null, ILogger logger = null)
@@ -418,7 +443,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var serverProcess = SetupServerProcess(123);
             var eslintBridgeClientFactory = SetupEslintBridgeClientFactory(123, client);
 
-            return CreateTestSubject(eslintBridgeClientFactory, serverProcess.Object, issueConverter, logger);
+            return CreateTestSubject(eslintBridgeClientFactory.Object, serverProcess.Object, issueConverter, logger);
         }
 
         private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClientFactory eslintBridgeClientFactory,
