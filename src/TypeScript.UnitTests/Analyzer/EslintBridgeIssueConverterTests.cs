@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
     [TestClass]
     public class EslintBridgeIssueConverterTests
     {
-        private const string TestEslintBridgeRuleId = "rule id";
+        private const string ValidEsLintKey = "rule id";
 
         [TestMethod]
         public void Convert_IssueConverted()
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var eslintBridgeIssue = new Issue
             {
-                RuleId = TestEslintBridgeRuleId,
+                RuleId = ValidEsLintKey,
                 Column = 1,
                 EndColumn = 2,
                 Line = 3,
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var eslintBridgeIssue = new Issue
             {
-                RuleId = TestEslintBridgeRuleId,
+                RuleId = ValidEsLintKey,
                 SecondaryLocations = new[]
                 {
                     new IssueLocation {Column = 1, EndColumn = 2, Line = 3, EndLine = 4, Message = "message1"},
@@ -164,7 +164,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             {
                 new RuleDefinition
                 {
-                    EslintKey = TestEslintBridgeRuleId
+                    EslintKey = ValidEsLintKey
                 }
             };
 

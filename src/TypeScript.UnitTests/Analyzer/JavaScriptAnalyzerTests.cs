@@ -91,21 +91,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_FailsToStartsEslintBridgeServer_ExceptionCaughtAndLogged()
-        {
-            var serverProcess = SetupServerProcess(exceptionToThrow: new NotImplementedException("this is a test"));
-            var clientFactory = new Mock<IEslintBridgeClientFactory>();
-            var logger = new TestLogger();
-
-            var testSubject = CreateTestSubject(clientFactory.Object, serverProcess.Object, logger: logger);
-
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
-
-            logger.AssertPartialOutputStringExists("this is a test");
-            clientFactory.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public async Task ExecuteAnalysis_EslintBridgePortChanged_PreviousClientIsDisposed()
         {
             const int firstPort = 123;
