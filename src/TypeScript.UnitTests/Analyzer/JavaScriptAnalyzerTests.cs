@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             {
                 MefTestHelpers.CreateExport<IEslintBridgeClient>(Mock.Of<IEslintBridgeClient>()),
                 MefTestHelpers.CreateExport<IJavaScriptRuleKeyMapper>(Mock.Of<IJavaScriptRuleKeyMapper>()),
+                MefTestHelpers.CreateExport<IJavaScriptRuleDefinitionsProvider>(Mock.Of<IJavaScriptRuleDefinitionsProvider>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }

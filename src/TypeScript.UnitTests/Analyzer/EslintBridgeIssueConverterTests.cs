@@ -18,18 +18,22 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
+using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 {
     [TestClass]
     public class EslintBridgeIssueConverterTests
     {
+        private const string TestEslintBridgeRuleId = "rule id";
+
         [TestMethod]
         public void Convert_IssueConverted()
         {
@@ -44,8 +48,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             };
 
             ConvertToSonarRuleKey keyMapper = inputKey => "mapped " + inputKey;
+            GetRuleDefinitions ruleDefinitionsProvider = () => new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = eslintBridgeIssue.RuleId,
+                    Type = RuleType.CODE_SMELL,
+                    Severity = RuleSeverity.MAJOR
+                }
+            };
 
-            var testSubject = CreateTestSubject(keyMapper);
+            var testSubject = CreateTestSubject(keyMapper, ruleDefinitionsProvider);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
 
             convertedIssue.RuleKey.Should().Be("mapped rule id");
@@ -55,6 +68,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.EndLineOffset.Should().Be(2);
             convertedIssue.Message.Should().Be("some message");
             convertedIssue.LineHash.Should().BeNull();
+            convertedIssue.Type.Should().Be(AnalysisIssueType.CodeSmell);
+            convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
         }
 
         [TestMethod]
@@ -62,7 +77,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var eslintBridgeIssue = new Issue
             {
-                RuleId = "rule id",
+                RuleId = TestEslintBridgeRuleId,
                 Column = 1,
                 EndColumn = 2,
                 Line = 3,
@@ -82,6 +97,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var eslintBridgeIssue = new Issue
             {
+                RuleId = TestEslintBridgeRuleId,
                 SecondaryLocations = new[]
                 {
                     new IssueLocation {Column = 1, EndColumn = 2, Line = 3, EndLine = 4, Message = "message1"},
@@ -107,10 +123,52 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.Flows.Should().BeEquivalentTo(expectedFlows, config => config.WithStrictOrdering());
         }
 
-        private EslintBridgeIssueConverter CreateTestSubject(ConvertToSonarRuleKey keyMapper = null)
+        [TestMethod]
+        [DataRow(RuleSeverity.BLOCKER, AnalysisIssueSeverity.Blocker)]
+        [DataRow(RuleSeverity.CRITICAL, AnalysisIssueSeverity.Critical)]
+        [DataRow(RuleSeverity.INFO, AnalysisIssueSeverity.Info)]
+        [DataRow(RuleSeverity.MAJOR, AnalysisIssueSeverity.Major)]
+        [DataRow(RuleSeverity.MINOR, AnalysisIssueSeverity.Minor)]
+        public void ConvertFromRuleSeverity(int eslintRuleSeverity, AnalysisIssueSeverity analysisIssueSeverity)
+        {
+            EslintBridgeIssueConverter.Convert((RuleSeverity)eslintRuleSeverity).Should().Be(analysisIssueSeverity);
+        }
+
+        [TestMethod]
+        public void ConvertFromRuleSeverity_InvalidValue_Throws()
+        {
+            Action act = () => EslintBridgeIssueConverter.Convert((RuleSeverity)(-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("ruleSeverity");
+        }
+
+        [TestMethod]
+        [DataRow(RuleType.BUG, AnalysisIssueType.Bug)]
+        [DataRow(RuleType.CODE_SMELL, AnalysisIssueType.CodeSmell)]
+        [DataRow(RuleType.VULNERABILITY, AnalysisIssueType.Vulnerability)]
+        public void ConvertFromRuleType(int eslintRuleType, AnalysisIssueType analysisIssueType)
+        {
+            EslintBridgeIssueConverter.Convert((RuleType) eslintRuleType).Should().Be(analysisIssueType);
+        }
+
+        [TestMethod]
+        public void ConvertFromRuleType_InvalidValue_Throws()
+        {
+            Action act = () => EslintBridgeIssueConverter.Convert((RuleType)(-1));
+            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("ruleType");
+        }
+
+        private EslintBridgeIssueConverter CreateTestSubject(ConvertToSonarRuleKey keyMapper = null, GetRuleDefinitions getRuleDefinitions = null)
         {
             keyMapper ??= key => key;
-            return new EslintBridgeIssueConverter(keyMapper);
+            getRuleDefinitions ??= () => new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = TestEslintBridgeRuleId
+                }
+            };
+
+            return new EslintBridgeIssueConverter(keyMapper, getRuleDefinitions);
         }
     }
 }

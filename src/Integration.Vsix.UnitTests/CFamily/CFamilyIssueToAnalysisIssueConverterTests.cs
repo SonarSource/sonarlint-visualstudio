@@ -369,9 +369,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void ConvertFromIssueType(IssueType cfamilyIssueType, AnalysisIssueType analysisIssueType)
         {
             CFamilyIssueToAnalysisIssueConverter.Convert(cfamilyIssueType).Should().Be(analysisIssueType);
-
-            Action act = () => CFamilyIssueToAnalysisIssueConverter.Convert((IssueType)(-1));
-            act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("issueType");
         }
 
         [TestMethod]

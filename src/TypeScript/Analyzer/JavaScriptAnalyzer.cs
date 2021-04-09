@@ -43,12 +43,20 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient, IJavaScriptRuleKeyMapper keyMapper, ILogger logger)
-            : this(eslintBridgeClient, new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey), logger)
+        public JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient,
+            IJavaScriptRuleKeyMapper keyMapper,
+            IJavaScriptRuleDefinitionsProvider javaScriptRuleDefinitionsProvider,
+            ILogger logger)
+            : this(eslintBridgeClient,
+                new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey,
+                    javaScriptRuleDefinitionsProvider.GetDefinitions),
+                logger)
         {
         }
 
-        internal JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient, IEslintBridgeIssueConverter issuesConverter, ILogger logger)
+        internal JavaScriptAnalyzer(IEslintBridgeClient eslintBridgeClient, 
+            IEslintBridgeIssueConverter issuesConverter, 
+            ILogger logger)
         {
             this.eslintBridgeClient = eslintBridgeClient;
             this.issuesConverter = issuesConverter;
