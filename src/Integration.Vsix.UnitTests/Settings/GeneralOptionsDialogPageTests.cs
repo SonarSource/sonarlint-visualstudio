@@ -61,12 +61,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
                 SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(false);
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
 
             // Act
             page.ActivateAccessor();
@@ -96,12 +92,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
                 SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(true);
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
 
             // Act
             page.ActivateAccessor();
@@ -131,12 +123,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
                 SkipActivateMoreDialog = false
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(true);
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
 
             // Act
             page.ActivateAccessor();
@@ -165,11 +153,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
                 SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
             page.ActivateAccessor();
 
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
@@ -191,11 +176,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
                 SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
             page.ActivateAccessor();
 
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
@@ -207,11 +189,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Minimal);
         }
 
-        private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject, ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer)
+        private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject, ISonarLintSettings settings)
         {
             var mefHostMock = new Mock<IComponentModel>();
-            mefHostMock.Setup(m => m.GetExtensions<ISonarLintDaemon>()).Returns(() => new[] { daemon });
-            mefHostMock.Setup(m => m.GetExtensions<IDaemonInstaller>()).Returns(() => new[] { installer });
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintSettings>()).Returns(() => new[] { settings });
             mefHostMock.Setup(m => m.GetExtensions<ILogger>()).Returns(() => new[] { new TestLogger() });
             mefHostMock.Setup(m => m.GetExtensions<IUserSettingsProvider>()).Returns(() => new[] { new Mock<IUserSettingsProvider>().Object });

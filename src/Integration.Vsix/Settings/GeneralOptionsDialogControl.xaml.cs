@@ -33,23 +33,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     public partial class GeneralOptionsDialogControl : UserControl
     {
         private readonly ISonarLintSettings settings;
-        private readonly ISonarLintDaemon daemon;
-        private readonly IDaemonInstaller installer;
         private readonly ILogger logger;
 
-        public GeneralOptionsDialogControl(ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer, ICommand openSettingsFileCommand, ILogger logger)
+        public GeneralOptionsDialogControl(ISonarLintSettings settings, ICommand openSettingsFileCommand, ILogger logger)
         {
             if (settings == null)
             {
                 throw new ArgumentNullException(nameof(settings));
-            }
-            if (daemon == null)
-            {
-                throw new ArgumentNullException(nameof(daemon));
-            }
-            if (installer == null)
-            {
-                throw new ArgumentNullException(nameof(installer));
             }
             if (logger == null)
             {
@@ -61,8 +51,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
 
             this.settings = settings;
-            this.daemon = daemon;
-            this.installer = installer;
             this.logger = logger;
 
             InitializeComponent();
@@ -112,11 +100,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                if (!installer.IsInstalled())
-                {
-                    installer.Install();
-                }
-                
                 settings.IsActivateMoreEnabled = true;
 
                 UpdateActiveMoreControls();
@@ -131,10 +114,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             try
             {
-                if (daemon.IsRunning)
-                {
-                    daemon.Stop();
-                }
                 settings.IsActivateMoreEnabled = false;
 
                 UpdateActiveMoreControls();
