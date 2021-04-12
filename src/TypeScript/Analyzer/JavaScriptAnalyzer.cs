@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IActiveJavaScriptRulesProvider activeRulesProvider;
         private readonly IEslintBridgeIssueConverter issuesConverter;
+        private readonly ITelemetryManager telemetryManager;
         private readonly ILogger logger;
 
         private IEslintBridgeClient javascriptClient;
@@ -53,10 +55,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IJavaScriptRuleKeyMapper keyMapper,
             IJavaScriptRuleDefinitionsProvider ruleDefinitionsProvider,
             IActiveJavaScriptRulesProvider activeRulesProvider,
+            ITelemetryManager telemetryManager,
             ILogger logger)
             : this(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider,
                 new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey,
                     ruleDefinitionsProvider.GetDefinitions),
+                telemetryManager,
                 logger)
         {
         }
@@ -65,12 +69,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeProcess eslintBridgeProcess,
             IActiveJavaScriptRulesProvider activeRulesProvider,
             IEslintBridgeIssueConverter issuesConverter,
+            ITelemetryManager telemetryManager,
             ILogger logger)
         {
             this.eslintBridgeClientFactory = eslintBridgeClientFactory;
             this.eslintBridgeProcess = eslintBridgeProcess;
             this.activeRulesProvider = activeRulesProvider;
             this.issuesConverter = issuesConverter;
+            this.telemetryManager = telemetryManager;
             this.logger = logger;
         }
 
@@ -93,6 +99,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
+            telemetryManager.LanguageAnalyzed("js");
+
             // Switch to a background thread
             await TaskScheduler.Default;
 
