@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.Write(writer, new Request());
 
                 byte[] result = stream.ToArray();
-                result.Length.Should().Be(87);
+                result.Length.Should().Be(112);
             }
         }
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.Write(writer, request);
 
                 byte[] result = stream.ToArray();
-                result.Length.Should().Be(89);
+                result.Length.Should().Be(116);
             }
         }
 
@@ -181,6 +181,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         #region Low-level reading/writing tests
 
         [TestMethod]
+        public void Write_String()
+        {
+            WriteString("").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 0 });
+            WriteString("a").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 97 });
+            WriteString("A").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 65 });
+            WriteString("0").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 48 });
+            WriteString("\n").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 10 });
+            // 3 bytes
+            WriteString("\u0800").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 3, 224, 160, 128 });
+            // NUL
+            WriteString("\u0000").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 0 });
+            // Supplementary characters
+            WriteString("\U00010400").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 4, 0xF0, 0x90, 0x90, 0x80 });
+        }
+
+        [TestMethod]
         public void Write_UTF8()
         {
             WriteUtf("").Should().BeEquivalentTo(new byte[] { 0, 0 });
@@ -247,6 +263,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             {
                 BinaryWriter writer = new BinaryWriter(stream);
                 Protocol.WriteUTF(writer, s);
+
+                return stream.ToArray();
+            }
+        }
+
+        private byte[] WriteString(string s)
+        {
+            using (MemoryStream stream = new MemoryStream())
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+                Protocol.WriteString(writer, s);
 
                 return stream.ToArray();
             }
