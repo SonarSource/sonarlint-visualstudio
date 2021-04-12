@@ -57,9 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
 
-        private ISonarLintDaemon daemon;
         private ILogger logger;
-        private StatusBarDownloadProgressHandler statusBarDownloadProgressHandler;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
 
         /// <summary>
@@ -93,30 +91,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
                 cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
 
-                daemon = await this.GetMefServiceAsync<ISonarLintDaemon>();
-
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
-
-                // Set up the solution tracker so we can shut down the daemon when a solution is closed
-                var solutionTracker = await this.GetMefServiceAsync<IActiveSolutionTracker>();
-                solutionTracker.ActiveSolutionChanged += HandleActiveSolutionChanged;
-
-                IDaemonInstaller installer = await this.GetMefServiceAsync<IDaemonInstaller>();
-                if (!installer.IsInstalled())
-                {
-                    // Set up the status bar download handler in case the user enables
-                    // support for additional languages during the VS session
-                    var sbService = await this.GetServiceAsync(typeof(IVsStatusbar)) as IVsStatusbar;
-                    statusBarDownloadProgressHandler = new StatusBarDownloadProgressHandler(sbService, installer, logger);
-
-                    var settings = await this.GetMefServiceAsync<ISonarLintSettings>();
-                    if (settings.IsActivateMoreEnabled)
-                    {
-                        // User already agreed to have the daemon installed so directly start download.
-                        // No UI interation so we don't need to be on the UI thread.
-                        installer.Install();
-                    }
-                }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
@@ -125,32 +100,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             logger?.WriteLine(Resources.Strings.Daemon_InitializationComplete);
         }
 
-        private void HandleActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
-        {
-            try
-            {
-                // Stop the daemon running when a solution is closed
-                if (!e.IsSolutionOpen)
-                {
-                    this.daemon.Stop();
-                }
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger?.WriteLine(Strings.ERROR_StoppingDaemon, ex);
-            }
-        }
-
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
 
             if (disposing)
             {
-                this.daemon?.Dispose();
-                this.daemon = null;
-                statusBarDownloadProgressHandler?.Dispose();
-                statusBarDownloadProgressHandler = null;
                 cFamilyPreCompiledHeadersEventListener?.Dispose();
                 cFamilyPreCompiledHeadersEventListener = null;
             }
