@@ -24,6 +24,7 @@ using System.IO.Abstractions;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -55,6 +56,54 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             Func<Task> act = async () => await testSubject.Start();
 
             act.Should().ThrowExactly<FileNotFoundException>().And.Message.Should().Contain("node.exe");
+        }
+
+        [TestMethod]
+        public async Task Start_SecondCall_ProcessFailed_StartsNewProcess()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            await testSubject.Start();
+
+            var oldProcess = testSubject.Process;
+
+            oldProcess.HasExited.Should().BeFalse();
+            oldProcess.Kill();
+            await oldProcess.WaitForExitAsync();
+            oldProcess.HasExited.Should().BeTrue();
+
+            await testSubject.Start();
+
+            var newProcess = testSubject.Process;
+            newProcess.Should().NotBeSameAs(oldProcess);
+            newProcess.HasExited.Should().BeFalse();
+            newProcess.Kill();
+        }
+
+        [TestMethod]
+        public async Task Start_SecondCall_ProcessIsStillRunning_DoesNotStartNewProcess()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            await testSubject.Start();
+
+            var oldProcess = testSubject.Process;
+            oldProcess.HasExited.Should().BeFalse();
+
+            await testSubject.Start();
+
+            var newProcess = testSubject.Process;
+            newProcess.Should().BeSameAs(oldProcess);
+            newProcess.HasExited.Should().BeFalse();
+            newProcess.Kill();
         }
 
         [TestMethod]
