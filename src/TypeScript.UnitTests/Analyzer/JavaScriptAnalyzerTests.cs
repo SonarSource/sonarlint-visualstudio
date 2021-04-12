@@ -27,6 +27,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
@@ -49,6 +50,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 MefTestHelpers.CreateExport<IActiveJavaScriptRulesProvider>(Mock.Of<IActiveJavaScriptRulesProvider>()),
                 MefTestHelpers.CreateExport<IJavaScriptRuleKeyMapper>(Mock.Of<IJavaScriptRuleKeyMapper>()),
                 MefTestHelpers.CreateExport<IJavaScriptRuleDefinitionsProvider>(Mock.Of<IJavaScriptRuleDefinitionsProvider>()),
+                MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -73,6 +75,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var result = testSubject.IsAnalysisSupported(languages);
 
             result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_AlwaysCollectsTelemetry()
+        {
+            var telemetryManager = new Mock<ITelemetryManager>();
+            var client = SetupEslintBridgeClient(null);
+
+            var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            telemetryManager.Verify(x=> x.LanguageAnalyzed("js"), Times.Once);
+            telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -458,6 +473,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClient client = null, 
             IEslintBridgeIssueConverter issueConverter = null,
             IActiveJavaScriptRulesProvider activeRulesProvider = null,
+            ITelemetryManager telemetryManager = null,
             ILogger logger = null)
         {
             client ??= SetupEslintBridgeClient(null).Object;
@@ -466,19 +482,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var serverProcess = SetupServerProcess(123);
             var eslintBridgeClientFactory = SetupEslintBridgeClientFactory(123, client);
 
-            return CreateTestSubject(eslintBridgeClientFactory.Object, serverProcess.Object, activeRulesProvider, issueConverter, logger);
+            return CreateTestSubject(eslintBridgeClientFactory.Object, serverProcess.Object, activeRulesProvider, issueConverter, telemetryManager, logger);
         }
 
         private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClientFactory eslintBridgeClientFactory,
             IEslintBridgeProcess eslintBridgeProcess,
             IActiveJavaScriptRulesProvider activeRulesProvider = null,
             IEslintBridgeIssueConverter issueConverter = null,
+            ITelemetryManager telemetryManager = null,
             ILogger logger = null)
         {
             issueConverter ??= Mock.Of<IEslintBridgeIssueConverter>();
             logger ??= Mock.Of<ILogger>();
+            telemetryManager ??= Mock.Of<ITelemetryManager>();
 
-            return new JavaScriptAnalyzer(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider, issueConverter, logger);
+            return new JavaScriptAnalyzer(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider, issueConverter, telemetryManager, logger);
         }
     }
 }
