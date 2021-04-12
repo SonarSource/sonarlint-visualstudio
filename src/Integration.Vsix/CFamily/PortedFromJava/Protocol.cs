@@ -38,24 +38,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
           */
         public static void Write(BinaryWriter writer, Request request)
         {
-            WriteUTF(writer, "IN");
+            WriteString(writer, "IN");
             Write(writer, request.Options);
             WriteLong(writer, request.Flags);
             WriteLong(writer, request.MsVersion);
             Write(writer, request.IncludeDirs);
             Write(writer, request.FrameworkDirs);
             Write(writer, request.VfsOverlayFiles);
-            WriteUTF(writer, request.ModuleName);
-            WriteUTF(writer, request.Predefines);
+            WriteString(writer, request.ModuleName);
+            WriteString(writer, request.Predefines);
             Write(writer, request.Macros);
-            WriteUTF(writer, request.TargetTriple);
-            WriteUTF(writer, request.File);
-            WriteUTF(writer, /* pchDir */ "");
-            WriteUTF(writer, /* pchThroughHeader */ "");
-            WriteUTF(writer, request.PchFile);
-            WriteUTF(writer, /* reportingCppStandardOverride */ "");
+            WriteString(writer, request.TargetTriple);
+            WriteString(writer, request.File);
+            writer.Write(/* withFileContent */ false);
+            WriteString(writer, /* fileContent */ "");
+            WriteString(writer, /* pchDir */ "");
+            WriteString(writer, /* pchThroughHeader */ "");
+            WriteString(writer, request.PchFile);
+            WriteString(writer, /* reportingCppStandardOverride */ "");
             WriteInt(writer, /* sourceDirs */ 0);
-            WriteUTF(writer, "END");
+            WriteString(writer, "END");
         }
 
         internal /* for testing */ static void WriteLong(BinaryWriter writer, long l)
@@ -96,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             WriteInt(writer, strings.Length);
             foreach (string value in strings)
             {
-                WriteUTF(writer, value);
+                WriteString(writer, value);
             }
         }
 
@@ -121,6 +123,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             WriteUShort(writer, (ushort)bytes.Length);
             writer.Write(bytes);
         }
+
+        internal /* for testing */ static void WriteString(BinaryWriter writer, string str)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(str);
+            WriteInt(writer, bytes.Length);
+            writer.Write(bytes);
+        }
+
         internal /* for testing */ static string ReadUTF(BinaryReader reader)
         {
             ushort size = ReadUShort(reader);
