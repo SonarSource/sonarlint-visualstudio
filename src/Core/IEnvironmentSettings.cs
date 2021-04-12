@@ -42,11 +42,6 @@ namespace SonarLint.VisualStudio.Core
         int PCHGenerationTimeoutInMs(int defaultValue);
 
         /// <summary>
-        /// Download location for the SonarLint daemon additional zip file
-        /// </summary>
-        string SonarLintDaemonDownloadUrl();
-
-        /// <summary>
         /// Returns true if debug-level messages should be logged to the output window, otherwise false
         /// </summary>
         bool ShouldLogDebugMessages();
