@@ -25,7 +25,5 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public DaemonLogLevel DaemonLogLevel { get; set; }
 
         public bool IsActivateMoreEnabled { get; set; }
-
-        public bool SkipActivateMoreDialog { get; set; }
     }
 }
