@@ -107,7 +107,6 @@
     <PackageReference Include="EnvDTE" Version="8.0.0" />
     <PackageReference Include="Google.Protobuf" Version="3.6.1" />
     <PackageReference Include="Grpc" Version="1.4.1" />
-    <PackageReference Include="Grpc.Tools" Version="1.4.1" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.LanguageServices" Version="1.3.2" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0" Version="10.0.30319" />
@@ -338,21 +337,6 @@
   </Target>
   <!-- ********************************************************** -->
 
-  <!-- ********************************************************** -->
-  <!-- Generate the protobuf classes -->
-  <!-- ********************************************************** -->
-  <Target Name="GenerateProtobufClasses" BeforeTargets="PrepareForBuild" Outputs="$(ProjectDir)Protobuf\SonarlintDaemon.cs" Inputs="$(ProjectDir)Protobuf\sonarlint-daemon.proto">
-    <Message Importance="high" Text="Generating protobuf classes..." />
-    <Exec WorkingDirectory="$(ProjectDir)Protobuf" Command="build.bat &quot;$(NuGetPackageRoot)Grpc.Tools\1.4.1\tools\windows_x64&quot;" />
-
-    <!-- Make sure that any files we have just generated are included in the compilation -->
-    <ItemGroup>
-      <Compile Remove="Protobuf\*.cs" />
-      <Compile Include="Protobuf\*.cs" />
-    </ItemGroup>
-
-  </Target>
-
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
   <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != ''" />
 
@@ -360,7 +344,10 @@
   <!-- ********************************************************** -->
   <!-- Reference Grpc and System.Interactive.Async.dll -->
   <!-- ********************************************************** -->
-  <!-- NOTE: Grpc.Core v1.4.1 depends on System.Interactive.Async.dll.
+  <!-- NOTE: the protobuf assemblies need to be in the VSIX because they are still required by
+         the SonarQube.Client assembly (some old SQ APIs return protobuf-serialized data).
+  
+       NOTE: Grpc.Core v1.4.1 depends on System.Interactive.Async.dll.
          However, the Grpc.Core NuGet only targets two frameworks, net45 and netstandard1.5, whereas 
          System.Interactive.Asynx targets net45, net46, netstandard1.0 and netstandard1.3.
          We need to reference the version of System.Interactive.Async that is used by Grpc.Core, which

@@ -41,12 +41,6 @@
           "System.Interactive.Async": "3.1.1"
         }
       },
-      "Grpc.Tools": {
-        "type": "Direct",
-        "requested": "[1.4.1, )",
-        "resolved": "1.4.1",
-        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
-      },
       "Microsoft.CodeAnalysis.CSharp": {
         "type": "Direct",
         "requested": "[1.3.2, )",
@@ -282,6 +276,11 @@
           "EnvDTE": "8.0.0",
           "stdole": "7.0.3300"
         }
+      },
+      "Grpc.Tools": {
+        "type": "Transitive",
+        "resolved": "1.4.1",
+        "contentHash": "D5AcNr0yPFz5dqftJYKnMtwg6AEMUics+UysxTXKVuZtresqWUcHIrnscM+KsAIreG7wvdumWzjdIXRIMekCLg=="
       },
       "Microsoft.Alm.Authentication": {
         "type": "Transitive",
