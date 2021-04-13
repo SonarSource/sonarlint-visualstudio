@@ -50,10 +50,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        public void OnActivate_WhenDaemonIsNotInstalled_ControlsAreConfiguredForActivation()
+        public void OnActivate_ControlsAreConfigured()
         {
-            // Daemon is not installed. However, that should not affect the activation
-            // status of the controls.
             var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
@@ -70,77 +68,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Assert
             page.Control.Should().NotBeNull();
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
-
-            // User has enabled activation; the activation status of the daemon should be irrelevant
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Visible);
             page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Visible);
-
-            // ... and activate options should be visible
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
-        }
-
-        [TestMethod]
-        public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings1()
-        {
-            // Daemon is installed so the settings as supplied should be used
-            var settings = new ConfigurableSonarLintSettings
-            {
-                DaemonLogLevel = DaemonLogLevel.Verbose,
-                IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
-            };
-
-            GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings);
-
-            // Act
-            page.ActivateAccessor();
-
-            // Assert
-            page.Control.Should().NotBeNull();
-            page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
-
-            // Daemon is activate, so deactivate options should be visible
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Visible);
-            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Visible);
-
-            // ... and active options should not
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
-        }
-
-        [TestMethod]
-        public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings2()
-        {
-            // Daemon is installed so the settings as supplied should be used
-            var settings = new ConfigurableSonarLintSettings
-            {
-                DaemonLogLevel = DaemonLogLevel.Info,
-                IsActivateMoreEnabled = false,
-                SkipActivateMoreDialog = false
-            };
-
-            GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings);
-
-            // Act
-            page.ActivateAccessor();
-
-            // Assert
-            page.Control.Should().NotBeNull();
-            page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Info);
-
-            // Daemon is inactive, so deactivate options should be collapsed
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Collapsed);
-
-            // ... and activate options should be visible
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
         }
 
         [TestMethod]

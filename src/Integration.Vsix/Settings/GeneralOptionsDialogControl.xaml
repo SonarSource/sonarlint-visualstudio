@@ -12,10 +12,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -39,29 +35,8 @@
                    VerticalAlignment="Center"
                    Margin="5,8,0,5" TextWrapping="Wrap" Text="Note: per-user settings are ignored for solutions using connected mode." />
         </StackPanel>
-        <Button Grid.Column="0" Grid.Row="2" Content="Activate more..." Click="OnActivateMoreClicked"
-                x:Name="ActivateButton"
-                Margin="5,25,5,5" Padding="5,2.5" />
-        <TextBlock Grid.Column="1" Grid.Row="2"
-                   x:Name="ActivateText"
-                   Text="Install and activate support for JavaScript."
-                   VerticalAlignment="Center"
-                   Margin="5,25,5,5" TextWrapping="Wrap"/>
 
-        <Button Grid.Column="0" Grid.Row="2" Content="Deactivate" Click="OnDeactivateClicked"
-                x:Name="DeactivateButton" Visibility="Collapsed"
-                Margin="5,25,5,5" Padding="5,2.5" />
-        <TextBlock Grid.Column="1" Grid.Row="2"
-                   x:Name="DeactivateText" Visibility="Collapsed"
-                   Text="Deactivate JavaScript support."
-                   VerticalAlignment="Center"
-                   Margin="5,25,5,5" TextWrapping="Wrap"/>
-
-        <TextBlock Grid.Column="1" Grid.Row="4"
-                   Text="SonarLint can also analyze JavaScript files. After installing the support for this language, it will be activated for newly opened files. Note that it doesn't benefit from the connected mode for now."
-                   Margin="5" TextWrapping="Wrap" />
-
-        <StackPanel x:Name="VerbosityPanel" Grid.Row="6" Grid.ColumnSpan="2">
+        <StackPanel x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
 
             <TextBlock Text="SonarLint output verbosity for the analysis of additional languages:"
                        Margin="5" TextWrapping="Wrap" />
