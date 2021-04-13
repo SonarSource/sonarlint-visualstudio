@@ -24,6 +24,13 @@ namespace SonarLint.VisualStudio.Integration
 
     public interface ISonarLintSettings
     {
+        /// <summary>
+        /// True if support for analysing additional languages is enabled.
+        /// </summary>
+        /// <remarks>
+        /// Note: this setting is no longer used or user-settable now that the JS analysis is NodeJS-based.
+        /// Ticket #2307 covers removing the setting and cleaning up the non-NodeJS daemon.
+        /// </remarks>
         bool IsActivateMoreEnabled { get; set; }
         DaemonLogLevel DaemonLogLevel { get; set; }
     }

@@ -124,15 +124,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error occurred configuring the daemon: {0}.
-        /// </summary>
-        internal static string ERROR_ConfiguringDaemon {
-            get {
-                return ResourceManager.GetString("ERROR_ConfiguringDaemon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Error occurred initializing the daemon package: {0}.
         /// </summary>
         internal static string ERROR_InitializingDaemon {

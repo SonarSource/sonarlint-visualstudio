@@ -19,11 +19,8 @@
  */
 
 using System;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -32,96 +29,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
-        private readonly ISonarLintSettings settings;
-        private readonly ILogger logger;
-
-        public GeneralOptionsDialogControl(ISonarLintSettings settings, ICommand openSettingsFileCommand, ILogger logger)
+        public GeneralOptionsDialogControl(ICommand openSettingsFileCommand)
         {
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
             if (openSettingsFileCommand == null)
             {
                 throw new ArgumentNullException(nameof(openSettingsFileCommand));
             }
 
-            this.settings = settings;
-            this.logger = logger;
-
             InitializeComponent();
 
             this.OpenSettingsButton.Command = openSettingsFileCommand;
-        }
-
-        protected override void OnInitialized(EventArgs e)
-        {
-            try
-            {
-                base.OnInitialized(e);
-
-                // Note: it's possible that the daemon has not been fully installed at this point
-                // - the download might have been started when the daemon package loaded, but not
-                // have completed before the user goes to Tools, Options, SonarLint.
-                UpdateActiveMoreControls();
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
-            }
-        }
-
-        private void UpdateActiveMoreControls()
-        {
-            if (settings.IsActivateMoreEnabled)
-            {
-                ActivateButton.Visibility = Visibility.Collapsed;
-                ActivateText.Visibility = Visibility.Collapsed;
-                DeactivateButton.Visibility = Visibility.Visible;
-                DeactivateText.Visibility = Visibility.Visible;
-                VerbosityPanel.Visibility = Visibility.Visible;
-                
-            }
-            else
-            {
-                ActivateButton.Visibility = Visibility.Visible;
-                ActivateText.Visibility = Visibility.Visible;
-                DeactivateButton.Visibility = Visibility.Collapsed;
-                DeactivateText.Visibility = Visibility.Collapsed;
-                VerbosityPanel.Visibility = Visibility.Collapsed;
-            }
-        }
-
-        private void OnActivateMoreClicked(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                settings.IsActivateMoreEnabled = true;
-
-                UpdateActiveMoreControls();
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
-            }
-        }
-
-        private void OnDeactivateClicked(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                settings.IsActivateMoreEnabled = false;
-
-                UpdateActiveMoreControls();
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Strings.ERROR_ConfiguringDaemon, ex);
-            }
         }
     }
 }
