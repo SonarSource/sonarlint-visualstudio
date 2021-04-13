@@ -25,6 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -105,7 +106,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
             lock (Lock)
             {
-                Stop();
+                TerminateRunningProcess();
             }
         }
 
@@ -140,7 +141,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private void Process_Exited(object sender, EventArgs e)
         {
-            Stop();
+            Process = null;
         }
 
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -176,28 +177,31 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             logger.LogDebug("ESLINT-BRIDGE ERROR: " + e.Data);
         }
 
-        private void Stop()
+        private void TerminateRunningProcess()
         {
             logger.LogDebug(Resources.INFO_TerminatingServer);
 
-            if (Process != null)
+            try
             {
-                Process.ErrorDataReceived -= OnErrorDataReceived;
-                Process.OutputDataReceived -= OnOutputDataReceived;
-                Process.Exited -= Process_Exited;
+                if (Process == null || Process.HasExited)
+                {
+                    logger.LogDebug(Resources.INFO_ServerAlreadyTerminated);
+                }
+                else
+                {
+                    Process.Kill();
+                    Process.Dispose();
+                    logger.LogDebug(Resources.INFO_ServerTerminated);
+                }
             }
-            if (Process == null || Process.HasExited)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.LogDebug(Resources.INFO_ServerAlreadyTerminated);
+                // It's possible that the process exited just between the IF and the Kill(), in which case an exception is thrown.
             }
-            else
+            finally
             {
-                Process.Kill();
-                Process?.Dispose();
-                logger.LogDebug(Resources.INFO_ServerTerminated);
+                Process = null;
             }
-
-            Process = null;
         }
 
         private string FindNodePath()

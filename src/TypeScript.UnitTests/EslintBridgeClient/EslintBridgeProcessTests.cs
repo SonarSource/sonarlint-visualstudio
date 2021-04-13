@@ -67,21 +67,29 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
-            await testSubject.Start();
+            try
+            {
+                await testSubject.Start();
 
-            var oldProcess = testSubject.Process;
+                var oldProcess = testSubject.Process;
 
-            oldProcess.HasExited.Should().BeFalse();
-            oldProcess.Kill();
-            await oldProcess.WaitForExitAsync();
-            oldProcess.HasExited.Should().BeTrue();
+                oldProcess.HasExited.Should().BeFalse();
+                oldProcess.Kill();
+                await oldProcess.WaitForExitAsync();
+                oldProcess.HasExited.Should().BeTrue();
 
-            await testSubject.Start();
+                await testSubject.Start();
 
-            var newProcess = testSubject.Process;
-            newProcess.Should().NotBeSameAs(oldProcess);
-            newProcess.HasExited.Should().BeFalse();
-            newProcess.Kill();
+                var newProcess = testSubject.Process;
+                newProcess.Should().NotBeSameAs(oldProcess);
+                newProcess.HasExited.Should().BeFalse();
+                newProcess.Kill();
+            }
+            finally
+            {
+                // Kill spawned process
+                testSubject.Dispose();
+            }
         }
 
         [TestMethod]
@@ -93,17 +101,25 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
-            await testSubject.Start();
+            try
+            {
+                await testSubject.Start();
 
-            var oldProcess = testSubject.Process;
-            oldProcess.HasExited.Should().BeFalse();
+                var oldProcess = testSubject.Process;
+                oldProcess.HasExited.Should().BeFalse();
 
-            await testSubject.Start();
+                await testSubject.Start();
 
-            var newProcess = testSubject.Process;
-            newProcess.Should().BeSameAs(oldProcess);
-            newProcess.HasExited.Should().BeFalse();
-            newProcess.Kill();
+                var newProcess = testSubject.Process;
+                newProcess.Should().BeSameAs(oldProcess);
+                newProcess.HasExited.Should().BeFalse();
+                newProcess.Kill();
+            }
+            finally
+            {
+                // Kill spawned process
+                testSubject.Dispose();
+            }
         }
 
         [TestMethod]
