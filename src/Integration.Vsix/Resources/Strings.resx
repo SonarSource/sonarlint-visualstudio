@@ -139,9 +139,6 @@
   <data name="Daemon_Initializing" xml:space="preserve">
     <value>Initializing the daemon package...</value>
   </data>
-  <data name="ERROR_ConfiguringDaemon" xml:space="preserve">
-    <value>Error occurred configuring the daemon: {0}</value>
-  </data>
   <data name="ERROR_InitializingDaemon" xml:space="preserve">
     <value>Error occurred initializing the daemon package: {0}</value>
     <comment>Error message in output window when an exception thrown during async daemon initialization</comment>

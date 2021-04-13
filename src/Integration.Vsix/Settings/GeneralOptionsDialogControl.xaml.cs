@@ -19,11 +19,8 @@
  */
 
 using System;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -32,26 +29,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
-        private readonly ISonarLintSettings settings;
-        private readonly ILogger logger;
-
-        public GeneralOptionsDialogControl(ISonarLintSettings settings, ICommand openSettingsFileCommand, ILogger logger)
+        public GeneralOptionsDialogControl(ICommand openSettingsFileCommand)
         {
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
-            }
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
             if (openSettingsFileCommand == null)
             {
                 throw new ArgumentNullException(nameof(openSettingsFileCommand));
             }
-
-            this.settings = settings;
-            this.logger = logger;
 
             InitializeComponent();
 

@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                     var logger = this.Site.GetMefService<ILogger>();
 
                     var openSettingsFileCmd = new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
-                    dialogControl = new GeneralOptionsDialogControl(Settings, openSettingsFileCmd, logger);
+                    dialogControl = new GeneralOptionsDialogControl(openSettingsFileCmd);
                 }
                 return dialogControl;
             }
