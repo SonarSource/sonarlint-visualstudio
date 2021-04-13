@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     [Export(typeof(IAnalyzer))]
     internal sealed class JavaScriptAnalyzer : IAnalyzer, IDisposable
     {
+        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
+
         private readonly IEslintBridgeClientFactory eslintBridgeClientFactory;
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IActiveJavaScriptRulesProvider activeRulesProvider;
@@ -48,6 +50,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private IEslintBridgeClient javascriptClient;
         private int javascriptServerPort;
+        private bool shouldInitLinter;
 
         [ImportingConstructor]
         public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
@@ -133,17 +136,31 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             }
         }
 
-        private async Task<IEslintBridgeClient> GetJavaScriptClient(CancellationToken token)
+        private async Task<IEslintBridgeClient> GetJavaScriptClient(CancellationToken cancellationToken)
         {
             var port = await eslintBridgeProcess.Start();
 
-            if (port != javascriptServerPort)
+            try
             {
-                javascriptServerPort = port;
-                javascriptClient?.Dispose();
-                javascriptClient = eslintBridgeClientFactory.Create(javascriptServerPort);
+                serverInitLocker.WaitOne();
 
-                await javascriptClient.InitLinter(activeRulesProvider.Get(), token);
+                if (port != javascriptServerPort)
+                {
+                    javascriptServerPort = port;
+                    shouldInitLinter = true;
+                    javascriptClient?.Dispose();
+                    javascriptClient = eslintBridgeClientFactory.Create(javascriptServerPort);
+                }
+
+                if (shouldInitLinter)
+                {
+                    await javascriptClient.InitLinter(activeRulesProvider.Get(), cancellationToken);
+                    shouldInitLinter = false;
+                }
+            }
+            finally
+            {
+                serverInitLocker.Set();
             }
 
             return javascriptClient;
@@ -176,6 +193,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
             javascriptClient?.Dispose();
             eslintBridgeProcess?.Dispose();
+            serverInitLocker?.Dispose();
         }
     }
 }
