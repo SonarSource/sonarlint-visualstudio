@@ -56,7 +56,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
             };
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
@@ -78,7 +77,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
             };
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
@@ -101,7 +99,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
             };
 
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
