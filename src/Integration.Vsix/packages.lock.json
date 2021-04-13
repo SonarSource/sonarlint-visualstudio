@@ -17,30 +17,6 @@
           "stdole": "7.0.3300"
         }
       },
-      "Google.Protobuf": {
-        "type": "Direct",
-        "requested": "[3.6.1, )",
-        "resolved": "3.6.1",
-        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
-      },
-      "Grpc": {
-        "type": "Direct",
-        "requested": "[1.4.1, )",
-        "resolved": "1.4.1",
-        "contentHash": "oz0qHndNCACL6mRggyMPVGlXWIkB6OcCyDSfI10YjQ9BGBTdXULXhFqPEhOUN+D29gzIy5Cpq9BhJ0la02Vf9Q==",
-        "dependencies": {
-          "Grpc.Core": "1.4.1"
-        }
-      },
-      "Grpc.Core": {
-        "type": "Direct",
-        "requested": "[1.4.1, )",
-        "resolved": "1.4.1",
-        "contentHash": "DTzbVYa1OfdeS1PA5CQKuVZ399oHNidAZCRHCj6fGvoZYbHE51U8KLrHVeiCrGsP/ZsB3NthBGvPV//enGRtJg==",
-        "dependencies": {
-          "System.Interactive.Async": "3.1.1"
-        }
-      },
       "Microsoft.CodeAnalysis.CSharp": {
         "type": "Direct",
         "requested": "[1.3.2, )",
@@ -242,12 +218,6 @@
           "System.Threading": "4.0.0"
         }
       },
-      "System.Interactive.Async": {
-        "type": "Direct",
-        "requested": "[3.1.1, )",
-        "resolved": "3.1.1",
-        "contentHash": "hZccYiIE5RS1/J9Tb/BNtosAGVggdlsJm4Ojdu+gDV0p4AIi+LUfUogMKkRacljQEJd2AG6vYzvcjhQFkqoZmw=="
-      },
       "System.IO.Abstractions": {
         "type": "Direct",
         "requested": "[7.1.10, )",
@@ -276,6 +246,11 @@
           "EnvDTE": "8.0.0",
           "stdole": "7.0.3300"
         }
+      },
+      "Google.Protobuf": {
+        "type": "Transitive",
+        "resolved": "3.6.1",
+        "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
       },
       "Grpc.Tools": {
         "type": "Transitive",

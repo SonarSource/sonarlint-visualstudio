@@ -241,14 +241,6 @@
         "resolved": "3.6.1",
         "contentHash": "741fGeDQjixBJaU2j+0CbrmZXsNJkTn/hWbOh4fLVXndHsCclJmWznCPWrJmPoZKvajBvAz3e8ECJOUvRtwjNQ=="
       },
-      "Grpc": {
-        "type": "Transitive",
-        "resolved": "1.4.1",
-        "contentHash": "oz0qHndNCACL6mRggyMPVGlXWIkB6OcCyDSfI10YjQ9BGBTdXULXhFqPEhOUN+D29gzIy5Cpq9BhJ0la02Vf9Q==",
-        "dependencies": {
-          "Grpc.Core": "1.4.1"
-        }
-      },
       "Grpc.Tools": {
         "type": "Transitive",
         "resolved": "1.4.1",
@@ -840,8 +832,6 @@
         "type": "Project",
         "dependencies": {
           "EnvDTE": "8.0.0",
-          "Google.Protobuf": "3.6.1",
-          "Grpc": "1.4.1",
           "Microsoft.CodeAnalysis.CSharp": "1.3.2",
           "Microsoft.CodeAnalysis.CSharp.Workspaces": "1.3.2",
           "Microsoft.CodeAnalysis.Workspaces.Common": "1.3.2",
