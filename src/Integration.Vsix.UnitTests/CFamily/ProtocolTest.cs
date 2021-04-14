@@ -181,37 +181,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         #region Low-level reading/writing tests
 
         [TestMethod]
-        public void Write_String()
-        {
-            WriteString("").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 0 });
-            WriteString("a").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 97 });
-            WriteString("A").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 65 });
-            WriteString("0").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 48 });
-            WriteString("\n").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 10 });
-            // 3 bytes
-            WriteString("\u0800").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 3, 224, 160, 128 });
-            // NUL
-            WriteString("\u0000").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 0 });
-            // Supplementary characters
-            WriteString("\U00010400").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 4, 0xF0, 0x90, 0x90, 0x80 });
-        }
-
-        [TestMethod]
         public void Write_UTF8()
         {
-            WriteUtf("").Should().BeEquivalentTo(new byte[] { 0, 0 });
-            WriteUtf("a").Should().BeEquivalentTo(new byte[] { 0, 1, 97 });
-            WriteUtf("A").Should().BeEquivalentTo(new byte[] { 0, 1, 65 });
-            WriteUtf("0").Should().BeEquivalentTo(new byte[] { 0, 1, 48 });
-            WriteUtf("\n").Should().BeEquivalentTo(new byte[] { 0, 1, 10 });
+            WriteUtf("").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 0 });
+            WriteUtf("a").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 97 });
+            WriteUtf("A").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 65 });
+            WriteUtf("0").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 48 });
+            WriteUtf("\n").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 10 });
             // 3 bytes
-            WriteUtf("\u0800").Should().BeEquivalentTo(new byte[] { 0, 3, 224, 160, 128 });
-            // Special case of NUL
-            Action actNul = () => WriteUtf("\u0000");
-            actNul.Should().ThrowExactly<InvalidOperationException>();
-            // Supplementary characters as surrogate pair  (see CESU-8) are not supported for now
-            Action actSupp = () => WriteUtf("\U00010400");
-            actSupp.Should().ThrowExactly<InvalidOperationException>();
+            WriteUtf("\u0800").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 3, 224, 160, 128 });
+            // NUL
+            WriteUtf("\u0000").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 0 });
+            // Supplementary characters
+            WriteUtf("\U00010400").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 4, 0xF0, 0x90, 0x90, 0x80 });
         }
 
         [TestMethod]
@@ -263,17 +245,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             {
                 BinaryWriter writer = new BinaryWriter(stream);
                 Protocol.WriteUTF(writer, s);
-
-                return stream.ToArray();
-            }
-        }
-
-        private byte[] WriteString(string s)
-        {
-            using (MemoryStream stream = new MemoryStream())
-            {
-                BinaryWriter writer = new BinaryWriter(stream);
-                Protocol.WriteString(writer, s);
 
                 return stream.ToArray();
             }
