@@ -49,6 +49,9 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         [JsonProperty("params")]
         public object[] Params { get; set; }
 
+        [JsonProperty("defaultParams")]
+        public object[] DefaultParams { get; set; }
+
         [JsonProperty("scope")]
         public RuleScope Scope { get; set; }
 
