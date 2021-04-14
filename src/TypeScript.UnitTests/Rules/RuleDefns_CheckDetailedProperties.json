@@ -8,6 +8,7 @@
     "status": "READY",
     "tags": [],
     "params": [],
+    "defaultParams": [],
     "scope": "MAIN",
     "eslintKey": "insecure-cookie",
     "activatedByDefault": true
@@ -47,6 +48,12 @@
           "multiple": false,
           "key": "BOOLEAN"
         }
+      }
+    ],
+    "defaultParams": [
+      {
+        "requireParameterParentheses": false,
+        "requireBodyBraces": false
       }
     ],
     "scope": "BOTH",
