@@ -39,6 +39,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     [Export(typeof(IAnalyzer))]
     internal sealed class JavaScriptAnalyzer : IAnalyzer, IDisposable
     {
+        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
+
         private readonly IEslintBridgeClientFactory eslintBridgeClientFactory;
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IActiveJavaScriptRulesProvider activeRulesProvider;
@@ -46,8 +48,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ITelemetryManager telemetryManager;
         private readonly ILogger logger;
 
-        private IEslintBridgeClient javascriptClient;
+        private IEslintBridgeClient eslintBridgeClient;
         private int javascriptServerPort;
+        private bool shouldInitLinter;
 
         [ImportingConstructor]
         public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
@@ -106,7 +109,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             try
             {
-                var eslintBridgeClient = await GetJavaScriptClient(cancellationToken);
+                await EnsureEslintBridgeClientIsInitialized(cancellationToken);
+
                 var analysisResponse = await eslintBridgeClient.AnalyzeJs(filePath, cancellationToken);
 
                 if (analysisResponse == null)
@@ -133,20 +137,32 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             }
         }
 
-        private async Task<IEslintBridgeClient> GetJavaScriptClient(CancellationToken token)
+        private async Task EnsureEslintBridgeClientIsInitialized(CancellationToken cancellationToken)
         {
             var port = await eslintBridgeProcess.Start();
 
-            if (port != javascriptServerPort)
+            try
             {
-                javascriptServerPort = port;
-                javascriptClient?.Dispose();
-                javascriptClient = eslintBridgeClientFactory.Create(javascriptServerPort);
+                serverInitLocker.WaitOne();
 
-                await javascriptClient.InitLinter(activeRulesProvider.Get(), token);
+                if (port != javascriptServerPort)
+                {
+                    javascriptServerPort = port;
+                    shouldInitLinter = true;
+                    eslintBridgeClient?.Dispose();
+                    eslintBridgeClient = eslintBridgeClientFactory.Create(javascriptServerPort);
+                }
+
+                if (shouldInitLinter)
+                {
+                    await eslintBridgeClient.InitLinter(activeRulesProvider.Get(), cancellationToken);
+                    shouldInitLinter = false;
+                }
             }
-
-            return javascriptClient;
+            finally
+            {
+                serverInitLocker.Set();
+            }
         }
 
         private IEnumerable<IAnalysisIssue> ConvertIssues(string filePath, IEnumerable<Issue> analysisResponseIssues) =>
@@ -174,8 +190,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public void Dispose()
         {
-            javascriptClient?.Dispose();
+            eslintBridgeClient?.Dispose();
             eslintBridgeProcess?.Dispose();
+            serverInitLocker?.Dispose();
         }
     }
 }

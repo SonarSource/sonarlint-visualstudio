@@ -165,6 +165,30 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public async Task ExecuteAnalysis_InitLinterCallFails_CallsInitLinterAgainButServerNotRestarted()
+        {
+            const int port = 123;
+            var serverProcess = SetupServerProcess(port);
+
+            var client = SetupEslintBridgeClient(null);
+            client.Setup(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()))
+                .Throws<NotImplementedException>();
+
+            var clientFactory = SetupEslintBridgeClientFactory(port, client.Object);
+            var testSubject = CreateTestSubject(clientFactory.Object, serverProcess.Object);
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
+            clientFactory.Verify(x=> x.Create(It.IsAny<int>()), Times.Exactly(1));
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+            clientFactory.Verify(x => x.Create(It.IsAny<int>()), Times.Exactly(1));
+        }
+
+        [TestMethod]
         public async Task ExecuteAnalysis_EslintBridgePortUnchanged_DoesNotCallInitLinterAgain()
         {
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
@@ -477,7 +501,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             ILogger logger = null)
         {
             client ??= SetupEslintBridgeClient(null).Object;
-            activeRulesProvider ??= Mock.Of<IActiveJavaScriptRulesProvider>();
 
             var serverProcess = SetupServerProcess(123);
             var eslintBridgeClientFactory = SetupEslintBridgeClientFactory(123, client);
@@ -495,6 +518,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             issueConverter ??= Mock.Of<IEslintBridgeIssueConverter>();
             logger ??= Mock.Of<ILogger>();
             telemetryManager ??= Mock.Of<ITelemetryManager>();
+            activeRulesProvider ??= Mock.Of<IActiveJavaScriptRulesProvider>();
 
             return new JavaScriptAnalyzer(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider, issueConverter, telemetryManager, logger);
         }
