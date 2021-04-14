@@ -25,6 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
@@ -44,7 +45,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     internal sealed class EslintBridgeProcess : IEslintBridgeProcess
     {
         internal const string EslintBridgeDirectoryMefContractName = "SonarLint.TypeScript.EsLintBridgeServerPath";
-        
+        private static readonly object Lock = new object();
+
         private readonly string eslintBridgeStartupScriptPath;
         private readonly INodeLocator nodeLocator;
         private readonly IFileSystem fileSystem;
@@ -74,27 +76,38 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public Task<int> Start()
         {
-            if (startTask != null && !startTask.Task.IsFaulted)
+            lock (Lock)
             {
+                var shouldSpawnNewProcess = startTask == null ||
+                                            startTask.Task.IsFaulted ||
+                                            Process == null ||
+                                            Process.HasExited;
+
+                if (!shouldSpawnNewProcess)
+                {
+                    return startTask.Task;
+                }
+                startTask = new TaskCompletionSource<int>();
+
+                try
+                {
+                    StartServer();
+                }
+                catch (Exception ex)
+                {
+                    startTask.SetException(ex);
+                }
+
                 return startTask.Task;
             }
-
-            startTask = new TaskCompletionSource<int>();
-            try
-            {
-                StartServer();
-            }
-            catch (Exception ex)
-            {
-                startTask.SetException(ex);
-            }
-
-            return startTask.Task;
         }
 
         public void Dispose()
         {
-            Stop();
+            lock (Lock)
+            {
+                TerminateRunningProcess();
+            }
         }
 
         private void StartServer()
@@ -116,6 +129,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             Process = new Process {StartInfo = psi};
             Process.ErrorDataReceived += OnErrorDataReceived;
             Process.OutputDataReceived += OnOutputDataReceived;
+            Process.Exited += Process_Exited;
 
             Process.Start();
             logger.WriteLine(Resources.INFO_ServerProcessId, Process.Id);
@@ -123,6 +137,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             Process.BeginErrorReadLine();
             Process.BeginOutputReadLine();
+        }
+
+        private void Process_Exited(object sender, EventArgs e)
+        {
+            Process = null;
         }
 
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
@@ -158,22 +177,31 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             logger.LogDebug("ESLINT-BRIDGE ERROR: " + e.Data);
         }
 
-        private void Stop()
+        private void TerminateRunningProcess()
         {
             logger.LogDebug(Resources.INFO_TerminatingServer);
 
-            if (Process == null || Process.HasExited)
+            try
             {
-                logger.LogDebug(Resources.INFO_ServerAlreadyTerminated);
-                Process?.Dispose();
-                Process = null;
-                return;
+                if (Process == null || Process.HasExited)
+                {
+                    logger.LogDebug(Resources.INFO_ServerAlreadyTerminated);
+                }
+                else
+                {
+                    Process.Kill();
+                    Process.Dispose();
+                    logger.LogDebug(Resources.INFO_ServerTerminated);
+                }
             }
-
-            Process.Kill();
-            Process?.Dispose();
-            logger.LogDebug(Resources.INFO_ServerTerminated);
-            Process = null;
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                // It's possible that the process exited just between the IF and the Kill(), in which case an exception is thrown.
+            }
+            finally
+            {
+                Process = null;
+            }
         }
 
         private string FindNodePath()
