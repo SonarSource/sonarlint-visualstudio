@@ -21,7 +21,6 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
-using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.Helpers;
 
@@ -65,15 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisFailed(string filePath, Exception ex)
         {
-            if (ex is AggregateException aggregateException)
-            {
-                var exceptions = string.Join(Environment.NewLine, aggregateException.InnerExceptions.Select(x => x.ToString()));
-                logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, exceptions);
-            }
-            else
-            {
-                logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, ex.ToString());
-            }
+            logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, ex.ToString());
 
             Notify(AnalysisStrings.Notifier_AnalysisFailed, filePath, false);
         }
