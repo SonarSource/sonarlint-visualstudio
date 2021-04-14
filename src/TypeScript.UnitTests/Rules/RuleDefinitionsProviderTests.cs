@@ -144,9 +144,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         [DataRow("not in file", null)]
         [DataRow("not ts or js", null)]
-        [DataRow("eslint common", "common")]
-        [DataRow("eslint ts S1135", "S1135")]
-        [DataRow("ESLINT TS S1135", "S1135")] // case-insensitive
+        [DataRow("eslint common", "typescript:common")]
+        [DataRow("eslint ts S1135", "typescript:S1135")]
+        [DataRow("ESLINT TS S1135", "typescript:S1135")] // case-insensitive
         [DataRow("eslint js S1135", null)] // should not recognise JS-specific key
         public void GetSonarRuleKey_TypeScript_ReturnsExpected(string eslintRuleKey, string expected)
         {
@@ -157,9 +157,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         [DataRow("not in file", null)]
         [DataRow("not ts or js", null)]
-        [DataRow("eslint common", "common")]
-        [DataRow("eslint js S1135", "S1135")]
-        [DataRow("ESLINT JS S1135", "S1135")] // case-insensitive
+        [DataRow("eslint common", "javascript:common")]
+        [DataRow("eslint js S1135", "javascript:S1135")]
+        [DataRow("ESLINT JS S1135", "javascript:S1135")] // case-insensitive
         [DataRow("eslint TS S1135", null)] // should not recognise TS-specific key
         public void GetSonarRuleKey_JavaScriptScript_ReturnsExpected(string eslintRuleKey, string expected)
         {

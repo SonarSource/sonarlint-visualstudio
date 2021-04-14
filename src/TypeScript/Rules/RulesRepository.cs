@@ -20,7 +20,6 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -72,24 +71,8 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             .ToList()
             .AsReadOnly();
 
-        private static string GetRuleKey(string eslintRuleKey, IEnumerable<RuleDefinition> rules)
-        {
-            var repoAndKey = rules.FirstOrDefault(x => eslintRuleKey.Equals(x.EslintKey, System.StringComparison.OrdinalIgnoreCase))
+        private static string GetRuleKey(string eslintRuleKey, IEnumerable<RuleDefinition> rules) =>
+            rules.FirstOrDefault(x => eslintRuleKey.Equals(x.EslintKey, System.StringComparison.OrdinalIgnoreCase))
                 ?.RuleKey;
-            return repoAndKey == null ? null : StripRepoPrefix(repoAndKey);
-        }
-
-        private static string StripRepoPrefix(string ruleKey)
-        {
-            // Expecting the key to be in the form [repo id]:[rule id]
-            Debug.Assert(ruleKey != null);
-
-            var separatorIndex = ruleKey.IndexOf(':');
-
-            Debug.Assert(separatorIndex > 0 && separatorIndex < ruleKey.Length - 1,
-                $"Invalid rule key: '{ruleKey}' Expecting [repo]:[rule id]");
-
-            return ruleKey.Substring(separatorIndex + 1);
-        }
     }
 }
