@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -138,6 +139,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisFailed, filePath, exception);
             logger.AssertOutputStringExists(expectedMessage);
+            logger.OutputStrings.Count.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void AnalysisFailed_AggregateException_LogToOutputWindow()
+        {
+            var exception = new AggregateException(
+                new List<Exception>
+                {
+                    new ArgumentNullException("this is a test1"),
+                    new NotImplementedException("this is a test2")
+                });
+
+            var filePath = "c:\\test\\foo-started.cpp";
+            testSubject.AnalysisFailed(filePath, exception);
+
+            logger.AssertPartialOutputStringExists("this is a test1");
+            logger.AssertPartialOutputStringExists("this is a test2");
             logger.OutputStrings.Count.Should().Be(1);
         }
 

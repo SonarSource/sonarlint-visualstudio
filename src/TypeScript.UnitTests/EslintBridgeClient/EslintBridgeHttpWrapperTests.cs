@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -126,48 +125,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public async Task PostAsync_FailsToExecuteRequest_ExceptionCaughtAndLogged()
+        public async Task PostAsync_Exception_ExceptionNotCaught()
         {
             var httpMessageHandler = new FakeHttpMessageHandler(message =>
-                throw new NotImplementedException("this is a test"));
-            var logger = new TestLogger();
-            var testSubject = CreateTestSubject(httpMessageHandler: httpMessageHandler, logger: logger);
-
-            var response = await testSubject.PostAsync(DefaultUri, null, CancellationToken.None);
-            response.Should().BeNull();
-            logger.AssertPartialOutputStringExists("this is a test");
-        }
-
-        [TestMethod]
-        public async Task PostAsync_AggregateException_ExceptionCaughtAndLogged()
-        {
-            var httpMessageHandler = new FakeHttpMessageHandler(message =>
-                throw new AggregateException(
-                    new List<Exception>
-                    {
-                        new ArgumentNullException("this is a test1"),
-                        new NotImplementedException("this is a test2")
-                    }));
-
-            var logger = new TestLogger();
-            var testSubject = CreateTestSubject(httpMessageHandler, logger: logger);
-
-            var response = await testSubject.PostAsync(DefaultUri, null, CancellationToken.None);
-            response.Should().BeNull();
-            logger.AssertPartialOutputStringExists("this is a test1");
-            logger.AssertPartialOutputStringExists("this is a test2");
-        }
-
-        [TestMethod]
-        public async Task PostAsync_CriticalException_ExceptionNotCaught()
-        {
-            var httpMessageHandler = new FakeHttpMessageHandler(message =>
-                throw new StackOverflowException());
+                throw new NotImplementedException());
 
             var testSubject = CreateTestSubject(httpMessageHandler);
 
             Func<Task> act = async () => await testSubject.PostAsync(DefaultUri, null, CancellationToken.None);
-            await act.Should().ThrowAsync<StackOverflowException>();
+            await act.Should().ThrowAsync<NotImplementedException>();
         }
 
         private FakeHttpMessageHandler SetupHttpMessageHandler(string response, Action<HttpRequestMessage> assertReceivedMessage = null)

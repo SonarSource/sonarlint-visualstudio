@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to analyze file &apos;{0}&apos;: {1}.
-        /// </summary>
-        internal static string ERR_AnalysisFailure {
-            get {
-                return ResourceManager.GetString("ERR_AnalysisFailure", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Failed to parse file &apos;{0}&apos; at line {1}: {2} {3}.
         /// </summary>
         internal static string ERR_ParsingError_General {

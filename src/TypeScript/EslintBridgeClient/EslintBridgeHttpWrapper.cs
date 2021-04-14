@@ -19,13 +19,11 @@
  */
 
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 
@@ -54,30 +52,18 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<string> PostAsync(Uri serverEndpoint, object request, CancellationToken cancellationToken)
         {
-            try
-            {
-                var serializedRequest = request == null ? string.Empty : JsonConvert.SerializeObject(request, Formatting.Indented);
-                logger.LogDebug(Resources.INFO_RequestDetails, serverEndpoint, serializedRequest);
+            var serializedRequest = request == null
+                ? string.Empty
+                : JsonConvert.SerializeObject(request, Formatting.Indented);
+            logger.LogDebug(Resources.INFO_RequestDetails, serverEndpoint, serializedRequest);
 
-                var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
-                var response = await httpClient.PostAsync(serverEndpoint, content, cancellationToken);
-                var responseString = await response.Content.ReadAsStringAsync();
+            var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync(serverEndpoint, content, cancellationToken);
+            var responseString = await response.Content.ReadAsStringAsync();
 
-                logger.LogDebug(Resources.INFO_ResponseDetails, serverEndpoint, responseString);
+            logger.LogDebug(Resources.INFO_ResponseDetails, serverEndpoint, responseString);
 
-                return responseString;
-            }
-            catch (AggregateException ex) 
-            {
-                var exceptions = string.Join(Environment.NewLine, ex.InnerExceptions.Select(x=> x.Message));
-                logger.WriteLine(Resources.ERR_RequestFailure, serverEndpoint, exceptions);
-                return null;
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Resources.ERR_RequestFailure, serverEndpoint, ex.Message);
-                return null;
-            }
+            return responseString;
         }
 
         public void Dispose()
