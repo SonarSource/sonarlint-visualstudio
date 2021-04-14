@@ -58,10 +58,13 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
         {
             var ruleCount = rules.Count();
             var parameterisedRulesCount = rules.Count(RuleHasParameters);
-            Console.WriteLine($"{language}: rules: {ruleCount}, parameterised rules: {parameterisedRulesCount}");
+            var rulesWithDefaultParamsCount = rules.Count(HasDefaultParameters);
+
+            Console.WriteLine($"{language}: rules: {ruleCount}, parameterised rules: {parameterisedRulesCount}, non-null default params: {rulesWithDefaultParamsCount}");
 
             ruleCount.Should().BeGreaterThan(200);
             parameterisedRulesCount.Should().BeGreaterThan(10);
+            rulesWithDefaultParamsCount.Should().BeGreaterThan(5);
 
             rules.All(RuleKeyIsValid).Should().BeTrue();
             rules.All(EslintKeyIsValid).Should().BeTrue();
@@ -85,5 +88,8 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
             !string.IsNullOrEmpty(ruleDefinition.EslintKey) ||
             // Special case - "JavaScript parser failure"
             ruleDefinition.RuleKey.EndsWith(":S2260");
+
+        private static bool HasDefaultParameters(RuleDefinition ruleDefinition) =>
+                ruleDefinition.DefaultParams.Length > 0;
     }
 }
