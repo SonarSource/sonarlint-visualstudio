@@ -38,26 +38,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
           */
         public static void Write(BinaryWriter writer, Request request)
         {
-            WriteString(writer, "IN");
+            WriteUTF(writer, "IN");
             Write(writer, request.Options);
             WriteLong(writer, request.Flags);
             WriteLong(writer, request.MsVersion);
             Write(writer, request.IncludeDirs);
             Write(writer, request.FrameworkDirs);
             Write(writer, request.VfsOverlayFiles);
-            WriteString(writer, request.ModuleName);
-            WriteString(writer, request.Predefines);
+            WriteUTF(writer, request.ModuleName);
+            WriteUTF(writer, request.Predefines);
             Write(writer, request.Macros);
-            WriteString(writer, request.TargetTriple);
-            WriteString(writer, request.File);
+            WriteUTF(writer, request.TargetTriple);
+            WriteUTF(writer, request.File);
             writer.Write(/* withFileContent */ false);
-            WriteString(writer, /* fileContent */ "");
-            WriteString(writer, /* pchDir */ "");
-            WriteString(writer, /* pchThroughHeader */ "");
-            WriteString(writer, request.PchFile);
-            WriteString(writer, /* reportingCppStandardOverride */ "");
+            WriteUTF(writer, /* fileContent */ "");
+            WriteUTF(writer, /* pchDir */ "");
+            WriteUTF(writer, /* pchThroughHeader */ "");
+            WriteUTF(writer, request.PchFile);
+            WriteUTF(writer, /* reportingCppStandardOverride */ "");
             WriteInt(writer, /* sourceDirs */ 0);
-            WriteString(writer, "END");
+            WriteUTF(writer, "END");
         }
 
         internal /* for testing */ static void WriteLong(BinaryWriter writer, long l)
@@ -98,33 +98,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             WriteInt(writer, strings.Length);
             foreach (string value in strings)
             {
-                WriteString(writer, value);
+                WriteUTF(writer, value);
             }
         }
 
         internal /* for testing */ static void WriteUTF(BinaryWriter writer, string str)
-        {
-            foreach (char c in str)
-            {
-                if (Char.IsSurrogate(c))
-                {
-                    throw new InvalidOperationException("Surrogate characters are not supported");
-                }
-                if (c == '\0')
-                {
-                    throw new InvalidOperationException("NUL character is not supported");
-                }
-            }
-            byte[] bytes = Encoding.UTF8.GetBytes(str);
-            if (bytes.Length > ushort.MaxValue)
-            {
-                throw new InvalidOperationException($"String size is too big to be serialized: {bytes.Length}");
-            }
-            WriteUShort(writer, (ushort)bytes.Length);
-            writer.Write(bytes);
-        }
-
-        internal /* for testing */ static void WriteString(BinaryWriter writer, string str)
         {
             byte[] bytes = Encoding.UTF8.GetBytes(str);
             WriteInt(writer, bytes.Length);
@@ -133,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal /* for testing */ static string ReadUTF(BinaryReader reader)
         {
-            ushort size = ReadUShort(reader);
+            int size = ReadInt(reader);
             return Encoding.UTF8.GetString(reader.ReadBytes(size));
         }
 
