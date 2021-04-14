@@ -83,7 +83,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             var responseString = await httpWrapper.PostAsync(BuildServerUri("analyze-js"), analysisRequest, cancellationToken);
 
-            return responseString == null ? null : JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
+            if (string.IsNullOrEmpty(responseString))
+            {
+                throw new ArgumentNullException(nameof(responseString));
+            }
+
+            return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
 
         private Task Close()
@@ -93,7 +98,15 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async void Dispose()
         {
-            await Close();
+            try
+            {
+                await Close();
+            }
+            catch
+            {
+                // nothing to do if the call failed
+            }
+
             httpWrapper.Dispose();
         }
 

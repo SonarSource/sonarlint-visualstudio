@@ -46,6 +46,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly IActiveJavaScriptRulesProvider activeRulesProvider;
         private readonly IEslintBridgeIssueConverter issuesConverter;
         private readonly ITelemetryManager telemetryManager;
+        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly ILogger logger;
 
         private IEslintBridgeClient javascriptClient;
@@ -59,11 +60,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IJavaScriptRuleDefinitionsProvider ruleDefinitionsProvider,
             IActiveJavaScriptRulesProvider activeRulesProvider,
             ITelemetryManager telemetryManager,
+            IAnalysisStatusNotifier analysisStatusNotifier,
             ILogger logger)
             : this(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider,
                 new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey,
                     ruleDefinitionsProvider.GetDefinitions),
                 telemetryManager,
+                analysisStatusNotifier,
                 logger)
         {
         }
@@ -73,6 +76,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IActiveJavaScriptRulesProvider activeRulesProvider,
             IEslintBridgeIssueConverter issuesConverter,
             ITelemetryManager telemetryManager,
+            IAnalysisStatusNotifier analysisStatusNotifier,
             ILogger logger)
         {
             this.eslintBridgeClientFactory = eslintBridgeClientFactory;
@@ -80,6 +84,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.activeRulesProvider = activeRulesProvider;
             this.issuesConverter = issuesConverter;
             this.telemetryManager = telemetryManager;
+            this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
         }
 
@@ -107,22 +112,24 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             // Switch to a background thread
             await TaskScheduler.Default;
 
+            analysisStatusNotifier.AnalysisStarted(filePath);
+
             try
             {
                 var eslintBridgeClient = await GetJavaScriptClient(cancellationToken);
+                var analysisStartTime = DateTime.Now;
                 var analysisResponse = await eslintBridgeClient.AnalyzeJs(filePath, cancellationToken);
 
-                if (analysisResponse == null)
-                {
-                    return;
-                }
+                var analysisTime = DateTime.Now - analysisStartTime;
+                var numberOfIssues = analysisResponse.Issues?.Count() ?? 0;
+                analysisStatusNotifier.AnalysisFinished(filePath, numberOfIssues, analysisTime);
 
                 if (analysisResponse.ParsingError != null)
                 {
                     LogParsingError(filePath, analysisResponse.ParsingError);
                     return;
                 }
-             
+
                 var issues = ConvertIssues(filePath, analysisResponse.Issues);
 
                 if (issues.Any())
@@ -130,9 +137,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                     consumer.Accept(filePath, issues);
                 }
             }
+            catch (TaskCanceledException)
+            {
+                analysisStatusNotifier.AnalysisCancelled(filePath);
+            }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.ERR_AnalysisFailure, filePath, ex.Message);
+                analysisStatusNotifier.AnalysisFailed(filePath, ex);
             }
         }
 

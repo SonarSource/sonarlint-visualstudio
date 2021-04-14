@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public async Task AnalyzeJs_HttpWrapperCalledWithCorrectArguments()
         {
-            var httpWrapper = SetupHttpWrapper("analyze-js", assertReceivedRequest: receivedRequest =>
+            var httpWrapper = SetupHttpWrapper("analyze-js", JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
             {
                 var analysisRequest = receivedRequest as AnalysisRequest;
                 analysisRequest.Should().NotBeNull();
@@ -84,13 +84,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public async Task AnalyzeJs_NullResponse_Null()
+        [DataRow("")]
+        [DataRow(null)]
+        public void AnalyzeJs_EmptyResponse_ArgumentNullException(string response)
         {
-            var httpWrapper = SetupHttpWrapper("analyze-js", response: null);
+            var httpWrapper = SetupHttpWrapper("analyze-js", response);
             var testSubject = CreateTestSubject(httpWrapper.Object);
-            var result = await testSubject.AnalyzeJs("some path", CancellationToken.None);
+            Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
 
-            result.Should().BeNull();
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("responseString");
         }
 
         [TestMethod]
@@ -136,6 +138,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         public void Dispose_DisposesHttpWrapper()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+            testSubject.Dispose();
+
+            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("close"), null, CancellationToken.None), Times.Once);
+            httpWrapper.Verify(x => x.Dispose(), Times.Once);
+            httpWrapper.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_FailsToCallClose_HttpWrapperStillDisposed()
+        {
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+            httpWrapper
+                .Setup(x => x.PostAsync(BuildFullUri("close"), null, CancellationToken.None))
+                .Throws<NotImplementedException>();
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
             testSubject.Dispose();
