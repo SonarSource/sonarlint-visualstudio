@@ -50,23 +50,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
         }
 
         [TestMethod]
-        public void OnActivate_WhenDaemonIsNotInstalled_ControlsAreConfiguredForActivation()
+        public void OnActivate_ControlsAreConfigured()
         {
-            // Daemon is not installed. However, that should not affect the activation
-            // status of the controls.
             var settings = new ConfigurableSonarLintSettings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(false);
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
 
             // Act
             page.ActivateAccessor();
@@ -74,85 +67,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             // Assert
             page.Control.Should().NotBeNull();
             page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
-
-            // User has enabled activation; the activation status of the daemon should be irrelevant
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Visible);
             page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Visible);
-
-            // ... and activate options should be visible
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
-        }
-
-        [TestMethod]
-        public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings1()
-        {
-            // Daemon is installed so the settings as supplied should be used
-            var settings = new ConfigurableSonarLintSettings
-            {
-                DaemonLogLevel = DaemonLogLevel.Verbose,
-                IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
-            };
-
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(true);
-
-            GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
-
-            // Act
-            page.ActivateAccessor();
-
-            // Assert
-            page.Control.Should().NotBeNull();
-            page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Verbose);
-
-            // Daemon is activate, so deactivate options should be visible
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Visible);
-            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Visible);
-
-            // ... and active options should not
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Collapsed);
-        }
-
-        [TestMethod]
-        public void OnActivate_WhenDaemonIsInstalled_ControlsAreConfiguredFromSettings2()
-        {
-            // Daemon is installed so the settings as supplied should be used
-            var settings = new ConfigurableSonarLintSettings
-            {
-                DaemonLogLevel = DaemonLogLevel.Info,
-                IsActivateMoreEnabled = false,
-                SkipActivateMoreDialog = false
-            };
-
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-            installerMock.Setup<bool>(x => x.IsInstalled()).Returns(true);
-
-            GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
-
-            // Act
-            page.ActivateAccessor();
-
-            // Assert
-            page.Control.Should().NotBeNull();
-            page.Control.DaemonVerbosity.SelectedItem.Should().Be(DaemonLogLevel.Info);
-
-            // Daemon is inactive, so deactivate options should be collapsed
-            page.Control.DeactivateButton.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.DeactivateText.Visibility.Should().Be(Visibility.Collapsed);
-            page.Control.VerbosityPanel.Visibility.Should().Be(Visibility.Collapsed);
-
-            // ... and activate options should be visible
-            page.Control.ActivateButton.Visibility.Should().Be(Visibility.Visible);
-            page.Control.ActivateText.Visibility.Should().Be(Visibility.Visible);
         }
 
         [TestMethod]
@@ -162,14 +77,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
             page.ActivateAccessor();
 
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
@@ -188,14 +99,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             {
                 DaemonLogLevel = DaemonLogLevel.Verbose,
                 IsActivateMoreEnabled = true,
-                SkipActivateMoreDialog = true
             };
 
-            var daemonMock = new Mock<ISonarLintDaemon>();
-            var installerMock = new Mock<IDaemonInstaller>();
-
             GeneralOptionsDialogPageTestable page = new GeneralOptionsDialogPageTestable();
-            ConfigureSiteMock(page, settings, daemonMock.Object, installerMock.Object);
+            ConfigureSiteMock(page, settings);
             page.ActivateAccessor();
 
             page.Control.DaemonVerbosity.SelectedItem = DaemonLogLevel.Minimal;
@@ -207,11 +114,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
             settings.DaemonLogLevel.Should().Be(DaemonLogLevel.Minimal);
         }
 
-        private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject, ISonarLintSettings settings, ISonarLintDaemon daemon, IDaemonInstaller installer)
+        private static void ConfigureSiteMock(GeneralOptionsDialogPage testSubject, ISonarLintSettings settings)
         {
             var mefHostMock = new Mock<IComponentModel>();
-            mefHostMock.Setup(m => m.GetExtensions<ISonarLintDaemon>()).Returns(() => new[] { daemon });
-            mefHostMock.Setup(m => m.GetExtensions<IDaemonInstaller>()).Returns(() => new[] { installer });
             mefHostMock.Setup(m => m.GetExtensions<ISonarLintSettings>()).Returns(() => new[] { settings });
             mefHostMock.Setup(m => m.GetExtensions<ILogger>()).Returns(() => new[] { new TestLogger() });
             mefHostMock.Setup(m => m.GetExtensions<IUserSettingsProvider>()).Returns(() => new[] { new Mock<IUserSettingsProvider>().Object });

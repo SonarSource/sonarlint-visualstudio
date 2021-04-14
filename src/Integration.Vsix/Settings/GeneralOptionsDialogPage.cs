@@ -42,13 +42,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 if (dialogControl == null)
                 {
                     Debug.Assert(this.Site != null, "Expecting the page to be sited");
-                    var daemon = this.Site.GetMefService<ISonarLintDaemon>();
-                    var installer = this.Site.GetMefService<IDaemonInstaller>();
                     var userSettingsProvider = this.Site.GetMefService<IUserSettingsProvider>();
                     var logger = this.Site.GetMefService<ILogger>();
 
                     var openSettingsFileCmd = new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
-                    dialogControl = new GeneralOptionsDialogControl(Settings, daemon, installer, openSettingsFileCmd, logger);
+                    dialogControl = new GeneralOptionsDialogControl(openSettingsFileCmd);
                 }
                 return dialogControl;
             }

@@ -18,9 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
@@ -50,7 +50,6 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         {
             // TODO: handle user-configuration in standalone mode #771
             // TODO: handle QP configuration in connected mode #770
-            // TODO: handle eslint rules with hardcoded configurations #2293
             return jsRuleDefinitions.GetDefinitions()
                 .Where(IncludeRule)
                 .Select(Convert)
@@ -66,12 +65,13 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
         private static Rule Convert(RuleDefinition ruleDefinition)
         {
+            Debug.Assert(ruleDefinition.DefaultParams != null, $"JavaScript rule default params should not be null: {ruleDefinition.RuleKey}");
             return new Rule
             {
                 Key = ruleDefinition.EslintKey,
 
                 // TODO: handle parameterised rules #2284
-                Configurations = Array.Empty<object>()
+                Configurations = ruleDefinition.DefaultParams
             };
         }
     }

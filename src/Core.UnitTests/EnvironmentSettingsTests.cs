@@ -92,19 +92,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         }
 
         [TestMethod]
-        [DataRow(null, null)]
-        [DataRow("", null)]
-        [DataRow("does not validate urls", "does not validate urls")]
-        public void SonarLintDaemonDownloadUrl_ReturnsExpectedValue(string envVarValue, string expected)
-        {
-            using (var scope = new EnvironmentVariableScope())
-            {
-                scope.SetVariable(EnvironmentSettings.SonarLintDownloadUrlEnvVar, envVarValue);
-                new EnvironmentSettings().SonarLintDaemonDownloadUrl().Should().Be(expected);
-            }
-        }
-
-        [TestMethod]
         [DataRow(null, false)]
         [DataRow("true", true)]
         [DataRow("TRUE", true)]

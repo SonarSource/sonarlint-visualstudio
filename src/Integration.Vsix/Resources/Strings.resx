@@ -129,16 +129,6 @@
     <value>Cannot find tool window with the specified guid: {0}</value>
     <comment>Exception message, {0} guid</comment>
   </data>
-  <data name="Daemon_Downloaded" xml:space="preserve">
-    <value>Finished downloading the daemon.</value>
-  </data>
-  <data name="Daemon_Downloading" xml:space="preserve">
-    <value>Downloading the daemon...</value>
-  </data>
-  <data name="Daemon_Download_Url" xml:space="preserve">
-    <value>Daemon download url: {0}</value>
-    <comment>Output window message</comment>
-  </data>
   <data name="Daemon_Editor_ERROR" xml:space="preserve">
     <value>Daemon error occurred in editor integration: {0}</value>
     <comment>Output window message</comment>
@@ -149,61 +139,13 @@
   <data name="Daemon_Initializing" xml:space="preserve">
     <value>Initializing the daemon package...</value>
   </data>
-  <data name="Daemon_Installed" xml:space="preserve">
-    <value>Finished installing the daemon.</value>
-  </data>
-  <data name="Daemon_Installing" xml:space="preserve">
-    <value>Installing the daemon...</value>
-  </data>
-  <data name="Daemon_InvalidFileNameInDownloadEnvVar" xml:space="preserve">
-    <value>The daemon file name supplied in {0} environment variable is invalid ('{1}'). Using the default download URL.</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Daemon_InvalidUrlInDownloadEnvVar" xml:space="preserve">
-    <value>Download URL supplied in {0} environment variable is invalid ('{1}'). Using default download URL.</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Daemon_Started" xml:space="preserve">
-    <value>Daemon started successfully.</value>
-  </data>
-  <data name="Daemon_Starting" xml:space="preserve">
-    <value>Starting the daemon...</value>
-  </data>
-  <data name="Daemon_Stopped" xml:space="preserve">
-    <value>Daemon stopped successfully.</value>
-  </data>
-  <data name="Daemon_Stopping" xml:space="preserve">
-    <value>Stopping the daemon...</value>
-  </data>
-  <data name="Daemon_UsingDefaultDownloadLocation" xml:space="preserve">
-    <value>Using default daemon download URL</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Daemon_UsingDownloadUrlFromEnvVar" xml:space="preserve">
-    <value>Using daemon download url from {0} environment variable</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Daemon_Version" xml:space="preserve">
-    <value>Daemon version: {0}</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="ERROR_ConfiguringDaemon" xml:space="preserve">
-    <value>Error occurred configuring the daemon: {0}</value>
-  </data>
   <data name="ERROR_InitializingDaemon" xml:space="preserve">
     <value>Error occurred initializing the daemon package: {0}</value>
     <comment>Error message in output window when an exception thrown during async daemon initialization</comment>
   </data>
-  <data name="ERROR_InstallingDaemon" xml:space="preserve">
-    <value>Error occurred installing the daemon: {0}</value>
-  </data>
   <data name="InvalidInfoBarInstance" xml:space="preserve">
     <value>The specified argument is of a valid type.</value>
     <comment>Exception message</comment>
-  </data>
-  <data name="InvalidVisualStudioVersion" xml:space="preserve">
-    <value>Invalid VisualStudio version, expecting '14.0' or '15.0' got '{0}'.</value>
-    <comment>Error message in output window when the VisualStudio version is not the expected one. {0} Actual VisualStudio version</comment>
   </data>
   <data name="Notifications_Connected" xml:space="preserve">
     <value>Connected: checking for notifications</value>
@@ -257,28 +199,9 @@
     <value>Initializing the telemetry package...</value>
     <comment>Output window message</comment>
   </data>
-  <data name="Daemon_Download_ErrorDlgTitle" xml:space="preserve">
-    <value>SonarLint - download error</value>
-    <comment>Title for modal error dialogue box</comment>
-  </data>
-  <data name="Daemon_Download_ErrorLogMessage" xml:space="preserve">
-    <value>Download error:</value>
-  </data>
   <data name="Daemon_PlatformToolsetNotSpecified" xml:space="preserve">
     <value>The file cannot be analyzed because the platform toolset has not been specified. Set the Platform Toolset property through the Visual Studio project property page.</value>
     <comment>Output window message</comment>
-  </data>
-  <data name="Daemon_NotStarting_NotEnabled" xml:space="preserve">
-    <value>Not starting the daemon: support for additional languages is not activated.</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="ERROR_StoppingDaemon" xml:space="preserve">
-    <value>Error stopping the daemon: {0}</value>
-    <comment>Output window message</comment>
-  </data>
-  <data name="Daemon_Downloading_StatusBarMessage" xml:space="preserve">
-    <value>Downloading SonarLint daemon</value>
-    <comment>VS status bar message</comment>
   </data>
   <data name="ToolsOptions_ExampleJson" xml:space="preserve">
     <value>{

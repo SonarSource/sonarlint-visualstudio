@@ -29,8 +29,6 @@ namespace SonarLint.VisualStudio.Core
         internal const string PchGenerationTimeoutEnvVar = "SONARLINT_INTERNAL_PCH_GENERATION_TIMEOUT_MS";
         internal const string LogDebugMessagesEnvVar = "SONARLINT_INTERNAL_LOG_DEBUG";
 
-        public const string SonarLintDownloadUrlEnvVar = "SONARLINT_DAEMON_DOWNLOAD_URL";
-
         public bool TreatBlockerSeverityAsError()
             => ParseBool(TreatBlockerAsErrorEnvVar);
 
@@ -46,11 +44,6 @@ namespace SonarLint.VisualStudio.Core
 
         public bool ShouldLogDebugMessages() 
             => ParseBool(LogDebugMessagesEnvVar);
-
-        // The URL validation and logging is being done by the daemon installer, so
-        // this is just a passthrough       
-        public string SonarLintDaemonDownloadUrl()
-            => Environment.GetEnvironmentVariable(SonarLintDownloadUrlEnvVar);
 
         private static int ParseInt(string setting)
         {
