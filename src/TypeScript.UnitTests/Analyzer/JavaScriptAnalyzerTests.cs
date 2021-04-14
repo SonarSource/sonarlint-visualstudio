@@ -431,11 +431,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task ExecuteAnalysis_TaskCancelled_NotifiesThatAnalysisWasCancelled()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
-            var client = SetupEslintBridgeClient(null);
-            var cancellationToken = new CancellationToken(true);
+            var client = SetupEslintBridgeClient(exceptionToThrow: new TaskCanceledException());
 
             var testSubject = CreateTestSubject(client.Object, statusNotifier: statusNotifier.Object);
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), cancellationToken);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             statusNotifier.Verify(x => x.AnalysisStarted("some path"), Times.Once);
             statusNotifier.Verify(x => x.AnalysisCancelled("some path"), Times.Once);
@@ -478,12 +477,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 .Returns(convertedIssue);
         }
 
-        private Mock<IEslintBridgeClient> SetupEslintBridgeClient(AnalysisResponse response)
+        private Mock<IEslintBridgeClient> SetupEslintBridgeClient(AnalysisResponse response = null, Exception exceptionToThrow = null)
         {
             var eslintBridgeClient = new Mock<IEslintBridgeClient>();
-            eslintBridgeClient
-                .Setup(x => x.AnalyzeJs(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(response);
+            var setup = eslintBridgeClient.Setup(x => x.AnalyzeJs(It.IsAny<string>(), It.IsAny<CancellationToken>()));
+
+            if (exceptionToThrow == null)
+            {
+                setup.ReturnsAsync(response);
+            }
+            else
+            {
+                setup.ThrowsAsync(exceptionToThrow);
+            }
 
             return eslintBridgeClient;
         }
