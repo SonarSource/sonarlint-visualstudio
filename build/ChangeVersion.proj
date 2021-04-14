@@ -28,11 +28,19 @@
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </AssemblyInformationalVersion>
 
-    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS201*\source.extension.vsixmanifest">
+    <!-- Set VSIX version in all VSIXes, including the embedded vsix -->
+    <VsixVersion Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS201*\source.extension.vsixmanifest;$(SolutionRoot)\src\EmbeddedVsix\source.extension.vsixmanifest">
       <Find>(?&lt;=Identity.*Version=")([^"]*)</Find>
       <ReplaceWith>$(VsixVersion)</ReplaceWith>
       <ExpectedMatchCount>1</ExpectedMatchCount>
     </VsixVersion>
+
+    <RefToEmbeddedVsix Include="$(SolutionRoot)\src\Integration.Vsix\Manifests\VS201*\source.extension.vsixmanifest">
+      <Find>(?&lt;=Dependency.*="EmbeddedVsix".*Version=")([^"]*)</Find>
+      <!-- Note square brackets i.e. "only this exact version" --> 
+      <ReplaceWith>[$(VsixVersion)]</ReplaceWith>
+      <ExpectedMatchCount>1</ExpectedMatchCount>
+    </RefToEmbeddedVsix>
 
     <VsPackageVersion Include="$(SolutionRoot)\src\Integration.Vsix\SonarLintIntegrationPackage.cs">
       <Find>(?&lt;=\[InstalledProductRegistration\("#110", "#112", ")([^"]*)</Find>
@@ -46,6 +54,7 @@
     <RegexTransform Items="@(AssemblyFileVersion)" />
     <RegexTransform Items="@(AssemblyInformationalVersion)" />
     <RegexTransform Items="@(VsixVersion)" />
+    <RegexTransform Items="@(RefToEmbeddedVsix)" />
     <RegexTransform Items="@(VsPackageVersion)" />
   </Target>
 </Project>
