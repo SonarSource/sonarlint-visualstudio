@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         [JsonProperty("tags")]
         public string[] Tags { get; set; }
 
-        // TODO: check format of Params - do we need to convert them?
+        // TODO: #2284: Support user-configurable rules in JS/TS
         [JsonProperty("params")]
         public object[] Params { get; set; }
 

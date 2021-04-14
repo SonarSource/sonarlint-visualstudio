@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -92,6 +93,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             CheckConfigurationsAreEmpty(result);
         }
 
+        [TestMethod]
+        public void Get_RulesWithConfigurations_ExpectedConfigsReturned()
+        {
+            var config1 = new object();
+            var config2 = "a default rule value";
+
+            var ruleDefns = new RuleDefinitionsBuilder();
+            ruleDefns.AddRule("aaa", configurations: new object[] { config1, config2 });
+
+            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns);
+
+            var result = testSubject.Get().ToArray();
+
+            CheckExpectedRuleKeys(result, "aaa");
+            result.First().Configurations.Should().ContainInOrder(config1, config2);
+        }
+
         private static void CheckExpectedRuleKeys(IEnumerable<Rule> result, params string[] expected) =>
             result.Select(x => x.Key).Should().BeEquivalentTo(expected);
 
@@ -104,13 +122,16 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             IEnumerable<RuleDefinition> IJavaScriptRuleDefinitionsProvider.GetDefinitions() => definitions;
 
-            public void AddRule(string eslintKey, bool activeByDefault = true, RuleType ruleType = RuleType.BUG)
+            public void AddRule(string eslintKey, bool activeByDefault = true, RuleType ruleType = RuleType.BUG,
+                object[] configurations = null)
             {
+                configurations ??= Array.Empty<object>();
                 var newDefn = new RuleDefinition
                 {
                     EslintKey = eslintKey,
                     ActivatedByDefault = activeByDefault,
-                    Type = ruleType
+                    Type = ruleType,
+                    DefaultParams = configurations
                 };
 
                 definitions.Add(newDefn);
