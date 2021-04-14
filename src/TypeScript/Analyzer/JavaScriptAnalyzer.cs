@@ -117,12 +117,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             try
             {
                 await EnsureEslintBridgeClientIsInitialized(cancellationToken);
-                var analysisStartTime = DateTime.Now;
+                var stopwatch = Stopwatch.StartNew();
                 var analysisResponse = await eslintBridgeClient.AnalyzeJs(filePath, cancellationToken);
 
-                var analysisTime = DateTime.Now - analysisStartTime;
                 var numberOfIssues = analysisResponse.Issues?.Count() ?? 0;
-                analysisStatusNotifier.AnalysisFinished(filePath, numberOfIssues, analysisTime);
+                analysisStatusNotifier.AnalysisFinished(filePath, numberOfIssues, stopwatch.Elapsed);
 
                 if (analysisResponse.ParsingError != null)
                 {

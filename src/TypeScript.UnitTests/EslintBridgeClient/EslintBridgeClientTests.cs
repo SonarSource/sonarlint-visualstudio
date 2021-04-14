@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(httpWrapper.Object);
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
 
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("responseString");
+            act.Should().ThrowExactly<ArgumentException>();
         }
 
         [TestMethod]

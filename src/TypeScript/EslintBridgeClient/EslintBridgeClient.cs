@@ -85,7 +85,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (string.IsNullOrEmpty(responseString))
             {
-                throw new ArgumentNullException(nameof(responseString));
+                throw new ArgumentException("no analysis response");
             }
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
