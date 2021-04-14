@@ -19,11 +19,13 @@
  */
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Threading;
 using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -55,6 +57,90 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             Func<Task> act = async () => await testSubject.Start();
 
             act.Should().ThrowExactly<FileNotFoundException>().And.Message.Should().Contain("node.exe");
+        }
+
+        [TestMethod]
+        public async Task Start_SecondCall_ProcessFailed_StartsNewProcess()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            Process lastSpawnedProcess = null;
+            try
+            {
+                await testSubject.Start();
+
+                var oldProcess = testSubject.Process;
+                lastSpawnedProcess = oldProcess;
+
+                oldProcess.HasExited.Should().BeFalse();
+                oldProcess.Kill();
+                await oldProcess.WaitForExitAsync();
+                oldProcess.HasExited.Should().BeTrue();
+
+                await testSubject.Start();
+
+                var newProcess = testSubject.Process;
+                lastSpawnedProcess = newProcess;
+                newProcess.Should().NotBeSameAs(oldProcess);
+                newProcess.HasExited.Should().BeFalse();
+            }
+            finally
+            {
+                try
+                {
+                    // Kill spawned process
+                    lastSpawnedProcess?.Kill();
+                }
+                catch
+                {
+                   // do nothing
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task Start_SecondCall_ProcessIsStillRunning_DoesNotStartNewProcess()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            Process lastSpawnedProcess = null;
+            try
+            {
+                await testSubject.Start();
+
+                var oldProcess = testSubject.Process;
+                lastSpawnedProcess = oldProcess;
+
+                oldProcess.HasExited.Should().BeFalse();
+
+                await testSubject.Start();
+
+                var newProcess = testSubject.Process;
+                lastSpawnedProcess = newProcess;
+
+                newProcess.Should().BeSameAs(oldProcess);
+                newProcess.HasExited.Should().BeFalse();
+            }
+            finally
+            {
+                try
+                {
+                    // Kill spawned process
+                    lastSpawnedProcess?.Kill();
+                }
+                catch
+                {
+                    // do nothing
+                }
+            }
         }
 
         [TestMethod]
