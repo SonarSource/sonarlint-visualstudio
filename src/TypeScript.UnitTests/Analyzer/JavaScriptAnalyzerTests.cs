@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
@@ -52,8 +53,20 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 MefTestHelpers.CreateExport<IJavaScriptRuleDefinitionsProvider>(Mock.Of<IJavaScriptRuleDefinitionsProvider>()),
                 MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
+                MefTestHelpers.CreateExport<IActiveSolutionTracker>(Mock.Of<IActiveSolutionTracker>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
+        }
+
+        [TestMethod]
+        public void Ctor_RegisterToSolutionChangedEvent()
+        {
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+
+            CreateTestSubject(activeSolutionTracker: activeSolutionTracker.Object);
+
+            activeSolutionTracker.VerifyAdd(x => x.ActiveSolutionChanged += It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Once);
+            activeSolutionTracker.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -413,6 +426,51 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public void Dispose_UnregisterFromSolutionChangedEvent()
+        {
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var testSubject = CreateTestSubject(activeSolutionTracker: activeSolutionTracker.Object);
+
+            activeSolutionTracker.VerifyRemove(x => x.ActiveSolutionChanged -= It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Never);
+
+            testSubject.Dispose();
+
+            activeSolutionTracker.VerifyRemove(x => x.ActiveSolutionChanged -= It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnSolutionChanged_AnalysisNeverRan_StopsServerProcess()
+        {
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var serverProcess = SetupServerProcess();
+            
+            CreateTestSubject(serverProcess.Object, activeSolutionTracker: activeSolutionTracker.Object);
+
+            activeSolutionTracker.Raise(x=> x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
+
+            serverProcess.Verify(x => x.Stop(), Times.Once);
+            serverProcess.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task OnSolutionChanged_AnalysisRan_StopsServerProcessAndDisposesClient()
+        {
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var serverProcess = SetupServerProcess(123);
+            var client = SetupEslintBridgeClient(null);
+            var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
+
+            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object, activeSolutionTracker: activeSolutionTracker.Object);
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
+
+            client.Verify(x => x.Dispose(), Times.Once);
+            serverProcess.Verify(x => x.Stop(), Times.Once);
+        }
+
+        [TestMethod]
         public async Task ExecuteAnalysis_AnalysisFailed_NotifiesThatAnalysisFailed()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
@@ -527,11 +585,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return factory;
         }
 
+        private static Mock<IActiveSolutionTracker> SetupActiveSolutionTracker()
+        {
+            var activeSolutionTracker = new Mock<IActiveSolutionTracker>();
+            activeSolutionTracker.SetupAdd(x => x.ActiveSolutionChanged += null);
+            activeSolutionTracker.SetupRemove(x => x.ActiveSolutionChanged -= null);
+
+            return activeSolutionTracker;
+        }
+
         private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClient client = null, 
             IEslintBridgeIssueConverter issueConverter = null,
             IActiveJavaScriptRulesProvider activeRulesProvider = null,
             ITelemetryManager telemetryManager = null,
             IAnalysisStatusNotifier statusNotifier = null,
+            IActiveSolutionTracker activeSolutionTracker = null,
             ILogger logger = null)
         {
             client ??= SetupEslintBridgeClient(null).Object;
@@ -539,7 +607,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var serverProcess = SetupServerProcess(123);
             var eslintBridgeClientFactory = SetupEslintBridgeClientFactory(123, client);
 
-            return CreateTestSubject(serverProcess.Object, eslintBridgeClientFactory.Object, activeRulesProvider, issueConverter, telemetryManager, statusNotifier, logger);
+            return CreateTestSubject(serverProcess.Object, eslintBridgeClientFactory.Object, activeRulesProvider, issueConverter, telemetryManager, statusNotifier, activeSolutionTracker, logger);
         }
 
         private JavaScriptAnalyzer CreateTestSubject(
@@ -549,6 +617,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             IEslintBridgeIssueConverter issueConverter = null,
             ITelemetryManager telemetryManager = null,
             IAnalysisStatusNotifier statusNotifier = null,
+            IActiveSolutionTracker activeSolutionTracker = null,
             ILogger logger = null)
         {
             issueConverter ??= Mock.Of<IEslintBridgeIssueConverter>();
@@ -556,8 +625,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
             activeRulesProvider ??= Mock.Of<IActiveJavaScriptRulesProvider>();
+            activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
 
-            return new JavaScriptAnalyzer(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider, issueConverter, telemetryManager, statusNotifier, logger);
+            return new JavaScriptAnalyzer(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider, issueConverter, telemetryManager, statusNotifier, activeSolutionTracker, logger);
         }
     }
 }
