@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Get_DefaultRulesConfig_InactiveRulesAreNotReturned()
+        public void Get_NoUserOverrides_InactiveRulesAreNotReturned()
         {
             var ruleDefns = new RuleDefinitionsBuilder();
             ruleDefns.AddRule("active 1", activeByDefault: true);
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Get_DefaultRulesConfig_HotspotsAreNotReturned()
+        public void Get_NoUserOverrides_HotspotsAreNotReturned()
         {
             // NOTE: there are currently no taint vulnerabilities in the SonarJS jar
             var ruleDefns = new RuleDefinitionsBuilder();
@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Get_DefaultRulesConfig_RulesWithNullEslintKeysAreNotReturned()
+        public void Get_NoUserOverrides_RulesWithNullEslintKeysAreNotReturned()
         {
             var ruleDefns = new RuleDefinitionsBuilder();
             ruleDefns.AddRule("aaa");
@@ -98,7 +98,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Get_DefaultRulesConfig_RulesWithConfigurations_ExpectedConfigsReturned()
+        public void Get_NoUserOverrides_RulesWithConfigurations_ExpectedConfigsReturned()
         {
             var config1 = new object();
             var config2 = "a default rule value";
@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [DataRow(false, false)]
         [DataRow(false, true)]
         [DataRow(true, false)]
-        public void Get_StandaloneMode_OverridesDefaultActivationLevel(
+        public void Get_HasUserOverrides_OverridesDefaultActivationLevel(
             bool onByDefault, bool onInUserSettings)
         {
             // The value in the user settings should always override the default
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Get_StandaloneMode_IrrelevantSettingsAreIgnored()
+        public void Get_HasUserOverrides_NoRulesMatchTheUserOverrides_UserOverridesAreIgnored()
         {
             var ruleDefns = new RuleDefinitionsBuilder();
             ruleDefns.AddRule(ruleKey: "javascript:activeRule1", activeByDefault: true, eslintKey: "active1");
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Get_StandaloneMode_CannotEnableHotspotsOrRulesWithNullEslintKeys()
+        public void Get_HasUserOverrides_IrregularRules_UserOverridesAreIgnored()
         {
             var ruleDefns = new RuleDefinitionsBuilder();
             ruleDefns.AddRule(ruleKey: "javascript:hotspot1", activeByDefault: false, eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT);
