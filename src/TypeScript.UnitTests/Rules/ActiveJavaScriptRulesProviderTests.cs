@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
@@ -35,7 +34,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     [TestClass]
     public class ActiveJavaScriptRulesProviderTests
     {
-        private static readonly IUserSettingsProvider EmptyUserSettingsProvider = CreateUserSettingsProvider(null);
+        private static readonly IUserSettingsProvider EmptyUserSettingsProvider = new UserSettingsBuilder();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -131,13 +130,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             ruleDefns.AddRule(ruleKey: "javascript:rule1", activeByDefault: onByDefault, eslintKey: "esKey");
 
             var userSettingsLevel = onInUserSettings ? RuleLevel.On : RuleLevel.Off;
-            var userConfig = new Dictionary<string, RuleConfig>
-                {
-                    {  "javascript:rule1", new RuleConfig { Level = userSettingsLevel } }
-                };
-            var userSettingsProvider = CreateUserSettingsProvider(userConfig);
+            var userSettings = new UserSettingsBuilder()
+                .Add("javascript:rule1", userSettingsLevel);
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettingsProvider);
+            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
 
             var result = testSubject.Get().ToArray();
 
@@ -150,17 +146,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var ruleDefns = new RuleDefinitionsBuilder();
             ruleDefns.AddRule(ruleKey: "javascript:activeRule1", activeByDefault: true, eslintKey: "active1");
 
-            var userConfig = new Dictionary<string, RuleConfig>
-                {
-                    // Correct rule key but wrong repo -> ignored
-                    {  "wrongLanguage:activeRule1", new RuleConfig { Level = RuleLevel.Off } },
+            var userSettings = new UserSettingsBuilder()
+                .Add("wrongLanguage:activeRule1", RuleLevel.Off) // Correct rule key but wrong repo -> ignored
+                .Add("javascript:unknownRule", RuleLevel.On); // Right repo, but rule key doesn't match a defined rule -> ignored
 
-                    // Right repo, but rule key doesn't match a defined rule -> ignored
-                    {  "javascript:unknownRule", new RuleConfig { Level = RuleLevel.On } }
-                };
-            var userSettingsProvider = CreateUserSettingsProvider(userConfig);
-
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettingsProvider);
+            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
 
             var result = testSubject.Get().ToArray();
 
@@ -175,14 +165,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             ruleDefns.AddRule(ruleKey: "javascript:hotspot1", activeByDefault: false, eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT);
             ruleDefns.AddRule(ruleKey: "javascript:S2260", activeByDefault: false, eslintKey: null);
 
-            var userConfig = new Dictionary<string, RuleConfig>
-                {
-                    {  "javascript:hotspot1", new RuleConfig { Level = RuleLevel.On } },
-                    {  "javascript:S2260", new RuleConfig { Level = RuleLevel.On } }
-                };
-            var userSettingsProvider = CreateUserSettingsProvider(userConfig);
+            var userSettings = new UserSettingsBuilder()
+                .Add("javascript:hotspot1", RuleLevel.On)
+                .Add("javascript:S2260", RuleLevel.On);
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettingsProvider);
+            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
 
             var result = testSubject.Get().ToArray();
 
@@ -218,23 +205,35 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             }
         }
 
-        private static IUserSettingsProvider CreateUserSettingsProvider(Dictionary<string, RuleConfig> rules)
+        private class UserSettingsBuilder : IUserSettingsProvider
         {
-            var provider = new Mock<IUserSettingsProvider>();
+            private readonly RulesSettings ruleSettings;
 
-            var rulesSettings = new RulesSettings();
-            if (rules != null)
+            public UserSettingsBuilder()
             {
-                foreach (var item in rules)
-                {
-                    rulesSettings.Rules.Add(item.Key, item.Value);
-                }
+                ruleSettings = new RulesSettings();
+                UserSettings = new UserSettings(ruleSettings);
             }
 
-            var userSettings = new UserSettings(rulesSettings);
-            provider.Setup(x => x.UserSettings).Returns(userSettings);
+            public UserSettingsBuilder Add(string ruleKey, RuleLevel ruleLevel)
+            {
+                ruleSettings.Rules.Add(ruleKey, new RuleConfig { Level = ruleLevel });
+                return this;
+            }
 
-            return provider.Object;
+            #region IUserSettingsProvider members
+
+            public UserSettings UserSettings { get; }
+
+            public string SettingsFilePath => throw new NotImplementedException();
+
+            public event EventHandler SettingsChanged;
+
+            public void DisableRule(string ruleId) => throw new NotImplementedException();
+
+            public void EnsureFileExists() => throw new NotImplementedException();
+
+            #endregion
         }
     }
 }
