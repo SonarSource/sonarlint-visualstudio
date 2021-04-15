@@ -203,5 +203,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             eslintBridgeProcess?.Dispose();
             serverInitLocker?.Dispose();
         }
+
+        [Export("ActiveSolutionChangedCallback")]
+        internal void OnSolutionClosed()
+        {
+            eslintBridgeClient?.Dispose();
+            eslintBridgeProcess?.Stop();
+        }
     }
 }

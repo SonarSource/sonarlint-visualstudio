@@ -38,6 +38,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// Ensures that the process is running. Returns the port that server is running on.
         /// </summary>
         Task<int> Start();
+
+        void Stop();
     }
 
     [Export(typeof(IEslintBridgeProcess))]
@@ -102,12 +104,17 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
         }
 
-        public void Dispose()
+        public void Stop()
         {
             lock (Lock)
             {
                 TerminateRunningProcess();
             }
+        }
+
+        public void Dispose()
+        {
+            Stop();
         }
 
         private void StartServer()

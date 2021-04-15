@@ -20,6 +20,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition.Hosting;
+using System.ComponentModel.Composition.Primitives;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +45,31 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, GetTestSubjectMefExports());
+        }
+
+        [TestMethod]
+        public void MefExport_ActiveSolutionChangedCallback_CheckIsExported()
+        {
+            var batch = new CompositionBatch();
+            var exports = GetTestSubjectMefExports();
+
+            foreach (var export in exports)
+            {
+                batch.AddExport(export);
+            }
+
+            var catalog = new TypeCatalog(typeof(JavaScriptAnalyzer));
+            using var container = new CompositionContainer(catalog);
+            container.Compose(batch);
+
+            var exportedValue = container.GetExport<Action>("ActiveSolutionChangedCallback");
+            exportedValue.Should().NotBeNull();
+        }
+
+        private IEnumerable<Export> GetTestSubjectMefExports()
+        {
+            return new[]
             {
                 MefTestHelpers.CreateExport<IEslintBridgeClientFactory>(Mock.Of<IEslintBridgeClientFactory>()),
                 MefTestHelpers.CreateExport<IEslintBridgeProcess>(Mock.Of<IEslintBridgeProcess>()),
@@ -53,7 +79,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
+            };
         }
 
         [TestMethod]
@@ -410,6 +436,35 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             client.Verify(x => x.Dispose(), Times.Once);
             serverProcess.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnSolutionClosed_AnalysisNeverRan_StopsServerProcess()
+        {
+            var serverProcess = SetupServerProcess();
+            var testSubject = CreateTestSubject(serverProcess.Object);
+
+            Action act = () => testSubject.OnSolutionClosed();
+            act.Should().NotThrow();
+
+            serverProcess.Verify(x => x.Stop(), Times.Once);
+            serverProcess.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task Dispose_AnalysisRan_StopsServerProcessAndDisposesClient()
+        {
+            var serverProcess = SetupServerProcess(123);
+            var client = SetupEslintBridgeClient(null);
+            var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
+
+            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object);
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            testSubject.OnSolutionClosed();
+
+            client.Verify(x => x.Dispose(), Times.Once);
+            serverProcess.Verify(x => x.Stop(), Times.Once);
         }
 
         [TestMethod]
