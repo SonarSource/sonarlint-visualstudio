@@ -20,7 +20,7 @@
 
 using System;
 
-namespace SonarLint.VisualStudio.Integration
+namespace SonarLint.VisualStudio.Core
 {
     public class ActiveSolutionChangedEventArgs : EventArgs
     {
