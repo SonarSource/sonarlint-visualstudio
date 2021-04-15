@@ -23,10 +23,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Integration.MefServices;
 using SonarLint.VisualStudio.Integration.Vsix.Analysis;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
-using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -55,10 +54,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PackageGuidString = "6f63ab5a-5ab8-4a0d-9914-151911885966";
 
-        public const string CommandSetGuidString = "1F83EA11-3B07-45B3-BF39-307FD4F42194";
-
         private ILogger logger;
         private IPreCompiledHeadersEventListener cFamilyPreCompiledHeadersEventListener;
+        private IActiveSolutionChangedCallback activeSolutionChangedCallback;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SonarLintDaemonPackage"/> class.
@@ -90,6 +88,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 await CFamilyReproducerCommand.InitializeAsync(this, logger);
 
                 cFamilyPreCompiledHeadersEventListener = await this.GetMefServiceAsync<IPreCompiledHeadersEventListener>();
+                activeSolutionChangedCallback = await this.GetMefServiceAsync<IActiveSolutionChangedCallback>();
 
                 LegacyInstallationCleanup.CleanupDaemonFiles(logger);
             }
@@ -108,6 +107,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             {
                 cFamilyPreCompiledHeadersEventListener?.Dispose();
                 cFamilyPreCompiledHeadersEventListener = null;
+
+                activeSolutionChangedCallback?.Dispose();
+                activeSolutionChangedCallback = null;
             }
         }
 
