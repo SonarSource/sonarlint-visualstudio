@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -19,27 +19,16 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     internal class ConfigurableActiveSolutionTracker : IActiveSolutionTracker
     {
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
-        public event EventHandler<ProjectOpenedEventArgs> AfterProjectOpened;
-
-        #region Test helpers
 
         public void SimulateActiveSolutionChanged(bool isSolutionOpen)
         {
             this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
         }
-
-        public void SimulateProjectOpened(EnvDTE.Project project)
-        {
-            this.AfterProjectOpened?.Invoke(this, new ProjectOpenedEventArgs(project as IVsHierarchy));
-        }
-
-        #endregion Test helpers
     }
 }

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -87,25 +87,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Assert
             counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
             isSolutionOpenEventArg.Should().BeFalse();
-        }
-
-        [TestMethod]
-        public void ActiveSolutionTracker_DontRaiseEventOnProjectChanges()
-        {
-            // Arrange
-            int counter = 0;
-            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
-            testSubject.ActiveSolutionChanged += (o, e) => counter++;
-            var project = this.solutionMock.AddOrGetProject("project", isLoaded:false);
-
-            // Act
-            this.solutionMock.SimulateProjectLoad(project);
-            this.solutionMock.SimulateProjectUnload(project);
-            this.solutionMock.SimulateProjectOpen(project);
-            this.solutionMock.SimulateProjectClose(project);
-
-            // Assert
-            counter.Should().Be(0, nameof(testSubject.ActiveSolutionChanged) + " was not expected to be raised");
         }
     }
 }

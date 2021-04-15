@@ -19,7 +19,6 @@
  */
 
 using System;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -33,16 +32,6 @@ namespace SonarLint.VisualStudio.Integration
         public bool IsSolutionOpen { get; }
     }
 
-    public class ProjectOpenedEventArgs : EventArgs
-    {
-        public ProjectOpenedEventArgs(IVsHierarchy pHierarchy)
-        {
-            ProjectHierarchy = pHierarchy;
-        }
-
-        public IVsHierarchy ProjectHierarchy { get; }
-    }
-
     public interface IActiveSolutionTracker
     {
         /// <summary>
@@ -51,7 +40,5 @@ namespace SonarLint.VisualStudio.Integration
         /// <remarks>The solution might not be fully loaded when this event is raised.
         /// The event argument value will be true if a solution is open and false otherwise.</remarks>
         event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
-
-        event EventHandler<ProjectOpenedEventArgs> AfterProjectOpened;
     }
 }
