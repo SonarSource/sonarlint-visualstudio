@@ -86,13 +86,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         [DataRow("")]
         [DataRow(null)]
-        public void AnalyzeJs_EmptyResponse_ArgumentNullException(string response)
+        public void AnalyzeJs_EmptyResponse_InvalidOperationException(string response)
         {
             var httpWrapper = SetupHttpWrapper("analyze-js", response);
             var testSubject = CreateTestSubject(httpWrapper.Object);
             Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
 
-            act.Should().ThrowExactly<ArgumentException>();
+            act.Should().ThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
