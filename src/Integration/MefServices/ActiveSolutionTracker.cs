@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -24,6 +24,8 @@ using System.Diagnostics;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Core;
+using ErrorHandler = Microsoft.VisualStudio.ErrorHandler;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -39,7 +41,6 @@ namespace SonarLint.VisualStudio.Integration
         /// <see cref="IActiveSolutionTracker.ActiveSolutionChanged"/>
         /// </summary>
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
-        public event EventHandler<ProjectOpenedEventArgs> AfterProjectOpened;
 
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
@@ -52,7 +53,6 @@ namespace SonarLint.VisualStudio.Integration
         #region IVsSolutionEvents
         int IVsSolutionEvents.OnAfterOpenProject(IVsHierarchy pHierarchy, int fAdded)
         {
-            this.AfterProjectOpened?.Invoke(this, new ProjectOpenedEventArgs(pHierarchy));
             return VSConstants.S_OK;
         }
 
