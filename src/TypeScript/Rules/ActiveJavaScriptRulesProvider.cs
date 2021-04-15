@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
@@ -39,16 +40,18 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     internal class ActiveJavaScriptRulesProvider : IActiveJavaScriptRulesProvider
     {
         private readonly IJavaScriptRuleDefinitionsProvider jsRuleDefinitions;
+        private readonly IUserSettingsProvider userSettingsProvider;
 
         [ImportingConstructor]
-        public ActiveJavaScriptRulesProvider(IJavaScriptRuleDefinitionsProvider jsRuleDefinitions)
+        public ActiveJavaScriptRulesProvider(IJavaScriptRuleDefinitionsProvider jsRuleDefinitions,
+            IUserSettingsProvider userSettingsProvider)
         {
             this.jsRuleDefinitions = jsRuleDefinitions;
+            this.userSettingsProvider = userSettingsProvider;
         }
 
         public IEnumerable<Rule> Get()
         {
-            // TODO: handle user-configuration in standalone mode #771
             // TODO: handle QP configuration in connected mode #770
             return jsRuleDefinitions.GetDefinitions()
                 .Where(IncludeRule)
@@ -56,11 +59,23 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
                 .ToArray();
         }
 
-        private static bool IncludeRule(RuleDefinition ruleDefinition)
+        private bool IncludeRule(RuleDefinition ruleDefinition)
         {
-            return ruleDefinition.ActivatedByDefault &&
-                ruleDefinition.Type != RuleType.SECURITY_HOTSPOT &&
-                ruleDefinition.EslintKey != null; // should only apply to S2260
+            return ruleDefinition.Type != RuleType.SECURITY_HOTSPOT &&
+                ruleDefinition.EslintKey != null && // should only apply to S2260
+                IsRuleActive(ruleDefinition);
+        }
+
+        private bool IsRuleActive(RuleDefinition ruleDefinition)
+        {
+            // User settings override the default, if present
+            if (userSettingsProvider.UserSettings.RulesSettings.Rules
+                .TryGetValue(ruleDefinition.RuleKey, out var ruleConfig))
+            {
+                return ruleConfig.Level == RuleLevel.On;
+            }
+
+            return ruleDefinition.ActivatedByDefault;
         }
 
         private static Rule Convert(RuleDefinition ruleDefinition)
