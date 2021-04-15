@@ -49,11 +49,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         public void Get_NoUserOverrides_InactiveRulesAreNotReturned()
         {
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule("active 1", activeByDefault: true);
-            ruleDefns.AddRule("inactive AAA", activeByDefault: false);
-            ruleDefns.AddRule("active 2", activeByDefault: true);
-            ruleDefns.AddRule("inactive BBB", activeByDefault: false);
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule("active 1", activeByDefault: true)
+                .AddRule("inactive AAA", activeByDefault: false)
+                .AddRule("active 2", activeByDefault: true)
+                .AddRule("inactive BBB", activeByDefault: false);
 
             var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
 
@@ -67,11 +67,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         public void Get_NoUserOverrides_HotspotsAreNotReturned()
         {
             // NOTE: there are currently no taint vulnerabilities in the SonarJS jar
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule("bug", ruleType: RuleType.BUG);
-            ruleDefns.AddRule("codesmell", ruleType: RuleType.CODE_SMELL);
-            ruleDefns.AddRule("hotspot", ruleType: RuleType.SECURITY_HOTSPOT);
-            ruleDefns.AddRule("vuln", ruleType: RuleType.VULNERABILITY);
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule("bug", ruleType: RuleType.BUG)
+                .AddRule("codesmell", ruleType: RuleType.CODE_SMELL)
+                .AddRule("hotspot", ruleType: RuleType.SECURITY_HOTSPOT)
+                .AddRule("vuln", ruleType: RuleType.VULNERABILITY);
 
             var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
 
@@ -84,10 +84,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         public void Get_NoUserOverrides_RulesWithNullEslintKeysAreNotReturned()
         {
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule("aaa");
-            ruleDefns.AddRule(null);
-            ruleDefns.AddRule("bbb");
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule("aaa")
+                .AddRule(null)
+                .AddRule("bbb");
 
             var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
 
@@ -103,8 +103,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var config1 = new object();
             var config2 = "a default rule value";
 
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule("aaa", configurations: new object[] { config1, config2 });
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule("aaa", configurations: new object[] { config1, config2 });
 
             var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
 
@@ -126,8 +126,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var expectedRuleCount = onInUserSettings ? 1 : 0;
 
             // Create definition and rule settings with a single rule
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule(ruleKey: "javascript:rule1", activeByDefault: onByDefault, eslintKey: "esKey");
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:rule1", activeByDefault: onByDefault, eslintKey: "esKey");
 
             var userSettingsLevel = onInUserSettings ? RuleLevel.On : RuleLevel.Off;
             var userSettings = new UserSettingsBuilder()
@@ -143,8 +143,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         public void Get_HasUserOverrides_NoRulesMatchTheUserOverrides_UserOverridesAreIgnored()
         {
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule(ruleKey: "javascript:activeRule1", activeByDefault: true, eslintKey: "active1");
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:activeRule1", activeByDefault: true, eslintKey: "active1");
 
             var userSettings = new UserSettingsBuilder()
                 .Add("wrongLanguage:activeRule1", RuleLevel.Off) // Correct rule key but wrong repo -> ignored
@@ -161,9 +161,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [TestMethod]
         public void Get_HasUserOverrides_IrregularRules_UserOverridesAreIgnored()
         {
-            var ruleDefns = new RuleDefinitionsBuilder();
-            ruleDefns.AddRule(ruleKey: "javascript:hotspot1", activeByDefault: false, eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT);
-            ruleDefns.AddRule(ruleKey: "javascript:S2260", activeByDefault: false, eslintKey: null);
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:hotspot1", activeByDefault: false, eslintKey: "hotspot1", ruleType: RuleType.SECURITY_HOTSPOT)
+                .AddRule(ruleKey: "javascript:S2260", activeByDefault: false, eslintKey: null);
 
             var userSettings = new UserSettingsBuilder()
                 .Add("javascript:hotspot1", RuleLevel.On)
@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             IEnumerable<RuleDefinition> IJavaScriptRuleDefinitionsProvider.GetDefinitions() => definitions;
 
-            public void AddRule(string eslintKey = "any", bool activeByDefault = true, RuleType ruleType = RuleType.BUG,
+            public RuleDefinitionsBuilder AddRule(string eslintKey = "any", bool activeByDefault = true, RuleType ruleType = RuleType.BUG,
                 object[] configurations = null, string ruleKey = "any")
             {
                 configurations ??= Array.Empty<object>();
@@ -202,6 +202,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 };
 
                 definitions.Add(newDefn);
+                return this;
             }
         }
 
