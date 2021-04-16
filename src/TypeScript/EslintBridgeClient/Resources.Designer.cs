@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] EslintBridge process has already been terminated..
+        ///   Looks up a localized string similar to [eslint-bridge] Cannot terminate eslint-bridge process: no process is running..
         /// </summary>
         internal static string INFO_ServerAlreadyTerminated {
             get {
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] Started eslint-bridge server. Process id: {0}.
+        ///   Looks up a localized string similar to [eslint-bridge] Started eslint-bridge process. Process id: {0}.
         /// </summary>
         internal static string INFO_ServerProcessId {
             get {
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] EslintBridge process terminated..
+        ///   Looks up a localized string similar to [eslint-bridge] Terminated eslint-bridge process. Process id: {0}.
         /// </summary>
         internal static string INFO_ServerTerminated {
             get {
@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [eslint-bridge] Terminating EslintBridge process....
+        ///   Looks up a localized string similar to [eslint-bridge] Terminating eslint-bridge process... Process id: {0}.
         /// </summary>
         internal static string INFO_TerminatingServer {
             get {
