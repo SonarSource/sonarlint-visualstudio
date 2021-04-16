@@ -24,16 +24,18 @@ namespace SonarLint.VisualStudio.Core
 {
     public class SonarCompositeRuleId
     {
+        private const string Separator = ":";
+
         /// <summary>
-        /// Attempts to parse a VS error code as a Sonar rule in the form "[repo key]:[rule key]"
+        /// Attempts to parse an error code from the VS Error List as a Sonar rule in the form "[repo key]:[rule key]"
         /// </summary>
-        public static bool TryParse(string vsErrorCode, out SonarCompositeRuleId ruleInfo)
+        public static bool TryParse(string errorListErrorCode, out SonarCompositeRuleId ruleInfo)
         {
             ruleInfo = null;
 
-            if (!string.IsNullOrEmpty(vsErrorCode))
+            if (!string.IsNullOrEmpty(errorListErrorCode))
             {
-                var keys = vsErrorCode.Split(new char[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+                var keys = errorListErrorCode.Split(new string[] {Separator}, StringSplitOptions.RemoveEmptyEntries);
                 if (keys.Length == 2)
                 {
                     ruleInfo = new SonarCompositeRuleId(keys[0], keys[1]);
@@ -51,5 +53,6 @@ namespace SonarLint.VisualStudio.Core
 
         public string RepoKey { get; }
         public string RuleKey { get; }
+        public override string ToString() => $"{RepoKey}{Separator}{RuleKey}";
     }
 }
