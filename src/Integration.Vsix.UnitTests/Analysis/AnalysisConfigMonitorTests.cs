@@ -56,7 +56,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void WhenSupressionsUpdated_AnalysisIsRequested()
+        public void WhenUserSettingsChange_StandaloneMode_HasSubscribersToConfigChangedEvent_SubscribersNotified()
+        {
+            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
+            var eventHandler = new Mock<EventHandler>();
+            builder.TestSubject.ConfigChanged += eventHandler.Object;
+
+            builder.SimulateUserSettingsChanged();
+
+            eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void WhenUserSettingsChange_ConnectedMode_HasSubscribersToConfigChangedEvent_SubscribersNotNotified(SonarLintMode mode)
+        {
+            var builder = new TestEnvironmentBuilder(mode);
+            var eventHandler = new Mock<EventHandler>();
+            builder.TestSubject.ConfigChanged += eventHandler.Object;
+
+            builder.SimulateUserSettingsChanged();
+
+            eventHandler.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void WhenSuppressionsUpdated_AnalysisIsRequested()
         {
             var builder = new TestEnvironmentBuilder(SonarLintMode.Connected);
 
@@ -64,6 +90,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
 
             builder.AssertAnalysisIsRequested();
             builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
+        }
+
+        [TestMethod]
+        public void WhenSuppressionsUpdated_HasSubscribersToConfigChangedEvent_SubscribersNotified()
+        {
+            var builder = new TestEnvironmentBuilder(SonarLintMode.Connected);
+            var eventHandler = new Mock<EventHandler>();
+            builder.TestSubject.ConfigChanged += eventHandler.Object;
+
+            builder.SimulateSuppressionsUpdated();
+
+            eventHandler.Verify(x => x(builder.TestSubject, EventArgs.Empty), Times.Once);
         }
 
         [TestMethod]
