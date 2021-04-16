@@ -192,7 +192,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             // Special case: JavaScript
             // We don't support connected mode for JavaScript at the moment so we allow disabling
-            // in standalone mode. See #770.
+            // in connected mode for now. See #770.
             if (SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.JavaScript, rule.RepoKey))
             {
                 isVisible = true;
