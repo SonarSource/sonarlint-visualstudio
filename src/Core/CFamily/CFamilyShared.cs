@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
             Path.GetDirectoryName(typeof(CFamilyShared).Assembly.Location),
             "lib");
 
-        public static readonly StringComparer RuleKeyComparer = StringComparer.Ordinal;
+        public static readonly StringComparer RuleKeyComparer = SonarRuleRepoKeys.RepoKeyComparer;
         public static readonly StringComparison RuleKeyComparison = StringComparison.Ordinal;
     }
 }
