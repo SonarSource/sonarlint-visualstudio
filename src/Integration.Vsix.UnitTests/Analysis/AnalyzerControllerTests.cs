@@ -107,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
                 new DummyAnalyzer()
             };
 
-            var monitorMock = new Mock<SonarLint.VisualStudio.Integration.Vsix.Analysis.IAnalysisConfigMonitor>();
+            var monitorMock = new Mock<IAnalysisConfigMonitor>();
             var disposableMock = monitorMock.As<IDisposable>();
 
             var controller = new AnalyzerController(new TestLogger(), analyzers, monitorMock.Object);
