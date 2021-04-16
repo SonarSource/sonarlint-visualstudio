@@ -189,8 +189,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private void TerminateRunningProcess()
         {
-            logger.LogDebug(Resources.INFO_TerminatingServer);
-
             try
             {
                 if (Process == null || Process.HasExited)
@@ -199,9 +197,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 }
                 else
                 {
+                    var processId = Process.Id;
+                    logger.WriteLine(Resources.INFO_TerminatingServer, processId);
                     Process.Kill();
                     Process.Dispose();
-                    logger.LogDebug(Resources.INFO_ServerTerminated);
+                    logger.WriteLine(Resources.INFO_ServerTerminated, processId);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
