@@ -48,5 +48,15 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             result.RepoKey.Should().Be(expectedRepo);
             result.RuleKey.Should().Be(expectedRule);
         }
+
+
+        [TestMethod]
+        public void ToString_ReturnsExpected()
+        {
+            const string input = "xxx:YYY";
+
+            SonarCompositeRuleId.TryParse(input, out var output);
+            output.ToString().Should().Be(input);
+        }
     }
 }

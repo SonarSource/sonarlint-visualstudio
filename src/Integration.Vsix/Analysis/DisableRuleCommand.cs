@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
-using SonarLint.VisualStudio.Core.CFamily;
 using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
@@ -95,10 +94,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             try
             {
-                // Show the menu item for Sonar errors...
-                bool isVisible = TryGetErrorCodeSync(errorList, out _);
-                // ... but only enable it in standalone mode
-                bool isEnabled = isVisible && (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone);
+                var isVisible = false;
+                var isEnabled = false;
+                if(TryGetRuleId(errorList, out var ruleId))
+                {
+                    CalculateStatuses(ruleId, activeSolutionBoundTracker.CurrentConfiguration.Mode, out isVisible, out isEnabled);
+                }
 
                 menuItem.Visible = isVisible;
                 menuItem.Enabled = isEnabled;
@@ -127,20 +128,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// <param name="e">Event args.</param>
         private void Execute(object sender, EventArgs e)
         {
-            string errorCode = null;
+            SonarCompositeRuleId ruleId = null;
             try
             {
-                if (TryGetErrorCodeSync(errorList, out errorCode))
+                if (TryGetRuleId(errorList, out ruleId))
                 {
-                    userSettingsProvider.DisableRule(errorCode);
-                    logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, errorCode);
+                    userSettingsProvider.DisableRule(ruleId.RuleKey);
+                    logger.WriteLine(AnalysisStrings.DisableRule_DisabledRule, ruleId);
                 }
 
-                Debug.Assert(errorCode != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
+                Debug.Assert(ruleId != null, "Not expecting Execute to be called if the SonarLint error code cannot be determined");
             }
-            catch(Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
+            catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, errorCode ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
+                logger.WriteLine(AnalysisStrings.DisableRule_ErrorDisablingRule, ruleId?.ToString() ?? AnalysisStrings.DisableRule_UnknownErrorCode, ex.Message);
             }
         }
 
@@ -149,22 +150,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         /// 1) there is only one selected error in the error list and
         /// 2) it is a SonarLint error
         /// </summary>
-        internal /* for testing */ static  bool TryGetErrorCodeSync(IErrorList errorList, out string errorCode)
+        internal /* for testing */ static bool TryGetRuleId(IErrorList errorList, out SonarCompositeRuleId ruleId)
         {
-            errorCode = null;
+            ruleId = null;
             var selectedItems = errorList?.TableControl?.SelectedEntries;
             if (selectedItems?.Count() == 1)
             {
                 var handle = selectedItems.First();
-                errorCode = FindErrorCodeForEntry(handle);
-
-                if (!IsDisablingRulesSupported(errorCode))
-                {
-                    errorCode = null;
-                }
+                var errorCode = FindErrorCodeForEntry(handle);
+                SonarCompositeRuleId.TryParse(errorCode, out ruleId);
             }
 
-            return errorCode != null;
+            return ruleId != null;
         }
 
         private static string FindErrorCodeForEntry(ITableEntryHandle handle)
@@ -191,11 +188,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             SonarRuleRepoKeys.Cpp
         };
 
-        private static bool IsDisablingRulesSupported(string errorCode)
+        private static void CalculateStatuses(SonarCompositeRuleId rule, SonarLintMode mode, out bool isVisible, out bool isEnabled)
         {
+            // Special case: JavaScript
+            // We don't support connected mode for JavaScript at the moment so we allow disabling
+            // in standalone mode. See #770.
+            if (SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.JavaScript, rule.RepoKey))
+            {
+                isVisible = true;
+                isEnabled = true;
+                return;
+            }
+
             // We don't currently support disabling rules for all repos
-            var repoKey = errorCode?.Split(':')?[0];
-            return supportedRepos.Contains(repoKey, SonarRuleRepoKeys.RepoKeyComparer);
+            if (supportedRepos.Contains(rule.RepoKey, SonarRuleRepoKeys.RepoKeyComparer))
+            {
+                isVisible = true;
+                isEnabled = mode == SonarLintMode.Standalone;
+                return;
+            }
+
+            isVisible = false;
+            isEnabled = false;
         }
     }
 }
