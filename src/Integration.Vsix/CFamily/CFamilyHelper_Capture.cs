@@ -135,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
                         if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
                         {
-                            cfamilyLanguage = SonarLanguageKeys.CPlusPlus
+                            cfamilyLanguage = SonarLanguageKeys.CPlusPlus;
                         }
                         else if (path.ToLowerInvariant().EndsWith(".c"))
                         {
