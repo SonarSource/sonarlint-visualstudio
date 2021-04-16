@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
     internal interface IAnalysisConfigMonitor
     {
-        // Marker interface
+        event EventHandler ConfigChanged;
     }
 
     /// <summary>
@@ -45,6 +45,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ISuppressedIssuesMonitor suppressedIssuesMonitor;
         private readonly ILogger logger;
+
+        public event EventHandler ConfigChanged;
 
         [ImportingConstructor]
         public AnalysisConfigMonitor(IAnalysisRequester analysisRequester,
@@ -69,6 +71,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             if (activeSolutionBoundTracker.CurrentConfiguration.Mode == SonarLintMode.Standalone)
             {
                 logger.WriteLine(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+                RaiseConfigChangedEvent();
                 analysisRequester.RequestAnalysis();
             }
             else
@@ -81,7 +84,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         {
             // NB assumes exception handling is done by the AnalysisRequester
             logger.WriteLine(AnalysisStrings.ConfigMonitor_SuppressionsUpdated);
+            RaiseConfigChangedEvent();
             analysisRequester.RequestAnalysis();
+        }
+
+        private void RaiseConfigChangedEvent()
+        {
+            ConfigChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #region IDisposable Support
