@@ -31,7 +31,7 @@ namespace SonarLint.VisualStudio.Core
     {
         private static readonly IDictionary<string, string> repoKeyToFolderNameMap = new Dictionary<string, string>
         {
-            { "roslyn.sonaranalyzer.security.cs", "csharp" }
+            { SonarRuleRepoKeys.CSharpSecurityRules, "csharp" }
         };
 
         public string GetHelpLink(string ruleKey)
