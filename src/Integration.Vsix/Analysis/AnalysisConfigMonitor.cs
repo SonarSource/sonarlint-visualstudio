@@ -27,11 +27,6 @@ using SonarLint.VisualStudio.Core.Suppression;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 {
-    internal interface IAnalysisConfigMonitor
-    {
-        event EventHandler ConfigChanged;
-    }
-
     /// <summary>
     /// Monitors configuration changes that can affect analysis results and requests
     /// re-analysis.

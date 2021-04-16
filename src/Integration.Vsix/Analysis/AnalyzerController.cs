@@ -37,12 +37,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
         // The analyzer controller does not use the config monitor. However, something needs to MEF-import
         // the config monitor so that it is created, and the lifetimes of the analyzer controller and
         // config monitor should be the same so it is convenient to create it here.
-        private readonly Analysis.IAnalysisConfigMonitor analysisConfigMonitor;
+        private readonly IAnalysisConfigMonitor analysisConfigMonitor;
 
         [ImportingConstructor]
         public AnalyzerController(ILogger logger,
             [ImportMany]IEnumerable<IAnalyzer> analyzers,
-            Analysis.IAnalysisConfigMonitor analysisConfigMonitor)
+            IAnalysisConfigMonitor analysisConfigMonitor)
         {
             this.logger = logger;
             this.analyzers = analyzers;
