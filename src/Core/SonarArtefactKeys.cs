@@ -69,5 +69,8 @@ namespace SonarLint.VisualStudio.Core
         public const string CSharpSecurityRules = "roslyn.sonaranalyzer.security.cs";
 
         public static readonly StringComparer RepoKeyComparer = StringComparer.Ordinal;
+
+        public static bool AreEqual(string repoKey1, string repoKey2) =>
+            string.Equals(repoKey1, repoKey2, StringComparison.Ordinal);
     }
 }

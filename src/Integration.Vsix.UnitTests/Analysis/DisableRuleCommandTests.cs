@@ -38,6 +38,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     [TestClass]
     public class DisableRuleCommandTests
     {
+        private const int VisibleAndEnabled = (int)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED);
+        private const int VisibleButDisabled = (int)(OLECMDF.OLECMDF_SUPPORTED);
+        private const int InvisbleAndDisabled = (int)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_INVISIBLE);
+
         [TestMethod]
         public void Ctor_NullArguments()
         {
@@ -80,13 +84,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        public void CheckStatusAndExecute_SingleCFamilyIssue_StandaloneMode_VisibleAndEnabled()
+        [DataRow("cpp:S111", "S111")]
+        [DataRow("c:S222", "S222")]
+        [DataRow("javascript:S333", "S333")]
+        public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode, string expectedRuleKey)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "cpp:S123" }
+                { StandardTableKeyNames.ErrorCode,  errorCode}
             });
             var errorList = CreateErrorList(issueHandle);
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
@@ -99,26 +106,31 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             ThreadHelper.SetCurrentThreadAsUIThread();
             var result = command.OleStatus;
 
-            result.Should().Be((int)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_ENABLED));
+            result.Should().Be(VisibleAndEnabled);
             command.Enabled.Should().BeTrue();
             command.Visible.Should().BeTrue();
 
             // 2. Invoke the command
             command.Invoke();
 
-            mockUserSettingsProvider.Verify(x => x.DisableRule("cpp:S123"), Times.Once);
+            mockUserSettingsProvider.Verify(x => x.DisableRule(expectedRuleKey), Times.Once);
         }
 
         [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void CheckStatus_SingleCFamilyIssue_ConnectedMode_VisibleButNotEnabled(SonarLintMode bindingMode)
+        [DataRow("c:S111", SonarLintMode.Connected, false)]
+        [DataRow("c:S111", SonarLintMode.LegacyConnected, false)]
+        [DataRow("cpp:S111", SonarLintMode.Connected, false)]
+        [DataRow("cpp:S111", SonarLintMode.LegacyConnected, false)]
+        [DataRow("javascript:S111", SonarLintMode.Connected, true)]
+        [DataRow("javascript:S111", SonarLintMode.LegacyConnected, true)]
+        public void CheckStatus_SingleIssue_SupportedRepo_ConnectedMode_HasExpectedEnabledStatus(string errorCode, SonarLintMode bindingMode,
+            bool expectedEnabled)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "cpp:S123" }
+                { StandardTableKeyNames.ErrorCode, errorCode }
             });
             var errorList = CreateErrorList(issueHandle);
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
@@ -129,31 +141,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // Act. Trigger the query status check
             ThreadHelper.SetCurrentThreadAsUIThread();
             var result = command.OleStatus;
-            result.Should().Be((int)OLECMDF.OLECMDF_SUPPORTED);
 
-            command.Enabled.Should().BeFalse();
+            var expectedOleStatus = expectedEnabled ? VisibleAndEnabled : VisibleButDisabled;
+            result.Should().Be(expectedOleStatus);
+
+            // Should always be visible, but not necessarily enabled
             command.Visible.Should().BeTrue();
+            command.Enabled.Should().Be(expectedEnabled);
         }
 
         [TestMethod]
-        public void CheckStatusAndExecute_NotACFamilyIssue()
+        [DataRow(SonarLintMode.Standalone)]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void CheckStatus_NotASupportedSonarRepo(SonarLintMode mode)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "xxx:S123" }
+                { StandardTableKeyNames.ErrorCode, "unsupportedRepo:S123" }
             });
             var errorList = CreateErrorList(issueHandle);
             var mockUserSettingsProvider = new Mock<IUserSettingsProvider>();
-            var solutionTracker = CreateSolutionTracker(SonarLintMode.Standalone);
+            var solutionTracker = CreateSolutionTracker(mode);
 
             // Act
             var command = CreateDisableRuleMenuCommand(errorList, mockUserSettingsProvider.Object, solutionTracker, new TestLogger());
 
             // 1. Trigger the query status check
             var result = command.OleStatus;
-            result.Should().Be((int)(OLECMDF.OLECMDF_SUPPORTED | OLECMDF.OLECMDF_INVISIBLE));
+            result.Should().Be(InvisbleAndDisabled);
 
             command.Enabled.Should().BeFalse();
             command.Visible.Should().BeFalse();
@@ -250,62 +268,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         #region TryGetErrorCode tests
 
         [TestMethod]
-        public void GetErrorCode_SingleCppIssue_ErrorCodeReturned()
+        [DataRow("c:S111", "c", "S111")]
+        [DataRow("cpp:S222", "cpp", "S222")]
+        [DataRow("javascript:S333", "javascript", "S333")]
+        [DataRow("foo:bar", "foo", "bar")]
+        public void GetErrorCode_SingleSonarIssue_ErrorCodeReturned(string fullRuleKey, string expectedRepo, string expectedRule)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
             {
                 { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "cpp:S123" }
+                { StandardTableKeyNames.ErrorCode, fullRuleKey }
             });
+
             var mockErrorList = CreateErrorList(issueHandle);
 
             // Act
-            bool result = DisableRuleCommand.TryGetErrorCodeSync(mockErrorList, out var errorCode);
+            bool result = DisableRuleCommand.TryGetRuleId(mockErrorList, out var ruleId);
 
             // Assert
             result.Should().BeTrue();
-            errorCode.Should().Be("cpp:S123");
-        }
-
-        [TestMethod]
-        public void GetErrorCode_SingleCIssue_ErrorCodeReturned()
-        {
-            // Arrange
-            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "c:S333" }
-            });
-
-            var mockErrorList = CreateErrorList(issueHandle);
-
-            // Act
-            bool result = DisableRuleCommand.TryGetErrorCodeSync(mockErrorList, out var errorCode);
-
-            // Assert
-            result.Should().BeTrue();
-            errorCode.Should().Be("c:S333");
-        }
-
-        [TestMethod]
-        public void GetErrorCode_SingleJavaScriptIssue_ErrorCodeNotReturned()
-        {
-            // Arrange
-            var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
-            {
-                { StandardTableKeyNames.BuildTool, "SonarLint" },
-                { StandardTableKeyNames.ErrorCode, "javascript:S123" }
-            });
-
-            var mockErrorList = CreateErrorList(issueHandle);
-
-            // Act
-            bool result = DisableRuleCommand.TryGetErrorCodeSync(mockErrorList, out var errorCode);
-
-            // Assert
-            result.Should().BeFalse();
-            errorCode.Should().BeNull();
+            ruleId.RepoKey.Should().Be(expectedRepo);
+            ruleId.RuleKey.Should().Be(expectedRule);
         }
 
         [TestMethod]
@@ -321,7 +305,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var mockErrorList = CreateErrorList(issueHandle);
 
             // Act
-            bool result = DisableRuleCommand.TryGetErrorCodeSync(mockErrorList, out var errorCode);
+            bool result = DisableRuleCommand.TryGetRuleId(mockErrorList, out var errorCode);
 
             // Assert
             result.Should().BeFalse();
@@ -345,7 +329,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var mockErrorList = CreateErrorList(cppIssueHandle, jsIssueHandle);
 
             // Act
-            bool result = DisableRuleCommand.TryGetErrorCodeSync(mockErrorList, out var errorCode);
+            bool result = DisableRuleCommand.TryGetRuleId(mockErrorList, out var errorCode);
 
             // Assert
             result.Should().BeFalse();
@@ -365,7 +349,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             var mockErrorList = CreateErrorList(issueHandle);
 
             // Act
-            bool result = DisableRuleCommand.TryGetErrorCodeSync(mockErrorList, out var errorCode);
+            bool result = DisableRuleCommand.TryGetRuleId(mockErrorList, out var errorCode);
 
             // Assert
             result.Should().BeFalse();
