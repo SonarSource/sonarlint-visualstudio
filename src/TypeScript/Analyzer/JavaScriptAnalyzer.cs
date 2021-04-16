@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly ITelemetryManager telemetryManager;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly IActiveSolutionTracker activeSolutionTracker;
+        private readonly IAnalysisConfigMonitor analysisConfigMonitor;
         private readonly ILogger logger;
 
         private IEslintBridgeClient eslintBridgeClient;
@@ -63,6 +64,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
+            IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
             : this(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider,
                 new EslintBridgeIssueConverter(keyMapper.GetSonarRuleKey,
@@ -70,6 +72,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 telemetryManager,
                 analysisStatusNotifier,
                 activeSolutionTracker,
+                analysisConfigMonitor,
                 logger)
         {
         }
@@ -81,6 +84,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
+            IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
         {
             this.eslintBridgeClientFactory = eslintBridgeClientFactory;
@@ -90,9 +94,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.activeSolutionTracker = activeSolutionTracker;
+            this.analysisConfigMonitor = analysisConfigMonitor;
             this.logger = logger;
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
+            analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -207,6 +213,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         public void Dispose()
         {
             activeSolutionTracker.ActiveSolutionChanged -= ActiveSolutionTracker_ActiveSolutionChanged;
+            analysisConfigMonitor.ConfigChanged -= AnalysisConfigMonitor_ConfigChanged;
 
             eslintBridgeClient?.Dispose();
             eslintBridgeProcess?.Dispose();
@@ -214,6 +221,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         }
 
         private void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        {
+            StopServer();
+        }
+
+        private void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
         {
             StopServer();
         }
