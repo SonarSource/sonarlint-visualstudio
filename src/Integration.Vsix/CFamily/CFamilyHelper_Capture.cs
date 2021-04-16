@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -134,11 +135,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
                         if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
                         {
-                            cfamilyLanguage = CPP_LANGUAGE_KEY;
+                            cfamilyLanguage = SonarLanguageKeys.CPlusPlus
                         }
                         else if (path.ToLowerInvariant().EndsWith(".c"))
                         {
-                            cfamilyLanguage = C_LANGUAGE_KEY;
+                            cfamilyLanguage = SonarLanguageKeys.C;
                         }
                         else
                         {
@@ -149,7 +150,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         cfamilyLanguage = "c";
                         return "/TC";
                     case "CompileAsCpp":
-                        cfamilyLanguage = CPP_LANGUAGE_KEY;
+                        cfamilyLanguage = SonarLanguageKeys.CPlusPlus;
                         return "/TP";
                 }
             }

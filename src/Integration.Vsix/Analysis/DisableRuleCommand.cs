@@ -181,13 +181,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
             return null;
         }
 
-        private static readonly string[] supportedLanguages = new[] { CFamily.CFamilyHelper.CPP_LANGUAGE_KEY, CFamily.CFamilyHelper.C_LANGUAGE_KEY };
+        // Strictly speaking we are allowing rules from known repos to be disabled,
+        // not "all rules for language X".  However, since we are in control of the
+        // rules/repos that are installed in  VSIX, checking the repo key is good
+        // enough.
+        private static readonly string[] supportedRepos = new[]
+        {
+            SonarRuleRepoKeys.C,
+            SonarRuleRepoKeys.Cpp
+        };
 
         private static bool IsDisablingRulesSupported(string errorCode)
         {
-            // We don't currently support disabling rules for all languages
-            var language = errorCode?.Split(':')?[0];
-            return supportedLanguages.Contains(language, CFamilyShared.RuleKeyComparer);
+            // We don't currently support disabling rules for all repos
+            var repoKey = errorCode?.Split(':')?[0];
+            return supportedRepos.Contains(repoKey, SonarRuleRepoKeys.RepoKeyComparer);
         }
     }
 }
