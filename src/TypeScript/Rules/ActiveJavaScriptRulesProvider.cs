@@ -66,8 +66,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         }
 
         private bool IsLanguageDisabled() =>
-            userSettingsProvider.UserSettings.RulesSettings.General.DisableLanguages
-                .Contains(SonarLanguageKeys.JavaScript, StringComparer.OrdinalIgnoreCase);
+            userSettingsProvider.UserSettings.IsLanguageDisabled(SonarLanguageKeys.JavaScript);
 
         private bool IncludeRule(RuleDefinition ruleDefinition)
         {

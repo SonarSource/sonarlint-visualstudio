@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Core
     public class GeneralSettings
     {
         [JsonProperty("disabledLanguages")]
-        public ISet<string> DisableLanguages { get; set; } = new HashSet<string>();
+        public ISet<string> DisableLanguages { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     public class RuleConfig
