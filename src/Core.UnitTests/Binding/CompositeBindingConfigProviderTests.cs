@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.Binding
             testSubject.IsLanguageSupported(Language.VBNET).Should().BeTrue();
             testSubject.IsLanguageSupported(Language.CSharp).Should().BeTrue();
 
-            // 2. Unsupported langauge
+            // 2. Unsupported language
             testSubject.IsLanguageSupported(Language.Cpp).Should().BeFalse();
         }
 
