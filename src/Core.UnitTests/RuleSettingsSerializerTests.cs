@@ -45,6 +45,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             var filePath1 = Path.Combine(dir, "settings.json");
 
             const string validSettingsData = @"{
+     'sonarlint.general': {
+       'disabledLanguages': ['cpp', 'c']
+     },
     'sonarlint.rules': {
         'xxx:xxx': {
             'Level': 'On',
@@ -73,20 +76,24 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             // Check loaded data
 
-            // 1. Rules dictionary: lookup should be case-insensitive
+            // 1. Global settings
+            loadedSettings.General.Should().NotBeNull();
+            loadedSettings.General.DisableLanguages.Should().BeEquivalentTo("cpp", "c");
+
+            // 2. Rules dictionary: lookup should be case-insensitive
             loadedSettings.Rules.TryGetValue("xxx:xxx", out var rulesConfig).Should().BeTrue();
             loadedSettings.Rules.TryGetValue("XXX:XXX", out rulesConfig).Should().BeTrue();
 
-            // 2. Parameters dictionary: lookup should be case-insensitive
+            // 3. Parameters dictionary: lookup should be case-insensitive
             rulesConfig.Parameters.TryGetValue("key1", out var paramValue).Should().BeTrue();
             // BUG - we want it to be case-insenstive, but it isn't
             // rulesConfig.Parameters.TryGetValue("KEY1", out paramValue).Should().BeTrue();
             paramValue.Should().Be("value1");
 
-            // 3. Parameters dictionary: explicitly null in file -> null on deserialization
+            // 4. Parameters dictionary: explicitly null in file -> null on deserialization
             loadedSettings.Rules["xxx:yyy"].Parameters.Should().BeNull();
 
-            // 4. Parameters dictionary: missing parameters setting in dictionary -> null on deserialization
+            // 5. Parameters dictionary: missing parameters setting in dictionary -> null on deserialization
             loadedSettings.Rules["xxx:zzz"].Parameters.Should().BeNull();
         }
 
@@ -189,6 +196,11 @@ namespace SonarLint.VisualStudio.Core.UnitTests
 
             var settings = new RulesSettings
             {
+                General = new GeneralSettings
+                {
+                    DisableLanguages = new HashSet<string> { "aaa", "bbb", "ccc" }
+                },
+
                 Rules = new Dictionary<string, RuleConfig>
                 {
                     { "repo1:key1", new RuleConfig { Level = RuleLevel.Off, Severity = IssueSeverity.Major } },
@@ -222,6 +234,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             reloadedSettings.Rules.Count.Should().Be(3);
 
             // Check loaded data
+            reloadedSettings.General.Should().NotBeNull();
+            reloadedSettings.General.DisableLanguages.Should().BeEquivalentTo("aaa", "bbb", "ccc");
+
             reloadedSettings.Rules["repo1:key1"].Level.Should().Be(RuleLevel.Off);
             reloadedSettings.Rules["repo1:key2"].Level.Should().Be(RuleLevel.On);
             reloadedSettings.Rules["repox:keyy"].Level.Should().Be(RuleLevel.On);
@@ -239,6 +254,31 @@ namespace SonarLint.VisualStudio.Core.UnitTests
             rulexParams.Keys.Should().BeEquivalentTo("key1", "key2");
             rulexParams["key1"].Should().Be("value1");
             rulexParams["key2"].Should().Be("value2");
+        }
+
+        [TestMethod]
+        public void EmptySettings_Roundtrip_Succeeds()
+        {
+            // Arrange
+            var testLogger = new TestLogger(logToConsole: true);
+
+            var dir = CreateTestSpecificDirectory();
+            var filePath = Path.Combine(dir, "settings.txt");
+
+            var settings = new RulesSettings();
+            var testSubject = new RulesSettingsSerializer(new FileSystem(), testLogger);
+
+            // Act: save and reload
+            testSubject.SafeSave(filePath, settings);
+            File.Exists(filePath).Should().BeTrue();
+
+            var reloadedSettings = testSubject.SafeLoad(filePath);
+
+            TestContext.AddResultFile(filePath);
+            reloadedSettings.Should().NotBeNull();
+            reloadedSettings.General.Should().NotBeNull();
+            reloadedSettings.General.DisableLanguages.Should().BeEmpty();
+            reloadedSettings.Rules.Should().BeEmpty();
         }
 
         [TestMethod]

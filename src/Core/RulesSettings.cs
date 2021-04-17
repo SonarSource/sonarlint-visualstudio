@@ -27,14 +27,21 @@ namespace SonarLint.VisualStudio.Core
 {
     /*
      // Example config file - same format as the VS Code settings.json file, with the addition of "parameters"
-     // and "severity", both of which are optional.
+     // and "severity" (both of which are optional) and the "sonarlint.general" section.
 {
-...
+
+    ...
+
+      "sonarlint.general": {
+
+        "disabledLanguages": ["cpp", "c"]
+     },
+
     "sonarlint.rules": {
         "typescript:S2685": {
             "level": "on"
         },
-        "javascript:EqEqEq": {
+        "javascript:S123": {
             "level": "on"
         },
 
@@ -57,8 +64,17 @@ namespace SonarLint.VisualStudio.Core
     // Json-serializable data class
     public class RulesSettings
     {
+        [JsonProperty("sonarlint.general")]
+        public GeneralSettings General { get; set; } = new GeneralSettings();
+
         [JsonProperty("sonarlint.rules", ObjectCreationHandling = ObjectCreationHandling.Reuse)]
         public Dictionary<string, RuleConfig> Rules { get; set; } = new Dictionary<string, RuleConfig>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    public class GeneralSettings
+    {
+        [JsonProperty("disabledLanguages")]
+        public ISet<string> DisableLanguages { get; set; } = new HashSet<string>();
     }
 
     public class RuleConfig
