@@ -49,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<ITelemetryTimer> telemetryTimerMock;
         private Mock<IKnownUIContexts> knownUIContexts;
         private Mock<IVsVersionProvider> vsVersionProvider;
+        private Mock<IUserSettingsProvider> userSettingsProvider;
 
         [TestInitialize]
         public void TestInitialize()
@@ -60,9 +61,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
             vsVersionProvider = new Mock<IVsVersionProvider>();
+            userSettingsProvider = new Mock<IUserSettingsProvider>();
 
             activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
         }
+
 
         [TestMethod]
         public void Ctor_WhenInstallationDateIsDateTimeMin_SetsCurrentDateAndSave()
@@ -340,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => new TelemetryManager(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, vsVersionProvider.Object, loggerMock.Object, telemetryClientMock.Object,
+            telemetryRepositoryMock.Object, vsVersionProvider.Object, userSettingsProvider.Object, loggerMock.Object, telemetryClientMock.Object,
             telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
 
         #region Languages analyzed tests
@@ -400,7 +403,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // 1. Create -> initial values set
             var testSubject = CreateManager(mockTimeProvider.Object);
-        
+
             telemetryData.NumberOfDaysOfUse.Should().Be(0);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
 
@@ -535,7 +538,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(100)]
         public void ShowHotspotRequested_CounterIncremented(int previousCounter)
         {
-            var telemetryData = new TelemetryData {ShowHotspot = new ShowHotspot {NumberOfRequests = previousCounter}};
+            var telemetryData = new TelemetryData { ShowHotspot = new ShowHotspot { NumberOfRequests = previousCounter } };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
@@ -545,7 +548,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             testSubject.ShowHotspotRequested();
 
             telemetryData.ShowHotspot.NumberOfRequests.Should().Be(previousCounter + 1);
-            telemetryRepositoryMock.Verify(x=> x.Save(), Times.Once);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
         [TestMethod]

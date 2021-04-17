@@ -76,5 +76,8 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("server_notifications")]
         public ServerNotifications ServerNotifications { get; set; }
+
+        [JsonProperty("disabled_languages")]
+        public List<string> DisabledLanguages { get; set; }
     }
 }

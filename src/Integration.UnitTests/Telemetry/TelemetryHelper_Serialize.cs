@@ -79,7 +79,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                             ClickedCount = 444
                         }}
                     }
-                }
+                },
+                DisabledLanguages = new List<string> { "cpp", "js" }
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -130,7 +131,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         ""clicked"": 444
       }
     }
-  }
+  },
+  ""disabled_languages"": [
+    ""cpp"",
+    ""js""
+  ]
 }";
             serialized.Should().Be(expected);
         }

@@ -182,7 +182,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [DataRow("javascript", false)] // we're only looking for the Sonar language key i.e "js"
         [DataRow("ts", false)]
         [DataRow("foo", false)]
-        public void Get_HasUserOverride_LangaugeIsDisabled_ReturnsExpectedRules(
+        public void Get_HasUserOverride_LanguageIsDisabled_ReturnsExpectedRules(
             string disabledLanguage, bool shouldReturnNoRules)
         {
             var ruleDefns = new RuleDefinitionsBuilder()

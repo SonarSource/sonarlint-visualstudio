@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration
     public sealed class TelemetryManager : ITelemetryManager, IDisposable
     {
         private readonly IActiveSolutionBoundTracker solutionBindingTracker;
+        private readonly IUserSettingsProvider userSettingsProvider;
         private readonly ITelemetryClient telemetryClient;
         private readonly ILogger logger;
         private readonly ITelemetryTimer telemetryTimer;
@@ -44,19 +45,25 @@ namespace SonarLint.VisualStudio.Integration
         private readonly ICurrentTimeProvider currentTimeProvider;
         private readonly IVsVersion vsVersion;
 
+        // Note: there isn't a MEF test for this constructor.Writing one causes other tests to fail.
+        // Why? A MEF test would use the real VS UIContext which won't be initialized correctly
+        // in the test environment.
+        // A MEF test would create and dispose an instance of this class, which would leave the UIContext
+        // in a bad state, calling other tests to fail.
         [ImportingConstructor]
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, 
             ITelemetryDataRepository telemetryRepository,
             IVsVersionProvider vsVersionProvider,
+            IUserSettingsProvider userSettingsProvider,
             ILogger logger)
-            : this(solutionBindingTracker, telemetryRepository, vsVersionProvider, logger,
+            : this(solutionBindingTracker, telemetryRepository, vsVersionProvider, userSettingsProvider, logger,
                   new TelemetryClient(), new TelemetryTimer(telemetryRepository, new TimerFactory()),
                   new KnownUIContextsWrapper(), DefaultCurrentTimeProvider.Instance)
         {
         }
 
         public TelemetryManager(IActiveSolutionBoundTracker solutionBindingTracker, ITelemetryDataRepository telemetryRepository, IVsVersionProvider vsVersionProvider,
-            ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts,
+            IUserSettingsProvider userSettingsProvider, ILogger logger, ITelemetryClient telemetryClient, ITelemetryTimer telemetryTimer, IKnownUIContexts knownUIContexts,
             ICurrentTimeProvider currentTimeProvider)
         {
             this.solutionBindingTracker = solutionBindingTracker;
@@ -66,6 +73,7 @@ namespace SonarLint.VisualStudio.Integration
             this.telemetryTimer = telemetryTimer;
             this.knownUIContexts = knownUIContexts;
             this.currentTimeProvider = currentTimeProvider;
+            this.userSettingsProvider = userSettingsProvider;
 
             vsVersion = vsVersionProvider.Version;
 
@@ -153,7 +161,8 @@ namespace SonarLint.VisualStudio.Integration
             return TelemetryHelper.CreatePayload(telemetryData,
                 currentTimeProvider.Now,
                 solutionBindingTracker.CurrentConfiguration,
-                vsVersion);
+                vsVersion,
+                userSettingsProvider.UserSettings);
         }
 
         private void OnAnalysisRun(object sender, UIContextChangedEventArgs e)
