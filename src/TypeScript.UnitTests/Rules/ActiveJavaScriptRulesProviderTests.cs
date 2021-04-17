@@ -176,6 +176,30 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result.Length.Should().Be(0);
         }
 
+        [TestMethod]
+        [DataRow("js", true)]
+        [DataRow("JS", true)]
+        [DataRow("javascript", false)] // we're only looking for the Sonar language key i.e "js"
+        [DataRow("ts", false)]
+        [DataRow("foo", false)]
+        public void Get_HasUserOverride_LangaugeIsDisabled_ReturnsExpectedRules(
+            string disabledLanguage, bool shouldReturnNoRules)
+        {
+            var ruleDefns = new RuleDefinitionsBuilder()
+                .AddRule(ruleKey: "javascript:rule1", activeByDefault: true, eslintKey: "rule1")
+                .AddRule(ruleKey: "javascript:rule2", activeByDefault: false, eslintKey: "rule2");
+
+            var userSettings = new UserSettingsBuilder()
+                .Add("javascript:rule2", RuleLevel.On)
+                .DisableLanguage(disabledLanguage);
+
+            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
+
+            var result = testSubject.Get().ToArray();
+            var expectedCount = shouldReturnNoRules ? 0 : 2;
+            result.Length.Should().Be(expectedCount);
+        }
+
         private static void CheckExpectedRuleKeys(IEnumerable<Rule> result, params string[] expected) =>
             result.Select(x => x.Key).Should().BeEquivalentTo(expected);
 
@@ -219,6 +243,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             public UserSettingsBuilder Add(string ruleKey, RuleLevel ruleLevel)
             {
                 ruleSettings.Rules.Add(ruleKey, new RuleConfig { Level = ruleLevel });
+                return this;
+            }
+
+            public UserSettingsBuilder DisableLanguage(string languageKey)
+            {
+                ruleSettings.General.DisableLanguages.Add(languageKey);
                 return this;
             }
 
