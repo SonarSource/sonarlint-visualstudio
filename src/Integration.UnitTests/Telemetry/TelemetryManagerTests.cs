@@ -30,6 +30,7 @@ using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -62,6 +63,23 @@ namespace SonarLint.VisualStudio.Integration.Tests
             vsVersionProvider = new Mock<IVsVersionProvider>();
 
             activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
+        }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.MaxValue };
+            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
+
+            // Note: an exception will be thrown from the VS UIContext handling code when the
+            // TelemetryManager is disposed, which will be suppressed by the test helper.
+            var importer = MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
+                MefTestHelpers.CreateExport<ITelemetryDataRepository>(telemetryRepositoryMock.Object),
+                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
         }
 
         [TestMethod]

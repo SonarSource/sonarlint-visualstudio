@@ -130,9 +130,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             {
                 batch.AddExport(item);
             }
-            using (CompositionContainer container = new CompositionContainer(catalog))
+
+            CompositionContainer container = new CompositionContainer(catalog);
+            container.Compose(batch);
+
+            try
             {
-                container.Compose(batch);
+                container.Dispose();
+            }
+            catch(Exception ex)
+            {
+                // Disposing the container will dispose any disposable exports. The purpose
+                // of this test helper is to check that items can be created correctly, so
+                // we'll log and suppress any exceptions that occur during disposal.
+                Console.WriteLine($"{nameof(MefTestHelpers.TryCompose)}: exception disposing the test MEF container: {ex}");
             }
         }
     }
