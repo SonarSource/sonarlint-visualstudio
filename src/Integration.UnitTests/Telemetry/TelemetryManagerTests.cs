@@ -28,10 +28,8 @@ using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
-using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
-using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Integration.Tests
 {
@@ -51,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         private Mock<ITelemetryTimer> telemetryTimerMock;
         private Mock<IKnownUIContexts> knownUIContexts;
         private Mock<IVsVersionProvider> vsVersionProvider;
+        private Mock<IUserSettingsProvider> userSettingsProvider;
 
         [TestInitialize]
         public void TestInitialize()
@@ -62,26 +61,11 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryTimerMock = new Mock<ITelemetryTimer>();
             knownUIContexts = new Mock<IKnownUIContexts>();
             vsVersionProvider = new Mock<IVsVersionProvider>();
+            userSettingsProvider = new Mock<IUserSettingsProvider>();
 
             activeSolutionTrackerMock.Setup(x => x.CurrentConfiguration).Returns(BindingConfiguration.Standalone);
         }
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            var telemetryData = new TelemetryData { InstallationDate = DateTimeOffset.MaxValue };
-            telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
-
-            // Note: an exception will be thrown from the VS UIContext handling code when the
-            // TelemetryManager is disposed, which will be suppressed by the test helper.
-            var importer = MefTestHelpers.CheckTypeCanBeImported<TelemetryManager, ITelemetryManager>(null, new[]
-            {
-                MefTestHelpers.CreateExport<IActiveSolutionBoundTracker>(Mock.Of<IActiveSolutionBoundTracker>()),
-                MefTestHelpers.CreateExport<ITelemetryDataRepository>(telemetryRepositoryMock.Object),
-                MefTestHelpers.CreateExport<IVsVersionProvider>(Mock.Of<IVsVersionProvider>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
-        }
 
         [TestMethod]
         public void Ctor_WhenInstallationDateIsDateTimeMin_SetsCurrentDateAndSave()
@@ -359,7 +343,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         }
 
         private TelemetryManager CreateManager(ICurrentTimeProvider mockTimeProvider = null) => new TelemetryManager(activeSolutionTrackerMock.Object,
-            telemetryRepositoryMock.Object, vsVersionProvider.Object, loggerMock.Object, telemetryClientMock.Object,
+            telemetryRepositoryMock.Object, vsVersionProvider.Object, userSettingsProvider.Object, loggerMock.Object, telemetryClientMock.Object,
             telemetryTimerMock.Object, knownUIContexts.Object, mockTimeProvider ?? currentTimeProvider);
 
         #region Languages analyzed tests
@@ -419,7 +403,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
 
             // 1. Create -> initial values set
             var testSubject = CreateManager(mockTimeProvider.Object);
-        
+
             telemetryData.NumberOfDaysOfUse.Should().Be(0);
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
 
@@ -554,7 +538,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
         [DataRow(100)]
         public void ShowHotspotRequested_CounterIncremented(int previousCounter)
         {
-            var telemetryData = new TelemetryData {ShowHotspot = new ShowHotspot {NumberOfRequests = previousCounter}};
+            var telemetryData = new TelemetryData { ShowHotspot = new ShowHotspot { NumberOfRequests = previousCounter } };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
             var testSubject = CreateManager();
 
@@ -564,7 +548,7 @@ namespace SonarLint.VisualStudio.Integration.Tests
             testSubject.ShowHotspotRequested();
 
             telemetryData.ShowHotspot.NumberOfRequests.Should().Be(previousCounter + 1);
-            telemetryRepositoryMock.Verify(x=> x.Save(), Times.Once);
+            telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
         }
 
         [TestMethod]

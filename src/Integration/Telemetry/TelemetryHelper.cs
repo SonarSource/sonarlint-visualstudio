@@ -20,6 +20,8 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.VsVersion;
 using SonarLint.VisualStudio.Integration.Telemetry.Payload;
@@ -48,7 +50,7 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         public static TelemetryPayload CreatePayload(TelemetryData telemetryData, DateTimeOffset now,
-            BindingConfiguration bindingConfiguration, IVsVersion vsVersion)
+            BindingConfiguration bindingConfiguration, IVsVersion vsVersion, UserSettings userSettings)
         {
             if (telemetryData == null)
             {
@@ -84,7 +86,8 @@ namespace SonarLint.VisualStudio.Integration
                 Analyses = telemetryData.Analyses,
                 ShowHotspot = telemetryData.ShowHotspot,
                 TaintVulnerabilities = telemetryData.TaintVulnerabilities,
-                ServerNotifications = isConnected ? telemetryData.ServerNotifications : null
+                ServerNotifications = isConnected ? telemetryData.ServerNotifications : null,
+                DisabledLanguages = userSettings?.RulesSettings?.General?.DisableLanguages?.ToList()
             };
         }
 
