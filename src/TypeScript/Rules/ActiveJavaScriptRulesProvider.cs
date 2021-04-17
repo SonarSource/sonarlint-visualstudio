@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -52,12 +53,21 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
         public IEnumerable<Rule> Get()
         {
+            if (IsLanguageDisabled())
+            {
+                return Array.Empty<Rule>();
+            }
+
             // TODO: handle QP configuration in connected mode #770
             return jsRuleDefinitions.GetDefinitions()
                 .Where(IncludeRule)
                 .Select(Convert)
                 .ToArray();
         }
+
+        private bool IsLanguageDisabled() =>
+            userSettingsProvider.UserSettings.RulesSettings.General.DisableLanguages
+                .Contains(SonarLanguageKeys.JavaScript, StringComparer.OrdinalIgnoreCase);
 
         private bool IncludeRule(RuleDefinition ruleDefinition)
         {

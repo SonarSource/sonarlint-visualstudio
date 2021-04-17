@@ -102,6 +102,9 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
             // Assert
             actualPath.Should().Be("c:\\full\\path\\file.txt");
             actualText.Should().Be(@"{
+  ""sonarlint.general"": {
+    ""disabledLanguages"": []
+  },
   ""sonarlint.rules"": {
     ""key"": {
       ""level"": ""On"",
