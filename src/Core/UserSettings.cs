@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Core
 {
@@ -30,5 +31,25 @@ namespace SonarLint.VisualStudio.Core
         }
 
         public RulesSettings RulesSettings { get; }
+    }
+
+    public static class UserSettingsExtensions
+    {
+        public static bool IsLanguageDisabled(this UserSettings userSettings, string languageKey) =>
+            userSettings?.RulesSettings?.General?.DisableLanguages
+                ?.Contains(languageKey, StringComparer.OrdinalIgnoreCase) ?? false;
+
+        public static void SetLanguageStatus(this UserSettings userSettings, string languageKey, bool isDisabled)
+        {
+            if (isDisabled)
+            {
+                userSettings.RulesSettings.General.DisableLanguages.Add(languageKey);
+            }
+            else
+            {
+                userSettings.RulesSettings.General.DisableLanguages.Remove(languageKey);
+            }
+        }
+
     }
 }
