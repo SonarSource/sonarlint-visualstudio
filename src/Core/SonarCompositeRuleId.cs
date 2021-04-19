@@ -38,21 +38,23 @@ namespace SonarLint.VisualStudio.Core
                 var keys = errorListErrorCode.Split(new string[] {Separator}, StringSplitOptions.RemoveEmptyEntries);
                 if (keys.Length == 2)
                 {
-                    ruleInfo = new SonarCompositeRuleId(keys[0], keys[1]);
+                    ruleInfo = new SonarCompositeRuleId(errorListErrorCode, keys[0], keys[1]);
                 }
             }
 
             return ruleInfo != null;
         }
 
-        private SonarCompositeRuleId(string repoKey, string ruleKey)
+        private SonarCompositeRuleId(string errorListErrorCode, string repoKey, string ruleKey)
         {
+            ErrorListErrorCode = errorListErrorCode ?? throw new ArgumentNullException(nameof(errorListErrorCode));
             RepoKey = repoKey ?? throw new ArgumentNullException(nameof(repoKey));
             RuleKey = ruleKey ?? throw new ArgumentNullException(nameof(ruleKey));
         }
 
+        public string ErrorListErrorCode { get; }
         public string RepoKey { get; }
         public string RuleKey { get; }
-        public override string ToString() => $"{RepoKey}{Separator}{RuleKey}";
+        public override string ToString() => ErrorListErrorCode;
     }
 }
