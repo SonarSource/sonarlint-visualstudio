@@ -45,10 +45,10 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         public void TryParse_Valid_ReturnExpecteed(string errorCode, string expectedRepo, string expectedRule)
         {
             SonarCompositeRuleId.TryParse(errorCode, out var result).Should().BeTrue();
+            result.ErrorListErrorCode.Should().Be(errorCode);
             result.RepoKey.Should().Be(expectedRepo);
             result.RuleKey.Should().Be(expectedRule);
         }
-
 
         [TestMethod]
         public void ToString_ReturnsExpected()
