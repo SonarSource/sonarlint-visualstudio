@@ -84,10 +84,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
         }
 
         [TestMethod]
-        [DataRow("cpp:S111", "S111")]
-        [DataRow("c:S222", "S222")]
-        [DataRow("javascript:S333", "S333")]
-        public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode, string expectedRuleKey)
+        [DataRow("cpp:S111")]
+        [DataRow("c:S222")]
+        [DataRow("javascript:S333")]
+        public void CheckStatusAndExecute_SingleIssue_SupportedRepo_StandaloneMode_VisibleAndEnabled(string errorCode)
         {
             // Arrange
             var issueHandle = CreateIssueHandle(111, new Dictionary<string, object>
@@ -113,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
             // 2. Invoke the command
             command.Invoke();
 
-            mockUserSettingsProvider.Verify(x => x.DisableRule(expectedRuleKey), Times.Once);
+            mockUserSettingsProvider.Verify(x => x.DisableRule(errorCode), Times.Once);
         }
 
         [TestMethod]
