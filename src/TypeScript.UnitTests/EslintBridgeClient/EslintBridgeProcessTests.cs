@@ -59,6 +59,30 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             act.Should().ThrowExactly<FileNotFoundException>().And.Message.Should().Contain("node.exe");
         }
 
+        [TestMethod] // Regression test for #2370
+        public async Task Start_ServerPathIsEscaped()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: false);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            Process spawnedProcess = null;
+            try
+            {
+                await testSubject.Start();
+                spawnedProcess = testSubject.Process;
+
+                spawnedProcess.StartInfo.Arguments.Should().Be("\"dummy path\"");
+            }
+            finally
+            {
+                SafeKillProcess(spawnedProcess);
+            }
+        }
+
+
         [TestMethod]
         public async Task Start_SecondCall_ProcessFailed_StartsNewProcess()
         {
@@ -90,15 +114,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             }
             finally
             {
-                try
-                {
-                    // Kill spawned process
-                    lastSpawnedProcess?.Kill();
-                }
-                catch
-                {
-                   // do nothing
-                }
+                SafeKillProcess(lastSpawnedProcess);
             }
         }
 
@@ -131,15 +147,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             }
             finally
             {
-                try
-                {
-                    // Kill spawned process
-                    lastSpawnedProcess?.Kill();
-                }
-                catch
-                {
-                    // do nothing
-                }
+                SafeKillProcess(lastSpawnedProcess);
             }
         }
 
@@ -296,6 +304,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             File.WriteAllText(fileName, content);
 
             return fileName;
+        }
+
+        private static void SafeKillProcess(Process process)
+        {
+            try
+            {
+                // Kill spawned process
+                process?.Kill();
+            }
+            catch
+            {
+                // do nothing
+            }
         }
     }
 }

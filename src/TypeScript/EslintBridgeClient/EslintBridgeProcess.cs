@@ -139,7 +139,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             Process = new Process {StartInfo = psi};
             Process.ErrorDataReceived += OnErrorDataReceived;
             Process.OutputDataReceived += OnOutputDataReceived;
-            Process.Exited += Process_Exited;
 
             Process.Start();
             logger.WriteLine(Resources.INFO_ServerProcessId, Process.Id);
@@ -147,6 +146,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             Process.BeginErrorReadLine();
             Process.BeginOutputReadLine();
+
+            // Note: we need to call the "BeginXXX" methods before registering to the exit event.
+            // Otherwise, if the underlying process crashes immediately, the event handler could
+            // have set "Process" to null before we get a chance to call the "BeginXXX" methods ->
+            // we lose the error output and get a null ref exception instead.
+            Process.Exited += Process_Exited;
         }
 
         private void Process_Exited(object sender, EventArgs e)
@@ -233,7 +238,18 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 throw new FileNotFoundException($"Could not find eslint-bridge startup script file: {eslintBridgeStartupScriptPath}");
             }
 
-            return eslintBridgeStartupScriptPath;
+            return GetQuotedScriptPath(eslintBridgeStartupScriptPath);
+        }
+
+        private static string GetQuotedScriptPath(string scriptPath)
+        {
+            const string Quote = "\"";
+            // Quote the script path in case there are any spaces in it.
+            // See #2347
+            Debug.Assert(!scriptPath.Contains(Quote), "Not expecting the imported script path to be quoted");
+
+            return Quote + scriptPath + Quote;
+
         }
     }
 }
