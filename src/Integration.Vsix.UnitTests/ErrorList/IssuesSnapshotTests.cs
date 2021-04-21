@@ -165,7 +165,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 new[] { CreateIssue(), CreateIssue(), CreateIssue() } );
             var modified = original.CreateUpdatedSnapshot("unimportant change");
 
-            // Should not be able to map to an issue with an invalid span since it should be hidden
+            // Should not be able to map to an out-of-range index
             original.IndexOf(inputIndex, modified)
                 .Should().Be(expected);
         }
