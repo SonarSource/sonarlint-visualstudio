@@ -281,7 +281,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
                 newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
-                currentIndex >= 0 && currentIndex <= issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
+                currentIndex >= 0 && currentIndex < issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
                 !ShouldHideIssue(issues[currentIndex]) // don't map hidden issues: see #2351
                 )
             {
