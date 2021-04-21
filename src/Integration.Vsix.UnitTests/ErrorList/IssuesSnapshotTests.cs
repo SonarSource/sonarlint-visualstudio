@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,8 +38,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const int IndexOf_NotFoundResult = -1;
         private const string ValidProjectName = "aproject";
         private const string ValidFilePath = "c:\\file.txt";
-        private readonly Guid ValidProjectGuid = Guid.NewGuid();
-        private readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssue() };
+        private static readonly Guid ValidProjectGuid = Guid.NewGuid();
+        private static readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssue(), CreateIssue() };
+        private static readonly int ValidIndexInValidIssueList = ValidIssueList.Count() - 1;
 
         [TestMethod]
         public void Construction_CreateNew_SetsProperties()
@@ -112,28 +114,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var revised = original.CreateUpdatedSnapshot("unimportant change");
 
             // Should be able to map issues between two snapshots with the same snapshot id
-            original.IndexOf(999, revised)
-                .Should().Be(999);
+            original.IndexOf(ValidIndexInValidIssueList, revised)
+                .Should().Be(ValidIndexInValidIssueList);
         }
 
         [TestMethod]
-        public void IndexOf_DifferentSnapshotId_ReturnMinusOne()
+        public void IndexOf_DifferentSnapshotId_ReturnNotFound()
         {
             var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
             var snapshot2 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
 
             // Should not be able to map issues between two snapshots with different snapshot ids
-            snapshot1.IndexOf(999, snapshot2)
+            snapshot1.IndexOf(ValidIndexInValidIssueList, snapshot2)
                 .Should().Be(IndexOf_NotFoundResult);
         }
 
         [TestMethod]
-        public void IndexOf_NotAnIssuesSnapshot_ReturnsMinusOne()
+        public void IndexOf_NotAnIssuesSnapshot_ReturnsNotFound()
         {
             var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
 
-            original.IndexOf(999, Mock.Of<ITableEntriesSnapshot>())
+            original.IndexOf(ValidIndexInValidIssueList, Mock.Of<ITableEntriesSnapshot>())
                 .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        public void IndexOf_NewIssueDoesNotHaveValidSpan_ReturnNotFound()
+        {
+            var span = CreateIssue();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { span });
+            var snapshot2 = snapshot1.CreateUpdatedSnapshot("unimportant change");
+
+            span.InvalidateSpan();
+
+            // Should not be able to map to an issue with an invalid span since it should be hidden
+            snapshot1.IndexOf(0, snapshot2)
+                .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        [DataRow(-999, IndexOf_NotFoundResult)]
+        [DataRow(-1, IndexOf_NotFoundResult)]
+        [DataRow(0, 0)]
+        [DataRow(1, 1)]
+        [DataRow(2, 2)]
+        [DataRow(3, IndexOf_NotFoundResult)]
+        public void IndexOf_IfIndexOutOfRange_ReturnsNotFound(int inputIndex, int expected)
+        {
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath,
+                new[] { CreateIssue(), CreateIssue(), CreateIssue() } );
+            var modified = original.CreateUpdatedSnapshot("unimportant change");
+
+            // Should not be able to map to an out-of-range index
+            original.IndexOf(inputIndex, modified)
+                .Should().Be(expected);
         }
 
         [TestMethod]

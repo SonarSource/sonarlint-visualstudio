@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private static int GetNextVersionNumber() => ++nextVersionNumber;
 
         #region Construction methods
-        
+
         public IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath) =>
             new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, analyzedFilePath, issues);
 
@@ -280,7 +280,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // The Error List will still raise two "selection changed" events - firstly to 
             // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
-                newIssuesSnapshot.AnalysisRunId == AnalysisRunId)
+                newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
+                currentIndex >= 0 && currentIndex < issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
+                !ShouldHideIssue(issues[currentIndex]) // don't map hidden issues: see #2351
+                )
             {
                 return currentIndex;
             }
