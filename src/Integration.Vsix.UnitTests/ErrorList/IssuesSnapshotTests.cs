@@ -119,7 +119,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_DifferentSnapshotId_ReturnMinusOne()
+        public void IndexOf_DifferentSnapshotId_ReturnNotFound()
         {
             var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
             var snapshot2 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_NotAnIssuesSnapshot_ReturnsMinusOne()
+        public void IndexOf_NotAnIssuesSnapshot_ReturnsNotFound()
         {
             var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
 
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_NewIssueDoesNotHaveValidSpan_ReturnMinusOne()
+        public void IndexOf_NewIssueDoesNotHaveValidSpan_ReturnNotFound()
         {
             var span = CreateIssue();
             var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { span });
@@ -150,6 +150,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             // Should not be able to map to an issue with an invalid span since it should be hidden
             snapshot1.IndexOf(0, snapshot2)
                 .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        [DataRow(-999, IndexOf_NotFoundResult)]
+        [DataRow(-1, IndexOf_NotFoundResult)]
+        [DataRow(0, 0)]
+        [DataRow(1, 1)]
+        [DataRow(2, 2)]
+        [DataRow(3, IndexOf_NotFoundResult)]
+        public void IndexOf_IfIndexOutOfRange_ReturnsNotFound(int inputIndex, int expected)
+        {
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath,
+                new[] { CreateIssue(), CreateIssue(), CreateIssue() } );
+            var modified = original.CreateUpdatedSnapshot("unimportant change");
+
+            // Should not be able to map to an issue with an invalid span since it should be hidden
+            original.IndexOf(inputIndex, modified)
+                .Should().Be(expected);
         }
 
         [TestMethod]
