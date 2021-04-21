@@ -25,12 +25,15 @@ using System.Linq;
 using System.Windows;
 using Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration.WPF;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
     internal class GeneralOptionsDialogPage : UIElementDialogPage
     {
         public const string PageName = "General";
+        private const string WikiUrl = "https://github.com/SonarSource/sonarlint-visualstudio/wiki";
 
         private GeneralOptionsDialogControl dialogControl;
         private ISonarLintSettings settings;
@@ -43,10 +46,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 {
                     Debug.Assert(this.Site != null, "Expecting the page to be sited");
                     var userSettingsProvider = this.Site.GetMefService<IUserSettingsProvider>();
+                    var browserService = this.Site.GetMefService<IVsBrowserService>();
                     var logger = this.Site.GetMefService<ILogger>();
 
                     var openSettingsFileCmd = new OpenSettingsFileWpfCommand(this.Site, userSettingsProvider, this, logger);
-                    dialogControl = new GeneralOptionsDialogControl(openSettingsFileCmd);
+                    var showWikiInBrowserCmd = new RelayCommand(() => browserService.Navigate(WikiUrl));
+                    dialogControl = new GeneralOptionsDialogControl(openSettingsFileCmd, showWikiInBrowserCmd);
                 }
                 return dialogControl;
             }

@@ -26,14 +26,18 @@
         <TextBlock Grid.Column="1" Grid.Row="0"
                    VerticalAlignment="Center"
                    Margin="5"
-                   TextWrapping="Wrap" ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++ rules can be activated/deactivated."/></TextBlock>
+                   TextWrapping="Wrap" ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++/JavaScript rules can be activated/deactivated."/></TextBlock>
         <StackPanel Grid.Column="1" Grid.Row="1">
             <TextBlock
                    VerticalAlignment="Center"
                    Margin="5,0,0,5" TextWrapping="Wrap" Text="The file will be created if it does not exist." />
             <TextBlock
                    VerticalAlignment="Center"
-                   Margin="5,8,0,5" TextWrapping="Wrap" Text="Note: per-user settings are ignored for solutions using connected mode." />
+                   Margin="5,8,0,5" TextWrapping="Wrap">
+                Note: per-user settings are ignored for C/C++ for solutions using connected mode.
+                See the <Hyperlink x:Name="ShowWikiHyperLink">wiki</Hyperlink>
+                for more information.
+            </TextBlock>
         </StackPanel>
 
         <StackPanel x:Name="VerbosityPanel" Grid.Row="2" Grid.ColumnSpan="2">
