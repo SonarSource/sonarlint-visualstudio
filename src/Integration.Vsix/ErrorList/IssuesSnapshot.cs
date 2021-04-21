@@ -280,7 +280,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // The Error List will still raise two "selection changed" events - firstly to 
             // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
-                newIssuesSnapshot.AnalysisRunId == AnalysisRunId)
+                newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
+                !ShouldHideIssue(issues[currentIndex])
+                )
             {
                 return currentIndex;
             }
