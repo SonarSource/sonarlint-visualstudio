@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -24,7 +24,7 @@ using System.Windows.Input;
 
 namespace SonarLint.VisualStudio.Integration.WPF
 {
-    internal abstract class RelayCommandBase : ICommand
+    public abstract class RelayCommandBase : ICommand
     {
         private event EventHandler canExecuteChanged;
 

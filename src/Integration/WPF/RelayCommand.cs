@@ -1,4 +1,4 @@
-/*
+﻿/*
  * SonarLint for Visual Studio
  * Copyright (C) 2016-2021 SonarSource SA
  * mailto:info AT sonarsource DOT com
@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.Integration.WPF
     /// A command whose sole purpose is to relay its functionality to other objects by invoking delegates.
     /// The default return value for the CanExecute method is 'True'.
     /// </summary>
-    internal class RelayCommand : RelayCommandBase
+    public class RelayCommand : RelayCommandBase
     {
         private readonly Action execute;
         private readonly Func<bool> canExecute;
