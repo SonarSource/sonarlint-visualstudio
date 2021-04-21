@@ -30,20 +30,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Settings
     [TestClass]
     public class GeneralOptionsDialogControlTests
     {
+        private readonly ICommand ValidCommand = new Mock<ICommand>().Object;
+
         [TestMethod]
         public void Ctor_WithValidCommand_DoesNotThrow()
         {
-            Action act = () => new GeneralOptionsDialogControl(new Mock<ICommand>().Object);
+            Action act = () => new GeneralOptionsDialogControl(ValidCommand, ValidCommand);
 
             act.Should().NotThrow();
         }
 
         [TestMethod]
-        public void Ctor_WithNullOpenSettingsCommand_ThrowsArgumentNullException()
+        public void Ctor_NullArgs_ThrowsArgumentNullException()
         {
-            Action act = () => new GeneralOptionsDialogControl(null);
-
+            Action act = () => new GeneralOptionsDialogControl(null,  ValidCommand);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("openSettingsFileCommand");
+
+            act = () => new GeneralOptionsDialogControl(ValidCommand, null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("showWikiCommand");
         }
     }
 }

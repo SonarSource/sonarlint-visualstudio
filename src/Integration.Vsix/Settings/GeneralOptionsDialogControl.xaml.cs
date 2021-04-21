@@ -29,16 +29,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     /// </summary>
     public partial class GeneralOptionsDialogControl : UserControl
     {
-        public GeneralOptionsDialogControl(ICommand openSettingsFileCommand)
+        public GeneralOptionsDialogControl(ICommand openSettingsFileCommand, ICommand showWikiCommand)
         {
             if (openSettingsFileCommand == null)
             {
                 throw new ArgumentNullException(nameof(openSettingsFileCommand));
             }
+            if (showWikiCommand == null)
+            {
+                throw new ArgumentNullException(nameof(showWikiCommand));
+            }
 
             InitializeComponent();
 
             this.OpenSettingsButton.Command = openSettingsFileCommand;
+            this.ShowWikiHyperLink.Command = showWikiCommand;
         }
     }
 }
