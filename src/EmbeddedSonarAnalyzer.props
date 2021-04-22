@@ -3,7 +3,10 @@
   <!-- Manually set the version of the SonarC# and VB analyzers to embed.
        NB we assume that the SonarC# and SonarVB NuGet packages have the same version number. -->
   <PropertyGroup>
-    <EmbeddedSonarAnalyzerVersion>8.19.0.28253</EmbeddedSonarAnalyzerVersion>
+    <!-- Note: don't forget to upload the new packages to the package feed when changing 
+         the SonarAnalyzer version -->
+    <EmbeddedSonarAnalyzerVersion>8.21.0.30542</EmbeddedSonarAnalyzerVersion>
+
     <EmbeddedSonarCFamilyAnalyzerVersion>6.19.0.30153</EmbeddedSonarCFamilyAnalyzerVersion>
     <EmbeddedSonarJSAnalyzerVersion>7.4.0.15221</EmbeddedSonarJSAnalyzerVersion>
   </PropertyGroup>
