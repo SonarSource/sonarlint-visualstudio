@@ -48,6 +48,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public const int SonarLint = 1 << 18;
         public const int BuildPreamble = 1 << 19;
         public const int MainFileIsHeader = 1 << 20;
+        public const int CPlusPlus20 = 1 << 21;
 
         public string[] Options { get; set; } = Array.Empty<string>();
         public long Flags { get; set; }

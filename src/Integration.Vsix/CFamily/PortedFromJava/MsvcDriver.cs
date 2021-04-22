@@ -412,6 +412,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                                 predefines.Append("#define __cplusplus 201703L\n");
                                 predefines.Append("#define _MSVC_LANG 201703L\n");
                                 break;
+                            case "c++latest":
+                                request.Flags |= Request.CPlusPlus11 | Request.CPlusPlus14 |
+                                    Request.CPlusPlus17 | Request.CPlusPlus20;
+                                predefines.Append("#define __cplusplus 202002L\n");
+                                predefines.Append("#define _MSVC_LANG 202002L\n");
+                                break;
                         }
                     }
                     /*
