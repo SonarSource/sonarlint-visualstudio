@@ -627,7 +627,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        [DataRow("/std:latest", "/std:latest is not supported")]
+        public void CPP_Latest()
+        {
+            Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
+                compiler,
+                new CFamilyHelper.Capture()
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = new List<string>() {
+                      "cl.exe",
+                      "/std:c++latest",
+                      "c:\\file.cpp"
+                    },
+                }
+            });
+            req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 |
+                Request.CPlusPlus17 | Request.CPlusPlus20 | Request.SonarLint | Request.MS);
+            req.Predefines.Should().Contain("#define __cplusplus 202002L\n");
+            req.Predefines.Should().Contain("#define _MSVC_LANG 202002L\n");
+        }
+
+        [TestMethod]
+        [DataRow("/std:c++20", "/std:c++20 is not supported")]
         [DataRow("/arch:foo", "/arch:foo is not supported")]
         [DataRow("/ZW", "/ZW: CX and CLI are not supported")]
         [DataRow("/clr", "/clr: CX and CLI are not supported")]
