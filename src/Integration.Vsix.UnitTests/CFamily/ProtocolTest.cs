@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.Write(writer, new Request());
 
                 byte[] result = stream.ToArray();
-                result.Length.Should().Be(87);
+                result.Length.Should().Be(112);
             }
         }
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 Protocol.Write(writer, request);
 
                 byte[] result = stream.ToArray();
-                result.Length.Should().Be(89);
+                result.Length.Should().Be(116);
             }
         }
 
@@ -183,19 +183,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void Write_UTF8()
         {
-            WriteUtf("").Should().BeEquivalentTo(new byte[] { 0, 0 });
-            WriteUtf("a").Should().BeEquivalentTo(new byte[] { 0, 1, 97 });
-            WriteUtf("A").Should().BeEquivalentTo(new byte[] { 0, 1, 65 });
-            WriteUtf("0").Should().BeEquivalentTo(new byte[] { 0, 1, 48 });
-            WriteUtf("\n").Should().BeEquivalentTo(new byte[] { 0, 1, 10 });
+            WriteUtf("").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 0 });
+            WriteUtf("a").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 97 });
+            WriteUtf("A").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 65 });
+            WriteUtf("0").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 48 });
+            WriteUtf("\n").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 10 });
             // 3 bytes
-            WriteUtf("\u0800").Should().BeEquivalentTo(new byte[] { 0, 3, 224, 160, 128 });
-            // Special case of NUL
-            Action actNul = () => WriteUtf("\u0000");
-            actNul.Should().ThrowExactly<InvalidOperationException>();
-            // Supplementary characters as surrogate pair  (see CESU-8) are not supported for now
-            Action actSupp = () => WriteUtf("\U00010400");
-            actSupp.Should().ThrowExactly<InvalidOperationException>();
+            WriteUtf("\u0800").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 3, 224, 160, 128 });
+            // NUL
+            WriteUtf("\u0000").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 1, 0 });
+            // Supplementary characters
+            WriteUtf("\U00010400").Should().BeEquivalentTo(new byte[] { 0, 0, 0, 4, 0xF0, 0x90, 0x90, 0x80 });
         }
 
         [TestMethod]

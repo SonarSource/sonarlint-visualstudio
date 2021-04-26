@@ -50,6 +50,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Write(writer, request.Macros);
             WriteUTF(writer, request.TargetTriple);
             WriteUTF(writer, request.File);
+            writer.Write(/* withFileContent */ false);
+            WriteUTF(writer, /* fileContent */ "");
             WriteUTF(writer, /* pchDir */ "");
             WriteUTF(writer, /* pchThroughHeader */ "");
             WriteUTF(writer, request.PchFile);
@@ -102,28 +104,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         internal /* for testing */ static void WriteUTF(BinaryWriter writer, string str)
         {
-            foreach (char c in str)
-            {
-                if (Char.IsSurrogate(c))
-                {
-                    throw new InvalidOperationException("Surrogate characters are not supported");
-                }
-                if (c == '\0')
-                {
-                    throw new InvalidOperationException("NUL character is not supported");
-                }
-            }
             byte[] bytes = Encoding.UTF8.GetBytes(str);
-            if (bytes.Length > ushort.MaxValue)
-            {
-                throw new InvalidOperationException($"String size is too big to be serialized: {bytes.Length}");
-            }
-            WriteUShort(writer, (ushort)bytes.Length);
+            WriteInt(writer, bytes.Length);
             writer.Write(bytes);
         }
+
         internal /* for testing */ static string ReadUTF(BinaryReader reader)
         {
-            ushort size = ReadUShort(reader);
+            int size = ReadInt(reader);
             return Encoding.UTF8.GetString(reader.ReadBytes(size));
         }
 
