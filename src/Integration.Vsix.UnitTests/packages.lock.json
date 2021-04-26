@@ -177,12 +177,6 @@
         "resolved": "8.21.0.30542",
         "contentHash": "LDF5qnv7AAhbI1djB8BgBv/ZkRZ7BpdNREFfoEkXwLv22yBeh5gU/ZAThHqPP35C2TgxXFXxDl05s50YbqQ7qQ=="
       },
-      "SonarAnalyzer.VisualBasic": {
-        "type": "Direct",
-        "requested": "[8.21.0.30542, )",
-        "resolved": "8.21.0.30542",
-        "contentHash": "qbrRlgQ5Tr5HTT9PkcASEEzAxxe/G5DjFGmV6Skdtc7hR4UYgv/mYxtO//G86cEsDRB+Vmv01aA+WyM2jo9FUA=="
-      },
       "System.Collections.Immutable": {
         "type": "Direct",
         "requested": "[1.1.37, )",
