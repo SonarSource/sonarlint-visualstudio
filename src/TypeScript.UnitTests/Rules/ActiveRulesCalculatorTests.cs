@@ -173,11 +173,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static ActiveRulesCalculator CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IUserSettingsProvider userSettingsProvider) =>
             new ActiveRulesCalculator(ruleDefinitionsBuilder.GetDefinitions(), userSettingsProvider);
 
-        private class RuleDefinitionsBuilder : IJavaScriptRuleDefinitionsProvider
+        private class RuleDefinitionsBuilder
         {
             private readonly IList<RuleDefinition> definitions = new List<RuleDefinition>();
-
-            IEnumerable<RuleDefinition> IJavaScriptRuleDefinitionsProvider.GetDefinitions() => definitions;
 
             public IEnumerable<RuleDefinition> GetDefinitions() => definitions;
 
