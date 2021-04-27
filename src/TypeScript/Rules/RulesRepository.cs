@@ -29,12 +29,9 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 {
     [Export(typeof(ITypeScriptRuleDefinitionsProvider))]
     [Export(typeof(IJavaScriptRuleDefinitionsProvider))]
-    [Export(typeof(ITypeScriptRuleKeyMapper))]
-    [Export(typeof(IJavaScriptRuleKeyMapper))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class RulesRepository :
-        ITypeScriptRuleDefinitionsProvider, IJavaScriptRuleDefinitionsProvider,
-        ITypeScriptRuleKeyMapper, IJavaScriptRuleKeyMapper
+        ITypeScriptRuleDefinitionsProvider, IJavaScriptRuleDefinitionsProvider
     {
         // Note: the file contains rules for both JavaScript and TypeScript rules
         internal const string RuleDefinitionsFilePathContractName = "SonarLint.TypeScript.RuleDefinitionsFilePath";
@@ -57,10 +54,10 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
         IEnumerable<RuleDefinition> IJavaScriptRuleDefinitionsProvider.GetDefinitions() => jsRules;
 
-        string ITypeScriptRuleKeyMapper.GetSonarRuleKey(string eslintRuleKey) =>
+        string ITypeScriptRuleDefinitionsProvider.GetSonarRuleKey(string eslintRuleKey) =>
             GetRuleKey(eslintRuleKey, tsRules);
 
-        string IJavaScriptRuleKeyMapper.GetSonarRuleKey(string eslintRuleKey) =>
+        string IJavaScriptRuleDefinitionsProvider.GetSonarRuleKey(string eslintRuleKey) =>
             GetRuleKey(eslintRuleKey, jsRules);
 
         private static List<RuleDefinition> Load(string filePath) =>
