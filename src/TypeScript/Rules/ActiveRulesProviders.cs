@@ -46,34 +46,42 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
     [Export(typeof(IActiveJavaScriptRulesProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveJavaScriptRulesProvider : ActiveRulesProviderBase, IActiveJavaScriptRulesProvider
+    internal class ActiveJavaScriptRulesProvider : IActiveJavaScriptRulesProvider
     {
+        private readonly ActiveRulesCalculator calc;
+
         [ImportingConstructor]
         public ActiveJavaScriptRulesProvider(IJavaScriptRuleDefinitionsProvider jsRuleDefinitions,
             IUserSettingsProvider userSettingsProvider)
-            : base(jsRuleDefinitions.GetDefinitions(), userSettingsProvider)
         {
+            calc = new ActiveRulesCalculator(jsRuleDefinitions.GetDefinitions(), userSettingsProvider);
         }
+
+        public IEnumerable<Rule> Get() => calc.Get();
     }
 
     [Export(typeof(IActiveTypeScriptRulesProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveTypeScriptRulesProvider : ActiveRulesProviderBase, IActiveTypeScriptRulesProvider
+    internal class ActiveTypeScriptRulesProvider : IActiveTypeScriptRulesProvider
     {
+        private readonly ActiveRulesCalculator calc;
+
         [ImportingConstructor]
         public ActiveTypeScriptRulesProvider(ITypeScriptRuleDefinitionsProvider tsRuleDefinitions,
             IUserSettingsProvider userSettingsProvider)
-            : base(tsRuleDefinitions.GetDefinitions(), userSettingsProvider)
         {
+            calc = new ActiveRulesCalculator(tsRuleDefinitions.GetDefinitions(), userSettingsProvider);
         }
+
+        public IEnumerable<Rule> Get() => calc.Get();
     }
 
-    internal abstract class ActiveRulesProviderBase
+    internal class ActiveRulesCalculator
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
         private readonly IUserSettingsProvider userSettingsProvider;
 
-        protected ActiveRulesProviderBase(IEnumerable<RuleDefinition> rulesDefinitions,
+        public ActiveRulesCalculator(IEnumerable<RuleDefinition> rulesDefinitions,
             IUserSettingsProvider userSettingsProvider)
         {
             this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();

@@ -200,8 +200,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static void CheckConfigurationsAreEmpty(IEnumerable<Rule> result) =>
             result.All(x => x.Configurations.Length == 0).Should().BeTrue();
 
-        private static ActiveRulesProviderBase CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IUserSettingsProvider userSettingsProvider) =>
-            new TestableActiveRulesProvider(ruleDefinitionsBuilder, userSettingsProvider);
+        private static ActiveRulesCalculator CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IUserSettingsProvider userSettingsProvider) =>
+            new ActiveRulesCalculator(ruleDefinitionsBuilder.GetDefinitions(), userSettingsProvider);
 
         private class RuleDefinitionsBuilder : IJavaScriptRuleDefinitionsProvider
         {
@@ -258,13 +258,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             public void EnsureFileExists() => throw new NotImplementedException();
 
             #endregion
-        }
-
-        private class TestableActiveRulesProvider : ActiveRulesProviderBase
-        {
-            public TestableActiveRulesProvider(RuleDefinitionsBuilder ruleDefinitionsBuilder, IUserSettingsProvider userSettingsProvider)
-                : base(ruleDefinitionsBuilder.GetDefinitions(), userSettingsProvider)
-            { }
         }
     }
 }
