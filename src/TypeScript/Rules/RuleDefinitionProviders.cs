@@ -28,6 +28,11 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         /// Returns the metadata descriptions for all TypeScript rules
         /// </summary>
         IEnumerable<RuleDefinition> GetDefinitions();
+
+        /// <summary>
+        /// Returns the rule key to display in VS for the specified ESLint rule
+        /// </summary>
+        string GetSonarRuleKey(string eslintRuleKey);
     }
 
     internal interface IJavaScriptRuleDefinitionsProvider
@@ -36,5 +41,10 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         /// Returns the metadata descriptions for all JavaScript rules
         /// </summary>
         IEnumerable<RuleDefinition> GetDefinitions();
+
+        /// <summary>
+        /// Returns the rule key to display in VS for the specified ESLint rule
+        /// </summary>
+        string GetSonarRuleKey(string eslintRuleKey);
     }
 }
