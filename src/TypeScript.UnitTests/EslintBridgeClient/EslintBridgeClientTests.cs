@@ -135,6 +135,35 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        public async Task NewTsConfig_HttpWrapperCalledWithCorrectArguments()
+        {
+            var httpWrapper = SetupHttpWrapper("new-tsconfig",
+                response: "OK!",
+                assertReceivedRequest: receivedRequest => receivedRequest.Should().BeNull());
+
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+
+            var token = new CancellationToken();
+            await testSubject.NewTsConfig(token);
+
+            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("new-tsconfig"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void NewTsConfig_IncorrectResponse_Throws()
+        {
+            var httpWrapper = SetupHttpWrapper("new-tsconfig",
+                response: "not ok");
+
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+
+            Func<Task> act = async () => await testSubject.NewTsConfig(new CancellationToken());
+
+            act.Should().ThrowExactly<InvalidOperationException>();
+        }
+
+        [TestMethod]
         public void Dispose_DisposesHttpWrapper()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
