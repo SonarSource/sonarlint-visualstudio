@@ -40,14 +40,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         public void MefCtor_CheckIsExported_IJavaScriptRuleDefinitionsProvider() =>
             CheckTypeIsExported<IJavaScriptRuleDefinitionsProvider>();
 
-        [TestMethod]
-        public void MefCtor_CheckIsExported_ITypeScriptRuleKeyMapper() =>
-            CheckTypeIsExported<ITypeScriptRuleKeyMapper>();
-
-        [TestMethod]
-        public void MefCtor_CheckIsExported_IJavaScriptRuleKeyMapper() =>
-            CheckTypeIsExported<IJavaScriptRuleKeyMapper>();
-
         private static void CheckTypeIsExported<T>() where T : class
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
@@ -150,7 +142,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [DataRow("eslint js S1135", null)] // should not recognise JS-specific key
         public void GetSonarRuleKey_TypeScript_ReturnsExpected(string eslintRuleKey, string expected)
         {
-            var testSubject = CreateRuleKeyMapperUsingCommonDefinitionFile<ITypeScriptRuleKeyMapper>();
+            var testSubject = CreateTestSubjectUsingCommonDefinitionFile<ITypeScriptRuleDefinitionsProvider>();
             testSubject.GetSonarRuleKey(eslintRuleKey).Should().Be(expected);
         }
 
@@ -163,11 +155,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [DataRow("eslint TS S1135", null)] // should not recognise TS-specific key
         public void GetSonarRuleKey_JavaScriptScript_ReturnsExpected(string eslintRuleKey, string expected)
         {
-            var testSubject = CreateRuleKeyMapperUsingCommonDefinitionFile<IJavaScriptRuleKeyMapper>();
+            var testSubject = CreateTestSubjectUsingCommonDefinitionFile<IJavaScriptRuleDefinitionsProvider>();
             testSubject.GetSonarRuleKey(eslintRuleKey).Should().Be(expected);
         }
 
-        private static T CreateRuleKeyMapperUsingCommonDefinitionFile<T>() where T: class
+        private static T CreateTestSubjectUsingCommonDefinitionFile<T>() where T: class
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckRuleKeyMappings.json");
             return new RulesRepository(jsonFilePath) as T;
