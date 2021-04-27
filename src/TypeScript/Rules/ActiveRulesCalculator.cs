@@ -18,8 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Core;
@@ -27,33 +27,31 @@ using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
-    interface IActiveJavaScriptRulesProvider
+    /// <summary>
+    /// Calculates the set of active rules, taking into account user modifications
+    /// to the default rule definitions
+    /// </summary>
+    internal class ActiveRulesCalculator
     {
-        /// <summary>
-        /// Returns the eslint configuration for the currently active rules
-        /// </summary>
-        IEnumerable<Rule> Get();
-    }
-
-    [Export(typeof(IActiveJavaScriptRulesProvider))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveJavaScriptRulesProvider : IActiveJavaScriptRulesProvider
-    {
-        private readonly IJavaScriptRuleDefinitionsProvider jsRuleDefinitions;
+        private readonly IEnumerable<RuleDefinition> ruleDefinitions;
         private readonly IUserSettingsProvider userSettingsProvider;
 
-        [ImportingConstructor]
-        public ActiveJavaScriptRulesProvider(IJavaScriptRuleDefinitionsProvider jsRuleDefinitions,
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="rulesDefinitions">The set of applicable rule definitions</param>
+        /// <param name="userSettingsProvider">Rule configurations specified by the user</param>
+        public ActiveRulesCalculator(IEnumerable<RuleDefinition> rulesDefinitions,
             IUserSettingsProvider userSettingsProvider)
         {
-            this.jsRuleDefinitions = jsRuleDefinitions;
+            this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();
             this.userSettingsProvider = userSettingsProvider;
         }
 
         public IEnumerable<Rule> Get()
         {
             // TODO: handle QP configuration in connected mode #770
-            return jsRuleDefinitions.GetDefinitions()
+            return ruleDefinitions
                 .Where(IncludeRule)
                 .Select(Convert)
                 .ToArray();
