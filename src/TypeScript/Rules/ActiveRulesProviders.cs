@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -35,25 +36,54 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         IEnumerable<Rule> Get();
     }
 
+    interface IActiveTypeScriptRulesProvider
+    {
+        /// <summary>
+        /// Returns the eslint configuration for the currently active rules
+        /// </summary>
+        IEnumerable<Rule> Get();
+    }
+
     [Export(typeof(IActiveJavaScriptRulesProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class ActiveJavaScriptRulesProvider : IActiveJavaScriptRulesProvider
+    internal class ActiveJavaScriptRulesProvider : ActiveRulesProviderBase, IActiveJavaScriptRulesProvider
     {
-        private readonly IJavaScriptRuleDefinitionsProvider jsRuleDefinitions;
-        private readonly IUserSettingsProvider userSettingsProvider;
-
         [ImportingConstructor]
         public ActiveJavaScriptRulesProvider(IJavaScriptRuleDefinitionsProvider jsRuleDefinitions,
             IUserSettingsProvider userSettingsProvider)
+            : base(jsRuleDefinitions.GetDefinitions(), userSettingsProvider)
         {
-            this.jsRuleDefinitions = jsRuleDefinitions;
+        }
+    }
+
+    [Export(typeof(IActiveTypeScriptRulesProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    internal class ActiveTypeScriptRulesProvider : ActiveRulesProviderBase, IActiveTypeScriptRulesProvider
+    {
+        [ImportingConstructor]
+        public ActiveTypeScriptRulesProvider(ITypeScriptRuleDefinitionsProvider tsRuleDefinitions,
+            IUserSettingsProvider userSettingsProvider)
+            : base(tsRuleDefinitions.GetDefinitions(), userSettingsProvider)
+        {
+        }
+    }
+
+    internal abstract class ActiveRulesProviderBase
+    {
+        private readonly IEnumerable<RuleDefinition> ruleDefinitions;
+        private readonly IUserSettingsProvider userSettingsProvider;
+
+        protected ActiveRulesProviderBase(IEnumerable<RuleDefinition> rulesDefinitions,
+            IUserSettingsProvider userSettingsProvider)
+        {
+            this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();
             this.userSettingsProvider = userSettingsProvider;
         }
 
         public IEnumerable<Rule> Get()
         {
             // TODO: handle QP configuration in connected mode #770
-            return jsRuleDefinitions.GetDefinitions()
+            return ruleDefinitions
                 .Where(IncludeRule)
                 .Select(Convert)
                 .ToArray();

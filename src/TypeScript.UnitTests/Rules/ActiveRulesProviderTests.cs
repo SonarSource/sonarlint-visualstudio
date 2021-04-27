@@ -32,12 +32,14 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 {
     [TestClass]
-    public class ActiveJavaScriptRulesProviderTests
+    public class ActiveRulesProviderTests
     {
         private static readonly IUserSettingsProvider EmptyUserSettingsProvider = new UserSettingsBuilder();
 
+        #region Language-specific tests
+
         [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public void MefCtor_JavaScript_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<ActiveJavaScriptRulesProvider, IActiveJavaScriptRulesProvider>(null, new[]
             {
@@ -45,6 +47,20 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
             });
         }
+
+        [TestMethod]
+        public void MefCtor_TypeScript_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<ActiveTypeScriptRulesProvider, IActiveTypeScriptRulesProvider>(null, new[]
+            {
+                MefTestHelpers.CreateExport<ITypeScriptRuleDefinitionsProvider>(Mock.Of<ITypeScriptRuleDefinitionsProvider>()),
+                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
+            });
+        }
+
+        #endregion
+
+        #region Base class tests
 
         [TestMethod]
         public void Get_NoUserOverrides_InactiveRulesAreNotReturned()
@@ -55,7 +71,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 .AddRule("active 2", activeByDefault: true)
                 .AddRule("inactive BBB", activeByDefault: false);
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
+            var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
             var result = testSubject.Get().ToArray();
 
@@ -73,7 +89,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 .AddRule("hotspot", ruleType: RuleType.SECURITY_HOTSPOT)
                 .AddRule("vuln", ruleType: RuleType.VULNERABILITY);
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
+            var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
             var result = testSubject.Get().ToArray();
 
@@ -89,7 +105,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 .AddRule(null)
                 .AddRule("bbb");
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
+            var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
             var result = testSubject.Get().ToArray();
 
@@ -106,7 +122,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var ruleDefns = new RuleDefinitionsBuilder()
                 .AddRule("aaa", configurations: new object[] { config1, config2 });
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, EmptyUserSettingsProvider);
+            var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
             var result = testSubject.Get().ToArray();
 
@@ -133,7 +149,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             var userSettings = new UserSettingsBuilder()
                 .Add("javascript:rule1", userSettingsLevel);
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
+            var testSubject = CreateTestSubject(ruleDefns, userSettings);
 
             var result = testSubject.Get().ToArray();
 
@@ -150,7 +166,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 .Add("wrongLanguage:activeRule1", RuleLevel.Off) // Correct rule key but wrong repo -> ignored
                 .Add("javascript:unknownRule", RuleLevel.On); // Right repo, but rule key doesn't match a defined rule -> ignored
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
+            var testSubject = CreateTestSubject(ruleDefns, userSettings);
 
             var result = testSubject.Get().ToArray();
 
@@ -169,12 +185,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 .Add("javascript:hotspot1", RuleLevel.On)
                 .Add("javascript:S2260", RuleLevel.On);
 
-            var testSubject = new ActiveJavaScriptRulesProvider(ruleDefns, userSettings);
+            var testSubject = CreateTestSubject(ruleDefns, userSettings);
 
             var result = testSubject.Get().ToArray();
 
             result.Length.Should().Be(0);
         }
+
+        #endregion
 
         private static void CheckExpectedRuleKeys(IEnumerable<Rule> result, params string[] expected) =>
             result.Select(x => x.Key).Should().BeEquivalentTo(expected);
@@ -182,11 +200,16 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static void CheckConfigurationsAreEmpty(IEnumerable<Rule> result) =>
             result.All(x => x.Configurations.Length == 0).Should().BeTrue();
 
+        private static ActiveRulesProviderBase CreateTestSubject(RuleDefinitionsBuilder ruleDefinitionsBuilder, IUserSettingsProvider userSettingsProvider) =>
+            new TestableActiveRulesProvider(ruleDefinitionsBuilder, userSettingsProvider);
+
         private class RuleDefinitionsBuilder : IJavaScriptRuleDefinitionsProvider
         {
             private readonly IList<RuleDefinition> definitions = new List<RuleDefinition>();
 
             IEnumerable<RuleDefinition> IJavaScriptRuleDefinitionsProvider.GetDefinitions() => definitions;
+
+            public IEnumerable<RuleDefinition> GetDefinitions() => definitions;
 
             public RuleDefinitionsBuilder AddRule(string eslintKey = "any", bool activeByDefault = true, RuleType ruleType = RuleType.BUG,
                 object[] configurations = null, string ruleKey = "any")
@@ -235,6 +258,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             public void EnsureFileExists() => throw new NotImplementedException();
 
             #endregion
+        }
+
+        private class TestableActiveRulesProvider : ActiveRulesProviderBase
+        {
+            public TestableActiveRulesProvider(RuleDefinitionsBuilder ruleDefinitionsBuilder, IUserSettingsProvider userSettingsProvider)
+                : base(ruleDefinitionsBuilder.GetDefinitions(), userSettingsProvider)
+            { }
         }
     }
 }
