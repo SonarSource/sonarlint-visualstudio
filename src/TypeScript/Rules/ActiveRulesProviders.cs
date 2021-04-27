@@ -18,11 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
-using System.Linq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
@@ -74,58 +71,5 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         }
 
         public IEnumerable<Rule> Get() => calc.Get();
-    }
-
-    internal class ActiveRulesCalculator
-    {
-        private readonly IEnumerable<RuleDefinition> ruleDefinitions;
-        private readonly IUserSettingsProvider userSettingsProvider;
-
-        public ActiveRulesCalculator(IEnumerable<RuleDefinition> rulesDefinitions,
-            IUserSettingsProvider userSettingsProvider)
-        {
-            this.ruleDefinitions = rulesDefinitions?.ToArray() ?? Array.Empty<RuleDefinition>();
-            this.userSettingsProvider = userSettingsProvider;
-        }
-
-        public IEnumerable<Rule> Get()
-        {
-            // TODO: handle QP configuration in connected mode #770
-            return ruleDefinitions
-                .Where(IncludeRule)
-                .Select(Convert)
-                .ToArray();
-        }
-
-        private bool IncludeRule(RuleDefinition ruleDefinition)
-        {
-            return ruleDefinition.Type != RuleType.SECURITY_HOTSPOT &&
-                ruleDefinition.EslintKey != null && // should only apply to S2260
-                IsRuleActive(ruleDefinition);
-        }
-
-        private bool IsRuleActive(RuleDefinition ruleDefinition)
-        {
-            // User settings override the default, if present
-            if (userSettingsProvider.UserSettings.RulesSettings.Rules
-                .TryGetValue(ruleDefinition.RuleKey, out var ruleConfig))
-            {
-                return ruleConfig.Level == RuleLevel.On;
-            }
-
-            return ruleDefinition.ActivatedByDefault;
-        }
-
-        private static Rule Convert(RuleDefinition ruleDefinition)
-        {
-            Debug.Assert(ruleDefinition.DefaultParams != null, $"JavaScript rule default params should not be null: {ruleDefinition.RuleKey}");
-            return new Rule
-            {
-                Key = ruleDefinition.EslintKey,
-
-                // TODO: handle parameterised rules #2284
-                Configurations = ruleDefinition.DefaultParams
-            };
-        }
     }
 }
