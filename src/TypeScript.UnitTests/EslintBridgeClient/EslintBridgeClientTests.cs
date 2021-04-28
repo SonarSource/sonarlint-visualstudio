@@ -172,7 +172,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(httpWrapper.Object);
             await testSubject.TsConfigFiles("some path", token);
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("tsconfig-files"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("tsconfig-files", It.IsAny<object>(), token), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
