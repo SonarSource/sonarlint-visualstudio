@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Integration;
 
@@ -26,7 +25,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     interface IEslintBridgeClientFactory
     {
-        IEslintBridgeClient Create(int serverPort);
+        IEslintBridgeClient Create();
     }
 
     [Export(typeof(IEslintBridgeClientFactory))]
@@ -34,16 +33,16 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
     internal sealed class EslintBridgeClientFactory : IEslintBridgeClientFactory
     {
+        private readonly IEslintBridgeProcessFactory eslintBridgeProcessFactory;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public EslintBridgeClientFactory(ILogger logger)
+        public EslintBridgeClientFactory(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
         {
+            this.eslintBridgeProcessFactory = eslintBridgeProcessFactory;
             this.logger = logger;
         }
 
-        public IEslintBridgeClient Create(int serverPort) => new EslintBridgeClient(GetServerUri(serverPort), logger);
-
-        private Uri GetServerUri(int port) => new Uri($"http://localhost:{port}/");
+        public IEslintBridgeClient Create() => new EslintBridgeClient(eslintBridgeProcessFactory, logger);
     }
 }

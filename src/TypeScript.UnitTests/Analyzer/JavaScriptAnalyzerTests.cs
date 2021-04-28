@@ -47,7 +47,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, new[]
             {
                 MefTestHelpers.CreateExport<IEslintBridgeClientFactory>(Mock.Of<IEslintBridgeClientFactory>()),
-                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>()),
                 MefTestHelpers.CreateExport<IActiveJavaScriptRulesProvider>(Mock.Of<IActiveJavaScriptRulesProvider>()),
                 MefTestHelpers.CreateExport<IJavaScriptRuleDefinitionsProvider>(Mock.Of<IJavaScriptRuleDefinitionsProvider>()),
                 MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
@@ -111,112 +110,34 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
-            telemetryManager.Verify(x=> x.LanguageAnalyzed("js"), Times.Once);
+            telemetryManager.Verify(x => x.LanguageAnalyzed("js"), Times.Once);
             telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_AlwaysStartsEslintBridgeServer()
+        public async Task ExecuteAnalysis_InitLinterCallFails_CallsInitLinterAgain()
         {
-            var serverProcess = SetupServerProcess();
-            
-            var testSubject = CreateTestSubject(serverProcess.Object);
-
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
-
-            serverProcess.Verify(x => x.Start(), Times.Once);
-            serverProcess.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public async Task ExecuteAnalysis_EslintBridgePortChanged_PreviousClientIsDisposed()
-        {
-            const int firstPort = 123;
-            const int secondPort = 456;
-
-            var serverProcess = new Mock<IEslintBridgeProcess>();
-            serverProcess.SetupSequence(x => x.Start())
-                .ReturnsAsync(firstPort)
-                .ReturnsAsync(secondPort);
-
-            var client1 = SetupEslintBridgeClient(null);
-            var client2 = SetupEslintBridgeClient(null);
-
-            var clientFactory = new Mock<IEslintBridgeClientFactory>();
-            clientFactory.Setup(x => x.Create(firstPort)).Returns(client1.Object);
-            clientFactory.Setup(x => x.Create(secondPort)).Returns(client2.Object);
-
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object);
-
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
-
-            clientFactory.Verify(x=> x.Create(firstPort), Times.Once);
-            clientFactory.Verify(x=> x.Create(secondPort), Times.Never);
-
-            client1.Verify(x => x.Dispose(), Times.Never);
-            client2.Invocations.Should().BeEmpty();
-
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
-
-            clientFactory.Verify(x => x.Create(secondPort), Times.Once);
-
-            client1.Verify(x => x.Dispose(), Times.Once);
-            client2.Verify(x => x.Dispose(), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task ExecuteAnalysis_EslintBridgePortUnchanged_DoesNotCreateNewClient()
-        {
-            const int port = 123;
-
-            var serverProcess = SetupServerProcess(port);
-            var client = SetupEslintBridgeClient(null);
-            var clientFactory = SetupEslintBridgeClientFactory(port, client.Object);
-
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object);
-
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
-
-            clientFactory.Verify(x => x.Create(port), Times.Once);
-            clientFactory.Verify(x => x.Create(It.IsAny<int>()), Times.Once);
-
-            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
-           
-            clientFactory.Verify(x => x.Create(port), Times.Once);
-            clientFactory.Verify(x => x.Create(It.IsAny<int>()), Times.Once);
-            client.Verify(x => x.Dispose(), Times.Never);
-        }
-
-        [TestMethod]
-        public async Task ExecuteAnalysis_InitLinterCallFails_CallsInitLinterAgainButServerNotRestarted()
-        {
-            const int port = 123;
-            var serverProcess = SetupServerProcess(port);
-
             var client = SetupEslintBridgeClient(null);
             client.Setup(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()))
                 .Throws<NotImplementedException>();
 
-            var clientFactory = SetupEslintBridgeClientFactory(port, client.Object);
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object);
+            var testSubject = CreateTestSubject(client.Object);
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
-            clientFactory.Verify(x=> x.Create(It.IsAny<int>()), Times.Exactly(1));
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
-            clientFactory.Verify(x => x.Create(It.IsAny<int>()), Times.Exactly(1));
         }
 
         [TestMethod]
-        public async Task ExecuteAnalysis_EslintBridgePortUnchanged_DoesNotCallInitLinterAgain()
+        public async Task ExecuteAnalysis_InitLinterCallSucceeds_DoesNotCallInitLinterAgain()
         {
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
-            var client = SetupEslintBridgeClient(null);
+            var client = SetupEslintBridgeClient(new AnalysisResponse{Issues = Enumerable.Empty<Issue>()});
 
             var testSubject = CreateTestSubject(client.Object, activeRulesProvider: activeRulesProvider.Object);
 
@@ -224,13 +145,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), cancellationToken);
 
             client.VerifyAll();
-            client.Verify(x=> x.InitLinter(activeRules, cancellationToken), Times.Once);
+            client.Verify(x => x.InitLinter(activeRules, cancellationToken), Times.Once);
             client.VerifyNoOtherCalls();
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), cancellationToken);
 
             client.VerifyAll();
             client.Verify(x => x.InitLinter(activeRules, cancellationToken), Times.Once);
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
             client.VerifyNoOtherCalls();
         }
 
@@ -240,7 +162,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
             var eslintBridgeClient = SetupEslintBridgeClient(response: null);
-            
+
             var testSubject = CreateTestSubject(eslintBridgeClient.Object, activeRulesProvider: activeRulesProvider.Object);
 
             var cancellationToken = new CancellationToken();
@@ -405,35 +327,29 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public void Dispose_AnalysisNeverRan_DisposesServerProcess()
+        public void Dispose_AnalysisNeverRan_DisposesEslintBridgeClient()
         {
-            var serverProcess = SetupServerProcess(123);
             var client = SetupEslintBridgeClient(null);
-            var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
 
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object);
+            var testSubject = CreateTestSubject(client.Object);
 
             Action act = () => testSubject.Dispose();
             act.Should().NotThrow();
 
-            client.VerifyNoOtherCalls();
-            serverProcess.Verify(x => x.Dispose(), Times.Once);
+            client.Verify(x => x.Dispose(), Times.Once);
         }
 
         [TestMethod]
-        public async Task Dispose_AnalysisRan_DisposesServerProcess()
+        public async Task Dispose_AnalysisRan_DisposesEslintBridgeClient()
         {
-            var serverProcess = SetupServerProcess(123);
             var client = SetupEslintBridgeClient(null);
-            var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
 
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object);
+            var testSubject = CreateTestSubject(client.Object);
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
             testSubject.Dispose();
 
             client.Verify(x => x.Dispose(), Times.Once);
-            serverProcess.Verify(x => x.Dispose(), Times.Once);
         }
 
         [TestMethod]
@@ -463,67 +379,43 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public void OnSolutionChanged_AnalysisNeverRan_StopsServerProcess()
+        public async Task OnSolutionChanged_NextAnalysisCallsInitLinter()
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
-            var serverProcess = SetupServerProcess();
-            
-            CreateTestSubject(serverProcess.Object, activeSolutionTracker: activeSolutionTracker.Object);
+            var client = SetupEslintBridgeClient(new AnalysisResponse {Issues = Enumerable.Empty<Issue>()});
 
-            activeSolutionTracker.Raise(x=> x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
-
-            serverProcess.Verify(x => x.Stop(), Times.Once);
-            serverProcess.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public async Task OnSolutionChanged_AnalysisRan_StopsServerProcessAndDisposesClient()
-        {
-            var activeSolutionTracker = SetupActiveSolutionTracker();
-            var serverProcess = SetupServerProcess(123);
-            var client = SetupEslintBridgeClient(null);
-            var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
-
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object, activeSolutionTracker: activeSolutionTracker.Object);
+            var testSubject = CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object);
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.Verify(x=> x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once());
 
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
 
-            client.Verify(x => x.Dispose(), Times.Once);
-            serverProcess.Verify(x => x.Stop(), Times.Once);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [TestMethod]
-        public void OnConfigChanged_AnalysisNeverRan_StopsServerProcess()
+        public async Task OnConfigChanged_NextAnalysisCallsInitLinter()
         {
             var analysisConfigMonitor = SetupAnalysisConfigMonitor();
-            var serverProcess = SetupServerProcess();
+            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
-            CreateTestSubject(serverProcess.Object, analysisConfigMonitor: analysisConfigMonitor.Object);
+            var testSubject = CreateTestSubject(client.Object, analysisConfigMonitor: analysisConfigMonitor.Object);
+
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once());
 
             analysisConfigMonitor.Raise(x => x.ConfigChanged += null, EventArgs.Empty);
-
-            serverProcess.Verify(x => x.Stop(), Times.Once);
-            serverProcess.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public async Task OnConfigChanged_AnalysisRan_StopsServerProcessAndDisposesClient()
-        {
-            var analysisConfigMonitor = SetupAnalysisConfigMonitor();
-            var serverProcess = SetupServerProcess(123);
-            var client = SetupEslintBridgeClient(null);
-            var clientFactory = SetupEslintBridgeClientFactory(123, client.Object);
-
-            var testSubject = CreateTestSubject(serverProcess.Object, clientFactory.Object, analysisConfigMonitor: analysisConfigMonitor.Object);
 
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
-            analysisConfigMonitor.Raise(x => x.ConfigChanged += null, EventArgs.Empty);
-
-            client.Verify(x => x.Dispose(), Times.Once);
-            serverProcess.Verify(x => x.Stop(), Times.Once);
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -531,7 +423,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var exception = new NotImplementedException("this is a test");
-            var serverProcess = SetupServerProcess(exceptionToThrow: exception);
+            var serverProcess = SetupEslintBridgeClient(exceptionToThrow: exception);
 
             var testSubject = CreateTestSubject(serverProcess.Object, statusNotifier: statusNotifier.Object);
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
@@ -559,7 +451,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task ExecuteAnalysis_AnalysisFinished_NotifiesThatAnalysisFinished()
         {
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
-            var client = SetupEslintBridgeClient(new AnalysisResponse{Issues = new []{new Issue(), new Issue()}});
+            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = new[] { new Issue(), new Issue() } });
 
             var testSubject = CreateTestSubject(client.Object, statusNotifier: statusNotifier.Object);
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
@@ -608,23 +500,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return eslintBridgeClient;
         }
 
-        private Mock<IEslintBridgeProcess> SetupServerProcess(int port = 123, Exception exceptionToThrow = null)
-        {
-            var serverProcess = new Mock<IEslintBridgeProcess>();
-            var setup = serverProcess.Setup(x => x.Start());
-
-            if (exceptionToThrow == null)
-            {
-                setup.ReturnsAsync(port);
-            }
-            else
-            {
-                setup.ThrowsAsync(exceptionToThrow);
-            }
-
-            return serverProcess;
-        }
-
         private static Mock<IActiveJavaScriptRulesProvider> SetupActiveRulesProvider(Rule[] activeRules)
         {
             var rulesProvider = new Mock<IActiveJavaScriptRulesProvider>();
@@ -633,10 +508,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return rulesProvider;
         }
 
-        private Mock<IEslintBridgeClientFactory> SetupEslintBridgeClientFactory(int port, IEslintBridgeClient client)
+        private Mock<IEslintBridgeClientFactory> SetupEslintBridgeClientFactory(IEslintBridgeClient client)
         {
             var factory = new Mock<IEslintBridgeClientFactory>();
-            factory.Setup(x => x.Create(port)).Returns(client);
+            factory.Setup(x => x.Create()).Returns(client);
 
             return factory;
         }
@@ -659,7 +534,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return analysisConfigMonitor;
         }
 
-        private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClient client = null, 
+        private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClient client = null,
             IEslintBridgeIssueConverter issueConverter = null,
             IActiveJavaScriptRulesProvider activeRulesProvider = null,
             ITelemetryManager telemetryManager = null,
@@ -668,12 +543,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             IAnalysisConfigMonitor analysisConfigMonitor = null,
             ILogger logger = null)
         {
-            client ??= SetupEslintBridgeClient(null).Object;
+            client ??= SetupEslintBridgeClient().Object;
 
-            var serverProcess = SetupServerProcess(123);
-            var eslintBridgeClientFactory = SetupEslintBridgeClientFactory(123, client);
+            var eslintBridgeClientFactory = SetupEslintBridgeClientFactory(client);
 
-            return CreateTestSubject(serverProcess.Object,
+            return CreateTestSubject(
                 eslintBridgeClientFactory.Object,
                 activeRulesProvider,
                 issueConverter,
@@ -685,8 +559,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         private JavaScriptAnalyzer CreateTestSubject(
-            IEslintBridgeProcess eslintBridgeProcess,
-            IEslintBridgeClientFactory eslintBridgeClientFactory = null,
+            IEslintBridgeClientFactory eslintBridgeClientFactory,
             IActiveJavaScriptRulesProvider activeRulesProvider = null,
             IEslintBridgeIssueConverter issueConverter = null,
             ITelemetryManager telemetryManager = null,
@@ -703,11 +576,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             analysisConfigMonitor ??= Mock.Of<IAnalysisConfigMonitor>();
 
-            var eslintBridgeProcessFactory = new Mock<IEslintBridgeProcessFactory>();
-            eslintBridgeProcessFactory.Setup(x => x.Create()).Returns(eslintBridgeProcess);
-
             return new JavaScriptAnalyzer(eslintBridgeClientFactory,
-                eslintBridgeProcessFactory.Object,
                 activeRulesProvider,
                 issueConverter,
                 telemetryManager,

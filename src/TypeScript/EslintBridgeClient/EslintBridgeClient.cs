@@ -56,20 +56,16 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     /// </summary>
     internal sealed class EslintBridgeClient : IEslintBridgeClient
     {
-        private readonly Uri baseServerUri;
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
 
-        public EslintBridgeClient(Uri baseServerUri, ILogger logger)
-            : this(baseServerUri, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
+        public EslintBridgeClient(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
+            : this(new EslintBridgeHttpWrapper(eslintBridgeProcessFactory, logger), new AnalysisConfiguration())
         {
         }
 
-        internal EslintBridgeClient(Uri baseServerUri,
-            IEslintBridgeHttpWrapper httpWrapper,
-            IAnalysisConfiguration analysisConfiguration)
+        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, IAnalysisConfiguration analysisConfiguration)
         {
-            this.baseServerUri = baseServerUri;
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
         }
@@ -83,7 +79,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Environments = analysisConfiguration.GetEnvironments()
             };
 
-            return httpWrapper.PostAsync(BuildServerUri("init-linter"), initLinterRequest, cancellationToken);
+            return httpWrapper.PostAsync("init-linter", initLinterRequest, cancellationToken);
         }
 
         public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
@@ -95,7 +91,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
             };
 
-            var responseString = await httpWrapper.PostAsync(BuildServerUri("analyze-js"), analysisRequest, cancellationToken);
+            var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
@@ -107,7 +103,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task NewTsConfig(CancellationToken cancellationToken)
         {
-            var responseString = await httpWrapper.PostAsync(BuildServerUri("new-tsconfig"), null, cancellationToken);
+            var responseString = await httpWrapper.PostAsync("new-tsconfig", null, cancellationToken);
 
             if (!responseString.Equals("OK!", StringComparison.OrdinalIgnoreCase))
             {
@@ -117,7 +113,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private Task Close()
         {
-            return httpWrapper.PostAsync(BuildServerUri("close"), null, CancellationToken.None);
+            return httpWrapper.PostAsync("close", null, CancellationToken.None);
         }
 
         public async void Dispose()
@@ -133,7 +129,5 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             httpWrapper.Dispose();
         }
-
-        private Uri BuildServerUri(string endpoint) => new Uri(baseServerUri, endpoint);
     }
 }

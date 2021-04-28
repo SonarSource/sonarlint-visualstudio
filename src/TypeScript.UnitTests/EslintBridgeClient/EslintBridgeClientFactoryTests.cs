@@ -35,15 +35,16 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             MefTestHelpers.CheckTypeCanBeImported<EslintBridgeClientFactory, IEslintBridgeClientFactory>(null, new[]
             {
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()),
+                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>())
             });
         }
 
         [TestMethod]
         public void Create_CreatesEslintBridgeClient()
         {
-            var testSubject = new EslintBridgeClientFactory(Mock.Of<ILogger>());
-            var eslintBridgeClient = testSubject.Create(123);
+            var testSubject = new EslintBridgeClientFactory(Mock.Of<IEslintBridgeProcessFactory>(), Mock.Of<ILogger>());
+            var eslintBridgeClient = testSubject.Create();
 
             eslintBridgeClient.Should().NotBeNull();
         }
