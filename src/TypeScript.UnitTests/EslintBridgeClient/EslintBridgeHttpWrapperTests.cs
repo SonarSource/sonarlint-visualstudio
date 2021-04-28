@@ -37,11 +37,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     [TestClass]
     public class EslintBridgeHttpWrapperTests
     {
-        private static readonly Uri DefaultUri = new Uri("http://localhost:1234/some-uri");
+        [TestMethod]
+        public async Task PostAsync_AlwaysStartsEslintBridgeServer()
+        {
+            var serverProcess = SetupServerProcess();
+
+            var testSubject = CreateTestSubject(eslintBridgeProcess: serverProcess.Object);
+
+            await testSubject.PostAsync("some-uri", null, CancellationToken.None);
+
+            serverProcess.Verify(x => x.Start(), Times.Once);
+            serverProcess.VerifyNoOtherCalls();
+        }
 
         [TestMethod]
         public async Task PostAsync_ExecutesRequestsOnTheUrl()
         {
+            var serverProcess = SetupServerProcess(port: 1234);
             Uri requestUri = null;
 
             var httpMessageHandler = SetupHttpMessageHandler("some response", message =>
@@ -49,11 +61,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
                 requestUri = message.RequestUri;
             });
 
-            var testSubject = CreateTestSubject(httpMessageHandler);
+            var testSubject = CreateTestSubject(httpMessageHandler, eslintBridgeProcess: serverProcess.Object);
 
-            await testSubject.PostAsync(DefaultUri, null, CancellationToken.None);
+            await testSubject.PostAsync("some-uri", null, CancellationToken.None);
 
-            requestUri.Should().BeEquivalentTo(DefaultUri);
+            requestUri.Should().BeEquivalentTo(new Uri("http://localhost:1234/some-uri"));
         }
 
         [TestMethod]
@@ -81,7 +93,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             var testSubject = CreateTestSubject(httpMessageHandler: httpMessageHandler.Object);
 
-            await testSubject.PostAsync(DefaultUri, null, originalTokenSource.Token);
+            await testSubject.PostAsync("some-uri", null, originalTokenSource.Token);
 
             httpMessageHandler.VerifyAll();
             validationPassed.Should().BeTrue();
@@ -99,7 +111,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             var testSubject = CreateTestSubject(httpMessageHandler: httpMessageHandler);
 
-            var response = await testSubject.PostAsync(DefaultUri, null, CancellationToken.None);
+            var response = await testSubject.PostAsync("some-uri", null, CancellationToken.None);
             response.Should().Be("some response");
 
             requestContentAsString.Should().BeEmpty();
@@ -118,7 +130,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(httpMessageHandler: httpMessageHandler);
             var requestContent = new { someProp = "some data" };
 
-            var response = await testSubject.PostAsync(DefaultUri, requestContent, CancellationToken.None);
+            var response = await testSubject.PostAsync("some-uri", requestContent, CancellationToken.None);
             response.Should().Be("some response");
 
             requestContentAsString.Should().Be(JsonConvert.SerializeObject(requestContent, Formatting.Indented));
@@ -132,8 +144,20 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             var testSubject = CreateTestSubject(httpMessageHandler);
 
-            Func<Task> act = async () => await testSubject.PostAsync(DefaultUri, null, CancellationToken.None);
+            Func<Task> act = async () => await testSubject.PostAsync("some-uri", null, CancellationToken.None);
             await act.Should().ThrowAsync<NotImplementedException>();
+        }
+
+        [TestMethod]
+        public void Dispose_DisposesServerProcess()
+        {
+            var serverProcess = SetupServerProcess();
+           
+            var testSubject = CreateTestSubject(eslintBridgeProcess: serverProcess.Object);
+
+            testSubject.Dispose();
+
+            serverProcess.Verify(x=> x.Dispose(), Times.Once);
         }
 
         private FakeHttpMessageHandler SetupHttpMessageHandler(string response, Action<HttpRequestMessage> assertReceivedMessage = null)
@@ -148,12 +172,26 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return httpMessageHandler;
         }
 
-        private EslintBridgeHttpWrapper CreateTestSubject(HttpMessageHandler httpMessageHandler = null, ILogger logger = null)
+        private EslintBridgeHttpWrapper CreateTestSubject(HttpMessageHandler httpMessageHandler = null,
+            ILogger logger = null,
+            IEslintBridgeProcess eslintBridgeProcess = null)
         {
             httpMessageHandler ??= SetupHttpMessageHandler("some response");
             logger ??= Mock.Of<ILogger>();
+            eslintBridgeProcess ??= SetupServerProcess().Object;
 
-            return new EslintBridgeHttpWrapper(httpMessageHandler, logger);
+            var eslintBridgeProcessFactory = new Mock<IEslintBridgeProcessFactory>();
+            eslintBridgeProcessFactory.Setup(x => x.Create()).Returns(eslintBridgeProcess);
+
+            return new EslintBridgeHttpWrapper(eslintBridgeProcessFactory.Object, httpMessageHandler, logger);
+        }
+
+        private Mock<IEslintBridgeProcess> SetupServerProcess(int port = 123)
+        {
+            var serverProcess = new Mock<IEslintBridgeProcess>();
+            serverProcess.Setup(x => x.Start()).ReturnsAsync(port);
+
+            return serverProcess;
         }
     }
 }

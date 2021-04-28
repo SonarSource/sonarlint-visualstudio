@@ -24,29 +24,31 @@ using Moq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
+using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
     [TestClass]
-    public class EslintBridgeClientFactoryTests
+    public class EslintBridgeProcessFactoryTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeClientFactory, IEslintBridgeClientFactory>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeProcessFactory, IEslintBridgeProcessFactory>(null, new[]
             {
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()),
-                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>())
+                MefTestHelpers.CreateExport<string>("some path", EslintBridgeProcessFactory.EslintBridgeDirectoryMefContractName),
+                MefTestHelpers.CreateExport<INodeLocator>(Mock.Of<INodeLocator>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
         [TestMethod]
-        public void Create_CreatesEslintBridgeClient()
+        public void Create_CreatesEslintBridgeProcess()
         {
-            var testSubject = new EslintBridgeClientFactory(Mock.Of<IEslintBridgeProcessFactory>(), Mock.Of<ILogger>());
-            var eslintBridgeClient = testSubject.Create();
+            var testSubject = new EslintBridgeProcessFactory("some path", Mock.Of<INodeLocator>(), Mock.Of<ILogger>());
+            var eslintBridgeProcess = testSubject.Create();
 
-            eslintBridgeClient.Should().NotBeNull();
+            eslintBridgeProcess.Should().NotBeNull();
         }
     }
 }
