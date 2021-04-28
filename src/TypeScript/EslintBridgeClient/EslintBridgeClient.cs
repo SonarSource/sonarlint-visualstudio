@@ -48,6 +48,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// </summary>
         /// <remarks>Resource optimisation - tells the eslintbridge that it can discard some cached data</remarks>
         Task NewTsConfig(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Returns the source files and projects referenced in the tsconfig file
+        /// </summary>
+        Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -109,6 +114,18 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             {
                 throw new InvalidOperationException(Resources.ERR_InvalidResponse);
             }
+        }
+
+        public async Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken)
+        {
+            var responseString = await httpWrapper.PostAsync(BuildServerUri("tsconfig-files"), tsConfigFilePath, cancellationToken);
+
+            if (string.IsNullOrEmpty(responseString))
+            {
+                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+            }
+
+            return JsonConvert.DeserializeObject<TSConfigResponse>(responseString);
         }
 
         private Task Close()
