@@ -115,6 +115,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("Vue", AnalysisLanguage.Javascript)]
         [DataRow("C/C++", AnalysisLanguage.CFamily)]
         [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
+        [DataRow("TypeScript", AnalysisLanguage.TypeScript)]
         public void Detect_WhenExtensionNotRegistered_ReturnsLanguageFromBufferContentType(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
@@ -134,6 +135,7 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
         [DataRow("Vue", AnalysisLanguage.Javascript)]
         [DataRow("C/C++", AnalysisLanguage.CFamily)]
         [DataRow("Roslyn Languages", AnalysisLanguage.RoslynFamily)]
+        [DataRow("TypeScript", AnalysisLanguage.TypeScript)]
         public void Detect_WhenExtensionIsRegistered_ReturnsLanguageFromExtension(string bufferContentType, AnalysisLanguage expectedLanguage)
         {
             // Arrange
@@ -171,6 +173,22 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor.LanguageDet
             result.Should().HaveCount(2);
             result.First().Should().Be(AnalysisLanguage.Javascript);
             result.Skip(1).First().Should().Be(AnalysisLanguage.CFamily);
+        }
+
+        [TestMethod]
+        public void Detect_WhenContentTypeIsTypeScriptButFileExtensionIsJavaScript_ReturnsJavaScript()
+        {
+            var jsFileExtension = "js";
+            var contentType = new Mock<IContentType>();
+
+            contentTypeServiceMock.Setup(x => x.ContentTypes).Returns(new[] { contentType.Object });
+            contentType.Setup(x => x.IsOfType("TypeScript")).Returns(true);
+            fileExtensionServiceMock.Setup(x => x.GetExtensionsForContentType(contentType.Object)).Returns(new[] { jsFileExtension });
+
+            var result = testSubject.Detect($"foo.{jsFileExtension}", null);
+
+            result.Should().HaveCount(1);
+            result.First().Should().Be(AnalysisLanguage.Javascript);
         }
     }
 }
