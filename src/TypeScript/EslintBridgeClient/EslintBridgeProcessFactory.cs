@@ -20,29 +20,35 @@
 
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
-    interface IEslintBridgeClientFactory
+    internal interface IEslintBridgeProcessFactory
     {
-        IEslintBridgeClient Create();
+        IEslintBridgeProcess Create();
     }
 
-    [Export(typeof(IEslintBridgeClientFactory))]
+    [Export(typeof(IEslintBridgeProcessFactory))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-
-    internal sealed class EslintBridgeClientFactory : IEslintBridgeClientFactory
+    internal class EslintBridgeProcessFactory : IEslintBridgeProcessFactory
     {
-        private readonly IEslintBridgeProcessFactory eslintBridgeProcessFactory;
+        internal const string EslintBridgeDirectoryMefContractName = "SonarLint.TypeScript.EsLintBridgeServerPath";
+
+        private readonly string eslintBridgeStartupScriptPath;
+        private readonly INodeLocator nodeLocator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public EslintBridgeClientFactory(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
+        public EslintBridgeProcessFactory([Import(EslintBridgeDirectoryMefContractName)] string eslintBridgeStartupScriptPath,
+            INodeLocator nodeLocator,
+            ILogger logger)
         {
-            this.eslintBridgeProcessFactory = eslintBridgeProcessFactory;
+            this.eslintBridgeStartupScriptPath = eslintBridgeStartupScriptPath;
+            this.nodeLocator = nodeLocator;
             this.logger = logger;
         }
 
-        public IEslintBridgeClient Create() => new EslintBridgeClient(eslintBridgeProcessFactory, logger);
+        public IEslintBridgeProcess Create() => new EslintBridgeProcess(eslintBridgeStartupScriptPath, nodeLocator, logger);
     }
 }
