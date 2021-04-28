@@ -33,8 +33,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     [TestClass]
     public class EslintBridgeClientTests
     {
-        private static readonly Uri BaseServerUri = new Uri("http://localhost:123");
-
         [TestMethod]
         public async Task InitLinter_HttpWrapperCalledWithCorrectArguments()
         {
@@ -58,7 +56,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var token = new CancellationToken();
             await testSubject.InitLinter(rules, token);
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("init-linter"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("init-linter", It.IsAny<object>(), token), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
@@ -79,7 +77,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var token = new CancellationToken();
             await testSubject.AnalyzeJs("some path", token);
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("analyze-js"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("analyze-js", It.IsAny<object>(), token), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
@@ -111,7 +109,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
-                .Setup(x => x.PostAsync(BuildFullUri("analyze-js"), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("invalid json");
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
@@ -125,7 +123,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
-                .Setup(x => x.PostAsync(BuildFullUri("analyze-js"), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync("analyze-js", It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new StackOverflowException());
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
@@ -146,7 +144,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var token = new CancellationToken();
             await testSubject.NewTsConfig(token);
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("new-tsconfig"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("new-tsconfig", It.IsAny<object>(), token), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
@@ -174,7 +172,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(httpWrapper.Object);
             await testSubject.TsConfigFiles("some path", token);
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("tsconfig-files"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("tsconfig-files", It.IsAny<object>(), token), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
@@ -217,7 +215,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(httpWrapper.Object);
             testSubject.Dispose();
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("close"), null, CancellationToken.None), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("close", null, CancellationToken.None), Times.Once);
             httpWrapper.Verify(x => x.Dispose(), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
@@ -227,13 +225,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
-                .Setup(x => x.PostAsync(BuildFullUri("close"), null, CancellationToken.None))
+                .Setup(x => x.PostAsync("close", null, CancellationToken.None))
                 .Throws<NotImplementedException>();
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
             testSubject.Dispose();
 
-            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("close"), null, CancellationToken.None), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync("close", null, CancellationToken.None), Times.Once);
             httpWrapper.Verify(x => x.Dispose(), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
@@ -243,7 +241,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             analysisConfiguration ??= Mock.Of<IAnalysisConfiguration>();
 
-            return new TypeScript.EslintBridgeClient.EslintBridgeClient(BaseServerUri, httpWrapper, analysisConfiguration);
+            return new TypeScript.EslintBridgeClient.EslintBridgeClient(httpWrapper, analysisConfiguration);
         }
 
         private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = null, Action<object> assertReceivedRequest = null)
@@ -251,13 +249,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
 
             httpWrapper
-                .Setup(x => x.PostAsync(BuildFullUri(endpoint), It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .Callback((Uri uri, object data, CancellationToken token) => assertReceivedRequest?.Invoke(data))
+                .Setup(x => x.PostAsync(endpoint, It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Callback((string uri, object data, CancellationToken token) => assertReceivedRequest?.Invoke(data))
                 .ReturnsAsync(response);
 
             return httpWrapper;
         }
-
-        private static Uri BuildFullUri(string endpoint) => new Uri(BaseServerUri, endpoint);
     }
 }

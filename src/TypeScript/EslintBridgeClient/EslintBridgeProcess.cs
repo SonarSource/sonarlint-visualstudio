@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
@@ -45,11 +44,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         void Stop();
     }
 
-    [Export(typeof(IEslintBridgeProcess))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class EslintBridgeProcess : IEslintBridgeProcess
     {
-        internal const string EslintBridgeDirectoryMefContractName = "SonarLint.TypeScript.EsLintBridgeServerPath";
         private static readonly object Lock = new object();
 
         private readonly string eslintBridgeStartupScriptPath;
@@ -60,8 +56,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         internal Process Process;
 
-        [ImportingConstructor]
-        public EslintBridgeProcess([Import(EslintBridgeDirectoryMefContractName)] string eslintBridgeStartupScriptPath,
+        internal EslintBridgeProcess(string eslintBridgeStartupScriptPath,
             INodeLocator nodeLocator,
             ILogger logger)
             : this(eslintBridgeStartupScriptPath, nodeLocator, new FileSystem(), logger)
@@ -243,12 +238,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private static string GetQuotedScriptPath(string scriptPath)
         {
-            const string Quote = "\"";
+            const string quote = "\"";
             // Quote the script path in case there are any spaces in it.
             // See #2347
-            Debug.Assert(!scriptPath.Contains(Quote), "Not expecting the imported script path to be quoted");
+            Debug.Assert(!scriptPath.Contains(quote), "Not expecting the imported script path to be quoted");
 
-            return Quote + scriptPath + Quote;
+            return quote + scriptPath + quote;
 
         }
     }
