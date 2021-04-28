@@ -24,7 +24,7 @@ using System.Linq;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
-    internal interface IRuleProvider
+    internal interface IRulesProvider
     {
         /// <summary>
         /// Returns the metadata descriptions for all rules for a single language repository
@@ -37,11 +37,11 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         string GetSonarRuleKey(string eslintRuleKey);
     }
 
-    internal class RuleDefinitionProvider : IRuleProvider
+    internal class RulesProvider : IRulesProvider
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
 
-        public RuleDefinitionProvider(IEnumerable<RuleDefinition> ruleDefinitions)
+        public RulesProvider(IEnumerable<RuleDefinition> ruleDefinitions)
         {
             this.ruleDefinitions = ruleDefinitions ?? throw new ArgumentNullException(nameof(ruleDefinitions));
         }

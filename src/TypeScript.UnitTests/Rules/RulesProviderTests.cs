@@ -26,12 +26,12 @@ using SonarLint.VisualStudio.TypeScript.Rules;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 {
     [TestClass]
-    public class RuleProviderTests
+    public class RulesProviderTests
     {
         [TestMethod]
         public void Ctor_InvalidArg_Throws()
         {
-            Action act = () => new RuleDefinitionProvider(null);
+            Action act = () => new RulesProvider(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleDefinitions");
         }
 
@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 new RuleDefinition { RuleKey = "key2" }
             };
 
-            var testSubject = new RuleDefinitionProvider(defns);
+            var testSubject = new RulesProvider(defns);
 
             testSubject.GetDefinitions().Should().BeEquivalentTo(defns);
         }
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         [DataRow("eslint common", "typescript:common")]
         [DataRow("eslint ts S1135", "typescript:S1135")]
         [DataRow("ESLINT TS S1135", "typescript:S1135")] // case-insensitive
-        public void GetSonarRuleKey_TypeScript_ReturnsExpected(string eslintRuleKey, string expected)
+        public void GetSonarRuleKey_ReturnsExpected(string eslintRuleKey, string expected)
         {
             var defns = new RuleDefinition[]
             {
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 new RuleDefinition { EslintKey = "should be ignored", RuleKey = "foo"}
             };
 
-            var testSubject = new RuleDefinitionProvider(defns);
+            var testSubject = new RulesProvider(defns);
             testSubject.GetSonarRuleKey(eslintRuleKey).Should().Be(expected);
         }
     }

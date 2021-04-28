@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         /// <summary>
         /// Returns a rules provider containing rules for the specified language repository
         /// </summary>
-        IRuleProvider Create(string repoKey);
+        IRulesProvider Create(string repoKey);
     }
 
     [Export(typeof(IRulesProviderFactory))]
@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             this.ruleMetadataFilePath = ruleMetadataFilePath;
         }
 
-        public IRuleProvider Create(string repoKey)
+        public IRulesProvider Create(string repoKey)
         {
             if (string.IsNullOrEmpty(repoKey))
             {
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
             var allRules = Load(ruleMetadataFilePath);
             var filteredRules = FilterByRepo(repoKey + ":", allRules);
-            return new RuleDefinitionProvider(filteredRules);
+            return new RulesProvider(filteredRules);
         }
 
         private static List<RuleDefinition> Load(string filePath) =>
