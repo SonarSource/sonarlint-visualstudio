@@ -31,44 +31,55 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     internal interface IEslintBridgeHttpWrapper : IDisposable
     {
-        Task<string> PostAsync(Uri serverEndpoint, object request, CancellationToken cancellationToken);
+        Task<string> PostAsync(string serverEndpoint, object request, CancellationToken cancellationToken);
     }
 
     internal sealed class EslintBridgeHttpWrapper : IEslintBridgeHttpWrapper
     {
         private readonly ILogger logger;
         private readonly HttpClient httpClient;
+        private readonly IEslintBridgeProcess eslintBridgeProcess;
 
-        public EslintBridgeHttpWrapper(ILogger logger)
-            : this(new HttpClientHandler(), logger)
+        public EslintBridgeHttpWrapper(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
+            : this(eslintBridgeProcessFactory, new HttpClientHandler(), logger)
         {
         }
 
-        internal EslintBridgeHttpWrapper(HttpMessageHandler httpHandler, ILogger logger)
+        internal EslintBridgeHttpWrapper(IEslintBridgeProcessFactory eslintBridgeProcessFactory,
+            HttpMessageHandler httpHandler,
+            ILogger logger)
         {
             this.logger = logger;
             httpClient = new HttpClient(httpHandler);
+
+            eslintBridgeProcess = eslintBridgeProcessFactory.Create();
         }
 
-        public async Task<string> PostAsync(Uri serverEndpoint, object request, CancellationToken cancellationToken)
+        public async Task<string> PostAsync(string serverEndpoint, object request, CancellationToken cancellationToken)
         {
+            var port = await eslintBridgeProcess.Start();
+            var fullServerUrl = BuildServerUri(port, serverEndpoint);
+
             var serializedRequest = request == null
                 ? string.Empty
                 : JsonConvert.SerializeObject(request, Formatting.Indented);
-            logger.LogDebug(Resources.INFO_RequestDetails, serverEndpoint, serializedRequest);
+            logger.LogDebug(Resources.INFO_RequestDetails, fullServerUrl, serializedRequest);
 
             var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync(serverEndpoint, content, cancellationToken);
+            var response = await httpClient.PostAsync(fullServerUrl, content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            logger.LogDebug(Resources.INFO_ResponseDetails, serverEndpoint, responseString);
+            logger.LogDebug(Resources.INFO_ResponseDetails, fullServerUrl, responseString);
 
             return responseString;
         }
 
         public void Dispose()
         {
+            eslintBridgeProcess?.Dispose();
             httpClient?.Dispose();
         }
+
+        private Uri BuildServerUri(int port, string endpoint) => new Uri($"http://localhost:{port}/{endpoint}");
     }
 }
