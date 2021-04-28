@@ -31,9 +31,23 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
     internal interface IEslintBridgeClient : IDisposable
     {
+        /// <summary>
+        /// Configures the linter with the set of rules to execute
+        /// </summary>
+        /// <remarks>This method should be called whenever the set of active rules or
+        /// their configuration changes.</remarks>
         Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Analyzes the specified file and returns the detected issues.
+        /// </summary>
         Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Notifies eslintbridge that a different config file will be used.
+        /// </summary>
+        /// <remarks>Resource optimisation - tells the eslintbridge that it can discard some cached data</remarks>
+        Task NewTsConfig(CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -51,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
         }
 
-        internal EslintBridgeClient(Uri baseServerUri, 
+        internal EslintBridgeClient(Uri baseServerUri,
             IEslintBridgeHttpWrapper httpWrapper,
             IAnalysisConfiguration analysisConfiguration)
         {
@@ -85,10 +99,20 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (string.IsNullOrEmpty(responseString))
             {
-                throw new InvalidOperationException("Invalid response from eslint-bridge");
+                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
             }
 
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
+        }
+
+        public async Task NewTsConfig(CancellationToken cancellationToken)
+        {
+            var responseString = await httpWrapper.PostAsync(BuildServerUri("new-tsconfig"), null, cancellationToken);
+
+            if (!responseString.Equals("OK!", StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+            }
         }
 
         private Task Close()

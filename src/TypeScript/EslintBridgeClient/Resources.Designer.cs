@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid response from eslint-bridge.
+        /// </summary>
+        internal static string ERR_InvalidResponse {
+            get {
+                return ResourceManager.GetString("ERR_InvalidResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [eslint-bridge] Failed to execute request to &apos;{0}&apos;: {1}.
         /// </summary>
         internal static string ERR_RequestFailure {
