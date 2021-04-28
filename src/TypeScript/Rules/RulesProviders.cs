@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
     internal class RuleDefinitionProvider : IRuleProvider
     {
-        private IEnumerable<RuleDefinition> ruleDefinitions;
+        private readonly IEnumerable<RuleDefinition> ruleDefinitions;
 
         public RuleDefinitionProvider(IEnumerable<RuleDefinition> ruleDefinitions)
         {
