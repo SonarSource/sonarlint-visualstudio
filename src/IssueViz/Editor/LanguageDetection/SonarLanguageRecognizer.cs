@@ -60,6 +60,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
             if (IsJavascriptDocument(fileExtension, contentTypes))
             {
                 detectedLanguages.Add(AnalysisLanguage.Javascript);
+            } 
+            else if (IsTypeScriptDocument(contentTypes))
+            {
+                detectedLanguages.Add(AnalysisLanguage.TypeScript);
             }
 
             if (IsCFamilyDocument(contentTypes))
@@ -103,5 +107,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor.LanguageDetection
 
         private static bool IsRoslynFamilyDocument(IEnumerable<IContentType> contentTypes) =>
             contentTypes.Any(type => type.IsOfType("Roslyn Languages"));
+
+        private static bool IsTypeScriptDocument(IEnumerable<IContentType> contentTypes)
+        {
+            return contentTypes.Any(type => type.IsOfType("TypeScript"));
+        }
     }
 }
