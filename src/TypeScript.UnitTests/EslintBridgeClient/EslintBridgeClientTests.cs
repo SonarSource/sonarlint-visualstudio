@@ -164,6 +164,52 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        public async Task TSConfigFiles_HttpWrapperCalledWithCorrectArguments()
+        {
+            var httpWrapper = SetupHttpWrapper("tsconfig-files",
+                response: JsonConvert.SerializeObject(new TSConfigResponse()),
+                assertReceivedRequest: receivedRequest => receivedRequest.Should().Be("some path"));
+            var token = new CancellationToken();
+
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+            await testSubject.TsConfigFiles("some path", token);
+
+            httpWrapper.Verify(x => x.PostAsync(BuildFullUri("tsconfig-files"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        [DataRow("")]
+        [DataRow(null)]
+        public void TSConfigFiles_EmptyResponse_InvalidOperationException(string response)
+        {
+            var httpWrapper = SetupHttpWrapper("tsconfig-files", response);
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+            Func<Task> act = async () => await testSubject.TsConfigFiles("some path", CancellationToken.None);
+
+            act.Should().ThrowExactly<InvalidOperationException>();
+        }
+
+        [TestMethod]
+        public async Task TSConfigFiles_HasResponse_DeserializedResponse()
+        {
+            var response = new TSConfigResponse
+            {
+                Files = new[] { "file1", "file2" },
+                ProjectReferences = new[] { "ref1", "ref2" },
+                Error = "error",
+                ParsingError = new ParsingError { Line = 111,  Code = ParsingErrorCode.MISSING_TYPESCRIPT, Message = "a message" }
+            };
+
+            var httpWrapper = SetupHttpWrapper("tsconfig-files", JsonConvert.SerializeObject(response));
+
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+            var result = await testSubject.TsConfigFiles("some path", CancellationToken.None);
+
+            result.Should().BeEquivalentTo(response);
+        }
+
+        [TestMethod]
         public void Dispose_DisposesHttpWrapper()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
