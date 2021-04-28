@@ -52,7 +52,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// <summary>
         /// Returns the source files and projects referenced in the tsconfig file
         /// </summary>
-        /// <returns></returns>
         Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken);
     }
 
