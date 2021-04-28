@@ -27,6 +27,7 @@ namespace SonarLint.VisualStudio.Core.Analysis
     {
         Javascript,
         CFamily,
-        RoslynFamily
+        RoslynFamily,
+        TypeScript
     }
 }
