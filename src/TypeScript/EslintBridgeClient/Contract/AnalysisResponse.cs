@@ -26,7 +26,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract
     internal class AnalysisResponse
     {
         // Other fields omitted
-        // i.e. Hightlight[], HighlightedSymbol[], Metrics, CpdToken[]
+        // i.e. Highlight[], HighlightedSymbol[], Metrics, CpdToken[]
 
         [JsonProperty("issues")]
         public IEnumerable<Issue> Issues { get; set; }
