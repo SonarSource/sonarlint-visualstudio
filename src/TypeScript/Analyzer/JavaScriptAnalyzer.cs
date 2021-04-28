@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         [ImportingConstructor]
         public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
-            IEslintBridgeProcess eslintBridgeProcess,
+            IEslintBridgeProcessFactory eslintBridgeProcessFactory,
             IJavaScriptRuleDefinitionsProvider ruleDefinitionsProvider,
             IActiveJavaScriptRulesProvider activeRulesProvider,
             ITelemetryManager telemetryManager,
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
-            : this(eslintBridgeClientFactory, eslintBridgeProcess, activeRulesProvider,
+            : this(eslintBridgeClientFactory, eslintBridgeProcessFactory, activeRulesProvider,
                 new EslintBridgeIssueConverter(ruleDefinitionsProvider.GetSonarRuleKey,
                     ruleDefinitionsProvider.GetDefinitions),
                 telemetryManager,
@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         }
 
         internal JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
-            IEslintBridgeProcess eslintBridgeProcess,
+            IEslintBridgeProcessFactory eslintBridgeProcessFactory,
             IActiveJavaScriptRulesProvider activeRulesProvider,
             IEslintBridgeIssueConverter issuesConverter,
             ITelemetryManager telemetryManager,
@@ -87,7 +87,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ILogger logger)
         {
             this.eslintBridgeClientFactory = eslintBridgeClientFactory;
-            this.eslintBridgeProcess = eslintBridgeProcess;
             this.activeRulesProvider = activeRulesProvider;
             this.issuesConverter = issuesConverter;
             this.telemetryManager = telemetryManager;
@@ -95,6 +94,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.activeSolutionTracker = activeSolutionTracker;
             this.analysisConfigMonitor = analysisConfigMonitor;
             this.logger = logger;
+            
+            eslintBridgeProcess = eslintBridgeProcessFactory.Create();
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
             analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;

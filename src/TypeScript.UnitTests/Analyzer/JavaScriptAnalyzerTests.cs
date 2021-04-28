@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, new[]
             {
                 MefTestHelpers.CreateExport<IEslintBridgeClientFactory>(Mock.Of<IEslintBridgeClientFactory>()),
-                MefTestHelpers.CreateExport<IEslintBridgeProcess>(Mock.Of<IEslintBridgeProcess>()),
+                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>()),
                 MefTestHelpers.CreateExport<IActiveJavaScriptRulesProvider>(Mock.Of<IActiveJavaScriptRulesProvider>()),
                 MefTestHelpers.CreateExport<IJavaScriptRuleDefinitionsProvider>(Mock.Of<IJavaScriptRuleDefinitionsProvider>()),
                 MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
@@ -703,8 +703,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             analysisConfigMonitor ??= Mock.Of<IAnalysisConfigMonitor>();
 
+            var eslintBridgeProcessFactory = new Mock<IEslintBridgeProcessFactory>();
+            eslintBridgeProcessFactory.Setup(x => x.Create()).Returns(eslintBridgeProcess);
+
             return new JavaScriptAnalyzer(eslintBridgeClientFactory,
-                eslintBridgeProcess,
+                eslintBridgeProcessFactory.Object,
                 activeRulesProvider,
                 issueConverter,
                 telemetryManager,

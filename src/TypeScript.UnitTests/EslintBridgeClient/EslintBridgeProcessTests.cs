@@ -28,7 +28,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.Threading;
 using Moq;
 using SonarLint.VisualStudio.Integration;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.NodeJSLocator;
 
@@ -37,17 +36,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     [TestClass]
     public class EslintBridgeProcessTests
     {
-        [TestMethod]
-        public void MefCtor_CheckIsExported()
-        {
-            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeProcess, IEslintBridgeProcess>(null, new[]
-            {
-                MefTestHelpers.CreateExport<string>("some path", EslintBridgeProcess.EslintBridgeDirectoryMefContractName),
-                MefTestHelpers.CreateExport<INodeLocator>(Mock.Of<INodeLocator>()),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
-            });
-        }
-
         [TestMethod]
         public void Start_FailsToFindNode_FileNotFoundException()
         {
