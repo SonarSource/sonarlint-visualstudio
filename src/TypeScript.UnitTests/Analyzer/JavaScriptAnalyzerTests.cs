@@ -577,12 +577,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             return new JavaScriptAnalyzer(eslintBridgeClientFactory,
                 rulesProvider,
-                issueConverter,
                 telemetryManager,
                 statusNotifier,
                 activeSolutionTracker,
                 analysisConfigMonitor,
-                logger);
+                logger,
+                issueConverter);
         }
     }
 }
