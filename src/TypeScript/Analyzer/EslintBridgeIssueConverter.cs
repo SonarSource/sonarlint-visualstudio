@@ -32,25 +32,20 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         IAnalysisIssue Convert(string filePath, Issue issue);
     }
 
-    internal delegate string ConvertToSonarRuleKey(string eslineRuleKey);
-    internal delegate IEnumerable<RuleDefinition> GetRuleDefinitions();
-
     internal class EslintBridgeIssueConverter : IEslintBridgeIssueConverter
     {
-        private readonly ConvertToSonarRuleKey keyMapper;
-        private readonly GetRuleDefinitions ruleDefinitionProvider;
+        private readonly IRulesProvider rulesProvider;
 
-        public EslintBridgeIssueConverter(ConvertToSonarRuleKey keyMapper, GetRuleDefinitions ruleDefinitionProvider)
+        public EslintBridgeIssueConverter(IRulesProvider rulesProvider)
         {
-            this.keyMapper = keyMapper;
-            this.ruleDefinitionProvider = ruleDefinitionProvider;
+            this.rulesProvider = rulesProvider;
         }
 
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
-            var ruleDefinitions = ruleDefinitionProvider();
+            var ruleDefinitions = rulesProvider.GetDefinitions();
             var ruleDefinition = ruleDefinitions.SingleOrDefault(x => x.EslintKey == issue.RuleId);
-            var sonarRuleKey = keyMapper(issue.RuleId);
+            var sonarRuleKey = rulesProvider.GetSonarRuleKey(issue.RuleId);
 
             return new AnalysisIssue(
                 sonarRuleKey,
