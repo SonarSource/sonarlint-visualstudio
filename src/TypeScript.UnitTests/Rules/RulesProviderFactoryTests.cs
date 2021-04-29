@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             MefTestHelpers.CheckTypeCanBeImported<RulesProviderFactory, IRulesProviderFactory>(null, new[]
             {
-                MefTestHelpers.CreateExport<string>(jsonFilePath, RulesRepository.RuleDefinitionsFilePathContractName)
+                MefTestHelpers.CreateExport<string>(jsonFilePath, RulesProviderFactory.RuleDefinitionsFilePathContractName)
             });
         }
 
@@ -141,7 +141,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         private static string GetRuleDefinitionFilePath(string fileName)
         {
             var sampleJsonFile = Path.Combine(
-                Path.GetDirectoryName(typeof(RuleDefinitionsProviderTests).Assembly.Location),
+                Path.GetDirectoryName(typeof(RulesProviderFactoryTests).Assembly.Location),
                 "" +
                 "Rules", fileName);
 
