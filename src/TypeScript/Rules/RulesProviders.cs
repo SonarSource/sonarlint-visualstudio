@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
@@ -30,11 +29,6 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         /// Returns the metadata descriptions for all rules for a single language repository
         /// </summary>
         IEnumerable<RuleDefinition> GetDefinitions();
-
-        /// <summary>
-        /// Returns the rule key to display in VS for the specified ESLint rule
-        /// </summary>
-        string GetSonarRuleKey(string eslintRuleKey);
     }
 
     internal class RulesProvider : IRulesProvider
@@ -47,9 +41,5 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         }
 
         public IEnumerable<RuleDefinition> GetDefinitions() => ruleDefinitions;
-
-        public string GetSonarRuleKey(string eslintRuleKey) =>
-            ruleDefinitions.FirstOrDefault(x => x.EslintKey.Equals(eslintRuleKey, StringComparison.OrdinalIgnoreCase))
-                ?.RuleKey;
     }
 }
