@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         [ImportingConstructor]
         public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
-            IJavaScriptRuleDefinitionsProvider ruleDefinitionsProvider,
+            IRulesProviderFactory rulesProviderFactory,
             IActiveJavaScriptRulesProvider activeRulesProvider,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
@@ -62,8 +62,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
             : this(eslintBridgeClientFactory, activeRulesProvider,
-                new EslintBridgeIssueConverter(ruleDefinitionsProvider.GetSonarRuleKey,
-                    ruleDefinitionsProvider.GetDefinitions),
+                new EslintBridgeIssueConverter(rulesProviderFactory.Create("javascript")),
                 telemetryManager,
                 analysisStatusNotifier,
                 activeSolutionTracker,
