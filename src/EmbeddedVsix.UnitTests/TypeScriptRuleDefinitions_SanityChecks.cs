@@ -24,6 +24,8 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
@@ -44,8 +46,11 @@ namespace SonarLint.VisualStudio.AdditionalFiles.UnitTests
 
             File.Exists(filePath).Should().BeTrue("Test setup error: could not find rule metadata file. Expected path: " + filePath);
 
+            var settingsProvider = new Mock<IUserSettingsProvider>();
+            settingsProvider.Setup(x => x.UserSettings).Returns(new UserSettings(new RulesSettings())); // no user settings
+
             // Sanity check that the json file is loadable and has rules
-            var factory = new RulesProviderFactory(filePath);
+            var factory = new RulesProviderFactory(filePath, settingsProvider.Object);
 
             var jsRules = factory.Create("javascript").GetDefinitions();
             CheckRules("JavaScript", jsRules);

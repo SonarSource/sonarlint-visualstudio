@@ -26,6 +26,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
@@ -45,11 +46,14 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         internal const string RuleDefinitionsFilePathContractName = "SonarLint.TypeScript.RuleDefinitionsFilePath";
 
         private readonly string ruleMetadataFilePath;
+        private readonly IUserSettingsProvider userSettingsProvider;
 
         [ImportingConstructor]
-        public RulesProviderFactory([Import(RuleDefinitionsFilePathContractName)] string ruleMetadataFilePath)
+        public RulesProviderFactory([Import(RuleDefinitionsFilePathContractName)] string ruleMetadataFilePath,
+            IUserSettingsProvider userSettingsProvider)
         {
             this.ruleMetadataFilePath = ruleMetadataFilePath;
+            this.userSettingsProvider = userSettingsProvider;
         }
 
         public IRulesProvider Create(string repoKey)
@@ -63,7 +67,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
 
             var allRules = Load(ruleMetadataFilePath);
             var filteredRules = FilterByRepo(repoKey + ":", allRules);
-            return new RulesProvider(filteredRules);
+            return new RulesProvider(filteredRules, new ActiveRulesCalculator(filteredRules, userSettingsProvider));
         }
 
         private static List<RuleDefinition> Load(string filePath) =>

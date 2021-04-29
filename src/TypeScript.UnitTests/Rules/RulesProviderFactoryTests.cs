@@ -23,6 +23,8 @@ using System.IO;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
@@ -31,6 +33,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     [TestClass]
     public class RulesProviderFactoryTests
     {
+        private static readonly IUserSettingsProvider ValidUserSettingsProvider = Mock.Of<IUserSettingsProvider>();
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -38,7 +42,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             MefTestHelpers.CheckTypeCanBeImported<RulesProviderFactory, IRulesProviderFactory>(null, new[]
             {
-                MefTestHelpers.CreateExport<string>(jsonFilePath, RulesProviderFactory.RuleDefinitionsFilePathContractName)
+                MefTestHelpers.CreateExport<string>(jsonFilePath, RulesProviderFactory.RuleDefinitionsFilePathContractName),
+                MefTestHelpers.CreateExport<IUserSettingsProvider>(Mock.Of<IUserSettingsProvider>())
             });
         }
 
@@ -49,7 +54,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_Valid.json");
 
-            var testSubject = new RulesProviderFactory(jsonFilePath);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider);
 
             Action act = () => testSubject.Create(prefix);
 
@@ -61,7 +66,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckLanguageFiltering.json");
 
-            var testSubject = new RulesProviderFactory(jsonFilePath);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider);
 
             // 1. TypeScript
             var tsRuleKeys = testSubject.Create("typescript").GetDefinitions()
@@ -85,7 +90,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
         {
             // Checking the detailed definition properties for a single language
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDetailedProperties.json");
-            var testSubject = new RulesProviderFactory(jsonFilePath);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider);
 
             var result = testSubject.Create("typescript")
                 .GetDefinitions().ToArray();
@@ -125,7 +130,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             // so this test just does a quick sanity check that the expected number of
             // configs are being fetched.
             var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckDefaultParams.json");
-            var testSubject = new RulesProviderFactory(jsonFilePath);
+            var testSubject = new RulesProviderFactory(jsonFilePath, ValidUserSettingsProvider );
 
             var result = testSubject.Create("javascript")
                 .GetDefinitions().ToArray();
@@ -136,6 +141,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
             result[1].DefaultParams.Should().HaveCount(3);
             result[2].DefaultParams.Should().HaveCount(1);
             result[3].DefaultParams.Should().HaveCount(2);
+        }
+
+        [TestMethod]
+        public void GetActiveRulesConfig_ReturnsExpected()
+        {
+            // Sanity check that factory returns a provider that returns the active config
+            var jsonFilePath = GetRuleDefinitionFilePath("RuleDefns_CheckActiveRulesConfig.json");
+
+            var settingsProvider = new Mock<IUserSettingsProvider>();
+            settingsProvider.Setup(x => x.UserSettings).Returns(new UserSettings(new RulesSettings()));
+
+            var testSubject = new RulesProviderFactory(jsonFilePath, settingsProvider.Object);
+
+            var result = testSubject.Create("typescript")
+                .GetActiveRulesConfiguration().ToArray();
+
+            result.Should().HaveCount(2);
         }
 
         private static string GetRuleDefinitionFilePath(string fileName)
