@@ -31,7 +31,12 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
     /// Calculates the set of active rules, taking into account user modifications
     /// to the default rule definitions
     /// </summary>
-    internal class ActiveRulesCalculator
+    internal interface IActiveRulesCalculator
+    {
+        IEnumerable<Rule> Calculate();
+    }
+
+    internal class ActiveRulesCalculator : IActiveRulesCalculator
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
         private readonly IUserSettingsProvider userSettingsProvider;
@@ -48,7 +53,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             this.userSettingsProvider = userSettingsProvider;
         }
 
-        public IEnumerable<Rule> Get()
+        public IEnumerable<Rule> Calculate()
         {
             // TODO: handle QP configuration in connected mode #770
             return ruleDefinitions

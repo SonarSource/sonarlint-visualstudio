@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 
 namespace SonarLint.VisualStudio.TypeScript.Rules
 {
@@ -29,17 +30,28 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
         /// Returns the metadata descriptions for all rules for a single language repository
         /// </summary>
         IEnumerable<RuleDefinition> GetDefinitions();
+
+        /// <summary>
+        /// Returns the eslint configuration for the currently active rules
+        /// </summary>
+        IEnumerable<Rule> GetActiveRulesConfiguration();
     }
 
     internal class RulesProvider : IRulesProvider
     {
         private readonly IEnumerable<RuleDefinition> ruleDefinitions;
+        private readonly IActiveRulesCalculator activeRulesCalculator;
 
-        public RulesProvider(IEnumerable<RuleDefinition> ruleDefinitions)
+        public RulesProvider(IEnumerable<RuleDefinition> ruleDefinitions, IActiveRulesCalculator activeRulesCalculator)
         {
             this.ruleDefinitions = ruleDefinitions ?? throw new ArgumentNullException(nameof(ruleDefinitions));
+            this.activeRulesCalculator = activeRulesCalculator ?? throw new ArgumentNullException(nameof(activeRulesCalculator));
         }
 
+        // The set of definitions is static...
         public IEnumerable<RuleDefinition> GetDefinitions() => ruleDefinitions;
+
+        // ... but the set of active rules is calculated dynamically
+        public IEnumerable<Rule> GetActiveRulesConfiguration() => activeRulesCalculator.Calculate();
     }
 }
