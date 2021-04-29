@@ -47,7 +47,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             MefTestHelpers.CheckTypeCanBeImported<JavaScriptAnalyzer, IAnalyzer>(null, new[]
             {
                 MefTestHelpers.CreateExport<IEslintBridgeClientFactory>(Mock.Of<IEslintBridgeClientFactory>()),
-                MefTestHelpers.CreateExport<IActiveJavaScriptRulesProvider>(Mock.Of<IActiveJavaScriptRulesProvider>()),
                 MefTestHelpers.CreateExport<IRulesProviderFactory>(Mock.Of<IRulesProviderFactory>()),
                 MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
@@ -139,7 +138,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
             var client = SetupEslintBridgeClient(new AnalysisResponse{Issues = Enumerable.Empty<Issue>()});
 
-            var testSubject = CreateTestSubject(client.Object, activeRulesProvider: activeRulesProvider.Object);
+            var testSubject = CreateTestSubject(client.Object, rulesProvider: activeRulesProvider.Object);
 
             var cancellationToken = new CancellationToken();
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), cancellationToken);
@@ -163,7 +162,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
             var eslintBridgeClient = SetupEslintBridgeClient(response: null);
 
-            var testSubject = CreateTestSubject(eslintBridgeClient.Object, activeRulesProvider: activeRulesProvider.Object);
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, rulesProvider: activeRulesProvider.Object);
 
             var cancellationToken = new CancellationToken();
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), cancellationToken);
@@ -500,10 +499,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             return eslintBridgeClient;
         }
 
-        private static Mock<IActiveJavaScriptRulesProvider> SetupActiveRulesProvider(Rule[] activeRules)
+        private static Mock<IRulesProvider> SetupActiveRulesProvider(Rule[] activeRules)
         {
-            var rulesProvider = new Mock<IActiveJavaScriptRulesProvider>();
-            rulesProvider.Setup(x => x.Get()).Returns(activeRules);
+            var rulesProvider = new Mock<IRulesProvider>();
+            rulesProvider.Setup(x => x.GetActiveRulesConfiguration()).Returns(activeRules);
 
             return rulesProvider;
         }
@@ -536,7 +535,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
         private JavaScriptAnalyzer CreateTestSubject(IEslintBridgeClient client = null,
             IEslintBridgeIssueConverter issueConverter = null,
-            IActiveJavaScriptRulesProvider activeRulesProvider = null,
+            IRulesProvider rulesProvider = null,
             ITelemetryManager telemetryManager = null,
             IAnalysisStatusNotifier statusNotifier = null,
             IActiveSolutionTracker activeSolutionTracker = null,
@@ -549,7 +548,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             return CreateTestSubject(
                 eslintBridgeClientFactory.Object,
-                activeRulesProvider,
+                rulesProvider,
                 issueConverter,
                 telemetryManager,
                 statusNotifier,
@@ -560,7 +559,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
         private JavaScriptAnalyzer CreateTestSubject(
             IEslintBridgeClientFactory eslintBridgeClientFactory,
-            IActiveJavaScriptRulesProvider activeRulesProvider = null,
+            IRulesProvider rulesProvider = null,
             IEslintBridgeIssueConverter issueConverter = null,
             ITelemetryManager telemetryManager = null,
             IAnalysisStatusNotifier statusNotifier = null,
@@ -572,12 +571,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             logger ??= Mock.Of<ILogger>();
             telemetryManager ??= Mock.Of<ITelemetryManager>();
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
-            activeRulesProvider ??= Mock.Of<IActiveJavaScriptRulesProvider>();
+            rulesProvider ??= Mock.Of<IRulesProvider>();
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             analysisConfigMonitor ??= Mock.Of<IAnalysisConfigMonitor>();
 
             return new JavaScriptAnalyzer(eslintBridgeClientFactory,
-                activeRulesProvider,
+                rulesProvider,
                 issueConverter,
                 telemetryManager,
                 statusNotifier,
