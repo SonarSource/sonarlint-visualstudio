@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
@@ -47,8 +48,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 Message = "some message"
             };
 
-            ConvertToSonarRuleKey keyMapper = inputKey => "mapped " + inputKey;
-            GetRuleDefinitions ruleDefinitionsProvider = () => new[]
+            Func<string, string> keyMapper = inputKey => "mapped " + inputKey;
+            var ruleDefinitions = new[]
             {
                 new RuleDefinition
                 {
@@ -58,7 +59,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 }
             };
 
-            var testSubject = CreateTestSubject(keyMapper, ruleDefinitionsProvider);
+            var testSubject = CreateTestSubject(keyMapper, ruleDefinitions);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
 
             convertedIssue.RuleKey.Should().Be("mapped rule id");
@@ -157,10 +158,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("ruleType");
         }
 
-        private EslintBridgeIssueConverter CreateTestSubject(ConvertToSonarRuleKey keyMapper = null, GetRuleDefinitions getRuleDefinitions = null)
+        private EslintBridgeIssueConverter CreateTestSubject(Func<string, string> keyMapper = null, IEnumerable<RuleDefinition> ruleDefinitions = null)
         {
             keyMapper ??= key => key;
-            getRuleDefinitions ??= () => new[]
+            ruleDefinitions ??= new[]
             {
                 new RuleDefinition
                 {
@@ -168,7 +169,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 }
             };
 
-            return new EslintBridgeIssueConverter(keyMapper, getRuleDefinitions);
+            var rulesProvider = new Mock<IRulesProvider>();
+            rulesProvider.Setup(x => x.GetSonarRuleKey(It.IsAny<string>())).Returns(keyMapper);
+            rulesProvider.Setup(x => x.GetDefinitions()).Returns(ruleDefinitions);
+
+            return new EslintBridgeIssueConverter(rulesProvider.Object);
         }
     }
 }
