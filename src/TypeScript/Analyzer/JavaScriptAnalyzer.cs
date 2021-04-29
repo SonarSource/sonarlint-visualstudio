@@ -70,35 +70,18 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
         }
 
-        private JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+        internal /* for testing */ JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
             IRulesProvider rulesProvider,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
-            ILogger logger)
-            : this(eslintBridgeClientFactory,
-                  rulesProvider,
-                  new EslintBridgeIssueConverter(rulesProvider),
-                  telemetryManager,
-                  analysisStatusNotifier,
-                  activeSolutionTracker,
-                  analysisConfigMonitor,
-                  logger)
-        {
-        }
-
-        internal JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
-            IRulesProvider rulesProvider,
-            IEslintBridgeIssueConverter issuesConverter,
-            ITelemetryManager telemetryManager,
-            IAnalysisStatusNotifier analysisStatusNotifier,
-            IActiveSolutionTracker activeSolutionTracker,
-            IAnalysisConfigMonitor analysisConfigMonitor,
-            ILogger logger)
+            ILogger logger,
+            IEslintBridgeIssueConverter issuesConverter = null // settable for testing
+            )
         {
             this.rulesProvider = rulesProvider;
-            this.issuesConverter = issuesConverter;
+            this.issuesConverter = issuesConverter ?? new EslintBridgeIssueConverter(rulesProvider);
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.activeSolutionTracker = activeSolutionTracker;
