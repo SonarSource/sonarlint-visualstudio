@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Analyzes the specified file and returns the detected issues.
+        /// Analyzes the specified javascript file and returns the detected issues.
         /// </summary>
         Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken);
 
@@ -53,6 +53,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// Returns the source files and projects referenced in the tsconfig file
         /// </summary>
         Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Analyzes the specified typescript file and returns the detected issues.
+        /// </summary>
+        Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -126,6 +131,25 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             }
 
             return JsonConvert.DeserializeObject<TSConfigResponse>(responseString);
+        }
+
+        public async Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
+        {
+            var analysisRequest = new AnalysisRequest
+            {
+                FilePath = filePath,
+                IgnoreHeaderComments = true,
+                TSConfigFilePaths = new[] {tsConfigFilePath}
+            };
+
+            var responseString = await httpWrapper.PostAsync("analyze-ts", analysisRequest, cancellationToken);
+
+            if (string.IsNullOrEmpty(responseString))
+            {
+                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
+            }
+
+            return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
 
         private Task Close()
