@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             CheckExpectedRuleKeys(result, "active 1", "active 2");
             CheckConfigurationsAreEmpty(result);
@@ -63,7 +63,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             CheckExpectedRuleKeys(result, "bug", "codesmell", "vuln");
             CheckConfigurationsAreEmpty(result);
@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             CheckExpectedRuleKeys(result, "aaa", "bbb");
             CheckConfigurationsAreEmpty(result);
@@ -96,7 +96,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, EmptyUserSettingsProvider);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             CheckExpectedRuleKeys(result, "aaa");
             result[0].Configurations.Should().ContainInOrder(config1, config2);
@@ -123,7 +123,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, userSettings);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             result.Length.Should().Be(expectedRuleCount);
         }
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, userSettings);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             result.Length.Should().Be(1);
             result[0].Key.Should().Be("active1");
@@ -159,7 +159,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             var testSubject = CreateTestSubject(ruleDefns, userSettings);
 
-            var result = testSubject.Get().ToArray();
+            var result = testSubject.Calculate().ToArray();
 
             result.Length.Should().Be(0);
         }

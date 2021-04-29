@@ -21,6 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
@@ -28,15 +30,20 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
     [TestClass]
     public class RulesProviderTests
     {
+        private static readonly ActiveRulesCalculator ValidActiveRulesCalculator = new ActiveRulesCalculator(null, null);
+
         [TestMethod]
         public void Ctor_InvalidArg_Throws()
         {
-            Action act = () => new RulesProvider(null);
+            Action act = () => new RulesProvider(null, Mock.Of<IActiveRulesCalculator>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleDefinitions");
+
+            act = () => new RulesProvider(Array.Empty<RuleDefinition>(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("activeRulesCalculator");
         }
 
         [TestMethod]
-        public void GetDefinitions_ReturnsExpectedDefinitions()
+        public void GetDefinitions_ReturnsExpected()
         {
             var defns = new RuleDefinition[]
             {
@@ -44,9 +51,29 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
                 new RuleDefinition { RuleKey = "key2" }
             };
 
-            var testSubject = new RulesProvider(defns);
+            var testSubject = new RulesProvider(defns, ValidActiveRulesCalculator);
 
             testSubject.GetDefinitions().Should().BeEquivalentTo(defns);
+        }
+
+
+        [TestMethod]
+        public void GetActiveRulesConfig_ReturnsExpected()
+        {
+            var defns = Array.Empty<RuleDefinition>();
+            var activeRulesConfig = new[]
+            {
+                new Rule{ Key = "key1" }, new Rule{ Key = "key2" }
+            };
+
+            var calculator = new Mock<IActiveRulesCalculator>();
+            calculator.Setup(x => x.Calculate()).Returns(activeRulesConfig);
+
+            var testSubject = new RulesProvider(defns, calculator.Object);
+
+            testSubject.GetActiveRulesConfiguration().Should().BeEquivalentTo(activeRulesConfig);
+            calculator.VerifyAll();
+            calculator.VerifyNoOtherCalls();
         }
     }
 }
