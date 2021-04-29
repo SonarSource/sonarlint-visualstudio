@@ -44,8 +44,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         public IAnalysisIssue Convert(string filePath, Issue issue)
         {
             var ruleDefinitions = rulesProvider.GetDefinitions();
-            var ruleDefinition = ruleDefinitions.SingleOrDefault(x => x.EslintKey == issue.RuleId);
-            var sonarRuleKey = rulesProvider.GetSonarRuleKey(issue.RuleId);
+            var ruleDefinition = ruleDefinitions.Single(x => x.EslintKey.Equals(issue.RuleId, StringComparison.OrdinalIgnoreCase));
+            var sonarRuleKey = ruleDefinition.RuleKey;
 
             return new AnalysisIssue(
                 sonarRuleKey,
