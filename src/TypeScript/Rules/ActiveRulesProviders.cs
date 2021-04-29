@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             calc = new ActiveRulesCalculator(jsRuleDefinitions.GetDefinitions(), userSettingsProvider);
         }
 
-        public IEnumerable<Rule> Get() => calc.Get();
+        public IEnumerable<Rule> Get() => calc.Calculate();
     }
 
     [Export(typeof(IActiveTypeScriptRulesProvider))]
@@ -70,6 +70,6 @@ namespace SonarLint.VisualStudio.TypeScript.Rules
             calc = new ActiveRulesCalculator(tsRuleDefinitions.GetDefinitions(), userSettingsProvider);
         }
 
-        public IEnumerable<Rule> Get() => calc.Get();
+        public IEnumerable<Rule> Get() => calc.Calculate();
     }
 }
