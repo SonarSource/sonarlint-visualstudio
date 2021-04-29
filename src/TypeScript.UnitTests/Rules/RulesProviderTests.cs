@@ -48,24 +48,5 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Rules
 
             testSubject.GetDefinitions().Should().BeEquivalentTo(defns);
         }
-
-        [TestMethod]
-        [DataRow(null, null)]
-        [DataRow("unknown es lint key", null)]
-        [DataRow("eslint common", "typescript:common")]
-        [DataRow("eslint ts S1135", "typescript:S1135")]
-        [DataRow("ESLINT TS S1135", "typescript:S1135")] // case-insensitive
-        public void GetSonarRuleKey_ReturnsExpected(string eslintRuleKey, string expected)
-        {
-            var defns = new RuleDefinition[]
-            {
-                new RuleDefinition { EslintKey = "eslint common", RuleKey = "typescript:common"},
-                new RuleDefinition { EslintKey = "eslint ts S1135", RuleKey = "typescript:S1135"},
-                new RuleDefinition { EslintKey = "should be ignored", RuleKey = "foo"}
-            };
-
-            var testSubject = new RulesProvider(defns);
-            testSubject.GetSonarRuleKey(eslintRuleKey).Should().Be(expected);
-        }
     }
 }
