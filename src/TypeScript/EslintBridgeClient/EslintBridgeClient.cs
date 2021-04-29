@@ -92,25 +92,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             return httpWrapper.PostAsync("init-linter", initLinterRequest, cancellationToken);
         }
 
-        public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
-        {
-            var analysisRequest = new AnalysisRequest
-            {
-                FilePath = filePath,
-                IgnoreHeaderComments = true,
-                TSConfigFilePaths = Array.Empty<string>() // eslint-bridge generates a default tsconfig for JS analysis
-            };
-
-            var responseString = await httpWrapper.PostAsync("analyze-js", analysisRequest, cancellationToken);
-
-            if (string.IsNullOrEmpty(responseString))
-            {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
-            }
-
-            return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
-        }
-
         public async Task NewTsConfig(CancellationToken cancellationToken)
         {
             var responseString = await httpWrapper.PostAsync("new-tsconfig", null, cancellationToken);
@@ -133,16 +114,22 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             return JsonConvert.DeserializeObject<TSConfigResponse>(responseString);
         }
 
-        public async Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
+        public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
+            => await Analyze("analyze-js", filePath, Array.Empty<string>(), cancellationToken);
+
+        public async Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken) 
+            => await Analyze("analyze-ts", filePath, new []{tsConfigFilePath}, cancellationToken);
+
+        private async Task<AnalysisResponse> Analyze(string endpoint, string filePath, string[] tsConfigFilePaths, CancellationToken cancellationToken)
         {
             var analysisRequest = new AnalysisRequest
             {
                 FilePath = filePath,
                 IgnoreHeaderComments = true,
-                TSConfigFilePaths = new[] {tsConfigFilePath}
+                TSConfigFilePaths = tsConfigFilePaths
             };
 
-            var responseString = await httpWrapper.PostAsync("analyze-ts", analysisRequest, cancellationToken);
+            var responseString = await httpWrapper.PostAsync(endpoint, analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
