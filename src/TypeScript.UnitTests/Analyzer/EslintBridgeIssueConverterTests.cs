@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var eslintBridgeIssue = new Issue
             {
-                RuleId = "rule id",
+                RuleId = "eslint rule id",
                 Column = 1,
                 EndColumn = 2,
                 Line = 3,
@@ -48,21 +48,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 Message = "some message"
             };
 
-            Func<string, string> keyMapper = inputKey => "mapped " + inputKey;
             var ruleDefinitions = new[]
             {
                 new RuleDefinition
                 {
-                    EslintKey = eslintBridgeIssue.RuleId,
+                    EslintKey = "eslint rule id",
+                    RuleKey = "sonar rule key",
                     Type = RuleType.CODE_SMELL,
                     Severity = RuleSeverity.MAJOR
                 }
             };
 
-            var testSubject = CreateTestSubject(keyMapper, ruleDefinitions);
+            var testSubject = CreateTestSubject(ruleDefinitions);
             var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
 
-            convertedIssue.RuleKey.Should().Be("mapped rule id");
+            convertedIssue.RuleKey.Should().Be("sonar rule key");
             convertedIssue.StartLine.Should().Be(3);
             convertedIssue.StartLineOffset.Should().Be(1);
             convertedIssue.EndLine.Should().Be(4);
@@ -71,6 +71,58 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             convertedIssue.LineHash.Should().BeNull();
             convertedIssue.Type.Should().Be(AnalysisIssueType.CodeSmell);
             convertedIssue.Severity.Should().Be(AnalysisIssueSeverity.Major);
+        }
+
+        [TestMethod]
+        [DataRow("aaa", "aaa")]
+        [DataRow("aaa", "AAA")]
+        [DataRow("AAA", "aaa")]
+        [DataRow("AAA", "AAA")]
+        public void Convert_KeyMatchingIsCaseInsensitive(string keyInIssue, string keyInDefinition)
+        {
+            var eslintBridgeIssue = new Issue { RuleId = keyInIssue };
+
+            var ruleDefinitions = new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = keyInDefinition,
+                    RuleKey = "sonar rule key"
+                }
+            };
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+            var convertedIssue = testSubject.Convert("some file", eslintBridgeIssue);
+
+            convertedIssue.RuleKey.Should().Be("sonar rule key");
+        }
+
+        [TestMethod]
+        public void Convert_UnrecognisedESLintKey_Throws()
+        {
+            // This test demonstrates what will happen if eslintbridge returns a rule with
+            // an unrecognised rule -> exception throw.
+            // We don't expect it to happen in practice, since eslint should only run the rules we ask it to
+            // run. However, this test shows we'll get an error in that case -> issues will be lost.
+
+            var eslintBridgeIssue = new Issue
+            {
+                RuleId = "unknown eslint rule",
+            };
+
+            var ruleDefinitions = new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = "known eslint",
+                    RuleKey = "known sonar",
+                }
+            };
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+
+            Action act = () => testSubject.Convert("some file", eslintBridgeIssue);
+            act.Should().Throw<InvalidOperationException>();
         }
 
         [TestMethod]
@@ -158,9 +210,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             act.Should().ThrowExactly<ArgumentOutOfRangeException>().And.ParamName.Should().Be("ruleType");
         }
 
-        private EslintBridgeIssueConverter CreateTestSubject(Func<string, string> keyMapper = null, IEnumerable<RuleDefinition> ruleDefinitions = null)
+        private EslintBridgeIssueConverter CreateTestSubject(IEnumerable<RuleDefinition> ruleDefinitions = null)
         {
-            keyMapper ??= key => key;
             ruleDefinitions ??= new[]
             {
                 new RuleDefinition
@@ -170,7 +221,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             };
 
             var rulesProvider = new Mock<IRulesProvider>();
-            rulesProvider.Setup(x => x.GetSonarRuleKey(It.IsAny<string>())).Returns(keyMapper);
             rulesProvider.Setup(x => x.GetDefinitions()).Returns(ruleDefinitions);
 
             return new EslintBridgeIssueConverter(rulesProvider.Object);
