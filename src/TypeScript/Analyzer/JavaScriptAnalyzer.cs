@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     {
         private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
 
-        private readonly IActiveJavaScriptRulesProvider activeRulesProvider;
+        private readonly IRulesProvider rulesProvider;
         private readonly IEslintBridgeIssueConverter issuesConverter;
         private readonly ITelemetryManager telemetryManager;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
@@ -55,33 +55,33 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         [ImportingConstructor]
         public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
             IRulesProviderFactory rulesProviderFactory,
-            IActiveJavaScriptRulesProvider activeRulesProvider,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
-            : this(eslintBridgeClientFactory, activeRulesProvider,
-                new EslintBridgeIssueConverter(rulesProviderFactory.Create("javascript")),
-                telemetryManager,
-                analysisStatusNotifier,
-                activeSolutionTracker,
-                analysisConfigMonitor,
-                logger)
+            : this(eslintBridgeClientFactory,
+                  rulesProviderFactory.Create("javascript"),
+                  telemetryManager,
+                  analysisStatusNotifier,
+                  activeSolutionTracker,
+                  analysisConfigMonitor,
+                  logger)
         {
         }
 
-        internal JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
-            IActiveJavaScriptRulesProvider activeRulesProvider,
-            IEslintBridgeIssueConverter issuesConverter,
+        internal /* for testing */ JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+            IRulesProvider rulesProvider,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
-            ILogger logger)
+            ILogger logger,
+            IEslintBridgeIssueConverter issuesConverter = null // settable for testing
+            )
         {
-            this.activeRulesProvider = activeRulesProvider;
-            this.issuesConverter = issuesConverter;
+            this.rulesProvider = rulesProvider;
+            this.issuesConverter = issuesConverter ?? new EslintBridgeIssueConverter(rulesProvider);
             this.telemetryManager = telemetryManager;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.activeSolutionTracker = activeSolutionTracker;
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
                 if (shouldInitLinter)
                 {
-                    await eslintBridgeClient.InitLinter(activeRulesProvider.Get(), cancellationToken);
+                    await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
                     shouldInitLinter = false;
                 }
             }
