@@ -98,6 +98,36 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public void Convert_SkipsDefinitionsWithoutEsLintKey()
+        {
+            var eslintBridgeIssue = new Issue
+            {
+                RuleId = "eslint rule",
+            };
+
+            var ruleDefinitions = new[]
+            {
+                new RuleDefinition
+                {
+                    EslintKey = null,
+                    RuleKey = "known sonar1",
+                },
+                new RuleDefinition
+                {
+                    EslintKey = "eslint rule",
+                    RuleKey = "known sonar2",
+                }
+            };
+
+            var testSubject = CreateTestSubject(ruleDefinitions);
+
+            var result = testSubject.Convert("some file", eslintBridgeIssue);
+
+            result.Should().NotBeNull();
+            result.RuleKey.Should().Be("known sonar2");
+        }
+
+        [TestMethod]
         public void Convert_UnrecognisedESLintKey_Throws()
         {
             // This test demonstrates what will happen if eslintbridge returns a rule with
