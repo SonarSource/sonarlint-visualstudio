@@ -61,7 +61,7 @@
   <!-- ***************************************************************** -->
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="16.8.3038" GeneratePathProperty="true">
       <IncludeAssets>runtime; build; native; contentfiles; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -87,16 +87,13 @@
     <PluginUrl>https://binaries.sonarsource.com/Distribution/sonar-javascript-plugin/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
     <TypeScriptFolderName>ts</TypeScriptFolderName>
 	
-	<!-- TODO - delete the following property once the new version of the SonarJS plugin has been released. See #2270 -->
-	<PluginUrl>https://repox.jfrog.io/repox/sonarsource/org/sonarsource/javascript/sonar-javascript-plugin/$(EmbeddedSonarJSAnalyzerVersion)/sonar-javascript-plugin-$(EmbeddedSonarJSAnalyzerVersion).jar</PluginUrl>
-	
     <!-- Folder the embedded files should be copied to. This folder should be excluded from source code control. -->
     <TypeScriptTargetDirectory>$(MSBuildThisFileDirectory)$(TypeScriptFolderName)</TypeScriptTargetDirectory>
 	
     <!-- Hook the target that fetches the additional files into to the build process. 
          This needs to be set after the SDK targets have been imported.
     -->
-    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypeScriptFiles</PrepareForBuildDependsOn>
+    <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);GetTypeScriptFiles;ModifyVsixUtilCorFlags</PrepareForBuildDependsOn>
     <!-- By default the SDK targets only zip Release builds. We'll always zip since the file is very large otherwise. -->
     <ZipPackageCompressionLevel>Normal</ZipPackageCompressionLevel>
   </PropertyGroup>
@@ -135,6 +132,18 @@
         <Visible>false</Visible>
       </Content>
     </ItemGroup>
+  </Target>
+
+  <PropertyGroup>
+    <VsixUtilPath>$(PkgMicrosoft_VSSDK_BuildTools)\tools\vssdk\bin\VsixUtil.exe</VsixUtilPath>
+    <CorFlagsPath>$(MSBuildThisFileDirectory)\..\..\build\CorFlags.exe</CorFlagsPath>
+  </PropertyGroup>
+  
+  <Target Name="ModifyVsixUtilCorFlags">
+    <!-- VsixUtil.exe is running by default with "32-bit required" flag, which is causing Out of Memory exceptions when building the VSIX 
+         due to too many files. We are using CorFlags.exe to change the flag and that fixes the problem and allows the Vsix to be built. -->
+    <Message Importance="high" Text="Modifying VsixUtil.exe CorFlags" />
+    <Exec Command="&quot;$(CorFlagsPath)&quot; &quot;$(VsixUtilPath)&quot; /32BITREQ- /force" />
   </Target>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
