@@ -93,7 +93,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             var testSubject = CreateTestSubject(vsUiShellOpenDocument.Object);
             var result = testSubject.Locate();
 
-            result.Count().Should().Be(TsConfigsLocator.MaxNumberOfFiles);
+            result.Count.Should().Be(TsConfigsLocator.MaxNumberOfFiles);
             result.Should().NotContain(foundFiles.Last());
         }
 

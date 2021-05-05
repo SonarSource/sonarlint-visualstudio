@@ -33,8 +33,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         /// <summary>
         /// Returns all the tsconfig files in the current solution.
         /// </summary>
-        /// <returns></returns>
-        IEnumerable<string> Locate();
+        IReadOnlyList<string> Locate();
     }
 
     [Export(typeof(ITsConfigsLocator))]
@@ -51,7 +50,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
             vsUiShellOpenDocument = serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
         }
 
-        public IEnumerable<string> Locate()
+        public IReadOnlyList<string> Locate()
         {
             var foundFiles = new string[MaxNumberOfFiles];
 
@@ -61,8 +60,8 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 foundFiles);
 
             return hr != VSConstants.S_OK
-                ? Enumerable.Empty<string>()
-                : foundFiles.Where(x => !string.IsNullOrEmpty(x));
+                ? Array.Empty<string>()
+                : foundFiles.Where(x => !string.IsNullOrEmpty(x)).ToArray();
         }
     }
 }
