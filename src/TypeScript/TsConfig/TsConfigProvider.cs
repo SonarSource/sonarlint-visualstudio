@@ -19,7 +19,6 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
@@ -51,65 +50,18 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         public async Task<string> GetConfigForFile(string sourceFilePath, IEslintBridgeClient eslintBridgeClient, CancellationToken cancellationToken)
         {
             var allTsConfigsFilePaths = tsConfigsLocator.Locate();
-            var checkedTsConfigs = new List<string>();
 
             foreach (var tsConfigsFilePath in allTsConfigsFilePaths)
             {
-                var contains = await ContainsSourceFile(sourceFilePath,
-                    tsConfigsFilePath,
-                    checkedTsConfigs,
-                    eslintBridgeClient,
-                    cancellationToken);
+                var response = await eslintBridgeClient.TsConfigFiles(tsConfigsFilePath, cancellationToken);
 
-                if (contains)
+                if (response.Files != null && response.Files.Contains(sourceFilePath, StringComparer.OrdinalIgnoreCase))
                 {
                     return tsConfigsFilePath;
                 }
             }
 
             return null;
-        }
-
-        private async Task<bool> ContainsSourceFile(string sourceFilePath,
-            string tsConfigFilePath,
-            ICollection<string> checkedTsConfigs,
-            IEslintBridgeClient eslintBridgeClient,
-            CancellationToken cancellationToken)
-        {
-            if (checkedTsConfigs.Contains(tsConfigFilePath))
-            {
-                return false;
-            }
-
-            checkedTsConfigs.Add(tsConfigFilePath);
-
-            var response = await eslintBridgeClient.TsConfigFiles(tsConfigFilePath, cancellationToken);
-
-            if (response.Files != null && response.Files.Contains(sourceFilePath, StringComparer.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            if (response.ProjectReferences == null || !response.ProjectReferences.Any())
-            {
-                return false;
-            }
-
-            foreach (var childTsConfigFilePath in response.ProjectReferences)
-            {
-                var contains = await ContainsSourceFile(sourceFilePath,
-                    childTsConfigFilePath,
-                    checkedTsConfigs,
-                    eslintBridgeClient,
-                    cancellationToken);
-
-                if (contains)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }
