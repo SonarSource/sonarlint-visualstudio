@@ -18,11 +18,11 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
             {
                 var response = await eslintBridgeClient.TsConfigFiles(tsConfigsFilePath, cancellationToken);
 
-                if (response.Files != null && response.Files.Contains(sourceFilePath, StringComparer.OrdinalIgnoreCase))
+                if (response.Files != null && response.Files.Any(x=> PathHelper.IsMatchingPath(x, sourceFilePath)))
                 {
                     return tsConfigsFilePath;
                 }
