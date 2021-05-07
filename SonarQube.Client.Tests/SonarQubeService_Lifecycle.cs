@@ -51,6 +51,49 @@ namespace SonarQube.Client.Tests
         }
 
         [TestMethod]
+        public async Task Connect_To_SonarQube_Invalid_Credentials()
+        {
+            // The earliest version that supports authentication
+            SetupRequest("api/server/version", "3.3.0.0");
+            SetupRequest("api/authentication/validate", "{ \"valid\": false }");
+
+            service.IsConnected.Should().BeFalse();
+            service.ServerInfo.Should().BeNull();
+
+            Func<Task> act = () => service.ConnectAsync(
+                new ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
+                CancellationToken.None);
+
+            var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+            ex.WithMessage("Invalid credentials");
+
+            service.IsConnected.Should().BeFalse();
+            service.ServerInfo.Should().BeNull();
+        }
+
+        [TestMethod] // Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2406
+        public async Task Connect_ServerIsNotReachable_IsConnectedIsFalse()
+        {
+            SetupRequest("api/server/version", "3.3.0.0");
+
+            SetupRequestWithOperation("api/server/version",
+                () => throw new ApplicationException("Thrown in test"));
+
+            service.IsConnected.Should().BeFalse();
+            service.ServerInfo.Should().BeNull();
+
+            Func<Task> act = () => service.ConnectAsync(
+                new ConnectionInformation(new Uri("http://localhost"), "user", "pass".ToSecureString()),
+                CancellationToken.None);
+
+            var ex = await act.Should().ThrowAsync<ApplicationException>();
+            ex.WithMessage("Thrown in test");
+
+            service.IsConnected.Should().BeFalse();
+            service.ServerInfo.Should().BeNull();
+        }
+
+        [TestMethod]
         [DataRow("http://localhost")]
         [DataRow("https://localhost/")]
         [DataRow("https://localhost:9000")]

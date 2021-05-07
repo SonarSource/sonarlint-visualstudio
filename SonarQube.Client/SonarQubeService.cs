@@ -136,28 +136,38 @@ namespace SonarQube.Client
 
             requestFactory = requestFactorySelector.Select(connection.IsSonarCloud, logger);
 
-            IsConnected = true;
-            var serverTypeDescription = connection.IsSonarCloud ? "SonarCloud" : "SonarQube";
+            try
+            {
+                // We have to set IsConnected to true here, otherwise the two calls to InvokeRequestAsync
+                // below will fail. However, at this point we don't really know if the server is running
+                // so the web calls could fail.
+                IsConnected = true;
+                var serverTypeDescription = connection.IsSonarCloud ? "SonarCloud" : "SonarQube";
 
-            logger.Debug($"Getting the version of {serverTypeDescription}...");
+                logger.Debug($"Getting the version of {serverTypeDescription}...");
 
-            var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
-            ServerInfo = new ServerInfo(Version.Parse(versionResponse),
-                connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
+                var versionResponse = await InvokeRequestAsync<IGetVersionRequest, string>(token);
+                ServerInfo = new ServerInfo(Version.Parse(versionResponse),
+                    connection.IsSonarCloud ? ServerType.SonarCloud : ServerType.SonarQube);
 
-            logger.Info($"Connected to {serverTypeDescription} '{ServerInfo.Version}'.");
+                logger.Info($"Connected to {serverTypeDescription} '{ServerInfo.Version}'.");
 
-            logger.Debug($"Validating the credentials...");
+                logger.Debug($"Validating the credentials...");
 
-            var credentialResponse = await InvokeRequestAsync<IValidateCredentialsRequest, bool>(token);
-            if (!credentialResponse)
+                var credentialResponse = await InvokeRequestAsync<IValidateCredentialsRequest, bool>(token);
+                if (!credentialResponse)
+                {
+                    throw new InvalidOperationException("Invalid credentials");
+                }
+
+                logger.Debug($"Credentials accepted.");
+            }
+            catch
             {
                 IsConnected = false;
                 ServerInfo = null;
-                throw new InvalidOperationException("Invalid credentials");
+                throw;
             }
-
-            logger.Debug($"Credentials accepted.");
         }
 
         public void Disconnect()
