@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
@@ -25,13 +26,74 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
+using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
+using SonarLint.VisualStudio.TypeScript.Rules;
+using SonarLint.VisualStudio.TypeScript.TsConfig;
 
 namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     [Export(typeof(IAnalyzer))]
     internal sealed class TypeScriptAnalyzer : IAnalyzer
     {
+        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
+
+        private readonly ITsConfigProvider tsConfigProvider;
+        private readonly IRulesProvider rulesProvider;
+        private readonly IEslintBridgeIssueConverter issuesConverter;
+        private readonly IAnalysisStatusNotifier analysisStatusNotifier;
+        private readonly IActiveSolutionTracker activeSolutionTracker;
+        private readonly IAnalysisConfigMonitor analysisConfigMonitor;
+        private readonly ILogger logger;
+        private readonly IEslintBridgeClient eslintBridgeClient;
+
+        private bool shouldInitLinter = true;
+
+        [ImportingConstructor]
+        public TypeScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+            IRulesProviderFactory rulesProviderFactory,
+            ITsConfigProvider tsConfigProvider,
+            IAnalysisStatusNotifier analysisStatusNotifier,
+            IActiveSolutionTracker activeSolutionTracker,
+            IAnalysisConfigMonitor analysisConfigMonitor,
+            ILogger logger)
+            : this(eslintBridgeClientFactory,
+                rulesProviderFactory.Create("typescript"),
+                tsConfigProvider,
+                analysisStatusNotifier,
+                activeSolutionTracker,
+                analysisConfigMonitor,
+                logger)
+        {
+        }
+
+        internal /* for testing */ TypeScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+            IRulesProvider rulesProvider,
+            ITsConfigProvider tsConfigProvider,
+            IAnalysisStatusNotifier analysisStatusNotifier,
+            IActiveSolutionTracker activeSolutionTracker,
+            IAnalysisConfigMonitor analysisConfigMonitor,
+            ILogger logger,
+            IEslintBridgeIssueConverter issuesConverter = null // settable for testing
+        )
+        {
+            this.rulesProvider = rulesProvider;
+            this.tsConfigProvider = tsConfigProvider;
+            this.issuesConverter = issuesConverter ?? new EslintBridgeIssueConverter(rulesProvider);
+            this.analysisStatusNotifier = analysisStatusNotifier;
+            this.activeSolutionTracker = activeSolutionTracker;
+            this.analysisConfigMonitor = analysisConfigMonitor;
+            this.logger = logger;
+
+            eslintBridgeClient = eslintBridgeClientFactory.Create();
+
+            activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
+            analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;
+        }
+
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
         {
             return languages.Contains(AnalysisLanguage.TypeScript);
@@ -51,6 +113,119 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
+            // Switch to a background thread
+            await TaskScheduler.Default;
+
+            analysisStatusNotifier.AnalysisStarted(filePath);
+
+            try
+            {
+                await EnsureEslintBridgeClientIsInitialized(cancellationToken);
+                var stopwatch = Stopwatch.StartNew();
+                var tsConfig = await tsConfigProvider.GetConfigForFile(filePath, eslintBridgeClient, cancellationToken);
+
+                if (string.IsNullOrEmpty(tsConfig))
+                {
+                    logger.WriteLine("[TypescriptAnalyzer] Could not find tsconfig for file: {0}", filePath);
+                    // TODO: bug, doesn't clear the progress bar from "analysis started"
+                    return;
+                }
+
+                var analysisResponse = await eslintBridgeClient.AnalyzeTs(filePath, tsConfig, cancellationToken);
+
+                var numberOfIssues = analysisResponse.Issues?.Count() ?? 0;
+                analysisStatusNotifier.AnalysisFinished(filePath, numberOfIssues, stopwatch.Elapsed);
+
+                if (analysisResponse.ParsingError != null)
+                {
+                    LogParsingError(filePath, analysisResponse.ParsingError);
+                    // TODO: bug, doesn't clear the progress bar from "analysis started"
+                    return;
+                }
+
+                var issues = ConvertIssues(filePath, analysisResponse.Issues);
+
+                if (issues.Any())
+                {
+                    consumer.Accept(filePath, issues);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                analysisStatusNotifier.AnalysisCancelled(filePath);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                analysisStatusNotifier.AnalysisFailed(filePath, ex);
+                RequireLinterUpdate();
+            }
+        }
+
+        private async Task EnsureEslintBridgeClientIsInitialized(CancellationToken cancellationToken)
+        {
+            try
+            {
+                serverInitLocker.WaitOne();
+
+                if (shouldInitLinter)
+                {
+                    await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
+                    shouldInitLinter = false;
+                }
+            }
+            finally
+            {
+                serverInitLocker.Set();
+            }
+        }
+
+        private IEnumerable<IAnalysisIssue> ConvertIssues(string filePath, IEnumerable<Issue> analysisResponseIssues) =>
+            analysisResponseIssues.Select(x => issuesConverter.Convert(filePath, x));
+
+        /// <summary>
+        /// Java version: https://github.com/SonarSource/SonarJS/blob/1916267988093cb5eb1d0b3d74bb5db5c0dbedec/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/AbstractEslintSensor.java#L134
+        /// </summary>
+        private void LogParsingError(string path, ParsingError parsingError)
+        {
+            if (parsingError.Code == ParsingErrorCode.MISSING_TYPESCRIPT)
+            {
+                logger.WriteLine(Resources.ERR_ParsingError_MissingTypescript);
+            }
+            else if (parsingError.Code == ParsingErrorCode.UNSUPPORTED_TYPESCRIPT)
+            {
+                logger.WriteLine(parsingError.Message);
+                logger.WriteLine(Resources.ERR_ParsingError_UnsupportedTypescript);
+            }
+            else
+            {
+                logger.WriteLine(Resources.ERR_ParsingError_General, path, parsingError.Line, parsingError.Code, parsingError.Message);
+            }
+        }
+
+        public void Dispose()
+        {
+            activeSolutionTracker.ActiveSolutionChanged -= ActiveSolutionTracker_ActiveSolutionChanged;
+            analysisConfigMonitor.ConfigChanged -= AnalysisConfigMonitor_ConfigChanged;
+
+            eslintBridgeClient?.Dispose();
+            serverInitLocker?.Dispose();
+        }
+
+        private void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        {
+            RequireLinterUpdate();
+        }
+
+        private void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
+        {
+            RequireLinterUpdate();
+        }
+
+        private void RequireLinterUpdate()
+        {
+            serverInitLocker.WaitOne();
+            shouldInitLinter = true;
+            serverInitLocker.Set();
         }
     }
 }
