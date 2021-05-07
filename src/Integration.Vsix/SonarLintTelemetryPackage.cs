@@ -53,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expecting to be on the UI thread");
 
-            var logger = await this.GetMefServiceAsync<ILogger>();
+            ILogger logger = null;
 
             // HACK: the telemetry manager has to be imported on the UI thread because
             // of a complicated chain of transitive dependencies:
@@ -62,6 +62,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // The ui and non-ui parts of the host should be split into separate classes.
             try
             {
+                logger = await this.GetMefServiceAsync<ILogger>();
+
                 logger.WriteLine(Resources.Strings.Telemetry_Initializing);
                 telemetryManager = await this.GetMefServiceAsync<ITelemetryManager>();
                 logger.WriteLine(Resources.Strings.Telemetry_InitializationComplete);
@@ -74,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 // Suppress non-critical exceptions
-                logger.WriteLine(Resources.Strings.Telemetry_ERROR, ex.Message);
+                logger?.WriteLine(Resources.Strings.Telemetry_ERROR, ex.Message);
             }
         }
 
