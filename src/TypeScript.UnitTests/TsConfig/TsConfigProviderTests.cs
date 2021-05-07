@@ -82,8 +82,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         [TestMethod]
-        [DataRow("tested file")]
-        [DataRow("tested FILE")] // case-insensitive
+        [DataRow("tested\\file")] // exact match
+        [DataRow("tested\\FILE")] // case-insensitive
+        [DataRow("tested/FILE")] // different slashes
         public async Task GetConfigForFile_SourceFileFoundInTsConfig_OtherTsConfigsNotChecked(string foundFileName)
         {
             var tsConfigsInSolution = new[] { "config1", "config2", "config3" };
@@ -98,7 +99,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             });
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object);
-            var result = await testSubject.GetConfigForFile("tested file", eslintBridgeClient.Object, CancellationToken.None);
+            var result = await testSubject.GetConfigForFile("tested\\file", eslintBridgeClient.Object, CancellationToken.None);
             result.Should().Be("config2");
 
             eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
