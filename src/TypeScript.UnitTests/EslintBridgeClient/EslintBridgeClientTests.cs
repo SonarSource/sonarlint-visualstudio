@@ -166,7 +166,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         {
             var httpWrapper = SetupHttpWrapper("tsconfig-files",
                 response: JsonConvert.SerializeObject(new TSConfigResponse()),
-                assertReceivedRequest: receivedRequest => receivedRequest.Should().Be("some path"));
+                assertReceivedRequest: receivedRequest =>
+                {
+                    var tsConfigRequest = receivedRequest as TsConfigRequest;
+                    tsConfigRequest.Should().NotBeNull();
+                    tsConfigRequest.TsConfig.Should().Be("some path");
+                });
             var token = new CancellationToken();
 
             var testSubject = CreateTestSubject(httpWrapper.Object);

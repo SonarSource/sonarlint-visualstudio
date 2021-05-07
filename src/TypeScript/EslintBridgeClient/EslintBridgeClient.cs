@@ -104,7 +104,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         public async Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken)
         {
-            var responseString = await httpWrapper.PostAsync("tsconfig-files", tsConfigFilePath, cancellationToken);
+            var request = new TsConfigRequest {TsConfig = tsConfigFilePath};
+            var responseString = await httpWrapper.PostAsync("tsconfig-files", request, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
