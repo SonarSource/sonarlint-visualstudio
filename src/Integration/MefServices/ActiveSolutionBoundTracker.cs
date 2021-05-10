@@ -127,9 +127,6 @@ namespace SonarLint.VisualStudio.Integration
                 await Core.WebServiceHelper.SafeServiceCallAsync(() => sonarQubeService.ConnectAsync(connectionInformation,
                     CancellationToken.None), this.logger);
             }
-
-            Debug.Assert((boundProject != null) == sonarQubeService.IsConnected,
-                $"Inconsistent connection state: Solution bound={boundProject != null}, service connected={sonarQubeService.IsConnected}");
         }
 
         private void OnBindingStateChanged(object sender, BindingStateEventArgs e)
