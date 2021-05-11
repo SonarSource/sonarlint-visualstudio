@@ -160,8 +160,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
-            var port = await testSubject.Start();
-            port.Should().Be(123);
+            var result = await testSubject.Start();
+            result.Should().NotBeNull();
+            result.Port.Should().Be(123);
+            result.IsNewProcess.Should().Be(true);
         }
 
         [TestMethod]
@@ -173,11 +175,15 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var nodeLocator = SetupNodeLocator(fakeNodeExePath);
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
-            var port = await testSubject.Start();
-            port.Should().Be(123);
+            var result = await testSubject.Start();
+            result.Should().NotBeNull();
+            result.Port.Should().Be(123);
+            result.IsNewProcess.Should().Be(true);
 
-            port = await testSubject.Start();
-            port.Should().Be(123);
+            result = await testSubject.Start();
+            result.Should().NotBeNull();
+            result.Port.Should().Be(123);
+            result.IsNewProcess.Should().Be(false);
 
             nodeLocator.Verify(x => x.Locate(), Times.Once);
         }
@@ -198,8 +204,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             Func<Task> act = async () => await testSubject.Start();
             act.Should().Throw<NotImplementedException>().And.Message.Should().Be("some exception");
 
-            var port = await testSubject.Start();
-            port.Should().Be(123);
+            var result = await testSubject.Start();
+            result.Should().NotBeNull();
+            result.Port.Should().Be(123);
+            result.IsNewProcess.Should().Be(true);
         }
 
         [TestMethod]

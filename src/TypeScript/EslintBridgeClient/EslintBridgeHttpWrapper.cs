@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         public async Task<string> PostAsync(string serverEndpoint, object request, CancellationToken cancellationToken)
         {
             var port = await eslintBridgeProcess.Start();
-            var fullServerUrl = BuildServerUri(port, serverEndpoint);
+            var fullServerUrl = BuildServerUri(port.Port, serverEndpoint);
 
             var serializedRequest = request == null
                 ? string.Empty
