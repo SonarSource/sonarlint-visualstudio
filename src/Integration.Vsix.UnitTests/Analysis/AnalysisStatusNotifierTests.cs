@@ -131,6 +131,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
         }
 
         [TestMethod]
+        [DataRow("foo-failed.cpp", "foo-failed.cpp")]
+        [DataRow("c:\\test\\foo-failed.cpp", "foo-failed.cpp")]
+        [DataRow("..\\test\\foo-failed.cpp", "foo-failed.cpp")]
+        public void AnalysisFailed_FailureMessage_DisplayMessageAndStopSpinner(string filePath, string expectedNotifiedFileName)
+        {
+            var expectedMessage = string.Format(AnalysisStrings.Notifier_AnalysisFailed, expectedNotifiedFileName);
+
+            testSubject.AnalysisFailed(filePath, "test message");
+
+            VerifyStatusBarMessageAndIcon(expectedMessage, false);
+        }
+
+        [TestMethod]
         public void AnalysisFailed_LogToOutputWindow()
         {
             var exception = new NullReferenceException("test message");
@@ -138,6 +151,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Analysis
             testSubject.AnalysisFailed(filePath, exception);
 
             var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisFailed, filePath, exception);
+            logger.AssertOutputStringExists(expectedMessage);
+            logger.OutputStrings.Count.Should().Be(1);
+        }
+
+        [TestMethod]
+        public void AnalysisFailed_FailureMessage_LogToOutputWindow()
+        {
+            var filePath = "c:\\test\\foo-started.cpp";
+            testSubject.AnalysisFailed(filePath, "test message");
+
+            var expectedMessage = string.Format(AnalysisStrings.MSG_AnalysisFailed, filePath, "test message");
             logger.AssertOutputStringExists(expectedMessage);
             logger.OutputStrings.Count.Should().Be(1);
         }

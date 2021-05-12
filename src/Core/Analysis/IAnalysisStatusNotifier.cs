@@ -28,5 +28,6 @@ namespace SonarLint.VisualStudio.Core.Analysis
         void AnalysisFinished(string filePath, int issueCount, TimeSpan analysisTime);
         void AnalysisCancelled(string filePath);
         void AnalysisFailed(string filePath, Exception ex);
+        void AnalysisFailed(string filePath, string failureMessage);
     }
 }
