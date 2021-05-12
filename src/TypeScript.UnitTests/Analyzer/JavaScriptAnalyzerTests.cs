@@ -427,6 +427,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public void OnSolutionChanged_StopsEslintBridgeClient()
+        {
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+
+            CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object);
+
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(true));
+
+            client.Verify(x=> x.Close(), Times.Once);
+        }
+
+        [TestMethod]
         public async Task OnConfigChanged_NextAnalysisCallsInitLinter()
         {
             var analysisConfigMonitor = SetupAnalysisConfigMonitor();
@@ -444,6 +457,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
 
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public void OnConfigChanged_StopsEslintBridgeClient()
+        {
+            var analysisConfigMonitor = SetupAnalysisConfigMonitor();
+            var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
+
+            CreateTestSubject(client.Object, analysisConfigMonitor: analysisConfigMonitor.Object);
+
+            analysisConfigMonitor.Raise(x => x.ConfigChanged += null, EventArgs.Empty);
+
+            client.Verify(x => x.Close(), Times.Once);
         }
 
         [TestMethod]
