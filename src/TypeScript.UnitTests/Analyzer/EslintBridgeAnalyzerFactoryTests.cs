@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
@@ -39,16 +40,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             MefTestHelpers.CheckTypeCanBeImported<EslintBridgeAnalyzerFactory, IEslintBridgeAnalyzerFactory>(null, new[]
             {
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(Mock.Of<IActiveSolutionTracker>()),
-                MefTestHelpers.CreateExport<IAnalysisConfigMonitor>(Mock.Of<IAnalysisConfigMonitor>())
+                MefTestHelpers.CreateExport<IAnalysisConfigMonitor>(Mock.Of<IAnalysisConfigMonitor>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
         [TestMethod]
         public void Create_CreatesEslintBridgeAnalyzer()
         {
-            var testSubject = new EslintBridgeAnalyzerFactory(Mock.Of<IActiveSolutionTracker>(), Mock.Of<IAnalysisConfigMonitor>());
+            var testSubject = new EslintBridgeAnalyzerFactory(
+                Mock.Of<IActiveSolutionTracker>(),
+                Mock.Of<IAnalysisConfigMonitor>(),
+                Mock.Of<ILogger>());
 
             var result = testSubject.Create(Mock.Of<IRulesProvider>(), Mock.Of<IEslintBridgeClient>());
+
             result.Should().NotBeNull();
         }
     }

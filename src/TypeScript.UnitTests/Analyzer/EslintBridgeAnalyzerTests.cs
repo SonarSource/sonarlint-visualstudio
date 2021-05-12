@@ -28,6 +28,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
@@ -58,18 +60,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             analysisConfigMonitor.VerifyAdd(x => x.ConfigChanged += It.IsAny<EventHandler>(), Times.Once);
             analysisConfigMonitor.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public async Task Analyze_Success_ReturnsAnalysisResponse()
-        {
-            var response = new AnalysisResponse { Issues = new List<Issue> { new Issue() } };
-            var client = SetupEslintBridgeClient(response);
-
-            var testSubject = CreateTestSubject(client.Object);
-            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
-
-            result.Should().Be(response);
         }
 
         [TestMethod]
@@ -165,7 +155,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         {
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
             var activeRulesProvider = SetupActiveRulesProvider(activeRules);
-            var eslintBridgeClient = SetupEslintBridgeClient(response: null);
+            var eslintBridgeClient = SetupEslintBridgeClient(response: new AnalysisResponse());
 
             var testSubject = CreateTestSubject(eslintBridgeClient.Object, activeRulesProvider.Object);
 
@@ -269,6 +259,148 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             client.Verify(x => x.Close(), Times.Once);
         }
 
+        [TestMethod]
+        public async Task Analyze_ResponseWithParsingError_MissingTypescript_ParsingErrorLogged()
+        {
+            var logger = new TestLogger();
+
+            var parsingError = new ParsingError
+            {
+                Code = ParsingErrorCode.MISSING_TYPESCRIPT,
+                Line = 5,
+                Message = "some message"
+            };
+
+            await SetupAnalysisWithParsingError(parsingError, logger);
+
+            logger.AssertPartialOutputStringExists(TypeScript.Analyzer.Resources.ERR_ParsingError_MissingTypescript);
+        }
+
+        [TestMethod]
+        public async Task Analyze_ResponseWithParsingError_UnsupportedTypescript_ParsingErrorLogged()
+        {
+            var logger = new TestLogger();
+
+            var parsingError = new ParsingError
+            {
+                Code = ParsingErrorCode.UNSUPPORTED_TYPESCRIPT,
+                Line = 5,
+                Message = "some message"
+            };
+
+            await SetupAnalysisWithParsingError(parsingError, logger);
+
+            logger.AssertPartialOutputStringExists(TypeScript.Analyzer.Resources.ERR_ParsingError_UnsupportedTypescript);
+        }
+
+        [TestMethod]
+        [DataRow(ParsingErrorCode.FAILING_TYPESCRIPT)]
+        [DataRow(ParsingErrorCode.GENERAL_ERROR)]
+        [DataRow(ParsingErrorCode.PARSING)]
+        [DataRow((ParsingErrorCode)1234)]
+        public async Task Analyze_ResponseWithParsingError_ParsingErrorLogged(int errorCode)
+        {
+            var logger = new TestLogger();
+
+            var parsingError = new ParsingError
+            {
+                Code = (ParsingErrorCode)errorCode,
+                Line = 5,
+                Message = "some message"
+            };
+
+            await SetupAnalysisWithParsingError(parsingError, logger);
+
+            logger.AssertPartialOutputStringExists(parsingError.Code.ToString());
+            logger.AssertPartialOutputStringExists(parsingError.Message);
+            logger.AssertPartialOutputStringExists(parsingError.Line.ToString());
+        }
+
+        [TestMethod]
+        public async Task Analyze_ResponseWithParsingError_IssuesIgnoredAndEmptyListReturned()
+        {
+            var response = new AnalysisResponse
+            {
+                ParsingError = new ParsingError
+                {
+                    Code = ParsingErrorCode.PARSING,
+                    Line = 5,
+                    Message = "some message"
+                },
+                Issues = new List<Issue>
+                {
+                    new Issue {Message = "issue1"},
+                    new Issue {Message = "issue2"}
+                }
+            };
+
+            var eslintBridgeClient = SetupEslintBridgeClient(response: response);
+            var issueConverter = new Mock<IEslintBridgeIssueConverter>();
+
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            issueConverter.VerifyNoOtherCalls();
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task Analyze_ResponseWithNoIssues_ReturnsEmptyList()
+        {
+            var response = new AnalysisResponse { Issues = null };
+            var eslintBridgeClient = SetupEslintBridgeClient(response: response);
+            var issueConverter = new Mock<IEslintBridgeIssueConverter>();
+
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            issueConverter.VerifyNoOtherCalls();
+            result.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task Analyze_ResponseWithIssues_ReturnsConvertedIssues()
+        {
+            var response = new AnalysisResponse
+            {
+                Issues = new List<Issue>
+                {
+                    new Issue {Message = "issue1"},
+                    new Issue {Message = "issue2"}
+                }
+            };
+
+            var convertedIssues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
+
+            var issueConverter = new Mock<IEslintBridgeIssueConverter>();
+            SetupConvertedIssue(issueConverter, "some path", response.Issues.First(), convertedIssues[0]);
+            SetupConvertedIssue(issueConverter, "some path", response.Issues.Last(), convertedIssues[1]);
+
+            var eslintBridgeClient = SetupEslintBridgeClient(response: response);
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, issueConverter: issueConverter.Object);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            result.Should().BeEquivalentTo(convertedIssues);
+        }
+
+        private static void SetupConvertedIssue(Mock<IEslintBridgeIssueConverter> issueConverter,
+            string filePath,
+            Issue eslintBridgeIssue,
+            IAnalysisIssue convertedIssue)
+        {
+            issueConverter
+                .Setup(x => x.Convert(filePath, eslintBridgeIssue))
+                .Returns(convertedIssue);
+        }
+
+        private async Task SetupAnalysisWithParsingError(ParsingError parsingError, ILogger logger)
+        {
+            var response = new AnalysisResponse { ParsingError = parsingError };
+            var eslintBridgeClient = SetupEslintBridgeClient(response: response);
+            var testSubject = CreateTestSubject(eslintBridgeClient.Object, logger: logger);
+            await testSubject.Analyze("some path", "some config", CancellationToken.None);
+        }
+
         private Mock<IEslintBridgeClient> SetupEslintBridgeClient(AnalysisResponse response = null, Exception exceptionToThrow = null)
         {
             var eslintBridgeClient = new Mock<IEslintBridgeClient>();
@@ -316,17 +448,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             IEslintBridgeClient eslintBridgeClient = null,
             IRulesProvider rulesProvider = null,
             IActiveSolutionTracker activeSolutionTracker = null,
-            IAnalysisConfigMonitor analysisConfigMonitor = null)
+            IAnalysisConfigMonitor analysisConfigMonitor = null,
+            IEslintBridgeIssueConverter issueConverter = null,
+            ILogger logger = null)
         {
             eslintBridgeClient ??= SetupEslintBridgeClient().Object;
             rulesProvider ??= Mock.Of<IRulesProvider>();
             activeSolutionTracker ??= Mock.Of<IActiveSolutionTracker>();
             analysisConfigMonitor ??= Mock.Of<IAnalysisConfigMonitor>();
+            issueConverter ??= Mock.Of<IEslintBridgeIssueConverter>();
+            logger ??= Mock.Of<ILogger>();
 
             return new EslintBridgeAnalyzer(rulesProvider,
                 eslintBridgeClient,
                 activeSolutionTracker,
-                analysisConfigMonitor);
+                analysisConfigMonitor,
+                issueConverter,
+                logger);
         }
     }
 }

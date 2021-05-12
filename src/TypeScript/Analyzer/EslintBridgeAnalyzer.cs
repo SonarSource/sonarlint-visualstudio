@@ -20,10 +20,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
@@ -32,7 +34,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 {
     internal interface IEslintBridgeAnalyzer : IDisposable
     {
-        Task<AnalysisResponse> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken);
+        Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken);
     }
 
     internal sealed class EslintBridgeAnalyzer : IEslintBridgeAnalyzer
@@ -43,6 +45,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly IEslintBridgeClient eslintBridgeClient;
         private readonly IActiveSolutionTracker activeSolutionTracker;
         private readonly IAnalysisConfigMonitor analysisConfigMonitor;
+        private readonly IEslintBridgeIssueConverter issueConverter;
+        private readonly ILogger logger;
 
         private bool shouldInitLinter = true;
 
@@ -50,37 +54,54 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IRulesProvider rulesProvider,
             IEslintBridgeClient eslintBridgeClient,
             IActiveSolutionTracker activeSolutionTracker,
-            IAnalysisConfigMonitor analysisConfigMonitor)
+            IAnalysisConfigMonitor analysisConfigMonitor,
+            IEslintBridgeIssueConverter issueConverter,
+            ILogger logger)
         {
             this.rulesProvider = rulesProvider;
             this.eslintBridgeClient = eslintBridgeClient;
             this.activeSolutionTracker = activeSolutionTracker;
             this.analysisConfigMonitor = analysisConfigMonitor;
+            this.issueConverter = issueConverter;
+            this.logger = logger;
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
             analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;
         }
 
-        public async Task<AnalysisResponse> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
+        public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
         {
             try
             {
-                return await GetAnalysisResponse(filePath, tsConfig, cancellationToken);
+                return await GetFileIssues(filePath, tsConfig, cancellationToken);
             }
             catch (EslintBridgeClientNotInitializedException)
             {
                 RequireLinterUpdate();
-                return await GetAnalysisResponse(filePath, tsConfig, cancellationToken);
+                return await GetFileIssues(filePath, tsConfig, cancellationToken);
             }
         }
 
-        private async Task<AnalysisResponse> GetAnalysisResponse(string filePath, string tsConfig, CancellationToken cancellationToken)
+        private async Task<IReadOnlyCollection<IAnalysisIssue>> GetFileIssues(string filePath, string tsConfig, CancellationToken cancellationToken)
         {
             await EnsureEslintBridgeClientIsInitialized(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
 
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
-            return analysisResponse;
+            if (analysisResponse.ParsingError != null)
+            {
+                LogParsingError(filePath, analysisResponse.ParsingError);
+                return Array.Empty<IAnalysisIssue>();
+            }
+
+            if (analysisResponse.Issues == null)
+            {
+                return Array.Empty<IAnalysisIssue>();
+            }
+
+            var issues = ConvertIssues(filePath, analysisResponse.Issues);
+
+            return issues;
         }
 
         private async Task EnsureEslintBridgeClientIsInitialized(IEnumerable<Rule> activeRules, CancellationToken cancellationToken)
@@ -131,5 +152,28 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             shouldInitLinter = true;
             serverInitLocker.Set();
         }
+
+        /// <summary>
+        /// Java version: https://github.com/SonarSource/SonarJS/blob/1916267988093cb5eb1d0b3d74bb5db5c0dbedec/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/AbstractEslintSensor.java#L134
+        /// </summary>
+        private void LogParsingError(string path, ParsingError parsingError)
+        {
+            if (parsingError.Code == ParsingErrorCode.MISSING_TYPESCRIPT)
+            {
+                logger.WriteLine(Resources.ERR_ParsingError_MissingTypescript);
+            }
+            else if (parsingError.Code == ParsingErrorCode.UNSUPPORTED_TYPESCRIPT)
+            {
+                logger.WriteLine(parsingError.Message);
+                logger.WriteLine(Resources.ERR_ParsingError_UnsupportedTypescript);
+            }
+            else
+            {
+                logger.WriteLine(Resources.ERR_ParsingError_General, path, parsingError.Line, parsingError.Code, parsingError.Message);
+            }
+        }
+
+        private IReadOnlyCollection<IAnalysisIssue> ConvertIssues(string filePath, IEnumerable<Issue> analysisResponseIssues) =>
+            analysisResponseIssues.Select(x => issueConverter.Convert(filePath, x)).ToList();
     }
 }
