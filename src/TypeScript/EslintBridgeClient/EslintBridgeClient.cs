@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         /// <summary>
         /// Analyzes the specified javascript file and returns the detected issues.
+        /// Throws <see cref="EslintBridgeClientNotInitializedException"/> if <seealso cref="InitLinter"/> should be called.
         /// </summary>
         Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken);
 
@@ -56,9 +57,13 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         /// <summary>
         /// Analyzes the specified typescript file and returns the detected issues.
+        /// Throws <see cref="EslintBridgeClientNotInitializedException"/> if <seealso cref="InitLinter"/> should be called.
         /// </summary>
         Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
     }
+
+    internal class EslintBridgeClientNotInitializedException : Exception
+    {}
 
     /// <summary>
     /// Matching Java implementation: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/JavaScriptEslintBasedSensor.java#L51
@@ -134,7 +139,15 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 TSConfigFilePaths = tsConfigFilePaths
             };
 
-            var responseString = await MakeCall(endpoint, analysisRequest, cancellationToken);
+            var result = await eslintBridgeProcess.Start();
+
+            if (result.IsNewProcess)
+            {
+                throw new EslintBridgeClientNotInitializedException();
+            }
+
+            var fullServerUrl = BuildServerUri(result.Port, endpoint);
+            var responseString = await httpWrapper.PostAsync(fullServerUrl, analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {

@@ -156,6 +156,38 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
+        public async Task ExecuteAnalysis_EslintBridgeClientNotInitializedException_CallsInitLinterAgain()
+        {
+            var validResponse = new AnalysisResponse {Issues = new List<Issue>()};
+            var client = SetupEslintBridgeClient(validResponse);
+            var testSubject = CreateTestSubject(client.Object);
+
+            // First call: response is valid, InitLinter should be called once
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            // Second call: response is still valid, InitLinter should not be called
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            // Setup for 3rd call
+            client.Setup(x => x.AnalyzeJs("some path", CancellationToken.None))
+                .ThrowsAsync(new EslintBridgeClientNotInitializedException());
+
+            // Third call: response is now invalid, InitLinter should be called next time
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
+
+            // Setup for 4th call
+            client.Setup(x => x.AnalyzeJs("some path", CancellationToken.None))
+                .ReturnsAsync(validResponse);
+
+            // Forth call: because previous response failed, init InitLinter should be called now
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [TestMethod]
         public async Task ExecuteAnalysis_EslintBridgeClientCalledWithCorrectParams()
         {
             var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
