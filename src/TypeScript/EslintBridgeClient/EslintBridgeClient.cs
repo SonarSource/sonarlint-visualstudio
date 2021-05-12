@@ -39,51 +39,50 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         Task InitLinter(IEnumerable<Rule> rules, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Analyzes the specified javascript file and returns the detected issues.
+        /// Analyzes the specified file and returns the detected issues.
         /// Throws <see cref="EslintBridgeClientNotInitializedException"/> if <seealso cref="InitLinter"/> should be called.
         /// </summary>
-        Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Notifies eslintbridge that a different config file will be used.
-        /// </summary>
-        /// <remarks>Resource optimisation - tells the eslintbridge that it can discard some cached data</remarks>
-        Task NewTsConfig(CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Returns the source files and projects referenced in the tsconfig file
-        /// </summary>
-        Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken);
-
-        /// <summary>
-        /// Analyzes the specified typescript file and returns the detected issues.
-        /// Throws <see cref="EslintBridgeClientNotInitializedException"/> if <seealso cref="InitLinter"/> should be called.
-        /// </summary>
-        Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
+        Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
     }
 
-    internal class EslintBridgeClientNotInitializedException : Exception
-    {}
+    [Serializable]
+    public class EslintBridgeClientNotInitializedException : Exception
+    {
+        public EslintBridgeClientNotInitializedException()
+        {
+        }
+
+        protected EslintBridgeClientNotInitializedException(
+            System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 
     /// <summary>
     /// Matching Java implementation: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/sonar-javascript-plugin/src/main/java/org/sonar/plugins/javascript/eslint/JavaScriptEslintBasedSensor.java#L51
     /// Eslint-bridge methods: https://github.com/SonarSource/SonarJS/blob/0dda9105bab520569708e230f4d2dffdca3cec74/eslint-bridge/src/server.ts
     /// </summary>
-    internal sealed class EslintBridgeClient : IEslintBridgeClient
+    internal class EslintBridgeClient : IEslintBridgeClient
     {
+        private readonly string analyzeEndpoint;
         private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
+        private bool isDisposed;
 
-        public EslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
-            : this(eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
+        public EslintBridgeClient(string analyzeEndpoint, IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
+            : this(analyzeEndpoint, eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
         {
         }
 
-        internal EslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, 
+        internal EslintBridgeClient(string analyzeEndpoint, 
+            IEslintBridgeProcess eslintBridgeProcess,
             IEslintBridgeHttpWrapper httpWrapper,
             IAnalysisConfiguration analysisConfiguration)
         {
+            this.analyzeEndpoint = analyzeEndpoint;
             this.eslintBridgeProcess = eslintBridgeProcess;
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
@@ -101,37 +100,10 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             return MakeCall("init-linter", initLinterRequest, cancellationToken);
         }
 
-        public async Task NewTsConfig(CancellationToken cancellationToken)
+        public async Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken)
         {
-            var responseString = await MakeCall("new-tsconfig", null, cancellationToken);
+            var tsConfigFilePaths = tsConfigFilePath == null ? Array.Empty<string>() : new[] {tsConfigFilePath};
 
-            if (!responseString.Equals("OK!", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
-            }
-        }
-
-        public async Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken)
-        {
-            var request = new TsConfigRequest {TsConfig = tsConfigFilePath};
-            var responseString = await MakeCall("tsconfig-files", request, cancellationToken);
-
-            if (string.IsNullOrEmpty(responseString))
-            {
-                throw new InvalidOperationException(Resources.ERR_InvalidResponse);
-            }
-
-            return JsonConvert.DeserializeObject<TSConfigResponse>(responseString);
-        }
-
-        public async Task<AnalysisResponse> AnalyzeJs(string filePath, CancellationToken cancellationToken)
-            => await Analyze("analyze-js", filePath, Array.Empty<string>(), cancellationToken);
-
-        public async Task<AnalysisResponse> AnalyzeTs(string filePath, string tsConfigFilePath, CancellationToken cancellationToken) 
-            => await Analyze("analyze-ts", filePath, new []{tsConfigFilePath}, cancellationToken);
-
-        private async Task<AnalysisResponse> Analyze(string endpoint, string filePath, string[] tsConfigFilePaths, CancellationToken cancellationToken)
-        {
             var analysisRequest = new AnalysisRequest
             {
                 FilePath = filePath,
@@ -146,7 +118,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 throw new EslintBridgeClientNotInitializedException();
             }
 
-            var fullServerUrl = BuildServerUri(result.Port, endpoint);
+            var fullServerUrl = BuildServerUri(result.Port, analyzeEndpoint);
             var responseString = await httpWrapper.PostAsync(fullServerUrl, analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
@@ -162,22 +134,36 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             return MakeCall("close", null, CancellationToken.None);
         }
 
+        #region IDisposable
+
         public async void Dispose()
         {
-            try
-            {
-                await Close();
-            }
-            catch
-            {
-                // nothing to do if the call failed
-            }
-
-            eslintBridgeProcess.Dispose();
-            httpWrapper.Dispose();
+            await Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
-        private async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
+        protected virtual async Task Dispose(bool disposing)
+        {
+            if (disposing && !isDisposed)
+            {
+                try
+                {
+                    await Close();
+                }
+                catch
+                {
+                    // nothing to do if the call failed
+                }
+
+                eslintBridgeProcess.Dispose();
+                httpWrapper.Dispose();
+                isDisposed = true;
+            }
+        }
+
+        #endregion
+
+        protected async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
         {
             var result = await eslintBridgeProcess.Start();
             var fullServerUrl = BuildServerUri(result.Port, endpoint);
