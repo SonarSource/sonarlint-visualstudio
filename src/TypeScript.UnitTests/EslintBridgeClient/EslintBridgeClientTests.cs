@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     public class EslintBridgeClientTests
     {
         private const int ServerPort = 1234;
+        private const string AnalyzeEndpoint = "dummy-analyze";
 
         [TestMethod]
         public async Task InitLinter_HttpWrapperCalledWithCorrectArguments()
@@ -63,173 +64,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public async Task AnalyzeJs_HttpWrapperCalledWithCorrectArguments()
+        public async Task Analyze_HttpWrapperCalledWithCorrectArguments()
         {
-            var httpWrapper = SetupHttpWrapper("analyze-js", JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
-            {
-                var analysisRequest = receivedRequest as AnalysisRequest;
-                analysisRequest.Should().NotBeNull();
-                analysisRequest.IgnoreHeaderComments.Should().BeTrue();
-                analysisRequest.FilePath.Should().Be("some path");
-                analysisRequest.TSConfigFilePaths.Should().BeEmpty();
-            });
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-
-            var token = new CancellationToken();
-            await testSubject.AnalyzeJs("some path", token);
-
-            httpWrapper.Verify(x => x.PostAsync(BuildServerUri("analyze-js"), It.IsAny<object>(), token), Times.Once);
-            httpWrapper.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        [DataRow("")]
-        [DataRow(null)]
-        public void AnalyzeJs_EmptyResponse_InvalidOperationException(string response)
-        {
-            var httpWrapper = SetupHttpWrapper("analyze-js", response);
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-            Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
-
-            act.Should().ThrowExactly<InvalidOperationException>();
-        }
-
-        [TestMethod]
-        public async Task AnalyzeJs_HasResponse_DeserializedResponse()
-        {
-            var analysisResponse = new AnalysisResponse { Issues = new[] { new Issue { Column = 1, EndColumn = 2 } } };
-            var httpWrapper = SetupHttpWrapper("analyze-js", JsonConvert.SerializeObject(analysisResponse));
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-            var result = await testSubject.AnalyzeJs("some path", CancellationToken.None);
-
-            result.Should().BeEquivalentTo(analysisResponse);
-        }
-
-        [TestMethod]
-        public void AnalyzeJs_FailsToDeserializedResponse_ExceptionThrown()
-        {
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            httpWrapper
-                .Setup(x => x.PostAsync(BuildServerUri("analyze-js"), It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync("invalid json");
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-
-            Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
-            act.Should().ThrowExactly<JsonReaderException>();
-        }
-
-        [TestMethod]
-        public void AnalyzeJs_CriticalException_ExceptionNotCaught()
-        {
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            httpWrapper
-                .Setup(x => x.PostAsync(BuildServerUri("analyze-js"), It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new StackOverflowException());
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-
-            Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
-            act.Should().ThrowExactly<StackOverflowException>();
-        }
-
-        [TestMethod]
-        public void AnalyzeJs_NewEslintBridgeProcess_EslintBridgeClientNotInitializedException()
-        {
-            var eslintBridgeProcess = SetupServerProcess(isNewProcess: true);
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
-
-            Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
-            act.Should().ThrowExactly<EslintBridgeClientNotInitializedException>();
-            httpWrapper.Invocations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        public async Task NewTsConfig_HttpWrapperCalledWithCorrectArguments()
-        {
-            var httpWrapper = SetupHttpWrapper("new-tsconfig",
-                response: "OK!",
-                assertReceivedRequest: receivedRequest => receivedRequest.Should().BeNull());
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-
-            var token = new CancellationToken();
-            await testSubject.NewTsConfig(token);
-
-            httpWrapper.Verify(x => x.PostAsync(BuildServerUri("new-tsconfig"), It.IsAny<object>(), token), Times.Once);
-            httpWrapper.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void NewTsConfig_IncorrectResponse_Throws()
-        {
-            var httpWrapper = SetupHttpWrapper("new-tsconfig",
-                response: "not ok");
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-
-            Func<Task> act = async () => await testSubject.NewTsConfig(new CancellationToken());
-
-            act.Should().ThrowExactly<InvalidOperationException>();
-        }
-
-        [TestMethod]
-        public async Task TSConfigFiles_HttpWrapperCalledWithCorrectArguments()
-        {
-            var httpWrapper = SetupHttpWrapper("tsconfig-files",
-                response: JsonConvert.SerializeObject(new TSConfigResponse()),
-                assertReceivedRequest: receivedRequest =>
-                {
-                    var tsConfigRequest = receivedRequest as TsConfigRequest;
-                    tsConfigRequest.Should().NotBeNull();
-                    tsConfigRequest.TsConfig.Should().Be("some path");
-                });
-            var token = new CancellationToken();
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-            await testSubject.TsConfigFiles("some path", token);
-
-            httpWrapper.Verify(x => x.PostAsync(BuildServerUri("tsconfig-files"), It.IsAny<object>(), token), Times.Once);
-            httpWrapper.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        [DataRow("")]
-        [DataRow(null)]
-        public void TSConfigFiles_EmptyResponse_InvalidOperationException(string response)
-        {
-            var httpWrapper = SetupHttpWrapper("tsconfig-files", response);
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-            Func<Task> act = async () => await testSubject.TsConfigFiles("some path", CancellationToken.None);
-
-            act.Should().ThrowExactly<InvalidOperationException>();
-        }
-
-        [TestMethod]
-        public async Task TSConfigFiles_HasResponse_DeserializedResponse()
-        {
-            var response = new TSConfigResponse
-            {
-                Files = new[] { "file1", "file2" },
-                ProjectReferences = new[] { "ref1", "ref2" },
-                Error = "error",
-                ParsingError = new ParsingError { Line = 111,  Code = ParsingErrorCode.MISSING_TYPESCRIPT, Message = "a message" }
-            };
-
-            var httpWrapper = SetupHttpWrapper("tsconfig-files", JsonConvert.SerializeObject(response));
-
-            var testSubject = CreateTestSubject(httpWrapper.Object);
-            var result = await testSubject.TsConfigFiles("some path", CancellationToken.None);
-
-            result.Should().BeEquivalentTo(response);
-        }
-
-        [TestMethod]
-        public async Task AnalyzeTs_HttpWrapperCalledWithCorrectArguments()
-        {
-            var httpWrapper = SetupHttpWrapper("analyze-ts", JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
+            var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(new AnalysisResponse()), assertReceivedRequest: receivedRequest =>
             {
                 var analysisRequest = receivedRequest as AnalysisRequest;
                 analysisRequest.Should().NotBeNull();
@@ -241,71 +78,71 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(httpWrapper.Object);
 
             var token = new CancellationToken();
-            await testSubject.AnalyzeTs("some path", "some config", token);
+            await testSubject.Analyze("some path", "some config", token);
 
-            httpWrapper.Verify(x => x.PostAsync(BuildServerUri("analyze-ts"), It.IsAny<object>(), token), Times.Once);
+            httpWrapper.Verify(x => x.PostAsync(BuildServerUri(AnalyzeEndpoint), It.IsAny<object>(), token), Times.Once);
             httpWrapper.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         [DataRow("")]
         [DataRow(null)]
-        public void AnalyzeTs_EmptyResponse_InvalidOperationException(string response)
+        public void Analyze_EmptyResponse_InvalidOperationException(string response)
         {
-            var httpWrapper = SetupHttpWrapper("analyze-ts", response);
+            var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, response);
             var testSubject = CreateTestSubject(httpWrapper.Object);
-            Func<Task> act = async () => await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
+            Func<Task> act = async () => await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
             act.Should().ThrowExactly<InvalidOperationException>();
         }
 
         [TestMethod]
-        public async Task AnalyzeTs_HasResponse_DeserializedResponse()
+        public async Task Analyze_HasResponse_DeserializedResponse()
         {
             var analysisResponse = new AnalysisResponse { Issues = new[] { new Issue { Column = 1, EndColumn = 2 } } };
-            var httpWrapper = SetupHttpWrapper("analyze-ts", JsonConvert.SerializeObject(analysisResponse));
+            var httpWrapper = SetupHttpWrapper(AnalyzeEndpoint, JsonConvert.SerializeObject(analysisResponse));
             var testSubject = CreateTestSubject(httpWrapper.Object);
-            var result = await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
             result.Should().BeEquivalentTo(analysisResponse);
         }
 
         [TestMethod]
-        public void AnalyzeTs_FailsToDeserializedResponse_ExceptionThrown()
+        public void Analyze_FailsToDeserializedResponse_ExceptionThrown()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
-                .Setup(x => x.PostAsync(BuildServerUri("analyze-ts"), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(BuildServerUri(AnalyzeEndpoint), It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("invalid json");
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
 
-            Func<Task> act = async () => await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
+            Func<Task> act = async () => await testSubject.Analyze("some path", "some config", CancellationToken.None);
             act.Should().ThrowExactly<JsonReaderException>();
         }
 
         [TestMethod]
-        public void AnalyzeTs_CriticalException_ExceptionNotCaught()
+        public void Analyze_CriticalException_ExceptionNotCaught()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
-                .Setup(x => x.PostAsync(BuildServerUri("analyze-ts"), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+                .Setup(x => x.PostAsync(BuildServerUri(AnalyzeEndpoint), It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new StackOverflowException());
 
             var testSubject = CreateTestSubject(httpWrapper.Object);
 
-            Func<Task> act = async () => await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
+            Func<Task> act = async () => await testSubject.Analyze("some path", "some config", CancellationToken.None);
             act.Should().ThrowExactly<StackOverflowException>();
         }
 
         [TestMethod]
-        public void AnalyzeTs_NewEslintBridgeProcess_EslintBridgeClientNotInitializedException()
+        public void Analyze_NewEslintBridgeProcess_EslintBridgeClientNotInitializedException()
         {
             var eslintBridgeProcess = SetupServerProcess(isNewProcess: true);
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
 
-            Func<Task> act = async () => await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
+            Func<Task> act = async () => await testSubject.Analyze("some path", "some config", CancellationToken.None);
             act.Should().ThrowExactly<EslintBridgeClientNotInitializedException>();
             httpWrapper.Invocations.Should().BeEmpty();
         }
@@ -357,7 +194,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             analysisConfiguration ??= Mock.Of<IAnalysisConfiguration>();
             eslintBridgeProcess ??= SetupServerProcess().Object;
 
-            return new TypeScript.EslintBridgeClient.EslintBridgeClient(eslintBridgeProcess, httpWrapper, analysisConfiguration);
+            return new TypeScript.EslintBridgeClient.EslintBridgeClient(AnalyzeEndpoint, eslintBridgeProcess, httpWrapper, analysisConfiguration);
         }
 
         private static Mock<IEslintBridgeHttpWrapper> SetupHttpWrapper(string endpoint, string response = null, Action<object> assertReceivedRequest = null)

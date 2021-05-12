@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         /// <summary>
         /// Returns the tsconfig file for the given source file, or null if an applicable tsconfig could not be found.
         /// </summary>
-        Task<string> GetConfigForFile(string sourceFilePath, IEslintBridgeClient eslintBridgeClient, CancellationToken cancellationToken);
+        Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken);
     }
 
     [Export(typeof(ITsConfigProvider))]
@@ -40,20 +40,22 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     internal class TsConfigProvider : ITsConfigProvider
     {
         private readonly ITsConfigsLocator tsConfigsLocator;
+        private readonly ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient;
 
         [ImportingConstructor]
-        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator)
+        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient)
         {
             this.tsConfigsLocator = tsConfigsLocator;
+            this.typeScriptEslintBridgeClient = typeScriptEslintBridgeClient;
         }
 
-        public async Task<string> GetConfigForFile(string sourceFilePath, IEslintBridgeClient eslintBridgeClient, CancellationToken cancellationToken)
+        public async Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken)
         {
             var allTsConfigsFilePaths = tsConfigsLocator.Locate();
 
             foreach (var tsConfigsFilePath in allTsConfigsFilePaths)
             {
-                var response = await eslintBridgeClient.TsConfigFiles(tsConfigsFilePath, cancellationToken);
+                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigsFilePath, cancellationToken);
 
                 if (response.Files != null && response.Files.Any(x=> PathHelper.IsMatchingPath(x, sourceFilePath)))
                 {
