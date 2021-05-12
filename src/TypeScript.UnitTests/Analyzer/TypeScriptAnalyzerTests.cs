@@ -1,65 +1,272 @@
-﻿///*
-// * SonarLint for Visual Studio
-// * Copyright (C) 2016-2021 SonarSource SA
-// * mailto:info AT sonarsource DOT com
-// *
-// * This program is free software; you can redistribute it and/or
-// * modify it under the terms of the GNU Lesser General Public
-// * License as published by the Free Software Foundation; either
-// * version 3 of the License, or (at your option) any later version.
-// *
-// * This program is distributed in the hope that it will be useful,
-// * but WITHOUT ANY WARRANTY; without even the implied warranty of
-// * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// * Lesser General Public License for more details.
-// *
-// * You should have received a copy of the GNU Lesser General Public License
-// * along with this program; if not, write to the Free Software Foundation,
-// * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-// */
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2021 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
-//using FluentAssertions;
-//using Microsoft.VisualStudio.TestTools.UnitTesting;
-//using SonarLint.VisualStudio.Core.Analysis;
-//using SonarLint.VisualStudio.Integration.UnitTests;
-//using SonarLint.VisualStudio.TypeScript.Analyzer;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.TypeScript.Analyzer;
+using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
+using SonarLint.VisualStudio.TypeScript.Rules;
+using SonarLint.VisualStudio.TypeScript.TsConfig;
+using Resources = SonarLint.VisualStudio.TypeScript.Analyzer.Resources;
 
-//namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
-//{
-//    [TestClass]
-//    public class TypeScriptAnalyzerTests
-//    {
-//        [TestMethod]
-//        public void MefCtor_CheckIsExported()
-//        {
-//            MefTestHelpers.CheckTypeCanBeImported<TypeScriptAnalyzer, IAnalyzer>(null, null);
-//        }
+namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
+{
+    [TestClass]
+    public class TypeScriptAnalyzerTests
+    {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            var eslintBridgeClient = Mock.Of<ITypeScriptEslintBridgeClient>();
 
-//        [TestMethod]
-//        public void IsAnalysisSupported_NotTypeScript_False()
-//        {
-//            var testSubject = CreateTestSubject();
+            var rulesProvider = Mock.Of<IRulesProvider>();
+            var rulesProviderFactory = new Mock<IRulesProviderFactory>();
+            rulesProviderFactory
+                .Setup(x => x.Create("typescript"))
+                .Returns(rulesProvider);
 
-//            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript };
-//            var result = testSubject.IsAnalysisSupported(languages);
+            var eslintBridgeAnalyzer = Mock.Of<IEslintBridgeAnalyzer>();
+            var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
+            eslintBridgeAnalyzerFactory
+                .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
+                .Returns(eslintBridgeAnalyzer);
 
-//            result.Should().BeFalse();
-//        }
+            MefTestHelpers.CheckTypeCanBeImported<TypeScriptAnalyzer, IAnalyzer>(null, new[]
+            {
+                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(eslintBridgeClient),
+                MefTestHelpers.CreateExport<IRulesProviderFactory>(rulesProviderFactory.Object),
+                MefTestHelpers.CreateExport<ITsConfigProvider>(Mock.Of<ITsConfigProvider>()),
+                MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
+                MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
 
-//        [TestMethod]
-//        public void IsAnalysisSupported_HasTypeScript_True()
-//        {
-//            var testSubject = CreateTestSubject();
+        [TestMethod]
+        public void IsAnalysisSupported_NotTypeScript_False()
+        {
+            var testSubject = CreateTestSubject();
 
-//            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.TypeScript };
-//            var result = testSubject.IsAnalysisSupported(languages);
+            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.Javascript };
+            var result = testSubject.IsAnalysisSupported(languages);
 
-//            result.Should().BeTrue();
-//        }
+            result.Should().BeFalse();
+        }
 
-//        private TypeScriptAnalyzer CreateTestSubject()
-//        {
-//            return new TypeScriptAnalyzer();
-//        }
-//    }
-//}
+        [TestMethod]
+        public void IsAnalysisSupported_HasTypeScript_True()
+        {
+            var testSubject = CreateTestSubject();
+
+            var languages = new[] { AnalysisLanguage.CFamily, AnalysisLanguage.TypeScript };
+            var result = testSubject.IsAnalysisSupported(languages);
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_NoTsConfig_ConsumerNotCalled()
+        {
+            var tsConfigProvider = SetupTsConfigProvider(result: null);
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer();
+            var consumer = new Mock<IIssueConsumer>();
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, tsConfigProvider);
+            await testSubject.ExecuteAnalysis("some path", consumer.Object, CancellationToken.None);
+
+            consumer.VerifyNoOtherCalls();
+            eslintBridgeAnalyzer.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_NoTsConfig_NotifiesThatAnalysisFailed()
+        {
+            var tsConfigProvider = SetupTsConfigProvider(result: null);
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer();
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, tsConfigProvider, statusNotifier: statusNotifier.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            statusNotifier.Verify(x => x.AnalysisStarted("some path"), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed("some path", Resources.ERR_NoTsConfig), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_ResponseWithNoIssues_ConsumerNotCalled()
+        {
+            var issues = Array.Empty<IAnalysisIssue>();
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(issues);
+            var consumer = new Mock<IIssueConsumer>();
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
+            await testSubject.ExecuteAnalysis("some path", consumer.Object, CancellationToken.None);
+
+            consumer.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_ResponseWithIssues_ConsumerCalled()
+        {
+            var issues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(issues);
+            var consumer = new Mock<IIssueConsumer>();
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
+            await testSubject.ExecuteAnalysis("some path", consumer.Object, CancellationToken.None);
+
+            consumer.Verify(x => x.Accept("some path", issues));
+        }
+
+        [TestMethod]
+        public void ExecuteAnalysis_CriticalException_ExceptionThrown()
+        {
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: new StackOverflowException());
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
+
+            Func<Task> act = async () => await testSubject.ExecuteAnalysis("test", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void Dispose_DisposesEslintBridgeAnalyzer()
+        {
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(null);
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object);
+
+            Action act = () => testSubject.Dispose();
+            act.Should().NotThrow();
+
+            eslintBridgeAnalyzer.Verify(x => x.Dispose(), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_AnalysisFailed_NotifiesThatAnalysisFailed()
+        {
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            var exception = new NotImplementedException("this is a test");
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: exception);
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            statusNotifier.Verify(x => x.AnalysisStarted("some path"), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed("some path", exception), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_TaskCancelled_NotifiesThatAnalysisWasCancelled()
+        {
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: new TaskCanceledException());
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            statusNotifier.Verify(x => x.AnalysisStarted("some path"), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisCancelled("some path"), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_AnalysisFinished_NotifiesThatAnalysisFinished()
+        {
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            var issues = new[] { Mock.Of<IAnalysisIssue>(), Mock.Of<IAnalysisIssue>() };
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(issues);
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            statusNotifier.Verify(x => x.AnalysisStarted("some path"), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFinished("some path", 2, It.IsAny<TimeSpan>()), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
+        }
+
+        private Mock<IEslintBridgeAnalyzer> SetupEslintBridgeAnalyzer(IReadOnlyCollection<IAnalysisIssue> issues = null, Exception exceptionToThrow = null)
+        {
+            var eslintBridgeClient = new Mock<IEslintBridgeAnalyzer>();
+            var setup = eslintBridgeClient.Setup(x => x.Analyze(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()));
+
+            if (exceptionToThrow == null)
+            {
+                setup.ReturnsAsync(issues);
+            }
+            else
+            {
+                setup.ThrowsAsync(exceptionToThrow);
+            }
+
+            return eslintBridgeClient;
+        }
+
+        private ITsConfigProvider SetupTsConfigProvider(string result = "some config")
+        {
+            var tsConfigProvider = new Mock<ITsConfigProvider>();
+            tsConfigProvider
+                .Setup(x => x.GetConfigForFile(It.IsAny<string>(), CancellationToken.None))
+                .ReturnsAsync(result);
+
+            return tsConfigProvider.Object;
+        }
+
+        private TypeScriptAnalyzer CreateTestSubject(
+            IEslintBridgeAnalyzer eslintBridgeAnalyzer = null,
+            ITsConfigProvider tsConfigProvider = null,
+            IRulesProvider rulesProvider = null,
+            IAnalysisStatusNotifier statusNotifier = null,
+            ILogger logger = null)
+        {
+            statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
+            rulesProvider ??= Mock.Of<IRulesProvider>();
+            logger ??= Mock.Of<ILogger>();
+            tsConfigProvider ??= SetupTsConfigProvider();
+            eslintBridgeAnalyzer ??= Mock.Of<IEslintBridgeAnalyzer>();
+
+            var rulesProviderFactory = new Mock<IRulesProviderFactory>();
+            rulesProviderFactory.Setup(x => x.Create("typescript")).Returns(rulesProvider);
+
+            var eslintBridgeClient = Mock.Of<ITypeScriptEslintBridgeClient>();
+            var eslintBridgeAnalyzerFactory = new Mock<IEslintBridgeAnalyzerFactory>();
+            eslintBridgeAnalyzerFactory
+                .Setup(x => x.Create(rulesProvider, eslintBridgeClient))
+                .Returns(eslintBridgeAnalyzer);
+
+            return new TypeScriptAnalyzer(eslintBridgeClient,
+                rulesProviderFactory.Object,
+                tsConfigProvider,
+                statusNotifier,
+                eslintBridgeAnalyzerFactory.Object,
+                logger);
+        }
+    }
+}
