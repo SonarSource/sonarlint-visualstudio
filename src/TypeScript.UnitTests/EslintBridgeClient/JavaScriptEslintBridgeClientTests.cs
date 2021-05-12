@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration;
@@ -28,25 +27,16 @@ using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 {
     [TestClass]
-    public class EslintBridgeClientFactoryTests
+    public class JavaScriptEslintBridgeClientTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<EslintBridgeClientFactory, IEslintBridgeClientFactory>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<JavaScriptEslintBridgeClient, IJavaScriptEslintBridgeClient>(null, new[]
             {
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()),
-                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>())
+                MefTestHelpers.CreateExport<IEslintBridgeProcessFactory>(Mock.Of<IEslintBridgeProcessFactory>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
-        }
-
-        [TestMethod]
-        public void Create_CreatesEslintBridgeClient()
-        {
-            var testSubject = new EslintBridgeClientFactory(Mock.Of<IEslintBridgeProcessFactory>(), Mock.Of<ILogger>());
-            var eslintBridgeClient = testSubject.Create();
-
-            eslintBridgeClient.Should().NotBeNull();
         }
     }
 }
