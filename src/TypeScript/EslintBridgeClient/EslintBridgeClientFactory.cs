@@ -43,6 +43,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             this.logger = logger;
         }
 
-        public IEslintBridgeClient Create() => new EslintBridgeClient(eslintBridgeProcessFactory, logger);
+        public IEslintBridgeClient Create() => new EslintBridgeClient(eslintBridgeProcessFactory.Create(), logger);
     }
 }
