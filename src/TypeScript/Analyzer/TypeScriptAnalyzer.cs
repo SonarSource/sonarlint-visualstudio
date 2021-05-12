@@ -150,6 +150,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                     consumer.Accept(filePath, issues);
                 }
             }
+            catch (EslintBridgeClientNotInitializedException)
+            {
+                RequireLinterUpdate();
+            }
             catch (TaskCanceledException)
             {
                 analysisStatusNotifier.AnalysisCancelled(filePath);

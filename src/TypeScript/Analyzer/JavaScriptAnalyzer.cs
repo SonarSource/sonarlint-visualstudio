@@ -132,6 +132,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 if (analysisResponse.ParsingError != null)
                 {
                     LogParsingError(filePath, analysisResponse.ParsingError);
+                    // TODO: bug, doesn't clear the progress bar from "analysis started"
                     return;
                 }
 
@@ -141,6 +142,11 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 {
                     consumer.Accept(filePath, issues);
                 }
+            }
+            catch (EslintBridgeClientNotInitializedException)
+            {
+                RequireLinterUpdate();
+                // TODO: bug, doesn't clear the progress bar from "analysis started"
             }
             catch (TaskCanceledException)
             {
