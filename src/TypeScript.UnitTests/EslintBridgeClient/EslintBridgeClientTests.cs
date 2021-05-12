@@ -187,6 +187,47 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             httpWrapper.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public async Task Close_StopsEslintBridgeProcess()
+        {
+            var eslintBridgeProcess = new Mock<IEslintBridgeProcess>();
+
+            var testSubject = CreateTestSubject(eslintBridgeProcess: eslintBridgeProcess.Object);
+            await testSubject.Close();
+
+            eslintBridgeProcess.Verify(x => x.Stop(), Times.Once);
+            eslintBridgeProcess.Verify(x => x.Dispose(), Times.Never);
+        }
+
+        [TestMethod]
+        public async Task Close_ClosesEslintBridgeServer()
+        {
+            var httpWrapper = SetupHttpWrapper("close");
+            var testSubject = CreateTestSubject(httpWrapper.Object);
+            await testSubject.Close();
+
+            httpWrapper.Verify(x => x.PostAsync(BuildServerUri("close"), null, CancellationToken.None), Times.Once);
+            httpWrapper.Verify(x => x.Dispose(), Times.Never);
+            httpWrapper.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task Close_FailsToCallClose_EslintBridgeProcessStillStopped()
+        {
+            var eslintBridgeProcess = new Mock<IEslintBridgeProcess>();
+
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+            httpWrapper
+                .Setup(x => x.PostAsync(BuildServerUri("close"), null, CancellationToken.None))
+                .Throws<NotImplementedException>();
+
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
+            await testSubject.Close();
+
+            eslintBridgeProcess.Verify(x => x.Stop(), Times.Once);
+            eslintBridgeProcess.Verify(x => x.Dispose(), Times.Never);
+        }
+
         private TypeScript.EslintBridgeClient.EslintBridgeClient CreateTestSubject(IEslintBridgeHttpWrapper httpWrapper = null,
             IAnalysisConfiguration analysisConfiguration = null,
             IEslintBridgeProcess eslintBridgeProcess = null)
