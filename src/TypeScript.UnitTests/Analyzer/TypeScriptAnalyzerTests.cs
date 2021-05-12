@@ -26,6 +26,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.Analyzer;
@@ -63,6 +64,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 MefTestHelpers.CreateExport<ITsConfigProvider>(Mock.Of<ITsConfigProvider>()),
                 MefTestHelpers.CreateExport<IAnalysisStatusNotifier>(Mock.Of<IAnalysisStatusNotifier>()),
                 MefTestHelpers.CreateExport<IEslintBridgeAnalyzerFactory>(eslintBridgeAnalyzerFactory.Object),
+                MefTestHelpers.CreateExport<ITelemetryManager>(Mock.Of<ITelemetryManager>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -87,6 +89,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var result = testSubject.IsAnalysisSupported(languages);
 
             result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public async Task ExecuteAnalysis_AlwaysCollectsTelemetry()
+        {
+            var telemetryManager = new Mock<ITelemetryManager>();
+            var client = SetupEslintBridgeAnalyzer(null);
+
+            var testSubject = CreateTestSubject(client.Object, telemetryManager: telemetryManager.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            telemetryManager.Verify(x => x.LanguageAnalyzed("ts"), Times.Once);
+            telemetryManager.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -244,6 +259,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             ITsConfigProvider tsConfigProvider = null,
             IRulesProvider rulesProvider = null,
             IAnalysisStatusNotifier statusNotifier = null,
+            ITelemetryManager telemetryManager = null,
             ILogger logger = null)
         {
             statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
@@ -251,6 +267,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             logger ??= Mock.Of<ILogger>();
             tsConfigProvider ??= SetupTsConfigProvider();
             eslintBridgeAnalyzer ??= Mock.Of<IEslintBridgeAnalyzer>();
+            telemetryManager ??= Mock.Of<ITelemetryManager>();
 
             var rulesProviderFactory = new Mock<IRulesProviderFactory>();
             rulesProviderFactory.Setup(x => x.Create("typescript")).Returns(rulesProvider);
@@ -266,6 +283,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 tsConfigProvider,
                 statusNotifier,
                 eslintBridgeAnalyzerFactory.Object,
+                telemetryManager,
                 logger);
         }
     }
