@@ -43,6 +43,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// Throws <see cref="EslintBridgeClientNotInitializedException"/> if <seealso cref="InitLinter"/> should be called.
         /// </summary>
         Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Closes running eslint-bridge server.
+        /// </summary>
+        Task Close();
     }
 
     [Serializable]
@@ -129,9 +134,17 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             return JsonConvert.DeserializeObject<AnalysisResponse>(responseString);
         }
 
-        private Task Close()
+        public async Task Close()
         {
-            return MakeCall("close", null, CancellationToken.None);
+            try
+            {
+                await MakeCall("close", null, CancellationToken.None);
+            }
+            catch
+            {
+                // nothing to do if the call failed
+            }
+            eslintBridgeProcess.Stop();
         }
 
         #region IDisposable
