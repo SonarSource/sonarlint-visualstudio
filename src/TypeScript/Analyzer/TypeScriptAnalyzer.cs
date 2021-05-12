@@ -53,14 +53,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private bool shouldInitLinter = true;
 
         [ImportingConstructor]
-        public TypeScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+        public TypeScriptAnalyzer(ITypeScriptEslintBridgeClient eslintBridgeClient,
             IRulesProviderFactory rulesProviderFactory,
             ITsConfigProvider tsConfigProvider,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
-            : this(eslintBridgeClientFactory,
+            : this(eslintBridgeClient,
                 rulesProviderFactory.Create("typescript"),
                 tsConfigProvider,
                 analysisStatusNotifier,
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
         }
 
-        internal /* for testing */ TypeScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+        internal /* for testing */ TypeScriptAnalyzer(ITypeScriptEslintBridgeClient eslintBridgeClient,
             IRulesProvider rulesProvider,
             ITsConfigProvider tsConfigProvider,
             IAnalysisStatusNotifier analysisStatusNotifier,
@@ -80,6 +80,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeIssueConverter issuesConverter = null // settable for testing
         )
         {
+            this.eslintBridgeClient = eslintBridgeClient;
             this.rulesProvider = rulesProvider;
             this.tsConfigProvider = tsConfigProvider;
             this.issuesConverter = issuesConverter ?? new EslintBridgeIssueConverter(rulesProvider);
@@ -87,8 +88,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.activeSolutionTracker = activeSolutionTracker;
             this.analysisConfigMonitor = analysisConfigMonitor;
             this.logger = logger;
-
-            eslintBridgeClient = eslintBridgeClientFactory.Create();
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
             analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;
@@ -122,16 +121,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 await EnsureEslintBridgeClientIsInitialized(cancellationToken);
                 var stopwatch = Stopwatch.StartNew();
-                var tsConfig = await tsConfigProvider.GetConfigForFile(filePath, eslintBridgeClient, cancellationToken);
+                var tsConfig = await tsConfigProvider.GetConfigForFile(filePath, cancellationToken);
 
                 if (string.IsNullOrEmpty(tsConfig))
                 {
                     logger.WriteLine("[TypescriptAnalyzer] Could not find tsconfig for file: {0}", filePath);
-                    // TODO: bug, doesn't clear the progress bar from "analysis started"
                     return;
                 }
 
-                var analysisResponse = await eslintBridgeClient.AnalyzeTs(filePath, tsConfig, cancellationToken);
+                var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
                 var numberOfIssues = analysisResponse.Issues?.Count() ?? 0;
                 analysisStatusNotifier.AnalysisFinished(filePath, numberOfIssues, stopwatch.Elapsed);
