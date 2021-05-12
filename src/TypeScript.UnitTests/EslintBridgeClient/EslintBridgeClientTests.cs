@@ -135,6 +135,18 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        public void AnalyzeJs_NewEslintBridgeProcess_EslintBridgeClientNotInitializedException()
+        {
+            var eslintBridgeProcess = SetupServerProcess(isNewProcess: true);
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
+
+            Func<Task> act = async () => await testSubject.AnalyzeJs("some path", CancellationToken.None);
+            act.Should().ThrowExactly<EslintBridgeClientNotInitializedException>();
+            httpWrapper.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
         public async Task NewTsConfig_HttpWrapperCalledWithCorrectArguments()
         {
             var httpWrapper = SetupHttpWrapper("new-tsconfig",
@@ -284,6 +296,18 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
 
             Func<Task> act = async () => await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
             act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void AnalyzeTs_NewEslintBridgeProcess_EslintBridgeClientNotInitializedException()
+        {
+            var eslintBridgeProcess = SetupServerProcess(isNewProcess: true);
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
+
+            Func<Task> act = async () => await testSubject.AnalyzeTs("some path", "some config", CancellationToken.None);
+            act.Should().ThrowExactly<EslintBridgeClientNotInitializedException>();
+            httpWrapper.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
