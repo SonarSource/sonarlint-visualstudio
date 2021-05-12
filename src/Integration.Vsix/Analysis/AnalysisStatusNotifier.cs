@@ -64,7 +64,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         public void AnalysisFailed(string filePath, Exception ex)
         {
-            logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, ex.ToString());
+            AnalysisFailed(filePath, ex.ToString());
+        }
+
+        public void AnalysisFailed(string filePath, string failureMessage)
+        {
+            logger.WriteLine(AnalysisStrings.MSG_AnalysisFailed, filePath, failureMessage);
 
             Notify(AnalysisStrings.Notifier_AnalysisFailed, filePath, false);
         }

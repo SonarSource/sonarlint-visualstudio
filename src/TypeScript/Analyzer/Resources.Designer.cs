@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not find tsconfig.
+        /// </summary>
+        internal static string ERR_NoTsConfig {
+            get {
+                return ResourceManager.GetString("ERR_NoTsConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to parse file &apos;{0}&apos; at line {1}: {2} {3}.
         /// </summary>
         internal static string ERR_ParsingError_General {
