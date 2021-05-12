@@ -53,14 +53,14 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private bool shouldInitLinter = true;
 
         [ImportingConstructor]
-        public JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+        public JavaScriptAnalyzer(IJavaScriptEslintBridgeClient eslintBridgeClient,
             IRulesProviderFactory rulesProviderFactory,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IActiveSolutionTracker activeSolutionTracker,
             IAnalysisConfigMonitor analysisConfigMonitor,
             ILogger logger)
-            : this(eslintBridgeClientFactory,
+            : this(eslintBridgeClient,
                   rulesProviderFactory.Create("javascript"),
                   telemetryManager,
                   analysisStatusNotifier,
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         {
         }
 
-        internal /* for testing */ JavaScriptAnalyzer(IEslintBridgeClientFactory eslintBridgeClientFactory,
+        internal /* for testing */ JavaScriptAnalyzer(IJavaScriptEslintBridgeClient eslintBridgeClient,
             IRulesProvider rulesProvider,
             ITelemetryManager telemetryManager,
             IAnalysisStatusNotifier analysisStatusNotifier,
@@ -80,6 +80,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             IEslintBridgeIssueConverter issuesConverter = null // settable for testing
             )
         {
+            this.eslintBridgeClient = eslintBridgeClient;
             this.rulesProvider = rulesProvider;
             this.issuesConverter = issuesConverter ?? new EslintBridgeIssueConverter(rulesProvider);
             this.telemetryManager = telemetryManager;
@@ -87,8 +88,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             this.activeSolutionTracker = activeSolutionTracker;
             this.analysisConfigMonitor = analysisConfigMonitor;
             this.logger = logger;
-
-            eslintBridgeClient = eslintBridgeClientFactory.Create();
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
             analysisConfigMonitor.ConfigChanged += AnalysisConfigMonitor_ConfigChanged;
@@ -124,7 +123,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 await EnsureEslintBridgeClientIsInitialized(cancellationToken);
                 var stopwatch = Stopwatch.StartNew();
-                var analysisResponse = await eslintBridgeClient.AnalyzeJs(filePath, cancellationToken);
+                var analysisResponse = await eslintBridgeClient.Analyze(filePath, null, cancellationToken);
 
                 var numberOfIssues = analysisResponse.Issues?.Count() ?? 0;
                 analysisStatusNotifier.AnalysisFinished(filePath, numberOfIssues, stopwatch.Elapsed);
@@ -132,7 +131,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                 if (analysisResponse.ParsingError != null)
                 {
                     LogParsingError(filePath, analysisResponse.ParsingError);
-                    // TODO: bug, doesn't clear the progress bar from "analysis started"
                     return;
                 }
 
