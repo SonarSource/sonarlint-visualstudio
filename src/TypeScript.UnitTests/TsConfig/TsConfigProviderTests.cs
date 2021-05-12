@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             MefTestHelpers.CheckTypeCanBeImported<TsConfigProvider, ITsConfigProvider>(null, new[]
             {
                 MefTestHelpers.CreateExport<ITsConfigsLocator>(Mock.Of<ITsConfigsLocator>()),
+                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(Mock.Of<ITypeScriptEslintBridgeClient>())
             });
         }
 
@@ -49,9 +50,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         {
             var tsConfigsLocator = CreateTsConfigsLocator(Array.Empty<string>());
             var eslintBridgeClient = CreateEslintBridgeClient();
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
 
-            var result = await testSubject.GetConfigForFile("some file", eslintBridgeClient.Object, CancellationToken.None);
+            var result = await testSubject.GetConfigForFile("some file", CancellationToken.None);
             result.Should().BeNull();
 
             eslintBridgeClient.Invocations.Should().BeEmpty();
@@ -71,8 +72,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                 {"config3", new TSConfigResponse{Files = new List<string>{"some file2"}}},
             });
 
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object);
-            var result = await testSubject.GetConfigForFile("some file", eslintBridgeClient.Object, CancellationToken.None);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
+            var result = await testSubject.GetConfigForFile("some file", CancellationToken.None);
             result.Should().BeNull();
 
             eslintBridgeClient.Verify(x=> x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
@@ -98,8 +99,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                 {"config3", new TSConfigResponse()},
             });
 
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object);
-            var result = await testSubject.GetConfigForFile("tested\\file", eslintBridgeClient.Object, CancellationToken.None);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
+            var result = await testSubject.GetConfigForFile("tested\\file", CancellationToken.None);
             result.Should().Be("config2");
 
             eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
@@ -109,7 +110,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         private static void SetupEslintBridgeResponse(
-            Mock<IEslintBridgeClient> eslintBridgeClient,
+            Mock<ITypeScriptEslintBridgeClient> eslintBridgeClient,
             IDictionary<string, TSConfigResponse> response)
         {
             foreach (var responseValues in response)
@@ -128,16 +129,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             return tsConfigsLocator;
         }
 
-        private Mock<IEslintBridgeClient> CreateEslintBridgeClient()
+        private Mock<ITypeScriptEslintBridgeClient> CreateEslintBridgeClient()
         {
-            var eslintBridgeClient = new Mock<IEslintBridgeClient>();
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
 
             return eslintBridgeClient;
         }
 
-        private TsConfigProvider CreateTestSubject(ITsConfigsLocator tsConfigsLocator)
-        {
-            return new TsConfigProvider(tsConfigsLocator);
-        }
+        private TsConfigProvider CreateTestSubject(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient eslintBridgeClient) =>
+            new TsConfigProvider(tsConfigsLocator, eslintBridgeClient);
     }
 }

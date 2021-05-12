@@ -23,26 +23,17 @@ using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 {
-    interface IEslintBridgeClientFactory
-    {
-        IEslintBridgeClient Create();
-    }
+    internal interface IJavaScriptEslintBridgeClient : IEslintBridgeClient
+    { }
 
-    [Export(typeof(IEslintBridgeClientFactory))]
+    [Export(typeof(IJavaScriptEslintBridgeClient))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-
-    internal sealed class EslintBridgeClientFactory : IEslintBridgeClientFactory
+    internal class JavaScriptEslintBridgeClient : EslintBridgeClient, IJavaScriptEslintBridgeClient
     {
-        private readonly IEslintBridgeProcessFactory eslintBridgeProcessFactory;
-        private readonly ILogger logger;
-
         [ImportingConstructor]
-        public EslintBridgeClientFactory(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
+        public JavaScriptEslintBridgeClient(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger) 
+            : base("analyze-js", eslintBridgeProcessFactory.Create(), logger)
         {
-            this.eslintBridgeProcessFactory = eslintBridgeProcessFactory;
-            this.logger = logger;
         }
-
-        public IEslintBridgeClient Create() => new EslintBridgeClient(eslintBridgeProcessFactory.Create(), logger);
     }
 }
