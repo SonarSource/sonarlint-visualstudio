@@ -28,6 +28,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
+using SonarLint.VisualStudio.Core.Telemetry;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.Rules;
@@ -40,8 +41,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
     {
         private readonly ITsConfigProvider tsConfigProvider;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
-        private readonly ILogger logger;
+        private readonly ITelemetryManager telemetryManager;
         private readonly IEslintBridgeAnalyzer eslintBridgeAnalyzer;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
         public TypeScriptAnalyzer(ITypeScriptEslintBridgeClient eslintBridgeClient,
@@ -49,10 +51,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             ITsConfigProvider tsConfigProvider,
             IAnalysisStatusNotifier analysisStatusNotifier,
             IEslintBridgeAnalyzerFactory eslintBridgeAnalyzerFactory,
+            ITelemetryManager telemetryManager,
             ILogger logger)
         {
             this.tsConfigProvider = tsConfigProvider;
             this.analysisStatusNotifier = analysisStatusNotifier;
+            this.telemetryManager = telemetryManager;
             this.logger = logger;
 
             var rulesProvider = rulesProviderFactory.Create("typescript");
@@ -78,6 +82,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         internal async Task ExecuteAnalysis(string filePath, IIssueConsumer consumer, CancellationToken cancellationToken)
         {
+            telemetryManager.LanguageAnalyzed("ts");
+
             // Switch to a background thread
             await TaskScheduler.Default;
 
