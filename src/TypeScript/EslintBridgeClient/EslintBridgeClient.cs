@@ -66,16 +66,20 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     /// </summary>
     internal sealed class EslintBridgeClient : IEslintBridgeClient
     {
+        private readonly IEslintBridgeProcess eslintBridgeProcess;
         private readonly IEslintBridgeHttpWrapper httpWrapper;
         private readonly IAnalysisConfiguration analysisConfiguration;
 
-        public EslintBridgeClient(IEslintBridgeProcessFactory eslintBridgeProcessFactory, ILogger logger)
-            : this(new EslintBridgeHttpWrapper(eslintBridgeProcessFactory, logger), new AnalysisConfiguration())
+        public EslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, ILogger logger)
+            : this(eslintBridgeProcess, new EslintBridgeHttpWrapper(logger), new AnalysisConfiguration())
         {
         }
 
-        internal EslintBridgeClient(IEslintBridgeHttpWrapper httpWrapper, IAnalysisConfiguration analysisConfiguration)
+        internal EslintBridgeClient(IEslintBridgeProcess eslintBridgeProcess, 
+            IEslintBridgeHttpWrapper httpWrapper,
+            IAnalysisConfiguration analysisConfiguration)
         {
+            this.eslintBridgeProcess = eslintBridgeProcess;
             this.httpWrapper = httpWrapper;
             this.analysisConfiguration = analysisConfiguration;
         }
@@ -89,12 +93,12 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 Environments = analysisConfiguration.GetEnvironments()
             };
 
-            return httpWrapper.PostAsync("init-linter", initLinterRequest, cancellationToken);
+            return MakeCall("init-linter", initLinterRequest, cancellationToken);
         }
 
         public async Task NewTsConfig(CancellationToken cancellationToken)
         {
-            var responseString = await httpWrapper.PostAsync("new-tsconfig", null, cancellationToken);
+            var responseString = await MakeCall("new-tsconfig", null, cancellationToken);
 
             if (!responseString.Equals("OK!", StringComparison.OrdinalIgnoreCase))
             {
@@ -105,7 +109,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         public async Task<TSConfigResponse> TsConfigFiles(string tsConfigFilePath, CancellationToken cancellationToken)
         {
             var request = new TsConfigRequest {TsConfig = tsConfigFilePath};
-            var responseString = await httpWrapper.PostAsync("tsconfig-files", request, cancellationToken);
+            var responseString = await MakeCall("tsconfig-files", request, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
@@ -130,7 +134,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 TSConfigFilePaths = tsConfigFilePaths
             };
 
-            var responseString = await httpWrapper.PostAsync(endpoint, analysisRequest, cancellationToken);
+            var responseString = await MakeCall(endpoint, analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
@@ -142,7 +146,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private Task Close()
         {
-            return httpWrapper.PostAsync("close", null, CancellationToken.None);
+            return MakeCall("close", null, CancellationToken.None);
         }
 
         public async void Dispose()
@@ -156,7 +160,19 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 // nothing to do if the call failed
             }
 
+            eslintBridgeProcess.Dispose();
             httpWrapper.Dispose();
         }
+
+        private async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
+        {
+            var result = await eslintBridgeProcess.Start();
+            var fullServerUrl = BuildServerUri(result.Port, endpoint);
+            var response = await httpWrapper.PostAsync(fullServerUrl, request, cancellationToken);
+
+            return response;
+        }
+
+        private Uri BuildServerUri(int port, string endpoint) => new Uri($"http://localhost:{port}/{endpoint}");
     }
 }
