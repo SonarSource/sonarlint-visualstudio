@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to analyze {0}, exception details: {1}.
+        ///   Looks up a localized string similar to Failed to analyze {0}: {1}.
         /// </summary>
         internal static string MSG_AnalysisFailed {
             get {
