@@ -213,14 +213,20 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             serverInitLocker?.Dispose();
         }
 
-        private void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        private async void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
-            RequireLinterUpdate();
+            await StopServer();
         }
 
-        private void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
+        private async void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
+        {
+            await StopServer();
+        }
+
+        private async Task StopServer()
         {
             RequireLinterUpdate();
+            await eslintBridgeClient.Close();
         }
 
         private void RequireLinterUpdate()
