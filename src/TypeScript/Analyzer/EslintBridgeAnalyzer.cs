@@ -135,9 +135,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             await StopServer();
         }
 
-        private async void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
+        private void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
         {
-            await StopServer();
+            RequireLinterUpdate();
         }
 
         private async Task StopServer()

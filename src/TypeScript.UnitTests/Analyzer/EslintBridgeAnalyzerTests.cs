@@ -247,7 +247,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public void OnConfigChanged_StopsEslintBridgeClient()
+        public void OnConfigChanged_DoesNotStopEslintBridgeClient()
         {
             var analysisConfigMonitor = SetupAnalysisConfigMonitor();
             var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
@@ -256,7 +256,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             analysisConfigMonitor.Raise(x => x.ConfigChanged += null, EventArgs.Empty);
 
-            client.Verify(x => x.Close(), Times.Once);
+            client.Verify(x => x.Close(), Times.Never);
         }
 
         [TestMethod]
