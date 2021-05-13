@@ -190,10 +190,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis
 
         private static void CalculateStatuses(SonarCompositeRuleId rule, SonarLintMode mode, out bool isVisible, out bool isEnabled)
         {
-            // Special case: JavaScript
-            // We don't support connected mode for JavaScript at the moment so we allow disabling
+            // Special case: JavaScript and TypeScript
+            // We don't support connected mode for JS/TS at the moment so we allow disabling
             // in connected mode for now. See #770.
-            if (SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.JavaScript, rule.RepoKey))
+            if (SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.JavaScript, rule.RepoKey) ||
+                SonarRuleRepoKeys.AreEqual(SonarRuleRepoKeys.TypeScript, rule.RepoKey))
             {
                 isVisible = true;
                 isEnabled = true;
