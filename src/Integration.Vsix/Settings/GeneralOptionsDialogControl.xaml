@@ -26,7 +26,7 @@
         <TextBlock Grid.Column="1" Grid.Row="0"
                    VerticalAlignment="Center"
                    Margin="5"
-                   TextWrapping="Wrap" ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++/JavaScript rules can be activated/deactivated."/></TextBlock>
+                   TextWrapping="Wrap" ><Run Text="Open the per-user settings file"/><Run Text=" in which C/C++/JavaScript/TypeScript rules can be activated/deactivated."/></TextBlock>
         <StackPanel Grid.Column="1" Grid.Row="1">
             <TextBlock
                    VerticalAlignment="Center"
