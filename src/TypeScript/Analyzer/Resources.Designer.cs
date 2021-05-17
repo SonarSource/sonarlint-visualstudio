@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Linter is undefined.
+        /// </summary>
+        internal static string ERR_ParsingError_LinterNotInitialized {
+            get {
+                return ResourceManager.GetString("ERR_ParsingError_LinterNotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to TypeScript dependency was not found and it is required for analysis..
         /// </summary>
         internal static string ERR_ParsingError_MissingTypescript {

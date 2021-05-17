@@ -123,6 +123,9 @@
   <data name="ERR_ParsingError_General" xml:space="preserve">
     <value>Failed to parse file '{0}' at line {1}: {2} {3}</value>
   </data>
+  <data name="ERR_ParsingError_LinterNotInitialized" xml:space="preserve">
+    <value>Linter is undefined</value>
+  </data>
   <data name="ERR_ParsingError_MissingTypescript" xml:space="preserve">
     <value>TypeScript dependency was not found and it is required for analysis.</value>
   </data>

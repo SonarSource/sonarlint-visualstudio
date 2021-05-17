@@ -71,27 +71,21 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
         {
-            try
-            {
-                return await GetFileIssues(filePath, tsConfig, cancellationToken);
-            }
-            catch (EslintBridgeClientNotInitializedException)
-            {
-                RequireLinterUpdate();
-                return await GetFileIssues(filePath, tsConfig, cancellationToken);
-            }
-        }
-
-        private async Task<IReadOnlyCollection<IAnalysisIssue>> GetFileIssues(string filePath, string tsConfig, CancellationToken cancellationToken)
-        {
             await EnsureEslintBridgeClientIsInitialized(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
-
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
             if (analysisResponse.ParsingError != null)
             {
-                LogParsingError(filePath, analysisResponse.ParsingError);
-                return Array.Empty<IAnalysisIssue>();
+                if (analysisResponse.ParsingError.Message.Contains(Resources.ERR_ParsingError_LinterNotInitialized))
+                {
+                    await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
+                    analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
+                }
+                else
+                {
+                    LogParsingError(filePath, analysisResponse.ParsingError);
+                    return Array.Empty<IAnalysisIssue>();
+                }
             }
 
             if (analysisResponse.Issues == null)

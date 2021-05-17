@@ -34,6 +34,7 @@ using SonarLint.VisualStudio.TypeScript.Analyzer;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.Rules;
+using Resources = SonarLint.VisualStudio.TypeScript.Analyzer.Resources;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 {
@@ -118,9 +119,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task Analyze_EslintBridgeClientNotInitializedException_CallsInitLinter()
+        public async Task Analyze_EslintBridgeClientNotInitializedResponse_CallsInitLinter()
         {
             var validResponse = new AnalysisResponse { Issues = new List<Issue>() };
+            var linterNotInitializedResponse = new AnalysisResponse { ParsingError = new ParsingError{Message = Resources.ERR_ParsingError_LinterNotInitialized} };
             var client = new Mock<IEslintBridgeClient>();
 
             // First analysis: response is valid, InitLinter should be called once (first initialization)
@@ -131,7 +133,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 .SetupSequence(x => x.Analyze("some path", "some config", CancellationToken.None))
                 .ReturnsAsync(validResponse)
                 .ReturnsAsync(validResponse)
-                .ThrowsAsync(new EslintBridgeClientNotInitializedException())
+                .ReturnsAsync(linterNotInitializedResponse)
                 .ReturnsAsync(validResponse)
                 .ReturnsAsync(validResponse);
 

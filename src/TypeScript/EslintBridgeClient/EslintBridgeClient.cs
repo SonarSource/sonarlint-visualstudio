@@ -40,7 +40,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         /// <summary>
         /// Analyzes the specified file and returns the detected issues.
-        /// Throws <see cref="EslintBridgeClientNotInitializedException"/> if <seealso cref="InitLinter"/> should be called.
         /// </summary>
         Task<AnalysisResponse> Analyze(string filePath, string tsConfigFilePath, CancellationToken cancellationToken);
 
@@ -48,21 +47,6 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// Closes running eslint-bridge server.
         /// </summary>
         Task Close();
-    }
-
-    [Serializable]
-    public class EslintBridgeClientNotInitializedException : Exception
-    {
-        public EslintBridgeClientNotInitializedException()
-        {
-        }
-
-        protected EslintBridgeClientNotInitializedException(
-            System.Runtime.Serialization.SerializationInfo info,
-            System.Runtime.Serialization.StreamingContext context)
-            : base(info, context)
-        {
-        }
     }
 
     /// <summary>
@@ -116,15 +100,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 TSConfigFilePaths = tsConfigFilePaths
             };
 
-            var result = await eslintBridgeProcess.Start();
-
-            if (result.IsNewProcess)
-            {
-                throw new EslintBridgeClientNotInitializedException();
-            }
-
-            var fullServerUrl = BuildServerUri(result.Port, analyzeEndpoint);
-            var responseString = await httpWrapper.PostAsync(fullServerUrl, analysisRequest, cancellationToken);
+            var responseString = await MakeCall(analyzeEndpoint, analysisRequest, cancellationToken);
 
             if (string.IsNullOrEmpty(responseString))
             {
@@ -178,8 +154,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         protected async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
         {
-            var result = await eslintBridgeProcess.Start();
-            var fullServerUrl = BuildServerUri(result.Port, endpoint);
+            var port = await eslintBridgeProcess.Start();
+            var fullServerUrl = BuildServerUri(port, endpoint);
             var response = await httpWrapper.PostAsync(fullServerUrl, request, cancellationToken);
 
             return response;
