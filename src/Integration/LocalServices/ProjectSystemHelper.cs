@@ -67,6 +67,13 @@ namespace SonarLint.VisualStudio.Integration
             this.serviceProvider = serviceProvider;
         }
 
+        public IVsHierarchy GetFileVsHierarchy(string fileName)
+        {
+            var dte = serviceProvider.GetService<DTE>();
+            var projectItem = dte?.Solution?.FindProjectItem(fileName);
+
+            return projectItem?.ContainingProject == null ? null : GetIVsHierarchy(projectItem.ContainingProject);
+        }
 
         public IEnumerable<Project> GetSolutionProjects()
         {

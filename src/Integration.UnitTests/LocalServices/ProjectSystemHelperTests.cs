@@ -694,6 +694,92 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.Should().BeTrue();
         }
 
+        [TestMethod]
+        public void GetFileVsHierarchy_NoOpenSolution_Null()
+        {
+            var dte = SetupDteMock(solution: null);
+            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+
+            var result = testSubject.GetFileVsHierarchy("some file");
+
+            result.Should().BeNull();
+            dte.Verify(x=> x.Solution, Times.Once);
+        }
+
+        [TestMethod]
+        public void GetFileVsHierarchy_ProjectItemNotFound_Null()
+        {
+            var solution = SetupSolution(projectItem: null);
+            var dte = SetupDteMock(solution.Object);
+            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+
+            var result = testSubject.GetFileVsHierarchy("some file");
+
+            result.Should().BeNull();
+            solution.Verify(x=> x.FindProjectItem("some file"), Times.Once);
+        }
+
+        [TestMethod]
+        public void GetFileVsHierarchy_ProjectItemHasNoContainingProject_Null()
+        {
+            var projectItem = SetupProjectItem(containingProject: null);
+            var solution = SetupSolution(projectItem.Object);
+            var dte = SetupDteMock(solution.Object);
+            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+
+            var result = testSubject.GetFileVsHierarchy("some file");
+
+            result.Should().BeNull();
+            projectItem.Verify(x=> x.ContainingProject, Times.Once);
+        }
+
+        [TestMethod]
+        public void GetFileVsHierarchy_FailedToGetProjectHierarchy_Null()
+        {
+            var projectItem = SetupProjectItem(Mock.Of<Project>());
+            var solution = SetupSolution(projectItem.Object);
+            var dte = SetupDteMock(solution.Object);
+            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+
+            var result = testSubject.GetFileVsHierarchy("some file");
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void GetFileVsHierarchy_SucceededToGetProjectHierarchy_ProjectHierarchy()
+        {
+            var project = solutionMock.AddOrGetProject("some project");
+            var projectItem = SetupProjectItem(project);
+            var solution = SetupSolution(projectItem.Object);
+            var dte = SetupDteMock(solution.Object);
+            serviceProvider.RegisterService(typeof(DTE), dte.Object);
+
+            var result = testSubject.GetFileVsHierarchy("some file");
+            result.Should().Be(project);
+        }
+
+        private static Mock<DTE> SetupDteMock(Solution solution)
+        {
+            var dte = new Mock<DTE>();
+            dte.Setup(x => x.Solution).Returns(solution);
+            return dte;
+        }
+
+        private static Mock<Solution> SetupSolution(ProjectItem projectItem)
+        {
+            var solution = new Mock<Solution>();
+            solution.Setup(x => x.FindProjectItem("some file")).Returns(projectItem);
+            return solution;
+        }
+
+        private static Mock<ProjectItem> SetupProjectItem(Project containingProject)
+        {
+            var projectItem = new Mock<ProjectItem>();
+            projectItem.Setup(x => x.ContainingProject).Returns(containingProject);
+            return projectItem;
+        }
+
         #endregion Tests
 
         #region Helpers
