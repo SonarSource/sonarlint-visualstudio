@@ -39,7 +39,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
     internal sealed class EslintBridgeAnalyzer : IEslintBridgeAnalyzer
     {
-        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
+        // todo: fix in https://github.com/SonarSource/sonarlint-visualstudio/issues/2432
+        internal const string LinterIsNotInitializedError = "Linter is undefined";
 
         private readonly IRulesProvider rulesProvider;
         private readonly IEslintBridgeClient eslintBridgeClient;
@@ -48,6 +49,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly IEslintBridgeIssueConverter issueConverter;
         private readonly ILogger logger;
 
+        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
         private bool shouldInitLinter = true;
 
         public EslintBridgeAnalyzer(
@@ -71,22 +73,17 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
         {
-            try
-            {
-                return await GetFileIssues(filePath, tsConfig, cancellationToken);
-            }
-            catch (EslintBridgeClientNotInitializedException)
-            {
-                RequireLinterUpdate();
-                return await GetFileIssues(filePath, tsConfig, cancellationToken);
-            }
-        }
-
-        private async Task<IReadOnlyCollection<IAnalysisIssue>> GetFileIssues(string filePath, string tsConfig, CancellationToken cancellationToken)
-        {
-            await EnsureEslintBridgeClientIsInitialized(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
-
+            await EnsureEslintBridgeClientIsInitialized(cancellationToken);
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
+
+            if (LinterNotInitializedResponse(analysisResponse))
+            {
+                // The call to `EnsureEslintBridgeClientIsInitialized` above doesn't guarantee the client is correctly initialized (e.g. the external process might have crashed).
+                // So we still need to handle the "not initialised" case here.
+                RequireLinterUpdate();
+                await EnsureEslintBridgeClientIsInitialized(cancellationToken);
+                analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
+            }
 
             if (analysisResponse.ParsingError != null)
             {
@@ -104,7 +101,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return issues;
         }
 
-        private async Task EnsureEslintBridgeClientIsInitialized(IEnumerable<Rule> activeRules, CancellationToken cancellationToken)
+        private static bool LinterNotInitializedResponse(AnalysisResponse analysisResponse)
+        {
+            return analysisResponse.ParsingError != null && 
+                   analysisResponse.ParsingError.Message.Contains(LinterIsNotInitializedError);
+        }
+
+        private async Task EnsureEslintBridgeClientIsInitialized(CancellationToken cancellationToken)
         {
             try
             {
@@ -112,7 +115,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
                 if (shouldInitLinter)
                 {
-                    await eslintBridgeClient.InitLinter(activeRules, cancellationToken);
+                    await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
                     shouldInitLinter = false;
                 }
             }
