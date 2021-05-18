@@ -146,10 +146,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return new TypeScriptEslintBridgeClient(eslintBridgeProcess, httpWrapper);
         }
 
-        private Mock<IEslintBridgeProcess> SetupServerProcess(bool isNewProcess = false)
+        private Mock<IEslintBridgeProcess> SetupServerProcess()
         {
             var serverProcess = new Mock<IEslintBridgeProcess>();
-            serverProcess.Setup(x => x.Start()).ReturnsAsync(new EslintBridgeProcessStartResult(ServerPort, isNewProcess));
+            serverProcess.Setup(x => x.Start()).ReturnsAsync(ServerPort);
 
             return serverProcess;
         }
