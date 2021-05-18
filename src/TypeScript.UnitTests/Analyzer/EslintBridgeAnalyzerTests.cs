@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         public async Task Analyze_EslintBridgeClientNotInitializedResponse_CallsInitLinter()
         {
             var validResponse = new AnalysisResponse { Issues = new List<Issue>() };
-            var linterNotInitializedResponse = new AnalysisResponse { ParsingError = new ParsingError{Message = Resources.ERR_ParsingError_LinterNotInitialized} };
+            var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
             var client = new Mock<IEslintBridgeClient>();
 
             // First analysis: response is valid, InitLinter should be called once (first initialization)
@@ -150,6 +150,75 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+        }
+
+        [TestMethod]
+        public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByParsingError_ParsingErrorIsLogged()
+        {
+            var logger = new TestLogger();
+            var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
+            var parsingErrorResponse = new AnalysisResponse
+            {
+                ParsingError = new ParsingError
+                {
+                    Code = ParsingErrorCode.MISSING_TYPESCRIPT,
+                    Line = 5,
+                    Message = "some message"
+                }
+            };
+
+            var client = new Mock<IEslintBridgeClient>();
+
+            client
+                .SetupSequence(x => x.Analyze("some path", "some config", CancellationToken.None))
+                .ReturnsAsync(linterNotInitializedResponse)
+                .ReturnsAsync(parsingErrorResponse);
+
+            var testSubject = CreateTestSubject(client.Object, logger: logger);
+            await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            logger.AssertPartialOutputStringExists(Resources.ERR_ParsingError_MissingTypescript);
+        }
+
+        [TestMethod]
+        public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByValidResponse_ConvertedIssuesReturned()
+        {
+            var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
+            var validResponse = new AnalysisResponse {Issues = new List<Issue> {new Issue()}};
+
+            var client = new Mock<IEslintBridgeClient>();
+
+            client
+                .SetupSequence(x => x.Analyze("some path", "some config", CancellationToken.None))
+                .ReturnsAsync(linterNotInitializedResponse)
+                .ReturnsAsync(validResponse);
+
+            var convertedIssues = new[] { Mock.Of<IAnalysisIssue>() };
+            var issueConverter = new Mock<IEslintBridgeIssueConverter>();
+            SetupConvertedIssue(issueConverter, "some path", validResponse.Issues.First(), convertedIssues[0]);
+
+            var testSubject = CreateTestSubject(client.Object, issueConverter: issueConverter.Object);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            result.Should().BeEquivalentTo(convertedIssues);
+        }
+
+        [TestMethod]
+        public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByAnotherNotInitializedResponse_GeneralParsingError()
+        {
+            var logger = new TestLogger();
+            var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
+            var client = new Mock<IEslintBridgeClient>();
+
+            client
+                .SetupSequence(x => x.Analyze("some path", "some config", CancellationToken.None))
+                .ReturnsAsync(linterNotInitializedResponse)
+                .ReturnsAsync(linterNotInitializedResponse);
+
+            var testSubject = CreateTestSubject(client.Object, logger: logger);
+            var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            logger.AssertPartialOutputStringExists(linterNotInitializedResponse.ParsingError.Message);
         }
 
         [TestMethod]
@@ -384,6 +453,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             result.Should().BeEquivalentTo(convertedIssues);
         }
+
+        private static AnalysisResponse CreateLinterNotInitializedResponse() => 
+            new AnalysisResponse { ParsingError = new ParsingError { Message = EslintBridgeAnalyzer.LinterIsNotInitializedError } };
 
         private static void SetupConvertedIssue(Mock<IEslintBridgeIssueConverter> issueConverter,
             string filePath,

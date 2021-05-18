@@ -39,6 +39,9 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
     internal sealed class EslintBridgeAnalyzer : IEslintBridgeAnalyzer
     {
+        // todo: fix in https://github.com/SonarSource/sonarlint-visualstudio/issues/2432
+        internal const string LinterIsNotInitializedError = "Linter is undefined";
+
         private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
 
         private readonly IRulesProvider rulesProvider;
@@ -74,18 +77,17 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             await EnsureEslintBridgeClientIsInitialized(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
+            if (analysisResponse.ParsingError != null && 
+                analysisResponse.ParsingError.Message.Contains(LinterIsNotInitializedError))
+            {
+                await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
+                analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
+            }
+
             if (analysisResponse.ParsingError != null)
             {
-                if (analysisResponse.ParsingError.Message.Contains(Resources.ERR_ParsingError_LinterNotInitialized))
-                {
-                    await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
-                    analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
-                }
-                else
-                {
-                    LogParsingError(filePath, analysisResponse.ParsingError);
-                    return Array.Empty<IAnalysisIssue>();
-                }
+                LogParsingError(filePath, analysisResponse.ParsingError);
+                return Array.Empty<IAnalysisIssue>();
             }
 
             if (analysisResponse.Issues == null)
