@@ -40,6 +40,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IVsProjectSystemHelper
 
+        public IVsHierarchy GetFileVsHierarchy(string fileName)
+        {
+            throw new NotImplementedException();
+        }
+
         Project IProjectSystemHelper.GetSolutionItemsProject(bool createOnNull)
         {
             return this.SolutionItemsProject;
