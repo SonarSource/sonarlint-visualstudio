@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
@@ -41,7 +42,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             MefTestHelpers.CheckTypeCanBeImported<TsConfigProvider, ITsConfigProvider>(null, new[]
             {
                 MefTestHelpers.CreateExport<ITsConfigsLocator>(Mock.Of<ITsConfigsLocator>()),
-                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(Mock.Of<ITypeScriptEslintBridgeClient>())
+                MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(Mock.Of<ITypeScriptEslintBridgeClient>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
@@ -109,6 +111,31 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             eslintBridgeClient.VerifyNoOtherCalls();
         }
 
+        [TestMethod]
+        public async Task GetConfigForFile_TsConfigContainsFileWithIllegalCharacters_FileInTsConfigIsSkipped()
+        {
+            var tsConfigsInSolution = new[] { "config" };
+            var tsConfigsLocator = CreateTsConfigsLocator(tsConfigsInSolution);
+
+            var eslintBridgeClient = CreateEslintBridgeClient();
+            SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
+            {
+                {"config", new TSConfigResponse{Files = new List<string>
+                {
+                    "validPath",
+                    "invalid\\*",
+                    "tested\\file"
+                }}}
+            });
+
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
+            var result = await testSubject.GetConfigForFile("tested\\file", CancellationToken.None);
+            result.Should().Be("config");
+
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config", CancellationToken.None), Times.Once);
+            eslintBridgeClient.VerifyNoOtherCalls();
+        }
+
         private static void SetupEslintBridgeResponse(
             Mock<ITypeScriptEslintBridgeClient> eslintBridgeClient,
             IDictionary<string, TSConfigResponse> response)
@@ -137,6 +164,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         private TsConfigProvider CreateTestSubject(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient eslintBridgeClient) =>
-            new TsConfigProvider(tsConfigsLocator, eslintBridgeClient);
+            new TsConfigProvider(tsConfigsLocator, eslintBridgeClient, Mock.Of<ILogger>());
     }
 }
