@@ -161,9 +161,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
             var result = await testSubject.Start();
-            result.Should().NotBeNull();
-            result.Port.Should().Be(123);
-            result.IsNewProcess.Should().Be(true);
+            result.Should().Be(123);
         }
 
         [TestMethod]
@@ -176,14 +174,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
 
             var result = await testSubject.Start();
-            result.Should().NotBeNull();
-            result.Port.Should().Be(123);
-            result.IsNewProcess.Should().Be(true);
+            result.Should().Be(123);
 
             result = await testSubject.Start();
-            result.Should().NotBeNull();
-            result.Port.Should().Be(123);
-            result.IsNewProcess.Should().Be(false);
+            result.Should().Be(123);
 
             nodeLocator.Verify(x => x.Locate(), Times.Once);
         }
@@ -205,9 +199,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             act.Should().Throw<NotImplementedException>().And.Message.Should().Be("some exception");
 
             var result = await testSubject.Start();
-            result.Should().NotBeNull();
-            result.Port.Should().Be(123);
-            result.IsNewProcess.Should().Be(true);
+            result.Should().Be(123);
         }
 
         [TestMethod]

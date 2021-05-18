@@ -34,33 +34,14 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
     internal interface IEslintBridgeProcess : IDisposable
     {
         /// <summary>
-        /// Ensures that the process is running.
+        /// Ensures that the process is running. Returns the port that server is running on.
         /// </summary>
-        Task<EslintBridgeProcessStartResult> Start();
+        Task<int> Start();
 
         /// <summary>
         /// Terminates running process.
         /// </summary>
         void Stop();
-    }
-
-    internal class EslintBridgeProcessStartResult
-    {
-        /// <summary>
-        /// Returns the port that server is running on.
-        /// </summary>
-        public int Port { get; }
-
-        /// <summary>
-        /// Returns true/false if this is a newly created process.
-        /// </summary>
-        public bool IsNewProcess { get; }
-
-        public EslintBridgeProcessStartResult(int port, bool isNewProcess)
-        {
-            Port = port;
-            IsNewProcess = isNewProcess;
-        }
     }
 
     internal sealed class EslintBridgeProcess : IEslintBridgeProcess
@@ -71,7 +52,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         private readonly INodeLocator nodeLocator;
         private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
-        private TaskCompletionSource<EslintBridgeProcessStartResult> startTask;
+        private TaskCompletionSource<int> startTask;
 
         internal Process Process;
 
@@ -93,7 +74,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             this.logger = logger;
         }
 
-        public Task<EslintBridgeProcessStartResult> Start()
+        public Task<int> Start()
         {
             lock (Lock)
             {
@@ -104,12 +85,10 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
                 if (!shouldSpawnNewProcess)
                 {
-                    return startTask.Task.IsCompleted
-                        ? Task.FromResult(new EslintBridgeProcessStartResult(startTask.Task.Result.Port, false))
-                        : startTask.Task;
+                    return startTask.Task;
                 }
 
-                startTask = new TaskCompletionSource<EslintBridgeProcessStartResult>();
+                startTask = new TaskCompletionSource<int>();
 
                 try
                 {
@@ -194,7 +173,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 if (portNumber != 0)
                 {
                     logger.WriteLine(Resources.INFO_ServerStarted, portNumber);
-                    startTask.SetResult(new EslintBridgeProcessStartResult(portNumber, true));
+                    startTask.SetResult(portNumber);
                 }
             }
         }

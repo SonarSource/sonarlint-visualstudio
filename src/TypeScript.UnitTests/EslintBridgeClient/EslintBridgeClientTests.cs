@@ -136,18 +136,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void Analyze_NewEslintBridgeProcess_EslintBridgeClientNotInitializedException()
-        {
-            var eslintBridgeProcess = SetupServerProcess(isNewProcess: true);
-            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
-            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
-
-            Func<Task> act = async () => await testSubject.Analyze("some path", "some config", CancellationToken.None);
-            act.Should().ThrowExactly<EslintBridgeClientNotInitializedException>();
-            httpWrapper.Invocations.Should().BeEmpty();
-        }
-
-        [TestMethod]
         public void Dispose_DisposesHttpWrapper()
         {
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
@@ -250,10 +238,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return httpWrapper;
         }
 
-        private Mock<IEslintBridgeProcess> SetupServerProcess(bool isNewProcess = false)
+        private Mock<IEslintBridgeProcess> SetupServerProcess()
         {
             var serverProcess = new Mock<IEslintBridgeProcess>();
-            serverProcess.Setup(x => x.Start()).ReturnsAsync(new EslintBridgeProcessStartResult(ServerPort, isNewProcess));
+            serverProcess.Setup(x => x.Start()).ReturnsAsync(ServerPort);
 
             return serverProcess;
         }
