@@ -18,11 +18,13 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
@@ -41,12 +43,14 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     {
         private readonly ITsConfigsLocator tsConfigsLocator;
         private readonly ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient;
+        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient)
+        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, ILogger logger)
         {
             this.tsConfigsLocator = tsConfigsLocator;
             this.typeScriptEslintBridgeClient = typeScriptEslintBridgeClient;
+            this.logger = logger;
         }
 
         public async Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken)
@@ -57,13 +61,27 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
             {
                 var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigsFilePath, cancellationToken);
 
-                if (response.Files != null && response.Files.Any(x=> PathHelper.IsMatchingPath(x, sourceFilePath)))
+                if (response.Files != null &&
+                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigsFilePath)))
                 {
                     return tsConfigsFilePath;
                 }
             }
 
             return null;
+        }
+
+        private bool IsMatchingPath(string fileInTsConfig, string sourceFilePath, string tsConfigsFilePath)
+        {
+            try
+            {
+                return PathHelper.IsMatchingPath(fileInTsConfig, sourceFilePath);
+            }
+            catch (Exception)
+            {
+                logger.WriteLine(Resources.ERR_InvalidFileInTsConfig, tsConfigsFilePath, fileInTsConfig);
+                return false;
+            }
         }
     }
 }
