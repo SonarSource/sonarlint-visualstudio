@@ -137,7 +137,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
                 .ReturnsAsync(validResponse)
                 .ReturnsAsync(validResponse);
 
-            var testSubject = CreateTestSubject(client.Object);
+            var activeRules = new[] { new Rule { Key = "rule1" }, new Rule { Key = "rule2" } };
+            var activeRulesProvider = SetupActiveRulesProvider(activeRules);
+
+            var testSubject = CreateTestSubject(client.Object, rulesProvider: activeRulesProvider.Object);
 
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once);
@@ -150,6 +153,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
 
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+
+            activeRulesProvider.Verify(x=> x.GetActiveRulesConfiguration(), Times.Exactly(2));
         }
 
         [TestMethod]
@@ -181,11 +186,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByValidResponse_ConvertedIssuesReturned()
+        public async Task Analyze_EslintBridgeClientNotInitializedResponse_FollowedByValidResponse_ConvertedIssuesReturnedAndParsingErrorNotLogged()
         {
             var linterNotInitializedResponse = CreateLinterNotInitializedResponse();
             var validResponse = new AnalysisResponse {Issues = new List<Issue> {new Issue()}};
-
+            var logger = new TestLogger();
             var client = new Mock<IEslintBridgeClient>();
 
             client
@@ -197,10 +202,12 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var issueConverter = new Mock<IEslintBridgeIssueConverter>();
             SetupConvertedIssue(issueConverter, "some path", validResponse.Issues.First(), convertedIssues[0]);
 
-            var testSubject = CreateTestSubject(client.Object, issueConverter: issueConverter.Object);
+            var testSubject = CreateTestSubject(client.Object, issueConverter: issueConverter.Object, logger: logger);
             var result = await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
             result.Should().BeEquivalentTo(convertedIssues);
+            logger.AssertNoOutputMessages();
+            client.Verify(x => x.Analyze("some path", "some config", CancellationToken.None), Times.Exactly(2));
         }
 
         [TestMethod]

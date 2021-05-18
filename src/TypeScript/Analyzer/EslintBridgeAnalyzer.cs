@@ -42,8 +42,6 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         // todo: fix in https://github.com/SonarSource/sonarlint-visualstudio/issues/2432
         internal const string LinterIsNotInitializedError = "Linter is undefined";
 
-        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
-
         private readonly IRulesProvider rulesProvider;
         private readonly IEslintBridgeClient eslintBridgeClient;
         private readonly IActiveSolutionTracker activeSolutionTracker;
@@ -51,6 +49,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
         private readonly IEslintBridgeIssueConverter issueConverter;
         private readonly ILogger logger;
 
+        private readonly EventWaitHandle serverInitLocker = new EventWaitHandle(true, EventResetMode.AutoReset);
         private bool shouldInitLinter = true;
 
         public EslintBridgeAnalyzer(
@@ -74,13 +73,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         public async Task<IReadOnlyCollection<IAnalysisIssue>> Analyze(string filePath, string tsConfig, CancellationToken cancellationToken)
         {
-            await EnsureEslintBridgeClientIsInitialized(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
+            await EnsureEslintBridgeClientIsInitialized(cancellationToken);
             var analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
 
-            if (analysisResponse.ParsingError != null && 
-                analysisResponse.ParsingError.Message.Contains(LinterIsNotInitializedError))
+            if (LinterNotInitializedResponse(analysisResponse))
             {
-                await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
+                RequireLinterUpdate();
+                await EnsureEslintBridgeClientIsInitialized(cancellationToken);
                 analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
             }
 
@@ -100,7 +99,13 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             return issues;
         }
 
-        private async Task EnsureEslintBridgeClientIsInitialized(IEnumerable<Rule> activeRules, CancellationToken cancellationToken)
+        private static bool LinterNotInitializedResponse(AnalysisResponse analysisResponse)
+        {
+            return analysisResponse.ParsingError != null && 
+                   analysisResponse.ParsingError.Message.Contains(LinterIsNotInitializedError);
+        }
+
+        private async Task EnsureEslintBridgeClientIsInitialized(CancellationToken cancellationToken)
         {
             try
             {
@@ -108,7 +113,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
                 if (shouldInitLinter)
                 {
-                    await eslintBridgeClient.InitLinter(activeRules, cancellationToken);
+                    await eslintBridgeClient.InitLinter(rulesProvider.GetActiveRulesConfiguration(), cancellationToken);
                     shouldInitLinter = false;
                 }
             }
