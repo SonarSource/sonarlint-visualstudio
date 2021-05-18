@@ -78,6 +78,8 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
             if (LinterNotInitializedResponse(analysisResponse))
             {
+                // The call to `EnsureEslintBridgeClientIsInitialized` above doesn't guarantee the client is correctly initialized (e.g. the external process might have crashed).
+                // So we still need to handle the "not initialised" case here.
                 RequireLinterUpdate();
                 await EnsureEslintBridgeClientIsInitialized(cancellationToken);
                 analysisResponse = await eslintBridgeClient.Analyze(filePath, tsConfig, cancellationToken);
