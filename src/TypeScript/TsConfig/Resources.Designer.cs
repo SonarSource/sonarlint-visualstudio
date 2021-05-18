@@ -68,5 +68,23 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig {
                 return ResourceManager.GetString("ERR_InvalidFileInTsConfig", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] Cannot find VsHierarchy for file: {0}.
+        /// </summary>
+        internal static string ERR_NoVsHierarchy {
+            get {
+                return ResourceManager.GetString("ERR_NoVsHierarchy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] tsconfig files in the current project: {0}.
+        /// </summary>
+        internal static string INFO_FoundTsConfigs {
+            get {
+                return ResourceManager.GetString("INFO_FoundTsConfigs", resourceCulture);
+            }
+        }
     }
 }

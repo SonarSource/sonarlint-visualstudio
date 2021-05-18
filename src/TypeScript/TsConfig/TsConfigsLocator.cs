@@ -18,50 +18,34 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
 {
     internal interface ITsConfigsLocator
     {
         /// <summary>
-        /// Returns all the tsconfig files in the current solution.
+        /// Returns all the tsconfig files in the given <see cref="IVsHierarchy"/>.
         /// </summary>
-        IReadOnlyList<string> Locate();
+        IReadOnlyList<string> Locate(IVsHierarchy hierarchyToSearch);
     }
 
     [Export(typeof(ITsConfigsLocator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TsConfigsLocator : ITsConfigsLocator
     {
-        internal const int MaxNumberOfFiles = 1000;
-
-        private readonly IVsUIShellOpenDocument vsUiShellOpenDocument;
+        private readonly IFilePathsLocator filePathsLocator;
 
         [ImportingConstructor]
-        public TsConfigsLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public TsConfigsLocator(IFilePathsLocator filePathsLocator)
         {
-            vsUiShellOpenDocument = serviceProvider.GetService(typeof(SVsUIShellOpenDocument)) as IVsUIShellOpenDocument;
+            this.filePathsLocator = filePathsLocator;
         }
 
-        public IReadOnlyList<string> Locate()
-        {
-            var foundFiles = new string[MaxNumberOfFiles];
-
-            var hr = vsUiShellOpenDocument.SearchProjectsForRelativePath(
-                (uint) __VSRELPATHSEARCHFLAGS.RPS_UseAllSearchStrategies,
-                "tsconfig.json",
-                foundFiles);
-
-            return hr != VSConstants.S_OK
-                ? Array.Empty<string>()
-                : foundFiles.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-        }
+        public IReadOnlyList<string> Locate(IVsHierarchy hierarchyToSearch) =>
+            filePathsLocator.Locate(hierarchyToSearch, "tsconfig.json");
     }
 }

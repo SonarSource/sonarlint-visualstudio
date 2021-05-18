@@ -120,4 +120,10 @@
   <data name="ERR_InvalidFileInTsConfig" xml:space="preserve">
     <value>'{0}' contains invalid file path '{1}'</value>
   </data>
+  <data name="ERR_NoVsHierarchy" xml:space="preserve">
+    <value>[TypeScript] Cannot find VsHierarchy for file: {0}</value>
+  </data>
+  <data name="INFO_FoundTsConfigs" xml:space="preserve">
+    <value>[TypeScript] tsconfig files in the current project: {0}</value>
+  </data>
 </root>

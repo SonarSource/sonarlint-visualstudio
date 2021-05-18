@@ -20,10 +20,12 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
@@ -43,19 +45,34 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     {
         private readonly ITsConfigsLocator tsConfigsLocator;
         private readonly ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient;
+        private readonly IVsHierarchyLocator vsHierarchyLocator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, ILogger logger)
+        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, 
+            ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, 
+            IVsHierarchyLocator vsHierarchyLocator,
+            ILogger logger)
         {
             this.tsConfigsLocator = tsConfigsLocator;
             this.typeScriptEslintBridgeClient = typeScriptEslintBridgeClient;
+            this.vsHierarchyLocator = vsHierarchyLocator;
             this.logger = logger;
         }
 
         public async Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken)
         {
-            var allTsConfigsFilePaths = tsConfigsLocator.Locate();
+            var sourceFileProject = vsHierarchyLocator.GetFileVsHierarchy(sourceFilePath);
+
+            if (sourceFileProject == null)
+            {
+                logger.WriteLine(Resources.ERR_NoVsHierarchy, sourceFilePath);
+                return null;
+            }
+
+            var allTsConfigsFilePaths = tsConfigsLocator.Locate(sourceFileProject);
+
+            logger.WriteLine(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
 
             foreach (var tsConfigsFilePath in allTsConfigsFilePaths)
             {

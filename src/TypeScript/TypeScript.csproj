@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
   </ItemGroup>
 
   <ItemGroup Label="Framework references">

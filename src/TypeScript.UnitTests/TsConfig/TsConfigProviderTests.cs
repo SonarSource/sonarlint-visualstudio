@@ -23,13 +23,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient.Contract;
 using SonarLint.VisualStudio.TypeScript.TsConfig;
+using Resources = SonarLint.VisualStudio.TypeScript.TsConfig.Resources;
 
 namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
 {
@@ -43,30 +46,60 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             {
                 MefTestHelpers.CreateExport<ITsConfigsLocator>(Mock.Of<ITsConfigsLocator>()),
                 MefTestHelpers.CreateExport<ITypeScriptEslintBridgeClient>(Mock.Of<ITypeScriptEslintBridgeClient>()),
+                MefTestHelpers.CreateExport<IVsHierarchyLocator>(Mock.Of<IVsHierarchyLocator>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
         [TestMethod]
-        public async Task GetConfigForFile_NoTsConfigsInSolution_Null()
+        public async Task GetConfigForFile_CannotFindSourceFileVsHierarchy_Null()
         {
-            var tsConfigsLocator = CreateTsConfigsLocator(Array.Empty<string>());
-            var eslintBridgeClient = CreateEslintBridgeClient();
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
+            const string testedFileName = "some file";
+            var vsHierarchyLocator = SetupVsHierarchyLocator(testedFileName, vsHierarchy: null);
+            var tsConfigsLocator = new Mock<ITsConfigsLocator>();
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, vsHierarchyLocator.Object, logger);
 
-            var result = await testSubject.GetConfigForFile("some file", CancellationToken.None);
+            var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().BeNull();
 
+            logger.AssertOutputStringExists(string.Format(Resources.ERR_NoVsHierarchy, testedFileName));
+
+            vsHierarchyLocator.VerifyAll();
+            vsHierarchyLocator.VerifyNoOtherCalls();
+            tsConfigsLocator.Invocations.Should().BeEmpty();
+            eslintBridgeClient.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public async Task GetConfigForFile_NoTsConfigsInSolution_Null()
+        {
+            const string testedFileName = "some file";
+            var vsHierarchy = Mock.Of<IVsHierarchy>();
+            var vsHierarchyLocator = SetupVsHierarchyLocator(testedFileName, vsHierarchy);
+            var tsConfigsLocator = SetupTsConfigsLocator(vsHierarchy, Array.Empty<string>());
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, vsHierarchyLocator.Object);
+
+            var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
+            result.Should().BeNull();
+
+            vsHierarchyLocator.VerifyAll();
+            tsConfigsLocator.VerifyAll();
             eslintBridgeClient.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
         public async Task GetConfigForFile_SourceFileIsNotInAnyTsConfig_Null()
         {
-            var tsConfigsInSolution = new[] {"config1", "config2", "config3"};
-            var tsConfigsLocator = CreateTsConfigsLocator(tsConfigsInSolution);
+            const string testedFileName = "some file";
+            var tsConfigsInSolution = new[] { "config1", "config2", "config3" };
+            var vsHierarchy = Mock.Of<IVsHierarchy>();
+            var vsHierarchyLocator = SetupVsHierarchyLocator(testedFileName, vsHierarchy);
+            var tsConfigsLocator = SetupTsConfigsLocator(vsHierarchy, tsConfigsInSolution);
 
-            var eslintBridgeClient = CreateEslintBridgeClient();
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
                 {"config1", new TSConfigResponse()},
@@ -74,13 +107,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                 {"config3", new TSConfigResponse{Files = new List<string>{"some file2"}}},
             });
 
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
-            var result = await testSubject.GetConfigForFile("some file", CancellationToken.None);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, vsHierarchyLocator.Object);
+            var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().BeNull();
 
-            eslintBridgeClient.Verify(x=> x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x=> x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x=> x.TsConfigFiles("config3", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
         }
 
@@ -90,10 +123,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         [DataRow("tested/FILE")] // different slashes
         public async Task GetConfigForFile_SourceFileFoundInTsConfig_OtherTsConfigsNotChecked(string foundFileName)
         {
+            const string testedFileName = "tested\\file";
             var tsConfigsInSolution = new[] { "config1", "config2", "config3" };
-            var tsConfigsLocator = CreateTsConfigsLocator(tsConfigsInSolution);
+            var vsHierarchy = Mock.Of<IVsHierarchy>();
+            var vsHierarchyLocator = SetupVsHierarchyLocator(testedFileName, vsHierarchy);
+            var tsConfigsLocator = SetupTsConfigsLocator(vsHierarchy, tsConfigsInSolution);
 
-            var eslintBridgeClient = CreateEslintBridgeClient();
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
                 {"config1", new TSConfigResponse()},
@@ -101,8 +137,8 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                 {"config3", new TSConfigResponse()},
             });
 
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
-            var result = await testSubject.GetConfigForFile("tested\\file", CancellationToken.None);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, vsHierarchyLocator.Object);
+            var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().Be("config2");
 
             eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
@@ -114,22 +150,25 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         [TestMethod]
         public async Task GetConfigForFile_TsConfigContainsFileWithIllegalCharacters_FileInTsConfigIsSkipped()
         {
+            const string testedFileName = "tested\\file";
             var tsConfigsInSolution = new[] { "config" };
-            var tsConfigsLocator = CreateTsConfigsLocator(tsConfigsInSolution);
+            var vsHierarchy = Mock.Of<IVsHierarchy>();
+            var vsHierarchyLocator = SetupVsHierarchyLocator(testedFileName, vsHierarchy);
+            var tsConfigsLocator = SetupTsConfigsLocator(vsHierarchy, tsConfigsInSolution);
 
-            var eslintBridgeClient = CreateEslintBridgeClient();
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
                 {"config", new TSConfigResponse{Files = new List<string>
                 {
                     "validPath",
                     "invalid\\*",
-                    "tested\\file"
+                    testedFileName
                 }}}
             });
 
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
-            var result = await testSubject.GetConfigForFile("tested\\file", CancellationToken.None);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, vsHierarchyLocator.Object);
+            var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().Be("config");
 
             eslintBridgeClient.Verify(x => x.TsConfigFiles("config", CancellationToken.None), Times.Once);
@@ -148,22 +187,30 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             }
         }
 
-        private Mock<ITsConfigsLocator> CreateTsConfigsLocator(IReadOnlyList<string> tsConfigsInSolution)
+        private Mock<ITsConfigsLocator> SetupTsConfigsLocator(IVsHierarchy vsHierarchy, IReadOnlyList<string> tsConfigsInSolution)
         {
             var tsConfigsLocator = new Mock<ITsConfigsLocator>();
-            tsConfigsLocator.Setup(x => x.Locate()).Returns(tsConfigsInSolution);
+            tsConfigsLocator.Setup(x => x.Locate(vsHierarchy)).Returns(tsConfigsInSolution);
 
             return tsConfigsLocator;
         }
 
-        private Mock<ITypeScriptEslintBridgeClient> CreateEslintBridgeClient()
+        private Mock<IVsHierarchyLocator> SetupVsHierarchyLocator(string fileName, IVsHierarchy vsHierarchy)
         {
-            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
+            var vsHierarchyLocator = new Mock<IVsHierarchyLocator>();
+            vsHierarchyLocator.Setup(x => x.GetFileVsHierarchy(fileName)).Returns(vsHierarchy);
 
-            return eslintBridgeClient;
+            return vsHierarchyLocator;
         }
 
-        private TsConfigProvider CreateTestSubject(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient eslintBridgeClient) =>
-            new TsConfigProvider(tsConfigsLocator, eslintBridgeClient, Mock.Of<ILogger>());
+        private TsConfigProvider CreateTestSubject(ITsConfigsLocator tsConfigsLocator,
+            ITypeScriptEslintBridgeClient eslintBridgeClient,
+            IVsHierarchyLocator vsHierarchyLocator, 
+            ILogger logger = null)
+        {
+            logger ??= Mock.Of<ILogger>();
+
+            return new TsConfigProvider(tsConfigsLocator, eslintBridgeClient, vsHierarchyLocator, logger);
+        }
     }
 }
