@@ -30,7 +30,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     // Note: this mock is for new-style project system i.e. https://github.com/dotnet/project-system
     // See the separate LegacyProjectMock class for the old-style mock.
-    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage
+    public class ProjectMock : VsUIHierarchyMock, IVsProject, Project, IVsBuildPropertyStorage, IVsHierarchy
     {
         private readonly Dictionary<string, uint> files = new Dictionary<string, uint>(StringComparer.OrdinalIgnoreCase);
         private readonly IDictionary<string, string> buildProperties = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -403,6 +403,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ((EnvDTE.ProjectItems) ProjectItemsMock).AddFromFile(filePath);
             ProjectItemsMock[filePath].PropertiesMock[Constants.ItemTypePropertyKey].Value = itemType;
             ProjectItemsMock[filePath].PropertiesMock[Constants.FullPathPropertyKey].Value = Path.IsPathRooted(filePath) ? filePath : Path.Combine(Path.GetDirectoryName(FilePath), filePath);
+        }
+
+        int IVsHierarchy.GetCanonicalName(uint itemid, out string pbstrName)
+        {
+            var file = files.FirstOrDefault(x => x.Value == itemid).Key;
+            var fullPath = string.IsNullOrEmpty(file) ? null : Path.Combine(Path.GetDirectoryName(FilePath), file);
+            pbstrName = fullPath;
+            return VSConstants.S_OK;
         }
     }
 }
