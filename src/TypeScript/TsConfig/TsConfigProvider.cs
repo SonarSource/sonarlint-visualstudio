@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
         public async Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken)
         {
-            var sourceFileProject = vsHierarchyLocator.GetFileVsHierarchy(sourceFilePath);
+            var sourceFileProject = vsHierarchyLocator.GetVsHierarchyForFile(sourceFilePath);
 
             if (sourceFileProject == null)
             {

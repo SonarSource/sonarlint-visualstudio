@@ -198,7 +198,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         private Mock<IVsHierarchyLocator> SetupVsHierarchyLocator(string fileName, IVsHierarchy vsHierarchy)
         {
             var vsHierarchyLocator = new Mock<IVsHierarchyLocator>();
-            vsHierarchyLocator.Setup(x => x.GetFileVsHierarchy(fileName)).Returns(vsHierarchy);
+            vsHierarchyLocator.Setup(x => x.GetVsHierarchyForFile(fileName)).Returns(vsHierarchy);
 
             return vsHierarchyLocator;
         }

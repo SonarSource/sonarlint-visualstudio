@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         #region IVsProjectSystemHelper
 
-        public IVsHierarchy GetFileVsHierarchy(string fileName)
+        public IVsHierarchy GetVsHierarchyForFile(string fileName)
         {
             throw new NotImplementedException();
         }
