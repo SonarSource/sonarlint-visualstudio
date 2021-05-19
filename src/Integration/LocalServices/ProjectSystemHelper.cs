@@ -20,17 +20,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Flavor;
 using Microsoft.VisualStudio.Shell.Interop;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
+    [Export(typeof(IVsHierarchyLocator))]
+    [Export(typeof(IProjectSystemHelper))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class ProjectSystemHelper : IProjectSystemHelper
     {
         // See https://github.com/dotnet/project-system/blob/master/docs/opening-with-new-project-system.md
@@ -57,16 +63,19 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IServiceProvider serviceProvider;
 
-        public ProjectSystemHelper(IServiceProvider serviceProvider)
+        [ImportingConstructor]
+        public ProjectSystemHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
         }
 
+        public IVsHierarchy GetVsHierarchyForFile(string fileName)
+        {
+            var dte = serviceProvider.GetService<DTE>();
+            var projectItem = dte?.Solution?.FindProjectItem(fileName);
+
+            return projectItem?.ContainingProject == null ? null : GetIVsHierarchy(projectItem.ContainingProject);
+        }
 
         public IEnumerable<Project> GetSolutionProjects()
         {
