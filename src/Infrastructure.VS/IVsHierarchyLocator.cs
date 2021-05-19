@@ -28,6 +28,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
         /// Returns the project in which the given <see cref="fileName"/> is located.
         /// </summary>
         /// <returns>Null if the file is not found in any project in the solution.</returns>
-        IVsHierarchy GetFileVsHierarchy(string fileName);
+        IVsHierarchy GetVsHierarchyForFile(string fileName);
     }
 }
