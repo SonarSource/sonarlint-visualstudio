@@ -135,7 +135,12 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
 
         private async void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
-            await StopServer();
+            if(!e.IsSolutionOpen)
+            {
+                // We only need to shut down the server after a solution is closed.
+                // See https://github.com/SonarSource/sonarlint-visualstudio/issues/2438 for more info.
+                await StopServer();
+            }
         }
 
         private void AnalysisConfigMonitor_ConfigChanged(object sender, EventArgs e)
