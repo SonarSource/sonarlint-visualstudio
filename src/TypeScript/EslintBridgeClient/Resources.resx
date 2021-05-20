@@ -123,30 +123,16 @@
   <data name="ERR_RequestFailure" xml:space="preserve">
     <value>[eslint-bridge] Failed to execute request to '{0}': {1}</value>
   </data>
-  <data name="INFO_RequestDetails" xml:space="preserve">
-    <value>[eslint-bridge] Endpoint: {0}, request: 
-{1}</value>
-  </data>
-  <data name="INFO_ResponseDetails" xml:space="preserve">
-    <value>[eslint-bridge] Endpoint: {0}, response:
-{1}</value>
-  </data>
-  <data name="INFO_ServerAlreadyTerminated" xml:space="preserve">
-    <value>[eslint-bridge] Cannot terminate eslint-bridge process: no process is running.</value>
-  </data>
-  <data name="INFO_ServerHasExisted" xml:space="preserve">
-    <value>[eslint-bridge] Server process HasExited: {0}</value>
-  </data>
   <data name="INFO_ServerProcessId" xml:space="preserve">
     <value>[eslint-bridge] Started eslint-bridge process. Process id: {0}</value>
   </data>
   <data name="INFO_ServerStarted" xml:space="preserve">
-    <value>[eslint-bridge] Server running on port: {0}</value>
+    <value>[eslint-bridge] [process id: {0}] Server running on port: {1}.</value>
   </data>
   <data name="INFO_ServerTerminated" xml:space="preserve">
-    <value>[eslint-bridge] Terminated eslint-bridge process. Process id: {0}</value>
+    <value>[eslint-bridge] [process id: {0}] Terminated eslint-bridge process.</value>
   </data>
   <data name="INFO_TerminatingServer" xml:space="preserve">
-    <value>[eslint-bridge] Terminating eslint-bridge process... Process id: {0}</value>
+    <value>[eslint-bridge] [process id: {0}] Terminating eslint-bridge process...</value>
   </data>
 </root>
