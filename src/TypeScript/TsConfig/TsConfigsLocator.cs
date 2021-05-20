@@ -84,6 +84,8 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 return Array.Empty<string>();
             }
 
+            // This search behavior matches the observed behavior of VS itself:
+            // the tsconfig doesn't have to be included in the project but it needs to be physically under the project's directory
             var foundTsConfigs = fileSystem
                 .Directory
                 .EnumerateFiles(projectDirectory, "tsconfig.json", SearchOption.AllDirectories)
@@ -94,12 +96,14 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
         private string GetProjectDirectory(string sourceFilePath)
         {
+            // "Open as Folder" was introduced in VS2017, so in VS2015 the hr result will be `E_NOTIMPL` and `isOpenAsFolder` will be null.
             var hr = vsSolution.GetProperty(VSPROPID_IsInOpenFolderMode, out var isOpenAsFolder);
-
             Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
 
             if (isOpenAsFolder != null && (bool) isOpenAsFolder)
             {
+                // For projects that are opened as folder, the root IVsHierarchy is the "Miscellaneous Files" folder.
+                // This folder doesn't have a directory path so we need to take the directory path from IVsSolution.
                 hr = vsSolution.GetProperty((int) __VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirectory);
 
                 Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL,
@@ -108,15 +112,15 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 return (string) solutionDirectory;
             }
 
-            var hierarchyToSearch = vsHierarchyLocator.GetVsHierarchyForFile(sourceFilePath);
+            var vsProject = vsHierarchyLocator.GetVsHierarchyForFile(sourceFilePath);
 
-            if (hierarchyToSearch == null)
+            if (vsProject == null)
             {
-                logger.WriteLine(Resources.ERR_NoVsHierarchy, sourceFilePath);
+                logger.WriteLine(Resources.ERR_NoVsProject, sourceFilePath);
                 return null;
             }
 
-            hr = hierarchyToSearch.GetProperty(
+            hr = vsProject.GetProperty(
                 (uint) VSConstants.VSITEMID.Root,
                 (int) __VSHPROPID.VSHPROPID_ProjectDir,
                 out var projectDirectory);

@@ -26,6 +26,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
@@ -58,7 +59,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         {
             var allTsConfigsFilePaths = tsConfigsLocator.Locate(sourceFilePath);
 
-            logger.WriteLine(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
+            logger.LogDebug(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
 
             foreach (var tsConfigsFilePath in allTsConfigsFilePaths)
             {

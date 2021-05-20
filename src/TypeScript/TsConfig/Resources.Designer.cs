@@ -70,11 +70,11 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [TypeScript] Cannot find VsHierarchy for file: {0}.
+        ///   Looks up a localized string similar to [TypeScript] Cannot find VsProject for file: {0}.
         /// </summary>
-        internal static string ERR_NoVsHierarchy {
+        internal static string ERR_NoVsProject {
             get {
-                return ResourceManager.GetString("ERR_NoVsHierarchy", resourceCulture);
+                return ResourceManager.GetString("ERR_NoVsProject", resourceCulture);
             }
         }
         
