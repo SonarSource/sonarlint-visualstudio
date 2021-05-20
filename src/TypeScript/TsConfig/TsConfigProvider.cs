@@ -20,11 +20,13 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
@@ -55,7 +57,9 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
         public async Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken)
         {
-            var allTsConfigsFilePaths = tsConfigsLocator.Locate();
+            var allTsConfigsFilePaths = tsConfigsLocator.Locate(sourceFilePath);
+
+            logger.LogDebug(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
 
             foreach (var tsConfigsFilePath in allTsConfigsFilePaths)
             {
@@ -64,6 +68,8 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 if (response.Files != null &&
                     response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigsFilePath)))
                 {
+                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigsFilePath);
+
                     return tsConfigsFilePath;
                 }
             }
