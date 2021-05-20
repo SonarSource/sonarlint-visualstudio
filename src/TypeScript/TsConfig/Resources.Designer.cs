@@ -68,5 +68,32 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig {
                 return ResourceManager.GetString("ERR_InvalidFileInTsConfig", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] Cannot find VsProject for file: {0}.
+        /// </summary>
+        internal static string ERR_NoVsProject {
+            get {
+                return ResourceManager.GetString("ERR_NoVsProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] tsconfig files in the current project: {0}.
+        /// </summary>
+        internal static string INFO_FoundTsConfigs {
+            get {
+                return ResourceManager.GetString("INFO_FoundTsConfigs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] File &apos;{0}&apos; matched tsconfig &apos;{1}&apos;.
+        /// </summary>
+        internal static string INFO_MatchingTsConfig {
+            get {
+                return ResourceManager.GetString("INFO_MatchingTsConfig", resourceCulture);
+            }
+        }
     }
 }

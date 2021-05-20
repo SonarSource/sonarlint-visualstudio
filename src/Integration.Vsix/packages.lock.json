@@ -886,7 +886,8 @@
           "Microsoft.VisualStudio.Shell.Interop": "7.10.6071",
           "Microsoft.VisualStudio.Shell.Interop.8.0": "8.0.50727",
           "Newtonsoft.Json": "6.0.8",
-          "SonarLint.VisualStudio.Core": "1.0.0"
+          "SonarLint.VisualStudio.Core": "1.0.0",
+          "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0"
         }
       },
       "sonarqube.client": {
