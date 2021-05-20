@@ -272,9 +272,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
         }
 
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
-        public async Task OnSolutionChanged_NextAnalysisCallsInitLinter(bool isSolutionOpen, bool shouldReinitLinter)
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task OnSolutionChanged_NextAnalysisCallsInitLinter_OnlyIfSolutionClosed(bool isSolutionClosed)
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
             var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
@@ -282,31 +282,30 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             var testSubject = CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object);
 
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
+
+            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(1));
+
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(!isSolutionClosed));
+
             await testSubject.Analyze("some path", "some config", CancellationToken.None);
 
-            client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Once());
-
-            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(isSolutionOpen));
-
-            await testSubject.Analyze("some path", "some config", CancellationToken.None);
-
-            var expectedCallCount = shouldReinitLinter ? 2 : 1;
+            var expectedCallCount = isSolutionClosed ? 2 : 1;
             client.Verify(x => x.InitLinter(It.IsAny<IEnumerable<Rule>>(), It.IsAny<CancellationToken>()), Times.Exactly(expectedCallCount));
         }
 
         [TestMethod]
-        [DataRow(true, false)]
-        [DataRow(false, true)]
-        public void OnSolutionChanged_StopsEslintBridgeClient(bool isSolutionOpen, bool shouldCallStop)
+        [DataRow(true)]
+        [DataRow(false)]
+        public void OnSolutionChanged_EslintBridgeClientStopped_OnlyIfSolutionClosed(bool isSolutionClosed)
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
             var client = SetupEslintBridgeClient(new AnalysisResponse { Issues = Enumerable.Empty<Issue>() });
 
             CreateTestSubject(client.Object, activeSolutionTracker: activeSolutionTracker.Object);
 
-            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(isSolutionOpen));
+            activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(!isSolutionClosed));
 
-            var expectedCallCount = shouldCallStop ? 1 : 0;
+            var expectedCallCount = isSolutionClosed ? 1 : 0;
             client.Verify(x => x.Close(), Times.Exactly(expectedCallCount));
         }
 
