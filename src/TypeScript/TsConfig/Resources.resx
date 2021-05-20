@@ -126,4 +126,7 @@
   <data name="INFO_FoundTsConfigs" xml:space="preserve">
     <value>[TypeScript] tsconfig files in the current project: {0}</value>
   </data>
+  <data name="INFO_MatchingTsConfig" xml:space="preserve">
+    <value>[TypeScript] File '{0}' matched tsconfig '{1}'</value>
+  </data>
 </root>

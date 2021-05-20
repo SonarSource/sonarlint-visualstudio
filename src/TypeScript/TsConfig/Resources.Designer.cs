@@ -86,5 +86,14 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig {
                 return ResourceManager.GetString("INFO_FoundTsConfigs", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] File &apos;{0}&apos; matched tsconfig &apos;{1}&apos;.
+        /// </summary>
+        internal static string INFO_MatchingTsConfig {
+            get {
+                return ResourceManager.GetString("INFO_MatchingTsConfig", resourceCulture);
+            }
+        }
     }
 }

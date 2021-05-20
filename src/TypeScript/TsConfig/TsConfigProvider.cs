@@ -25,7 +25,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.Helpers;
-using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.TypeScript.EslintBridgeClient;
 
@@ -45,32 +44,19 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     {
         private readonly ITsConfigsLocator tsConfigsLocator;
         private readonly ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient;
-        private readonly IVsHierarchyLocator vsHierarchyLocator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, 
-            ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, 
-            IVsHierarchyLocator vsHierarchyLocator,
-            ILogger logger)
+        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, ILogger logger)
         {
             this.tsConfigsLocator = tsConfigsLocator;
             this.typeScriptEslintBridgeClient = typeScriptEslintBridgeClient;
-            this.vsHierarchyLocator = vsHierarchyLocator;
             this.logger = logger;
         }
 
         public async Task<string> GetConfigForFile(string sourceFilePath, CancellationToken cancellationToken)
         {
-            var sourceFileProject = vsHierarchyLocator.GetVsHierarchyForFile(sourceFilePath);
-
-            if (sourceFileProject == null)
-            {
-                logger.WriteLine(Resources.ERR_NoVsHierarchy, sourceFilePath);
-                return null;
-            }
-
-            var allTsConfigsFilePaths = tsConfigsLocator.Locate(sourceFileProject);
+            var allTsConfigsFilePaths = tsConfigsLocator.Locate(sourceFilePath);
 
             logger.WriteLine(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
 
@@ -81,6 +67,8 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 if (response.Files != null &&
                     response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigsFilePath)))
                 {
+                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigsFilePath);
+
                     return tsConfigsFilePath;
                 }
             }
