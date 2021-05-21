@@ -55,13 +55,13 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             var serializedRequest = request == null
                 ? string.Empty
                 : JsonConvert.SerializeObject(request, Formatting.Indented);
-            logger.LogDebug(Resources.INFO_RequestDetails, serverEndpoint, serializedRequest);
+            logger.LogDebug("[eslint-bridge] Endpoint: {0}, request:{1}{2}", serverEndpoint, Environment.NewLine, serializedRequest);
 
             var content = new StringContent(serializedRequest, Encoding.UTF8, "application/json");
             var response = await httpClient.PostAsync(serverEndpoint, content, cancellationToken);
             var responseString = await response.Content.ReadAsStringAsync();
 
-            logger.LogDebug(Resources.INFO_ResponseDetails, serverEndpoint, responseString);
+            logger.LogDebug("[eslint-bridge] Endpoint: {0}, response:{1}{2}", serverEndpoint, Environment.NewLine, responseString);
 
             return responseString;
         }
