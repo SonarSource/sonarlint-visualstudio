@@ -61,7 +61,25 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; contains invalid file path &apos;{1}&apos;.
+        ///   Looks up a localized string similar to [TypeScript] Failed to process &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string ERR_FailedToProcessTsConfig {
+            get {
+                return ResourceManager.GetString("ERR_FailedToProcessTsConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] Failed to process &apos;{0}&apos;: Error code: {1}, line: {2}, message: {3}.
+        /// </summary>
+        internal static string ERR_FailedToProcessTsConfig_ParsingError {
+            get {
+                return ResourceManager.GetString("ERR_FailedToProcessTsConfig_ParsingError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] &apos;{0}&apos; contains invalid file path &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_InvalidFileInTsConfig {
             get {
@@ -75,6 +93,15 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig {
         internal static string ERR_NoVsProject {
             get {
                 return ResourceManager.GetString("ERR_NoVsProject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [TypeScript] Checking &apos;{0}&apos; references: {1}.
+        /// </summary>
+        internal static string INFO_CheckingReferencedTsConfigs {
+            get {
+                return ResourceManager.GetString("INFO_CheckingReferencedTsConfigs", resourceCulture);
             }
         }
         
