@@ -144,7 +144,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             // and so that if any messages are logged after Process is set to null we know which process it related to.
             processId = Process.Id;
             logger.WriteLine(Resources.INFO_ServerProcessId, processId);
-            logger.LogDebug($"[eslint-bridge] [process id: {processId}] Server process HasExited: {1}.", processId, Process.HasExited);
+            logger.LogDebug($"[eslint-bridge] [process id: {processId}] Server process HasExited: {Process.HasExited}.");
 
             Process.BeginErrorReadLine();
             Process.BeginOutputReadLine();
@@ -158,8 +158,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private void Process_Exited(object sender, EventArgs e)
         {
-            logger.LogDebug($"[eslint-bridge] [process id: {processId}] Process exited.", processId);
-            ClearProcessData();
+            if(sender is Process terminatedProcess)
+            {
+                logger.LogDebug($"[eslint-bridge] [process id: {terminatedProcess.Id}] Process exited.");
+                terminatedProcess.Exited -= Process_Exited;
+            }
         }
 
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs e)
