@@ -158,17 +158,10 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
         private void Process_Exited(object sender, EventArgs e)
         {
-            // Guard against a potential race condition i.e. this event being received
-            // after an new analysis request has already created a new Process
             if(sender is Process terminatedProcess)
             {
                 logger.LogDebug($"[eslint-bridge] [process id: {terminatedProcess.Id}] Process exited.");
                 terminatedProcess.Exited -= Process_Exited;
-
-                if (ReferenceEquals(terminatedProcess, Process))
-                {
-                    ClearProcessData();
-                }
             }
         }
 
