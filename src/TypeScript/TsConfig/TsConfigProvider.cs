@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
@@ -61,16 +62,67 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
             logger.LogDebug(Resources.INFO_FoundTsConfigs, string.Join(Path.PathSeparator.ToString(), allTsConfigsFilePaths));
 
-            foreach (var tsConfigsFilePath in allTsConfigsFilePaths)
+            var tsConfigFile = await GetConfigForFile(sourceFilePath,
+                allTsConfigsFilePaths,
+                visited: new List<string>(),
+                cancellationToken);
+
+            return tsConfigFile;
+        }
+
+        private async Task<string> GetConfigForFile(string sourceFilePath,
+            IEnumerable<string> candidateTsConfigs,
+            ICollection<string> visited,
+            CancellationToken cancellationToken)
+        {
+            foreach (var tsConfigFilePath in candidateTsConfigs)
             {
-                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigsFilePath, cancellationToken);
+                if (visited.Contains(tsConfigFilePath))
+                {
+                    continue;
+                }
+
+                visited.Add(tsConfigFilePath);
+
+                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigFilePath, cancellationToken);
+
+                if (response.Error != null)
+                {
+                    logger.WriteLine(Resources.ERR_FailedToProcessTsConfig, tsConfigFilePath, response.Error);
+                    continue;
+                }
+
+                if (response.ParsingError != null)
+                {
+                    logger.WriteLine(Resources.ERR_FailedToProcessTsConfig_ParsingError, 
+                        tsConfigFilePath, 
+                        response.ParsingError.Code,
+                        response.ParsingError.Line,
+                        response.ParsingError.Message);
+                    continue;
+                }
+
+                if (response.ProjectReferences != null && response.ProjectReferences.Any())
+                {
+                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigFilePath, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
+
+                    var matchingConfig = await GetConfigForFile(sourceFilePath,
+                        response.ProjectReferences,
+                        visited,
+                        cancellationToken);
+
+                    if (!string.IsNullOrEmpty(matchingConfig))
+                    {
+                        return matchingConfig;
+                    }
+                }
 
                 if (response.Files != null &&
-                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigsFilePath)))
+                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigFilePath)))
                 {
-                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigsFilePath);
+                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigFilePath);
 
-                    return tsConfigsFilePath;
+                    return tsConfigFilePath;
                 }
             }
 
