@@ -34,51 +34,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis.UnitTests
     public class AnalysisConfigMonitorTests
     {
         [TestMethod]
-        [DataRow(SonarLintMode.Standalone, true)]
-        [DataRow(SonarLintMode.Connected, false)]
-        [DataRow(SonarLintMode.LegacyConnected, false)]
-        public void WhenUserSettingsChange(SonarLintMode bindingMode, bool shouldAnalysisBeRequested)
+        [DataRow(SonarLintMode.Standalone)]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void WhenUserSettingsChange_AnalysisIsRequested(SonarLintMode bindingMode)
         {
             var builder = new TestEnvironmentBuilder(bindingMode);
 
             builder.SimulateUserSettingsChanged();
 
-            if (shouldAnalysisBeRequested)
+            // Should always re-analyse
+            builder.AssertAnalysisIsRequested();
+            builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+
+            if (bindingMode == SonarLintMode.Standalone)
             {
-                builder.AssertAnalysisIsRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsChanged);
+                builder.Logger.AssertOutputStringDoesNotExist(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
             }
             else
             {
-                builder.AssertAnalysisIsNotRequested();
-                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_IgnoringUserSettingsChanged);
+                builder.Logger.AssertOutputStringExists(AnalysisStrings.ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages);
             }
         }
 
         [TestMethod]
-        public void WhenUserSettingsChange_StandaloneMode_HasSubscribersToConfigChangedEvent_SubscribersNotified()
+        [DataRow(SonarLintMode.Standalone)]
+        [DataRow(SonarLintMode.Connected)]
+        [DataRow(SonarLintMode.LegacyConnected)]
+        public void WhenUserSettingsChange_HasSubscribersToConfigChangedEvent_SubscribersNotified(SonarLintMode bindingMode)
         {
-            var builder = new TestEnvironmentBuilder(SonarLintMode.Standalone);
+            var builder = new TestEnvironmentBuilder(bindingMode);
             var eventHandler = new Mock<EventHandler>();
             builder.TestSubject.ConfigChanged += eventHandler.Object;
 
             builder.SimulateUserSettingsChanged();
 
             eventHandler.Verify(x=> x(builder.TestSubject, EventArgs.Empty), Times.Once);
-        }
-
-        [TestMethod]
-        [DataRow(SonarLintMode.Connected)]
-        [DataRow(SonarLintMode.LegacyConnected)]
-        public void WhenUserSettingsChange_ConnectedMode_HasSubscribersToConfigChangedEvent_SubscribersNotNotified(SonarLintMode mode)
-        {
-            var builder = new TestEnvironmentBuilder(mode);
-            var eventHandler = new Mock<EventHandler>();
-            builder.TestSubject.ConfigChanged += eventHandler.Object;
-
-            builder.SimulateUserSettingsChanged();
-
-            eventHandler.VerifyNoOtherCalls();
         }
 
         [TestMethod]
