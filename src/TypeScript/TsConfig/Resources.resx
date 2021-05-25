@@ -117,11 +117,20 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ERR_FailedToProcessTsConfig" xml:space="preserve">
+    <value>[TypeScript] Failed to process '{0}': {1}</value>
+  </data>
+  <data name="ERR_FailedToProcessTsConfig_ParsingError" xml:space="preserve">
+    <value>[TypeScript] Failed to process '{0}': Error code: {1}, line: {2}, message: {3}</value>
+  </data>
   <data name="ERR_InvalidFileInTsConfig" xml:space="preserve">
-    <value>'{0}' contains invalid file path '{1}'</value>
+    <value>[TypeScript] '{0}' contains invalid file path '{1}'</value>
   </data>
   <data name="ERR_NoVsProject" xml:space="preserve">
     <value>[TypeScript] Cannot find VsProject for file: {0}</value>
+  </data>
+  <data name="INFO_CheckingReferencedTsConfigs" xml:space="preserve">
+    <value>[TypeScript] Checking '{0}' references: {1}</value>
   </data>
   <data name="INFO_FoundTsConfigs" xml:space="preserve">
     <value>[TypeScript] tsconfig files in the current project: {0}</value>
