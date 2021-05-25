@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
@@ -90,6 +91,8 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         {
             foreach (var tsConfigFilePath in candidateTsConfigs)
             {
+                Debug.Assert(Path.IsPathRooted(tsConfigFilePath), "Path should be absolute");
+
                 var tsConfigToCheck = tsConfigFilePath;
                 var isDirectory = fileSystem.Directory.Exists(tsConfigFilePath);
 
