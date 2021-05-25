@@ -21,7 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,13 +48,25 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     {
         private readonly ITsConfigsLocator tsConfigsLocator;
         private readonly ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient;
+        private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, ILogger logger)
+        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator,
+            ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient,
+            ILogger logger)
+            : this(tsConfigsLocator, typeScriptEslintBridgeClient, new FileSystem(), logger)
+        {
+        }
+
+        internal TsConfigProvider(ITsConfigsLocator tsConfigsLocator,
+            ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient,
+            IFileSystem fileSystem,
+            ILogger logger)
         {
             this.tsConfigsLocator = tsConfigsLocator;
             this.typeScriptEslintBridgeClient = typeScriptEslintBridgeClient;
+            this.fileSystem = fileSystem;
             this.logger = logger;
         }
 
@@ -64,7 +78,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
             var tsConfigFile = await GetConfigForFile(sourceFilePath,
                 allTsConfigsFilePaths,
-                visited: new List<string>(),
+                visited: new HashSet<string>(StringComparer.OrdinalIgnoreCase),
                 cancellationToken);
 
             return tsConfigFile;
@@ -72,30 +86,40 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
         private async Task<string> GetConfigForFile(string sourceFilePath,
             IEnumerable<string> candidateTsConfigs,
-            ICollection<string> visited,
+            HashSet<string> visited,
             CancellationToken cancellationToken)
         {
             foreach (var tsConfigFilePath in candidateTsConfigs)
             {
-                if (visited.Contains(tsConfigFilePath))
+                Debug.Assert(Path.IsPathRooted(tsConfigFilePath), "Path should be absolute");
+
+                var tsConfigToCheck = tsConfigFilePath;
+                var isDirectory = fileSystem.Directory.Exists(tsConfigFilePath);
+
+                if (isDirectory)
+                {
+                    tsConfigToCheck = Path.GetFullPath(Path.Combine(tsConfigToCheck, "tsconfig.json"));
+                }
+
+                if (visited.Contains(tsConfigToCheck))
                 {
                     continue;
                 }
 
-                visited.Add(tsConfigFilePath);
+                visited.Add(tsConfigToCheck);
 
-                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigFilePath, cancellationToken);
+                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigToCheck, cancellationToken);
 
                 if (response.Error != null)
                 {
-                    logger.WriteLine(Resources.ERR_FailedToProcessTsConfig, tsConfigFilePath, response.Error);
+                    logger.WriteLine(Resources.ERR_FailedToProcessTsConfig, tsConfigToCheck, response.Error);
                     continue;
                 }
 
                 if (response.ParsingError != null)
                 {
                     logger.WriteLine(Resources.ERR_FailedToProcessTsConfig_ParsingError, 
-                        tsConfigFilePath, 
+                        tsConfigToCheck, 
                         response.ParsingError.Code,
                         response.ParsingError.Line,
                         response.ParsingError.Message);
@@ -104,7 +128,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
                 if (response.ProjectReferences != null && response.ProjectReferences.Any())
                 {
-                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigFilePath, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
+                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigToCheck, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
 
                     var matchingConfig = await GetConfigForFile(sourceFilePath,
                         response.ProjectReferences,
@@ -118,11 +142,11 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 }
 
                 if (response.Files != null &&
-                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigFilePath)))
+                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigToCheck)))
                 {
-                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigFilePath);
+                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigToCheck);
 
-                    return tsConfigFilePath;
+                    return tsConfigToCheck;
                 }
             }
 
