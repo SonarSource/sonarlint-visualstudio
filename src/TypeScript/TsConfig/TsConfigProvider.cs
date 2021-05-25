@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
             var tsConfigFile = await GetConfigForFile(sourceFilePath,
                 allTsConfigsFilePaths,
-                checkedTsConfigs: new List<string>(),
+                visited: new List<string>(),
                 cancellationToken);
 
             return tsConfigFile;
@@ -72,17 +72,17 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
         private async Task<string> GetConfigForFile(string sourceFilePath,
             IEnumerable<string> candidateTsConfigs,
-            ICollection<string> checkedTsConfigs,
+            ICollection<string> visited,
             CancellationToken cancellationToken)
         {
             foreach (var tsConfigFilePath in candidateTsConfigs)
             {
-                if (checkedTsConfigs.Contains(tsConfigFilePath))
+                if (visited.Contains(tsConfigFilePath))
                 {
                     continue;
                 }
 
-                checkedTsConfigs.Add(tsConfigFilePath);
+                visited.Add(tsConfigFilePath);
 
                 var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigFilePath, cancellationToken);
 
@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
                     var matchingConfig = await GetConfigForFile(sourceFilePath,
                         response.ProjectReferences,
-                        checkedTsConfigs,
+                        visited,
                         cancellationToken);
 
                     if (!string.IsNullOrEmpty(matchingConfig))

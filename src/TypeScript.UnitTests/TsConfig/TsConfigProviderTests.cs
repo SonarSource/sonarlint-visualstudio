@@ -181,12 +181,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
+            var parsingError = new ParsingError { Code = ParsingErrorCode.UNSUPPORTED_TYPESCRIPT, Message = "some message", Line = 5555 };
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
                 {
                     "config1", new TSConfigResponse
                     {
-                        ParsingError = new ParsingError{Code = ParsingErrorCode.UNSUPPORTED_TYPESCRIPT, Message = "some message", Line = 55},
+                        ParsingError = parsingError,
                         Files = new[] {testedFileName} // should be ignored
                     }
                 },
@@ -202,8 +203,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
 
-            logger.AssertPartialOutputStringExists("some message");
-            logger.AssertPartialOutputStringExists(ParsingErrorCode.UNSUPPORTED_TYPESCRIPT.ToString());
+            logger.AssertPartialOutputStringExists(parsingError.Message, parsingError.Code.ToString(), parsingError.Line.ToString());
         }
 
         [TestMethod]
