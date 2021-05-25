@@ -120,8 +120,8 @@
   <data name="ConfigMonitor_SuppressionsUpdated" xml:space="preserve">
     <value>Suppressions have been updated. Open documents will be re-analysed.</value>
   </data>
-  <data name="ConfigMonitor_IgnoringUserSettingsChanged" xml:space="preserve">
-    <value>User settings have changed but the solution is in connected mode. Open documents will not be re-analysed.</value>
+  <data name="ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages" xml:space="preserve">
+    <value>Note: user settings are ignored for languages that support Connected Mode i.e. C and C++</value>
   </data>
   <data name="ConfigMonitor_UserSettingsChanged" xml:space="preserve">
     <value>User settings have changed. Open documents will be re-analysed.</value>

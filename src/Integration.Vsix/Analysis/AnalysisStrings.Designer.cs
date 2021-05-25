@@ -61,15 +61,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User settings have changed but the solution is in connected mode. Open documents will not be re-analysed..
-        /// </summary>
-        internal static string ConfigMonitor_IgnoringUserSettingsChanged {
-            get {
-                return ResourceManager.GetString("ConfigMonitor_IgnoringUserSettingsChanged", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Suppressions have been updated. Open documents will be re-analysed..
         /// </summary>
         internal static string ConfigMonitor_SuppressionsUpdated {
@@ -84,6 +75,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.Analysis {
         internal static string ConfigMonitor_UserSettingsChanged {
             get {
                 return ResourceManager.GetString("ConfigMonitor_UserSettingsChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Note: user settings are ignored for languages that support Connected Mode i.e. C and C++.
+        /// </summary>
+        internal static string ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages {
+            get {
+                return ResourceManager.GetString("ConfigMonitor_UserSettingsIgnoredForConnectedModeLanguages", resourceCulture);
             }
         }
         
