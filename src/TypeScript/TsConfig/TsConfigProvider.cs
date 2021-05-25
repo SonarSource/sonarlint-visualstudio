@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,13 +47,25 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     {
         private readonly ITsConfigsLocator tsConfigsLocator;
         private readonly ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient;
+        private readonly IFileSystem fileSystem;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator, ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient, ILogger logger)
+        public TsConfigProvider(ITsConfigsLocator tsConfigsLocator,
+            ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient,
+            ILogger logger)
+            : this(tsConfigsLocator, typeScriptEslintBridgeClient, new FileSystem(), logger)
+        {
+        }
+
+        internal TsConfigProvider(ITsConfigsLocator tsConfigsLocator,
+            ITypeScriptEslintBridgeClient typeScriptEslintBridgeClient,
+            IFileSystem fileSystem,
+            ILogger logger)
         {
             this.tsConfigsLocator = tsConfigsLocator;
             this.typeScriptEslintBridgeClient = typeScriptEslintBridgeClient;
+            this.fileSystem = fileSystem;
             this.logger = logger;
         }
 
@@ -64,7 +77,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
             var tsConfigFile = await GetConfigForFile(sourceFilePath,
                 allTsConfigsFilePaths,
-                visited: new List<string>(),
+                visited: new HashSet<string>(StringComparer.OrdinalIgnoreCase),
                 cancellationToken);
 
             return tsConfigFile;
@@ -72,13 +85,13 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
         private async Task<string> GetConfigForFile(string sourceFilePath,
             IEnumerable<string> candidateTsConfigs,
-            ICollection<string> visited,
+            HashSet<string> visited,
             CancellationToken cancellationToken)
         {
             foreach (var tsConfigFilePath in candidateTsConfigs)
             {
                 var tsConfigToCheck = tsConfigFilePath;
-                var isDirectory = !Path.HasExtension(tsConfigToCheck);
+                var isDirectory = fileSystem.Directory.Exists(tsConfigFilePath);
 
                 if (isDirectory)
                 {

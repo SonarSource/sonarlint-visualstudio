@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Abstractions;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
@@ -66,24 +67,24 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_SourceFileIsNotInAnyTsConfig_Null()
         {
             const string testedFileName = "some file";
-            var tsConfigsInSolution = new[] { "config1.json", "config2.json", "config3.json" };
+            var tsConfigsInSolution = new[] { "config1", "config2", "config3" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config1.json", new TSConfigResponse()},
-                {"config2.json", new TSConfigResponse{Files = new List<string>{"some other file"}}},
-                {"config3.json", new TSConfigResponse{Files = new List<string>{"some file2"}}},
+                {"config1", new TSConfigResponse()},
+                {"config2", new TSConfigResponse{Files = new List<string>{"some other file"}}},
+                {"config3", new TSConfigResponse{Files = new List<string>{"some file2"}}},
             });
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().BeNull();
 
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3.json", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
         }
 
@@ -94,24 +95,24 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_SourceFileFoundInTsConfig_OtherTsConfigsNotChecked(string foundFileName)
         {
             const string testedFileName = "tested\\file";
-            var tsConfigsInSolution = new[] { "config1.json", "config2.json", "config3.json" };
+            var tsConfigsInSolution = new[] { "config1", "config2", "config3" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config1.json", new TSConfigResponse()},
-                {"config2.json", new TSConfigResponse{Files = new List<string>{foundFileName}}},
-                {"config3.json", new TSConfigResponse()},
+                {"config1", new TSConfigResponse()},
+                {"config2", new TSConfigResponse{Files = new List<string>{foundFileName}}},
+                {"config3", new TSConfigResponse()},
             });
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
-            result.Should().Be("config2.json");
+            result.Should().Be("config2");
 
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3.json", CancellationToken.None), Times.Never);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3", CancellationToken.None), Times.Never);
             eslintBridgeClient.VerifyNoOtherCalls();
         }
 
@@ -119,13 +120,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_TsConfigContainsFileWithIllegalCharacters_FileInTsConfigIsSkipped()
         {
             const string testedFileName = "tested\\file";
-            var tsConfigsInSolution = new[] { "config.json" };
+            var tsConfigsInSolution = new[] { "config" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config.json", new TSConfigResponse{Files = new List<string>
+                {"config", new TSConfigResponse{Files = new List<string>
                 {
                     "validPath",
                     "invalid\\*",
@@ -135,36 +136,36 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
-            result.Should().Be("config.json");
+            result.Should().Be("config");
         }
 
         [TestMethod]
         public async Task GetConfigForFile_FailedToProcessTsConfig_TsConfigIsSkipped()
         {
             const string testedFileName = "tested\\file";
-            var tsConfigsInSolution = new[] { "config1.json", "config2.json" };
+            var tsConfigsInSolution = new[] { "config1", "config2" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
                 {
-                    "config1.json", new TSConfigResponse
+                    "config1", new TSConfigResponse
                     {
                         Error = "some error",
                         Files = new[] {testedFileName} // should be ignored
                     }
                 },
-                {"config2.json", new TSConfigResponse()}
+                {"config2", new TSConfigResponse()}
             });
 
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, logger);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, logger: logger);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().BeNull();
 
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
 
             logger.AssertPartialOutputStringExists("some error");
@@ -174,7 +175,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_FailedToProcessTsConfig_ParsingError_TsConfigIsSkipped()
         {
             const string testedFileName = "tested\\file";
-            var tsConfigsInSolution = new[] { "config1.json", "config2.json" };
+            var tsConfigsInSolution = new[] { "config1", "config2" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
@@ -182,22 +183,22 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
                 {
-                    "config1.json", new TSConfigResponse
+                    "config1", new TSConfigResponse
                     {
                         ParsingError = parsingError,
                         Files = new[] {testedFileName} // should be ignored
                     }
                 },
-                {"config2.json", new TSConfigResponse()}
+                {"config2", new TSConfigResponse()}
             });
 
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, logger);
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, logger: logger);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().BeNull();
 
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
 
             logger.AssertPartialOutputStringExists(parsingError.Message, parsingError.Code.ToString(), parsingError.Line.ToString());
@@ -207,30 +208,30 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_TsConfigHasProjectReferences_ProjectReferencesAreChecked()
         {
             const string testedFileName = "some file";
-            var tsConfigsInSolution = new[] { "config1.json", "config2.json" };
+            var tsConfigsInSolution = new[] { "config1", "config2" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
 
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config1.json", new TSConfigResponse()},
-                {"config2.json", new TSConfigResponse
+                {"config1", new TSConfigResponse()},
+                {"config2", new TSConfigResponse
                 {
                     Files = new List<string>{"some other file"},
-                    ProjectReferences = new List<string>{ "config3.json" }
+                    ProjectReferences = new List<string>{ "config3" }
 
                 }},
-                {"config3.json", new TSConfigResponse{Files = new List<string>{testedFileName}}}
+                {"config3", new TSConfigResponse{Files = new List<string>{testedFileName}}}
             });
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
-            result.Should().Be("config3.json");
+            result.Should().Be("config3");
 
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3.json", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
         }
 
@@ -238,19 +239,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_TsConfigHasProjectReferences_ProjectReferencesAreCheckedBeforeFiles()
         {
             const string testedFileName = "some file";
-            var tsConfigsInSolution = new[] { "config1.json" };
+            var tsConfigsInSolution = new[] { "config1" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
 
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config1.json", new TSConfigResponse
+                {"config1", new TSConfigResponse
                 {
                     Files = new List<string>{testedFileName},
-                    ProjectReferences = new List<string>{ "config2.json" }
+                    ProjectReferences = new List<string>{ "config2" }
                 }},
-                {"config2.json", new TSConfigResponse
+                {"config2", new TSConfigResponse
                 {
                     Files = new List<string>{testedFileName}
                 }}
@@ -258,40 +259,40 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
-            result.Should().Be("config2.json");
+            result.Should().Be("config2");
 
             // Veify that project references are checked before "TSConfigResponse.Files"
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
         }
 
         [TestMethod]
         public async Task GetConfigForFile_TsConfigHasProjectReferences_CircularReferencesAreIgnored()
         {
             const string testedFileName = "some file";
-            var tsConfigsInSolution = new[] { "config1.json", "config3.json" };
+            var tsConfigsInSolution = new[] { "config1", "config3" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
 
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config1.json", new TSConfigResponse{ProjectReferences = new List<string>{"config2.json"}}},
-                {"config2.json", new TSConfigResponse
+                {"config1", new TSConfigResponse{ProjectReferences = new List<string>{"config2"}}},
+                {"config2", new TSConfigResponse
                 {
                     Files = new List<string>{"some other file"},
-                    ProjectReferences = new List<string>{ "config1.json" } // circular loop
+                    ProjectReferences = new List<string>{ "config1" } // circular loop
 
                 }},
-                {"config3.json", new TSConfigResponse{Files = new List<string>{testedFileName}}}
+                {"config3", new TSConfigResponse{Files = new List<string>{testedFileName}}}
             });
 
             var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
-            result.Should().Be("config3.json");
+            result.Should().Be("config3");
 
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2.json", CancellationToken.None), Times.Once);
-            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3.json", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config1", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config3", CancellationToken.None), Times.Once);
             eslintBridgeClient.VerifyNoOtherCalls();
         }
 
@@ -299,14 +300,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         public async Task GetConfigForFile_TsConfigHasFolderProjectReference_ReferenceProcessedWithDefaultTsConfigName()
         {
             const string testedFileName = "some file";
-            var tsConfigsInSolution = new[] { "config1.json" };
+            var tsConfigsInSolution = new[] { "config1" };
             var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
 
             var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
 
             SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
             {
-                {"config1.json", new TSConfigResponse
+                {"config1", new TSConfigResponse
                 {
                     ProjectReferences = new List<string>{"c:/a/b"}
                 }},
@@ -317,7 +318,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                 }}
             });
 
-            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.Directory.Exists("config1")).Returns(false);
+            fileSystem.Setup(x => x.Directory.Exists("c:/a/b")).Returns(true);
+
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object, fileSystem.Object);
             var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
             result.Should().Be("c:\\a\\b\\tsconfig.json");
         }
@@ -345,11 +350,19 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         private TsConfigProvider CreateTestSubject(
             ITsConfigsLocator tsConfigsLocator,
             ITypeScriptEslintBridgeClient eslintBridgeClient,
+            IFileSystem fileSystem = null,
             ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
 
-            return new TsConfigProvider(tsConfigsLocator, eslintBridgeClient, logger);
+            if (fileSystem == null)
+            {
+                var fileSystemMock = new Mock<IFileSystem>();
+                fileSystemMock.Setup(x => x.Directory.Exists(It.IsAny<string>())).Returns(false);
+                fileSystem = fileSystemMock.Object;
+            }
+
+            return new TsConfigProvider(tsConfigsLocator, eslintBridgeClient, fileSystem, logger);
         }
     }
 }
