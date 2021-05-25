@@ -238,6 +238,36 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         [TestMethod]
+        public async Task GetConfigForFile_TsConfigHasProjectReferences_ProjectReferencesAreCheckedBeforeFiles()
+        {
+            const string testedFileName = "some file";
+            var tsConfigsInSolution = new[] { "config1" };
+            var tsConfigsLocator = SetupTsConfigsLocator(testedFileName, tsConfigsInSolution);
+
+            var eslintBridgeClient = new Mock<ITypeScriptEslintBridgeClient>();
+
+            SetupEslintBridgeResponse(eslintBridgeClient, new Dictionary<string, TSConfigResponse>
+            {
+                {"config1", new TSConfigResponse
+                {
+                    Files = new List<string>{testedFileName},
+                    ProjectReferences = new List<string>{"config2"}
+                }},
+                {"config2", new TSConfigResponse
+                {
+                    Files = new List<string>{testedFileName}
+                }}
+            });
+
+            var testSubject = CreateTestSubject(tsConfigsLocator.Object, eslintBridgeClient.Object);
+            var result = await testSubject.GetConfigForFile(testedFileName, CancellationToken.None);
+            result.Should().Be("config2");
+
+            // Veify that project references are checked before "TSConfigResponse.Files"
+            eslintBridgeClient.Verify(x => x.TsConfigFiles("config2", CancellationToken.None), Times.Once);
+        }
+
+        [TestMethod]
         public async Task GetConfigForFile_TsConfigHasProjectReferences_CircularReferencesAreIgnored()
         {
             const string testedFileName = "some file";

@@ -102,29 +102,27 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                     continue;
                 }
 
+                if (response.ProjectReferences != null && response.ProjectReferences.Any())
+                {
+                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigFilePath, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
+
+                    var matchingConfig = await GetConfigForFile(sourceFilePath,
+                        response.ProjectReferences,
+                        checkedTsConfigs,
+                        cancellationToken);
+
+                    if (!string.IsNullOrEmpty(matchingConfig))
+                    {
+                        return matchingConfig;
+                    }
+                }
+
                 if (response.Files != null &&
                     response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigFilePath)))
                 {
                     logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigFilePath);
 
                     return tsConfigFilePath;
-                }
-
-                if (response.ProjectReferences == null || !response.ProjectReferences.Any())
-                {
-                    continue;
-                }
-
-                logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigFilePath, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
-
-                var result = await GetConfigForFile(sourceFilePath,
-                    response.ProjectReferences,
-                    checkedTsConfigs,
-                    cancellationToken);
-
-                if (!string.IsNullOrEmpty(result))
-                {
-                    return result;
                 }
             }
 
