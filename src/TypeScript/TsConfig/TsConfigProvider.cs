@@ -77,25 +77,33 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
         {
             foreach (var tsConfigFilePath in candidateTsConfigs)
             {
-                if (visited.Contains(tsConfigFilePath))
+                var tsConfigToCheck = tsConfigFilePath;
+                var isDirectory = !Path.HasExtension(tsConfigToCheck);
+
+                if (isDirectory)
+                {
+                    tsConfigToCheck = Path.GetFullPath(Path.Combine(tsConfigToCheck, "tsconfig.json"));
+                }
+
+                if (visited.Contains(tsConfigToCheck))
                 {
                     continue;
                 }
 
-                visited.Add(tsConfigFilePath);
+                visited.Add(tsConfigToCheck);
 
-                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigFilePath, cancellationToken);
+                var response = await typeScriptEslintBridgeClient.TsConfigFiles(tsConfigToCheck, cancellationToken);
 
                 if (response.Error != null)
                 {
-                    logger.WriteLine(Resources.ERR_FailedToProcessTsConfig, tsConfigFilePath, response.Error);
+                    logger.WriteLine(Resources.ERR_FailedToProcessTsConfig, tsConfigToCheck, response.Error);
                     continue;
                 }
 
                 if (response.ParsingError != null)
                 {
                     logger.WriteLine(Resources.ERR_FailedToProcessTsConfig_ParsingError, 
-                        tsConfigFilePath, 
+                        tsConfigToCheck, 
                         response.ParsingError.Code,
                         response.ParsingError.Line,
                         response.ParsingError.Message);
@@ -104,7 +112,7 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
 
                 if (response.ProjectReferences != null && response.ProjectReferences.Any())
                 {
-                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigFilePath, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
+                    logger.LogDebug(Resources.INFO_CheckingReferencedTsConfigs, tsConfigToCheck, string.Join(Path.DirectorySeparatorChar.ToString(), response.ProjectReferences));
 
                     var matchingConfig = await GetConfigForFile(sourceFilePath,
                         response.ProjectReferences,
@@ -118,11 +126,11 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 }
 
                 if (response.Files != null &&
-                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigFilePath)))
+                    response.Files.Any(x => IsMatchingPath(x, sourceFilePath, tsConfigToCheck)))
                 {
-                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigFilePath);
+                    logger.WriteLine(Resources.INFO_MatchingTsConfig, sourceFilePath, tsConfigToCheck);
 
-                    return tsConfigFilePath;
+                    return tsConfigToCheck;
                 }
             }
 
