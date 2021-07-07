@@ -114,13 +114,19 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
             try
             {
-                await MakeCall("close", null, CancellationToken.None);
+                if (eslintBridgeProcess.IsRunning)
+                {
+                    await MakeCall("close", null, CancellationToken.None);
+                }
             }
             catch
             {
                 // nothing to do if the call failed
             }
-            eslintBridgeProcess.Stop();
+            finally
+            {
+                eslintBridgeProcess.Stop();
+            }
         }
 
         #region IDisposable
@@ -151,6 +157,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         }
 
         #endregion
+
+
 
         protected async Task<string> MakeCall(string endpoint, object request, CancellationToken cancellationToken)
         {

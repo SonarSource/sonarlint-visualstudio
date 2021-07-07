@@ -42,6 +42,11 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// Terminates running process.
         /// </summary>
         void Stop();
+
+        /// <summary>
+        /// Returns true/false if the process is running.
+        /// </summary>
+        bool IsRunning { get; }
     }
 
     internal sealed class EslintBridgeProcess : IEslintBridgeProcess
@@ -113,6 +118,8 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
                 TerminateRunningProcess();
             }
         }
+
+        public bool IsRunning => processId != NO_PROCESS;
 
         public void Dispose()
         {
