@@ -136,6 +136,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
+        [Description("Regression test for #2469")]
         public void Dispose_EslintBridgeProcessIsNotRunning_DisposesHttpWrapper()
         {
             var eslintBridgeProcess = SetupServerProcess(isRunning: false);
