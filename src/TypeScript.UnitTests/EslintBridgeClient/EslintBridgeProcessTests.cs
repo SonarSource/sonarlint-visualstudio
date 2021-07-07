@@ -70,7 +70,6 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             }
         }
 
-
         [TestMethod]
         public async Task Start_SecondCall_ProcessFailed_StartsNewProcess()
         {
@@ -250,6 +249,96 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             act.Should().NotThrow();
 
             testSubject.Process.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void IsRunning_ServerWasNeverStarted_False()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.IsRunning.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsRunning_ServerWasNeverStartedAndWasDisposed_False()
+        {
+            var testSubject = CreateTestSubject();
+
+            testSubject.Dispose();
+
+            testSubject.IsRunning.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task IsRunning_ServerWasStarted_True()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            Process spawnedProcess = null;
+            try
+            {
+                await testSubject.Start();
+                spawnedProcess = testSubject.Process;
+
+                testSubject.IsRunning.Should().BeTrue();
+            }
+            finally
+            {
+                SafeKillProcess(spawnedProcess);
+            }
+        }
+
+        [TestMethod]
+        public async Task IsRunning_ServerWasStartedThenDisposed_False()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            await testSubject.Start();
+
+            testSubject.IsRunning.Should().BeTrue();
+
+            testSubject.Dispose();
+
+            testSubject.IsRunning.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public async Task IsRunning_ServerWasRestarted_True()
+        {
+            var fakeNodeExePath = CreateScriptThatPrintsPortNumber(123, isHanging: true);
+            var startupScriptPath = "dummy path";
+
+            var nodeLocator = SetupNodeLocator(fakeNodeExePath);
+            var testSubject = CreateTestSubject(startupScriptPath, nodeLocator: nodeLocator.Object);
+
+            Process spawnedProcess = null;
+            try
+            {
+                await testSubject.Start();
+
+                testSubject.IsRunning.Should().BeTrue();
+
+                testSubject.Dispose();
+
+                testSubject.IsRunning.Should().BeFalse();
+
+                await testSubject.Start();
+                spawnedProcess = testSubject.Process;
+
+                testSubject.IsRunning.Should().BeTrue();
+            }
+            finally
+            {
+                SafeKillProcess(spawnedProcess);
+            }
         }
 
         private static Mock<INodeLocator> SetupNodeLocator(string nodePath)
