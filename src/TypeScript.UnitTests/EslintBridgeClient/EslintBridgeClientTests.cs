@@ -136,11 +136,26 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void Dispose_DisposesHttpWrapper()
+        [Description("Regression test for #2469")]
+        public void Dispose_EslintBridgeProcessIsNotRunning_DisposesHttpWrapper()
         {
+            var eslintBridgeProcess = SetupServerProcess(isRunning: false);
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
 
-            var testSubject = CreateTestSubject(httpWrapper.Object);
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
+            testSubject.Dispose();
+
+            httpWrapper.Verify(x => x.Dispose(), Times.Once);
+            httpWrapper.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Dispose_EslintBridgeProcessIsRunning_ClosesAndDisposesHttpWrapper()
+        {
+            var eslintBridgeProcess = SetupServerProcess(isRunning: true);
+            var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
+
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
             testSubject.Dispose();
 
             httpWrapper.Verify(x => x.PostAsync(BuildServerUri("close"), null, CancellationToken.None), Times.Once);
@@ -162,12 +177,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         [TestMethod]
         public void Dispose_FailsToCallClose_HttpWrapperStillDisposed()
         {
+            var eslintBridgeProcess = SetupServerProcess(isRunning: true);
+
             var httpWrapper = new Mock<IEslintBridgeHttpWrapper>();
             httpWrapper
                 .Setup(x => x.PostAsync(BuildServerUri("close"), null, CancellationToken.None))
                 .Throws<NotImplementedException>();
 
-            var testSubject = CreateTestSubject(httpWrapper.Object);
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
             testSubject.Dispose();
 
             httpWrapper.Verify(x => x.PostAsync(BuildServerUri("close"), null, CancellationToken.None), Times.Once);
@@ -188,10 +205,24 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public async Task Close_ClosesEslintBridgeServer()
+        public async Task Close_EslintBridgeProcessIsNotRunning_DoesNotCallEslintBridgeServer()
         {
+            var eslintBridgeProcess = SetupServerProcess(isRunning: false);
             var httpWrapper = SetupHttpWrapper("close");
-            var testSubject = CreateTestSubject(httpWrapper.Object);
+            
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
+            
+            await testSubject.Close();
+
+            httpWrapper.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task Close_EslintBridgeProcessIsRunning_ClosesEslintBridgeServer()
+        {
+            var eslintBridgeProcess = SetupServerProcess(isRunning: true);
+            var httpWrapper = SetupHttpWrapper("close");
+            var testSubject = CreateTestSubject(httpWrapper.Object, eslintBridgeProcess: eslintBridgeProcess.Object);
             await testSubject.Close();
 
             httpWrapper.Verify(x => x.PostAsync(BuildServerUri("close"), null, CancellationToken.None), Times.Once);
@@ -238,10 +269,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             return httpWrapper;
         }
 
-        private Mock<IEslintBridgeProcess> SetupServerProcess()
+        private Mock<IEslintBridgeProcess> SetupServerProcess(bool isRunning = false)
         {
             var serverProcess = new Mock<IEslintBridgeProcess>();
             serverProcess.Setup(x => x.Start()).ReturnsAsync(ServerPort);
+            serverProcess.Setup(x => x.IsRunning).Returns(isRunning);
 
             return serverProcess;
         }
