@@ -62,39 +62,57 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.DocumentEvents
             });
         }
 
+        /// <summary>
+        /// This notification can fire multiple times with a different elementId value:
+        ///     [elementId == SEID_WindowFrame] is fired when transitioning from [tool or doc window] -> [tool or doc window]
+        ///     [elementId == SEID_DocumentFrame] is fired when transitioning from [doc window] -> [doc window]
+        ///
+        /// We are interested in the following scenarios:
+        ///       1. Transition from doc A to doc B (see #1559) --> can use SEID_DocumentFrame or SEID_WindowFrame
+        ///       2. Closing last document (see #2091) --> can use SEID_DocumentFrame or SEID_WindowFrame
+        ///       3. Single-click navigation (see #2079) --> can ONLY use SEID_DocumentFrame
+        ///       4. Transition from tool window to document (see #2242) --> can ONLY use SEID_WindowFrame
+        ///
+        /// To support all the cases, we use SEID_DocumentFrame for uses cases 1-3 and SEID_WindowFrame for use case 4.
+        /// </summary>
         int IVsSelectionEvents.OnElementValueChanged(uint elementId, object oldValue, object newValue)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            // Note: this notification can fire multiple times with different elementId value
-            // when the doc frame changes. Two cases:
-            // [ tool or doc window ] -> [ tool or doc window ] => elementId == SEID_WindowFrame
-            // [ doc window ] -> [ doc window ] => elementId == SEID_DocumentFrame
-            // We are only interested in the second case. See bugs #2079 and #2091.
             if (elementId == (uint)VSConstants.VSSELELEMID.SEID_DocumentFrame)
             {
                 ITextDocument activeTextDoc = null;
-                if (newValue != null && newValue is IVsWindowFrame frame)
+
+                if (newValue is IVsWindowFrame newWindowFrame)
                 {
-                    activeTextDoc = textDocumentProvider.GetFromFrame(frame);
+                    activeTextDoc = textDocumentProvider.GetFromFrame(newWindowFrame);
                 }
 
                 // The "active document" will be null if the last document has just been closed
-                ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(activeTextDoc));
+                NotifyActiveDocumentChanged(activeTextDoc);
+            }
+            // if we reached here, we know that oldValue and/or newValue are a tool window,
+            // and we are only interested in the use case of [tool window] -> [doc]
+            else if (elementId == (uint) VSConstants.VSSELELEMID.SEID_WindowFrame && 
+                     newValue is IVsWindowFrame newWindowFrame && IsDocumentFrame(newWindowFrame))
+            {
+                var activeTextDoc = textDocumentProvider.GetFromFrame(newWindowFrame);
+                NotifyActiveDocumentChanged(activeTextDoc);
             }
 
             return VSConstants.S_OK;
         }
 
-        int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew)
-        {
-            return VSConstants.S_OK;
-        }
+        private void NotifyActiveDocumentChanged(ITextDocument activeTextDoc) => 
+            ActiveDocumentChanged?.Invoke(this, new ActiveDocumentChangedEventArgs(activeTextDoc));
 
-        int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive)
-        {
-            return VSConstants.S_OK;
-        }
+        private static bool IsDocumentFrame(IVsWindowFrame frame) =>
+            ErrorHandler.Succeeded(frame.GetProperty((int) __VSFPROPID.VSFPROPID_Type, out var frameType)) &&
+            (int) frameType == (int) __WindowFrameTypeFlags.WINDOWFRAMETYPE_Document;
+
+        int IVsSelectionEvents.OnSelectionChanged(IVsHierarchy pHierOld, uint itemidOld, IVsMultiItemSelect pMISOld, ISelectionContainer pSCOld, IVsHierarchy pHierNew, uint itemidNew, IVsMultiItemSelect pMISNew, ISelectionContainer pSCNew) => VSConstants.S_OK;
+
+        int IVsSelectionEvents.OnCmdUIContextChanged(uint dwCmdUICookie, int fActive) => VSConstants.S_OK;
 
         public void Dispose()
         {
