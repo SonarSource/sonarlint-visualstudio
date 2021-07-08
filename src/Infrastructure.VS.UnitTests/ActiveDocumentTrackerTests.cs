@@ -35,44 +35,20 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
     {
         private static readonly IVsWindowFrame ValidWindowFrame = Mock.Of<IVsWindowFrame>();
 
-        private Mock<IVsMonitorSelection> monitorSelectionMock;
-        private Mock<IServiceProvider> serviceProviderMock;
-        private Mock<Action<ActiveDocumentChangedEventArgs>> mockEventHandler;
-        private Mock<ITextDocumentProvider> textDocumentProviderMock;
-        private ITextDocument textDocumentMock;
-
-        private ActiveDocumentTracker testSubject;
-
         [TestInitialize]
         public void TestInitialize()
         {
             ThreadHelper.SetCurrentThreadAsUIThread();
-
-            textDocumentMock = Mock.Of<ITextDocument>();
-
-            monitorSelectionMock = new Mock<IVsMonitorSelection>();
-
-            serviceProviderMock = new Mock<IServiceProvider>();
-            serviceProviderMock
-                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
-                .Returns(monitorSelectionMock.Object);
-
-            textDocumentProviderMock = new Mock<ITextDocumentProvider>();
-            mockEventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
-
-            testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProviderMock.Object);
-            testSubject.ActiveDocumentChanged += (sender, e) => mockEventHandler.Object(e);
         }
 
         [TestMethod]
         public void Ctor_RegisterToSelectionEvents()
         {
             uint cookie = 1234;
-            // Reset invocations that were performed in TestInitialize
-            monitorSelectionMock.Reset();
+            var monitorSelectionMock = new Mock<IVsMonitorSelection>();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
-            testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProviderMock.Object);
+            var testSubject = CreateTestSubject(monitorSelectionMock.Object);
 
             monitorSelectionMock.Verify(x=> x.AdviseSelectionEvents(testSubject, out cookie), Times.Once);
             monitorSelectionMock.VerifyNoOtherCalls();
@@ -82,9 +58,10 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         public void Dispose_ShouldUnregisterFromSelectionEvents()
         {
             uint cookie = 1234;
+            var monitorSelectionMock = new Mock<IVsMonitorSelection>();
             monitorSelectionMock.Setup(x => x.AdviseSelectionEvents(It.IsAny<IVsSelectionEvents>(), out cookie));
 
-            testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProviderMock.Object);
+            var testSubject = CreateTestSubject(monitorSelectionMock.Object);
             testSubject.Dispose();
 
             monitorSelectionMock.Verify(x => x.UnadviseSelectionEvents(cookie), Times.Once);
@@ -95,28 +72,37 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var selectedFrame = ValidWindowFrame;
 
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object);
+
             testSubject.Dispose();
             (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame);
 
-            CheckEventNotRaised();
+            CheckEventNotRaised(eventHandler);
         }
 
         [TestMethod]
         public void OnCmdUIContextChanged_DoesNotRaiseEvent()
         {
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object);
+            
             var result = (testSubject as IVsSelectionEvents).OnCmdUIContextChanged(1, 1);
             result.Should().Be(VSConstants.S_OK);
 
-            CheckEventNotRaised();
+            CheckEventNotRaised(eventHandler);
         }
 
         [TestMethod]
         public void OnSelectionChanged_DoesNotRaiseEvent()
         {
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object);
+
             var result = (testSubject as IVsSelectionEvents).OnSelectionChanged(null, 1, null, null, null, 1, null, null);
             result.Should().Be(VSConstants.S_OK);
 
-            CheckEventNotRaised();
+            CheckEventNotRaised(eventHandler);
         }
 
         [TestMethod]
@@ -130,71 +116,106 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             var selectedFrame = Mock.Of<IVsWindowFrame>();
 
-            var result = SimulateElementValueChanged(elementId, selectedFrame);
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object);
+
+            var result = SimulateElementValueChanged(testSubject, elementId, selectedFrame);
             result.Should().Be(VSConstants.S_OK);
 
-            mockEventHandler.VerifyNoOtherCalls();
-            textDocumentProviderMock.VerifyNoOtherCalls();
+            CheckEventNotRaised(eventHandler);
         }
 
         [TestMethod]
         public void OnElementValueChanged_DocumentElement_NewValueIsNull_RaisesEventWithNullArg()
         {
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, null);
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object);
+
+            var result = SimulateElementValueChanged(testSubject, VSConstants.VSSELELEMID.SEID_DocumentFrame, null);
             result.Should().Be(VSConstants.S_OK);
 
-            CheckEventRaised(null);
+            CheckEventRaised(eventHandler, null);
         }
 
         [TestMethod]
         public void OnElementValueChanged_DocumentElement_NullTextDocument_RaisesEventWithNullArg()
         {
             var selectedFrame = ValidWindowFrame;
-
+            var textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame)).Returns(null as ITextDocument);
 
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame);
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object, textDocumentProvider: textDocumentProviderMock.Object);
+
+            var result = SimulateElementValueChanged(testSubject, VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame);
             result.Should().Be(VSConstants.S_OK);
 
-            CheckEventRaised(null);
+            CheckEventRaised(eventHandler, null);
         }
 
         [TestMethod]
         public void OnElementValueChanged_DocumentElement_ValidTextDocument_RaisesEvent()
         {
             var selectedFrame = ValidWindowFrame;
-
+            var textDocumentMock = Mock.Of<ITextDocument>();
+            var textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame)).Returns(textDocumentMock);
 
-            var result = SimulateElementValueChanged(VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame);
+            var eventHandler = new Mock<Action<ActiveDocumentChangedEventArgs>>();
+            var testSubject = CreateTestSubject(eventHandler: eventHandler.Object, textDocumentProvider: textDocumentProviderMock.Object);
+
+            var result = SimulateElementValueChanged(testSubject, VSConstants.VSSELELEMID.SEID_DocumentFrame, selectedFrame);
             result.Should().Be(VSConstants.S_OK);
 
-            CheckEventRaised(textDocumentMock);
+            CheckEventRaised(eventHandler, textDocumentMock);
         }
 
         [TestMethod]
         public void OnElementValueChanged_ValidDocumentFrame_NoEventSubscribers_DoesNotFail()
         {
-            testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProviderMock.Object);
-
             var selectedFrame = ValidWindowFrame;
-
+            var textDocumentMock = Mock.Of<ITextDocument>();
+            var textDocumentProviderMock = new Mock<ITextDocumentProvider>();
             textDocumentProviderMock.Setup(x => x.GetFromFrame(selectedFrame)).Returns(textDocumentMock);
+
+            var testSubject = CreateTestSubject(textDocumentProvider: textDocumentProviderMock.Object);
 
             Func<int> act = () => (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)VSConstants.VSSELELEMID.SEID_WindowFrame, "1", selectedFrame);
 
             act.Should().NotThrow().And.Subject().Should().Be(VSConstants.S_OK);
         }
 
-        private int SimulateElementValueChanged(VSConstants.VSSELELEMID elementId, object newValue) =>
-            (testSubject as IVsSelectionEvents).OnElementValueChanged((uint)elementId,
+        private ActiveDocumentTracker CreateTestSubject(IVsMonitorSelection monitorSelection = null,
+            ITextDocumentProvider textDocumentProvider = null,
+            Action<ActiveDocumentChangedEventArgs> eventHandler = null)
+        {
+            monitorSelection ??= Mock.Of<IVsMonitorSelection>();
+            textDocumentProvider ??= Mock.Of<ITextDocumentProvider>();
+
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(SVsShellMonitorSelection)))
+                .Returns(monitorSelection);
+
+            var testSubject = new ActiveDocumentTracker(serviceProviderMock.Object, textDocumentProvider);
+
+            if (eventHandler != null)
+            {
+                testSubject.ActiveDocumentChanged += (sender, e) => eventHandler(e);
+            }
+
+            return testSubject;
+        }
+
+        private static int SimulateElementValueChanged(IVsSelectionEvents testSubject, VSConstants.VSSELELEMID elementId, object newValue) =>
+            testSubject.OnElementValueChanged((uint)elementId,
                 "old value - can be anything",
                 newValue);
 
-        private void CheckEventRaised(ITextDocument expected) =>
+        private static void CheckEventRaised(Mock<Action<ActiveDocumentChangedEventArgs>> mockEventHandler, ITextDocument expected) =>
             mockEventHandler.Verify(x => x(It.Is((ActiveDocumentChangedEventArgs e) => e.ActiveTextDocument == expected)), Times.Once);
 
-        private void CheckEventNotRaised() =>
+        private static void CheckEventNotRaised(Mock<Action<ActiveDocumentChangedEventArgs>> mockEventHandler) =>
             mockEventHandler.Verify(x => x(It.IsAny<ActiveDocumentChangedEventArgs>()), Times.Never);
     }
 }
