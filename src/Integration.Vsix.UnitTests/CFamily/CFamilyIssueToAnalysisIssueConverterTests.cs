@@ -24,6 +24,8 @@ using System.IO.Abstractions;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -36,14 +38,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
     [TestClass]
     public class CFamilyIssueToAnalysisIssueConverterTests
     {
+        private static readonly IContentType DummyContentType = Mock.Of<IContentType>();
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            // Arrange
-            var lineHashCalculatorExport = MefTestHelpers.CreateExport<ILineHashCalculator>(Mock.Of<ILineHashCalculator>());
-
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueToAnalysisIssueConverter, ICFamilyIssueToAnalysisIssueConverter>(null, new[] { lineHashCalculatorExport });
+            MefTestHelpers.CheckTypeCanBeImported<CFamilyIssueToAnalysisIssueConverter, ICFamilyIssueToAnalysisIssueConverter>(null, new[]
+            {
+                MefTestHelpers.CreateExport<ITextDocumentFactoryService>(Mock.Of<ITextDocumentFactoryService>()),
+                MefTestHelpers.CreateExport<IContentTypeRegistryService>(Mock.Of<IContentTypeRegistryService>())
+            });
         }
 
         [TestMethod]
@@ -171,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_LocationEndLineIsZero_OffsetsAreIgnored()
         {
             var messagePart = new MessagePart("file", 10, 2, 0, 4, "text");
-            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[]{ messagePart });
+            var message = new Message("rule2", "file", 4, 3, 2, 1, "test endline is not zero", false, new[] { messagePart });
 
             var testSubject = CreateTestSubject();
             var issue = Convert(testSubject, message);
@@ -191,13 +195,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             const int line = 10;
 
             var fileSystemMock = CreateFileSystemMock();
-            var lineHashCalculator = CreateLineHashCalculator();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
 
-            var issueHash = SetupLineHash(fileSystemMock, lineHashCalculator, filePath, line);
+            var issueHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, filePath, line);
 
             var message = new Message("rule2", filePath, line, 3, 2, 1, "this is a test", false, new MessagePart[0]);
 
-            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object);
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
 
             issue.LineHash.Should().Be(issueHash);
@@ -207,19 +212,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_HasMessageParts_LineHashCalculatedForIssueAndLocations()
         {
             var fileSystemMock = CreateFileSystemMock();
-            var lineHashCalculator = CreateLineHashCalculator();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
 
             const string issueFilePath = "file1.cpp";
             const int issueLine = 10;
-            var issueHash = SetupLineHash(fileSystemMock, lineHashCalculator, issueFilePath, issueLine);
+            var issueHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, issueFilePath, issueLine);
 
             const string firstLocationPath = "file2.cpp";
             const int firstLocationLine = 20;
-            var firstLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, firstLocationPath, firstLocationLine);
+            var firstLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, firstLocationPath, firstLocationLine);
 
             const string secondLocationPath = "file3.cpp";
             const int secondLocationLine = 30;
-            var secondLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, secondLocationPath, secondLocationLine);
+            var secondLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, secondLocationPath, secondLocationLine);
 
             var messageParts = new List<MessagePart>
             {
@@ -229,7 +235,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var message = new Message("rule2", issueFilePath, issueLine, 3, 2, 1, "this is a test", false, messageParts.ToArray());
 
-            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object);
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
 
             issue.LineHash.Should().Be(issueHash);
@@ -245,11 +251,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_HasMessageParts_LineHashCalculatedForNonFileLevelLocationsOnly()
         {
             var fileSystemMock = CreateFileSystemMock();
-            var lineHashCalculator = CreateLineHashCalculator();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
 
             const string nonFileLevelLocationFilePath = "file2.cpp";
             const int nonFileLevelLocationLine = 20;
-            var nonFileLevelLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, nonFileLevelLocationFilePath, nonFileLevelLocationLine);
+            var nonFileLevelLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, nonFileLevelLocationFilePath, nonFileLevelLocationLine);
 
             var messageParts = new List<MessagePart>
             {
@@ -259,7 +266,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var fileLevelIssue = new Message("rule2", "file1.pp", 1, 0, 0, 0, "this is a test", false, messageParts.ToArray());
 
-            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object);
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, fileLevelIssue);
 
             issue.LineHash.Should().BeNull();
@@ -275,11 +282,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void Convert_FileDoesNotExist_NullLineHash()
         {
             var fileSystemMock = CreateFileSystemMock();
-            var lineHashCalculator = CreateLineHashCalculator();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
 
             const string firstLocationPath = "file2.cpp";
             const int firstLocationLine = 20;
-            var firstLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, firstLocationPath, firstLocationLine);
+            var firstLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, firstLocationPath, firstLocationLine);
 
             var messageParts = new List<MessagePart>
             {
@@ -289,7 +297,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             var message = new Message("rule2", "non existing path", 3, 3, 2, 1, "this is a test", false, messageParts.ToArray());
 
-            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object);
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
             var issue = Convert(testSubject, message);
             issue.LineHash.Should().BeNull();
 
@@ -298,6 +306,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             secondLocation.LineHash.Should().BeNull();
             firstLocation.LineHash.Should().Be(firstLocationHash);
+
+            textDocumentFactoryService.Verify(x=> x.CreateAndLoadTextDocument(firstLocationPath, DummyContentType), Times.Once);
+            textDocumentFactoryService.VerifyNoOtherCalls();
         }
 
         [TestMethod]
@@ -317,8 +328,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             Convert(testSubject, message);
 
-            fileSystemMock.Verify(x=> x.File.Exists("file1.cpp"), Times.Once);
-            fileSystemMock.Verify(x=> x.File.Exists("file2.cpp"), Times.Once);
+            fileSystemMock.Verify(x => x.File.Exists("file1.cpp"), Times.Once);
+            fileSystemMock.Verify(x => x.File.Exists("file2.cpp"), Times.Once);
             fileSystemMock.VerifyNoOtherCalls();
         }
 
@@ -413,16 +424,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
         private static string SetupLineHash(Mock<IFileSystem> fileSystemMock, 
             Mock<ILineHashCalculator> lineHashCalculatorMock, 
+            Mock<ITextDocumentFactoryService> textDocumentFactoryService,
             string filePath, 
             int line)
         {
-            var content = Guid.NewGuid().ToString();
+            fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);
+
+            var textDocument = Mock.Of<ITextDocument>();
+            textDocumentFactoryService
+                .Setup(x => x.CreateAndLoadTextDocument(filePath, DummyContentType))
+                .Returns(textDocument);
+            
             var hash = Guid.NewGuid().ToString();
 
-            fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);
-            fileSystemMock.Setup(x => x.File.ReadAllText(filePath)).Returns(content);
-
-            lineHashCalculatorMock.Setup(x => x.Calculate(content, line)).Returns(hash);
+            lineHashCalculatorMock.Setup(x => x.Calculate(textDocument, line)).Returns(hash);
 
             return hash;
         }
@@ -430,13 +445,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         private static IAnalysisIssue Convert(CFamilyIssueToAnalysisIssueConverter testSubject, Message message) =>
             testSubject.Convert(message, "lang1", GetDummyRulesConfiguration());
 
-        private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(ILineHashCalculator lineHashCalculator = null,
-            IFileSystem fileSystem = null)
-        {
-            lineHashCalculator ??= Mock.Of<ILineHashCalculator>();
-            fileSystem ??= CreateFileSystemMock().Object;
+        private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(IFileSystem fileSystem = null) =>
+            CreateTestSubject(Mock.Of<ILineHashCalculator>(),
+                fileSystem ?? CreateFileSystemMock().Object,
+                Mock.Of<ITextDocumentFactoryService>());
 
-            var testSubject = new CFamilyIssueToAnalysisIssueConverter(lineHashCalculator, fileSystem);
+        private static CFamilyIssueToAnalysisIssueConverter CreateTestSubject(
+            ILineHashCalculator lineHashCalculator,
+            IFileSystem fileSystem,
+            ITextDocumentFactoryService textDocumentFactoryService)
+        {
+            var contentTypeRegistryService = CreateContentTypeRegistryService();
+            var testSubject = new CFamilyIssueToAnalysisIssueConverter(textDocumentFactoryService, contentTypeRegistryService, lineHashCalculator, fileSystem);
 
             return testSubject;
         }
@@ -449,6 +469,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return fileSystemMock;
         }
 
-        private static Mock<ILineHashCalculator> CreateLineHashCalculator() => new Mock<ILineHashCalculator>();
+        private static IContentTypeRegistryService CreateContentTypeRegistryService()
+        {
+            var contentTypeRegistryService = new Mock<IContentTypeRegistryService>();
+            contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(DummyContentType);
+
+            return contentTypeRegistryService.Object;
+        }
     }
 }
