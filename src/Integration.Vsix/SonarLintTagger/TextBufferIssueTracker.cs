@@ -191,7 +191,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         {
             var project = GetProject();
 
-            if (project == null)
+            if (project == null || string.IsNullOrEmpty(project.FileName))
             {
                 return Guid.Empty;
             }
