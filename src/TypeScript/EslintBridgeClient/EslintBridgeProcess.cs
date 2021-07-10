@@ -211,15 +211,13 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
             {
                 if (Process == null || Process.HasExited)
                 {
-                    logger.LogDebug($"[eslint-bridge] [process id: {processId}] Cannot terminate eslint-bridge process: no process is running");
+                    return;
                 }
-                else
-                {
-                    logger.WriteLine(Resources.INFO_TerminatingServer, processId);
-                    Process.Kill();
-                    Process.Dispose();
-                    logger.WriteLine(Resources.INFO_ServerTerminated, processId);
-                }
+
+                logger.WriteLine(Resources.INFO_TerminatingServer, processId);
+                Process.Kill();
+                Process.Dispose();
+                logger.WriteLine(Resources.INFO_ServerTerminated, processId);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
