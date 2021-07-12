@@ -46,6 +46,7 @@
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
 
     <RequiresVCProjectEngine>true</RequiresVCProjectEngine>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
 
   <!-- This project references the SonarLint TeamExplorer assembly which is VS-version specific -->
@@ -120,7 +121,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="14.0.23205" />
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="14.0.23205" />
-    <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="NuGet.Core" Version="2.12.0" />
     <PackageReference Include="NuGet.VisualStudio" Version="3.3.0" />
     <PackageReference Include="System.IO.Abstractions" Version="7.1.10" />
