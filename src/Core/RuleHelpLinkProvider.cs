@@ -31,7 +31,10 @@ namespace SonarLint.VisualStudio.Core
     {
         private static readonly IDictionary<string, string> repoKeyToFolderNameMap = new Dictionary<string, string>
         {
-            { SonarRuleRepoKeys.CSharpSecurityRules, "csharp" }
+            { SonarRuleRepoKeys.CSharpSecurityRules, "csharp" },
+
+            // Support for C# hotspots. No need to special-case the VB.NET hotspots, as their repo name is identical to the one on rules.sonarsource.com
+            { SonarRuleRepoKeys.CSharpRules, "csharp" }
         };
 
         public string GetHelpLink(string ruleKey)
