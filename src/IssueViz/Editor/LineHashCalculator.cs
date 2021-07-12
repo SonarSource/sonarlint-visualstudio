@@ -28,10 +28,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// <summary>
         /// Returns a hash of the given line number inside the documentText
         /// </summary>
-        /// <param name="documentText">The text from which to extract the line</param>
+        /// <param name="textSnapshot">The ITextSnapshot from which to extract the line</param>
         /// <param name="oneBasedLineNumber">1-based line to hash</param>
         /// <returns>hash of line</returns>
-        string Calculate(ITextDocument documentText, int oneBasedLineNumber);
+        string Calculate(ITextSnapshot textSnapshot, int oneBasedLineNumber);
     }
 
     public class LineHashCalculator : ILineHashCalculator
@@ -48,15 +48,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public string Calculate(ITextDocument documentText, int oneBasedLineNumber)
+        public string Calculate(ITextSnapshot textSnapshot, int oneBasedLineNumber)
         {
-            if (oneBasedLineNumber < 1 || documentText?.TextBuffer?.CurrentSnapshot == null)
+            if (oneBasedLineNumber < 1 || textSnapshot == null)
             {
                 return null;
             }
 
             // SonarLint issues line numbers are 1-based, span lines are 0-based
-            var lineToHash = documentText.TextBuffer.CurrentSnapshot.GetLineFromLineNumber(oneBasedLineNumber - 1);
+            // We are using ITextSnapshot.GetLineFromLineNumber, as that method is aware of the different types of line break.
+            var lineToHash = textSnapshot.GetLineFromLineNumber(oneBasedLineNumber - 1);
             var lineText = lineToHash?.GetText();
 
             if (lineText == null)

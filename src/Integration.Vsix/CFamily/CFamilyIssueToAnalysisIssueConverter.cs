@@ -105,7 +105,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             return filePaths.ToDictionary(x => x,
                 path => fileSystem.File.Exists(path)
-                    ? textDocumentFactoryService.CreateAndLoadTextDocument(path, filesContentType)
+                    ? textDocumentFactoryService.CreateAndLoadTextDocument(path, filesContentType) // the document is being loaded from disc, so it should match the version that was analyzed by the subprocess
                     : null);
         }
 
@@ -143,9 +143,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                                       cFamilyIssueLocation.EndColumn == 0 &&
                                       cFamilyIssueLocation.EndLine == 0;
 
-            return isFileLevelLocation
-                ? null
-                : lineHashCalculator.Calculate(fileContents[cFamilyIssueLocation.Filename], cFamilyIssueLocation.Line);
+            if (isFileLevelLocation)
+            {
+                return null;
+            }
+
+            var textSnapshot = fileContents[cFamilyIssueLocation.Filename]?.TextBuffer?.CurrentSnapshot;
+
+            return textSnapshot == null ? null : lineHashCalculator.Calculate(textSnapshot, cFamilyIssueLocation.Line);
         }
 
         private AnalysisIssueLocation ToAnalysisIssueLocation(MessagePart cFamilyIssueLocation, IDictionary<string, ITextDocument> fileContents)

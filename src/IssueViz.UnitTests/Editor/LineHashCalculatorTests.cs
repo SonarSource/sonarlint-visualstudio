@@ -43,31 +43,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void Calculate_NullTextDocument_Null()
-        {
-            var result = testSubject.Calculate(null, 10);
-
-            result.Should().BeNull();
-
-            checksumCalculatorMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
-        public void Calculate_NullTextBuffer_Null()
-        {
-            var textDocument = Mock.Of<ITextDocument>();
-            var result = testSubject.Calculate(textDocument, 10);
-
-            result.Should().BeNull();
-
-            checksumCalculatorMock.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public void Calculate_NullTextSnapshot_Null()
         {
-            var textDocument = CreateTextDocument(textSnapshot: null);
-            var result = testSubject.Calculate(textDocument, 10);
+            var result = testSubject.Calculate(null, 10);
 
             result.Should().BeNull();
 
@@ -80,9 +58,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             const int oneBasedNonExistingLineNumber = 100;
 
             var textSnapshot = CreateTextSnapshot(oneBasedNonExistingLineNumber, line: null);
-            var textDocument = CreateTextDocument(textSnapshot);
 
-            var result = testSubject.Calculate(textDocument, oneBasedNonExistingLineNumber);
+            var result = testSubject.Calculate(textSnapshot, oneBasedNonExistingLineNumber);
 
             result.Should().BeNull();
 
@@ -95,9 +72,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             const int oneBasedLineNumber = 2;
 
             var textSnapshot = CreateTextSnapshot(oneBasedLineNumber, lineText:null);
-            var textDocument = CreateTextDocument(textSnapshot);
 
-            var result = testSubject.Calculate(textDocument, oneBasedLineNumber);
+            var result = testSubject.Calculate(textSnapshot, oneBasedLineNumber);
 
             result.Should().BeNull();
 
@@ -110,9 +86,8 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         public void Calculate_InvalidLineNumber_Null(int oneBasedLineNumber)
         {
             var textSnapshot = CreateTextSnapshot(oneBasedLineNumber, "some text that shouldn't be checked");
-            var textDocument = CreateTextDocument(textSnapshot);
 
-            var result = testSubject.Calculate(textDocument, oneBasedLineNumber);
+            var result = testSubject.Calculate(textSnapshot, oneBasedLineNumber);
 
             result.Should().BeNull();
 
@@ -130,22 +105,10 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
             checksumCalculatorMock.Setup(x => x.Calculate(text)).Returns(expectedHash);
 
             var textSnapshot = CreateTextSnapshot(oneBasedLineNumber, text);
-            var textDocument = CreateTextDocument(textSnapshot);
 
-            var result = testSubject.Calculate(textDocument, oneBasedLineNumber);
+            var result = testSubject.Calculate(textSnapshot, oneBasedLineNumber);
 
             result.Should().Be(expectedHash);
-        }
-
-        private ITextDocument CreateTextDocument(ITextSnapshot textSnapshot)
-        {
-            var textBuffer = new Mock<ITextBuffer>();
-            textBuffer.Setup(x => x.CurrentSnapshot).Returns(textSnapshot);
-
-            var textDocument = new Mock<ITextDocument>();
-            textDocument.Setup(x => x.TextBuffer).Returns(textBuffer.Object);
-
-            return textDocument.Object;
         }
 
         private ITextSnapshot CreateTextSnapshot(int oneBasedLineNumber, ITextSnapshotLine line)

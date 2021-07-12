@@ -285,13 +285,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var lineHashCalculator = new Mock<ILineHashCalculator>();
             var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
 
-            const string firstLocationPath = "file2.cpp";
-            const int firstLocationLine = 20;
-            var firstLocationHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, firstLocationPath, firstLocationLine);
+            const string existingFilePath = "file2.cpp";
+            const int line = 20;
+            var expectedHash = SetupLineHash(fileSystemMock, lineHashCalculator, textDocumentFactoryService, existingFilePath, line);
 
             var messageParts = new List<MessagePart>
             {
-                new MessagePart(firstLocationPath, firstLocationLine, 2, 3, 4, "this is a test 1"),
+                new MessagePart(existingFilePath, line, 2, 3, 4, "this is a test 1"),
                 new MessagePart("non existing path", 2, 6, 7, 8, "this is a test 2")
             };
 
@@ -305,10 +305,77 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var secondLocation = issue.Flows[0].Locations[1];
 
             secondLocation.LineHash.Should().BeNull();
-            firstLocation.LineHash.Should().Be(firstLocationHash);
+            firstLocation.LineHash.Should().Be(expectedHash);
 
-            textDocumentFactoryService.Verify(x=> x.CreateAndLoadTextDocument(firstLocationPath, DummyContentType), Times.Once);
-            textDocumentFactoryService.VerifyNoOtherCalls();
+            // verify that the mock was called only for firstLocationPath
+            textDocumentFactoryService.Verify(x=> x.CreateAndLoadTextDocument(existingFilePath, DummyContentType), Times.Once);
+            textDocumentFactoryService.Verify(x=> x.CreateAndLoadTextDocument(It.IsAny<string>(), It.IsAny<IContentType>()), Times.Once);
+        }
+
+        [TestMethod]
+        public void Convert_ExistingFile_NoTextDocument_NullLineHash()
+        {
+            var fileSystemMock = CreateFileSystemMock();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+
+            const string filePath = "test.cpp";
+            fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);
+
+            SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument: null);
+
+            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
+
+            var issue = Convert(testSubject, message);
+            issue.LineHash.Should().BeNull();
+            lineHashCalculator.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Convert_ExistingFile_NoTextBuffer_NullLineHash()
+        {
+            var fileSystemMock = CreateFileSystemMock();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+
+            const string filePath = "test.cpp";
+            fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);
+
+            var textDocument = CreateTextDocument(null);
+            SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
+
+            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
+
+            var issue = Convert(testSubject, message);
+            issue.LineHash.Should().BeNull();
+            lineHashCalculator.Invocations.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void Convert_ExistingFile_NoTextSnapshot_NullLineHash()
+        {
+            var fileSystemMock = CreateFileSystemMock();
+            var lineHashCalculator = new Mock<ILineHashCalculator>();
+            var textDocumentFactoryService = new Mock<ITextDocumentFactoryService>();
+
+            const string filePath = "test.cpp";
+            fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);
+
+            var textBuffer = CreateTextBuffer(null);
+            var textDocument = CreateTextDocument(textBuffer);
+            SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
+
+            var message = new Message("rule2", filePath, 3, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+
+            var testSubject = CreateTestSubject(lineHashCalculator.Object, fileSystemMock.Object, textDocumentFactoryService.Object);
+
+            var issue = Convert(testSubject, message);
+            issue.LineHash.Should().BeNull();
+            lineHashCalculator.Invocations.Should().BeEmpty();
         }
 
         [TestMethod]
@@ -430,14 +497,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             fileSystemMock.Setup(x => x.File.Exists(filePath)).Returns(true);
 
-            var textDocument = Mock.Of<ITextDocument>();
-            textDocumentFactoryService
-                .Setup(x => x.CreateAndLoadTextDocument(filePath, DummyContentType))
-                .Returns(textDocument);
-            
+            var textSnapshot = Mock.Of<ITextSnapshot>();
+            var textBuffer = CreateTextBuffer(textSnapshot);
+            var textDocument = CreateTextDocument(textBuffer);
+
+            SetupDocumentLoad(textDocumentFactoryService, filePath, textDocument);
+
             var hash = Guid.NewGuid().ToString();
 
-            lineHashCalculatorMock.Setup(x => x.Calculate(textDocument, line)).Returns(hash);
+            lineHashCalculatorMock.Setup(x => x.Calculate(textSnapshot, line)).Returns(hash);
 
             return hash;
         }
@@ -475,6 +543,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             contentTypeRegistryService.Setup(x => x.UnknownContentType).Returns(DummyContentType);
 
             return contentTypeRegistryService.Object;
+        }
+
+        private static void SetupDocumentLoad(Mock<ITextDocumentFactoryService> textDocumentFactoryService, string filePath, ITextDocument textDocument)
+        {
+            textDocumentFactoryService
+                .Setup(x => x.CreateAndLoadTextDocument(filePath, DummyContentType))
+                .Returns(textDocument);
+        }
+
+        private static ITextDocument CreateTextDocument(ITextBuffer textBuffer)
+        {
+            var textDocument = new Mock<ITextDocument>();
+            textDocument.Setup(x => x.TextBuffer).Returns(textBuffer);
+
+            return textDocument.Object;
+        }
+
+        private static ITextBuffer CreateTextBuffer(ITextSnapshot textSnapshot)
+        {
+            var textBuffer = new Mock<ITextBuffer>();
+            textBuffer.Setup(x => x.CurrentSnapshot).Returns(textSnapshot);
+
+            return textBuffer.Object;
         }
     }
 }
