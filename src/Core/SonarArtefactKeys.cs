@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.Core
         public const string Cpp = "cpp";
 
         public const string CSharpSecurityRules = "roslyn.sonaranalyzer.security.cs";
-        public const string CSharpHotspotSecurityRules = "csharpsquid";
+        public const string CSharpRules = "csharpsquid";
 
         public static readonly StringComparer RepoKeyComparer = StringComparer.Ordinal;
 
