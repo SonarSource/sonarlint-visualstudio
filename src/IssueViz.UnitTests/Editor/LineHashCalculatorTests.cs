@@ -18,11 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.Text;
 using Moq;
-using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.IssueVisualization.Editor;
 using SonarQube.Client;
 
@@ -44,18 +43,9 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void MefCtor_CheckIsExported()
+        public void Calculate_NullTextSnapshot_Null()
         {
-            // Act & Assert
-            MefTestHelpers.CheckTypeCanBeImported<LineHashCalculator, ILineHashCalculator>(null, null);
-        }
-
-        [TestMethod]
-        [DataRow("")]
-        [DataRow(null)]
-        public void Calculate_NoText_Null(string text)
-        {
-            var result = testSubject.Calculate(text, 10);
+            var result = testSubject.Calculate(null, 10);
 
             result.Should().BeNull();
 
@@ -63,27 +53,41 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        public void Calculate_TextHasOneLine_GivenLineIsOne_LineHashed()
+        public void Calculate_NullTextLine_Null()
         {
-            const string text = "one line";
-            const int line = 1;
+            const int oneBasedNonExistingLineNumber = 100;
 
-            const string expectedHash = "hashed line";
-            checksumCalculatorMock.Setup(x => x.Calculate(text)).Returns(expectedHash);
+            var textSnapshot = CreateTextSnapshot(oneBasedNonExistingLineNumber, line: null);
 
-            var result = testSubject.Calculate(text, line);
+            var result = testSubject.Calculate(textSnapshot, oneBasedNonExistingLineNumber);
 
-            result.Should().Be(expectedHash);
+            result.Should().BeNull();
+
+            checksumCalculatorMock.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public void Calculate_NullTextLineContent_Null()
+        {
+            const int oneBasedLineNumber = 2;
+
+            var textSnapshot = CreateTextSnapshot(oneBasedLineNumber, lineText:null);
+
+            var result = testSubject.Calculate(textSnapshot, oneBasedLineNumber);
+
+            result.Should().BeNull();
+
+            checksumCalculatorMock.VerifyNoOtherCalls();
         }
 
         [TestMethod]
         [DataRow(0)]
-        [DataRow(2)]
-        public void Calculate_GivenLineIsNotInTextRange_Null(int line)
+        [DataRow(-1)]
+        public void Calculate_InvalidLineNumber_Null(int oneBasedLineNumber)
         {
-            const string text = "one line";
+            var textSnapshot = CreateTextSnapshot(oneBasedLineNumber, "some text that shouldn't be checked");
 
-            var result = testSubject.Calculate(text, line);
+            var result = testSubject.Calculate(textSnapshot, oneBasedLineNumber);
 
             result.Should().BeNull();
 
@@ -91,19 +95,39 @@ namespace SonarLint.VisualStudio.IssueVisualization.UnitTests.Editor
         }
 
         [TestMethod]
-        [DataRow(1, "one line")]
-        [DataRow(2, "second line")]
-        [DataRow(3, "third line")]
-        public void Calculate_GivenLineIsInTextRange_LineHashed(int line, string expectedLineToHash)
+        [DataRow(1)]
+        [DataRow(10)]
+        public void Calculate_ValidLine_LineHashed(int oneBasedLineNumber)
         {
-            var text = string.Join(Environment.NewLine, "one line", "second line", "third line");
+            const string text = "some text";
 
             const string expectedHash = "hashed line";
-            checksumCalculatorMock.Setup(x => x.Calculate(expectedLineToHash)).Returns(expectedHash);
+            checksumCalculatorMock.Setup(x => x.Calculate(text)).Returns(expectedHash);
 
-            var result = testSubject.Calculate(text, line);
+            var textSnapshot = CreateTextSnapshot(oneBasedLineNumber, text);
+
+            var result = testSubject.Calculate(textSnapshot, oneBasedLineNumber);
 
             result.Should().Be(expectedHash);
+        }
+
+        private ITextSnapshot CreateTextSnapshot(int oneBasedLineNumber, ITextSnapshotLine line)
+        {
+            var textSnapshot = new Mock<ITextSnapshot>();
+            textSnapshot.Setup(x => x.GetLineFromLineNumber(oneBasedLineNumber - 1)).Returns(line);
+
+            return textSnapshot.Object;
+        }
+
+        private ITextSnapshot CreateTextSnapshot(int oneBasedLineNumber, string lineText)
+        {
+            var line = new Mock<ITextSnapshotLine>();
+            line.Setup(x => x.GetText()).Returns(lineText);
+
+            var textSnapshot = new Mock<ITextSnapshot>();
+            textSnapshot.Setup(x => x.GetLineFromLineNumber(oneBasedLineNumber - 1)).Returns(line.Object);
+
+            return textSnapshot.Object;
         }
     }
 }
