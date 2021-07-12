@@ -1,19 +1,20 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31320.298
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client.Tests", "SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client.Tests", "SonarQube.Client.Tests\SonarQube.Client.Tests.csproj", "{8FEFDB82-CBDB-4B52-B221-BB604DFD60E6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{77D0ED49-ED05-455B-9055-2A36184EC685}"
 	ProjectSection(SolutionItems) = preProject
 		CODE_OF_CONDUCT.md = CODE_OF_CONDUCT.md
+		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE
 		NOTICE.txt = NOTICE.txt
 		readme.md = readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarQube.Client", "SonarQube.Client\SonarQube.Client.csproj", "{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SonarQube.Client", "SonarQube.Client\SonarQube.Client.csproj", "{5E513FC3-BDA7-40F2-8B6A-1BB9372ACB99}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

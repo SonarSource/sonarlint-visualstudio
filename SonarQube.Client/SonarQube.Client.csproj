@@ -7,6 +7,8 @@
     <RootNamespace>SonarQube.Client</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <RequiresSigning>true</RequiresSigning>
+
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -29,7 +31,6 @@
     <PackageReference Include="Google.Protobuf" Version="3.6.1" />
     <!-- When changing this reference update ProtocCompiler property too! -->
     <PackageReference Include="Grpc.Tools" Version="1.4.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="6.0.8" />
     <PackageReference Include="System.Net.Http" Version="4.0.0" />
     <PackageReference Include="BouncyCastle" Version="1.8.6.1" />
   </ItemGroup>

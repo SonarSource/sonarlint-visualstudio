@@ -12,4 +12,22 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
+
+  <!-- ******************************************************************************* -->
+  <!-- NewtonSoft -->
+  <!-- ******************************************************************************* -->
+
+  <PropertyGroup>
+    <!-- Conditionally set a version to use when building the repo directly, rather than
+         as a sub-module.
+         
+         If the code is being built as a submodule of SLVS then we'll pick up the version
+         set in the parent Directory.Build.props. -->
+    <NewtonsoftVersion Condition=" $(NewtonsoftVersion)=='' ">6.0.8</NewtonsoftVersion>
+  </PropertyGroup>
+
+  <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftVersion)" />
+  </ItemGroup>
+
 </Project>
