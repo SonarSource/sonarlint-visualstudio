@@ -18,8 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Text;
 using SonarQube.Client;
 
 namespace SonarLint.VisualStudio.IssueVisualization.Editor
@@ -29,19 +28,16 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
         /// <summary>
         /// Returns a hash of the given line number inside the documentText
         /// </summary>
-        /// <param name="documentText">The text from which to extract the line</param>
+        /// <param name="textSnapshot">The ITextSnapshot from which to extract the line</param>
         /// <param name="oneBasedLineNumber">1-based line to hash</param>
         /// <returns>hash of line</returns>
-        string Calculate(string documentText, int oneBasedLineNumber);
+        string Calculate(ITextSnapshot textSnapshot, int oneBasedLineNumber);
     }
 
-    [Export(typeof(ILineHashCalculator))]
-    [PartCreationPolicy(CreationPolicy.Shared)]
     public class LineHashCalculator : ILineHashCalculator
     {
         private readonly IChecksumCalculator checksumCalculator;
 
-        [ImportingConstructor]
         public LineHashCalculator()
             : this(new ChecksumCalculator())
         {
@@ -52,27 +48,26 @@ namespace SonarLint.VisualStudio.IssueVisualization.Editor
             this.checksumCalculator = checksumCalculator;
         }
 
-        public string Calculate(string documentText, int oneBasedLineNumber)
+        public string Calculate(ITextSnapshot textSnapshot, int oneBasedLineNumber)
         {
-            if (string.IsNullOrEmpty(documentText) || oneBasedLineNumber < 1)
+            if (oneBasedLineNumber < 1 || textSnapshot == null)
             {
                 return null;
             }
 
-            var lines = GetLines(documentText);
+            // SonarLint issues line numbers are 1-based, span lines are 0-based
+            // We are using ITextSnapshot.GetLineFromLineNumber, as that method is aware of the different types of line break.
+            var lineToHash = textSnapshot.GetLineFromLineNumber(oneBasedLineNumber - 1);
+            var lineText = lineToHash?.GetText();
 
-            if (oneBasedLineNumber > lines.Length)
+            if (lineText == null)
             {
                 return null;
             }
 
-            var lineToHash = lines[oneBasedLineNumber - 1];
-
-            var hash = checksumCalculator.Calculate(lineToHash);
+            var hash = checksumCalculator.Calculate(lineText);
 
             return hash;
         }
-
-        private static string[] GetLines(string text) => text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
     }
 }
