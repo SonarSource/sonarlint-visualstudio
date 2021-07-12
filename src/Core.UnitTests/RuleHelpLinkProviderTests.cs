@@ -35,6 +35,8 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         [DataRow("php:101112", "https://rules.sonarsource.com/php/RSPEC-101112")]
         [DataRow("roslyn.sonaranalyzer.security.cs:S2076", "https://rules.sonarsource.com/csharp/RSPEC-2076")]
         [DataRow("roslyn.sonaranalyzer.security.cs:SOMETHING", "https://rules.sonarsource.com/csharp/RSPEC-SOMETHING")]
+        [DataRow("csharpsquid:S1234", "https://rules.sonarsource.com/csharp/RSPEC-1234")]
+        [DataRow("csharpsquid:SOMETHING", "https://rules.sonarsource.com/csharp/RSPEC-SOMETHING")]
         public void GetHelpLink(string ruleKey, string expectedLink)
         {
             var helpLink = new RuleHelpLinkProvider().GetHelpLink(ruleKey);
