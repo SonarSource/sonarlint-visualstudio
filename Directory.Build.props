@@ -24,4 +24,16 @@
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
   </PropertyGroup>
 
+
+  <!-- ******************************************************************************* -->
+  <!-- Newtonsoft -->
+  <!-- ******************************************************************************* -->
+  <PropertyGroup>
+    <NewtonsoftVersion>6.0.8</NewtonsoftVersion>
+  </PropertyGroup>
+  
+  <ItemGroup Label="Newtonsoft" Condition=" $(RequiresNewtonsoft)=='true' " >
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftVersion)" />
+  </ItemGroup>
+
 </Project>
