@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
@@ -47,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// <summary>
         /// The list of issues returned by the analyzer run
         /// </summary>
-        IEnumerable<IAnalysisIssueVisualization> Issues { get; }
+        IReadOnlyList<IAnalysisIssueVisualization> Issues { get; }
 
         /// <summary>
         /// Returns the set of files for which this snapshot contains location information (primary and secondary)
@@ -88,9 +87,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         private readonly IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter;
         private readonly IRuleHelpLinkProvider ruleHelpLinkProvider;
 
-        private readonly IList<IAnalysisIssueVisualization> issues;
-        private readonly IReadOnlyCollection<IAnalysisIssueVisualization> readonlyIssues;
-
         private int versionNumber;
 
         // Every snapshot has a unique version number. It doesn't matter what it is, as
@@ -102,22 +98,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         #region Construction methods
 
         public IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath) =>
-            new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, analyzedFilePath, issues);
+            new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, analyzedFilePath, Issues.ToList());
 
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
         /// </summary>
-        public IssuesSnapshot(string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+        public IssuesSnapshot(string projectName, Guid projectGuid, string filePath, IReadOnlyList<IAnalysisIssueVisualization> issues)
             : this(Guid.NewGuid(), projectName, projectGuid, filePath, issues)
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues)
+        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IReadOnlyList<IAnalysisIssueVisualization> issues)
             : this(snapshotId, projectName, projectGuid, filePath, issues, new AnalysisSeverityToVsSeverityConverter(), new RuleHelpLinkProvider())
         {
         }
 
-        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IEnumerable<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
+        private IssuesSnapshot(Guid snapshotId, string projectName, Guid projectGuid, string filePath, IReadOnlyList<IAnalysisIssueVisualization> issues, IAnalysisSeverityToVsSeverityConverter toVsSeverityConverter, IRuleHelpLinkProvider ruleHelpLinkProvider)
         {
             var areAllIssuesAnalysisIssues = issues.All(x => x.Issue is IAnalysisIssue);
 
@@ -133,8 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.versionNumber = GetNextVersionNumber();
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
-            this.issues = new List<IAnalysisIssueVisualization>(issues);
-            this.readonlyIssues = new ReadOnlyCollection<IAnalysisIssueVisualization>(this.issues);
+            this.Issues = issues;
 
             // Optimistation:
             // Most rules only have a single location, and most multi-location rules only produce locations
@@ -150,19 +145,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Overrides
 
-        public override int Count => this.issues.Count;
+        public override int Count => Issues.Count;
 
         public override int VersionNumber => this.versionNumber;
 
         public override bool TryGetValue(int index, string keyName, out object content)
         {
-            if (index < 0 || index >= issues.Count || ShouldHideIssue(issues[index]))
+            if (index < 0 || index >= Issues.Count || ShouldHideIssue(Issues[index]))
             {
                 content = null;
                 return false;
             }
 
-            var issueViz = issues[index];
+            var issueViz = Issues[index];
             var issue = issueViz.Issue as IAnalysisIssue;
 
             switch (keyName)
@@ -266,7 +261,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public override bool TryCreateDetailsStringContent(int index, out string content)
         {
             // TODO use the detailed description
-            content = this.issues[index].Issue.Message;
+            content = this.Issues[index].Issue.Message;
             return true;
         }
 
@@ -281,8 +276,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
                 newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
-                currentIndex >= 0 && currentIndex < issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
-                !ShouldHideIssue(issues[currentIndex]) // don't map hidden issues: see #2351
+                currentIndex >= 0 && currentIndex < Issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
+                !ShouldHideIssue(Issues[currentIndex]) // don't map hidden issues: see #2351
                 )
             {
                 return currentIndex;
@@ -298,7 +293,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public string AnalyzedFilePath { get; }
 
-        public IEnumerable<IAnalysisIssueVisualization> Issues => readonlyIssues;
+        public IReadOnlyList<IAnalysisIssueVisualization> Issues { get; }
 
         public IEnumerable<string> FilesInSnapshot { get; }
 

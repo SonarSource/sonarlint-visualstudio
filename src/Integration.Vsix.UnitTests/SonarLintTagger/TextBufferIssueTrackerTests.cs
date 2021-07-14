@@ -531,10 +531,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.SonarLintTagger
                 : base(dte, provider, document, detectedLanguages, issuesFilter, sonarErrorDataSource, converter, vsSolution, logger)
             { }
 
-            protected override IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
+            protected override IReadOnlyList<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
             {
                 // Just pass-through the supplied issues
-                return issues;
+                return issues.ToList();
             }
         }
     }

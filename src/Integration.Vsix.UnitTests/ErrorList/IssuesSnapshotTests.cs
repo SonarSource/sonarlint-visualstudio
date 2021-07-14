@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private const string ValidProjectName = "aproject";
         private const string ValidFilePath = "c:\\file.txt";
         private static readonly Guid ValidProjectGuid = Guid.NewGuid();
-        private static readonly IEnumerable<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssue(), CreateIssue() };
+        private static readonly IReadOnlyList<IAnalysisIssueVisualization> ValidIssueList = new[] { CreateIssue(), CreateIssue() };
         private static readonly int ValidIndexInValidIssueList = ValidIssueList.Count() - 1;
 
         [TestMethod]

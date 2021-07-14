@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [DataRow(2)]
         public void Count_ReturnsNumberOfIssues(int numberOfIssues)
         {
-            var analysisIssueVisualizations = Enumerable.Repeat(issueViz, numberOfIssues);
+            var analysisIssueVisualizations = Enumerable.Repeat(issueViz, numberOfIssues).ToArray();
 
             var testSubject = new IssuesSnapshot("MyProject", Guid.Empty, "foo.js", analysisIssueVisualizations);
             testSubject.Count.Should().Be(numberOfIssues);

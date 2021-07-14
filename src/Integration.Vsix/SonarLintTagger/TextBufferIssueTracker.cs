@@ -112,7 +112,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             }
         }
 
-        protected virtual /* for testing */ IEnumerable<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
+        protected virtual /* for testing */ IReadOnlyList<IAnalysisIssueVisualization> TranslateSpans(IEnumerable<IAnalysisIssueVisualization> issues, ITextSnapshot activeSnapshot)
         {
             var issuesWithTranslatedSpans = issues
                 .Where(x => x.Span.HasValue)

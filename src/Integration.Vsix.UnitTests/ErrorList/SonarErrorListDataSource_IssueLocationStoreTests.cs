@@ -354,6 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
             snapshotMock.Setup(x => x.FilesInSnapshot).Returns(filePaths);
+            snapshotMock.Setup(x => x.Issues).Returns(Array.Empty<IAnalysisIssueVisualization>());
 
             var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
             snapshotFactory.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
