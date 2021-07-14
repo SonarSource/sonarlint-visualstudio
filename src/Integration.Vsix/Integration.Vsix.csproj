@@ -57,7 +57,7 @@
   <!-- ********************************************************** -->
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
   <ItemGroup Label="Embedded SonarLint analyzers">
-    <!-- Reference the packages we want to import, but we don't want to include them as analyzers for this project -->
+    <!-- Reference the packages we want to import, but don't include them as analyzers for this project -->
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
 
