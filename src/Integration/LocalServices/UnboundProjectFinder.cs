@@ -25,6 +25,7 @@ using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 
 namespace SonarLint.VisualStudio.Integration
@@ -33,27 +34,34 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly IServiceProvider serviceProvider;
         private readonly IProjectBinderFactory projectBinderFactory;
+        private readonly ILogger logger;
 
         public UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger)
-            : this(serviceProvider, new ProjectBinderFactory(serviceProvider, logger))
+            : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger))
         {
         }
 
-        internal UnboundProjectFinder(IServiceProvider serviceProvider, IProjectBinderFactory projectBinderFactory)
+        internal UnboundProjectFinder(IServiceProvider serviceProvider, ILogger logger, IProjectBinderFactory projectBinderFactory)
         {
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
         }
 
         public IEnumerable<Project> GetUnboundProjects()
         {
+            logger.LogDebug($"[Binding check] Checking for unbound projects...");
+
             var configProvider = serviceProvider.GetService<IConfigurationProviderService>();
             configProvider.AssertLocalServiceIsNotNull();
 
             // Only applicable in connected mode (legacy or new)
             var bindingConfig = configProvider.GetConfiguration();
+            logger.LogDebug($"[Binding check] Binding mode: {bindingConfig.Mode}");
 
-            return bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Enumerable.Empty<Project>();
+            var unbound = bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Enumerable.Empty<Project>();
+            logger.LogDebug($"[Binding check] Number of unbound projects: {unbound}");
+            return unbound;
         }
 
         private IEnumerable<Project> GetUnboundProjects(BindingConfiguration binding)
@@ -64,14 +72,20 @@ namespace SonarLint.VisualStudio.Integration
             var projectSystem = serviceProvider.GetService<IProjectSystemHelper>();
             projectSystem.AssertLocalServiceIsNotNull();
 
-            var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects();
+            var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
+            logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
+
 
             return filteredSolutionProjects
                 .Where(project =>
                 {
                     var configProjectBinder = projectBinderFactory.Get(project);
 
-                    return configProjectBinder.IsBindingRequired(binding, project);
+                    logger.LogDebug($"[Binding check] Checking binding for project '{project.Name}'. Binder type: {configProjectBinder.GetType().Name}");
+                    var required = configProjectBinder.IsBindingRequired(binding, project);
+                    logger.LogDebug($"[Binding check] Is binding required: {required} (project: {project.Name})");
+
+                    return required;
                 })
                 .ToArray();
         }

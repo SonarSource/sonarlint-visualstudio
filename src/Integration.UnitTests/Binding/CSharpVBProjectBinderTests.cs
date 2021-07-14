@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             rulesetReferenceCheckerMock = new Mock<IRuleSetReferenceChecker>();
             additionalFileReferenceCheckerMock = new Mock<ICSharpVBAdditionalFileReferenceChecker>();
 
-            testSubject = new CSharpVBProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, rulesetReferenceCheckerMock.Object, additionalFileReferenceCheckerMock.Object, createBindingOperationFuncMock.Object);
+            testSubject = new CSharpVBProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, new TestLogger(), rulesetReferenceCheckerMock.Object, additionalFileReferenceCheckerMock.Object, createBindingOperationFuncMock.Object);
         }
 
         [TestMethod]

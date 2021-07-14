@@ -130,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
                 sp.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper.Object);
                 sp.RegisterService(typeof(IConfigurationProviderService), configProviderMock.Object);
 
-                var testSubject = new UnboundProjectFinder(sp, projectBinderFactoryMock.Object);
+                var testSubject = new UnboundProjectFinder(sp, new TestLogger(), projectBinderFactoryMock.Object);
                 return testSubject;
             }
         }
