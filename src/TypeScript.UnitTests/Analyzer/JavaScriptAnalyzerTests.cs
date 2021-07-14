@@ -149,6 +149,21 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.Analyzer
             eslintBridgeAnalyzer.Verify(x => x.Dispose(), Times.Once);
         }
 
+        [TestMethod, Description("Regression test for #2452")]
+        public async Task ExecuteAnalysis_EslintBridgeProcessLaunchException_NotifiesThatAnalysisFailedWithoutStackTrace()
+        {
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+            var exception = new EslintBridgeProcessLaunchException("this is a test");
+            var eslintBridgeAnalyzer = SetupEslintBridgeAnalyzer(exceptionToThrow: exception);
+
+            var testSubject = CreateTestSubject(eslintBridgeAnalyzer.Object, statusNotifier: statusNotifier.Object);
+            await testSubject.ExecuteAnalysis("some path", Mock.Of<IIssueConsumer>(), CancellationToken.None);
+
+            statusNotifier.Verify(x => x.AnalysisStarted("some path"), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed("some path", "this is a test"), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
+        }
+
         [TestMethod]
         public async Task ExecuteAnalysis_AnalysisFailed_NotifiesThatAnalysisFailed()
         {
