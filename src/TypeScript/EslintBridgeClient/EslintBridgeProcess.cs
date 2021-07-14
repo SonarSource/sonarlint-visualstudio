@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -47,6 +46,16 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         /// Returns true/false if the process is running.
         /// </summary>
         bool IsRunning { get; }
+    }
+
+    [Serializable]
+    internal class EslintBridgeProcessLaunchException : Exception
+    {
+        public EslintBridgeProcessLaunchException(string message) : base(message) { }
+        public EslintBridgeProcessLaunchException(string message, Exception inner) : base(message, inner) { }
+        protected EslintBridgeProcessLaunchException(
+            System.Runtime.Serialization.SerializationInfo info,
+            System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
     }
 
     internal sealed class EslintBridgeProcess : IEslintBridgeProcess
@@ -235,7 +244,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
 
             if (string.IsNullOrEmpty(nodePath))
             {
-                throw new FileNotFoundException("Could not find node.exe");
+                throw new EslintBridgeProcessLaunchException("Could not find node.exe");
             }
 
             return nodePath;
@@ -245,7 +254,7 @@ namespace SonarLint.VisualStudio.TypeScript.EslintBridgeClient
         {
             if (!fileSystem.File.Exists(eslintBridgeStartupScriptPath))
             {
-                throw new FileNotFoundException($"Could not find eslint-bridge startup script file: {eslintBridgeStartupScriptPath}");
+                throw new EslintBridgeProcessLaunchException($"Could not find eslint-bridge startup script file: {eslintBridgeStartupScriptPath}");
             }
 
             return GetQuotedScriptPath(eslintBridgeStartupScriptPath);

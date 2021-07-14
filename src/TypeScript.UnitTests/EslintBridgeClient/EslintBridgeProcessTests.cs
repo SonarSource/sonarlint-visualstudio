@@ -37,14 +37,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
     public class EslintBridgeProcessTests
     {
         [TestMethod]
-        public void Start_FailsToFindNode_FileNotFoundException()
+        public void Start_FailsToFindNode_EslintBridgeProcessLaunchException()
         {
             var nodeLocator = SetupNodeLocator(null);
 
             var testSubject = CreateTestSubject(nodeLocator: nodeLocator.Object);
             Func<Task> act = async () => await testSubject.Start();
 
-            act.Should().ThrowExactly<FileNotFoundException>().And.Message.Should().Contain("node.exe");
+            act.Should().ThrowExactly<EslintBridgeProcessLaunchException>().And.Message.Should().Contain("node.exe");
         }
 
         [TestMethod] // Regression test for #2370
@@ -139,7 +139,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
         }
 
         [TestMethod]
-        public void Start_FailsToFindStartupScript_FileNotFoundException()
+        public void Start_FailsToFindStartupScript_EslintBridgeProcessLaunchException()
         {
             const string filePath = "somefile.txt";
 
@@ -147,7 +147,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.EslintBridgeClient
             var testSubject = CreateTestSubject(filePath, fileSystem: fileSystem.Object);
             Func<Task> act = async () => await testSubject.Start();
 
-            act.Should().ThrowExactly<FileNotFoundException>().And.Message.Should().Contain(filePath);
+            act.Should().ThrowExactly<EslintBridgeProcessLaunchException>().And.Message.Should().Contain(filePath);
         }
 
         [TestMethod]
