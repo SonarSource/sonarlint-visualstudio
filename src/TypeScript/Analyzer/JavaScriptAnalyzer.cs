@@ -96,6 +96,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             {
                 analysisStatusNotifier.AnalysisCancelled(filePath);
             }
+            catch (EslintBridgeProcessLaunchException ex)
+            {
+                analysisStatusNotifier.AnalysisFailed(filePath, ex.Message);
+            }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 analysisStatusNotifier.AnalysisFailed(filePath, ex);

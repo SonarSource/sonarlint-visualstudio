@@ -99,6 +99,7 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
                     analysisStatusNotifier.AnalysisFailed(filePath, Resources.ERR_NoTsConfig);
                     return;
                 }
+
                 logger.WriteLine("[TypescriptAnalyzer] time to find ts config: " + stopwatch.ElapsedMilliseconds);
 
                 stopwatch.Restart();
@@ -113,6 +114,10 @@ namespace SonarLint.VisualStudio.TypeScript.Analyzer
             catch (TaskCanceledException)
             {
                 analysisStatusNotifier.AnalysisCancelled(filePath);
+            }
+            catch (EslintBridgeProcessLaunchException ex)
+            {
+                analysisStatusNotifier.AnalysisFailed(filePath, ex.Message);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
