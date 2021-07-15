@@ -139,17 +139,47 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_NewIssueDoesNotHaveValidSpan_ReturnNotFound()
+        public void IndexOf_UpdatedSnapshot_GivenIssueDoesNotHaveValidSpan_ReturnNotFound()
         {
-            var span = CreateIssue();
-            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { span });
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
             var snapshot2 = snapshot1.CreateUpdatedSnapshot("unimportant change");
 
-            span.InvalidateSpan();
+            issue1.InvalidateSpan();
+            snapshot2.IncrementVersion(); // simulate re-calculation of VisibleIssues
 
             // Should not be able to map to an issue with an invalid span since it should be hidden
             snapshot1.IndexOf(0, snapshot2)
                 .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        public void IndexOf_SameSnapshot_OneIssueDoesNotHaveValidSpan_ReturnNotFound()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            issue1.InvalidateSpan();
+            snapshot.IncrementVersion(); // simulate re-calculation of VisibleIssues
+
+            // we are asking to map issue2, but since issue1 is non-navigable, selection should be discarded.
+            snapshot.IndexOf(1, snapshot)
+                .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        public void IndexOf_SameSnapshot_AllIssuesAreNavigable_ReturnExpectedIndex()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            snapshot.IncrementVersion(); // simulate re-calculation of VisibleIssues
+
+            snapshot.IndexOf(0, snapshot).Should().Be(0);
+            snapshot.IndexOf(1, snapshot).Should().Be(1);
         }
 
         [TestMethod]
@@ -216,6 +246,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void GetLocationVizForFile_LocationIsNonNavigable_LocationsAreStillReturned()
+        {
+            var flow = CreateFlowViz("match.txt", "MATCH.TXT");
+            var issue = CreateIssueWithSpecificsPaths("path1.txt", flow);
+            var issues = new[] { issue };
+
+            issue.InvalidateSpan();
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, issues);
+
+            var actual = testSubject.GetLocationsVizsForFile("match.txt");
+
+            actual.Should().BeEquivalentTo(flow.Locations[0], flow.Locations[1]);
+        }
+
+        [TestMethod]
         public void IncrementVersion_VersionIncrement_AnalysisIdAndIssuesUnchanged()
         {
             var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, ValidIssueList);
@@ -227,6 +273,21 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
             testSubject.AnalysisRunId.Should().Be(originalRunId);
             testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
+        }
+
+        [TestMethod]
+        public void Count_ReturnsTheNumberOfVisibleIssues()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, new[] { issue1, issue2 });
+
+            testSubject.Count.Should().Be(2);
+
+            issue2.InvalidateSpan();
+            testSubject.IncrementVersion();
+
+            testSubject.Count.Should().Be(1);
         }
 
         private static Guid GetProjectGuid(ITableEntriesSnapshot snapshot) =>

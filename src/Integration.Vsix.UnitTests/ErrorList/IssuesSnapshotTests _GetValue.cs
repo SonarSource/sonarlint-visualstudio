@@ -38,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     {
         private IssuesSnapshot snapshot;
         private DummyAnalysisIssue issue;
+        private SnapshotSpan validSpan;
         private IAnalysisIssueVisualization issueViz;
         private Guid projectGuid;
 
@@ -63,8 +64,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             mockTextSnap.Setup(t => t.GetLineFromPosition(25)).Returns(mockTextSnapLine.Object);
             var textSnap = mockTextSnap.Object;
+            validSpan = new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27));
 
-            issueViz = CreateIssueViz(issue, new SnapshotSpan(new SnapshotPoint(textSnap, 25), new SnapshotPoint(textSnap, 27)));
+            issueViz = CreateIssueViz(issue, validSpan);
 
             snapshot = new IssuesSnapshot("MyProject", projectGuid, path, new List<IAnalysisIssueVisualization> { issueViz });
         }
@@ -107,13 +109,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             issueViz.Span = null;
 
+            snapshot.IncrementVersion(); // simulate re-calculation of VisibleIssues
+
             AssertGetValueReturnsNull();
+        }
+
+        [TestMethod]
+        public void GetValue_SomeIssuesInSnapshotHaveNoSpan_SkipNonNavigableIssues()
+        {
+            var nonNavigableIssue = CreateIssueViz(issue, null);
+            var navigableIssue = CreateIssueViz(issue, validSpan);
+
+            var testSubject = new IssuesSnapshot("test", projectGuid, "some file", new[] {nonNavigableIssue, navigableIssue });
+
+            // the first issue is non-navigable and should be skipped
+            testSubject.TryGetValue(0, SonarLintTableControlConstants.IssueVizColumnName, out var result).Should().BeTrue();
+            result.Should().Be(navigableIssue);
         }
 
         [TestMethod]
         public void GetValue_IssueHasEmptySpan_Null()
         {
             issueViz.InvalidateSpan();
+
+            snapshot.IncrementVersion(); // simulate re-calculation of VisibleIssues
 
             AssertGetValueReturnsNull();
         }
@@ -240,7 +259,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             content.Should().BeNull();
         }
 
-        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan snapshotSpan)
+        private static IAnalysisIssueVisualization CreateIssueViz(IAnalysisIssue issue, SnapshotSpan? snapshotSpan)
         {
             var issueVizMock = new Mock<IAnalysisIssueVisualization>();
             issueVizMock.Setup(x => x.Issue).Returns(issue);

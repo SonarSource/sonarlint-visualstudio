@@ -130,6 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             this.toVsSeverityConverter = toVsSeverityConverter;
             this.ruleHelpLinkProvider = ruleHelpLinkProvider;
             this.Issues = issues;
+            VisibleIssues = GetVisibleIssues();
 
             // Optimistation:
             // Most rules only have a single location, and most multi-location rules only produce locations
@@ -145,19 +146,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         #region Overrides
 
-        public override int Count => Issues.Count;
+        public override int Count => VisibleIssues.Count;
 
         public override int VersionNumber => this.versionNumber;
 
         public override bool TryGetValue(int index, string keyName, out object content)
         {
-            if (index < 0 || index >= Issues.Count || ShouldHideIssue(Issues[index]))
+            if (index < 0 || index >= VisibleIssues.Count)
             {
                 content = null;
                 return false;
             }
 
-            var issueViz = Issues[index];
+            var issueViz = VisibleIssues[index];
             var issue = issueViz.Issue as IAnalysisIssue;
 
             switch (keyName)
@@ -261,27 +262,44 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public override bool TryCreateDetailsStringContent(int index, out string content)
         {
             // TODO use the detailed description
-            content = this.Issues[index].Issue.Message;
+            content = VisibleIssues[index].Issue.Message;
             return true;
         }
 
+        /// <summary>
+        /// Called when a new snapshot has been created and the Error List is trying to
+        /// map from a selected item in the previous snapshot to the corresponding item
+        /// in the new snapshot.
+        /// </summary>
+        /// <remarks>
+        /// We can only do this if the snapshots represent the same set of issues i.e.
+        /// the AnalysisRunIds are the same.
+        /// The Error List will still raise two "selection changed" events - firstly to
+        /// "null", then to the corresponding issue in the new snapshot.
+        /// </remarks>
         public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
         {
-            // Called when a new snapshot has been created and the Error List is trying to
-            // map from a selected item in the previous snapshot to the corresponding item
-            // in the new snapshot.
-            // We can only do this if the snapshots represent the same set of issues i.e.
-            // the AnalysisRunIds are the same.
-            // The Error List will still raise two "selection changed" events - firstly to 
-            // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
                 newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
-                currentIndex >= 0 && currentIndex < Issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
-                !ShouldHideIssue(Issues[currentIndex]) // don't map hidden issues: see #2351
-                )
+                currentIndex >= 0 &&
+                currentIndex < Issues.Count) // defensive - shouldn't happen unless VS passes an invalid index 
             {
-                return currentIndex;
+                // newIssuesSnapshot will be the same instance as current snapshot when Increment() is called.
+                // If it's the same instance, we cannot map the selection because we only have the index, and not the issue itself.
+                // For example, if the Error List contained issues A, B C:
+                // 1. User selects issue B
+                // 2. User goes to the editor, changes code to make issue A non-navigable
+                // 3. IndexOf is called with currentIndex=1 (issue B) 
+                // At this point we could return that the new index is 0, since we could get the issue
+                // from Issues and find it in VisibleIssues. 
+                // However then the user would change something in the editor again, potentially invalidating issue C.
+                // IndexOf would be called again, this time with currentIndex=0 (still issue B),
+                // since that's where it is in VisibleIssues.
+                // But we then wouldn't know if we should look for index 0 in Issues or in VisibleIssues.
+                // Hence, if it is the same instance and there are non-navigable issues, we can only discard the selection.
+                return Issues.Count == newIssuesSnapshot.VisibleIssues.Count ? currentIndex : -1;
             }
+
             return base.IndexOf(currentIndex, newSnapshot);
         }
 
@@ -295,12 +313,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IReadOnlyList<IAnalysisIssueVisualization> Issues { get; }
 
+        private IReadOnlyList<IAnalysisIssueVisualization> VisibleIssues { get; set; }
+
         public IEnumerable<string> FilesInSnapshot { get; }
 
         public void IncrementVersion()
         {
             versionNumber = GetNextVersionNumber();
+            // perf optimization: IncrementVersion is called when one of the issues' span changes, so we can calculate it once and store it
+            VisibleIssues = GetVisibleIssues();
         }
+
+        private IReadOnlyList<IAnalysisIssueVisualization> GetVisibleIssues() =>
+            Issues.Where(x => !ShouldHideIssue(x)).ToArray();
+
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
         {
