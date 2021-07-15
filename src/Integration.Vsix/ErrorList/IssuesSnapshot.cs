@@ -71,6 +71,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// issues are the same but the source file has been renamed
         /// </summary>
         IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath);
+
+        /// <summary>
+        /// Create and return an updated version of an existing snapshot, without non-navigable issues
+        /// </summary>
+        /// <returns></returns>
+        IIssuesSnapshot CreateUpdatedSnapshot();
+
+        /// <summary>
+        /// Returns true/false if any of the issues in the snapshot are non-navigable
+        /// </summary>
+        bool HasNonNavigableIssues { get; }
     }
 
     /// <summary>
@@ -103,6 +114,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath) =>
             new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, analyzedFilePath, issues);
+
+        public IIssuesSnapshot CreateUpdatedSnapshot()=>
+            new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, issues.Where(x=> !ShouldHideIssue(x)));
 
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
@@ -270,22 +284,35 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return true;
         }
 
+        /// <summary>
+        /// Called when a new snapshot has been created or when an existing snapshot's version was changed.
+        /// The Error List will then try to map from a selected item in the previous snapshot to the
+        /// corresponding item in the new snapshot.
+        /// The Error List will raise two "selection changed" events - firstly to
+        /// "null", then to the corresponding issue in the new snapshot.
+        /// </summary>
+        /// <remarks>
+        /// 1. We can only do this if the snapshots represent the same analysis (i.e. if <see cref="AnalysisRunId"/> is the same).
+        /// 2. The new snapshot can be the same instance as the old snapshot: this will happen when Increment() is called.
+        /// 3. If the snapshots are different, it's possible that they don't have the same set of issues:
+        /// If <see cref="CreateUpdatedSnapshot()"/> was called, it will remove any non-navigable issues.
+        /// </remarks>
         public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
         {
-            // Called when a new snapshot has been created and the Error List is trying to
-            // map from a selected item in the previous snapshot to the corresponding item
-            // in the new snapshot.
-            // We can only do this if the snapshots represent the same set of issues i.e.
-            // the AnalysisRunIds are the same.
-            // The Error List will still raise two "selection changed" events - firstly to 
-            // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
                 newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
-                currentIndex >= 0 && currentIndex < issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
-                !ShouldHideIssue(issues[currentIndex]) // don't map hidden issues: see #2351
-                )
+                currentIndex >= 0 && currentIndex < issues.Count) // defensive - shouldn't happen unless VS passes an invalid index
             {
-                return currentIndex;
+                var issueInOldSnapshot = issues[currentIndex];
+
+                if (issues.Count == newIssuesSnapshot.Count)
+                {
+                    // defensive: if the issue becomes non-navigable,
+                    // SonarErrorListDataSource should create a new snapshot without it
+                    return ShouldHideIssue(issueInOldSnapshot) ? -1 : currentIndex;
+                }
+
+                return newIssuesSnapshot.issues.IndexOf(issueInOldSnapshot);
             }
             return base.IndexOf(currentIndex, newSnapshot);
         }
@@ -301,6 +328,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public IEnumerable<IAnalysisIssueVisualization> Issues => readonlyIssues;
 
         public IEnumerable<string> FilesInSnapshot { get; }
+
+        public bool HasNonNavigableIssues => Issues.Any(ShouldHideIssue);
 
         public void IncrementVersion()
         {

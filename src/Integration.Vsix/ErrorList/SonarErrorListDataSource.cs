@@ -212,10 +212,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
                 foreach (var factory in factories)
                 {
                     var snapshot = factory.CurrentSnapshot;
-                    
-                    if (snapshot.FilesInSnapshot.Any(snapshotPath => affectedFilePaths.Any(affected => PathHelper.IsMatchingPath(snapshotPath, affected))))
+                    var isSnapshotAffected = snapshot.FilesInSnapshot.Any(snapshotPath => affectedFilePaths.Any(affected => PathHelper.IsMatchingPath(snapshotPath, affected)));
+
+                    if (isSnapshotAffected)
                     {
-                        snapshot.IncrementVersion();
+                        if (snapshot.HasNonNavigableIssues)
+                        {
+                            factory.UpdateSnapshot(factory.CurrentSnapshot.CreateUpdatedSnapshot());
+                        }
+                        else
+                        {
+                            snapshot.IncrementVersion();
+                        }
                         InternalRefreshErrorList(factory);
                     }
 

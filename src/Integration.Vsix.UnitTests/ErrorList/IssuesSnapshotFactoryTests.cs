@@ -169,6 +169,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
         }
 
+        [TestMethod]
+        public void UpdateSnapshot_SnapshotIsReplaced()
+        {
+            var oldSnapshot = Mock.Of<IIssuesSnapshot>();
+            var testSubject = new IssuesSnapshotFactory(oldSnapshot);
+
+            testSubject.CurrentSnapshot.Should().Be(oldSnapshot);
+
+            var newSnapshot = Mock.Of<IIssuesSnapshot>();
+            testSubject.UpdateSnapshot(newSnapshot);
+
+            testSubject.CurrentSnapshot.Should().Be(newSnapshot);
+        }
+
         private static Mock<IIssuesSnapshot> CreateIssuesSnapshot(string analyzedFilePath, params IAnalysisIssueLocationVisualization[] locations)
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();

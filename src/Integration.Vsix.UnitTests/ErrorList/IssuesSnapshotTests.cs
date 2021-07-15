@@ -66,6 +66,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void Construction_CreateUpdatedSnapshot_RemovesNonNavigableIssues()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new [] { issue1 , issue2});
+
+            original.Count.Should().Be(2);
+
+            issue2.InvalidateSpan();
+
+            var revised = original.CreateUpdatedSnapshot();
+
+            revised.Count.Should().Be(1);
+            revised.Issues.Should().BeEquivalentTo(issue1);
+
+            // should not change
+            original.Count.Should().Be(2);
+        }
+
+        [TestMethod]
         public void Construction_UpdateFilePath_PreservesIdAndUpdatesVersion()
         {
             var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
@@ -108,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_SameSnapshotId_ReturnExpectedIndex()
+        public void IndexOf_SameSnapshotIdAndIssues_ReturnExpectedIndex()
         {
             var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
             var revised = original.CreateUpdatedSnapshot("unimportant change");
@@ -139,17 +159,60 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_NewIssueDoesNotHaveValidSpan_ReturnNotFound()
+        public void IndexOf_UpdatedSnapshot_IssueIsNotInTheNewSnapshot_ReturnNotFound()
         {
-            var span = CreateIssue();
-            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { span });
-            var snapshot2 = snapshot1.CreateUpdatedSnapshot("unimportant change");
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+            
+            issue1.InvalidateSpan();
+            var snapshot2 = snapshot1.CreateUpdatedSnapshot();
 
-            span.InvalidateSpan();
-
-            // Should not be able to map to an issue with an invalid span since it should be hidden
+            // Issue 1 should not be in the new snapshot
             snapshot1.IndexOf(0, snapshot2)
                 .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        public void IndexOf_UpdatedSnapshot_IssueIsInTheNewSnapshot_ReturnCorrectIndex()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            issue1.InvalidateSpan();
+            var snapshot2 = snapshot1.CreateUpdatedSnapshot();
+
+            // Issue2 should be in 1 the new snapshot
+            snapshot1.IndexOf(1, snapshot2)
+                .Should().Be(0);
+        }
+
+        [TestMethod]
+        public void IndexOf_SameSnapshot_IssueDoesNotHaveValidSpan_ReturnNotFound()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            issue1.InvalidateSpan();
+
+            snapshot.IndexOf(0, snapshot)
+                .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        public void IndexOf_SameSnapshot_IssueHasValidSpan_ReturnCorrectIndex()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            issue1.InvalidateSpan();
+
+            // we are asking to map issue2, so issue1's span should not make a difference
+            snapshot.IndexOf(1, snapshot)
+                .Should().Be(1);
         }
 
         [TestMethod]
@@ -227,6 +290,40 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
             testSubject.AnalysisRunId.Should().Be(originalRunId);
             testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
+        }
+
+        [TestMethod]
+        public void HasNonNavigableIssues_NoIssues_False()
+        {
+            var issues = Array.Empty<IAnalysisIssueVisualization>();
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, issues);
+
+            testSubject.HasNonNavigableIssues.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HasNonNavigableIssues_AllIssuesAreNavigable_False()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var issues = new[] { issue1, issue2 };
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, issues);
+
+            testSubject.HasNonNavigableIssues.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HasNonNavigableIssues_OneNonNavigableIssue_True()
+        {
+            var issue1 = CreateIssue();
+            issue1.InvalidateSpan();
+            var issue2 = CreateIssue();
+            var issues = new[] {issue1, issue2};
+
+            var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, issues);
+
+            testSubject.HasNonNavigableIssues.Should().BeTrue();
         }
 
         private static Guid GetProjectGuid(ITableEntriesSnapshot snapshot) =>
