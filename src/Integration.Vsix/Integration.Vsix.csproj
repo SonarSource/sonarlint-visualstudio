@@ -55,24 +55,27 @@
   <!-- ********************************************************** -->
   <!-- Sonar C#/VB analyzers -->
   <!-- ********************************************************** -->
+  <!-- We assume that the package restore has happened so the files are already on disc -->
   <Import Project="..\EmbeddedSonarAnalyzer.props" />
   <ItemGroup Label="Embedded SonarLint analyzers">
     <!-- Reference the packages we want to import, but don't include them as analyzers for this project -->
     <PackageReference Include="SonarAnalyzer.CSharp" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="SonarAnalyzer.VisualBasic" Version="$(EmbeddedSonarAnalyzerVersion)" ExcludeAssets="all" PrivateAssets="all" />
 
-    <!-- Select all of the analyzer binaries (we assume that the package restore has happened so the files are already on disc) -->
-    <SonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
-    <SonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+    <!-- Include all of the analyzer binaries including third-party binaries in the VSIX -->
+    <AllSonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+    <AllSonarAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\*.dll" />
+    <VSIXSourceItem Include="@(AllSonarAnalyzerAssemblies)" />
 
-    <!-- We need to reference the core analyzer assembly since we use one of the types. -->
+    <!-- Make sure the Sonar.* analyzer assemblies we want to include in the AsmRef check to the output directory. -->
+    <!-- We don't want to copy third-party assemblies from the analyzers in case there are version conflicts e.g. NewtonSoft.Json.dll -->
+    <SonarAuthoredAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\Sonar*.dll" />
+    <SonarAuthoredAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\Sonar*.dll" />
+    <None Include="@(SonarAuthoredAnalyzerAssemblies)" CopyToOutputDirectory="PreserveNewest"/>
+
+    <!-- We need to reference the core analyzer assembly since we use one of the types -->
     <Reference Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.dll" />
 
-    <!-- Make sure all of the assemblies are copied to the output folder so they are included in the AsmRef check. -->
-    <None Include="@(SonarAnalyzerAssemblies)" CopyToOutputDirectory="PreserveNewest"/>
-    
-    <!-- Ensure the binaries are embedded in the VSIX-->
-    <VSIXSourceItem Include="@(SonarAnalyzerAssemblies)" />
   </ItemGroup>
   <!-- ********************************************************** -->
 
