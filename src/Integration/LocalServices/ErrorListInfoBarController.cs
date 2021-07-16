@@ -74,6 +74,7 @@ namespace SonarLint.VisualStudio.Integration
 
         public void Refresh()
         {
+            // This is public method, so it's the caller's responsibility to handle uncaught exception
             this.AssertOnUIThread();
 
             // As soon as refresh is called, cancel the ongoing work
@@ -255,37 +256,57 @@ namespace SonarLint.VisualStudio.Integration
 
         private void CurrentErrorWindowInfoBar_Closed(object sender, EventArgs e)
         {
-            this.ClearCurrentInfoBar();
+            // Called on the UI thread -> must handle exceptions
+            try
+            {
+                ClearCurrentInfoBar();
+            }
+            catch(Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                LogUnexpectedError(ex);
+            }
         }
 
-        private void CurrentErrorWindowInfoBar_ButtonClick(object sender, EventArgs e)
+        internal /* for testing */ void CurrentErrorWindowInfoBar_ButtonClick(object sender, EventArgs e)
         {
-            if (this.currentErrorWindowInfoBarHandlingClick)
+            // Called on the UI thread -> must handle exceptions
+            try
             {
-                // Info bar doesn't expose a way to disable the command
-                // and since the code is asynchronous the user can click
-                // on the button multiple times and get multiple binds
-                return;
-            }
+                if (this.currentErrorWindowInfoBarHandlingClick)
+                {
+                    // Info bar doesn't expose a way to disable the command
+                    // and since the code is asynchronous the user can click
+                    // on the button multiple times and get multiple binds
+                    return;
+                }
 
-            BindingConfiguration binding = configProvider.GetConfiguration();
-            if (binding == null
-                || !binding.Mode.IsInAConnectedMode()
-                || this.infoBarBinding == null
-                || binding.Project.ServerUri != this.infoBarBinding.ServerUri
-                || !SonarQubeProject.KeyComparer.Equals(binding.Project.ProjectKey, this.infoBarBinding.ProjectKey))
-            {
-                // Not bound anymore, or bound to something else entirely
-                this.ClearCurrentInfoBar();
-                this.OutputMessage(Strings.SonarLintInfoBarUpdateCommandInvalidSolutionBindings);
+                BindingConfiguration binding = configProvider.GetConfiguration();
+                if (binding == null
+                    || !binding.Mode.IsInAConnectedMode()
+                    || this.infoBarBinding == null
+                    || binding.Project.ServerUri != this.infoBarBinding.ServerUri
+                    || !SonarQubeProject.KeyComparer.Equals(binding.Project.ProjectKey, this.infoBarBinding.ProjectKey))
+                {
+                    // Not bound anymore, or bound to something else entirely
+                    this.ClearCurrentInfoBar();
+                    this.OutputMessage(Strings.SonarLintInfoBarUpdateCommandInvalidSolutionBindings);
+                }
+                else
+                {
+                    // Prevent click handling
+                    this.currentErrorWindowInfoBarHandlingClick = true;
+                    this.ExecuteUpdate(binding.Project);
+                }
             }
-            else
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                // Prevent click handling
-                this.currentErrorWindowInfoBarHandlingClick = true;
-                this.ExecuteUpdate(binding.Project);
+                LogUnexpectedError(ex);
             }
         }
+
+        private void LogUnexpectedError(Exception ex) =>
+            logger.WriteLine(Strings.UnexpectedErrorMessageFormat, typeof(ErrorListInfoBarController), ex, Constants.SonarLintIssuesWebUrl);
+
 
         private void ExecuteUpdate(BoundSonarQubeProject binding)
         {
