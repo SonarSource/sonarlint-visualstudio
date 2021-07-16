@@ -32,6 +32,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
         /// Returns true/false if the factory was updated due to the renames
         /// </summary>
         bool HandleFileRenames(IReadOnlyDictionary<string, string> oldNewFilePaths);
+
+        void UpdateSnapshot(IIssuesSnapshot snapshot);
     }
 
     /// <summary>

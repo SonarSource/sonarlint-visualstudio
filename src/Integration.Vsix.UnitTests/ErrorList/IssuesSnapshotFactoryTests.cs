@@ -77,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             testSubject.CurrentSnapshot.Should().Be(snapshot.Object);
             location.CurrentFilePath.Should().Be("some file1");
 
-            snapshot.Verify(x=> x.IncrementVersion(), Times.Never);
+            snapshot.Verify(x=> x.GetUpdatedSnapshot(), Times.Never);
             snapshot.Verify(x=> x.CreateUpdatedSnapshot(It.IsAny<string>()), Times.Never);
         }
 
@@ -106,8 +106,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             location1.CurrentFilePath.Should().Be("file1");
             location2.CurrentFilePath.Should().Be("file2");
 
-            snapshot.Verify(x => x.IncrementVersion(), Times.Never);
-            updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
+            snapshot.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
+            updatedSnapshot.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
         }
 
         [TestMethod]
@@ -136,8 +136,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             location1.CurrentFilePath.Should().Be("new file1");
             location2.CurrentFilePath.Should().Be("file2");
 
-            snapshot.Verify(x => x.IncrementVersion(), Times.Never);
-            updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
+            snapshot.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
+            updatedSnapshot.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
         }
 
         [TestMethod]
@@ -165,8 +165,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             location1.CurrentFilePath.Should().Be("new file1");
             location2.CurrentFilePath.Should().Be("file2");
 
-            snapshot.Verify(x => x.IncrementVersion(), Times.Never);
-            updatedSnapshot.Verify(x => x.IncrementVersion(), Times.Never);
+            snapshot.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
+            updatedSnapshot.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
+        }
+
+        [TestMethod]
+        public void UpdateSnapshot_SnapshotIsReplaced()
+        {
+            var oldSnapshot = Mock.Of<IIssuesSnapshot>();
+            var testSubject = new IssuesSnapshotFactory(oldSnapshot);
+
+            testSubject.CurrentSnapshot.Should().Be(oldSnapshot);
+
+            var newSnapshot = Mock.Of<IIssuesSnapshot>();
+            testSubject.UpdateSnapshot(newSnapshot);
+
+            testSubject.CurrentSnapshot.Should().Be(newSnapshot);
         }
 
         private static Mock<IIssuesSnapshot> CreateIssuesSnapshot(string analyzedFilePath, params IAnalysisIssueLocationVisualization[] locations)
