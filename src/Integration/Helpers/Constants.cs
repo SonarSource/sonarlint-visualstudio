@@ -60,7 +60,8 @@ namespace SonarLint.VisualStudio.Integration
         /// <summary>
         /// SonarLint issues home page
         /// </summary>
-        public const string SonarLintIssuesWebUrl = "https://groups.google.com/forum/#!forum/sonarlint";
+        /// <remarks>The link launches the community site filtered to the SonarLint fault page</remarks>
+        public const string SonarLintIssuesWebUrl = "https://community.sonarsource.com/tags/c/bug/fault/6/sonarlint";
 
         /// <summary>
         /// The property key which corresponds to the ItemType of a <see cref="EnvDTE.ProjectItem"/>.

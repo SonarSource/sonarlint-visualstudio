@@ -313,7 +313,7 @@ namespace SonarLint.VisualStudio.Integration
 
                 return new ProjectSystemFilter(this, testProjectIndicator);
             }));
-            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new UnboundProjectFinder(this, Logger))));
+            this.localServices.Add(typeof(IErrorListInfoBarController), new Lazy<ILocalService>(() => new ErrorListInfoBarController(this, new UnboundProjectFinder(this, Logger), Logger)));
 
             // Use Lazy<object> to avoid creating instances needlessly, since the interfaces are serviced by the same instance
             var sccFs = new Lazy<ILocalService>(() => new SourceControlledFileSystem(this, Logger));
