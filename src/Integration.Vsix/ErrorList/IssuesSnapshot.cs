@@ -304,16 +304,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 currentIndex >= 0 && currentIndex < issues.Count) // defensive - shouldn't happen unless VS passes an invalid index
             {
                 var issueInOldSnapshot = issues[currentIndex];
+                var issueInNewSnapshot = newIssuesSnapshot.issues.ElementAtOrDefault(currentIndex);
 
-                if (issues.Count == newIssuesSnapshot.Count)
+                // perf optimization: attempt to find the issue in the same index before doing a full search
+                if (ReferenceEquals(issueInOldSnapshot, issueInNewSnapshot))
                 {
-                    // defensive: if the issue becomes non-navigable,
-                    // SonarErrorListDataSource should create a new snapshot without it
-                    return ShouldHideIssue(issueInOldSnapshot) ? -1 : currentIndex;
+                    return currentIndex;
                 }
 
                 return newIssuesSnapshot.issues.IndexOf(issueInOldSnapshot);
             }
+
             return base.IndexOf(currentIndex, newSnapshot);
         }
 

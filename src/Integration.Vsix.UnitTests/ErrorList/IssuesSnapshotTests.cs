@@ -189,28 +189,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_SameSnapshot_IssueDoesNotHaveValidSpan_ReturnNotFound()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void IndexOf_SameSnapshot_ReturnIndex(bool hasValidSpan)
         {
             var issue1 = CreateIssue();
             var issue2 = CreateIssue();
             var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
 
-            issue1.InvalidateSpan();
+            if (!hasValidSpan)
+            {
+                issue1.InvalidateSpan();
+            }
 
+            // change of behavior following #2351 -- we will rely on a new snapshot being created when issues are non-navigable, 
+            // so indexOf should just focus on finding the issue in the new snapshot
             snapshot.IndexOf(0, snapshot)
-                .Should().Be(IndexOf_NotFoundResult);
-        }
+                .Should().Be(0);
 
-        [TestMethod]
-        public void IndexOf_SameSnapshot_IssueHasValidSpan_ReturnCorrectIndex()
-        {
-            var issue1 = CreateIssue();
-            var issue2 = CreateIssue();
-            var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
-
-            issue1.InvalidateSpan();
-
-            // we are asking to map issue2, so issue1's span should not make a difference
             snapshot.IndexOf(1, snapshot)
                 .Should().Be(1);
         }
