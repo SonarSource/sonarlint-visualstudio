@@ -68,10 +68,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         /// <summary>
         /// Notifies the snapshot that some part of the contained data has changed.
-        /// The snapshot will then decide whether:
-        /// 1. Return the same snapshot instance with an incremented version so the Error List recognises it as having changed
-        /// 2. Return a new snapshot instance, excluding non-navigable issues
+        /// An updated snapshot will be returned that the Error List will recognise as having changed.
+        /// Any non-navigable items will have been removed.
         /// </summary>
+        /// <remarks>
+        /// Note about object identities:
+        /// * the caller *cannot* rely on the identity of the snapshot object being preserved
+        /// * the caller *can* rely on the identity of individual issues being preserved
+        /// </remarks>
         IIssuesSnapshot GetUpdatedSnapshot();
     }
 
@@ -280,10 +284,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// "null", then to the corresponding issue in the new snapshot.
         /// </summary>
         /// <remarks>
-        /// 1. We can only do this if the snapshots represent the same analysis (i.e. if <see cref="AnalysisRunId"/> is the same).
-        /// 2. The new snapshot can be the same instance as the old snapshot: this will happen when Increment() is called.
-        /// 3. If the snapshots are different, it's possible that they don't have the same set of issues:
-        /// If <see cref="CreateUpdatedSnapshot()"/> was called, it will remove any non-navigable issues.
+        /// 1. We should only map the selection if the snapshots represent the same analysis
+        ///    (= if <see cref="AnalysisRunId"/> is the same).
+        /// 2. <see cref="newSnapshot"/> may or may not have the same set of issues as the current snapshot ("this"):
+        ///    If <see cref="GetUpdatedSnapshot"/> was called and there are non-navigable issues,
+        ///    then a new instance would be created with only navigable issues.
+        ///    It is then possible that a previously selected issue would not exists in the new snapshot,
+        ///    i.e. if it became non-navigable.
         /// </remarks>
         public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
         {
@@ -292,9 +299,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 currentIndex >= 0 && currentIndex < issues.Count) // defensive - shouldn't happen unless VS passes an invalid index
             {
                 var issueInOldSnapshot = issues[currentIndex];
-                var issueInNewSnapshot = newIssuesSnapshot.issues.ElementAtOrDefault(currentIndex);
 
                 // perf optimization: attempt to find the issue in the same index before doing a full search
+                var issueInNewSnapshot = newIssuesSnapshot.issues.ElementAtOrDefault(currentIndex);
+
                 if (ReferenceEquals(issueInOldSnapshot, issueInNewSnapshot))
                 {
                     return currentIndex;
