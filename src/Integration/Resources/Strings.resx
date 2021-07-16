@@ -762,4 +762,12 @@ This is the general format to use when writing errors to output window or when t
     <value>Project {0} RuleSet declarations:
    {1}</value>
   </data>
+  <data name="RulesetSerializer_FailedToLoadRuleset" xml:space="preserve">
+    <value>Ruleset could not be loaded. File: {0}, Error: {1}</value>
+    <comment>Output window message for unloadable ruleset</comment>
+  </data>
+  <data name="RulesetSerializer_RulesetDoesNotExist" xml:space="preserve">
+    <value>Ruleset file does not exist: {0}</value>
+    <comment>Output window message for a ruleset that does not exist on disc</comment>
+  </data>
 </root>

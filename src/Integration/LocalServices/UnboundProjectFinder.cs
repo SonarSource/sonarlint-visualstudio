@@ -59,12 +59,12 @@ namespace SonarLint.VisualStudio.Integration
             var bindingConfig = configProvider.GetConfiguration();
             logger.LogDebug($"[Binding check] Binding mode: {bindingConfig.Mode}");
 
-            var unbound = bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Enumerable.Empty<Project>();
-            logger.LogDebug($"[Binding check] Number of unbound projects: {unbound}");
+            var unbound = bindingConfig.Mode.IsInAConnectedMode() ? GetUnboundProjects(bindingConfig) : Array.Empty<Project>();
+            logger.LogDebug($"[Binding check] Number of unbound projects: {unbound.Length}");
             return unbound;
         }
 
-        private IEnumerable<Project> GetUnboundProjects(BindingConfiguration binding)
+        private Project[] GetUnboundProjects(BindingConfiguration binding)
         {
             Debug.Assert(binding.Mode.IsInAConnectedMode());
             Debug.Assert(binding.Project != null);
@@ -74,7 +74,6 @@ namespace SonarLint.VisualStudio.Integration
 
             var filteredSolutionProjects = projectSystem.GetFilteredSolutionProjects().ToArray();
             logger.LogDebug($"[Binding check] Number of bindable projects: {filteredSolutionProjects.Length}");
-
 
             return filteredSolutionProjects
                 .Where(project =>

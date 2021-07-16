@@ -21,16 +21,20 @@
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
+using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
 {
     [TestClass]
     public class RuleSetSerializerTests
     {
+        private TestLogger logger;
         private MockFileSystem fileSystem;
         private TempFileCollection temporaryFiles;
         private RuleSetSerializer testSubject;
@@ -42,9 +46,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestInitialize]
         public void TestInit()
         {
+            logger = new TestLogger();
             fileSystem = new MockFileSystem();
             temporaryFiles = new TempFileCollection(this.TestContext.TestRunDirectory, keepFiles: false);
-            testSubject = new RuleSetSerializer(fileSystem);
+            testSubject = new RuleSetSerializer(logger, fileSystem);
         }
 
         [TestCleanup]
@@ -58,11 +63,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         #region Tests
 
         [TestMethod]
-        public void RuleSetSerializer_LoadRuleSet_ArgChecks()
+        public void Ctor_InvalidArguments()
         {
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.LoadRuleSet(null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.LoadRuleSet(""));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.LoadRuleSet("\t\n"));
+            Action act = () => new RulesSettingsSerializer(null, Mock.Of<ILogger>());
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+
+            act = () => new RulesSettingsSerializer(Mock.Of<IFileSystem>(), null);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void RuleSetSerializer_LoadRuleSet_ArgChecks2(string path)
+        {
+            Action act = () => testSubject.LoadRuleSet(path);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("path");
         }
 
         [TestMethod]
@@ -94,6 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             missing.Should().BeNull("Expected no ruleset to be loaded when the file is missing");
+            AssertRuleSetFileIsLogged();
 
             // Case 2: file exists, badly formed rule set (invalid xml)
             File.WriteAllText(existingRuleSet, "<xml>");
@@ -104,6 +122,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             loadedBad.Should().BeNull("Expected no ruleset to be loaded when its invalid XML");
+            AssertRuleSetFileIsLogged();
 
             // Case 3: file exists, invalid rule set format (no RuleSet element)
             string xml =
@@ -118,6 +137,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             loadedBad.Should().BeNull("Expected no ruleset to be loaded when the file in not a valid rule set");
+            AssertRuleSetFileIsLogged();
 
             // Case 4: file exists, invalid rule set data (Default is not a valid action for rule)
             xml =
@@ -135,17 +155,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Assert
             loadedBad.Should().BeNull("Expected no ruleset to be loaded when the file in not a valid rule set");
+            AssertRuleSetFileIsLogged();
+
+            void AssertRuleSetFileIsLogged()
+            {
+                logger.AssertPartialOutputStringExists(existingRuleSet);
+                logger.OutputStrings.Clear();
+            }
         }
 
         [TestMethod]
-        public void RuleSetSerializer_WriteRuleSetFile_ArgChecks()
+        public void RuleSetSerializer_WriteRuleSetFile_InvalidRuleset_Throws()
+        {
+            Action act = () => testSubject.WriteRuleSetFile(null, @"c:\file.ruleSet");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("ruleSet");
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        [DataRow("\t\n")]
+        public void RuleSetSerializer_WriteRuleSetFile_InvalidPath_Throws(string path)
         {
             RuleSet ruleSet = TestRuleSetHelper.CreateTestRuleSet(this.TestContext.TestRunDirectory, this.TestContext.TestName + ".ruleset");
 
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.WriteRuleSetFile(null, @"c:\file.ruleSet"));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.WriteRuleSetFile(ruleSet, null));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.WriteRuleSetFile(ruleSet, ""));
-            Exceptions.Expect<ArgumentNullException>(() => this.testSubject.WriteRuleSetFile(ruleSet, "\t\n"));
+            Action act = () => testSubject.WriteRuleSetFile(ruleSet, path);
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("path");
         }
 
         [TestMethod]
