@@ -61,27 +61,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath);
 
         /// <summary>
-        /// Notifies the snapshot that some part of the contained data has changed and that it should
-        /// increment its version so the Error List recognises it as having changed
-        /// </summary>
-        void IncrementVersion();
-
-        /// <summary>
         /// Create and return an updated version of an existing snapshot, where the
         /// issues are the same but the source file has been renamed
         /// </summary>
         IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath);
 
         /// <summary>
-        /// Create and return an updated version of an existing snapshot, without non-navigable issues
+        /// Notifies the snapshot that some part of the contained data has changed.
+        /// The snapshot will then decide whether:
+        /// 1. Return the same snapshot instance with an incremented version so the Error List recognises it as having changed
+        /// 2. Return a new snapshot instance, excluding non-navigable issues
         /// </summary>
-        /// <returns></returns>
-        IIssuesSnapshot CreateUpdatedSnapshot();
-
-        /// <summary>
-        /// Returns true/false if any of the issues in the snapshot are non-navigable
-        /// </summary>
-        bool HasNonNavigableIssues { get; }
+        IIssuesSnapshot GetUpdatedSnapshot();
     }
 
     /// <summary>
@@ -114,9 +105,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath) =>
             new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, analyzedFilePath, issues);
-
-        public IIssuesSnapshot CreateUpdatedSnapshot()=>
-            new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, issues.Where(x=> !ShouldHideIssue(x)));
 
         /// <summary>
         /// Create a snapshot with new set of issues from a new analysis run
@@ -330,11 +318,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<string> FilesInSnapshot { get; }
 
-        public bool HasNonNavigableIssues => Issues.Any(ShouldHideIssue);
-
-        public void IncrementVersion()
+        public IIssuesSnapshot GetUpdatedSnapshot()
         {
+            if (Issues.Any(ShouldHideIssue))
+            {
+                var onlyNavigableIssues = issues.Where(x => !ShouldHideIssue(x));
+                return new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, onlyNavigableIssues);
+            }
+
             versionNumber = GetNextVersionNumber();
+            return this;
         }
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)

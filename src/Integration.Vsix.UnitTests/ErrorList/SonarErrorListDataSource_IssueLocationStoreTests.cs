@@ -192,15 +192,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             var factoryWithMatch1 = CreateFactoryAndSnapshotWithSpecifiedFiles("match.txt");
             var factoryWithMatch2 = CreateFactoryAndSnapshotWithSpecifiedFiles("MATCH.TXT");
             var factoryWithoutMatches = CreateFactoryAndSnapshotWithSpecifiedFiles("not a match.txt");
-            
-            var factoryWithMatchAndNonNavigableIssues = CreateFactoryAndSnapshotWithSpecifiedFiles("Match.txt");
-            var snapshotMock = ((IMocked<IIssuesSnapshot>) factoryWithMatchAndNonNavigableIssues.CurrentSnapshot).Mock;
-            snapshotMock.Setup(x => x.HasNonNavigableIssues).Returns(true);
 
             testSubject.AddFactory(factoryWithMatch1);
             testSubject.AddFactory(factoryWithoutMatches);
             testSubject.AddFactory(factoryWithMatch2);
-            testSubject.AddFactory(factoryWithMatchAndNonNavigableIssues);
 
             var sinkMock1 = new Mock<ITableDataSink>();
             var sinkMock2 = new Mock<ITableDataSink>();
@@ -209,15 +204,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
 
             testSubject.Refresh(new[] { "match.txt" });
 
-            CheckSnapshotIncrementVersionCalled(factoryWithMatch1);
-            CheckSnapshotIncrementVersionCalled(factoryWithMatch2);
-            CheckSnapshotIncrementVersionNotCalled(factoryWithoutMatches);
-            CheckSnapshotIncrementVersionNotCalled(factoryWithMatchAndNonNavigableIssues);
-            CheckUpdateSnapshotCalled(factoryWithMatchAndNonNavigableIssues);
+            CheckUpdateSnapshotCalled(factoryWithMatch1);
+            CheckUpdateSnapshotCalled(factoryWithMatch2);
+            CheckUpdateSnapshotNotCalled(factoryWithoutMatches);
 
             // All sinks should be notified about updates to only factories with matches
-            CheckSinkNotifiedOfChangeToFactories(sinkMock1, factoryWithMatch1, factoryWithMatch2, factoryWithMatchAndNonNavigableIssues);
-            CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2, factoryWithMatchAndNonNavigableIssues);
+            CheckSinkNotifiedOfChangeToFactories(sinkMock1, factoryWithMatch1, factoryWithMatch2);
+            CheckSinkNotifiedOfChangeToFactories(sinkMock2, factoryWithMatch1, factoryWithMatch2);
         }
 
         [TestMethod]
@@ -361,7 +354,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
         {
             var snapshotMock = new Mock<IIssuesSnapshot>();
             snapshotMock.Setup(x => x.FilesInSnapshot).Returns(filePaths);
-            snapshotMock.Setup(x => x.CreateUpdatedSnapshot()).Returns(Mock.Of<IIssuesSnapshot>());
+            snapshotMock.Setup(x => x.GetUpdatedSnapshot()).Returns(Mock.Of<IIssuesSnapshot>());
 
             var snapshotFactory = new Mock<IIssuesSnapshotFactory>();
             snapshotFactory.Setup(x => x.CurrentSnapshot).Returns(snapshotMock.Object);
@@ -386,25 +379,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.ErrorList
             snapshotMock.Verify(x => x.GetLocationsVizsForFile(It.IsAny<string>()), Times.Once);
         }
 
-        private static void CheckSnapshotIncrementVersionCalled(IIssuesSnapshotFactory factory)
+        private static void CheckUpdateSnapshotNotCalled(IIssuesSnapshotFactory factory)
         {
             var snapshotMock = ((IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
-            snapshotMock.Verify(x => x.IncrementVersion(), Times.Once);
-            snapshotMock.Verify(x => x.CreateUpdatedSnapshot(), Times.Never);
-        }
-
-        private static void CheckSnapshotIncrementVersionNotCalled(IIssuesSnapshotFactory factory)
-        {
-            var snapshotMock = ((IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
-            snapshotMock.Verify(x => x.IncrementVersion(), Times.Never);
+            snapshotMock.Verify(x => x.GetUpdatedSnapshot(), Times.Never);
         }
 
         private void CheckUpdateSnapshotCalled(IIssuesSnapshotFactory factory)
         {
             var snapshotMock = ((IMocked<IIssuesSnapshot>)factory.CurrentSnapshot).Mock;
-            snapshotMock.Verify(x => x.CreateUpdatedSnapshot(), Times.Once);
+            snapshotMock.Verify(x => x.GetUpdatedSnapshot(), Times.Once);
 
-            var updatedSnapshot = factory.CurrentSnapshot.CreateUpdatedSnapshot();
+            var updatedSnapshot = factory.CurrentSnapshot.GetUpdatedSnapshot();
             updatedSnapshot.Should().NotBeNull();
 
             Mock.Get(factory).Verify(x=> x.UpdateSnapshot(updatedSnapshot), Times.Once);

@@ -211,25 +211,20 @@ namespace SonarLint.VisualStudio.Integration.Vsix.ErrorList
             {
                 foreach (var factory in factories)
                 {
-                    var snapshot = factory.CurrentSnapshot;
-                    var isSnapshotAffected = snapshot.FilesInSnapshot.Any(snapshotPath => affectedFilePaths.Any(affected => PathHelper.IsMatchingPath(snapshotPath, affected)));
+                    var oldSnapshot = factory.CurrentSnapshot;
+                    var isSnapshotAffected = oldSnapshot.FilesInSnapshot.Any(snapshotPath => affectedFilePaths.Any(affected => PathHelper.IsMatchingPath(snapshotPath, affected)));
 
                     if (isSnapshotAffected)
                     {
-                        if (snapshot.HasNonNavigableIssues)
-                        {
-                            factory.UpdateSnapshot(factory.CurrentSnapshot.CreateUpdatedSnapshot());
-                        }
-                        else
-                        {
-                            snapshot.IncrementVersion();
-                        }
+                        factory.UpdateSnapshot(factory.CurrentSnapshot.GetUpdatedSnapshot());
                         InternalRefreshErrorList(factory);
                     }
 
                     var selectedIssue = issueSelectionService.SelectedIssue;
 
-                    if (snapshot.Issues.Contains(selectedIssue) && !selectedIssue.IsNavigable())
+                    // If the issue became non-navigable, it would not exist in the new snapshot. 
+                    // Hence, the selection should be checked based on the old snapshot's contents
+                    if (oldSnapshot.Issues.Contains(selectedIssue) && !selectedIssue.IsNavigable())
                     {
                         issueSelectionService.SelectedIssue = null;
                     }
