@@ -108,7 +108,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_SameSnapshotId_ReturnExpectedIndex()
+        public void IndexOf_SameSnapshotIdAndIssues_ReturnExpectedIndex()
         {
             var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, ValidIssueList);
             var revised = original.CreateUpdatedSnapshot("unimportant change");
@@ -139,17 +139,56 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_NewIssueDoesNotHaveValidSpan_ReturnNotFound()
+        public void IndexOf_IssueIsNotInTheNewSnapshot_ReturnNotFound()
         {
-            var span = CreateIssue();
-            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { span });
-            var snapshot2 = snapshot1.CreateUpdatedSnapshot("unimportant change");
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+            
+            issue1.InvalidateSpan();
+            var snapshot2 = snapshot1.GetUpdatedSnapshot(); // create new snapshot without non-navigable issues
 
-            span.InvalidateSpan();
-
-            // Should not be able to map to an issue with an invalid span since it should be hidden
+            // Issue 1 should not be in the new snapshot
             snapshot1.IndexOf(0, snapshot2)
                 .Should().Be(IndexOf_NotFoundResult);
+        }
+
+        [TestMethod]
+        public void IndexOf_IssueIsInTheNewSnapshot_ReturnCorrectIndex()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot1 = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            issue1.InvalidateSpan();
+            var snapshot2 = snapshot1.GetUpdatedSnapshot();
+
+            // Issue2 should be in 1 the new snapshot
+            snapshot1.IndexOf(1, snapshot2)
+                .Should().Be(0);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void IndexOf_SameSnapshot_ReturnIndex(bool hasValidSpan)
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var snapshot = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            if (!hasValidSpan)
+            {
+                issue1.InvalidateSpan();
+            }
+
+            // change of behavior following #2351 -- we will rely on a new snapshot being created when issues are non-navigable, 
+            // so indexOf should just focus on finding the issue in the new snapshot
+            snapshot.IndexOf(0, snapshot)
+                .Should().Be(0);
+
+            snapshot.IndexOf(1, snapshot)
+                .Should().Be(1);
         }
 
         [TestMethod]
@@ -216,19 +255,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IncrementVersion_VersionIncrement_AnalysisIdAndIssuesUnchanged()
+        public void GetUpdatedSnapshot_HasNonNavigableIssues_CreatesNewSnapshotWithoutNonNavigableIssues()
+        {
+            var issue1 = CreateIssue();
+            var issue2 = CreateIssue();
+            var original = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidFilePath, new[] { issue1, issue2 });
+
+            original.Count.Should().Be(2);
+
+            issue2.InvalidateSpan();
+
+            var revised = original.GetUpdatedSnapshot();
+
+            revised.Should().NotBeSameAs(original);
+
+            revised.Count.Should().Be(1);
+            revised.Issues.Should().BeEquivalentTo(issue1);
+
+            // should not change
+            original.Count.Should().Be(2);
+        }
+
+        [TestMethod]
+        public void GetUpdatedSnapshot_AllIssuesAreNavigable_VersionIncremented()
         {
             var testSubject = new IssuesSnapshot(ValidProjectName, ValidProjectGuid, ValidProjectName, ValidIssueList);
             var originalVersion = testSubject.VersionNumber;
             var originalRunId = testSubject.AnalysisRunId;
 
-            testSubject.IncrementVersion();
+            var revised = testSubject.GetUpdatedSnapshot();
+
+            revised.Should().BeEquivalentTo(testSubject);
 
             testSubject.VersionNumber.Should().BeGreaterThan(originalVersion);
             testSubject.AnalysisRunId.Should().Be(originalRunId);
             testSubject.Issues.Should().BeEquivalentTo(ValidIssueList);
         }
-
+        
         private static Guid GetProjectGuid(ITableEntriesSnapshot snapshot) =>
             GetValue<Guid>(snapshot, StandardTableKeyNames.ProjectGuid);
 

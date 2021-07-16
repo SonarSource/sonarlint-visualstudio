@@ -61,16 +61,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath);
 
         /// <summary>
-        /// Notifies the snapshot that some part of the contained data has changed and that it should
-        /// increment its version so the Error List recognises it as having changed
-        /// </summary>
-        void IncrementVersion();
-
-        /// <summary>
         /// Create and return an updated version of an existing snapshot, where the
         /// issues are the same but the source file has been renamed
         /// </summary>
         IIssuesSnapshot CreateUpdatedSnapshot(string analyzedFilePath);
+
+        /// <summary>
+        /// Notifies the snapshot that some part of the contained data has changed.
+        /// An updated snapshot will be returned that the Error List will recognise as having changed.
+        /// Any non-navigable items will have been removed.
+        /// </summary>
+        /// <remarks>
+        /// Note about object identities:
+        /// * the caller *cannot* rely on the identity of the snapshot object being preserved
+        /// * the caller *can* rely on the identity of individual issues being preserved
+        /// </remarks>
+        IIssuesSnapshot GetUpdatedSnapshot();
     }
 
     /// <summary>
@@ -270,23 +276,41 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             return true;
         }
 
+        /// <summary>
+        /// Called when a new snapshot has been created or when an existing snapshot's version was changed.
+        /// The Error List will then try to map from a selected item in the previous snapshot to the
+        /// corresponding item in the new snapshot.
+        /// The Error List will raise two "selection changed" events - firstly to
+        /// "null", then to the corresponding issue in the new snapshot.
+        /// </summary>
+        /// <remarks>
+        /// 1. We should only map the selection if the snapshots represent the same analysis
+        ///    (= if <see cref="AnalysisRunId"/> is the same).
+        /// 2. <see cref="newSnapshot"/> may or may not have the same set of issues as the current snapshot ("this"):
+        ///    If <see cref="GetUpdatedSnapshot"/> was called and there are non-navigable issues,
+        ///    then a new instance would be created with only navigable issues.
+        ///    It is then possible that a previously selected issue would not exists in the new snapshot,
+        ///    i.e. if it became non-navigable.
+        /// </remarks>
         public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
         {
-            // Called when a new snapshot has been created and the Error List is trying to
-            // map from a selected item in the previous snapshot to the corresponding item
-            // in the new snapshot.
-            // We can only do this if the snapshots represent the same set of issues i.e.
-            // the AnalysisRunIds are the same.
-            // The Error List will still raise two "selection changed" events - firstly to 
-            // "null", then to the corresponding issue in the new snapshot.
             if (newSnapshot is IssuesSnapshot newIssuesSnapshot &&
                 newIssuesSnapshot.AnalysisRunId == AnalysisRunId &&
-                currentIndex >= 0 && currentIndex < issues.Count && // defensive - shouldn't happen unless VS passes an invalid index
-                !ShouldHideIssue(issues[currentIndex]) // don't map hidden issues: see #2351
-                )
+                currentIndex >= 0 && currentIndex < issues.Count) // defensive - shouldn't happen unless VS passes an invalid index
             {
-                return currentIndex;
+                var issueInOldSnapshot = issues[currentIndex];
+
+                // perf optimization: attempt to find the issue in the same index before doing a full search
+                var issueInNewSnapshot = newIssuesSnapshot.issues.ElementAtOrDefault(currentIndex);
+
+                if (ReferenceEquals(issueInOldSnapshot, issueInNewSnapshot))
+                {
+                    return currentIndex;
+                }
+
+                return newIssuesSnapshot.issues.IndexOf(issueInOldSnapshot);
             }
+
             return base.IndexOf(currentIndex, newSnapshot);
         }
 
@@ -302,9 +326,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IEnumerable<string> FilesInSnapshot { get; }
 
-        public void IncrementVersion()
+        public IIssuesSnapshot GetUpdatedSnapshot()
         {
-            versionNumber = GetNextVersionNumber();
+            if (!Issues.Any(ShouldHideIssue))
+            {
+                versionNumber = GetNextVersionNumber();
+                return this;
+            }
+
+            var onlyNavigableIssues = issues.Where(x => !ShouldHideIssue(x));
+            
+            return new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, onlyNavigableIssues);
         }
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
