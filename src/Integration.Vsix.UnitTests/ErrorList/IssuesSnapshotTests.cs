@@ -154,7 +154,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void IndexOf_UpdatedSnapshot_IssueIsInTheNewSnapshot_ReturnCorrectIndex()
+        public void IndexOf_IssueIsInTheNewSnapshot_ReturnCorrectIndex()
         {
             var issue1 = CreateIssue();
             var issue2 = CreateIssue();

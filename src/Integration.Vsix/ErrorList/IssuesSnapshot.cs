@@ -320,14 +320,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix
 
         public IIssuesSnapshot GetUpdatedSnapshot()
         {
-            if (Issues.Any(ShouldHideIssue))
+            if (!Issues.Any(ShouldHideIssue))
             {
-                var onlyNavigableIssues = issues.Where(x => !ShouldHideIssue(x));
-                return new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, onlyNavigableIssues);
+                versionNumber = GetNextVersionNumber();
+                return this;
             }
 
-            versionNumber = GetNextVersionNumber();
-            return this;
+            var onlyNavigableIssues = issues.Where(x => !ShouldHideIssue(x));
+            
+            return new IssuesSnapshot(AnalysisRunId, projectName, projectGuid, AnalyzedFilePath, onlyNavigableIssues);
         }
 
         public IEnumerable<IAnalysisIssueLocationVisualization> GetLocationsVizsForFile(string filePath)
