@@ -47,25 +47,18 @@ namespace SonarLint.VisualStudio.Integration
 
         private readonly IHost host;
         private readonly IUnboundProjectFinder unboundProjectFinder;
+        private readonly ILogger logger;
         private readonly IConfigurationProviderService configProvider;
         private IInfoBar currentErrorWindowInfoBar;
         private bool currentErrorWindowInfoBarHandlingClick;
         private BoundSonarQubeProject infoBarBinding;
         private bool isDisposed;
 
-        public ErrorListInfoBarController(IHost host, IUnboundProjectFinder unboundProjectFinder)
+        public ErrorListInfoBarController(IHost host, IUnboundProjectFinder unboundProjectFinder, ILogger logger)
         {
-            if (host == null)
-            {
-                throw new ArgumentNullException(nameof(host));
-            }
-            if (unboundProjectFinder == null)
-            {
-                throw new ArgumentNullException(nameof(unboundProjectFinder));
-            }
-
-            this.host = host;
-            this.unboundProjectFinder = unboundProjectFinder;
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
+            this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.configProvider = host.GetService<IConfigurationProviderService>();
             this.configProvider.AssertLocalServiceIsNotNull();
@@ -169,26 +162,36 @@ namespace SonarLint.VisualStudio.Integration
 
         internal /*for testing purposes*/ void ProcessSolutionBinding()
         {
-            // No need to do anything if by the time got here the solution was closed (or unbound)
-            var mode = this.configProvider.GetConfiguration().Mode;
-            if (!mode.IsInAConnectedMode())
+            // We could be on a UI thread so any unhandled exceptions will crash VS.
+            // We can't catch at a higher level as this method queues a recursive callback
+            // if the solution is not fully loaded.
+            try
             {
-                return;
-            }
+                // No need to do anything if by the time got here the solution was closed (or unbound)
+                var mode = this.configProvider.GetConfiguration().Mode;
+                if (!mode.IsInAConnectedMode())
+                {
+                    return;
+                }
 
-            // If the solution is not fully loaded, wait until is fully loaded
-            if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
+                // If the solution is not fully loaded, wait until is fully loaded
+                if (!KnownUIContexts.SolutionExistsAndFullyLoadedContext.IsActive)
+                {
+                    KnownUIContexts.SolutionExistsAndFullyLoadedContext.WhenActivated(this.ProcessSolutionBinding);
+                    return;
+                }
+
+                // Due to the non-sequential nature of this code, we want to avoid showing two info bars
+                // which could happen if the user had enough time to close and open a solution
+                // (after the 1st solution was opened), so need to clear the previous info bar just in case.
+                this.ClearCurrentInfoBar();
+
+                this.ProcessSolutionBindingCore();
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                KnownUIContexts.SolutionExistsAndFullyLoadedContext.WhenActivated(this.ProcessSolutionBinding);
-                return;
+                logger.WriteLine(Strings.UnexpectedErrorMessageFormat, typeof(ErrorListInfoBarController), ex, Constants.SonarLintIssuesWebUrl);
             }
-
-            // Due to the non-sequential nature of this code, we want to avoid showing two info bars
-            // which could happen if the user had enough time to close and open a solution
-            // (after the 1st solution was opened), so need to clear the previous info bar just in case.
-            this.ClearCurrentInfoBar();
-
-            this.ProcessSolutionBindingCore();
         }
 
         private void ProcessSolutionBindingCore()
