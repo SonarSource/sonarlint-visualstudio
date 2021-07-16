@@ -279,14 +279,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         public void ErrorListInfoBarController_Refresh_NonCriticalExceptionIsSuppressed()
         {
             var logger = new TestLogger();
-
-            var configProvider = new Mock<IConfigurationProviderService>();
-            configProvider.Setup(x => x.GetConfiguration()).Throws(new COMException("thrown by test code"));
-
-            var host = new Mock<IHost>();
-            host.As<IServiceProvider>().Setup(x => x.GetService(typeof(IConfigurationProviderService))).Returns(configProvider.Object);
-
-            var testSubject = new ErrorListInfoBarController(host.Object, Mock.Of<IUnboundProjectFinder>(), logger);
+            var host = CreateHostWithThrowingConfigProvider(new COMException("thrown by test code"));
+            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), logger);
 
             // Act - should not throw
             testSubject.ProcessSolutionBinding();
@@ -297,15 +291,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void ErrorListInfoBarController_Refresh_CriticalExceptionIsNotSuppressed()
         {
-            var logger = new TestLogger();
-
-            var configProvider = new Mock<IConfigurationProviderService>();
-            configProvider.Setup(x => x.GetConfiguration()).Throws(new StackOverflowException("thrown by test code"));
-
-            var host = new Mock<IHost>();
-            host.As<IServiceProvider>().Setup(x => x.GetService(typeof(IConfigurationProviderService))).Returns(configProvider.Object);
-
-            var testSubject = new ErrorListInfoBarController(host.Object, Mock.Of<IUnboundProjectFinder>(), logger);
+            var host = CreateHostWithThrowingConfigProvider(new StackOverflowException("thrown by test code"));
+            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), Mock.Of<ILogger>());
 
             // Act
             Action act = () => testSubject.ProcessSolutionBinding();
@@ -797,6 +784,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
+        public void ErrorListInfoBarController_InfoBar_ClickButton_NonCriticalExceptionIsSuppressed()
+        {
+            var logger = new TestLogger();
+            var host = CreateHostWithThrowingConfigProvider(new InvalidOperationException("thrown by test code"));
+            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), logger);
+
+            // Act - should not throw
+            testSubject.CurrentErrorWindowInfoBar_ButtonClick(this, EventArgs.Empty);
+
+            logger.AssertPartialOutputStringExists("thrown by test code");
+        }
+
+        [TestMethod]
+        public void ErrorListInfoBarController_InfoBar_ClickButton_CriticalExceptionIsNotSuppressed()
+        {
+            var host = CreateHostWithThrowingConfigProvider(new StackOverflowException("thrown by test code"));
+            var testSubject = new ErrorListInfoBarController(host, Mock.Of<IUnboundProjectFinder>(), Mock.Of<ILogger>());
+
+            // Act
+            Action act = () => testSubject.CurrentErrorWindowInfoBar_ButtonClick(this, EventArgs.Empty);
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Contain("thrown by test code");
+        }
+
+        [TestMethod]
         public void ErrorListInfoBarController_Reset()
         {
             // Arrange
@@ -856,6 +867,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private ErrorListInfoBarController CreateTestSubject() =>
             new ErrorListInfoBarController(host, unboundProjectFinder, logger);
+
+        private static IHost CreateHostWithThrowingConfigProvider(Exception exceptionToThrow)
+        {
+            var configProvider = new Mock<IConfigurationProviderService>();
+            configProvider.Setup(x => x.GetConfiguration()).Throws(exceptionToThrow);
+
+            var host = new Mock<IHost>();
+            host.As<IServiceProvider>().Setup(x => x.GetService(typeof(IConfigurationProviderService))).Returns(configProvider.Object);
+
+            return host.Object;
+        }
 
         private ConfigurableSectionController ConfigureActiveSectionWithBindCommand(Action<BindCommandArgs> commandAction, Predicate<BindCommandArgs> canExecuteCommand = null)
         {
