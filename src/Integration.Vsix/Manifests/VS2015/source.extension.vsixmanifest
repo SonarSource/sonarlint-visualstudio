@@ -6,7 +6,7 @@
   -->
   <Metadata>
     <!-- Note: keep the version number in sync with AssemblyInfo.Shared.cs -->
-    <Identity Id="SonarLint.8c442ec8-0208-4840-b83f-acd24f41acf7" Version="4.37.0.0" Language="en-US" Publisher="SonarSource" />
+    <Identity Id="SonarLint.8c442ec8-0208-4840-b83f-acd24f41acf7" Version="4.38.0.0" Language="en-US" Publisher="SonarSource" />
     <DisplayName>SonarLint for Visual Studio 2015</DisplayName>
     <Description xml:space="preserve">Roslyn based static code analysis: Find and instantly fix nasty bugs and code smells in C#, VB.Net, C, C++ and JS.</Description>
     <MoreInfo>http://vs.sonarlint.org</MoreInfo>
@@ -21,7 +21,7 @@
   </Installation>
   <Dependencies>
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.6,)" />
-    <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[4.37.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
+    <Dependency d:Source="Project" d:ProjectName="EmbeddedVsix" Version="[4.38.0.0]" d:InstallSource="Embed" d:VsixSubPath="EmbeddedVsix" Location="|EmbeddedVsix;VSIXContainerProjectOutputGroup|" DisplayName="|EmbeddedVsix;VSIXNameProjectOutputGroup|" Id="|EmbeddedVsix;VSIXIdentifierProjectOutputGroup|" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Integration" Path="|Integration|" />
