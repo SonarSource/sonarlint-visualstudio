@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 using Language = SonarLint.VisualStudio.Core.Language;
 
@@ -58,7 +59,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 var slnLevelBindingConfigFilepath = binding.BuildPathUnderConfigDirectory(language.FileSuffixAndExtension);
 
-                return !fileSystem.File.Exists(slnLevelBindingConfigFilepath);
+                var configFileExists = fileSystem.File.Exists(slnLevelBindingConfigFilepath);
+                logger.LogDebug($"[Binding check] Does config file exists: {configFileExists} (language: '{language}', file path: '{slnLevelBindingConfigFilepath}')");
+                return !configFileExists;
             });
         }
 

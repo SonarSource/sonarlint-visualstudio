@@ -992,6 +992,24 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ruleset could not be loaded. File: {0}, Error: {1}.
+        /// </summary>
+        public static string RulesetSerializer_FailedToLoadRuleset {
+            get {
+                return ResourceManager.GetString("RulesetSerializer_FailedToLoadRuleset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ruleset file does not exist: {0}.
+        /// </summary>
+        public static string RulesetSerializer_RulesetDoesNotExist {
+            get {
+                return ResourceManager.GetString("RulesetSerializer_RulesetDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to check out files for editing. Error flags: {0}.
         /// </summary>
         public static string SCCFS_FailedToCheckOutFilesForEditing {

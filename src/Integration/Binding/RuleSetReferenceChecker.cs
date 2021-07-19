@@ -24,6 +24,7 @@ using System.IO;
 using System.Linq;
 using EnvDTE;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Helpers;
 using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Binding
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         {
             var declarations = ruleSetInfoProvider.GetProjectRuleSetsDeclarations(project).ToArray();
 
-            logger.WriteLine(Strings.Bind_ProjectRulesetDeclarations,
+            logger.LogDebug(Strings.Bind_ProjectRulesetDeclarations,
                 project.Name,
                 string.Join(Environment.NewLine + "   ", declarations.Select(x => x.ToString())));
 

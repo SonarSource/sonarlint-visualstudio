@@ -19,26 +19,28 @@
  */
 
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Xml;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
     internal sealed class RuleSetSerializer : IRuleSetSerializer
     {
+        private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public RuleSetSerializer()
-            : this(new FileSystem())
+        public RuleSetSerializer(ILogger logger)
+            : this(logger, new FileSystem())
         {
         }
 
-        internal RuleSetSerializer(IFileSystem fileSystem)
+        internal RuleSetSerializer(ILogger logger, IFileSystem fileSystem)
         {
-            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(this.fileSystem));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
         public RuleSet LoadRuleSet(string path)
@@ -56,13 +58,15 @@ namespace SonarLint.VisualStudio.Integration
                 }
                 catch (Exception ex) when (ex is InvalidRuleSetException || ex is XmlException || ex is IOException)
                 {
-                    // Log this for testing purposes
-                    Trace.WriteLine(ex.ToString(), nameof(LoadRuleSet));
+                    logger.WriteLine(Strings.RulesetSerializer_FailedToLoadRuleset, path, ex.Message);
                 }
+            }
+            else
+            {
+                logger.WriteLine(Strings.RulesetSerializer_RulesetDoesNotExist, path);
             }
 
             return null;
-
         }
 
         public void WriteRuleSetFile(RuleSet ruleSet, string path)
