@@ -781,6 +781,14 @@
           "System.Xml.XPath": "4.0.1"
         }
       },
+      "SonarLint.VisualStudio.CFamily": {
+        "type": "Project",
+        "dependencies": {
+          "Newtonsoft.Json": "6.0.8",
+          "SonarLint.VisualStudio.Core": "1.0.0",
+          "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0"
+        }
+      },
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
