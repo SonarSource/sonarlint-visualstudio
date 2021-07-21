@@ -7,7 +7,6 @@
     <AssemblyName>SonarLint.VisualStudio.CFamily</AssemblyName>
     <RequiresSigning>true</RequiresSigning>
     <RequiresNewtonsoft>true</RequiresNewtonsoft>
-    <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
 
   </PropertyGroup>
 
