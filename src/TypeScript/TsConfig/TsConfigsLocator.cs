@@ -21,15 +21,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.TypeScript.TsConfig
 {
@@ -45,41 +40,26 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class TsConfigsLocator : ITsConfigsLocator
     {
-        /// <summary>
-        /// See https://docs.microsoft.com/en-us/dotnet/api/microsoft.visualstudio.shell.interop.__vspropid7?view=visualstudiosdk-2019
-        /// The enum is not available in VS 2015 API.
-        /// </summary>
-        internal const int VSPROPID_IsInOpenFolderMode = -8044;
-
-        private readonly IVsHierarchyLocator vsHierarchyLocator;
-        private readonly IVsSolution vsSolution;
+        private readonly IProjectDirectoryProvider projectDirectoryProvider;
         private readonly IFileSystem fileSystem;
-        private readonly ILogger logger;
 
         [ImportingConstructor]
-        public TsConfigsLocator([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            IVsHierarchyLocator vsHierarchyLocator,
-            ILogger logger)
-            : this(serviceProvider, vsHierarchyLocator, new FileSystem(), logger)
+        public TsConfigsLocator(IProjectDirectoryProvider projectDirectoryProvider)
+            : this(projectDirectoryProvider, new FileSystem())
         {
         }
 
-        internal TsConfigsLocator(IServiceProvider serviceProvider,
-            IVsHierarchyLocator vsHierarchyLocator,
-            IFileSystem fileSystem, 
-            ILogger logger)
+        internal TsConfigsLocator(IProjectDirectoryProvider projectDirectoryProvider, IFileSystem fileSystem)
         {
-            vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
-            this.vsHierarchyLocator = vsHierarchyLocator;
+            this.projectDirectoryProvider = projectDirectoryProvider;
             this.fileSystem = fileSystem;
-            this.logger = logger;
         }
 
         public IReadOnlyList<string> Locate(string sourceFilePath)
         {
-            var projectDirectory = GetProjectDirectory(sourceFilePath);
+            var projectDirectory = projectDirectoryProvider.GetProjectDirectory(sourceFilePath);
 
-            if (projectDirectory == null)
+            if (string.IsNullOrEmpty(projectDirectory))
             {
                 return Array.Empty<string>();
             }
@@ -92,42 +72,6 @@ namespace SonarLint.VisualStudio.TypeScript.TsConfig
                 .Where(x=> !x.Contains("\\node_modules\\"));
 
             return foundTsConfigs.ToArray();
-        }
-
-        private string GetProjectDirectory(string sourceFilePath)
-        {
-            // "Open as Folder" was introduced in VS2017, so in VS2015 the hr result will be `E_NOTIMPL` and `isOpenAsFolder` will be null.
-            var hr = vsSolution.GetProperty(VSPROPID_IsInOpenFolderMode, out var isOpenAsFolder);
-            Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
-
-            if (isOpenAsFolder != null && (bool) isOpenAsFolder)
-            {
-                // For projects that are opened as folder, the root IVsHierarchy is the "Miscellaneous Files" folder.
-                // This folder doesn't have a directory path so we need to take the directory path from IVsSolution.
-                hr = vsSolution.GetProperty((int) __VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirectory);
-
-                Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL,
-                    "Failed to retrieve VSPROPID_SolutionDirectory");
-
-                return (string) solutionDirectory;
-            }
-
-            var vsProject = vsHierarchyLocator.GetVsHierarchyForFile(sourceFilePath);
-
-            if (vsProject == null)
-            {
-                logger.WriteLine(Resources.ERR_NoVsProject, sourceFilePath);
-                return null;
-            }
-
-            hr = vsProject.GetProperty(
-                (uint) VSConstants.VSITEMID.Root,
-                (int) __VSHPROPID.VSHPROPID_ProjectDir,
-                out var projectDirectory);
-
-            Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "Failed to retrieve VSHPROPID_ProjectDir");
-
-            return (string) projectDirectory;
         }
     }
 }
