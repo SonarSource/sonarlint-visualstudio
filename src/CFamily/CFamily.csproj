@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net46</TargetFramework>
+    <ProjectGuid>{58619C0F-0F3D-4E8C-B204-A19B332D45E5}</ProjectGuid>
+    <RootNamespace>SonarLint.VisualStudio.CFamily</RootNamespace>
+    <AssemblyName>SonarLint.VisualStudio.CFamily</AssemblyName>
+    <RequiresSigning>true</RequiresSigning>
+    <RequiresNewtonsoft>true</RequiresNewtonsoft>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Infrastructure.VS\Infrastructure.VS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="Framework references">
+    <Reference Include="System.ComponentModel.Composition" />
+  </ItemGroup>
+
+</Project>
