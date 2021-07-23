@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Abstractions;
@@ -26,7 +25,6 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -41,22 +39,23 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
     public class TsConfigsLocatorTests
     {
         private const string ValidSourceFilePath = "source-file.ts";
+        public const string RootDirectory = "c:\\test\\solution\\";
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<TsConfigsLocator, ITsConfigsLocator>(null, new[]
             {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(Mock.Of<IFolderWorkspaceService>()),
                 MefTestHelpers.CreateExport<IVsHierarchyLocator>(Mock.Of<IVsHierarchyLocator>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>()),
             });
         }
 
         [TestMethod]
-        public void Locate_OpenAsFolderProject_SearchesFilesUnderSolutionDirectory()
+        public void Locate_HasRootDirectory_SearchesFilesUnderRootDirectory()
         {
-            var testSuite = new TestSuite(isOpenAsFolder: true);
+            var testSuite = new TestSuite(rootDirectory: RootDirectory);
             var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
 
             result.Should().BeEquivalentTo(TestSuite.TsConfigUnderSolution, TestSuite.TsConfigUnderProject);
@@ -66,23 +65,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         [TestMethod]
-        public void Locate_OpenAsFolderProject_ProblemRetrievingSolutionDirectory_EmptyList()
+        public void Locate_NoRootDirectory_SearchesFilesUnderProjectDirectory()
         {
-            var testSuite = new TestSuite(isOpenAsFolder: true, solutionDirectory: null);
-            var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
-
-            result.Should().BeEmpty();
-
-            testSuite.VsHierarchyLocator.Invocations.Should().BeEmpty();
-            testSuite.VsProject.Invocations.Should().BeEmpty();
-        }
-
-        [TestMethod]
-        [DataRow(null)] // the API returns null for VS2015
-        [DataRow(false)]
-        public void Locate_RegularProject_SearchesFilesUnderProjectDirectory(bool? isOpenAsFolder)
-        {
-            var testSuite = new TestSuite(isOpenAsFolder: isOpenAsFolder);
+            var testSuite = new TestSuite(rootDirectory: null);
             var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
 
             result.Should().BeEquivalentTo(TestSuite.TsConfigUnderProject);
@@ -92,11 +77,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         [TestMethod]
-        [DataRow(null)] // the API returns null for VS2015
-        [DataRow(false)]
-        public void Locate_RegularProject_ProblemRetrievingProjectDirectory_EmptyList(bool? isOpenAsFolder)
+        public void Locate_NoRootDirectory_ProblemRetrievingProjectDirectory_EmptyList()
         {
-            var testSuite = new TestSuite(isOpenAsFolder: isOpenAsFolder, projectDirectory: null);
+            var testSuite = new TestSuite(rootDirectory: null, projectDirectory: null);
             var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
 
             result.Should().BeEmpty();
@@ -106,11 +89,9 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         [TestMethod]
-        [DataRow(null)] // the API returns null for VS2015
-        [DataRow(false)]
-        public void Locate_RegularProject_ProblemRetrievingVsHierarchy_EmptyList(bool? isOpenAsFolder)
+        public void Locate_NoRootDirectory_ProblemRetrievingVsHierarchy_EmptyList()
         {
-            var testSuite = new TestSuite(isOpenAsFolder: isOpenAsFolder, isNullVsProject: true);
+            var testSuite = new TestSuite(rootDirectory: null, isNullVsProject: true);
             var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
 
             result.Should().BeEmpty();
@@ -119,12 +100,11 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        [DataRow(null)] // the API returns null for VS2015
-        public void Locate_SearchesFilesUnderTheDirectory_IgnoresNodeModules(bool? isOpenAsFolder)
+        [DataRow(RootDirectory)]
+        [DataRow(null)]
+        public void Locate_SearchesFilesUnderTheDirectory_IgnoresNodeModules(string rootDirectory)
         {
-            var testSuite = new TestSuite(isOpenAsFolder: isOpenAsFolder);
+            var testSuite = new TestSuite(rootDirectory);
             var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
 
             result.Should().NotContain(TestSuite.TsConfigUnderNodeModules);
@@ -133,7 +113,7 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
         [TestMethod]
         public void Locate_SearchesFilesUnderTheDirectory_FindsCorrectFiles()
         {
-            var testSuite = new TestSuite(isOpenAsFolder: true);
+            var testSuite = new TestSuite(RootDirectory);
             testSuite.ResetFileSystemMocks();
 
             var files = new Dictionary<string, bool>
@@ -146,16 +126,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                 { "b\\c\\TSCONFIG.json", true}, // case-sensitivity + sub folder
             };
 
-            var rootDirectory = TestSuite.SolutionDirectory;
-
             foreach (var file in files)
             {
-                testSuite.FileSystem.AddFile(Path.Combine(rootDirectory, file.Key), new MockFileData("some content"));
+                testSuite.FileSystem.AddFile(Path.Combine(RootDirectory, file.Key), new MockFileData("some content"));
             }
 
             var expectedFiles = files
                 .Where(x => x.Value)
-                .Select(x => Path.Combine(rootDirectory, x.Key));
+                .Select(x => Path.Combine(RootDirectory, x.Key));
 
             var result = testSuite.TestSubject.Locate(ValidSourceFilePath);
 
@@ -164,19 +142,17 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
 
         private class TestSuite
         {
-            public const string SolutionDirectory = "c:\\test\\solution\\";
             public const string ProjectDirectory = "c:\\test\\solution\\project\\";
 
-            public static readonly string TsConfigUnderSolution = Path.Combine(SolutionDirectory, "tsconfig.json");
+            public static readonly string TsConfigUnderSolution = Path.Combine(RootDirectory, "tsconfig.json");
             public static readonly string TsConfigUnderProject = Path.Combine(ProjectDirectory, "tsconfig.json");
             public static readonly string TsConfigUnderNodeModules = Path.Combine(ProjectDirectory, "node_modules", "tsconfig.json");
 
-            public TestSuite(bool? isOpenAsFolder, 
+            public TestSuite(string rootDirectory, 
                 bool isNullVsProject = false,
-                string solutionDirectory = SolutionDirectory,
                 string projectDirectory = ProjectDirectory)
             {
-                VsSolution = SetupVsSolution(isOpenAsFolder, solutionDirectory);
+                FolderWorkspaceService = SetupFolderWorkspaceService(rootDirectory);
 
                 if (isNullVsProject)
                 {
@@ -193,10 +169,10 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
                     TsConfigUnderProject,
                     TsConfigUnderNodeModules);
 
-                TestSubject = CreateTestSubject(VsSolution.Object, VsHierarchyLocator.Object, FileSystem);
+                TestSubject = CreateTestSubject(FolderWorkspaceService.Object, VsHierarchyLocator.Object, FileSystem);
             }
 
-            public Mock<IVsSolution> VsSolution { get; }
+            public Mock<IFolderWorkspaceService> FolderWorkspaceService { get; }
             public Mock<IVsHierarchy> VsProject { get; }
             public Mock<IVsHierarchyLocator> VsHierarchyLocator { get; }
             public MockFileSystem FileSystem { get; }
@@ -235,20 +211,13 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             return fileSystem;
         }
 
-        private static Mock<IVsSolution> SetupVsSolution(bool? isOpenAsFolder, object solutionDirectory)
+        private static Mock<IFolderWorkspaceService> SetupFolderWorkspaceService(string rootDirectory)
         {
-            object result = isOpenAsFolder;
-            var vsSolution = new Mock<IVsSolution>();
+            var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
+            
+            folderWorkspaceService.Setup(x => x.FindRootDirectory()).Returns(rootDirectory);
 
-            vsSolution
-                .Setup(x => x.GetProperty(TsConfigsLocator.VSPROPID_IsInOpenFolderMode, out result))
-                .Returns(VSConstants.S_OK);
-
-            vsSolution
-                .Setup(x => x.GetProperty((int) __VSPROPID.VSPROPID_SolutionDirectory, out solutionDirectory))
-                .Returns(VSConstants.S_OK);
-
-            return vsSolution;
+            return folderWorkspaceService;
         }
 
         private static Mock<IVsHierarchyLocator> SetupVsHierarchyLocator(string sourceFilePath, IVsHierarchy vsHierarchy)
@@ -274,17 +243,14 @@ namespace SonarLint.VisualStudio.TypeScript.UnitTests.TsConfig
             return vsHierarchy;
         }
 
-        private static TsConfigsLocator CreateTestSubject(IVsSolution vsSolution,
+        private static TsConfigsLocator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService,
             IVsHierarchyLocator vsHierarchyLocator,
             IFileSystem fileSystem,
             ILogger logger = null)
         {
             logger ??= Mock.Of<ILogger>();
 
-            var serviceProvider = new Mock<IServiceProvider>();
-            serviceProvider.Setup(x => x.GetService(typeof(SVsSolution))).Returns(vsSolution);
-
-            return new TsConfigsLocator(serviceProvider.Object, vsHierarchyLocator, fileSystem, logger);
+            return new TsConfigsLocator(folderWorkspaceService, vsHierarchyLocator, fileSystem, logger);
         }
     }
 }
