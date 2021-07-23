@@ -121,7 +121,7 @@
     <value>[CompilationDatabaseLocator] Reading compilation database from '{0}</value>
   </data>
   <data name="NoBuildConfigInCMakeSettings" xml:space="preserve">
-    <value>[CompilationDatabaseLocator] The specified build configuration '{0}' could not be found in the {1}</value>
+    <value>[CompilationDatabaseLocator] Specified build configuration '{0}' could not be found at '{1}'</value>
   </data>
   <data name="NoCMakeSettings" xml:space="preserve">
     <value>[CompilationDatabaseLocator] No {0} was found under {1}, searching for compilation database under default location: {2}</value>

@@ -20,7 +20,7 @@
 
 using Newtonsoft.Json;
 
-namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
+namespace SonarLint.VisualStudio.CFamily.CMake
 {
     /// <summary>
     /// Schema based on https://docs.microsoft.com/en-us/cpp/build/cmakesettings-reference?view=msvc-160

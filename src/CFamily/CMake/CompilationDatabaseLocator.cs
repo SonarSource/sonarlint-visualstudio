@@ -26,7 +26,7 @@ using Newtonsoft.Json;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 
-namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
+namespace SonarLint.VisualStudio.CFamily.CMake
 {
     internal interface ICompilationDatabaseLocator
     {
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
         internal const string CMakeSettingsFileName = "CMakeSettings.json";
-        internal const string DefaultConfiguration = "x64-Debug";
+        internal const string VSDefaultConfiguration = "x64-Debug";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.CFamily.CompilationDatabase
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
-            var activeConfiguration = DefaultConfiguration;
+            var activeConfiguration = VSDefaultConfiguration;
 
             if (!fileSystem.File.Exists(cmakeSettingsFullPath))
             {
