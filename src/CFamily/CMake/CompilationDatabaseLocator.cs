@@ -43,7 +43,6 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
         internal const string CMakeSettingsFileName = "CMakeSettings.json";
-        internal const string VSDefaultConfiguration = "x64-Debug";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
