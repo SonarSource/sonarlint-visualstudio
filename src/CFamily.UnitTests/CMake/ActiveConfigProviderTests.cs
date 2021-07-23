@@ -19,9 +19,9 @@
  */
 
 using System;
+using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
@@ -57,12 +57,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void Get_MissingSettingsFile_ReturnsDefaultConfig()
         {
+            const string rootDir = "c:\\aaa";
+            var fullSettingsPath = CalcFullSettingsPath(rootDir);
+
             var fileSystem = CreateFileSystemWithNoFiles();
             var logger = new TestLogger(logToConsole: true);
             var testSubject = new ActiveConfigProvider(logger, fileSystem.Object);
 
-            testSubject.GetActiveConfig("any").Should().Be(ExpectedDefaultConfig);
-            fileSystem.Verify(x => x.File.Exists(It.IsAny<string>()), Times.Once);
+            testSubject.GetActiveConfig(rootDir).Should().Be(ExpectedDefaultConfig);
+
+            AssertSettingsFileExistenceChecked(fileSystem, fullSettingsPath);
         }
 
         [TestMethod]
@@ -71,11 +75,17 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("{ 'CurrentProjectSetting': 'my config' }", "my config")]
         public void Get_FileExists_ReturnsCorrectConfig(string settingsJson, string expectedConfig)
         {
-            var fileSystem = CreateFileSystemWithFile("c:\\aaa\\.vs\\ProjectSettings.json", settingsJson);
+            const string rootDir = "c:\\xxx";
+            var fullSettingsPath = CalcFullSettingsPath(rootDir);
+
+            var fileSystem = CreateFileSystemWithFile(fullSettingsPath, settingsJson);
             var logger = new TestLogger(logToConsole: true);
             var testSubject = new ActiveConfigProvider(logger, fileSystem.Object);
 
-            testSubject.GetActiveConfig("c:\\aaa").Should().Be(expectedConfig);
+            testSubject.GetActiveConfig(rootDir).Should().Be(expectedConfig);
+
+            AssertSettingsFileExistenceChecked(fileSystem, fullSettingsPath);
+            AssertSettingsFileRead(fileSystem, fullSettingsPath);
         }
 
         private static Mock<IFileSystem> CreateFileSystemWithNoFiles()
@@ -92,5 +102,19 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             fileSystem.Setup(x => x.File.ReadAllText(fullPath)).Returns(content);
             return fileSystem;
         }
+
+        private static void AssertSettingsFileExistenceChecked(Mock<IFileSystem> fileSystem, string fullSettingsPath)
+        {
+            fileSystem.Verify(x => x.File.Exists(fullSettingsPath), Times.Once);
+        }
+
+        private static void AssertSettingsFileRead(Mock<IFileSystem> fileSystem, string rootDirectory)
+        {
+            var fullPath = CalcFullSettingsPath(rootDirectory);
+            fileSystem.Verify(x => x.File.ReadAllText(rootDirectory), Times.Once);
+        }
+
+        private static string CalcFullSettingsPath(string rootDirectory) =>
+            Path.Combine(rootDirectory, ".vs", "ProjectSettings.json");
     }
 }

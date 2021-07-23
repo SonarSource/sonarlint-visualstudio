@@ -48,18 +48,21 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly IFileSystem fileSystem;
+        private readonly IActiveConfigProvider activeConfigProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
-            : this(folderWorkspaceService, new FileSystem(), logger)
+            : this(folderWorkspaceService, new FileSystem(), new ActiveConfigProvider(logger), logger)
         {
         }
 
-        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem, ILogger logger)
+        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem,
+            IActiveConfigProvider activeConfigProvider, ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;
+            this.activeConfigProvider = activeConfigProvider;
             this.logger = logger;
         }
 
@@ -97,7 +100,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
-            var activeConfiguration = VSDefaultConfiguration;
+            var activeConfiguration = activeConfigProvider.GetActiveConfig(rootDirectory);
 
             if (!fileSystem.File.Exists(cmakeSettingsFullPath))
             {
