@@ -61,34 +61,28 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocationIfItExists(bool defaultFileExists)
+        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocation()
         {
-            var activeConfiguration = CompilationDatabaseLocator.VSDefaultConfiguration;
+            var activeConfiguration = CompilationDatabaseLocator.VsDefaultConfiguration;
             var defaultLocation = GetDefaultDatabaseFileLocation(activeConfiguration);
+            var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
             var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(false);
-            fileSystem.Setup(x => x.File.Exists(defaultLocation)).Returns(defaultFileExists);
+            fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(false);
 
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, logger);
 
             var result = testSubject.Locate();
 
-            if (defaultFileExists)
-            {
-                result.Should().Be(defaultLocation);
-                logger.AssertOutputStringExists(string.Format(Resources.FoundCompilationDatabaseFile, defaultLocation));
-            }
-            else
-            {
-                result.Should().BeNull();
-                logger.AssertOutputStringExists(string.Format(Resources.NoCompilationDatabaseFile, defaultLocation));
-            }
+            result.Should().Be(defaultLocation);
 
-            fileSystem.Verify(x=> x.File.Exists(defaultLocation), Times.Once);
+            fileSystem.Verify(x=> x.File.Exists(cmakeSettingsLocation), Times.Once);
+
+            logger.AssertOutputStringExists(string.Format(Resources.NoCMakeSettings,
+                CompilationDatabaseLocator.CMakeSettingsFileName,
+                RootDirectory,
+                defaultLocation));
         }
 
         [TestMethod]
@@ -106,18 +100,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             result.Should().BeNull();
             logger.AssertOutputStringExists(string.Format(Resources.NoBuildConfigInCMakeSettings,
-                CompilationDatabaseLocator.VSDefaultConfiguration, 
+                CompilationDatabaseLocator.VsDefaultConfiguration, 
                 CompilationDatabaseLocator.CMakeSettingsFileName));
 
             fileSystem.Verify(x=> x.File.ReadAllText(cmakeSettingsLocation), Times.Once);
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPathIfItExists(bool configuredPathExists)
+        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPath()
         {
-            var activeConfiguration = CompilationDatabaseLocator.VSDefaultConfiguration;
+            var activeConfiguration = CompilationDatabaseLocator.VsDefaultConfiguration;
             var cmakeSettings = CreateCMakeSettings(activeConfiguration, "folder");
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
@@ -127,25 +119,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var compilationDatabaseFullLocation = Path.GetFullPath(
                 Path.Combine("folder", CompilationDatabaseLocator.CompilationDatabaseFileName));
 
-            fileSystem.Setup(x => x.File.Exists(compilationDatabaseFullLocation)).Returns(configuredPathExists);
-
-            var logger = new TestLogger();
-            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, logger);
+            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object);
 
             var result = testSubject.Locate();
 
-            if (configuredPathExists)
-            {
-                result.Should().Be(compilationDatabaseFullLocation);
-                logger.AssertOutputStringExists(string.Format(Resources.FoundCompilationDatabaseFile, compilationDatabaseFullLocation));
-            }
-            else
-            {
-                result.Should().BeNull();
-                logger.AssertOutputStringExists(string.Format(Resources.NoCompilationDatabaseFile, compilationDatabaseFullLocation));
-            }
-
-            fileSystem.Verify(x => x.File.Exists(compilationDatabaseFullLocation), Times.Once);
+            result.Should().Be(compilationDatabaseFullLocation);
         }
 
         [TestMethod]
@@ -171,8 +149,6 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var result = testSubject.Locate();
 
             result.Should().Be(compilationDatabaseFullLocation);
-
-            fileSystem.Verify(x => x.File.Exists(compilationDatabaseFullLocation), Times.Once);
         }
 
         private static CMakeSettings CreateCMakeSettings(string activeConfigurationName, string buildRoot) =>

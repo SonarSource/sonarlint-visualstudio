@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="BadCMakeSettings" xml:space="preserve">
+    <value />
+  </data>
   <data name="FoundCompilationDatabaseFile" xml:space="preserve">
     <value>[CompilationDatabaseLocator] Reading compilation database from '{0}</value>
   </data>
@@ -124,7 +127,10 @@
     <value>[CompilationDatabaseLocator] Specified build configuration '{0}' could not be found at '{1}'</value>
   </data>
   <data name="NoCMakeSettings" xml:space="preserve">
-    <value>[CompilationDatabaseLocator] No {0} was found under {1}, searching for compilation database under default location: {2}</value>
+    <value>[CompilationDatabaseLocator] No {0} was found under {1}, returning default location: {2}</value>
+  </data>
+  <data name="NoCompilationDatabaseEntry" xml:space="preserve">
+    <value>[CompilationDatabaseLocator] Could not find file '{0}' in the compilation database.</value>
   </data>
   <data name="NoCompilationDatabaseFile" xml:space="preserve">
     <value>[CompilationDatabaseLocator] Could locate compilation database at '{0}'. Make sure that your project is configured correctly. See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information.</value>

@@ -18,10 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
@@ -43,7 +45,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
         internal const string CMakeSettingsFileName = "CMakeSettings.json";
-        internal const string VSDefaultConfiguration = "x64-Debug";
+        internal const string VsDefaultConfiguration = "x64-Debug";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
@@ -56,7 +58,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         {
         }
 
-        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem, ILogger logger)
+        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
+            IFileSystem fileSystem, 
+            ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;
@@ -64,29 +68,6 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         }
 
         public string Locate()
-        {
-            var databaseFolderPath = GetCompilationDatabaseFolderPath();
-
-            if (string.IsNullOrEmpty(databaseFolderPath))
-            {
-                return null;
-            }
-
-            var compilationDatabaseFilePath = Path.Combine(databaseFolderPath, CompilationDatabaseFileName);
-
-            if (!fileSystem.File.Exists(compilationDatabaseFilePath))
-            {
-                logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseFilePath);
-
-                return null;
-            }
-
-            logger.WriteLine(Resources.FoundCompilationDatabaseFile, compilationDatabaseFilePath);
-
-            return compilationDatabaseFilePath;
-        }
-
-        public string GetCompilationDatabaseFolderPath()
         {
             var rootDirectory = folderWorkspaceService.FindRootDirectory();
 
@@ -97,21 +78,39 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
-            var activeConfiguration = VSDefaultConfiguration;
+            var activeConfiguration = VsDefaultConfiguration;
 
-            if (!fileSystem.File.Exists(cmakeSettingsFullPath))
+            return fileSystem.File.Exists(cmakeSettingsFullPath)
+                ? GetConfiguredLocation(cmakeSettingsFullPath, activeConfiguration, rootDirectory)
+                : GetDefaultLocation(rootDirectory, activeConfiguration);
+        }
+
+        private string GetDefaultLocation(string rootDirectory, string activeConfiguration)
+        {
+            var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
+            var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
+
+            logger.WriteLine(Resources.NoCMakeSettings, CMakeSettingsFileName, rootDirectory, defaultLocation);
+
+            return defaultLocation;
+        }
+
+        private string GetConfiguredLocation(string cmakeSettingsFullPath, string activeConfiguration, string rootDirectory)
+        {
+            logger.WriteLine(Resources.ReadingCMakeSettings, cmakeSettingsFullPath);
+            CMakeSettings settings;
+
+            try
             {
-                var defaultLocation = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
-
-                logger.WriteLine(Resources.NoCMakeSettings, CMakeSettingsFileName, rootDirectory, defaultLocation);
-
-                return defaultLocation;
+                var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
+                settings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Resources.BadCMakeSettings, ex, cmakeSettingsFullPath);
+                return null;
             }
 
-            logger.WriteLine(Resources.ReadingCMakeSettings, cmakeSettingsFullPath);
-
-            var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
-            var settings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
             var buildConfiguration = settings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
 
             if (buildConfiguration == null)
@@ -124,7 +123,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 .Replace("${projectDir}", rootDirectory)
                 .Replace("${name}", buildConfiguration.Name));
 
-            return databaseFolderPath;
+            var databaseFilePath = Path.Combine(databaseFolderPath, CompilationDatabaseFileName);
+
+            return databaseFilePath;
         }
     }
 }

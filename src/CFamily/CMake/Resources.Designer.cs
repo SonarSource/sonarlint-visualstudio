@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to .
+        /// </summary>
+        internal static string BadCMakeSettings {
+            get {
+                return ResourceManager.GetString("BadCMakeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CompilationDatabaseLocator] Reading compilation database from &apos;{0}.
         /// </summary>
         internal static string FoundCompilationDatabaseFile {
@@ -79,11 +88,20 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] No {0} was found under {1}, searching for compilation database under default location: {2}.
+        ///   Looks up a localized string similar to [CompilationDatabaseLocator] No {0} was found under {1}, returning default location: {2}.
         /// </summary>
         internal static string NoCMakeSettings {
             get {
                 return ResourceManager.GetString("NoCMakeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Could not find file &apos;{0}&apos; in the compilation database..
+        /// </summary>
+        internal static string NoCompilationDatabaseEntry {
+            get {
+                return ResourceManager.GetString("NoCompilationDatabaseEntry", resourceCulture);
             }
         }
         
