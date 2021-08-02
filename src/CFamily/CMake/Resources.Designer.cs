@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Could not parse CMakeSettings.json: {0}.
         /// </summary>
         internal static string BadCMakeSettings {
             get {
@@ -70,7 +70,16 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Reading compilation database from &apos;{0}.
+        ///   Looks up a localized string similar to [CompilationConfigProvider] Could not parse compilation database: {0}.
+        /// </summary>
+        internal static string BadCompilationDatabaseFile {
+            get {
+                return ResourceManager.GetString("BadCompilationDatabaseFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CompilationConfigProvider] Reading compilation database from &apos;{0}.
         /// </summary>
         internal static string FoundCompilationDatabaseFile {
             get {
@@ -97,7 +106,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Could not find file &apos;{0}&apos; in the compilation database..
+        ///   Looks up a localized string similar to [CompilationConfigProvider] Could not find file &apos;{0}&apos; in the compilation database..
         /// </summary>
         internal static string NoCompilationDatabaseEntry {
             get {
@@ -106,7 +115,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Could locate compilation database at &apos;{0}&apos;. Make sure that your project is configured correctly. See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information..
+        ///   Looks up a localized string similar to [CompilationConfigProvider] Could locate compilation database at &apos;{0}&apos;. Make sure that your project is configured correctly. See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information..
         /// </summary>
         internal static string NoCompilationDatabaseFile {
             get {

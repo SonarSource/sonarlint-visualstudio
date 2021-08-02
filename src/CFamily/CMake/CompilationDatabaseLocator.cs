@@ -27,6 +27,7 @@ using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
@@ -45,25 +46,30 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
         internal const string CMakeSettingsFileName = "CMakeSettings.json";
-        internal const string VsDefaultConfiguration = "x64-Debug";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly IFileSystem fileSystem;
+        private readonly IBuildConfigProvider buildConfigProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
-            : this(folderWorkspaceService, new FileSystem(), logger)
+            : this(folderWorkspaceService,
+                new BuildConfigProvider(logger),
+                new FileSystem(),
+                logger)
         {
         }
 
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
+            IBuildConfigProvider buildConfigProvider,
             IFileSystem fileSystem, 
             ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;
+            this.buildConfigProvider = buildConfigProvider;
             this.logger = logger;
         }
 
@@ -73,12 +79,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (string.IsNullOrEmpty(rootDirectory))
             {
-                logger.WriteLine(Resources.NoRootDirectory);
+                logger.LogDebug(Resources.NoRootDirectory);
                 return null;
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
-            var activeConfiguration = VsDefaultConfiguration;
+            var activeConfiguration = buildConfigProvider.GetActiveConfig(rootDirectory);
 
             return fileSystem.File.Exists(cmakeSettingsFullPath)
                 ? GetConfiguredLocation(cmakeSettingsFullPath, activeConfiguration, rootDirectory)
@@ -90,14 +96,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
             var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
 
-            logger.WriteLine(Resources.NoCMakeSettings, CMakeSettingsFileName, rootDirectory, defaultLocation);
+            logger.LogDebug(Resources.NoCMakeSettings, CMakeSettingsFileName, rootDirectory, defaultLocation);
 
             return defaultLocation;
         }
 
         private string GetConfiguredLocation(string cmakeSettingsFullPath, string activeConfiguration, string rootDirectory)
         {
-            logger.WriteLine(Resources.ReadingCMakeSettings, cmakeSettingsFullPath);
+            logger.LogDebug(Resources.ReadingCMakeSettings, cmakeSettingsFullPath);
             CMakeSettings settings;
 
             try
@@ -107,7 +113,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.BadCMakeSettings, ex, cmakeSettingsFullPath);
+                logger.WriteLine(Resources.BadCMakeSettings, ex);
                 return null;
             }
 

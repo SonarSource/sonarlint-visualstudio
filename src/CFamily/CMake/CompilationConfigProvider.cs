@@ -103,7 +103,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(ex.ToString());
+                logger.WriteLine(Resources.BadCompilationDatabaseFile, ex);
 
                 return null;
             }
