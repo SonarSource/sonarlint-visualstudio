@@ -21,13 +21,14 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using Microsoft.VisualStudio;
 using Newtonsoft.Json.Linq;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    internal interface IActiveConfigProvider
+    internal interface IBuildConfigProvider
     {
         /// <summary>
         /// Returns the name of the current configuration
@@ -36,7 +37,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         string GetActiveConfig(string rootDirectory);
     }
 
-    internal class ActiveConfigProvider : IActiveConfigProvider
+    internal class BuildConfigProvider : IBuildConfigProvider
     {
         private const string VSDefaultConfiguration = "x64-Debug";
         private const string RelativeSettingsPath = ".vs\\ProjectSettings.json";
@@ -45,11 +46,11 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public ActiveConfigProvider(ILogger logger) : this(logger, new FileSystem())
+        public BuildConfigProvider(ILogger logger) : this(logger, new FileSystem())
         {
         }
 
-        internal /* for testing */ ActiveConfigProvider(ILogger logger, IFileSystem fileSystem)
+        internal /* for testing */ BuildConfigProvider(ILogger logger, IFileSystem fileSystem)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
@@ -88,20 +89,18 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private string ExtractConfig(string fullPath)
         {
-            var settings = fileSystem.File.ReadAllText(fullPath);
-
             try
             {
+                var settings = fileSystem.File.ReadAllText(fullPath);
                 if (JObject.Parse(settings).TryGetValue(ConfigPropertyName, out var token))
                 {
                     return token.ToString();
                 }
             }
-            catch (Newtonsoft.Json.JsonException ex)
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 LogDebug("Error reading json file: " + ex.Message);
             }
-
             return null;
         }
 

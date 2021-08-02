@@ -22,6 +22,7 @@ using System;
 using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
+using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
@@ -31,24 +32,24 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {
     [TestClass]
-    public class ActiveConfigProviderTests
+    public class BuildConfigProviderTests
     {
         private const string ExpectedDefaultConfig = "x64-Debug";
 
         [TestMethod]
         public void Ctor_InvalidArgs_Throws()
         {
-            Action act = () => new ActiveConfigProvider(null, Mock.Of<IFileSystem>());
+            Action act = () => new BuildConfigProvider(null, Mock.Of<IFileSystem>());
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
 
-            act = () => new ActiveConfigProvider(Mock.Of<ILogger>(), null);
+            act = () => new BuildConfigProvider(Mock.Of<ILogger>(), null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
 
         [TestMethod]
         public void Get_NullRootDirectory_Throws()
         {
-            var testSubject = new ActiveConfigProvider(Mock.Of<ILogger>());
+            var testSubject = new BuildConfigProvider(Mock.Of<ILogger>());
 
             Action act = () => testSubject.GetActiveConfig(null);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("rootDirectory");
@@ -62,7 +63,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var fileSystem = CreateFileSystemWithNoFiles();
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new ActiveConfigProvider(logger, fileSystem.Object);
+            var testSubject = new BuildConfigProvider(logger, fileSystem.Object);
 
             testSubject.GetActiveConfig(rootDir).Should().Be(ExpectedDefaultConfig);
 
@@ -80,12 +81,49 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var fileSystem = CreateFileSystemWithFile(fullSettingsPath, settingsJson);
             var logger = new TestLogger(logToConsole: true);
-            var testSubject = new ActiveConfigProvider(logger, fileSystem.Object);
+            var testSubject = new BuildConfigProvider(logger, fileSystem.Object);
 
             testSubject.GetActiveConfig(rootDir).Should().Be(expectedConfig);
 
             AssertSettingsFileExistenceChecked(fileSystem, fullSettingsPath);
             AssertSettingsFileRead(fileSystem, fullSettingsPath);
+        }
+
+        [TestMethod]
+        public void Get_ReadingFile_NonCriticalError_DefaultConfigReturned()
+        {
+            bool exceptionThrown = false;
+
+            const string rootDir = "c:\\xxx";
+            var fullSettingsPath = CalcFullSettingsPath(rootDir);
+            var fileSystem = CreateFileSystemWithExistingFile(fullSettingsPath);
+            fileSystem.Setup(x => x.File.ReadAllText(It.IsAny<string>()))
+                .Callback(() => exceptionThrown = true)
+                .Throws(new IOException("thrown by a test"));
+
+            var logger = new TestLogger(logToConsole: true);
+            var testSubject = new BuildConfigProvider(logger, fileSystem.Object);
+
+            testSubject.GetActiveConfig(rootDir).Should().Be(ExpectedDefaultConfig);
+
+            exceptionThrown.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void Get_ReadingFile_CriticalError_NotHandled()
+        {
+            const string rootDir = "c:\\xxx";
+            var fullSettingsPath = CalcFullSettingsPath(rootDir);
+            var fileSystem = CreateFileSystemWithExistingFile(fullSettingsPath);
+            fileSystem.Setup(x => x.File.ReadAllText(It.IsAny<string>()))
+                .Throws(new StackOverflowException("thrown by a test"));
+
+            var logger = new TestLogger(logToConsole: true);
+            var testSubject = new BuildConfigProvider(logger, fileSystem.Object);
+
+            Action act = () => testSubject.GetActiveConfig(rootDir);
+
+            act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown by a test");
         }
 
         private static Mock<IFileSystem> CreateFileSystemWithNoFiles()
@@ -97,9 +135,15 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
         private static Mock<IFileSystem> CreateFileSystemWithFile(string fullPath, string content)
         {
+            var fileSystem = CreateFileSystemWithExistingFile(fullPath);
+            fileSystem.Setup(x => x.File.ReadAllText(fullPath)).Returns(content);
+            return fileSystem;
+        }
+
+        private static Mock<IFileSystem> CreateFileSystemWithExistingFile(string fullPath)
+        {
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.File.Exists(fullPath)).Returns(true);
-            fileSystem.Setup(x => x.File.ReadAllText(fullPath)).Returns(content);
             return fileSystem;
         }
 
@@ -108,11 +152,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             fileSystem.Verify(x => x.File.Exists(fullSettingsPath), Times.Once);
         }
 
-        private static void AssertSettingsFileRead(Mock<IFileSystem> fileSystem, string rootDirectory)
-        {
-            var fullPath = CalcFullSettingsPath(rootDirectory);
-            fileSystem.Verify(x => x.File.ReadAllText(rootDirectory), Times.Once);
-        }
+        private static void AssertSettingsFileRead(Mock<IFileSystem> fileSystem, string fullPath) =>
+            fileSystem.Verify(x => x.File.ReadAllText(fullPath), Times.Once);
 
         private static string CalcFullSettingsPath(string rootDirectory) =>
             Path.Combine(rootDirectory, ".vs", "ProjectSettings.json");

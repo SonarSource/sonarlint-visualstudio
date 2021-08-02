@@ -170,7 +170,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var compilationDatabaseFullLocation = Path.GetFullPath(Path.Combine(expectedPath, CompilationDatabaseLocator.CompilationDatabaseFileName));
             fileSystem.Setup(x => x.File.Exists(compilationDatabaseFullLocation)).Returns(true);
 
-            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, configProvider: configProvider);
+            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, buildConfigProvider: configProvider);
 
             var result = testSubject.Locate();
 
@@ -208,20 +208,20 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             fileSystem.Setup(x => x.File.ReadAllText(cmakeSettingsLocation)).Returns(JsonConvert.SerializeObject(cmakeSettings));
         }
         private CompilationDatabaseLocator CreateTestSubject(string rootDirectory, IFileSystem fileSystem = null, 
-            ILogger logger = null, IActiveConfigProvider configProvider = null)
+            ILogger logger = null, IBuildConfigProvider buildConfigProvider = null)
         {
             var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
             folderWorkspaceService.Setup(x => x.FindRootDirectory()).Returns(rootDirectory);
 
             logger ??= Mock.Of<ILogger>();
-            configProvider ??= Mock.Of<IActiveConfigProvider>();
+            buildConfigProvider ??= Mock.Of<IBuildConfigProvider>();
 
-            return new CompilationDatabaseLocator(folderWorkspaceService.Object, fileSystem, configProvider, logger);
+            return new CompilationDatabaseLocator(folderWorkspaceService.Object, fileSystem, buildConfigProvider, logger);
         }
 
-        private IActiveConfigProvider CreateConfigProvider(string activeConfiguration)
+        private IBuildConfigProvider CreateConfigProvider(string activeConfiguration)
         {
-            var provider = new Mock<IActiveConfigProvider>();
+            var provider = new Mock<IBuildConfigProvider>();
             provider.Setup(x => x.GetActiveConfig(It.IsAny<string>())).Returns(activeConfiguration);
             return provider.Object;
         }
