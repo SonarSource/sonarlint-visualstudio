@@ -58,7 +58,6 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var result = testSubject.Locate();
 
             result.Should().BeNull();
-            logger.AssertPartialOutputStringExists(Resources.NoRootDirectory);
         }
 
         [TestMethod]
@@ -80,11 +79,6 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             result.Should().Be(defaultLocation);
 
             fileSystem.Verify(x=> x.File.Exists(cmakeSettingsLocation), Times.Once);
-
-            logger.AssertPartialOutputStringExists(string.Format(Resources.NoCMakeSettings,
-                CompilationDatabaseLocator.CMakeSettingsFileName,
-                RootDirectory,
-                defaultLocation));
         }
 
         [TestMethod]
