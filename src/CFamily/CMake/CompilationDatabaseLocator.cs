@@ -43,23 +43,25 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
         internal const string CMakeSettingsFileName = "CMakeSettings.json";
-        internal const string VSDefaultConfiguration = "x64-Debug";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly IFileSystem fileSystem;
+        private readonly IBuildConfigProvider buildConfigProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
-            : this(folderWorkspaceService, new FileSystem(), logger)
+            : this(folderWorkspaceService, new FileSystem(), new BuildConfigProvider(logger), logger)
         {
         }
 
-        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem, ILogger logger)
+        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem,
+            IBuildConfigProvider activeConfigProvider, ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;
+            this.buildConfigProvider = activeConfigProvider;
             this.logger = logger;
         }
 
@@ -97,7 +99,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
-            var activeConfiguration = VSDefaultConfiguration;
+            var activeConfiguration = buildConfigProvider.GetActiveConfig(rootDirectory);
 
             if (!fileSystem.File.Exists(cmakeSettingsFullPath))
             {
