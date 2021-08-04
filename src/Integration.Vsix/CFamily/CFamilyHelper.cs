@@ -61,6 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static readonly NoOpLogger noOpLogger = new NoOpLogger();
 
+        // TODO - handle creating different types of request (vcxproj and CMake)
         public static Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions && cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
@@ -100,7 +101,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
                 Debug.Assert(!(cFamilyAnalyzerOptions.CreateReproducer && cFamilyAnalyzerOptions.CreatePreCompiledHeaders), "Only one flag (CreateReproducer, CreatePreCompiledHeaders) can be set at a time");
-                
+                request.AnalyzerOptions = cFamilyAnalyzerOptions;
+
                 if (cFamilyAnalyzerOptions.CreateReproducer)
                 {
                     request.Flags |= Request.CreateReproducer;
@@ -157,7 +159,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, Request request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
+        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
         {
             if (analyzerExeFilePath == null)
             {
@@ -176,17 +178,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     using (var binaryWriter = new BinaryWriter(writer.BaseStream))
                     {
-                        Protocol.Write(binaryWriter, request);
+                        // TODO: need to handle different types of IRequest
+                        var vcxProjRequest = (Request)request;
+                        Protocol.Write(binaryWriter, vcxProjRequest);
                     }
                 },
                 HandleOutputStream = reader =>
                 {
-                    if ((request.Flags & Request.CreateReproducer) != 0)
+                    if (request.AnalyzerOptions?.CreateReproducer ?? false)
                     {
                         reader.ReadToEnd();
                         logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, ReproducerFilePath);
                     }
-                    else if ((request.Flags & Request.BuildPreamble) != 0)
+                    else if (request.AnalyzerOptions?.CreatePreCompiledHeaders ?? false)
                     {
                         reader.ReadToEnd();
                         logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.File, request.PchFile);
