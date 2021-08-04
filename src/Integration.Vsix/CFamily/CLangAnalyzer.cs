@@ -107,19 +107,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             TriggerAnalysis(request, consumer, statusNotifier, cancellationToken);
         }
 
-        protected /* for testing */ virtual Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions) =>
+        protected /* for testing */ virtual IRequest CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions) =>
             CFamilyHelper.CreateRequest(logger, projectItem, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
 
-        protected /* for testing */ virtual void TriggerAnalysis(Request request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken) =>
+        protected /* for testing */ virtual void TriggerAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken) =>
             TriggerAnalysisAsync(request, consumer, statusNotifier, cancellationToken)
                 .Forget(); // fire and forget
 
-        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
+        protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
         {
             CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
         }
 
-        internal /* for testing */ async Task TriggerAnalysisAsync(Request request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
+        internal /* for testing */ async Task TriggerAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
         }
 
-        private void HandleMessage(Message message, Request request, IIssueConsumer consumer, ref int issueCount)
+        private void HandleMessage(Message message, IRequest request, IIssueConsumer consumer, ref int issueCount)
         {
             Debug.Assert(message.Filename == request.File, $"Issue for unexpected file returned: {message.Filename}");
             if (!IsIssueForActiveRule(message, request.RulesConfiguration))

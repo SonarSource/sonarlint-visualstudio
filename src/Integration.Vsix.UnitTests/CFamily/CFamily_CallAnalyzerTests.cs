@@ -25,6 +25,8 @@ using System.Linq;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
 using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
@@ -40,7 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var dummyProcessRunner = new DummyProcessRunner(MockResponse());
 
             // Act
-            var response = GetResponse(dummyProcessRunner, new Request(), new TestLogger());
+            var response = GetResponse(dummyProcessRunner, CreateRequest(), new TestLogger());
 
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
@@ -56,7 +58,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var dummyProcessRunner = new DummyProcessRunner(MockEmptyResponse());
 
             // Act
-            var response = GetResponse(dummyProcessRunner, new Request(), new TestLogger());
+            var response = GetResponse(dummyProcessRunner, CreateRequest(), new TestLogger());
 
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
@@ -68,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void CallAnalyzer_RequestWithReproducer_ReturnsZeroMessages()
         {
             // Arrange
-            var request = new Request { Flags = Request.CreateReproducer };
+            var request = CreateRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
             var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
             var result = GetResponse(dummyProcessRunner, request, new TestLogger());
 
@@ -84,7 +86,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var logger = new TestLogger();
             var dummyProcessRunner = new DummyProcessRunner(MockBadEndResponse());
 
-            Action act = () => GetResponse(dummyProcessRunner, new Request(), logger);
+            Action act = () => GetResponse(dummyProcessRunner, CreateRequest(), logger);
 
             // Act and Assert
             act.Should().Throw<InvalidDataException>().And.Message.Should().Be("Communication issue with the C/C++ analyzer");
@@ -115,12 +117,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
         }
 
-        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger)
+        private static IRequest CreateRequest(CFamilyAnalyzerOptions analyzerOptions = null)
+        {
+            var request = new Mock<IRequest>();
+            request.Setup(x => x.AnalyzerOptions).Returns(analyzerOptions);
+            return request.Object;
+        }
+
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, IRequest request, ILogger logger)
         {
             return GetResponse(dummyProcessRunner, request, logger, CancellationToken.None);
         }
 
-        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, Request request, ILogger logger, CancellationToken cancellationToken)
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, IRequest request, ILogger logger, CancellationToken cancellationToken)
         {
             var messages = new List<Message>();
 
