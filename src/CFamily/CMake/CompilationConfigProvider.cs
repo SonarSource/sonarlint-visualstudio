@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// as specified in the compilation database file for the currently active build configuration.
         /// Returns null if there is no compilation database or if the file does not exist in the compilation database.
         /// </summary>
-        CompilationDatabaseEntry GetConfig(string analyzedFile);
+        CompilationDatabaseEntry GetConfig(string filePath);
     }
 
     [Export(typeof(ICompilationConfigProvider))]
@@ -64,11 +64,11 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.logger = logger;
         }
 
-        public CompilationDatabaseEntry GetConfig(string analyzedFile)
+        public CompilationDatabaseEntry GetConfig(string filePath)
         {
-            if (string.IsNullOrEmpty(analyzedFile))
+            if (string.IsNullOrEmpty(filePath))
             {
-                throw new ArgumentNullException(nameof(analyzedFile));
+                throw new ArgumentNullException(nameof(filePath));
             }
 
             var compilationDatabaseLocation = compilationDatabaseLocator.Locate();
@@ -85,18 +85,18 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            logger.LogDebug(Resources.FoundCompilationDatabaseFile, compilationDatabaseLocation);
+            logger.LogDebug($"[CompilationConfigProvider] Reading compilation database from '{compilationDatabaseLocation}'");
 
             try
             {
                 var compilationDatabaseString = fileSystem.File.ReadAllText(compilationDatabaseLocation);
                 var compilationDatabaseEntries = JsonConvert.DeserializeObject<IEnumerable<CompilationDatabaseEntry>>(compilationDatabaseString);
 
-                var entry = compilationDatabaseEntries?.FirstOrDefault(x => !string.IsNullOrEmpty(x.File) && PathHelper.IsMatchingPath(analyzedFile, x.File));
+                var entry = compilationDatabaseEntries?.FirstOrDefault(x => !string.IsNullOrEmpty(x.File) && PathHelper.IsMatchingPath(filePath, x.File));
 
                 if (entry == null)
                 {
-                    logger.WriteLine(Resources.NoCompilationDatabaseEntry, analyzedFile);
+                    logger.WriteLine(Resources.NoCompilationDatabaseEntry, filePath);
                 }
 
                 return entry;

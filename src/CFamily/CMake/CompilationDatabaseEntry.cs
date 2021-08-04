@@ -35,5 +35,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         [JsonProperty("file")]
         public string File { get; set; }
+
+        [JsonProperty("arguments")]
+        public string Arguments { get; set; }
     }
 }

@@ -79,7 +79,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (string.IsNullOrEmpty(rootDirectory))
             {
-                logger.LogDebug(Resources.NoRootDirectory);
+                logger.LogDebug("[CompilationDatabaseLocator] Could not find project root directory");
                 return null;
             }
 
@@ -96,14 +96,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
             var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
 
-            logger.LogDebug(Resources.NoCMakeSettings, CMakeSettingsFileName, rootDirectory, defaultLocation);
+            logger.LogDebug($"[CompilationDatabaseLocator] No {CMakeSettingsFileName} was found under {rootDirectory}, returning default location: {defaultLocation}");
 
             return defaultLocation;
         }
 
         private string GetConfiguredLocation(string cmakeSettingsFullPath, string activeConfiguration, string rootDirectory)
         {
-            logger.LogDebug(Resources.ReadingCMakeSettings, cmakeSettingsFullPath);
+            logger.LogDebug($"[CompilationDatabaseLocator] Reading {cmakeSettingsFullPath}...");
             CMakeSettings settings;
 
             try

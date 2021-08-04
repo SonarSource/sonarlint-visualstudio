@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             Action act = () => testSubject.GetConfig(analyzedFilePath);
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("analyzedFile");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
 
         [TestMethod]

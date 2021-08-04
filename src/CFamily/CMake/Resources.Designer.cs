@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Could not parse CMakeSettings.json: {0}.
+        ///   Looks up a localized string similar to [CMake] Could not parse CMakeSettings.json: {0}.
         /// </summary>
         internal static string BadCMakeSettings {
             get {
@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationConfigProvider] Could not parse compilation database: {0}.
+        ///   Looks up a localized string similar to [CMake] Could not parse compile_commands.json: {0}.
         /// </summary>
         internal static string BadCompilationDatabaseFile {
             get {
@@ -79,16 +79,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationConfigProvider] Reading compilation database from &apos;{0}.
-        /// </summary>
-        internal static string FoundCompilationDatabaseFile {
-            get {
-                return ResourceManager.GetString("FoundCompilationDatabaseFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Specified build configuration &apos;{0}&apos; could not be found at &apos;{1}&apos;.
+        ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; could not be found at &apos;{1}&apos;.
         /// </summary>
         internal static string NoBuildConfigInCMakeSettings {
             get {
@@ -97,16 +88,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] No {0} was found under {1}, returning default location: {2}.
-        /// </summary>
-        internal static string NoCMakeSettings {
-            get {
-                return ResourceManager.GetString("NoCMakeSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [CompilationConfigProvider] Could not find file &apos;{0}&apos; in the compilation database..
+        ///   Looks up a localized string similar to [CMake] Could not find file in the compilation database. File: &apos;{0}&apos;.
         /// </summary>
         internal static string NoCompilationDatabaseEntry {
             get {
@@ -115,29 +97,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CompilationConfigProvider] Could locate compilation database at &apos;{0}&apos;. Make sure that your project is configured correctly. See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information..
+        ///   Looks up a localized string similar to [CMake] Could not locate compilation database at &apos;{0}&apos;. Make sure that your project is configured correctly. 
+        ///    See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information..
         /// </summary>
         internal static string NoCompilationDatabaseFile {
             get {
                 return ResourceManager.GetString("NoCompilationDatabaseFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Could not find project root directory.
-        /// </summary>
-        internal static string NoRootDirectory {
-            get {
-                return ResourceManager.GetString("NoRootDirectory", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [CompilationDatabaseLocator] Reading {0}....
-        /// </summary>
-        internal static string ReadingCMakeSettings {
-            get {
-                return ResourceManager.GetString("ReadingCMakeSettings", resourceCulture);
             }
         }
     }
