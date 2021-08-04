@@ -25,8 +25,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     // Most of the Request class is ported from Java - see PortedFromJava\Request.cs
     internal partial class Request : IRequest
     {
-        // Note: the language and RulesConfiguration aren't passed as part of the request to the
-        // CLang analyzer, but it is by SVLS used when filtering the returned issues.
         public string CFamilyLanguage { get; set; }
 
         public ICFamilyRulesConfig RulesConfiguration { get; set; }
