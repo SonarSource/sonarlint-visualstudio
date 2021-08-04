@@ -101,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
                 rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
-            testSubject.RequestToReturn = new Request();
+            testSubject.RequestToReturn = Mock.Of<IRequest>();
 
             testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
 
@@ -117,12 +117,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .AddRule("rule1", isActive: true)
                 .AddRule("rule2", isActive: true);
 
-            var request = new Request
-            {
-                File = fileName,
-                RulesConfiguration = rulesConfig,
-                CFamilyLanguage = rulesConfig.LanguageKey
-            };
+            var request = CreateRequest
+            (
+                file: fileName,
+                rulesConfiguration: rulesConfig,
+                language: rulesConfig.LanguageKey
+            );
 
             var message1 = new Message("rule1", fileName, 1, 1, 1, 1, "message one", false, Array.Empty<MessagePart>());
             var message2 = new Message("rule2", fileName, 2, 2, 2, 2, "message two", false, Array.Empty<MessagePart>());
@@ -191,12 +191,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .AddRule("inactiveRule", isActive: false)
                 .AddRule("activeRule", isActive: true);
 
-            var request = new Request
-            {
-                File = fileName,
-                RulesConfiguration = rulesConfig,
-                CFamilyLanguage = rulesConfig.LanguageKey
-            };
+            var request = CreateRequest
+            (
+                file: fileName,
+                rulesConfiguration: rulesConfig,
+                language: rulesConfig.LanguageKey
+            );
 
             var inactiveRuleMessage = new Message("inactiveRule", fileName, 1, 1, 1, 1, "inactive message", false, Array.Empty<MessagePart>());
             var activeRuleMessage = new Message("activeRule", fileName, 2, 2, 2, 2, "active message", false, Array.Empty<MessagePart>());
@@ -262,7 +262,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
                 var filePath = "c:\\test.cpp";
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(new Request{File = filePath}, mockConsumer.Object, analysisNotifierMock.Object, cts.Token));
+                var request = CreateRequest(filePath);
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, analysisNotifierMock.Object, cts.Token));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 cts.Cancel();
@@ -286,7 +287,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public async Task TriggerAnalysisAsync_AnalysisFails_NotifiesOfFailure()
         {
-            void MockSubProcessCall(Action<Message> message, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken token)
+            void MockSubProcessCall(Action<Message> message, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken token)
             {
                 throw new NullReferenceException("test");
             }
@@ -297,7 +298,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             testSubject.SetCallSubProcessBehaviour(MockSubProcessCall);
 
             var filePath = "c:\\test.cpp";
-            await testSubject.TriggerAnalysisAsync(new Request{File = filePath }, Mock.Of<IIssueConsumer>(), analysisNotifierMock.Object, CancellationToken.None);
+            var request = CreateRequest(filePath);
+            await testSubject.TriggerAnalysisAsync(request, Mock.Of<IIssueConsumer>(), analysisNotifierMock.Object, CancellationToken.None);
 
             analysisNotifierMock.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
             analysisNotifierMock.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
@@ -320,16 +322,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return mockServiceProvider;
         }
 
+        private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
+        {
+            var request = new Mock<IRequest>();
+            request.SetupGet(x => x.File).Returns(file);
+            request.SetupGet(x => x.CFamilyLanguage).Returns(language);
+            request.SetupGet(x => x.RulesConfiguration).Returns(rulesConfiguration);
+            return request.Object;
+        }
+
         private class TestableCLangAnalyzer : CLangAnalyzer
         {
-            public delegate void HandleCallSubProcess(Action<Message> handleMessage, Request request, 
+            public delegate void HandleCallSubProcess(Action<Message> handleMessage, IRequest request, 
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken);
 
             private HandleCallSubProcess onCallSubProcess;
             public void SetCallSubProcessBehaviour(HandleCallSubProcess onCallSubProcess)
                 => this.onCallSubProcess = onCallSubProcess;
 
-            public Request RequestToReturn { get; set; }
+            public IRequest RequestToReturn { get; set; }
             public int CreateRequestCallCount { get; private set; }
             public int TriggerAnalysisCallCount { get; private set; }
 
@@ -338,18 +349,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, analysisStatusNotifier, logger, cFamilyIssueConverter)
             {}
 
-            protected override Request CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
+            protected override IRequest CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
             {
                 CreateRequestCallCount++;
                 return RequestToReturn;
             }
 
-            protected override void TriggerAnalysis(Request request, IIssueConsumer consumer, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
+            protected override void TriggerAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
             {
                 TriggerAnalysisCallCount++;
             }
 
-            protected override void CallSubProcess(Action<Message> handleMessage, Request request,
+            protected override void CallSubProcess(Action<Message> handleMessage, IRequest request,
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
             {
                 if (onCallSubProcess == null)
@@ -370,7 +381,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             private readonly AutoResetEvent callbackFromCLangReceived = new AutoResetEvent(false);
             private readonly AutoResetEvent noMoreIssues = new AutoResetEvent(false);
 
-            public void CallSubProcess(Action<Message> handleMessage, Request request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
+            public void CallSubProcess(Action<Message> handleMessage, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
             {
                 // When this method exits the analyzer will finish processing, so we need to
                 // block until we we want that to happen.

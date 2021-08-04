@@ -120,6 +120,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             (request.Flags & Request.BuildPreamble).Should().Be(0);
             request.RulesConfiguration.Should().NotBeNull();
             request.Options.Should().NotBeEmpty();
+            request.AnalyzerOptions.Should().BeNull();
         }
 
         [TestMethod]
@@ -132,6 +133,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             (request.Flags & Request.BuildPreamble).Should().Be(0);
             request.RulesConfiguration.Should().NotBeNull();
             request.Options.Should().NotBeEmpty();
+            request.AnalyzerOptions.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void CreateRequest_AnalyzerOptionsAreCFamilyOptions_RequestCreatedWithAnalyzerOptions()
+        {
+            var analyzerOptions = new CFamilyAnalyzerOptions { };
+            var request = GetSuccessfulRequest(analyzerOptions);
+            request.Should().NotBeNull();
+
+            request.RulesConfiguration.Should().NotBeNull();
+            request.Options.Should().NotBeEmpty();
+            request.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
         }
 
         [TestMethod]
