@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO;
 using System.IO.Abstractions;
 using FluentAssertions;
@@ -57,39 +58,89 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var result = testSubject.Locate();
 
             result.Should().BeNull();
-            logger.AssertOutputStringExists(Resources.NoRootDirectory);
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocationIfItExists(bool defaultFileExists)
+        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocation()
         {
             var activeConfiguration = "any";
             var configProvider = CreateConfigProvider(activeConfiguration);
             var defaultLocation = GetDefaultDatabaseFileLocation(activeConfiguration);
+            var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
             var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(false);
-            fileSystem.Setup(x => x.File.Exists(defaultLocation)).Returns(defaultFileExists);
+            fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(false);
 
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, logger, configProvider);
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
             var result = testSubject.Locate();
 
-            if (defaultFileExists)
-            {
-                result.Should().Be(defaultLocation);
-                logger.AssertOutputStringExists(string.Format(Resources.FoundCompilationDatabaseFile, defaultLocation));
-            }
-            else
-            {
-                result.Should().BeNull();
-                logger.AssertOutputStringExists(string.Format(Resources.NoCompilationDatabaseFile, defaultLocation));
-            }
+            result.Should().Be(defaultLocation);
 
-            fileSystem.Verify(x=> x.File.Exists(defaultLocation), Times.Once);
+            fileSystem.Verify(x=> x.File.Exists(cmakeSettingsLocation), Times.Once);
+        }
+
+        [TestMethod]
+        public void Locate_FailedToReadCMakeSettings_NonCriticalException_Null()
+        {
+            var configProvider = CreateConfigProvider("my config");
+            var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
+
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(true);
+            fileSystem
+                .Setup(x => x.File.ReadAllText(cmakeSettingsLocation))
+                .Throws(new NotImplementedException("this is a test"));
+
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
+
+            var result = testSubject.Locate();
+            result.Should().BeNull();
+
+            logger.AssertPartialOutputStringExists("this is a test");
+        }
+
+        [TestMethod]
+        public void Locate_FailedToParseCMakeSettings_Null()
+        {
+            var configProvider = CreateConfigProvider("my config");
+            var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
+
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(true);
+            fileSystem
+                .Setup(x => x.File.ReadAllText(cmakeSettingsLocation))
+                .Returns("invalid json");
+
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
+
+            var result = testSubject.Locate();
+            result.Should().BeNull();
+
+            logger.AssertPartialOutputStringExists("JsonReaderException");
+        }
+
+        [TestMethod]
+        public void Locate_FailedToReadCMakeSettings_CriticalException_ExceptionThrown()
+        {
+            var configProvider = CreateConfigProvider("my config");
+            var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
+
+            var fileSystem = new Mock<IFileSystem>();
+            fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(true);
+            fileSystem
+                .Setup(x => x.File.ReadAllText(cmakeSettingsLocation))
+                .Throws(new StackOverflowException());
+
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
+
+            Action act =() => testSubject.Locate();
+
+            act.Should().Throw<StackOverflowException>();
         }
 
         [TestMethod]
@@ -102,7 +153,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             SetupCMakeSettingsFileExists(fileSystem, cmakeSettingsLocation, new CMakeSettings());
 
             var logger = new TestLogger();
-            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, logger, configProvider);
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
             var result = testSubject.Locate();
 
@@ -115,13 +166,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        [DataRow(true)]
-        [DataRow(false)]
-        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPathIfItExists(bool configuredPathExists)
+        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPath()
         {
-            var activeConfiguration = "my config";
-            var configProvider = CreateConfigProvider(activeConfiguration);
-            var cmakeSettings = CreateCMakeSettings(activeConfiguration, "folder");
+            var configProvider = CreateConfigProvider("my-config");
+            var cmakeSettings = CreateCMakeSettings("my-config", "folder");
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
             var fileSystem = new Mock<IFileSystem>();
@@ -130,25 +178,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var compilationDatabaseFullLocation = Path.GetFullPath(
                 Path.Combine("folder", CompilationDatabaseLocator.CompilationDatabaseFileName));
 
-            fileSystem.Setup(x => x.File.Exists(compilationDatabaseFullLocation)).Returns(configuredPathExists);
-
-            var logger = new TestLogger();
-            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, logger, configProvider);
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object);
 
             var result = testSubject.Locate();
 
-            if (configuredPathExists)
-            {
-                result.Should().Be(compilationDatabaseFullLocation);
-                logger.AssertOutputStringExists(string.Format(Resources.FoundCompilationDatabaseFile, compilationDatabaseFullLocation));
-            }
-            else
-            {
-                result.Should().BeNull();
-                logger.AssertOutputStringExists(string.Format(Resources.NoCompilationDatabaseFile, compilationDatabaseFullLocation));
-            }
-
-            fileSystem.Verify(x => x.File.Exists(compilationDatabaseFullLocation), Times.Once);
+            result.Should().Be(compilationDatabaseFullLocation);
         }
 
         [TestMethod]
@@ -159,9 +193,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("${projectDir}\\somefolder\\${name}\\sub", "dummy root\\somefolder\\my-config\\sub")]
         public void Locate_HasCMakeSettingsFile_ConfiguredPathHasParameters_ParametersReplaced(string configuredPath, string expectedPath)
         {
-            var activeConfig = "my-config";
-            var configProvider = CreateConfigProvider(activeConfig);
-            var cmakeSettings = CreateCMakeSettings(activeConfig, configuredPath);
+            var configProvider = CreateConfigProvider("my-config");
+            var cmakeSettings = CreateCMakeSettings("my-config", configuredPath);
             var cmakeSettingsLocation = Path.GetFullPath(Path.Combine(RootDirectory, CompilationDatabaseLocator.CMakeSettingsFileName));
 
             var fileSystem = new Mock<IFileSystem>();
@@ -170,13 +203,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var compilationDatabaseFullLocation = Path.GetFullPath(Path.Combine(expectedPath, CompilationDatabaseLocator.CompilationDatabaseFileName));
             fileSystem.Setup(x => x.File.Exists(compilationDatabaseFullLocation)).Returns(true);
 
-            var testSubject = CreateTestSubject(RootDirectory, fileSystem.Object, buildConfigProvider: configProvider);
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object);
 
             var result = testSubject.Locate();
 
             result.Should().Be(compilationDatabaseFullLocation);
-
-            fileSystem.Verify(x => x.File.Exists(compilationDatabaseFullLocation), Times.Once);
         }
 
         private static CMakeSettings CreateCMakeSettings(string activeConfigurationName, string buildRoot) =>
@@ -207,16 +238,18 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(true);
             fileSystem.Setup(x => x.File.ReadAllText(cmakeSettingsLocation)).Returns(JsonConvert.SerializeObject(cmakeSettings));
         }
-        private CompilationDatabaseLocator CreateTestSubject(string rootDirectory, IFileSystem fileSystem = null, 
-            ILogger logger = null, IBuildConfigProvider buildConfigProvider = null)
+        private CompilationDatabaseLocator CreateTestSubject(string rootDirectory, 
+            IBuildConfigProvider buildConfigProvider = null,
+            IFileSystem fileSystem = null, 
+            ILogger logger = null)
         {
             var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
             folderWorkspaceService.Setup(x => x.FindRootDirectory()).Returns(rootDirectory);
 
-            logger ??= Mock.Of<ILogger>();
             buildConfigProvider ??= Mock.Of<IBuildConfigProvider>();
+            logger ??= Mock.Of<ILogger>();
 
-            return new CompilationDatabaseLocator(folderWorkspaceService.Object, fileSystem, buildConfigProvider, logger);
+            return new CompilationDatabaseLocator(folderWorkspaceService.Object, buildConfigProvider, fileSystem, logger);
         }
 
         private IBuildConfigProvider CreateConfigProvider(string activeConfiguration)
@@ -225,6 +258,5 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             provider.Setup(x => x.GetActiveConfig(It.IsAny<string>())).Returns(activeConfiguration);
             return provider.Object;
         }
-
     }
 }

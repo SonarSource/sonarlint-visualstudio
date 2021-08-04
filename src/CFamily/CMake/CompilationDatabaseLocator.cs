@@ -18,13 +18,16 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
@@ -52,68 +55,68 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         [ImportingConstructor]
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
-            : this(folderWorkspaceService, new FileSystem(), new BuildConfigProvider(logger), logger)
+            : this(folderWorkspaceService,
+                new BuildConfigProvider(logger),
+                new FileSystem(),
+                logger)
         {
         }
 
-        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem,
-            IBuildConfigProvider activeConfigProvider, ILogger logger)
+        public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
+            IBuildConfigProvider buildConfigProvider,
+            IFileSystem fileSystem, 
+            ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;
-            this.buildConfigProvider = activeConfigProvider;
+            this.buildConfigProvider = buildConfigProvider;
             this.logger = logger;
         }
 
         public string Locate()
         {
-            var databaseFolderPath = GetCompilationDatabaseFolderPath();
-
-            if (string.IsNullOrEmpty(databaseFolderPath))
-            {
-                return null;
-            }
-
-            var compilationDatabaseFilePath = Path.Combine(databaseFolderPath, CompilationDatabaseFileName);
-
-            if (!fileSystem.File.Exists(compilationDatabaseFilePath))
-            {
-                logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseFilePath);
-
-                return null;
-            }
-
-            logger.WriteLine(Resources.FoundCompilationDatabaseFile, compilationDatabaseFilePath);
-
-            return compilationDatabaseFilePath;
-        }
-
-        public string GetCompilationDatabaseFolderPath()
-        {
             var rootDirectory = folderWorkspaceService.FindRootDirectory();
 
             if (string.IsNullOrEmpty(rootDirectory))
             {
-                logger.WriteLine(Resources.NoRootDirectory);
+                logger.LogDebug("[CompilationDatabaseLocator] Could not find project root directory");
                 return null;
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
             var activeConfiguration = buildConfigProvider.GetActiveConfig(rootDirectory);
 
-            if (!fileSystem.File.Exists(cmakeSettingsFullPath))
+            return fileSystem.File.Exists(cmakeSettingsFullPath)
+                ? GetConfiguredLocation(cmakeSettingsFullPath, activeConfiguration, rootDirectory)
+                : GetDefaultLocation(rootDirectory, activeConfiguration);
+        }
+
+        private string GetDefaultLocation(string rootDirectory, string activeConfiguration)
+        {
+            var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
+            var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
+
+            logger.LogDebug($"[CompilationDatabaseLocator] No {CMakeSettingsFileName} was found under {rootDirectory}, returning default location: {defaultLocation}");
+
+            return defaultLocation;
+        }
+
+        private string GetConfiguredLocation(string cmakeSettingsFullPath, string activeConfiguration, string rootDirectory)
+        {
+            logger.LogDebug($"[CompilationDatabaseLocator] Reading {cmakeSettingsFullPath}...");
+            CMakeSettings settings;
+
+            try
             {
-                var defaultLocation = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
-
-                logger.WriteLine(Resources.NoCMakeSettings, CMakeSettingsFileName, rootDirectory, defaultLocation);
-
-                return defaultLocation;
+                var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
+                settings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Resources.BadCMakeSettings, ex);
+                return null;
             }
 
-            logger.WriteLine(Resources.ReadingCMakeSettings, cmakeSettingsFullPath);
-
-            var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
-            var settings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
             var buildConfiguration = settings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
 
             if (buildConfiguration == null)
@@ -126,7 +129,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 .Replace("${projectDir}", rootDirectory)
                 .Replace("${name}", buildConfiguration.Name));
 
-            return databaseFolderPath;
+            var databaseFilePath = Path.Combine(databaseFolderPath, CompilationDatabaseFileName);
+
+            return databaseFilePath;
         }
     }
 }
