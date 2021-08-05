@@ -59,11 +59,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 StringBuilder includes = new StringBuilder();
                 string fileToBeAnalyzed = null;
                 bool? cpp = null;
+                bool? permissiveMode = null;
                 string std = "c++14";
                 bool ignoreStandardIncludePaths = false;
                 bool charIsUnsigned = false;
                 bool enableMsExtensions = true;
                 bool operatorNames = false;
+                bool alignedNewDisabled = false;
+                bool twoPhaseDisabled = false;
 
                 while (args.Index < capture.Cmd.Count)
                 {
@@ -180,6 +183,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         operatorNames = true;
                         args.Index++;
 
+                    }
+                    else if ("/permissive" == arg)
+                    {
+                        permissiveMode = true;
+                        args.Index++;
+
+                    }
+                    else if ("/permissive-" == arg)
+                    {
+                        permissiveMode = false;
+                        args.Index++;
+                    }
+                    else if ("/Zc:twoPhase-" == arg)
+                    {
+                        twoPhaseDisabled = true;
+                        args.Index++;
+                    }
+                    else if ("/Zc:alignedNew-" == arg)
+                    {
+                        alignedNewDisabled = true;
+                        args.Index++;
                     }
                     else if (arg.StartsWith("/Zc"))
                     {
@@ -429,6 +453,24 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     if (operatorNames)
                     {
                         request.Flags |= Request.OperatorNames;
+                    }
+                    if ((request.Flags & Request.CPlusPlus17) != 0 && !alignedNewDisabled)
+                    {
+                        request.Flags |= Request.AlignedNew;
+                    }
+
+                    var cppLatestImpliesUnpermissive = (major > 19) || (major == 19 && minor >= 28);
+                    var unpermissiveImpliesTwoPhase = (major > 19) || (major == 19 && minor >= 11);
+                    var unpermissiveMode = permissiveMode.HasValue
+                        ? !permissiveMode.Value
+                        : "c++latest" == std && cppLatestImpliesUnpermissive;
+
+                    var noDelayedTemplateParsing
+                        = !twoPhaseDisabled && unpermissiveMode && unpermissiveImpliesTwoPhase;
+
+                    if (noDelayedTemplateParsing)
+                    {
+                        request.Flags |= Request.NoDelayedTemplateParsing;
                     }
                 }
                 else

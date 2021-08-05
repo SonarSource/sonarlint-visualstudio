@@ -622,7 +622,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
             req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 |
-                Request.CPlusPlus17 | Request.OperatorNames | Request.SonarLint);
+                Request.CPlusPlus17 | Request.OperatorNames | Request.SonarLint | Request.AlignedNew);
             req.File.Should().Be("c:\\file.cpp");
         }
 
@@ -644,7 +644,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 }
             });
             req.Flags.Should().Be(Request.CPlusPlus | Request.CPlusPlus11 | Request.CPlusPlus14 |
-                Request.CPlusPlus17 | Request.CPlusPlus20 | Request.SonarLint | Request.MS);
+                Request.CPlusPlus17 | Request.CPlusPlus20 | Request.SonarLint | Request.MS | Request.AlignedNew);
             req.Predefines.Should().Contain("#define __cplusplus 202002L\n");
             req.Predefines.Should().Contain("#define _MSVC_LANG 202002L\n");
         }
@@ -760,5 +760,80 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             MsvcDriver.Absolute("root", "\r\t\nx:\\subdir1/subDir2\\xxx.foo")
                     .Should().Be("x:\\subdir1/subDir2\\xxx.foo");
         }
+
+        [TestMethod]
+        [DataRow("19.00.24210", "", false)] // Proper two Phase lookup not supported
+        [DataRow("19.11.25507", "", false)] // Two phase lookup is supported
+        [DataRow("19.00.24210", "/permissive-", false)]
+        [DataRow("19.11.25507", "/permissive-", true)]
+        [DataRow("19.11.25507", "/std:c++latest", false)]
+        [DataRow("19.11.25507", "/Zc:twoPhase-", false)]
+        [DataRow("19.11.25507", "/permissive- /Zc:twoPhase-", false)]
+        [DataRow("19.28.29333", "", false)] // No-permissive is default for latest
+        [DataRow("19.28.29333", "/permissive-", true)]
+        [DataRow("19.28.29333", "/std:c++latest", true)]
+        [DataRow("19.28.29333", "/permissive", false)]
+        [DataRow("19.28.29333", "/Zc:twoPhase-", false)]
+        [DataRow("19.28.29333", "/permissive- /Zc:twoPhase-", false)]
+        [DataRow("19.28.29333", "/std:c++latest /Zc:twoPhase-", false)]
+        [DataRow("19.28.29333", "/std:c++latest /permissive /Zc:twoPhase-", false)]
+        public void NoDelayedTemplateParsing(string compilerVersion, string cmd, bool expected)
+        {
+            var cmdList = new List<string>{ "cl.exe" };
+            cmdList.AddRange(cmd.Split(' '));
+            cmdList.Add("test.cpp");
+
+            var request = MsvcDriver.ToRequest(new[]
+            {
+                new CFamilyHelper.Capture
+                {
+                    Executable = "",
+                    StdOut = "",
+                    CompilerVersion = compilerVersion,
+                    X64 = true
+                },
+                new CFamilyHelper.Capture
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = cmdList
+                }
+            });
+
+            HasFlag(request, Request.NoDelayedTemplateParsing).Should().Be(expected);
+        }
+
+        [TestMethod]
+        [DataRow("/std:c++17", true)] // enabled by default
+        [DataRow("/std:c++latest", true)] // enabled by default
+        [DataRow("/std:c++17 /Zc:alignedNew", true)]
+        [DataRow("/std:c++latest /Zc:alignedNew", true)]
+        [DataRow("/std:c++17 /Zc:alignedNew-", false)]
+        [DataRow("/std:c++latest /Zc:alignedNew-", false)]
+        [DataRow("/std:c++14 /Zc:alignedNew", false)] // not supported in old languages
+        [DataRow("/Zc:alignedNew", false)] // not supported in old languages
+        public void AlignedNew(string cmd, bool expected)
+        {
+            var cmdList = new List<string> { "cl.exe" };
+            cmdList.AddRange(cmd.Split(' '));
+            cmdList.Add("test.cpp");
+
+            var request = MsvcDriver.ToRequest(new[]
+            {
+                compiler,
+                new CFamilyHelper.Capture
+                {
+                    Executable = "",
+                    Cwd = "basePath",
+                    Env = new List<string>(),
+                    Cmd = cmdList
+                }
+            });
+
+            HasFlag(request, Request.AlignedNew).Should().Be(expected);
+        }
+
+        private static bool HasFlag(Request request, int flag) => (request.Flags & flag) == flag;
     }
 }
