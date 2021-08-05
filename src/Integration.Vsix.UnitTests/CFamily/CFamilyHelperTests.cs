@@ -66,7 +66,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void CreateRequest_HeaderFile_IsSupported()
         {
             // Arrange
-            var loggerMock = Mock.Of<ILogger>();
+            var logger = Mock.Of<ILogger>();
             var projectItemConfig = new ProjectItemConfig {ItemType = "ClInclude"};
             var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock, projectItemMock.Object, "c:\\dummy\\file.h",
+            var request = CFamilyHelper.CreateRequest(logger, projectItemMock.Object, "c:\\dummy\\file.h",
                 rulesConfigProviderMock.Object, null);
 
             // Assert
@@ -96,13 +96,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void CreateRequest_FileOutsideSolution_IsNotProcessed()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
+            var logger = Mock.Of<ILogger>();
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\SingleFileISense\\xxx.vcxproj");
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp",
+            var request = CFamilyHelper.CreateRequest(logger, projectItemMock.Object, "c:\\dummy\\file.cpp",
                 rulesConfigProviderMock.Object, null);
 
             // Assert
@@ -231,16 +231,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void CreateRequest_PCHRequestDoesntLog()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
+            var logger = new TestLogger();
             var projectItemConfig = new ProjectItemConfig {IsVCCLCompilerTool = false};
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
             var analyzerOption = new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true };
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp",
+            var request = CFamilyHelper.CreateRequest(logger, projectItemMock.Object, "c:\\dummy\\file.cpp",
                 null, analyzerOption);
 
             // Assert
-            loggerMock.Verify(x => x.WriteLine(It.IsAny<string>()), Times.Never);
+            logger.AssertNoOutputMessages();
             request.Should().BeNull();
         }
 
@@ -382,7 +382,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             analyzerOptions ??= Mock.Of<IAnalyzerOptions>();
             rulesConfig ??= GetDummyRulesConfiguration();
 
-            var loggerMock = new Mock<ILogger>();
+            var logger = Mock.Of<ILogger>();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             rulesConfigProviderMock
@@ -394,7 +394,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CFamilyHelper.FileSystem = new MockFileSystem();
             CFamilyHelper.FileSystem.Directory.CreateDirectory(SubProcessFilePaths.WorkingDirectory);
 
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, fileToAnalyze, rulesConfigProviderMock.Object, analyzerOptions);
+            var request = CFamilyHelper.CreateRequest(logger, projectItemMock.Object, fileToAnalyze, rulesConfigProviderMock.Object, analyzerOptions);
 
             return request;
         }
