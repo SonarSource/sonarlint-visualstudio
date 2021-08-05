@@ -182,4 +182,14 @@
   <data name="MSG_PchSaved" xml:space="preserve">
     <value>Refreshing PCH file for {0}. PCH file location: {1}</value>
   </data>
+  <data name="ERROR_CreatingConfig" xml:space="preserve">
+    <value>Error retrieving configuration. File: {0}, Error: {1}</value>
+  </data>
+  <data name="MSG_UnableToCreateConfig" xml:space="preserve">
+    <value>Unable to retrieve the configuration for file '{0}'.
+    Check the file is part of a supported project type in the current solution.</value>
+  </data>
+  <data name="MSG_UnableToLocateSubProcessExe" xml:space="preserve">
+    <value>Unable to locate the CFamily analyzer exe</value>
+  </data>
 </root>

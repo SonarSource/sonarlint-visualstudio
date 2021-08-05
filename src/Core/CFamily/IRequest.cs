@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+
 namespace SonarLint.VisualStudio.Core.CFamily
 {
     /// <summary>
@@ -50,5 +52,15 @@ namespace SonarLint.VisualStudio.Core.CFamily
         /// Additional analysis options
         /// </summary>
         CFamilyAnalyzerOptions AnalyzerOptions { get; }
+
+        /// <summary>
+        /// Serializes the request in the form required by the subprocess
+        /// </summary>
+        void WriteRequest(BinaryWriter writer);
+
+        /// <summary>
+        /// Serializes the request for diagnostic purposes
+        /// </summary>
+        void WriteRequestDiagnostics(TextWriter writer);
     }
 }

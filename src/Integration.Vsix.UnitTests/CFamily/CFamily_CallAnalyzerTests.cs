@@ -21,6 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using System.Threading;
 using FluentAssertions;
@@ -80,6 +82,46 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void CallAnalyzer_RequestWithReproducer_DiagnosticsFileIsSaved()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var fileSystem = CreateInitializedFileSystem();
+            var requestMock = CreateRequestMock(new CFamilyAnalyzerOptions { CreateReproducer = true });
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            GetResponse(dummyProcessRunner, requestMock.Object, logger, fileSystem);
+
+            // Act and Assert
+            dummyProcessRunner.ExecuteCalled.Should().BeTrue();
+
+            fileSystem.AllFiles.Should().BeEquivalentTo(SubProcessFilePaths.RequestConfigFilePath);
+            requestMock.Verify(x => x.WriteRequestDiagnostics(It.IsAny<StreamWriter>()), Times.Once);
+
+            logger.AssertPartialOutputStringExists(SubProcessFilePaths.RequestConfigFilePath);
+            logger.AssertPartialOutputStringExists(SubProcessFilePaths.ReproducerFilePath);
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_RequestWithoutReproducer_DiagnosticsFileIsNotSaved()
+        {
+            // Arrange
+            var logger = new TestLogger();
+            var fileSystem = CreateInitializedFileSystem();
+            var requestMock = CreateRequestMock(new CFamilyAnalyzerOptions { CreateReproducer = false });
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            GetResponse(dummyProcessRunner, requestMock.Object, logger, fileSystem);
+
+            // Act and Assert
+            dummyProcessRunner.ExecuteCalled.Should().BeTrue();
+
+            fileSystem.AllFiles.Should().BeEmpty();
+            requestMock.Verify(x => x.WriteRequestDiagnostics(It.IsAny<StreamWriter>()), Times.Never);
+
+            logger.AssertPartialOutputStringDoesNotExist(SubProcessFilePaths.RequestConfigFilePath);
+            logger.AssertPartialOutputStringDoesNotExist(SubProcessFilePaths.ReproducerFilePath);
+        }
+
+        [TestMethod]
         public void CallAnalyzer_BadResponse_ThrowsException()
         {
             // Arrange
@@ -117,23 +159,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
         }
 
-        private static IRequest CreateRequest(CFamilyAnalyzerOptions analyzerOptions = null)
+        private static IRequest CreateRequest(CFamilyAnalyzerOptions analyzerOptions = null) =>
+            CreateRequestMock(analyzerOptions).Object;
+
+        private static Mock<IRequest> CreateRequestMock(CFamilyAnalyzerOptions analyzerOptions = null)
         {
             var request = new Mock<IRequest>();
             request.Setup(x => x.AnalyzerOptions).Returns(analyzerOptions);
-            return request.Object;
+            return request;
         }
 
-        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, IRequest request, ILogger logger)
+        private static MockFileSystem CreateInitializedFileSystem()
         {
-            return GetResponse(dummyProcessRunner, request, logger, CancellationToken.None);
+            var fileSystem = new MockFileSystem();
+
+            // Make sure the expected working directory exists
+            fileSystem.Directory.CreateDirectory(SubProcessFilePaths.WorkingDirectory);
+            return fileSystem;
         }
 
-        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, IRequest request, ILogger logger, CancellationToken cancellationToken)
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, IRequest request, ILogger logger,
+            IFileSystem fileSystem = null)
+        {
+            return GetResponse(dummyProcessRunner, request, logger, CancellationToken.None, fileSystem ?? new FileSystem());
+        }
+
+        private static List<Message> GetResponse(DummyProcessRunner dummyProcessRunner, IRequest request, ILogger logger, CancellationToken cancellationToken,
+            IFileSystem fileSystem)
         {
             var messages = new List<Message>();
 
-            CLangAnalyzer.ExecuteSubProcess(messages.Add, request, dummyProcessRunner, logger, cancellationToken);
+            CLangAnalyzer.ExecuteSubProcess(messages.Add, request, dummyProcessRunner, logger, cancellationToken, fileSystem);
 
             return messages;
         }

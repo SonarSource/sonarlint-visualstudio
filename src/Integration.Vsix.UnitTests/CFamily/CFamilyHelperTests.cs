@@ -26,7 +26,6 @@ using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -40,10 +39,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     public class CFamilyHelperTests
     {
         [TestMethod]
+        public void CreateRequest_IRequestPropertiesAreSet()
+        {
+            var analyzerOptions = new CFamilyAnalyzerOptions();
+            var rulesConfig = Mock.Of<ICFamilyRulesConfig>();
+
+            var request = (IRequest)GetSuccessfulRequest(analyzerOptions, "d:\\xxx\\fileToAnalyze.txt", rulesConfig);
+            request.Should().NotBeNull();
+
+            request.File.Should().Be("d:\\xxx\\fileToAnalyze.txt");
+            request.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
+            request.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
+            request.RulesConfiguration.Should().BeSameAs(rulesConfig);
+        }
+
+        [TestMethod]
+        public void CreateRequest_FileConfigIsSet()
+        {
+            var request = GetSuccessfulRequest();
+            request.Should().NotBeNull();
+
+            request.FileConfig.Should().NotBeNull();
+        }
+
+        [TestMethod]
         public void CreateRequest_HeaderFile_IsSupported()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
+            var loggerMock = Mock.Of<ILogger>();
             var projectItemConfig = new ProjectItemConfig {ItemType = "ClInclude"};
             var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
@@ -53,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.h",
+            var request = CFamilyHelper.CreateRequest(loggerMock, projectItemMock.Object, "c:\\dummy\\file.h",
                 rulesConfigProviderMock.Object, null);
 
             // Assert
@@ -83,8 +106,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfigProviderMock.Object, null);
 
             // Assert
-            AssertMessageLogged(loggerMock,
-                "Unable to retrieve the configuration for file 'c:\\dummy\\file.cpp'. Check the file is part of a project in the current solution.");
             request.Should().BeNull();
         }
 
@@ -92,7 +113,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void CreateRequest_ErrorInFileConfigTryGet_IsHandled()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj");
             // Note: we want the exception to be thrown from inside the FileConfig::TryGet
@@ -101,12 +122,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
 
             // Act
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\dummy\\file.cpp",
+            var request = CFamilyHelper.CreateRequest(logger, projectItemMock.Object, "c:\\dummy\\file.cpp",
                 rulesConfigProviderMock.Object, null);
 
             // Assert
-            AssertPartialMessageLogged(loggerMock,
-                "Unable to collect C/C++ configuration for c:\\dummy\\file.cpp: ");
+            logger.AssertPartialOutputStringExists("c:\\dummy\\file.cpp", "xxx", nameof(InvalidOperationException));
             request.Should().BeNull();
         }
 
@@ -155,23 +175,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().NotBe(0);
-        }
-
-        [TestMethod]
-        public void CreateRequest_AnalyzerOptionsWithReproducerEnabled_FileConfigIsLogged()
-        {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
-            request.Should().NotBeNull();
-
-            var mockFileSystem = CFamilyHelper.FileSystem as MockFileSystem;
-            mockFileSystem.AllFiles.Count().Should().Be(1);
-
-            var fileConfigFile = mockFileSystem.GetFile(SubProcessFilePaths.RequestConfigFilePath);
-            fileConfigFile.Should().NotBeNull();
-            fileConfigFile.TextContents.Should().NotBeEmpty();
-
-            var deserializedConfig = JsonConvert.DeserializeObject<CFamilyHelper.FileConfig>(fileConfigFile.TextContents);
-            deserializedConfig.Should().NotBeNull();
         }
 
         [TestMethod]
@@ -245,16 +248,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void TryGetConfig_ErrorsAreLogged()
         {
             // Arrange
-            var loggerMock = new Mock<ILogger>();
+            var logger = new TestLogger();
 
             // Act
             using (new AssertIgnoreScope())
             {
-                var request = CFamilyHelper.TryGetConfig(loggerMock.Object, null, "c:\\dummy", null);
+                // Passing "null" to cause a null ref exception
+                var request = CFamilyHelper.TryGetConfig(logger, null, "c:\\dummy");
 
                 // Assert
-                AssertPartialMessageLogged(loggerMock,
-                    "Unable to collect C/C++ configuration for c:\\dummy: ");
+                logger.AssertPartialOutputStringExists("c:\\dummy", nameof(NullReferenceException));
                 request.Should().BeNull();
             }
         }
@@ -372,35 +375,28 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return config;
         }
 
-        private Request GetSuccessfulRequest(IAnalyzerOptions analyzerOptions)
+        private Request GetSuccessfulRequest(IAnalyzerOptions analyzerOptions = null,
+            string fileToAnalyze = "c:\\foo\\file.cpp",
+            ICFamilyRulesConfig rulesConfig = null)
         {
+            analyzerOptions ??= Mock.Of<IAnalyzerOptions>();
+            rulesConfig ??= GetDummyRulesConfiguration();
+
             var loggerMock = new Mock<ILogger>();
-            var rulesConfig = GetDummyRulesConfiguration();
             var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
-           
+
             rulesConfigProviderMock
                 .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                 .Returns(rulesConfig);
 
-            var projectItemMock = CreateMockProjectItem("c:\\foo\\file.cpp");
+            var projectItemMock = CreateMockProjectItem(fileToAnalyze);
 
             CFamilyHelper.FileSystem = new MockFileSystem();
             CFamilyHelper.FileSystem.Directory.CreateDirectory(SubProcessFilePaths.WorkingDirectory);
 
-            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp", rulesConfigProviderMock.Object, analyzerOptions);
+            var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, fileToAnalyze, rulesConfigProviderMock.Object, analyzerOptions);
 
             return request;
-        }
-        internal static void AssertMessageLogged(Mock<ILogger> loggerMock, string message)
-        {
-            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
-                s => s.Equals(message))), Times.Once);
-        }
-
-        internal static void AssertPartialMessageLogged(Mock<ILogger> loggerMock, string message)
-        {
-            loggerMock.Verify(x => x.WriteLine(It.Is<string>(
-                s => s.Contains(message))), Times.Once);
         }
     }
 }
