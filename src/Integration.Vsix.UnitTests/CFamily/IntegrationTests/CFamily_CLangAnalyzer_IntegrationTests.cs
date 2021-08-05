@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var processRunner = new ProcessRunner(new ConfigurableSonarLintSettings(), testLogger);
 
             var messages = new List<Message>();
-            CFamilyHelper.CallClangAnalyzer(messages.Add, request, processRunner, testLogger, CancellationToken.None);
+            CLangAnalyzer.ExecuteSubProcess(messages.Add, request, processRunner, testLogger, CancellationToken.None);
 
             return messages;
         }

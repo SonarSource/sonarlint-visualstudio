@@ -166,7 +166,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var mockFileSystem = CFamilyHelper.FileSystem as MockFileSystem;
             mockFileSystem.AllFiles.Count().Should().Be(1);
 
-            var fileConfigFile = mockFileSystem.GetFile(CFamilyHelper.RequestConfigFilePath);
+            var fileConfigFile = mockFileSystem.GetFile(SubProcessFilePaths.RequestConfigFilePath);
             fileConfigFile.Should().NotBeNull();
             fileConfigFile.TextContents.Should().NotBeEmpty();
 
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var request = GetSuccessfulRequest(null);
             request.Should().NotBeNull();
 
-            request.PchFile.Should().Be(CFamilyHelper.PchFilePath);
+            request.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
         }
 
         [TestMethod]
@@ -385,7 +385,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var projectItemMock = CreateMockProjectItem("c:\\foo\\file.cpp");
 
             CFamilyHelper.FileSystem = new MockFileSystem();
-            CFamilyHelper.FileSystem.Directory.CreateDirectory(CFamilyHelper.WorkingDirectory);
+            CFamilyHelper.FileSystem.Directory.CreateDirectory(SubProcessFilePaths.WorkingDirectory);
 
             var request = CFamilyHelper.CreateRequest(loggerMock.Object, projectItemMock.Object, "c:\\foo\\file.cpp", rulesConfigProviderMock.Object, analyzerOptions);
 

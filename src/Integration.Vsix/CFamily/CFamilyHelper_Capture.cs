@@ -290,6 +290,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return "/std:c++14";
                 }
             }
+
+            private static void AddRange(IList<string> cmd, string[] values)
+            {
+                foreach (string value in values)
+                {
+                    Add(cmd, value);
+                }
+            }
+
+            private static void AddRange(IList<string> cmd, string prefix, string[] values)
+            {
+                foreach (string value in values)
+                {
+                    Add(cmd, prefix, value);
+                }
+            }
+
+            private static void Add(IList<String> cmd, string value)
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    cmd.Add(value);
+                }
+            }
+
+            private static void Add(IList<string> cmd, string prefix, string value)
+            {
+                if (!string.IsNullOrEmpty(value))
+                {
+                    cmd.Add(prefix);
+                    cmd.Add(value);
+                }
+            }
         }
     }
 }

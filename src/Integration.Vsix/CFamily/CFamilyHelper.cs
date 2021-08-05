@@ -21,10 +21,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using System.Threading;
 using EnvDTE;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -34,19 +32,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     internal static partial class CFamilyHelper
     {
-        internal static string WorkingDirectory => Path.GetTempPath();
-        internal static string PchFilePath => Path.Combine(WorkingDirectory, "SonarLintForVisualStudio.PCH.preamble");
-        internal static string RequestConfigFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.request.reproducer");
-        internal static string ReproducerFilePath => Path.Combine(WorkingDirectory, "sonar-cfamily.reproducer");
-
         internal static IFileSystem FileSystem { get; set; } = new FileSystem();
-
-        public static readonly string CFamilyFilesDirectory = Path.Combine(
-            Path.GetDirectoryName(typeof(CFamilyHelper).Assembly.Location),
-            "lib");
-
-        private static readonly string analyzerExeFilePath = Path.Combine(
-            CFamilyFilesDirectory, "subprocess.exe");
 
         internal class NoOpLogger : ILogger
         {
@@ -94,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
-            request.PchFile = PchFilePath;
+            request.PchFile = SubProcessFilePaths.PchFilePath;
 
             bool isPCHBuild = false;
 
@@ -129,8 +115,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private static void SaveFileConfig(FileConfig fileConfig, ILogger logger)
         {
             var serializedFileConfig = JsonConvert.SerializeObject(fileConfig);
-            FileSystem.File.WriteAllText(RequestConfigFilePath, serializedFileConfig);
-            logger.WriteLine(CFamilyStrings.MSG_RequestConfigSaved, RequestConfigFilePath);
+            FileSystem.File.WriteAllText(SubProcessFilePaths.RequestConfigFilePath, serializedFileConfig);
+            logger.WriteLine(CFamilyStrings.MSG_RequestConfigSaved, SubProcessFilePaths.RequestConfigFilePath);
         }
 
         internal /* for testing */ static string[]GetKeyValueOptionsList(ICFamilyRulesConfig rulesConfiguration)
@@ -159,55 +145,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal /* for testing */ static void CallClangAnalyzer(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
-        {
-            if (analyzerExeFilePath == null)
-            {
-                logger.WriteLine("Unable to locate the CFamily analyzer exe");
-                return;
-            }
-
-            const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
-
-            var args = new ProcessRunnerArguments(analyzerExeFilePath, false)
-            {
-                CmdLineArgs = new[] { communicateViaStreaming },
-                CancellationToken = cancellationToken,
-                WorkingDirectory = WorkingDirectory,
-                HandleInputStream = writer =>
-                {
-                    using (var binaryWriter = new BinaryWriter(writer.BaseStream))
-                    {
-                        // TODO: need to handle different types of IRequest
-                        var vcxProjRequest = (Request)request;
-                        Protocol.Write(binaryWriter, vcxProjRequest);
-                    }
-                },
-                HandleOutputStream = reader =>
-                {
-                    if (request.AnalyzerOptions?.CreateReproducer ?? false)
-                    {
-                        reader.ReadToEnd();
-                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, ReproducerFilePath);
-                    }
-                    else if (request.AnalyzerOptions?.CreatePreCompiledHeaders ?? false)
-                    {
-                        reader.ReadToEnd();
-                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.File, request.PchFile);
-                    }
-                    else
-                    {
-                        using (var binaryReader = new BinaryReader(reader.BaseStream))
-                        {
-                            Protocol.Read(binaryReader, handleMessage, request.File);
-                        }
-                    }
-                }
-            };
-
-            runner.Execute(args);
-        }
-  
         internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath, IAnalyzerOptions analyzerOptions)
         {
 
@@ -270,39 +207,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 request.Flags |= Request.MainFileIsHeader;
             }
             return request;
-        }
-
-        private static void AddRange(IList<string> cmd, string[] values)
-        {
-            foreach (string value in values)
-            {
-                Add(cmd, value);
-            }
-        }
-
-        private static void AddRange(IList<string> cmd, string prefix, string[] values)
-        {
-            foreach (string value in values)
-            {
-                Add(cmd, prefix, value);
-            }
-        }
-
-        private static void Add(IList<String> cmd, string value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                cmd.Add(value);
-            }
-        }
-
-        private static void Add(IList<string> cmd, string prefix, string value)
-        {
-            if (!string.IsNullOrEmpty(value))
-            {
-                cmd.Add(prefix);
-                cmd.Add(value);
-            }
         }
     }
 }
