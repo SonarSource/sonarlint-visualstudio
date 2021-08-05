@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IActiveDocumentTracker activeDocumentTracker,
             IScheduler scheduler,
             ISonarLanguageRecognizer sonarLanguageRecognizer)
-            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings(), new PchCacheCleaner(new FileSystem(), CFamilyHelper.PchFilePath))
+            : this(cFamilyAnalyzer, activeDocumentTracker, scheduler, sonarLanguageRecognizer, new EnvironmentSettings(), new PchCacheCleaner(new FileSystem(), SubProcessFilePaths.PchFilePath))
         {
         }
 

@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
         {
-            CFamilyHelper.CallClangAnalyzer(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
+            ExecuteSubProcess(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
         }
 
         internal /* for testing */ async Task TriggerAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
@@ -188,6 +189,55 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             // issues. Filtering for active rules will also remove those internal issues since the corresponding
             // rules will never be active in a quality profile.
             return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyShared.RuleKeyComparer);
+        }
+
+        internal /* for testing */ static void ExecuteSubProcess(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
+        {
+            if (SubProcessFilePaths.AnalyzerExeFilePath == null)
+            {
+                logger.WriteLine("Unable to locate the CFamily analyzer exe");
+                return;
+            }
+
+            const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
+
+            var args = new ProcessRunnerArguments(SubProcessFilePaths.AnalyzerExeFilePath, false)
+            {
+                CmdLineArgs = new[] { communicateViaStreaming },
+                CancellationToken = cancellationToken,
+                WorkingDirectory = SubProcessFilePaths.WorkingDirectory,
+                HandleInputStream = writer =>
+                {
+                    using (var binaryWriter = new BinaryWriter(writer.BaseStream))
+                    {
+                        // TODO: need to handle different types of IRequest
+                        var vcxProjRequest = (Request)request;
+                        Protocol.Write(binaryWriter, vcxProjRequest);
+                    }
+                },
+                HandleOutputStream = reader =>
+                {
+                    if (request.AnalyzerOptions?.CreateReproducer ?? false)
+                    {
+                        reader.ReadToEnd();
+                        logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, SubProcessFilePaths.ReproducerFilePath);
+                    }
+                    else if (request.AnalyzerOptions?.CreatePreCompiledHeaders ?? false)
+                    {
+                        reader.ReadToEnd();
+                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.File, request.PchFile);
+                    }
+                    else
+                    {
+                        using (var binaryReader = new BinaryReader(reader.BaseStream))
+                        {
+                            Protocol.Read(binaryReader, handleMessage, request.File);
+                        }
+                    }
+                }
+            };
+
+            runner.Execute(args);
         }
     }
 }

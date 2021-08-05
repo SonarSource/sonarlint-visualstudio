@@ -133,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         {
             var messages = new List<Message>();
 
-            CFamilyHelper.CallClangAnalyzer(messages.Add, request, dummyProcessRunner, logger, cancellationToken);
+            CLangAnalyzer.ExecuteSubProcess(messages.Add, request, dummyProcessRunner, logger, cancellationToken);
 
             return messages;
         }
