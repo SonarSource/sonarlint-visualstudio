@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 using System.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -91,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var processRunner = new ProcessRunner(new ConfigurableSonarLintSettings(), testLogger);
 
             var messages = new List<Message>();
-            CLangAnalyzer.ExecuteSubProcess(messages.Add, request, processRunner, testLogger, CancellationToken.None);
+            CLangAnalyzer.ExecuteSubProcess(messages.Add, request, processRunner, testLogger, CancellationToken.None, new FileSystem());
 
             return messages;
         }

@@ -61,6 +61,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error retrieving configuration. File: {0}, Error: {1}.
+        /// </summary>
+        internal static string ERROR_CreatingConfig {
+            get {
+                return ResourceManager.GetString("ERROR_CreatingConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Execution failed. The specified executable does not exist: {0}.
         /// </summary>
         internal static string ERROR_ProcessRunner_ExeNotFound {
@@ -186,6 +195,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_Runner_SettingEnvVar {
             get {
                 return ResourceManager.GetString("MSG_Runner_SettingEnvVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to retrieve the configuration for file &apos;{0}&apos;.
+        ///    Check the file is part of a supported project type in the current solution..
+        /// </summary>
+        internal static string MSG_UnableToCreateConfig {
+            get {
+                return ResourceManager.GetString("MSG_UnableToCreateConfig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to locate the CFamily analyzer exe.
+        /// </summary>
+        internal static string MSG_UnableToLocateSubProcessExe {
+            get {
+                return ResourceManager.GetString("MSG_UnableToLocateSubProcessExe", resourceCulture);
             }
         }
         

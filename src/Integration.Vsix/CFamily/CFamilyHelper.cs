@@ -24,9 +24,9 @@ using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -53,17 +53,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions && cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
             {
                 // In case the requeset is coming from PCH generation, we don't log failures.
-                // This is to avoid redundant messages while navigating unsupoported files.
+                // This is to avoid redundant messages while navigating unsupported files.
                 logger = noOpLogger;
             }
 
             if (!IsFileInSolution(projectItem))
             {
-                logger.WriteLine($"Unable to retrieve the configuration for file '{absoluteFilePath}'. Check the file is part of a project in the current solution.");
+                logger.LogDebug($"[CFamilyHelper] Unable to retrieve the configuration for file '{absoluteFilePath}'. Check the file is part of a project in the current solution.");
                 return null;
             }
 
-            var fileConfig = TryGetConfig(logger, projectItem, absoluteFilePath, analyzerOptions);
+            var fileConfig = TryGetConfig(logger, projectItem, absoluteFilePath);
             if (fileConfig == null)
             {
                 return null;
@@ -81,6 +81,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             request.PchFile = SubProcessFilePaths.PchFilePath;
+            request.FileConfig = fileConfig;
 
             bool isPCHBuild = false;
 
@@ -112,13 +113,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return request;
         }
 
-        private static void SaveFileConfig(FileConfig fileConfig, ILogger logger)
-        {
-            var serializedFileConfig = JsonConvert.SerializeObject(fileConfig);
-            FileSystem.File.WriteAllText(SubProcessFilePaths.RequestConfigFilePath, serializedFileConfig);
-            logger.WriteLine(CFamilyStrings.MSG_RequestConfigSaved, SubProcessFilePaths.RequestConfigFilePath);
-        }
-
         internal /* for testing */ static string[]GetKeyValueOptionsList(ICFamilyRulesConfig rulesConfiguration)
         {
             var options = GetDefaultOptions(rulesConfiguration);
@@ -145,9 +139,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return defaults;
         }
 
-        internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath, IAnalyzerOptions analyzerOptions)
+        internal static FileConfig TryGetConfig(ILogger logger, ProjectItem projectItem, string absoluteFilePath)
         {
-
             Debug.Assert(IsFileInSolution(projectItem),
                 $"Not expecting to be called for files that are not in the solution: {absoluteFilePath}");
 
@@ -157,18 +150,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
                 var fileConfig = FileConfig.TryGet(logger, projectItem, absoluteFilePath);
-
-                if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions &&
-                    cFamilyAnalyzerOptions.CreateReproducer)
-                {
-                    SaveFileConfig(fileConfig, logger);
-                }
-
                 return fileConfig;
             }
             catch (Exception e)
             {
-                logger.WriteLine($"Unable to collect C/C++ configuration for {absoluteFilePath}: {e}");
+                logger.WriteLine(CFamilyStrings.ERROR_CreatingConfig, absoluteFilePath, e);
                 return null;
             }
         }

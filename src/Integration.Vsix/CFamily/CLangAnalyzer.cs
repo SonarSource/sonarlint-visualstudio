@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,9 +60,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly ILogger logger;
         private readonly DTE dte;
         private readonly ICFamilyIssueToAnalysisIssueConverter issueConverter;
+        private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public CLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, ICFamilyIssueToAnalysisIssueConverter issueConverter)
+        public CLangAnalyzer(ITelemetryManager telemetryManager,
+            ISonarLintSettings settings,
+            ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IAnalysisStatusNotifier analysisStatusNotifier,
+            ILogger logger,
+            ICFamilyIssueToAnalysisIssueConverter issueConverter)
+            : this(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, analysisStatusNotifier, logger, issueConverter, new FileSystem())
+        {
+        }
+
+        internal /* for testing */ CLangAnalyzer(ITelemetryManager telemetryManager,
+            ISonarLintSettings settings,
+            ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
+            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IAnalysisStatusNotifier analysisStatusNotifier,
+            ILogger logger,
+            ICFamilyIssueToAnalysisIssueConverter issueConverter,
+            IFileSystem fileSystem)
+
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
@@ -69,6 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
             this.issueConverter = issueConverter;
+            this.fileSystem = fileSystem;
             this.dte = serviceProvider.GetService<DTE>();
         }
 
@@ -102,6 +124,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var request = CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, analyzerOptions);
             if (request == null)
             {
+                logger.WriteLine(CFamilyStrings.MSG_UnableToCreateConfig, path);
                 return;
             }
 
@@ -117,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
         {
-            ExecuteSubProcess(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken);
+            ExecuteSubProcess(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken, fileSystem);
         }
 
         internal /* for testing */ async Task TriggerAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
@@ -191,12 +214,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyShared.RuleKeyComparer);
         }
 
-        internal /* for testing */ static void ExecuteSubProcess(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken)
+        internal /* for testing */ static void ExecuteSubProcess(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken, IFileSystem fileSystem)
         {
             if (SubProcessFilePaths.AnalyzerExeFilePath == null)
             {
-                logger.WriteLine("Unable to locate the CFamily analyzer exe");
+                logger.WriteLine(CFamilyStrings.MSG_UnableToLocateSubProcessExe);
                 return;
+            }
+
+            var createReproducer = request.AnalyzerOptions?.CreateReproducer ?? false;
+            if(createReproducer)
+            {
+                SaveRequestDiagnostics(request, logger, fileSystem);
             }
 
             const string communicateViaStreaming = "-"; // signal the subprocess we want to communicate via standard IO streams.
@@ -210,14 +239,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     using (var binaryWriter = new BinaryWriter(writer.BaseStream))
                     {
-                        // TODO: need to handle different types of IRequest
-                        var vcxProjRequest = (Request)request;
-                        Protocol.Write(binaryWriter, vcxProjRequest);
+                        request.WriteRequest(binaryWriter);
                     }
                 },
                 HandleOutputStream = reader =>
                 {
-                    if (request.AnalyzerOptions?.CreateReproducer ?? false)
+                    if (createReproducer)
                     {
                         reader.ReadToEnd();
                         logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, SubProcessFilePaths.ReproducerFilePath);
@@ -238,6 +265,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             };
 
             runner.Execute(args);
+        }
+
+        private static void SaveRequestDiagnostics(IRequest request, ILogger logger, IFileSystem fileSystem)
+        {
+            using (var stream = fileSystem.FileStream.Create(SubProcessFilePaths.RequestConfigFilePath, FileMode.Create, FileAccess.Write))
+            using (var writer = new StreamWriter(stream))
+            {
+                request.WriteRequestDiagnostics(writer);
+            }
+
+            logger.WriteLine(CFamilyStrings.MSG_RequestConfigSaved, SubProcessFilePaths.RequestConfigFilePath);
         }
     }
 }

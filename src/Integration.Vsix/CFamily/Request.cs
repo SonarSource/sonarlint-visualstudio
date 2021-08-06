@@ -18,7 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.IO;
+using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.CFamily;
+using static SonarLint.VisualStudio.Integration.Vsix.CFamily.CFamilyHelper;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -30,5 +33,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public ICFamilyRulesConfig RulesConfiguration { get; set; }
 
         public CFamilyAnalyzerOptions AnalyzerOptions { get; set; }
+
+        internal FileConfig FileConfig { get; set; }
+
+        public void WriteRequest(BinaryWriter writer) =>
+            Protocol.Write(writer, this);
+
+        public void WriteRequestDiagnostics(TextWriter writer)
+        {
+            var serializedFileConfig = JsonConvert.SerializeObject(FileConfig);
+            writer.Write(serializedFileConfig);
+        }
     }
 }
