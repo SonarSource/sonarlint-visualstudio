@@ -296,24 +296,6 @@ namespace SonarLint.VisualStudio.Integration.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to load/locate connected mode settings. Falling back on standalone mode settings..
-        /// </summary>
-        public static string CFamily_UnableToLoadConnectedModeSettings {
-            get {
-                return ResourceManager.GetString("CFamily_UnableToLoadConnectedModeSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Using connected mode settings. User-specified settings in settings.json will be ignored..
-        /// </summary>
-        public static string CFamily_UsingConnectedModeSettings {
-            get {
-                return ResourceManager.GetString("CFamily_UsingConnectedModeSettings", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Missing rules (or Action set to None): .
         /// </summary>
         public static string ConflictDetailMissingRules {
