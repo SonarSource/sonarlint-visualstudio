@@ -23,9 +23,14 @@ namespace SonarLint.VisualStudio.Core.CFamily
     public interface IProtocolWriterFactory
     {
         /// <summary>
-        /// Creates <see cref="IProtocolWriter"/> that can serialize the given <see cref="IRequest"/>.
-        /// Will return null if there is no supported protocol for this request.
+        /// Creates a <see cref="IProtocolWriter"/> that can write the given <see cref="IRequest"/>
+        /// in one of the formats supported by the subprocess.
+        /// Will return null if an appropriate protocol cannot be determined.
         /// </summary>
+        /// <remarks>
+        /// All of the subprocess protocols require additional data that is not in the <see cref="IRequest"/>,
+        /// so a writer will only be created if that additional data can be located.
+        /// </remarks>
         IProtocolWriter TryGet(IRequest request);
     }
 }
