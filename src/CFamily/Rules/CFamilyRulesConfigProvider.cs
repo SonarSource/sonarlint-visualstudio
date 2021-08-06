@@ -24,11 +24,9 @@ using System.IO.Abstractions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration;
 
-// Note: currently this class needs to be in the the Integration assembly because it
-//   references IHost and other internal interfaces.
-
-namespace SonarLint.VisualStudio.Integration.CFamily
+namespace SonarLint.VisualStudio.CFamily.Rules
 {
     [Export(typeof(ICFamilyRulesConfigProvider))]
     [PartCreationPolicy(CreationPolicy.Shared)]
@@ -45,14 +43,14 @@ namespace SonarLint.VisualStudio.Integration.CFamily
         private readonly RulesSettingsSerializer serializer;
 
         [ImportingConstructor]
-        public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
-            : this(host, activeSolutionBoundTracker, userSettingsProvider, logger,
+        public CFamilyRuleConfigProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider, ILogger logger)
+            : this(activeSolutionBoundTracker, userSettingsProvider, logger,
                  new CFamilySonarWayRulesConfigProvider(CFamilyShared.CFamilyFilesDirectory),
                  new FileSystem())
         {
         }
 
-        public CFamilyRuleConfigProvider(IHost host, IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
+        public CFamilyRuleConfigProvider(IActiveSolutionBoundTracker activeSolutionBoundTracker, IUserSettingsProvider userSettingsProvider,
             ILogger logger, ICFamilyRulesConfigProvider sonarWayProvider, IFileSystem fileSystem)
         {
             this.activeSolutionBoundTracker = activeSolutionBoundTracker;
@@ -78,11 +76,11 @@ namespace SonarLint.VisualStudio.Integration.CFamily
                 settings = FindConnectedModeSettings(languageKey, binding);
                 if (settings == null)
                 {
-                    logger.WriteLine(Resources.Strings.CFamily_UnableToLoadConnectedModeSettings);
+                    logger.WriteLine(Resources.CFamily_UnableToLoadConnectedModeSettings);
                 }
                 else
                 {
-                    logger.WriteLine(Resources.Strings.CFamily_UsingConnectedModeSettings);
+                    logger.WriteLine(Resources.CFamily_UsingConnectedModeSettings);
                 }
             }
 

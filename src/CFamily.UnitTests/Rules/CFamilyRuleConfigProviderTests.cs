@@ -24,12 +24,14 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.CFamily.Rules;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Integration.CFamily;
+using SonarLint.VisualStudio.Integration.UnitTests;
+using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
 {
     [TestClass]
     public class CFamilyRuleConfigProviderTests
@@ -133,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             result.RulesMetadata["rule4"].DefaultSeverity.Should().Be(IssueSeverity.Blocker); // ConnectedModeSetting should override the default
 
             builder.AssertStandaloneSettingsNotAccessed();
-            builder.Logger.AssertOutputStringExists(Resources.Strings.CFamily_UsingConnectedModeSettings);
+            builder.Logger.AssertOutputStringExists(Resources.CFamily_UsingConnectedModeSettings);
         }
 
         [TestMethod]
@@ -173,7 +175,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             result.ActivePartialRuleKeys.Should().BeEquivalentTo("rule1", "rule3", "rule4");
             result.AllPartialRuleKeys.Should().BeEquivalentTo("rule1", "rule2", "rule3", "rule4");
 
-            builder.Logger.AssertOutputStringExists(Resources.Strings.CFamily_UnableToLoadConnectedModeSettings);
+            builder.Logger.AssertOutputStringExists(Resources.CFamily_UnableToLoadConnectedModeSettings);
         }
 
         private class TestEnvironmentBuilder
@@ -183,9 +185,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             private readonly Mock<IFileSystem> fileSystemMock;
 
-            private readonly Mock<IHost> host;
             private readonly ConfigurableActiveSolutionBoundTracker activeSolutionBoundTracker;
-            private readonly Mock<ISolutionRuleSetsInformationProvider> rulesetInfoProviderMock;
 
             private readonly SonarLintMode bindingMode;
 
@@ -205,15 +205,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
                 sonarWayProviderMock = new Mock<ICFamilyRulesConfigProvider>();
                 activeSolutionBoundTracker = new ConfigurableActiveSolutionBoundTracker();
-                rulesetInfoProviderMock = new Mock<ISolutionRuleSetsInformationProvider>();
-
-                // Register the local services
-                host = new Mock<IHost>();
-                host.Setup(x => x.GetService(typeof(ISolutionRuleSetsInformationProvider))).Returns(rulesetInfoProviderMock.Object);
 
                 bindingMode = mode;
             }
-
+            
             public CFamilyRuleConfigProvider CreateTestSubject()
             {
                 // Data: set up the binding configuration
@@ -236,7 +231,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 sonarWayProviderMock.Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
                     .Returns(SonarWayConfig);
 
-                var testSubject = new CFamilyRuleConfigProvider(host.Object, activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
+                var testSubject = new CFamilyRuleConfigProvider(activeSolutionBoundTracker, standaloneSettingsProviderMock.Object, Logger,
                     sonarWayProviderMock.Object, fileSystemMock.Object);
 
                 return testSubject;
