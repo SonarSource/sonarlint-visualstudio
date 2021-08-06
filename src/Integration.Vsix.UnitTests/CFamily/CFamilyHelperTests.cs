@@ -47,10 +47,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var request = (IRequest)GetSuccessfulRequest(analyzerOptions, "d:\\xxx\\fileToAnalyze.txt", rulesConfig);
             request.Should().NotBeNull();
 
-            request.File.Should().Be("d:\\xxx\\fileToAnalyze.txt");
-            request.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
-            request.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
-            request.RulesConfiguration.Should().BeSameAs(rulesConfig);
+            request.Context.File.Should().Be("d:\\xxx\\fileToAnalyze.txt");
+            request.Context.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
+            request.Context.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
+            request.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);
         }
 
         [TestMethod]
@@ -138,9 +138,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
             (request.Flags & Request.BuildPreamble).Should().Be(0);
-            request.RulesConfiguration.Should().NotBeNull();
+            request.Context.RulesConfiguration.Should().NotBeNull();
             request.Options.Should().NotBeEmpty();
-            request.AnalyzerOptions.Should().BeNull();
+            request.Context.AnalyzerOptions.Should().BeNull();
         }
 
         [TestMethod]
@@ -151,9 +151,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
             (request.Flags & Request.BuildPreamble).Should().Be(0);
-            request.RulesConfiguration.Should().NotBeNull();
+            request.Context.RulesConfiguration.Should().NotBeNull();
             request.Options.Should().NotBeEmpty();
-            request.AnalyzerOptions.Should().BeNull();
+            request.Context.AnalyzerOptions.Should().BeNull();
         }
 
         [TestMethod]
@@ -163,9 +163,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var request = GetSuccessfulRequest(analyzerOptions);
             request.Should().NotBeNull();
 
-            request.RulesConfiguration.Should().NotBeNull();
+            request.Context.RulesConfiguration.Should().NotBeNull();
             request.Options.Should().NotBeEmpty();
-            request.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
+            request.Context.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
         }
 
         [TestMethod]
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.BuildPreamble).Should().NotBe(0);
-            request.RulesConfiguration.Should().BeNull();
+            request.Context.RulesConfiguration.Should().BeNull();
             request.Options.Should().BeEmpty();
         }
 
@@ -214,7 +214,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             request.Should().NotBeNull();
 
             (request.Flags & Request.BuildPreamble).Should().Be(0);
-            request.RulesConfiguration.Should().NotBeNull();
+            request.Context.RulesConfiguration.Should().NotBeNull();
             request.Options.Should().NotBeEmpty();
         }
 

@@ -28,11 +28,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     // Most of the Request class is ported from Java - see PortedFromJava\Request.cs
     internal partial class Request : IRequest
     {
-        public string CFamilyLanguage { get; set; }
-
-        public ICFamilyRulesConfig RulesConfiguration { get; set; }
-
-        public CFamilyAnalyzerOptions AnalyzerOptions { get; set; }
+        public RequestContext Context { get; set; }
 
         internal FileConfig FileConfig { get; set; }
 
