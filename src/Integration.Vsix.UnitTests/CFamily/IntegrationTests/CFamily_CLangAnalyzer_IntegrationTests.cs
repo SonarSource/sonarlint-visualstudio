@@ -64,7 +64,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.IntegrationTests
             var requestJson = File.ReadAllText(Path.Combine(testsDataDirectory, "CLangAnalyzerRequestTemplate.json"));
             var request = JsonConvert.DeserializeObject<Request>(requestJson);
             request.File = testedFile;
-
+            request.Context = new Core.CFamily.RequestContext(request.CFamilyLanguage, null, testedFile, request.PchFile,
+                new Core.CFamily.CFamilyAnalyzerOptions());
             return request;
         }
 

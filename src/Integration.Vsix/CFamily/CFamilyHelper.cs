@@ -74,13 +74,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private static Request CreateRequest(FileConfig fileConfig, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
         {
-            var request = ToRequest(fileConfig, absoluteFilePath, out string cFamilyLanguage);
-            if (request?.File == null || cFamilyLanguage == null)
+            var request = ToRequest(fileConfig, absoluteFilePath);
+            if (request?.File == null || request?.CFamilyLanguage == null)
             {
                 return null;
             }
 
-            // TODO - remove File and PchFile from Request (both on RequestContext)
+            // TODO - remove File, PchFile and CFamilyLanguage from Request (both on RequestContext)
             request.PchFile = SubProcessFilePaths.PchFilePath;
             request.FileConfig = fileConfig;
 
@@ -106,12 +106,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (!isPCHBuild)
             {
                 // We don't need to calculate / set the rules configuration for PCH builds
-                rulesConfig = cFamilyRulesConfigProvider.GetRulesConfiguration(cFamilyLanguage);
+                rulesConfig = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
                 Debug.Assert(rulesConfig != null, "RulesConfiguration should be have been retrieved");
                 request.Options = GetKeyValueOptionsList(rulesConfig);
             }
 
-            var context = new RequestContext(cFamilyLanguage, rulesConfig, request.File, SubProcessFilePaths.PchFilePath,
+            var context = new RequestContext(request.CFamilyLanguage, rulesConfig, request.File, SubProcessFilePaths.PchFilePath,
                 analyzerOptions as CFamilyAnalyzerOptions);
 
             request.Context = context;
@@ -189,10 +189,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             return false;
         }
 
-        private static Request ToRequest(FileConfig fileConfig, string path, out string cfamilyLanguage)
+        private static Request ToRequest(FileConfig fileConfig, string path)
         {
-            Capture[] c = CFamilyHelper.Capture.ToCaptures(fileConfig, path, out cfamilyLanguage);
+            Capture[] c = CFamilyHelper.Capture.ToCaptures(fileConfig, path, out string cfamilyLanguage);
             var request = MsvcDriver.ToRequest(c);
+            request.CFamilyLanguage = cfamilyLanguage;
 
             if (fileConfig.ItemType == "ClInclude")
             {

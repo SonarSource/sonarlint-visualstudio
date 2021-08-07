@@ -30,6 +30,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         public RequestContext Context { get; set; }
 
+        // TODO - duplicate property - removed
+        internal string CFamilyLanguage { get; set; }
+
         internal FileConfig FileConfig { get; set; }
 
         public void WriteRequest(BinaryWriter writer) =>
