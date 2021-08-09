@@ -71,7 +71,7 @@
     <!-- We don't want to copy third-party assemblies from the analyzers in case there are version conflicts e.g. NewtonSoft.Json.dll -->
     <SonarAuthoredAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\Sonar*.dll" />
     <SonarAuthoredAnalyzerAssemblies Include="$(NuGetPackageRoot)SonarAnalyzer.VisualBasic\$(EmbeddedSonarAnalyzerVersion)\analyzers\Sonar*.dll" />
-    <None Include="@(SonarAuthoredAnalyzerAssemblies)" CopyToOutputDirectory="PreserveNewest"/>
+    <None Include="@(SonarAuthoredAnalyzerAssemblies)" CopyToOutputDirectory="PreserveNewest" />
 
     <!-- We need to reference the core analyzer assembly since we use one of the types -->
     <Reference Include="$(NuGetPackageRoot)SonarAnalyzer.CSharp\$(EmbeddedSonarAnalyzerVersion)\analyzers\SonarAnalyzer.dll" />
