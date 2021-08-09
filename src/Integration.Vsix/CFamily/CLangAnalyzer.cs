@@ -153,7 +153,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             await TaskScheduler.Default;
 
             var analysisStartTime = DateTime.Now;
-            statusNotifier?.AnalysisStarted(request.File);
+            statusNotifier?.AnalysisStarted(request.Context.File);
             int issueCount = 0;
 
             var handleMessage = consumer == null
@@ -169,38 +169,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    statusNotifier?.AnalysisCancelled(request.File);
+                    statusNotifier?.AnalysisCancelled(request.Context.File);
                 }
                 else
                 {
                     var analysisTime = DateTime.Now - analysisStartTime;
-                    statusNotifier?.AnalysisFinished(request.File, issueCount, analysisTime);
+                    statusNotifier?.AnalysisFinished(request.Context.File, issueCount, analysisTime);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                statusNotifier?.AnalysisFailed(request.File, ex);
+                statusNotifier?.AnalysisFailed(request.Context.File, ex);
             }
 
-            telemetryManager.LanguageAnalyzed(request.CFamilyLanguage); // different keys for C and C++
+            telemetryManager.LanguageAnalyzed(request.Context.CFamilyLanguage); // different keys for C and C++
         }
 
         private void HandleMessage(Message message, IRequest request, IIssueConsumer consumer, ref int issueCount)
         {
-            Debug.Assert(message.Filename == request.File, $"Issue for unexpected file returned: {message.Filename}");
-            if (!IsIssueForActiveRule(message, request.RulesConfiguration))
+            Debug.Assert(message.Filename == request.Context.File, $"Issue for unexpected file returned: {message.Filename}");
+            if (!IsIssueForActiveRule(message, request.Context.RulesConfiguration))
             {
                 return;
             }
 
             issueCount++;
-            var issue = issueConverter.Convert(message, request.CFamilyLanguage, request.RulesConfiguration);
+            var issue = issueConverter.Convert(message, request.Context.CFamilyLanguage, request.Context.RulesConfiguration);
 
             // Note: the file being analyzed might have been closed by the time the analysis results are 
             // returned. This doesn't cause a crash; all active taggers will have been detached from the
             // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
             // still exist and handle the call.
-            consumer.Accept(request.File, new[] { issue });
+            consumer.Accept(request.Context.File, new[] { issue });
         }
 
         internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)
@@ -222,7 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return;
             }
 
-            var createReproducer = request.AnalyzerOptions?.CreateReproducer ?? false;
+            var createReproducer = request.Context.AnalyzerOptions?.CreateReproducer ?? false;
             if(createReproducer)
             {
                 SaveRequestDiagnostics(request, logger, fileSystem);
@@ -249,16 +249,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         reader.ReadToEnd();
                         logger.WriteLine(CFamilyStrings.MSG_ReproducerSaved, SubProcessFilePaths.ReproducerFilePath);
                     }
-                    else if (request.AnalyzerOptions?.CreatePreCompiledHeaders ?? false)
+                    else if (request.Context.AnalyzerOptions?.CreatePreCompiledHeaders ?? false)
                     {
                         reader.ReadToEnd();
-                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.File, request.PchFile);
+                        logger.WriteLine(CFamilyStrings.MSG_PchSaved, request.Context.File, request.Context.PchFile);
                     }
                     else
                     {
                         using (var binaryReader = new BinaryReader(reader.BaseStream))
                         {
-                            Protocol.Read(binaryReader, handleMessage, request.File);
+                            Protocol.Read(binaryReader, handleMessage, request.Context.File);
                         }
                     }
                 }

@@ -62,6 +62,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public string Predefines { get; set; } = "";
         public string[] Macros { get; set; } = Array.Empty<string>();
         public string TargetTriple { get; set; } = "x86_64-unknown-unknown";
+
+        // File and PchFile are also now part of the C# RequestContext class
+        // TODO: refactor to remove them from this class
         public string File { get; set; } = "";
         public string PchFile { get; set; } = "";
     }

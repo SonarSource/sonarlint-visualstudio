@@ -131,11 +131,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var convertedMessage2 = Mock.Of<IAnalysisIssue>();
 
             cFamilyIssueConverterMock
-                .Setup(x => x.Convert(message1, request.CFamilyLanguage, rulesConfig))
+                .Setup(x => x.Convert(message1, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedMessage1);
 
             cFamilyIssueConverterMock
-                .Setup(x => x.Convert(message2, request.CFamilyLanguage, rulesConfig))
+                .Setup(x => x.Convert(message2, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedMessage2);
 
             var mockConsumer = new Mock<IIssueConsumer>();
@@ -203,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             var convertedActiveMessage = Mock.Of<IAnalysisIssue>();
             cFamilyIssueConverterMock
-                .Setup(x => x.Convert(activeRuleMessage, request.CFamilyLanguage, rulesConfig))
+                .Setup(x => x.Convert(activeRuleMessage, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedActiveMessage);
 
             var mockConsumer = new Mock<IIssueConsumer>();
@@ -325,9 +325,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
         {
             var request = new Mock<IRequest>();
-            request.SetupGet(x => x.File).Returns(file);
-            request.SetupGet(x => x.CFamilyLanguage).Returns(language);
-            request.SetupGet(x => x.RulesConfiguration).Returns(rulesConfiguration);
+            var context = new RequestContext(language, rulesConfiguration, file, null, null);
+            request.SetupGet(x => x.Context).Returns(context);
             return request.Object;
         }
 

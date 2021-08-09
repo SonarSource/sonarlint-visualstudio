@@ -80,6 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 return null;
             }
 
+            // TODO - remove File, PchFile and CFamilyLanguage from Request (both on RequestContext)
             request.PchFile = SubProcessFilePaths.PchFilePath;
             request.FileConfig = fileConfig;
 
@@ -88,7 +89,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             if (analyzerOptions is CFamilyAnalyzerOptions cFamilyAnalyzerOptions)
             {
                 Debug.Assert(!(cFamilyAnalyzerOptions.CreateReproducer && cFamilyAnalyzerOptions.CreatePreCompiledHeaders), "Only one flag (CreateReproducer, CreatePreCompiledHeaders) can be set at a time");
-                request.AnalyzerOptions = cFamilyAnalyzerOptions;
 
                 if (cFamilyAnalyzerOptions.CreateReproducer)
                 {
@@ -102,13 +102,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
             }
 
+            ICFamilyRulesConfig rulesConfig = null;
             if (!isPCHBuild)
             {
                 // We don't need to calculate / set the rules configuration for PCH builds
-                request.RulesConfiguration = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
-                Debug.Assert(request.RulesConfiguration != null, "RulesConfiguration should be set for the analysis request");
-                request.Options = GetKeyValueOptionsList(request.RulesConfiguration);
+                rulesConfig = cFamilyRulesConfigProvider.GetRulesConfiguration(request.CFamilyLanguage);
+                Debug.Assert(rulesConfig != null, "RulesConfiguration should be have been retrieved");
+                request.Options = GetKeyValueOptionsList(rulesConfig);
             }
+
+            var context = new RequestContext(request.CFamilyLanguage, rulesConfig, request.File, SubProcessFilePaths.PchFilePath,
+                analyzerOptions as CFamilyAnalyzerOptions);
+
+            request.Context = context;
 
             return request;
         }
@@ -188,6 +194,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             Capture[] c = CFamilyHelper.Capture.ToCaptures(fileConfig, path, out string cfamilyLanguage);
             var request = MsvcDriver.ToRequest(c);
             request.CFamilyLanguage = cfamilyLanguage;
+
             if (fileConfig.ItemType == "ClInclude")
             {
                 request.Flags |= Request.MainFileIsHeader;
