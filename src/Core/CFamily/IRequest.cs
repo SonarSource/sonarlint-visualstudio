@@ -23,35 +23,12 @@ using System.IO;
 namespace SonarLint.VisualStudio.Core.CFamily
 {
     /// <summary>
-    /// Abstraction describing low-level analysis requests to the CFamily subprocess
+    /// Encapsulates a low-level request to be sent to the CFamily subprocess
     /// </summary>
-    /// <remarks>The subprocess supports several different protocols, each of which requires a different set of inputs.
-    /// This abstraction exposes the common data items that are required on the SonarLint side to be able to process
-    /// the different request types in a generic way e.g. filtering the results</remarks>
+    /// <remarks>The subprocess supports several different protocols, each of which requires a different set of inputs.</remarks>
     public interface IRequest
     {
-        // Note: the language and RulesConfiguration aren't passed as part of the request to the
-        // CLang analyzer, but it is by SVLS used when filtering the returned issues.
-        string CFamilyLanguage { get; }
-
-        ICFamilyRulesConfig RulesConfiguration { get; }
-
-        /// <summary>
-        /// The full path to the file being analyzed
-        /// </summary>
-        string File { get; }
-
-        /// <summary>
-        /// Full path to the precompiled header file (also called the "preamble" file)
-        /// </summary>
-        /// <remarks>The file may not exist. If it does, it might be out of date or for a different file.
-        /// However, it is the responsibility of the CFamily subprocess to handle all of those scenarios.</remarks>
-        string PchFile{ get; }
-
-        /// <summary>
-        /// Additional analysis options
-        /// </summary>
-        CFamilyAnalyzerOptions AnalyzerOptions { get; }
+        RequestContext Context { get; }
 
         /// <summary>
         /// Serializes the request in the form required by the subprocess

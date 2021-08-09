@@ -48,8 +48,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 // Only the FileConfig should be serialized - other properties should be ignored
                 File = "any file",
                 PchFile = "any pchFile",
-                AnalyzerOptions = new CFamilyAnalyzerOptions(),
-                CFamilyLanguage = "junk",
+                Context = new RequestContext("junk", null, "file", "pchFile", new CFamilyAnalyzerOptions()),
                 Flags = 123
             };
 
