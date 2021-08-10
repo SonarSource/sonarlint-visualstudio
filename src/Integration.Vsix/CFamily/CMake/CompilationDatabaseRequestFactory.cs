@@ -24,6 +24,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 {
+    [Export(typeof(IRequestFactory))]
     internal class CompilationDatabaseRequestFactory : IRequestFactory
     {
         private readonly ICompilationConfigProvider compilationConfigProvider;
