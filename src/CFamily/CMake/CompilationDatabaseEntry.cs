@@ -25,7 +25,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     /// <summary>
     /// Schema based on https://clang.llvm.org/docs/JSONCompilationDatabase.html
     /// </summary>
-    internal class CompilationDatabaseEntry
+    public class CompilationDatabaseEntry
     {
         [JsonProperty("directory")]
         public string Directory { get; set; }
