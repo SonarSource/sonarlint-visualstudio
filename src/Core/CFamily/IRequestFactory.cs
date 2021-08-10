@@ -20,17 +20,20 @@
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public interface IProtocolWriterFactory
+    public interface IRequestFactory
     {
         /// <summary>
-        /// Creates a <see cref="IProtocolWriter"/> that can write the given <see cref="IRequest"/>
-        /// in one of the formats supported by the subprocess.
-        /// Will return null if an appropriate protocol cannot be determined.
+        /// Creates <see cref="IRequest"/> for the given <see cref="analyzedFilePath"/>.
+        /// Returns null if request could not be created.
         /// </summary>
-        /// <remarks>
-        /// All of the subprocess protocols require additional data that is not in the <see cref="IRequest"/>,
-        /// so a writer will only be created if that additional data can be located.
-        /// </remarks>
-        IProtocolWriter TryGet(IRequest request);
+        IRequest TryGet(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
     }
+
+    /// <summary>
+    /// Aggregate interface for multiple <see cref="IRequestFactory"/>.
+    /// <see cref="IRequestFactory.TryGet"/> will return the first non-nullable request,
+    /// or null if no factory was able to create one.
+    /// </summary>
+    public interface IRequestFactoryAggregate : IRequestFactory
+    {}
 }
