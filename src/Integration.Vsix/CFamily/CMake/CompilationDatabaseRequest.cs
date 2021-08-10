@@ -52,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 
         public void WriteRequest(BinaryWriter writer)
         {
-            Protocol.WriteUTF(writer, "SL-IN");
+            WriteHeader(writer);
 
             // Required inputs
             WriteSetting(writer, "File", databaseEntry.File);
@@ -78,8 +78,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 //            WriteSetting(writer, "HeaderFilerLanguage", Context.CFamilyLanguage);
             WriteRuleSettings(writer);
 
-            Protocol.WriteUTF(writer, "SL-END");
+            WriteFooter(writer);
         }
+
+        private static void WriteHeader(BinaryWriter writer)
+            => Protocol.WriteUTF(writer, "SL-IN");
+
+        private static void WriteFooter(BinaryWriter writer)
+            => Protocol.WriteUTF(writer, "SL-END");
 
         public void WriteRequestDiagnostics(TextWriter writer)
         {
@@ -90,7 +96,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
         private void WriteQualityProfile(BinaryWriter writer)
         {
             // Comma-separated list of active rule ids
-            var ids = string.Join(",", Context.RulesConfiguration.ActivePartialRuleKeys);
+            string ids = string.Empty;
+
+            // Optimisation - no point in calculating the active rules if we're
+            // creating a pre-compiled header, as they won't be used.
+            // However, the QualityProfile is an essential setting so we still
+            // have to write it.
+            if (!Context?.AnalyzerOptions?.CreatePreCompiledHeaders ?? true)
+            {
+                ids = string.Join(",", Context.RulesConfiguration.ActivePartialRuleKeys);
+            }
+
             WriteSetting(writer, "QualityProfile", ids);
         }
 

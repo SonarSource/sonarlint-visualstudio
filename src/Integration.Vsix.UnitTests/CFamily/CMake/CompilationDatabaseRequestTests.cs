@@ -146,12 +146,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [DataRow(false, "false")]
         public void WriteReqest_CreatePreamble_ExpectedSettingWritten(bool createPch, string expectedValue)
         {
+            var rulesConfig = new DummyCFamilyRulesConfig("cpp")
+                    .AddRule("active1", isActive: true);
+
             var analyzerOptions = new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = createPch };
-            var context = CreateContext(analyzerOptions: analyzerOptions);
+            var context = CreateContext(rulesConfig: rulesConfig, analyzerOptions: analyzerOptions);
 
             var tokens = WriteRequest(ValidDbEntry, context);
 
             CheckExpectedSetting(tokens, "BuildPreamble", expectedValue);
+
+            if (createPch)
+            {
+                CheckExpectedSetting(tokens, "QualityProfile", string.Empty);
+            }
+            else
+            {
+                CheckExpectedSetting(tokens, "QualityProfile", "active1");
+            }
         }
 
         [TestMethod]
