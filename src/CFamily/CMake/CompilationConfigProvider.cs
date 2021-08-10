@@ -31,7 +31,8 @@ using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    internal interface ICompilationConfigProvider
+    // TODO - can be internal once request builder code has moved to CFamily project
+    public interface ICompilationConfigProvider
     {
         /// <summary>
         /// Returns the compilation configuration for the given file,
