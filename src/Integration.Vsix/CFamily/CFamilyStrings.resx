@@ -192,4 +192,7 @@
   <data name="MSG_UnableToLocateSubProcessExe" xml:space="preserve">
     <value>Unable to locate the CFamily analyzer exe</value>
   </data>
+  <data name="ERROR_InvalidCompilationEntry" xml:space="preserve">
+    <value>Invalid compilation database entry. Either Command or Arguments must be supplied, but not both.</value>
+  </data>
 </root>
