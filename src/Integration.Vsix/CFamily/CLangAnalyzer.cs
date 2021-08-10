@@ -27,8 +27,6 @@ using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -55,43 +53,39 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         private readonly ITelemetryManager telemetryManager;
         private readonly ISonarLintSettings settings;
-        private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
         private readonly IAnalysisStatusNotifier analysisStatusNotifier;
         private readonly ILogger logger;
-        private readonly DTE dte;
         private readonly ICFamilyIssueToAnalysisIssueConverter issueConverter;
+        private readonly IRequestFactoryAggregate requestFactory;
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
         public CLangAnalyzer(ITelemetryManager telemetryManager,
             ISonarLintSettings settings,
-            ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            ILogger logger,
-            ICFamilyIssueToAnalysisIssueConverter issueConverter)
-            : this(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, analysisStatusNotifier, logger, issueConverter, new FileSystem())
+            ICFamilyIssueToAnalysisIssueConverter issueConverter,
+            IRequestFactoryAggregate requestFactory,
+            ILogger logger)
+            : this(telemetryManager, settings, analysisStatusNotifier, issueConverter, requestFactory, logger, new FileSystem())
         {
         }
 
         internal /* for testing */ CLangAnalyzer(ITelemetryManager telemetryManager,
             ISonarLintSettings settings,
-            ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
-            [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
             IAnalysisStatusNotifier analysisStatusNotifier,
-            ILogger logger,
             ICFamilyIssueToAnalysisIssueConverter issueConverter,
+            IRequestFactoryAggregate requestFactory,
+            ILogger logger,
             IFileSystem fileSystem)
 
         {
             this.telemetryManager = telemetryManager;
             this.settings = settings;
-            this.cFamilyRulesConfigProvider = cFamilyRulesConfigProvider;
             this.analysisStatusNotifier = analysisStatusNotifier;
             this.logger = logger;
             this.issueConverter = issueConverter;
+            this.requestFactory = requestFactory;
             this.fileSystem = fileSystem;
-            this.dte = serviceProvider.GetService<DTE>();
         }
 
         public bool IsAnalysisSupported(IEnumerable<AnalysisLanguage> languages)
@@ -113,15 +107,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IAnalysisStatusNotifier statusNotifier,
             CancellationToken cancellationToken)
         {
-            var projectItem = dte?.Solution?.FindProjectItem(path);
-            if (projectItem == null)
-            {
-                return;
-            }
-
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            var request = CreateRequest(logger, projectItem, path, cFamilyRulesConfigProvider, analyzerOptions);
+            var request = requestFactory.TryGet(path, analyzerOptions as CFamilyAnalyzerOptions);
+
             if (request == null)
             {
                 logger.WriteLine(CFamilyStrings.MSG_UnableToCreateConfig, path);
@@ -130,9 +119,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             TriggerAnalysis(request, consumer, statusNotifier, cancellationToken);
         }
-
-        protected /* for testing */ virtual IRequest CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions) =>
-            CFamilyHelper.CreateRequest(logger, projectItem, absoluteFilePath, cFamilyRulesConfigProvider, analyzerOptions);
 
         protected /* for testing */ virtual void TriggerAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken) =>
             TriggerAnalysisAsync(request, consumer, statusNotifier, cancellationToken)

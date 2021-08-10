@@ -23,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -40,29 +39,25 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     {
         private Mock<ITelemetryManager> telemetryManagerMock;
         private TestLogger testLogger;
-        private Mock<ICFamilyRulesConfigProvider> rulesConfigProviderMock;
-        private Mock<IServiceProvider> serviceProviderWithValidProjectItem;
         private Mock<IAnalysisStatusNotifier> analysisNotifierMock;
         private Mock<ICFamilyIssueToAnalysisIssueConverter> cFamilyIssueConverterMock;
-
-        private readonly ProjectItem ValidProjectItem = Mock.Of<ProjectItem>();
+        private Mock<IRequestFactoryAggregate> requestFactoryAggregateMock;
 
         [TestInitialize]
         public void TestInitialize()
         {
             telemetryManagerMock = new Mock<ITelemetryManager>();
             testLogger = new TestLogger();
-            rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
             analysisNotifierMock = new Mock<IAnalysisStatusNotifier>();
             cFamilyIssueConverterMock = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
-            serviceProviderWithValidProjectItem = CreateServiceProviderReturningProjectItem(ValidProjectItem);
+            requestFactoryAggregateMock = new Mock<IRequestFactoryAggregate>();
         }
 
         [TestMethod]
         public void IsSupported()
         {
             var testSubject = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, Mock.Of<ICFamilyIssueToAnalysisIssueConverter>());
+                analysisNotifierMock.Object, Mock.Of<ICFamilyIssueToAnalysisIssueConverter>(), requestFactoryAggregateMock.Object, testLogger);
 
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
@@ -70,42 +65,34 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void ExecuteAnalysis_MissingProjectItem_NoAnalysis()
+        public void ExecuteAnalysis_RequestCannotBeCreated_NoAnalysis()
         {
-            serviceProviderWithValidProjectItem = CreateServiceProviderReturningProjectItem(null);
+            var analysisOptions = new CFamilyAnalyzerOptions();
+            requestFactoryAggregateMock
+                .Setup(x => x.TryGet("path", analysisOptions))
+                .Returns((IRequest) null);
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
-
-            testSubject.CreateRequestCallCount.Should().Be(0);
             testSubject.TriggerAnalysisCallCount.Should().Be(0);
+
+            requestFactoryAggregateMock.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
         }
 
         [TestMethod]
-        public void ExecuteAnalysis_ValidProjectItem_RequestCannotBeCreated_NoAnalysis()
+        public void ExecuteAnalysis_RequestCanBeCreated_AnalysisIsTriggered()
         {
+            var analysisOptions = new CFamilyAnalyzerOptions();
+            requestFactoryAggregateMock
+                .Setup(x => x.TryGet("path", analysisOptions))
+                .Returns(Mock.Of<IRequest>());
+
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
-            testSubject.RequestToReturn = null;
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
-
-            testSubject.CreateRequestCallCount.Should().Be(1);
-            testSubject.TriggerAnalysisCallCount.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void ExecuteAnalysis_ValidProjectItem_RequestCanBeCreated_AnalysisIsTriggered()
-        {
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
-            testSubject.RequestToReturn = Mock.Of<IRequest>();
-
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), null, CancellationToken.None);
-
-            testSubject.CreateRequestCallCount.Should().Be(1);
             testSubject.TriggerAnalysisCallCount.Should().Be(1);
         }
 
@@ -142,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var subProcess = new SubProcessSimulator();
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             try
@@ -210,7 +197,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var subProcess = new SubProcessSimulator();
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             try
@@ -254,7 +241,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var subProcess = new SubProcessSimulator();
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             using var cts = new CancellationTokenSource();
@@ -293,8 +280,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
 
             var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                rulesConfigProviderMock.Object, serviceProviderWithValidProjectItem.Object, analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object);
-           
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+
             testSubject.SetCallSubProcessBehaviour(MockSubProcessCall);
 
             var filePath = "c:\\test.cpp";
@@ -304,22 +291,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             analysisNotifierMock.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
             analysisNotifierMock.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
             analysisNotifierMock.VerifyNoOtherCalls();
-        }
-
-        private static Mock<IServiceProvider> CreateServiceProviderReturningProjectItem(ProjectItem projectItemToReturn)
-        {
-            var mockSolution = new Mock<Solution>();
-            mockSolution.Setup(s => s.FindProjectItem(It.IsAny<string>())).Returns(projectItemToReturn);
-            var solution = mockSolution.Object;
-
-            var mockDTE = new Mock<DTE>();
-            mockDTE.Setup(d => d.Solution).Returns(solution);
-            var dte = mockDTE.Object;
-
-            var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(dte);
-
-            return mockServiceProvider;
         }
 
         private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
@@ -339,20 +310,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             public void SetCallSubProcessBehaviour(HandleCallSubProcess onCallSubProcess)
                 => this.onCallSubProcess = onCallSubProcess;
 
-            public IRequest RequestToReturn { get; set; }
-            public int CreateRequestCallCount { get; private set; }
             public int TriggerAnalysisCallCount { get; private set; }
 
-            public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
-                IServiceProvider serviceProvider, IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, ICFamilyIssueToAnalysisIssueConverter cFamilyIssueConverter)
-                : base(telemetryManager, settings, cFamilyRulesConfigProvider, serviceProvider, analysisStatusNotifier, logger, cFamilyIssueConverter)
+            public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, 
+                IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, 
+                ICFamilyIssueToAnalysisIssueConverter cFamilyIssueConverter, IRequestFactoryAggregate requestFactory)
+                : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverter, requestFactory, logger)
             {}
-
-            protected override IRequest CreateRequest(ILogger logger, ProjectItem projectItem, string absoluteFilePath, ICFamilyRulesConfigProvider cFamilyRulesConfigProvider, IAnalyzerOptions analyzerOptions)
-            {
-                CreateRequestCallCount++;
-                return RequestToReturn;
-            }
 
             protected override void TriggerAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
             {
