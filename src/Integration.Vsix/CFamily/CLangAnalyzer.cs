@@ -220,6 +220,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             var args = new ProcessRunnerArguments(SubProcessFilePaths.AnalyzerExeFilePath, false)
             {
                 CmdLineArgs = new[] { communicateViaStreaming },
+
+                // HACK: quick workaround for #2539
+                // The Include variable doesn't seem to be set in VS, but passing an empty value is enough to stop the subprocess from failing.
+                EnvironmentVariables = new Dictionary<string, string>{ { "INCLUDE", Environment.GetEnvironmentVariable("INCLUDE") } },
+
                 CancellationToken = cancellationToken,
                 WorkingDirectory = SubProcessFilePaths.WorkingDirectory,
                 HandleInputStream = writer =>
