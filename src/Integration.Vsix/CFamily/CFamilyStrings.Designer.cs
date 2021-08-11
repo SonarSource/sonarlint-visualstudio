@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Error retrieving configuration. File: {0}, Error: {1}.
+        ///   Looks up a localized string similar to [CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}.
         /// </summary>
         internal static string ERROR_CreatingConfig {
             get {
