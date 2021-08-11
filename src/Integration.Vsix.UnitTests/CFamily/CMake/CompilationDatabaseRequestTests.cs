@@ -278,6 +278,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             actual.Should().Be(expected);
         }
 
+        [TestMethod]
+        public void EnvironmentVariables_ReturnsExpectedValues()
+        {
+            var testSubject = new CompilationDatabaseRequest(ValidDbEntry, ValidContext);
+
+            var actual = testSubject.EnvironmentVariables;
+
+            actual.Count.Should().Be(1);
+            actual.ContainsKey("INCLUDE").Should().BeTrue();
+            actual["INCLUDE"].Should().BeEmpty();
+        }
+
         private static RequestContext CreateContext(
             string language = "c",
             ICFamilyRulesConfig rulesConfig = null,

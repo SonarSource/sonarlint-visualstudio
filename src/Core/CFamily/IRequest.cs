@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.IO;
 
 namespace SonarLint.VisualStudio.Core.CFamily
@@ -34,6 +35,11 @@ namespace SonarLint.VisualStudio.Core.CFamily
         /// Serializes the request in the form required by the subprocess
         /// </summary>
         void WriteRequest(BinaryWriter writer);
+
+        /// <summary>
+        /// Any environment variables that need to be passed to the subprocess. Can be null.
+        /// </summary>
+        IDictionary<string, string> EnvironmentVariables { get; }
 
         /// <summary>
         /// Serializes the request for diagnostic purposes
