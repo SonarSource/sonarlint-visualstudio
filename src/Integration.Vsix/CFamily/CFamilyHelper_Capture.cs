@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -132,19 +133,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         throw new ArgumentException($"Unsupported CompileAs: {value}", nameof(value));
                     case "": // https://github.com/SonarSource/sonarlint-visualstudio/issues/738
                     case "Default":
-                        // Compile files with extensions ".cpp", ".cxx" and ".cc" as Cpp and files with extension ".c" as C
-                        if (path.ToLowerInvariant().EndsWith(".cpp") || path.ToLowerInvariant().EndsWith(".cxx") || path.ToLowerInvariant().EndsWith(".cc"))
-                        {
-                            cfamilyLanguage = SonarLanguageKeys.CPlusPlus;
-                        }
-                        else if (path.ToLowerInvariant().EndsWith(".c"))
-                        {
-                            cfamilyLanguage = SonarLanguageKeys.C;
-                        }
-                        else
-                        {
-                            cfamilyLanguage = null;
-                        }
+                        cfamilyLanguage = CFamilyShared.FindLanguageFromExtension(path);
                         return "";
                     case "CompileAsC":
                         cfamilyLanguage = "c";
