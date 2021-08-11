@@ -99,7 +99,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void TriggerAnalysisAsync_StreamsIssuesFromSubProcessToConsumer()
         {
-            const string fileName = "c:\\data\\aaa\\bbb\file.txt";
+            const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
             var rulesConfig = new DummyCFamilyRulesConfig("c")
                 .AddRule("rule1", isActive: true)
                 .AddRule("rule2", isActive: true);
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         [TestMethod]
         public void TriggerAnalysisAsync_IssuesForInactiveRulesAreNotStreamed()
         {
-            const string fileName = "c:\\data\\aaa\\bbb\file.txt";
+            const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
             var rulesConfig = new DummyCFamilyRulesConfig("c")
                 .AddRule("inactiveRule", isActive: false)
                 .AddRule("activeRule", isActive: true);
