@@ -62,5 +62,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var actual = sb.ToString();
             actual.Should().Be(expected);
         }
+
+        [TestMethod]
+        public void EnvironmentVariables_ReturnsExpectedValue()
+        {
+            var testSubject = new Request();
+
+            testSubject.EnvironmentVariables.Should().BeNull();
+        }
     }
 }

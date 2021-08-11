@@ -222,6 +222,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 CmdLineArgs = new[] { communicateViaStreaming },
                 CancellationToken = cancellationToken,
                 WorkingDirectory = SubProcessFilePaths.WorkingDirectory,
+                EnvironmentVariables = request.EnvironmentVariables,
                 HandleInputStream = writer =>
                 {
                     using (var binaryWriter = new BinaryWriter(writer.BaseStream))

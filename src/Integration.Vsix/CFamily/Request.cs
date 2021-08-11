@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -30,7 +31,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     {
         public RequestContext Context { get; set; }
 
-        // TODO - duplicate property - removed
+        /// <summary>
+        /// This protocol does not use environment variables
+        /// </summary>
+        public IDictionary<string, string> EnvironmentVariables => null;
+
+        // TODO - duplicate property - remove
         internal string CFamilyLanguage { get; set; }
 
         internal FileConfig FileConfig { get; set; }
