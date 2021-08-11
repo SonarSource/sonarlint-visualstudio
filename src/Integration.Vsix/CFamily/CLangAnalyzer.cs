@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
 using Task = System.Threading.Tasks.Task;
 
@@ -173,7 +174,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private void HandleMessage(Message message, IRequest request, IIssueConsumer consumer, ref int issueCount)
         {
-            Debug.Assert(message.Filename == request.Context.File, $"Issue for unexpected file returned: {message.Filename}");
+            Debug.Assert(PathHelper.IsMatchingPath(message.Filename, request.Context.File), $"Issue for unexpected file returned: {message.Filename}");
             if (!IsIssueForActiveRule(message, request.Context.RulesConfiguration))
             {
                 return;
