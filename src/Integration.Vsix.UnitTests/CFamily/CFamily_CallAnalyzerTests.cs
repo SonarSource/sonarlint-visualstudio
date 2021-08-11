@@ -49,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Assert
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
 
-            response.Count().Should().Be(1);
+            response.Count.Should().Be(1);
             response[0].Filename.Should().Be("file.cpp");
         }
 
@@ -66,6 +66,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
 
             response.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void CallAnalyzer_RequestWithEnvironmentVariables_EnvVarsArePassed()
+        {
+            // Arrange
+            var envVars = new Dictionary<string, string> { { "aaa", "bbb" } };
+
+            var request = CreateRequestMock();
+            request.SetupGet(x => x.EnvironmentVariables).Returns(envVars);
+
+            var dummyProcessRunner = new DummyProcessRunner(MockResponse());
+            var result = GetResponse(dummyProcessRunner, request.Object, new TestLogger());
+
+            // Act and Assert
+            dummyProcessRunner.ExecuteCalled.Should().BeTrue();
+            dummyProcessRunner.SuppliedProcessRunnerArguments.EnvironmentVariables.Should().BeSameAs(envVars);
         }
 
         [TestMethod]
@@ -206,11 +223,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             public bool ExecuteCalled { get; private set; }
 
+            public ProcessRunnerArguments SuppliedProcessRunnerArguments { get; private set; }
+
             public void Execute(ProcessRunnerArguments runnerArgs)
             {
                 ExecuteCalled = true;
 
                 runnerArgs.Should().NotBeNull();
+                SuppliedProcessRunnerArguments = runnerArgs;
 
                 // Expecting a single file name as input
                 runnerArgs.CmdLineArgs.Count().Should().Be(1);

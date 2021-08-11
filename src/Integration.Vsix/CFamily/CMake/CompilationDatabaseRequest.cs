@@ -19,6 +19,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.CFamily.CMake;
@@ -49,6 +50,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
         }
 
         public RequestContext Context { get; }
+
+        public IDictionary<string, string> EnvironmentVariables
+        {
+            get
+            {
+                return new Dictionary<string, string>
+                {
+                    // TODO - check whether a value is required. #2539
+                    { "INCLUDE", string.Empty }
+                };
+            }
+        }
 
         public void WriteRequest(BinaryWriter writer)
         {
