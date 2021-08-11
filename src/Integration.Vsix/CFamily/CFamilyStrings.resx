@@ -183,7 +183,7 @@
     <value>Refreshing PCH file for {0}. PCH file location: {1}</value>
   </data>
   <data name="ERROR_CreatingConfig" xml:space="preserve">
-    <value>Error retrieving configuration. File: {0}, Error: {1}</value>
+    <value>[CFamily Analysis] Error retrieving VCX configuration. File: {0}, Error: {1}</value>
   </data>
   <data name="MSG_UnableToCreateConfig" xml:space="preserve">
     <value>Unable to retrieve the configuration for file '{0}'.
