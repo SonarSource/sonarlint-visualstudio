@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (!IsFileInSolution(projectItem))
             {
-                analysisLogger.LogDebug($"[CFamilyHelper] Unable to retrieve the configuration for file '{analyzedFilePath}'. Check the file is part of a project in the current solution.", analyzerOptions);
+                analysisLogger.LogDebug($"[FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
                 return null;
             }
 
