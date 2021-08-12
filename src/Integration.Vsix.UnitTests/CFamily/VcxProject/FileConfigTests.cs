@@ -25,10 +25,10 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.VisualStudio.VCProjectEngine;
 using Moq;
-using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
-namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
+namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.VcxProject
 {
     [TestClass]
     public class FileConfigTests
@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             dteProjectItemMock.Setup(x => x.Object).Returns(Mock.Of<VCFile>());
             dteProjectItemMock.Setup(x => x.ContainingProject).Returns(dteProjectMock.Object);
 
-            CFamilyHelper.FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
+            FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
                 .Should().BeNull();
         }
 
@@ -59,7 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             dteProjectItemMock.Setup(x => x.Object).Returns(null);
             dteProjectItemMock.Setup(x => x.ContainingProject).Returns(dteProjectMock.Object);
 
-            CFamilyHelper.FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
+            FileConfig.TryGet(testLogger, dteProjectItemMock.Object, "c:\\path")
                 .Should().BeNull();
         }
 
@@ -73,7 +73,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Act
             var result =
-                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
+                FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
                     "default xxx");
 
             // Assert
@@ -92,7 +92,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Act - exception should be handled
             var result =
-                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
+                FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
                     "default xxx");
 
             // Assert
@@ -110,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Act and Assert
             Action act = () =>
-                CFamilyHelper.FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
+                FileConfig.GetPotentiallyUnsupportedPropertyValue(settingsMock.Object, "propertyName1",
                     "default xxx");
 
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("foo");
@@ -119,33 +119,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void GetCompilerVersion()
         {
-            CFamilyHelper.FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");
+            FileConfig.GetCompilerVersion("v90", "").Should().Be("15.00.00");
 
-            CFamilyHelper.FileConfig.GetCompilerVersion("v100", "").Should().Be("16.00.00");
+            FileConfig.GetCompilerVersion("v100", "").Should().Be("16.00.00");
 
-            CFamilyHelper.FileConfig.GetCompilerVersion("v110", "").Should().Be("17.00.00");
-            CFamilyHelper.FileConfig.GetCompilerVersion("v110_xp", "").Should().Be("17.00.00");
+            FileConfig.GetCompilerVersion("v110", "").Should().Be("17.00.00");
+            FileConfig.GetCompilerVersion("v110_xp", "").Should().Be("17.00.00");
 
-            CFamilyHelper.FileConfig.GetCompilerVersion("v120", "").Should().Be("18.00.00");
-            CFamilyHelper.FileConfig.GetCompilerVersion("v120_xp", "").Should().Be("18.00.00");
+            FileConfig.GetCompilerVersion("v120", "").Should().Be("18.00.00");
+            FileConfig.GetCompilerVersion("v120_xp", "").Should().Be("18.00.00");
 
-            CFamilyHelper.FileConfig.GetCompilerVersion("v140", "").Should().Be("19.00.00");
-            CFamilyHelper.FileConfig.GetCompilerVersion("v140_xp", "").Should().Be("19.00.00");
+            FileConfig.GetCompilerVersion("v140", "").Should().Be("19.00.00");
+            FileConfig.GetCompilerVersion("v140_xp", "").Should().Be("19.00.00");
 
-            CFamilyHelper.FileConfig.GetCompilerVersion("v141", "14.10.00").Should().Be("19.10.00");
-            CFamilyHelper.FileConfig.GetCompilerVersion("v141_xp", "14.10.50").Should().Be("19.10.50");
+            FileConfig.GetCompilerVersion("v141", "14.10.00").Should().Be("19.10.00");
+            FileConfig.GetCompilerVersion("v141_xp", "14.10.50").Should().Be("19.10.50");
 
-            CFamilyHelper.FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
+            FileConfig.GetCompilerVersion("v142", "14.25.28612").Should().Be("19.25.28612");
 
-            Action action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v142", "2132");
+            Action action = () => FileConfig.GetCompilerVersion("v142", "2132");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
                 .StartWith("Unsupported VCToolsVersion: 2132");
 
-            action = () => CFamilyHelper.FileConfig.GetCompilerVersion("v143", "14.30.0000");
+            action = () => FileConfig.GetCompilerVersion("v143", "14.30.0000");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should()
                 .StartWith("Unsupported PlatformToolset: v143");
 
-            action = () => CFamilyHelper.FileConfig.GetCompilerVersion("", "");
+            action = () => FileConfig.GetCompilerVersion("", "");
             action.Should().ThrowExactly<ArgumentException>().And.Message.Should().StartWith
                 ("The file cannot be analyzed because the platform toolset has not been specified.");
         }
@@ -158,7 +158,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
             fileConfig.Should().BeNull();
@@ -173,7 +173,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
             fileConfig.Should().BeNull();
@@ -188,7 +188,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var fileConfig = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
+            var fileConfig = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.cpp");
 
             // Assert
             fileConfig.Should().BeNull();
@@ -221,7 +221,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
 
             // Act
-            var request = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+            var request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
             request.Should().NotBeNull();
@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             projectItemConfig.FileConfigProperties["ForcedIncludeFiles"] = "FHeader.h";
 
             // Act
-            request = CFamilyHelper.FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
+            request = FileConfig.TryGet(testLogger, projectItemMock.Object, "c:\\dummy\\file.h");
 
             // Assert
             Assert.AreEqual("FHeader.h", request.ForcedIncludeFiles);

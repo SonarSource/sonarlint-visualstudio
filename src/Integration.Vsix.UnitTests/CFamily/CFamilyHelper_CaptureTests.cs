@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -35,7 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void ToCaptures_Test1()
         {
-            var fileConfig = new CFamilyHelper.FileConfig
+            var fileConfig = new FileConfig
             {
                 PlatformName = "Win32",
                 PlatformToolset = "v140",
@@ -89,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public void ToCaptures_Test2()
         {
-            var fileConfig = new CFamilyHelper.FileConfig()
+            var fileConfig = new FileConfig
             {
                 PlatformName = "x64",
                 PlatformToolset = "v140",

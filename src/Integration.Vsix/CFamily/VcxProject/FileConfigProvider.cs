@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return CFamilyHelper.FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath);
+                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
