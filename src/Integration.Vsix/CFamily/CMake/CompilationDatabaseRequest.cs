@@ -22,6 +22,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
 
@@ -33,10 +34,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
     internal class CompilationDatabaseRequest : IRequest
     {
         private readonly CompilationDatabaseEntry databaseEntry;
+        private readonly IRulesConfigProtocolFormatter rulesConfigProtocolFormatter;
 
         public CompilationDatabaseRequest(CompilationDatabaseEntry databaseEntry, RequestContext context)
+            : this(databaseEntry, context, new RulesConfigProtocolFormatter())
+        {
+        }
+
+        internal CompilationDatabaseRequest(CompilationDatabaseEntry databaseEntry, 
+            RequestContext context,
+            IRulesConfigProtocolFormatter rulesConfigProtocolFormatter)
         {
             this.databaseEntry = databaseEntry ?? throw new ArgumentNullException(nameof(databaseEntry));
+            this.rulesConfigProtocolFormatter = rulesConfigProtocolFormatter;
             Context = context ?? throw new ArgumentNullException(nameof(context));
 
             // Must have a Command or Arguments but not both
@@ -80,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
                 WriteSetting(writer, "Arguments", databaseEntry.Arguments);
             }
 
-            WriteQualityProfile(writer);
+            WriteRulesConfig(writer);
 
             // Optional inputs
             WriteSetting(writer, "PreambleFile", Context.PchFile);
@@ -89,9 +99,27 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 
             // TODO - only supplied if analysing a header file
 //            WriteSetting(writer, "HeaderFilerLanguage", Context.CFamilyLanguage);
-            WriteRuleSettings(writer);
 
             WriteFooter(writer);
+        }
+
+        private void WriteRulesConfig(BinaryWriter writer)
+        {
+            // Optimisation - no point in calculating the active rules if we're
+            // creating a pre-compiled header, as they won't be used.
+            // However, the QualityProfile is an essential setting so we still
+            // have to write it.
+            if (!Context.AnalyzerOptions?.CreatePreCompiledHeaders ?? true)
+            {
+                var rulesProtocolFormat = rulesConfigProtocolFormatter.Format(Context.RulesConfiguration);
+
+                WriteQualityProfile(writer, rulesProtocolFormat.QualityProfile);
+                WriteRuleSettings(writer, rulesProtocolFormat.RuleParameters);
+            }
+            else
+            {
+                WriteQualityProfile(writer, "");
+            }
         }
 
         private static void WriteHeader(BinaryWriter writer)
@@ -106,37 +134,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             writer.Write(data);
         }
 
-        private void WriteQualityProfile(BinaryWriter writer)
+        private void WriteQualityProfile(BinaryWriter writer, string qualityProfile)
         {
-            // Comma-separated list of active rule ids
-            string ids = string.Empty;
-
-            // Optimisation - no point in calculating the active rules if we're
-            // creating a pre-compiled header, as they won't be used.
-            // However, the QualityProfile is an essential setting so we still
-            // have to write it.
-            if (!Context?.AnalyzerOptions?.CreatePreCompiledHeaders ?? true)
-            {
-                ids = string.Join(",", Context.RulesConfiguration.ActivePartialRuleKeys);
-            }
-
-            WriteSetting(writer, "QualityProfile", ids);
+            WriteSetting(writer, "QualityProfile", qualityProfile);
         }
 
-        private void WriteRuleSettings(BinaryWriter writer)
+        private void WriteRuleSettings(BinaryWriter writer, Dictionary<string, string> ruleParameters)
         {
-            // The key for each individual setting is in the form {ruleId}.{configname}
-
-            foreach(var ruleId in Context.RulesConfiguration.ActivePartialRuleKeys)
+            foreach (var ruleParameter in ruleParameters)
             {
-                if (Context.RulesConfiguration.RulesParameters.TryGetValue(ruleId, out var parameters))
-                {
-                    foreach(var kvp in parameters)
-                    {
-                        var key = ruleId + "." + kvp.Key;
-                        WriteSetting(writer, key, kvp.Value);
-                    }
-                }
+                WriteSetting(writer, ruleParameter.Key, ruleParameter.Value);
             }
         }
 
