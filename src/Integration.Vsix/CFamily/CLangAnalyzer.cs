@@ -110,11 +110,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
-            var request = requestFactory.TryGet(path, analyzerOptions as CFamilyAnalyzerOptions);
+            var cFamilyAnalyzerOptions = analyzerOptions as CFamilyAnalyzerOptions;
+            var request = requestFactory.TryGet(path, cFamilyAnalyzerOptions);
 
             if (request == null)
             {
-                logger.WriteLine(CFamilyStrings.MSG_UnableToCreateConfig, path);
+                // Logging for PCH is too noisy: #2553
+                if (cFamilyAnalyzerOptions == null || !cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
+                {
+                    logger.WriteLine(CFamilyStrings.MSG_UnableToCreateConfig, path);
+                }
                 return;
             }
 
