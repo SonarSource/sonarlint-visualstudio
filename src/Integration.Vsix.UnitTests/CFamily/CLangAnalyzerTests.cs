@@ -82,6 +82,42 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void ExecuteAnalysis_RequestCannotBeCreated_NotPCH_LogOutput(bool isNullOptions)
+        {
+            var analysisOptions = isNullOptions ? null : new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false };
+
+            requestFactoryAggregateMock
+                .Setup(x => x.TryGet("path", analysisOptions))
+                .Returns((IRequest)null);
+
+            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+
+            testLogger.AssertOutputStringExists(string.Format(CFamilyStrings.MSG_UnableToCreateConfig, "path"));
+        }
+
+        [TestMethod]
+        public void ExecuteAnalysis_RequestCannotBeCreated_PCH_NoLogOutput()
+        {
+            var analysisOptions = new CFamilyAnalyzerOptions {CreatePreCompiledHeaders = true};
+
+            requestFactoryAggregateMock
+                .Setup(x => x.TryGet("path", analysisOptions))
+                .Returns((IRequest)null);
+
+            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
+                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+
+            testLogger.AssertNoOutputMessages();
+        }
+
+        [TestMethod]
         public void ExecuteAnalysis_RequestCanBeCreated_AnalysisIsTriggered()
         {
             var analysisOptions = new CFamilyAnalyzerOptions();
