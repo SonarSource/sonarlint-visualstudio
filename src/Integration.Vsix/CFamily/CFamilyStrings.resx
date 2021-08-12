@@ -195,4 +195,7 @@
   <data name="ERROR_InvalidCompilationEntry" xml:space="preserve">
     <value>Invalid compilation database entry. Either Command or Arguments must be supplied, but not both.</value>
   </data>
+  <data name="ERROR_CreatingVcxRequest" xml:space="preserve">
+    <value>[CFamily Analysis] Error creating VCX request. File: {0}, Error: {1}</value>
+  </data>
 </root>
