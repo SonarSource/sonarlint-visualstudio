@@ -70,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CFamily Analysis] Error creating VCX request File: {0}, Error: {1}.
+        ///   Looks up a localized string similar to [CFamily Analysis] Error creating VCX request. File: {0}, Error: {1}.
         /// </summary>
         internal static string ERROR_CreatingVcxRequest {
             get {
