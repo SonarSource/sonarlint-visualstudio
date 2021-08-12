@@ -23,11 +23,11 @@ using EnvDTE;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Helpers;
 
-namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
+namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
     internal interface IFileConfigProvider
     {
-        CFamilyHelper.FileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
+        IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
     }
 
     internal class FileConfigProvider : IFileConfigProvider
@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         }
 
 
-        public CFamilyHelper.FileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public IFileConfig Get(ProjectItem projectItem, string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             var analysisLogger = GetAnalysisLogger(analyzerOptions);
 
@@ -56,7 +56,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 // Note: if the C++ tools are not installed then it's likely an exception will be thrown when
                 // the framework tries to JIT-compile the TryGet method (since it won't be able to find the MS.VS.VCProjectEngine
                 // types).
-                return CFamilyHelper.FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath);
+                return FileConfig.TryGet(analysisLogger, projectItem, analyzedFilePath);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
