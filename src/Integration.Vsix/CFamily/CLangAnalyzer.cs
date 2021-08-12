@@ -115,6 +115,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (request == null)
             {
+                // Logging for PCH is too noisy: #2553
                 if (cFamilyAnalyzerOptions == null || !cFamilyAnalyzerOptions.CreatePreCompiledHeaders)
                 {
                     logger.WriteLine(CFamilyStrings.MSG_UnableToCreateConfig, path);
