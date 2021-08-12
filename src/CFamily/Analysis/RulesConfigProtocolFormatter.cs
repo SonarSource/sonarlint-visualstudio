@@ -67,7 +67,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
         {
             var ruleParameters = new Dictionary<string, string>();
             
-            foreach (var ruleKey in rulesConfiguration.AllPartialRuleKeys)
+            foreach (var ruleKey in rulesConfiguration.ActivePartialRuleKeys)
             {
                 if (rulesConfiguration.RulesParameters.TryGetValue(ruleKey, out var ruleParams))
                 {

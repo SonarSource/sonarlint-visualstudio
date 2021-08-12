@@ -102,7 +102,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
         }
 
         [TestMethod]
-        public void Format_MultipleRules_DotSeparatedParameters()
+        public void Format_MultipleRules_DotSeparatedParametersForActiveRules()
         {
             var rulesConfig = new DummyCFamilyRulesConfig("cpp");
 
@@ -112,7 +112,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Rules
                 {"param2", "some other value"}
             });
 
-            rulesConfig.AddRule("rule2", false, new Dictionary<string, string>
+            // inactive rules should be ignored
+            rulesConfig.AddRule("inactive", false, new Dictionary<string, string>
+            {
+                {"param3", "value3"},
+                {"param4", "value4"}
+            });
+
+            rulesConfig.AddRule("rule2", true, new Dictionary<string, string>
             {
                 {"some param", "value1"},
                 {"some other param", "value2"}
