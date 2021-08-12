@@ -19,19 +19,27 @@
  */
 
 using System;
+using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
+using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
     [TestClass]
     public class VcxRequestFactoryTests
     {
+        private static ProjectItem DummyProjectItem = Mock.Of<ProjectItem>();
+        private static CFamilyAnalyzerOptions DummyAnalyzerOptions = new CFamilyAnalyzerOptions();
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
@@ -53,14 +61,247 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             request.Should().BeNull();
         }
 
-        private VcxRequestFactory CreateTestSubject(ProjectItem projectItem)
+        [TestMethod]
+        public void TryGet_NoFileConfig_Null()
+        {
+            const string analyzedFilePath = "path";
+            var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, null);
+
+            var testSubject = CreateTestSubject(DummyProjectItem, fileConfigProvider: fileConfigProvider.Object);
+            var request = testSubject.TryGet("path", DummyAnalyzerOptions);
+
+            request.Should().BeNull();
+
+            fileConfigProvider.Verify(x=> x.Get(DummyProjectItem, analyzedFilePath, DummyAnalyzerOptions), Times.Once);
+        }
+
+        [TestMethod]
+        public void TryGet_RequestCreatedWithNoDetectedLanguage_Null()
+        {
+            const string analyzedFilePath = "c:\\notCFamilyFile.txt";
+
+            var fileConfig = CreateDummyFileConfig(analyzedFilePath);
+            var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, fileConfig.Object);
+            var cFamilyRulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+
+            var testSubject = CreateTestSubject(DummyProjectItem, 
+                fileConfigProvider: fileConfigProvider.Object, 
+                cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object);
+
+            var request = testSubject.TryGet(analyzedFilePath, DummyAnalyzerOptions);
+
+            request.Should().BeNull();
+
+            fileConfig.VerifyGet(x => x.AbsoluteFilePath, Times.Once);
+            cFamilyRulesConfigProvider.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public void TryGet_FailureParsing_NonCriticialException_Null()
+        {
+            const string analyzedFilePath = "c:\\test.cpp";
+
+            var fileConfig = CreateDummyFileConfig(analyzedFilePath);
+            var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, fileConfig.Object);
+           
+            var cFamilyRulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+            cFamilyRulesConfigProvider
+                .Setup(x => x.GetRulesConfiguration(SonarLanguageKeys.CPlusPlus))
+                .Throws<NotImplementedException>();
+
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(DummyProjectItem,
+                fileConfigProvider: fileConfigProvider.Object,
+                cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object,
+                logger: logger);
+
+            var request = testSubject.TryGet(analyzedFilePath, DummyAnalyzerOptions);
+
+            request.Should().BeNull();
+
+            logger.AssertPartialOutputStringExists(nameof(NotImplementedException));
+        }
+
+        [TestMethod]
+        public void TryGet_FailureParsing_CriticalException_ExceptionThrown()
+        {
+            const string analyzedFilePath = "c:\\test.cpp";
+
+            var fileConfig = CreateDummyFileConfig(analyzedFilePath);
+            var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, fileConfig.Object);
+
+            var cFamilyRulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+            cFamilyRulesConfigProvider
+                .Setup(x => x.GetRulesConfiguration(SonarLanguageKeys.CPlusPlus))
+                .Throws<StackOverflowException>();
+
+            var testSubject = CreateTestSubject(DummyProjectItem,
+                fileConfigProvider: fileConfigProvider.Object,
+                cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object);
+
+            Action act = () => testSubject.TryGet(analyzedFilePath, DummyAnalyzerOptions);
+
+            act.Should().ThrowExactly<StackOverflowException>();
+        }
+
+        [TestMethod]
+        public void TryGet_IRequestPropertiesAreSet()
+        {
+            var analyzerOptions = new CFamilyAnalyzerOptions();
+            var rulesConfig = Mock.Of<ICFamilyRulesConfig>();
+
+            var request = (IRequest)GetSuccessfulRequest(analyzerOptions, "d:\\xxx\\fileToAnalyze.cpp", rulesConfig);
+            request.Should().NotBeNull();
+
+            request.Context.File.Should().Be("d:\\xxx\\fileToAnalyze.cpp");
+            request.Context.PchFile.Should().Be(SubProcessFilePaths.PchFilePath);
+            request.Context.AnalyzerOptions.Should().BeSameAs(analyzerOptions);
+            request.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);
+        }
+
+        [TestMethod]
+        public void TryGet_FileConfigIsSet()
+        {
+            var request = GetSuccessfulRequest();
+            request.Should().NotBeNull();
+
+            request.FileConfig.Should().NotBeNull();
+        }
+
+        [TestMethod]
+        public void TryGet_NonHeaderFile_IsSupported()
+        {
+            var request = GetSuccessfulRequest();
+            
+            request.Should().NotBeNull();
+            (request.Flags & Request.MainFileIsHeader).Should().Be(0);
+        }
+
+        [TestMethod]
+        public void TryGet_HeaderFile_IsSupported()
+        {
+            var projectItemConfig = new ProjectItemConfig { ItemType = "ClInclude" };
+            var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
+
+            var fileConfig = CreateDummyFileConfig("c:\\dummy\\file.h");
+            fileConfig.Setup(x => x.CompileAs).Returns("CompileAsCpp");
+            fileConfig.Setup(x => x.ItemType).Returns("ClInclude");
+
+            var request = GetSuccessfulRequest(fileToAnalyze: "c:\\dummy\\file.h", projectItem: projectItemMock.Object, fileConfig: fileConfig);
+
+            request.Should().NotBeNull();
+            (request.Flags & Request.MainFileIsHeader).Should().NotBe(0);
+        }
+
+        [TestMethod]
+        public void TryGet_NoAnalyzerOptions_RequestCreatedWithoutOptions()
+        {
+            var request = GetSuccessfulRequest(analyzerOptions: null);
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().Be(0);
+            (request.Flags & Request.BuildPreamble).Should().Be(0);
+            
+            request.Context.AnalyzerOptions.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void TryGet_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().NotBe(0);
+        }
+
+        [TestMethod]
+        public void TryGet_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = false });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.CreateReproducer).Should().Be(0);
+        }
+
+        [TestMethod]
+        public void TryGet_AnalyzerOptionsWithPCH_RequestCreatedWithPCHFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.BuildPreamble).Should().NotBe(0);
+        }
+
+        [TestMethod]
+        public void TryGet_AnalyzerOptionsWithoutPCH_RequestCreatedWithoutPCHFlag()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false });
+            request.Should().NotBeNull();
+
+            (request.Flags & Request.BuildPreamble).Should().Be(0);
+        }
+
+        [TestMethod]
+        public void TryGet_AnalyzerOptionsWithPCH_RequestOptionsNotSet()
+        {
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
+            request.Should().NotBeNull();
+
+            request.Context.RulesConfiguration.Should().BeNull();
+            request.Options.Should().BeEmpty();
+        }
+
+        [TestMethod]
+        public void TryGet_AnalyzerOptionsWithoutPCH_RequestOptionsAreSet()
+        {
+            var rulesProtocolFormat = new RuleConfigProtocolFormat("some profile", new Dictionary<string, string>
+            {
+                {"rule1", "param1"},
+                {"rule2", "param2"}
+            });
+            
+            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false }, protocolFormat: rulesProtocolFormat);
+            request.Should().NotBeNull();
+
+            request.Context.RulesConfiguration.Should().NotBeNull();
+            request.Options.Should().BeEquivalentTo(
+                "internal.qualityProfile=some profile",
+                "rule1=param1",
+                "rule2=param2");
+        }
+
+        private static Mock<IFileConfigProvider> SetupFileConfigProvider(ProjectItem projectItem, 
+            CFamilyAnalyzerOptions analyzerOptions,
+            string analyzedFilePath,
+            IFileConfig fileConfigToReturn)
+        {
+            var fileConfigProvider = new Mock<IFileConfigProvider>();
+            fileConfigProvider
+                .Setup(x => x.Get(projectItem, analyzedFilePath, analyzerOptions))
+                .Returns(fileConfigToReturn);
+
+            return fileConfigProvider;
+        }
+
+        private VcxRequestFactory CreateTestSubject(ProjectItem projectItem,
+            ICFamilyRulesConfigProvider cFamilyRulesConfigProvider = null,
+            IFileConfigProvider fileConfigProvider = null,
+            IRulesConfigProtocolFormatter rulesConfigProtocolFormatter = null,
+            ILogger logger = null)
         {
             var serviceProvider = CreateServiceProviderReturningProjectItem(projectItem);
 
-            var cFamilyRulesConfigProvider = Mock.Of<ICFamilyRulesConfigProvider>();
-            var logger = Mock.Of<ILogger>();
+            cFamilyRulesConfigProvider ??= Mock.Of<ICFamilyRulesConfigProvider>();
+            rulesConfigProtocolFormatter ??= Mock.Of<IRulesConfigProtocolFormatter>();
+            fileConfigProvider ??= Mock.Of<IFileConfigProvider>();
+            logger ??= Mock.Of<ILogger>();
 
-            return new VcxRequestFactory(serviceProvider.Object, cFamilyRulesConfigProvider, logger);
+            return new VcxRequestFactory(serviceProvider.Object, 
+                cFamilyRulesConfigProvider, 
+                rulesConfigProtocolFormatter, 
+                fileConfigProvider,
+                logger);
         }
 
         private static Mock<IServiceProvider> CreateServiceProviderReturningProjectItem(ProjectItem projectItemToReturn)
@@ -75,6 +316,67 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             mockServiceProvider.Setup(s => s.GetService(typeof(DTE))).Returns(mockDTE.Object);
 
             return mockServiceProvider;
+        }
+
+        private Request GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions = null,
+            string fileToAnalyze = "c:\\foo\\file.cpp",
+            ICFamilyRulesConfig rulesConfig = null,
+            ProjectItem projectItem = null,
+            Mock<IFileConfig> fileConfig = null,
+            RuleConfigProtocolFormat protocolFormat = null)
+        {
+            rulesConfig ??= Mock.Of<ICFamilyRulesConfig>();
+        
+            var rulesConfigProviderMock = new Mock<ICFamilyRulesConfigProvider>();
+        
+            rulesConfigProviderMock
+                .Setup(x => x.GetRulesConfiguration(It.IsAny<string>()))
+                .Returns(rulesConfig);
+
+            projectItem ??= Mock.Of<ProjectItem>();
+
+            fileConfig ??= CreateDummyFileConfig(fileToAnalyze);
+            var fileConfigProvider = SetupFileConfigProvider(projectItem, analyzerOptions, fileToAnalyze, fileConfig.Object);
+
+            protocolFormat ??= new RuleConfigProtocolFormat("qp", new Dictionary<string, string>());
+
+            var rulesConfigProtocolFormatter = new Mock<IRulesConfigProtocolFormatter>();
+            rulesConfigProtocolFormatter
+                .Setup(x => x.Format(rulesConfig))
+                .Returns(protocolFormat);
+
+            var testSubject = CreateTestSubject(projectItem, 
+                rulesConfigProviderMock.Object, 
+                fileConfigProvider.Object,
+                rulesConfigProtocolFormatter.Object);
+        
+            return testSubject.TryGet(fileToAnalyze, analyzerOptions) as Request;
+        }
+
+        private Mock<IFileConfig> CreateDummyFileConfig(string filePath)
+        {
+            var fileConfig = new Mock<IFileConfig>();
+
+            fileConfig.SetupGet(x => x.PlatformName).Returns("Win32");
+            fileConfig.SetupGet(x => x.AdditionalIncludeDirectories).Returns("");
+            fileConfig.SetupGet(x => x.ForcedIncludeFiles).Returns("");
+            fileConfig.SetupGet(x => x.PrecompiledHeader).Returns("");
+            fileConfig.SetupGet(x => x.UndefinePreprocessorDefinitions).Returns("");
+            fileConfig.SetupGet(x => x.PreprocessorDefinitions).Returns("");
+            fileConfig.SetupGet(x => x.CompileAs).Returns("");
+            fileConfig.SetupGet(x => x.CompileAsManaged).Returns("");
+            fileConfig.SetupGet(x => x.RuntimeLibrary).Returns("");
+            fileConfig.SetupGet(x => x.ExceptionHandling).Returns("");
+            fileConfig.SetupGet(x => x.EnableEnhancedInstructionSet).Returns("");
+            fileConfig.SetupGet(x => x.BasicRuntimeChecks).Returns("");
+            fileConfig.SetupGet(x => x.LanguageStandard).Returns("");
+            fileConfig.SetupGet(x => x.AdditionalOptions).Returns("");
+            fileConfig.SetupGet(x => x.CompilerVersion).Returns("1.2.3.4");
+
+            fileConfig.SetupGet(x => x.AbsoluteProjectPath).Returns("c:\\test.vcxproj");
+            fileConfig.SetupGet(x => x.AbsoluteFilePath).Returns(filePath);
+
+            return fileConfig;
         }
     }
 }

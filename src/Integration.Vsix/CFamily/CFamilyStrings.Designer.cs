@@ -70,6 +70,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Error creating VCX request File: {0}, Error: {1}.
+        /// </summary>
+        internal static string ERROR_CreatingVcxRequest {
+            get {
+                return ResourceManager.GetString("ERROR_CreatingVcxRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid compilation database entry. Either Command or Arguments must be supplied, but not both..
         /// </summary>
         internal static string ERROR_InvalidCompilationEntry {
