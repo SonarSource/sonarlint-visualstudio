@@ -24,6 +24,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -53,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             #endregion
 
-            public static Capture[] ToCaptures(FileConfig fileConfig, string path, out string cfamilyLanguage)
+            public static Capture[] ToCaptures(IFileConfig fileConfig, string path, out string cfamilyLanguage)
             {
                 var p = new Capture
                 {

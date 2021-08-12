@@ -22,7 +22,7 @@ using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.CFamily;
-using static SonarLint.VisualStudio.Integration.Vsix.CFamily.CFamilyHelper;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         // TODO - duplicate property - remove
         internal string CFamilyLanguage { get; set; }
 
-        internal FileConfig FileConfig { get; set; }
+        internal IFileConfig FileConfig { get; set; }
 
         public void WriteRequest(BinaryWriter writer) =>
             Protocol.Write(writer, this);

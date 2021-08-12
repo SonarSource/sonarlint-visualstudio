@@ -22,13 +22,14 @@ using System;
 using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.VCProjectEngine;
+using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using SonarLint.VisualStudio.Integration.Vsix.Resources;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 {
     partial class CFamilyHelper
     {
-        internal class FileConfig
+        internal class FileConfig : IFileConfig
         {
             public static FileConfig TryGet(ILogger logger, ProjectItem dteProjectItem, string absoluteFilePath)
             {
