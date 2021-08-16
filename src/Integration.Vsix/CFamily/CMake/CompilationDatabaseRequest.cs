@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             WriteHeader(writer);
 
             // Required inputs
-            WriteSetting(writer, "File", databaseEntry.File);
+            WriteSetting(writer, "File", Context.File);
             WriteSetting(writer, "Directory", databaseEntry.Directory);
 
             if(databaseEntry.Arguments == null)
