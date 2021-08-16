@@ -108,7 +108,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                     ? LocateMatchingCodeEntry(filePath, compilationDatabaseEntries)
                     : LocateExactCodeEntry(filePath, compilationDatabaseEntries);
 
-                logger.WriteLine("***** [CompilationConfigProvider] time (ms) to locate entry: " + stopwatch.ElapsedMilliseconds);
+                // todo: remove before release
+                logger.LogDebug("***** [CompilationConfigProvider] time (ms) to locate entry: " + stopwatch.ElapsedMilliseconds);
 
                 return entry;
             }

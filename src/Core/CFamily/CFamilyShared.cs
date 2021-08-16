@@ -56,6 +56,5 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
             return cfamilyLanguage;
         }
-
     }
 }
