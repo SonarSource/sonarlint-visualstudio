@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             }
 
             // TODO - handle user specifying the language via a command / argument #2533
-            var languageKey = CFamilyShared.FindLanguageFromExtension(analyzedFilePath);
+            var languageKey = CFamilyShared.FindLanguageFromExtension(dbEntry.File);
             if (languageKey == null)
             {
                 return null;
