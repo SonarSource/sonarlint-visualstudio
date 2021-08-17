@@ -23,7 +23,6 @@ using System.ComponentModel.Composition;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS
 {
@@ -42,12 +41,9 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsInfoService : IVsInfoService
     {
-        private readonly ILogger logger;
-
         [ImportingConstructor]
-        public VsInfoService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider, ILogger logger)
+        public VsInfoService([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
-            this.logger = logger;
             InstallRootDir = GetInstallRootDir(serviceProvider);
         }
 
@@ -58,14 +54,8 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             IVsShell shell = serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
 
             object value;
-            int hr = shell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out value);
-            if (ErrorHandler.Succeeded(hr))
-            {
-                return value as string;
-            }
-
-            logger.WriteLine(Resources.FailedToFetchVsInstallRootDir, hr);
-            return null;
+            ErrorHandler.ThrowOnFailure(shell.GetProperty((int)__VSSPROPID2.VSSPROPID_InstallRootDir, out value));
+            return value as string;
         }
     }
 }

@@ -19,17 +19,13 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 using FluentAssertions;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
@@ -42,33 +38,28 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<VsInfoService, IVsInfoService>(null, new[]
             {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateConfiguredServiceProvider("anypath").Object),
-                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+                MefTestHelpers.CreateExport<SVsServiceProvider>(CreateConfiguredServiceProvider("anypath").Object)
             });
         }
 
         [TestMethod]
         public void Create_VsShellCallSucceeds_ReturnsExpectedPath()
         {
-            var logger = new TestLogger();
             var serviceProvider = CreateConfiguredServiceProvider("c:\\test\\");
 
-            var testSubject = new VsInfoService(serviceProvider.Object, logger);
+            var testSubject = new VsInfoService(serviceProvider.Object);
 
             testSubject.InstallRootDir.Should().Be("c:\\test\\");
-            logger.AssertNoOutputMessages();
         }
 
         [TestMethod]
-        public void Create_VsShellCallFails_ReturnsNull()
+        public void Create_VsShellCallFails_ExceptionThrown()
         {
             var logger = new TestLogger();
             var serviceProvider = CreateConfiguredServiceProvider("c:\\test\\", shellHrResult: -123);
 
-            var testSubject = new VsInfoService(serviceProvider.Object, logger);
-
-            testSubject.InstallRootDir.Should().BeNull();
-            logger.AssertPartialOutputStringExists("-123");
+            Action act = () => new VsInfoService(serviceProvider.Object);
+            act.Should().ThrowExactly<COMException>();
         }
 
         private Mock<IServiceProvider> CreateConfiguredServiceProvider(string installDirectory, int shellHrResult = VSConstants.S_OK)

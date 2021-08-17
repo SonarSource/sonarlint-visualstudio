@@ -70,15 +70,6 @@ namespace SonarLint.VisualStudio.Infrastructure.VS {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to retrieve VS install root directory: {0}.
-        /// </summary>
-        internal static string FailedToFetchVsInstallRootDir {
-            get {
-                return ResourceManager.GetString("FailedToFetchVsInstallRootDir", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Current VS version:
         ///    {0}
         ///    {1}

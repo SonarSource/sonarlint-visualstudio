@@ -120,9 +120,6 @@
   <data name="FailedToCalculateVsVersion" xml:space="preserve">
     <value>Failed to calculate VS version, error: {0}</value>
   </data>
-  <data name="FailedToFetchVsInstallRootDir" xml:space="preserve">
-    <value>Failed to retrieve VS install root directory: {0}</value>
-  </data>
   <data name="VsVersionDetails" xml:space="preserve">
     <value>Current VS version:
     {0}
