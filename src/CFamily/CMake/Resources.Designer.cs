@@ -79,6 +79,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CMake] Compilation database file contains no entries. File: {0}.
+        /// </summary>
+        internal static string EmptyCompilationDatabaseFile {
+            get {
+                return ResourceManager.GetString("EmptyCompilationDatabaseFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; could not be found at &apos;{1}&apos;.
         /// </summary>
         internal static string NoBuildConfigInCMakeSettings {
@@ -93,6 +102,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         internal static string NoCompilationDatabaseEntry {
             get {
                 return ResourceManager.GetString("NoCompilationDatabaseEntry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CMake] Could not detect matching header file configuration in the compilation database. Header file: &apos;{0}&apos;.
+        /// </summary>
+        internal static string NoCompilationDatabaseEntryForHeaderFile {
+            get {
+                return ResourceManager.GetString("NoCompilationDatabaseEntryForHeaderFile", resourceCulture);
             }
         }
         

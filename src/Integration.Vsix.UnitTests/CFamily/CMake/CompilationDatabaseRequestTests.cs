@@ -89,10 +89,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void WriteReqest_ValidRequest_ExpectedHeaderFooterAndSimpleProperties()
+        public void WriteRequest_HeaderFile_WritesTheFileFromContext()
+        {
+            var dbEntry = new CompilationDatabaseEntry { File = "file.cpp", Directory = "c:\\aaa", Command = "any" };
+            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null);
+
+            var tokens = WriteRequest(dbEntry, context);
+
+            // File name should be taken from context, to support header files
+            CheckExpectedSetting(tokens, "File", "file.h");
+        }
+
+        [TestMethod]
+        public void WriteRequest_ValidRequest_ExpectedHeaderFooterAndSimpleProperties()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\aaa", Command = "any" };
-            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), null, "d:\\preamble.txt", null);
+            var context = new RequestContext("any", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null);
 
             var tokens = WriteRequest(dbEntry, context);
 
@@ -101,13 +113,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             tokens.Last().Should().Be("SL-END");
 
             // Simple properties i.e. ones that are just written as-is
-            CheckExpectedSetting(tokens, "File", "file.txt");
+            CheckExpectedSetting(tokens, "File", "file.h");
             CheckExpectedSetting(tokens, "Directory", "c:\\aaa");
             CheckExpectedSetting(tokens, "PreambleFile", "d:\\preamble.txt");
         }
 
         [TestMethod]
-        public void WriteReqest_WithCommand_ExpectedSettingWritten()
+        public void WriteRequest_WithCommand_ExpectedSettingWritten()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\aaa", Command = "cmd1 cmd2" };
 
@@ -118,7 +130,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void WriteReqest_WithArguments_ExpectedSettingWritten()
+        public void WriteRequest_WithArguments_ExpectedSettingWritten()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\aaa", Arguments = "arg1\narg2" };
 
@@ -131,7 +143,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [TestMethod]
         [DataRow(true, "true")]
         [DataRow(false, "false")]
-        public void WriteReqest_CreateReproducer_ExpectedSettingWritten(bool createReproducer, string expectedValue)
+        public void WriteRequest_CreateReproducer_ExpectedSettingWritten(bool createReproducer, string expectedValue)
         {
             var analyzerOptions = new CFamilyAnalyzerOptions { CreateReproducer = createReproducer };
             var context = CreateContext(analyzerOptions: analyzerOptions);
@@ -144,7 +156,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [TestMethod]
         [DataRow(true, "true")]
         [DataRow(false, "false")]
-        public void WriteReqest_CreatePreamble_ExpectedSettingWritten(bool createPch, string expectedValue)
+        public void WriteRequest_CreatePreamble_ExpectedSettingWritten(bool createPch, string expectedValue)
         {
             var rulesConfig = new DummyCFamilyRulesConfig("cpp")
                     .AddRule("active1", isActive: true);
@@ -167,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void WriteReqest_QualityProfile_ExpectedSettingWritten()
+        public void WriteRequest_QualityProfile_ExpectedSettingWritten()
         {
             var rulesConfig = new DummyCFamilyRulesConfig("cpp")
                     .AddRule("inactive1",  isActive: false)
@@ -183,7 +195,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void WriteReqest_WithRuleParameters_ExpectedSettingWritten()
+        public void WriteRequest_WithRuleParameters_ExpectedSettingWritten()
         {
             var rulesConfig = new DummyCFamilyRulesConfig("cpp")
                     .AddRule("inactive1", isActive: false,
@@ -233,7 +245,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void WriteReqest_NoRuleParameters_NoErrors()
+        public void WriteRequest_NoRuleParameters_NoErrors()
         {
             // Active rules with no parameters
             var rulesConfig = new DummyCFamilyRulesConfig("cpp")

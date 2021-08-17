@@ -45,6 +45,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         public void TryGet_NoConfig_ReturnsNull()
         {
             const string fileName = "c:\\file.cpp";
+
             var compilationConfigProvider = CreateCompilationProvider(fileName, null);
             var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
@@ -58,10 +59,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
+        [Description("Check support for header files")]
+        public void TryGet_LanguageCalculatedBasedOnCompilationEntry()
+        {
+            const string fileName = "c:\\file.h";
+
+            var compilationDatabaseEntry = CreateCompilationDatabaseEntry("file.c");
+            var compilationConfigProvider = CreateCompilationProvider(fileName, compilationDatabaseEntry);
+            var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
+
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
+            testSubject.TryGet(fileName, new CFamilyAnalyzerOptions());
+
+            compilationConfigProvider.VerifyAll();
+
+            // When analyzing header files, the analyzed file will be ".h", which is not a known rules' language.
+            // However, the compilation entry is a ".c" file, so we expect the code to calculate the rules based on the entry.
+            rulesConfigProvider.Verify(x=> x.GetRulesConfiguration(SonarLanguageKeys.C), Times.Once());
+        }
+
+        [TestMethod]
         public void TryGet_UnrecognizedLanguage_ReturnsNull()
         {
             const string fileName = "c:\\file.txt";
-            var compilationConfigProvider = CreateCompilationProvider(fileName, new CompilationDatabaseEntry());
+
+            var compilationDatabaseEntry = CreateCompilationDatabaseEntry(fileName);
+            var compilationConfigProvider = CreateCompilationProvider(fileName, compilationDatabaseEntry);
             var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
             var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
@@ -77,10 +100,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         public void TryGet_ValidFile_ReturnsExpectedValue()
         {
             const string fileName = "c:\\file.c";
-            var compilationConfigProvider = CreateCompilationProvider(fileName,
-                new CompilationDatabaseEntry { Command = "foo" });
 
-            var rulesConfig = new DummyCFamilyRulesConfig("c");
+            var compilationDatabaseEntry = CreateCompilationDatabaseEntry(fileName);
+            var compilationConfigProvider = CreateCompilationProvider(fileName, compilationDatabaseEntry);
+
+            var rulesConfig = new DummyCFamilyRulesConfig(SonarLanguageKeys.C);
             var rulesConfigProvider = CreateRulesProvider(SonarLanguageKeys.C, rulesConfig);
 
             var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
@@ -121,5 +145,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             rulesProvider.Setup(x => x.GetRulesConfiguration(languageKey)).Returns(rulesConfig);
             return rulesProvider;
         }
+
+        private CompilationDatabaseEntry CreateCompilationDatabaseEntry(string filePath) =>
+            new CompilationDatabaseEntry
+            {
+                File = filePath,
+                Command = "cmd"
+            };
     }
 }
