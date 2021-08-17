@@ -123,11 +123,17 @@
   <data name="BadCompilationDatabaseFile" xml:space="preserve">
     <value>[CMake] Could not parse compile_commands.json: {0}</value>
   </data>
+  <data name="EmptyCompilationDatabaseFile" xml:space="preserve">
+    <value>[CMake] Compilation database file contains no entries. File: {0}</value>
+  </data>
   <data name="NoBuildConfigInCMakeSettings" xml:space="preserve">
     <value>[CMake] Specified build configuration '{0}' could not be found at '{1}'</value>
   </data>
   <data name="NoCompilationDatabaseEntry" xml:space="preserve">
     <value>[CMake] Could not find file in the compilation database. File: '{0}'</value>
+  </data>
+  <data name="NoCompilationDatabaseEntryForHeaderFile" xml:space="preserve">
+    <value>[CMake] Could not detect matching header file configuration in the compilation database. Header file: '{0}'</value>
   </data>
   <data name="NoCompilationDatabaseFile" xml:space="preserve">
     <value>[CMake] Could not locate compilation database at '{0}'. Make sure that your project is configured correctly. 

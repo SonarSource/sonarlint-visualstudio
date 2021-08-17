@@ -32,11 +32,13 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public static readonly StringComparer RuleKeyComparer = SonarRuleRepoKeys.RepoKeyComparer;
         public static readonly StringComparison RuleKeyComparison = StringComparison.Ordinal;
 
+        public static readonly string[] KnownExtensions = {".cpp", ".cxx", ".cc", ".c"};
+
         /// <summary>
         /// Attempts to detect whether the file is C or C++ based on the file extension.
         /// Returns null if the extension is not recognised.
         /// </summary>
-         public static string FindLanguageFromExtension(string analyzedFilePath)
+        public static string FindLanguageFromExtension(string analyzedFilePath)
         {
             string cfamilyLanguage = null;
 

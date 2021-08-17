@@ -21,10 +21,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
@@ -93,12 +96,20 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 var compilationDatabaseString = fileSystem.File.ReadAllText(compilationDatabaseLocation);
                 var compilationDatabaseEntries = JsonConvert.DeserializeObject<IEnumerable<CompilationDatabaseEntry>>(compilationDatabaseString);
 
-                var entry = compilationDatabaseEntries?.FirstOrDefault(x => !string.IsNullOrEmpty(x.File) && PathHelper.IsMatchingPath(filePath, x.File));
-
-                if (entry == null)
+                if (compilationDatabaseEntries == null || !compilationDatabaseEntries.Any())
                 {
-                    logger.WriteLine(Resources.NoCompilationDatabaseEntry, filePath);
+                    logger.WriteLine(Resources.EmptyCompilationDatabaseFile, compilationDatabaseLocation);
+                    return null;
                 }
+
+                var stopwatch = Stopwatch.StartNew();
+
+                var entry = IsHeaderFile(filePath)
+                    ? LocateMatchingCodeEntry(filePath, compilationDatabaseEntries)
+                    : LocateExactCodeEntry(filePath, compilationDatabaseEntries);
+
+                // todo: remove before release
+                logger.LogDebug("***** [CompilationConfigProvider] time (ms) to locate entry: " + stopwatch.ElapsedMilliseconds);
 
                 return entry;
             }
@@ -109,5 +120,112 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
         }
+
+        private bool IsHeaderFile(string filePath) => 
+            Path.GetExtension(filePath).Equals(".h", StringComparison.OrdinalIgnoreCase);
+
+        private CompilationDatabaseEntry LocateExactCodeEntry(string filePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            logger.LogDebug($"[CompilationConfigProvider] Code file detected, searching for exact match. File: {filePath}");
+
+            var entry = LocateCodeEntry(filePath, compilationDatabaseEntries);
+
+            if (entry == null)
+            {
+                logger.WriteLine(Resources.NoCompilationDatabaseEntry, filePath);
+            }
+
+            return entry;
+        }
+
+        private CompilationDatabaseEntry LocateMatchingCodeEntry(string headerFilePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            logger.LogDebug($"[CompilationConfigProvider] Header file detected, searching for matching code file. File: {headerFilePath}");
+
+            var codeFilesWithSameNameAndSamePath =
+                CFamilyShared.KnownExtensions.Select(ext => Path.ChangeExtension(headerFilePath, ext));
+
+            var matchingCodeEntry =
+                LocateCodeEntryWithExactNameAndPath(codeFilesWithSameNameAndSamePath, compilationDatabaseEntries) ??
+                LocateCodeEntryWithExactName(codeFilesWithSameNameAndSamePath, compilationDatabaseEntries) ??
+                LocateFirstCodeEntryUnderRoot(headerFilePath, compilationDatabaseEntries) ??
+                LocateFirstCodeEntry(compilationDatabaseEntries);
+
+            if (matchingCodeEntry == null)
+            {
+                logger.WriteLine(Resources.NoCompilationDatabaseEntryForHeaderFile, headerFilePath);
+            }
+
+            return matchingCodeEntry;
+        }
+
+        private CompilationDatabaseEntry LocateCodeEntryWithExactNameAndPath(IEnumerable<string> codeFilesWithSameNameAndSamePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            foreach (var codeFile in codeFilesWithSameNameAndSamePath)
+            {
+                var entry = LocateCodeEntry(codeFile, compilationDatabaseEntries);
+
+                if (entry != null)
+                {
+                    logger.LogDebug($"[CompilationConfigProvider] Header file: located matching code file with same name and path: {entry.File}");
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        private CompilationDatabaseEntry LocateCodeEntryWithExactName(IEnumerable<string> codeFilesWithSameNameAndSamePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            var codeFilesWithSameName = codeFilesWithSameNameAndSamePath.Select(Path.GetFileName);
+
+            foreach (var codeFile in codeFilesWithSameName)
+            {
+                var entry = compilationDatabaseEntries.FirstOrDefault(x =>
+                    !string.IsNullOrEmpty(x.File) &&
+                    Path.GetFileName(x.File).Equals(codeFile, StringComparison.OrdinalIgnoreCase));
+
+                if (entry != null)
+                {
+                    logger.LogDebug($"[CompilationConfigProvider] Header file: located matching code file with same name: {entry.File}");
+                    return entry;
+                }
+            }
+
+            return null;
+        }
+
+        private CompilationDatabaseEntry LocateFirstCodeEntryUnderRoot(string headerFilePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            var rootDirectory = Path.GetDirectoryName(headerFilePath);
+
+            var entry = compilationDatabaseEntries.FirstOrDefault(x =>
+                !string.IsNullOrEmpty(x.File) &&
+                PathHelper.IsPathRootedUnderRoot(x.File, rootDirectory));
+
+            if (entry != null)
+            {
+                logger.LogDebug($"[CompilationConfigProvider] Header file: located code file under same root: {entry.File}");
+            }
+
+            return entry;
+        }
+
+        private CompilationDatabaseEntry LocateFirstCodeEntry(IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            var entry = compilationDatabaseEntries.FirstOrDefault(x => !string.IsNullOrEmpty(x.File));
+
+            if (entry != null)
+            {
+                logger.LogDebug($"[CompilationConfigProvider] Header file: using first entry: {entry.File}");
+            }
+
+            return entry;
+        }
+
+        private static CompilationDatabaseEntry LocateCodeEntry(string filePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries) =>
+            compilationDatabaseEntries.FirstOrDefault(x =>
+                !string.IsNullOrEmpty(x.File) &&
+                PathHelper.IsMatchingPath(filePath, x.File));
     }
 }

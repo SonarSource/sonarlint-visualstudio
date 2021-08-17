@@ -86,6 +86,25 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
+        [DataRow("")]
+        [DataRow("[]")]
+        public void GetConfig_EmptyCompilationDatabase_Null(string compilationDatabaseContents)
+        {
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
+            var fileSystem = SetupDatabaseFileContents("some db", compilationDatabaseContents);
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
+
+            var result = testSubject.GetConfig("some file");
+            result.Should().BeNull();
+
+            fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
+
+            logger.AssertOutputStringExists(string.Format(Resources.EmptyCompilationDatabaseFile, "some db"));
+        }
+
+        [TestMethod]
         public void GetConfig_ProblemReadingDatabaseFile_NonCriticalException_Null()
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
@@ -133,12 +152,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        [DataRow("")]
-        [DataRow("[]")]
-        [DataRow("[{}]")]
+        [DataRow("[{}]")] // no entries in file
         [DataRow("[{\"file\" : \"some file.c\" }]")] // different extension
         [DataRow("[{\"file\" : \"sub/some file.cpp\" }]")] // different path
-        public void GetConfig_EntryIsNotFoundInDatabase_Null(string databaseFileContents)
+        public void GetConfig_CodeFile_EntryNotFoundInDatabase_Null(string databaseFileContents)
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var fileSystem = SetupDatabaseFileContents("some db", databaseFileContents);
@@ -159,7 +176,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("c:/some file.cpp")] // different format 
         [DataRow("c:/SOME file.cpp")] // case-sensitivity on name
         [DataRow("c:/some file.CPP")] // case-sensitivity on extension
-        public void GetConfig_EntryFound_ReturnsEntry(string entryFilePath)
+        public void GetConfig_CodeFile_EntryFound_ReturnsEntry(string entryFilePath)
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var compilationDatabaseContent = new[]
@@ -176,7 +193,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void GetConfig_MultipleEntriesForFile_ReturnsFirstOne()
+        public void GetConfig_CodeFile_DatabaseContainsMultipleEntriesForSameFile_ReturnsFirstOne()
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var compilationDatabaseContent = new[]
@@ -194,6 +211,115 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var result = testSubject.GetConfig("some file");
 
             result.Should().BeEquivalentTo(compilationDatabaseContent[1]);
+        }
+
+        [TestMethod]
+        public void GetConfig_HeaderFile_NoEntriesInCompilationDatabase_Null()
+        {
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
+            var fileSystem = SetupDatabaseFileContents("some db", "[{}]");
+            var logger = new TestLogger();
+
+            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
+
+            var result = testSubject.GetConfig("some header.h");
+            result.Should().BeNull();
+
+            fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
+
+            logger.AssertPartialOutputStringExists(string.Format(Resources.NoCompilationDatabaseEntryForHeaderFile, "some header.h"));
+        }
+
+        [TestMethod]
+        [DataRow("c:\\a.cpp")]
+        [DataRow("c:\\some\\folder\\a.c")]
+        [DataRow("D:\\A.cxx")]
+        [DataRow("c:\\test\\a.CC")]
+        public void GetConfig_HeaderFile_CodeWithSameNameDifferentPath_ReturnsCodeFileEntry(string matchingCodeFile)
+        {
+            const string headerFilePath = "c:\\test\\a.h";
+
+            var compilationDatabaseContent = new[]
+            {
+                new CompilationDatabaseEntry {File = "c:\\test\\a.b", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = matchingCodeFile, Command = "cmd2", Directory = "dir2"},
+                new CompilationDatabaseEntry {File = "c:\\test\\aa.cpp", Command = "cmd3", Directory = "dir3"}
+            };
+
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
+            var fileSystem = SetupDatabaseFileContents("some db", JsonConvert.SerializeObject(compilationDatabaseContent));
+
+            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
+
+            var result = testSubject.GetConfig(headerFilePath);
+            result.Should().BeEquivalentTo(compilationDatabaseContent[1]);
+        }
+
+        [TestMethod]
+        public void GetConfig_HeaderFile_CodeWithSameNameExactPath_GivenPriorityOverDifferentPath()
+        {
+            const string headerFilePath = "c:\\test\\a.h";
+
+            var compilationDatabaseContent = new[]
+            {
+                new CompilationDatabaseEntry {File = "c:\\a.c", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\other\\a.c", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\test\\a.c", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\test\\a.b", Command = "cmd1", Directory = "dir1"}
+            };
+
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
+            var fileSystem = SetupDatabaseFileContents("some db", JsonConvert.SerializeObject(compilationDatabaseContent));
+            
+            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
+
+            var result = testSubject.GetConfig(headerFilePath);
+            result.Should().BeEquivalentTo(compilationDatabaseContent[2]);
+        }
+
+        [TestMethod]
+        public void GetConfig_HeaderFile_NoMatchingName_HasCodeFileUnderPath_ReturnsCodeFileEntry()
+        {
+            const string headerFilePath = "c:\\a\\b\\test.h";
+
+            var compilationDatabaseContent = new[]
+            {
+                new CompilationDatabaseEntry {File = "c:\\a\\wrongRoot2.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\b\\wrongRoot3.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\a\\b\\c\\correctRoot1.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\a\\b\\correctRoot2.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\wrongRoot3.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\a\\b\\correctRoot3.cpp", Command = "cmd1", Directory = "dir1"}
+            };
+
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
+            var fileSystem = SetupDatabaseFileContents("some db", JsonConvert.SerializeObject(compilationDatabaseContent));
+
+            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
+
+            var result = testSubject.GetConfig(headerFilePath);
+            result.Should().BeEquivalentTo(compilationDatabaseContent[2]);
+        }
+
+        [TestMethod]
+        public void GetConfig_HeaderFile_NoMatchingName_NoMatchingPath_ReturnsFirstCodeFileEntry()
+        {
+            const string headerFilePath = "c:\\a\\b\\test.h";
+
+            var compilationDatabaseContent = new[]
+            {
+                new CompilationDatabaseEntry {File = "c:\\wrongRoot.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\a\\c\\wrongRoot2.cpp", Command = "cmd1", Directory = "dir1"},
+                new CompilationDatabaseEntry {File = "c:\\b\\wrongRoot3.cpp", Command = "cmd1", Directory = "dir1"}
+            };
+
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
+            var fileSystem = SetupDatabaseFileContents("some db", JsonConvert.SerializeObject(compilationDatabaseContent));
+
+            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
+
+            var result = testSubject.GetConfig(headerFilePath);
+            result.Should().BeEquivalentTo(compilationDatabaseContent[0]);
         }
 
         private static Mock<IFileSystem> SetupDatabaseFileContents(string databaseFilePath, string content = null, Exception exToThrow = null)
