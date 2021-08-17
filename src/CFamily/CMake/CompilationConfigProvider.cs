@@ -145,6 +145,22 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var codeFilesWithSameNameAndSamePath =
                 CFamilyShared.KnownExtensions.Select(ext => Path.ChangeExtension(headerFilePath, ext));
 
+            var matchingCodeEntry =
+                LocateCodeEntryWithExactNameAndPath(codeFilesWithSameNameAndSamePath, compilationDatabaseEntries) ??
+                LocateCodeEntryWithExactName(codeFilesWithSameNameAndSamePath, compilationDatabaseEntries) ??
+                LocateFirstCodeEntryUnderRoot(headerFilePath, compilationDatabaseEntries) ??
+                LocateFirstCodeEntry(compilationDatabaseEntries);
+
+            if (matchingCodeEntry == null)
+            {
+                logger.WriteLine(Resources.NoCompilationDatabaseEntryForHeaderFile, headerFilePath);
+            }
+
+            return matchingCodeEntry;
+        }
+
+        private CompilationDatabaseEntry LocateCodeEntryWithExactNameAndPath(IEnumerable<string> codeFilesWithSameNameAndSamePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
             foreach (var codeFile in codeFilesWithSameNameAndSamePath)
             {
                 var entry = LocateCodeEntry(codeFile, compilationDatabaseEntries);
@@ -152,65 +168,64 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 if (entry != null)
                 {
                     logger.LogDebug($"[CompilationConfigProvider] Header file: located matching code file with same name and path: {entry.File}");
-
                     return entry;
                 }
             }
 
+            return null;
+        }
+
+        private CompilationDatabaseEntry LocateCodeEntryWithExactName(IEnumerable<string> codeFilesWithSameNameAndSamePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
             var codeFilesWithSameName = codeFilesWithSameNameAndSamePath.Select(Path.GetFileName);
 
             foreach (var codeFile in codeFilesWithSameName)
             {
-                var entry = LocateFirstCodeEntryWithSameName(codeFile, compilationDatabaseEntries);
+                var entry = compilationDatabaseEntries.FirstOrDefault(x =>
+                    !string.IsNullOrEmpty(x.File) &&
+                    Path.GetFileName(x.File).Equals(codeFile, StringComparison.OrdinalIgnoreCase));
 
                 if (entry != null)
                 {
                     logger.LogDebug($"[CompilationConfigProvider] Header file: located matching code file with same name: {entry.File}");
-
                     return entry;
                 }
             }
 
-            var headerFileDirectory = Path.GetDirectoryName(headerFilePath);
-            var firstCodeEntryUnderRoot = LocateFirstCodeEntryUnderRoot(headerFileDirectory, compilationDatabaseEntries);
-
-            if (firstCodeEntryUnderRoot != null)
-            {
-                logger.LogDebug($"[CompilationConfigProvider] Header file: located code file under same root: {firstCodeEntryUnderRoot.File}");
-
-                return firstCodeEntryUnderRoot;
-            }
-
-            var firstCodeEntry = LocateFirstCodeEntry(compilationDatabaseEntries);
-
-            if (firstCodeEntry != null)
-            {
-                logger.LogDebug($"[CompilationConfigProvider] Header file: using first code file: {firstCodeEntry.File}");
-
-                return firstCodeEntry;
-            }
-
-            logger.WriteLine(Resources.NoCompilationDatabaseEntryForHeaderFile, headerFilePath);
-
             return null;
+        }
+
+        private CompilationDatabaseEntry LocateFirstCodeEntryUnderRoot(string headerFilePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            var rootDirectory = Path.GetDirectoryName(headerFilePath);
+
+            var entry = compilationDatabaseEntries.FirstOrDefault(x =>
+                !string.IsNullOrEmpty(x.File) &&
+                PathHelper.IsPathRootedUnderRoot(x.File, rootDirectory));
+
+            if (entry != null)
+            {
+                logger.LogDebug($"[CompilationConfigProvider] Header file: located code file under same root: {entry.File}");
+            }
+
+            return entry;
+        }
+
+        private CompilationDatabaseEntry LocateFirstCodeEntry(IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
+        {
+            var entry = compilationDatabaseEntries.FirstOrDefault(x => !string.IsNullOrEmpty(x.File));
+
+            if (entry != null)
+            {
+                logger.LogDebug($"[CompilationConfigProvider] Header file: using first entry: {entry.File}");
+            }
+
+            return entry;
         }
 
         private static CompilationDatabaseEntry LocateCodeEntry(string filePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries) =>
             compilationDatabaseEntries.FirstOrDefault(x =>
                 !string.IsNullOrEmpty(x.File) &&
                 PathHelper.IsMatchingPath(filePath, x.File));
-
-        private static CompilationDatabaseEntry LocateFirstCodeEntryUnderRoot(string rootDirectory, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries) =>
-            compilationDatabaseEntries.FirstOrDefault(x =>
-                !string.IsNullOrEmpty(x.File) &&
-                PathHelper.IsPathRootedUnderRoot(x.File, rootDirectory));
-
-        private static CompilationDatabaseEntry LocateFirstCodeEntryWithSameName(string fileName, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries) =>
-            compilationDatabaseEntries.FirstOrDefault(x =>
-                !string.IsNullOrEmpty(x.File) &&
-                Path.GetFileName(x.File).Equals(fileName, StringComparison.OrdinalIgnoreCase));
-
-        private static CompilationDatabaseEntry LocateFirstCodeEntry(IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries) =>
-            compilationDatabaseEntries.FirstOrDefault(x => !string.IsNullOrEmpty(x.File));
     }
 }
