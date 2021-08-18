@@ -30,7 +30,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
     [TestClass]
     public class ServiceGuidTestProjectIndicatorTests
     {
-        private Mock<ILogger> logger;
         private Mock<IFileSystem> fileSystem;
         private ProjectMock project;
         private ServiceGuidTestProjectIndicator testSubject;
@@ -38,25 +37,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         [TestInitialize]
         public void TestInitialize()
         {
-            logger = new Mock<ILogger>();
             fileSystem = new Mock<IFileSystem>();
             project = new ProjectMock("test.csproj");
 
-            testSubject = new ServiceGuidTestProjectIndicator(logger.Object, fileSystem.Object);
-        }
-
-        [TestMethod]
-        public void Ctor_NullLogger_ArgumentNullException()
-        {
-            Action act = () => new ServiceGuidTestProjectIndicator(null, null);
-
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("logger");
+            testSubject = new ServiceGuidTestProjectIndicator(fileSystem.Object);
         }
 
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new ServiceGuidTestProjectIndicator(logger.Object, null);
+            Action act = () => new ServiceGuidTestProjectIndicator(null);
 
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
@@ -216,18 +206,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_ExceptionOccurs_ErrorIsWrittenToLog()
-        {
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws<ArgumentException>();
-
-            testSubject.IsTestProject(project);
-
-            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
-                Times.Once);
-        }
-
-        [TestMethod]
-        public void IsTestProject_CriticalExceptionOccurs_NotSuppressedOrLogged()
+        public void IsTestProject_CriticalExceptionOccurs_NotSuppressed()
         {
             var critialException = new StackOverflowException("BANG!");
             fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Throws(critialException);
@@ -235,21 +214,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
             Action act = () => testSubject.IsTestProject(project);
 
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("BANG!");
-            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
-                Times.Never);
-        }
-
-        [TestMethod]
-        public void IsTestProject_NoException_NoErrorIsWrittenToLog()
-        {
-            var projectXml = @"<?xml version=""1.0"" ?><metadata></metadata>";
-
-            fileSystem.Setup(x => x.File.ReadAllText(project.FilePath)).Returns(projectXml);
-
-            testSubject.IsTestProject(project);
-
-            logger.Verify(x => x.WriteLine(It.IsAny<string>(), It.IsAny<object[]>()),
-                Times.Never);
         }
     }
 }
