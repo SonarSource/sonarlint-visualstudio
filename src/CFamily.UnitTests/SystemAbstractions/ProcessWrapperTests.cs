@@ -68,16 +68,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.SystemAbstractions
 exit -2
 ");
 
-            using var cleanupHelper = StartProcess(exeName);
-            var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
+            using var processScope = StartProcess(exeName);
+            var testSubject = new ProcessWrapper(processScope.Process);
 
             // Act
             testSubject.WaitForExit(1000);
 
-            testSubject.Id.Should().Be(cleanupHelper.RealProcess.Id);
-            testSubject.HasExited.Should().Be(cleanupHelper.RealProcess.HasExited);
+            testSubject.Id.Should().Be(processScope.Process.Id);
+            testSubject.HasExited.Should().Be(processScope.Process.HasExited);
             testSubject.ExitCode.Should().Be(-2);
-            testSubject.StartInfo.Should().BeSameAs(cleanupHelper.RealProcess.StartInfo);
+            testSubject.StartInfo.Should().BeSameAs(processScope.Process.StartInfo);
         }
 
         [TestMethod]
@@ -91,8 +91,8 @@ exit -2
 
             var sb = new StringBuilder();
 
-            using var cleanupHelper = StartProcess(exeName);
-            var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
+            using var processScope = StartProcess(exeName);
+            var testSubject = new ProcessWrapper(processScope.Process);
 
             // Act
             testSubject.HandleOutputDataReceived = data => sb.AppendLine(data);
@@ -117,8 +117,8 @@ exit -2
 set /p arg=
 ");
 
-            using var cleanupHelper = StartProcess(exeName);
-            var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
+            using var processScope = StartProcess(exeName);
+            var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
             testSubject.WaitForExit(300);
@@ -140,9 +140,9 @@ set /p arg=
 @"@echo Waiting for keyboard input which will not arrive...
 set /p arg=
 ");
-            using var cleanupHelper = StartProcess(exeName);
+            using var processScope = StartProcess(exeName);
 
-            var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
+            var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
             testSubject.WaitForExit(300);
@@ -159,8 +159,8 @@ set /p arg=
             CheckProcessIsRunning(id); // somewhat unexpectedly, Dispose does not kill the running process
         }
 
-        private static ProcessCleanupHelper StartProcess(string exeName) =>
-            new ProcessCleanupHelper(Process.Start(CreateProcessStartInfo(exeName)));
+        private static ProcessScope StartProcess(string exeName) =>
+            new ProcessScope(Process.Start(CreateProcessStartInfo(exeName)));
 
         private static ProcessStartInfo CreateProcessStartInfo(string exeName) =>
             new ProcessStartInfo
