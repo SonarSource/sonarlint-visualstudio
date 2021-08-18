@@ -65,23 +65,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.LocalServices
         }
 
         [TestMethod]
-        public void IsTestProject_NoVsHierarchy_ArgumentException()
+        public void IsTestProject_NoVsHierarchy_Null()
         {
             var project = Mock.Of<Project>();
             projectSystemHelper.Setup(x => x.GetIVsHierarchy(project)).Returns(null as IVsHierarchy);
 
-            Action act = () => testSubject.IsTestProject(project);
-            act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("project");
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
-        public void IsTestProject_HierarchyIsNotVsBuildPropertyStorage_ArgumentException()
+        public void IsTestProject_HierarchyIsNotVsBuildPropertyStorage_Null()
         {
             var project = Mock.Of<Project>();
             projectSystemHelper.Setup(x => x.GetIVsHierarchy(project)).Returns(Mock.Of<IVsHierarchy>());
 
-            Action act = () => testSubject.IsTestProject(project);
-            act.Should().ThrowExactly<ArgumentException>().And.ParamName.Should().Be("project");
+            var actual = testSubject.IsTestProject(project);
+            actual.Should().BeNull();
         }
 
         [TestMethod]
