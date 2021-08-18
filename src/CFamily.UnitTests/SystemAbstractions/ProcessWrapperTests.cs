@@ -121,7 +121,7 @@ set /p arg=
             var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
-            testSubject.WaitForExit(300);
+            testSubject.WaitForExit(2000);
             testSubject.HasExited.Should().Be(false);
             CheckProcessIsRunning(testSubject.Id);
 
@@ -145,7 +145,7 @@ set /p arg=
             var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
-            testSubject.WaitForExit(300);
+            testSubject.WaitForExit(2000);
             testSubject.HasExited.Should().Be(false);
             CheckProcessIsRunning(testSubject.Id);
 

@@ -22,12 +22,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
 
         public ProcessScope(Process process)
         {
-            Process = process;
+            Process = process ?? throw new ArgumentNullException(nameof(process));
 
             // Cache the properties we need now as we won't be able to access them
             // later if the process has been disposed at the point we want to clean up.
             id = process.Id;
-            mainModuleFilName = process.MainModule.FileName;
+            mainModuleFilName = process.MainModule?.FileName;
             processName = process.ProcessName;
         }
 
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
                 var process = Process.GetProcessById(id);
 
                 // Make sure we don't accidentally kill a newly-created process with the same id
-                if (process.MainModule.FileName == mainModuleFilName &&
+                if (process.MainModule?.FileName == mainModuleFilName &&
                     process.ProcessName == processName)
                 {
                     process.Kill();
