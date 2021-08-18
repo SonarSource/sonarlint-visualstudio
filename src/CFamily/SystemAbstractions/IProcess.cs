@@ -37,6 +37,7 @@ namespace SonarLint.VisualStudio.CFamily.SystemAbstractions
         int Id { get; }
         bool HasExited { get; }
         int ExitCode { get; }
+        ProcessStartInfo StartInfo { get; }
         void BeginOutputReadLine();
         void WaitForExit(int milliseconds);
         void Kill();
@@ -65,13 +66,14 @@ namespace SonarLint.VisualStudio.CFamily.SystemAbstractions
 
     internal sealed class ProcessWrapper : IProcess
     {
-        private Process wrapped;
+        private readonly Process wrapped;
 
         public ProcessWrapper(Process wrapped) => this.wrapped = wrapped;
 
         public int Id => wrapped.Id;
         public bool HasExited => wrapped.HasExited;
         public int ExitCode => wrapped.ExitCode;
+        public ProcessStartInfo StartInfo => wrapped.StartInfo;
         public void Kill() => wrapped.Kill();
         public void WaitForExit(int milliseconds) => wrapped.WaitForExit(milliseconds);
         public void BeginOutputReadLine() => wrapped.BeginOutputReadLine();

@@ -47,7 +47,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.SystemAbstractions
             try
             {
                 wrappedProcess = testSubject.Start(processStartInfo);
+
                 wrappedProcess.Should().NotBeNull();
+                wrappedProcess.StartInfo.Should().BeSameAs(processStartInfo);
             }
             finally
             {
@@ -75,6 +77,7 @@ exit -2
             testSubject.Id.Should().Be(cleanupHelper.RealProcess.Id);
             testSubject.HasExited.Should().Be(cleanupHelper.RealProcess.HasExited);
             testSubject.ExitCode.Should().Be(-2);
+            testSubject.StartInfo.Should().BeSameAs(cleanupHelper.RealProcess.StartInfo);
         }
 
         [TestMethod]
