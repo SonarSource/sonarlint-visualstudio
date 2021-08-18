@@ -27,24 +27,21 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using EnvDTE;
 using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
 {
     public class ServiceGuidTestProjectIndicator : ITestProjectIndicator
     {
-        private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
         private const string TestServiceGuid = "{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}";
 
-        public ServiceGuidTestProjectIndicator(ILogger logger)
-            : this(logger, new FileSystem())
+        public ServiceGuidTestProjectIndicator()
+            : this(new FileSystem())
         {
         }
 
-        internal ServiceGuidTestProjectIndicator(ILogger logger, IFileSystem fileSystem)
+        internal ServiceGuidTestProjectIndicator(IFileSystem fileSystem)
         {
-            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
 
@@ -58,8 +55,6 @@ namespace SonarLint.VisualStudio.Integration.LocalServices.TestProjectIndicators
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Strings.FailedToCheckIfTestProject, project.UniqueName, ex.ToString());
-
                 return null;
             }
         }
