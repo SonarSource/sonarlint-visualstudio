@@ -131,7 +131,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardInput = false,
-                RedirectStandardError = true,
+                RedirectStandardError = false,
                 StandardOutputEncoding = Encoding.Unicode,
                 StandardErrorEncoding = Encoding.Unicode
             };
@@ -220,7 +220,6 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             catch (Exception ex)
             {
                 LogDebug($"Error terminating VsDevCmd.bat: {ex.Message}");
-                Console.WriteLine(ex);
             }
         }
 
