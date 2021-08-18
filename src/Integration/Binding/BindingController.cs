@@ -104,8 +104,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
                    && !this.host.VisualStateManager.IsBusy
                    && (folderWorkspaceService.IsFolderWorkspace()
                        || (VsShellUtils.IsSolutionExistsAndFullyLoaded()
-                           && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
-                           && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false)));
+                           && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()))
+                   && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
         }
 
         private void OnBind(BindCommandArgs args)

@@ -436,7 +436,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void CanExecute_SolutionNotLoaded_NotFolderWorkspace_False()
         {
-            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: false);
+            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: false, hasProjects: true);
 
             var testSubject = CreateBindingController();
 
@@ -447,7 +447,29 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void CanExecute_SolutionIsBuilding_NotFolderWorkspace_False()
         {
-            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: false, isOpenAsFolder: false);
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: false, isOpenAsFolder: false, hasProjects: true);
+
+            var testSubject = CreateBindingController();
+
+            var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
+            canExecute.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CanExecute_NoProjects_NotFolderWorkspace_False()
+        {
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: true, isOpenAsFolder: false, hasProjects: false);
+
+            var testSubject = CreateBindingController();
+
+            var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
+            canExecute.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CanExecute_NoProjects_FolderWorkspace_False()
+        {
+            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: true, hasProjects: false);
 
             var testSubject = CreateBindingController();
 
@@ -458,7 +480,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void CanExecute_SolutionNotLoaded_FolderWorkspace_True()
         {
-            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: true);
+            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: true, hasProjects: true);
 
             var testSubject = CreateBindingController();
 
@@ -469,7 +491,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void CanExecute_SolutionIsBuilding_FolderWorkspace_True()
         {
-            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: false, isOpenAsFolder: true);
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: false, isOpenAsFolder: true, hasProjects: true);
 
             var testSubject = CreateBindingController();
 
@@ -488,7 +510,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private BindingController PrepareCommandForExecution()
         {
-            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: true, isOpenAsFolder: false);
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: true, isOpenAsFolder: false, hasProjects: true);
 
             var testSubject = CreateBindingController();
 
@@ -498,7 +520,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return testSubject;
         }
 
-        private void SetupSolutionState(bool isSolutionLoaded, bool isSolutionNotBuilding, bool isOpenAsFolder)
+        private void SetupSolutionState(bool isSolutionLoaded, bool isSolutionNotBuilding, bool isOpenAsFolder, bool hasProjects)
         {
             host.TestStateManager.IsConnected = true;
 
@@ -507,8 +529,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, isSolutionLoaded);
             monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, isSolutionNotBuilding);
 
-            var project1 = solutionMock.AddOrGetProject("project1");
-            projectSystemHelper.Projects = new[] {project1};
+            if (hasProjects)
+            {
+                var project1 = solutionMock.AddOrGetProject("project1");
+                projectSystemHelper.Projects = new[] { project1 };
+            }
 
             folderWorkspaceServiceMock.Setup(x => x.IsFolderWorkspace()).Returns(isOpenAsFolder);
         }
