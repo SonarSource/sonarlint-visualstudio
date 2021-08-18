@@ -24,6 +24,7 @@ using System.Linq;
 using Microsoft.VisualStudio.OLE.Interop;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
 using SonarLint.VisualStudio.Integration.Progress;
@@ -42,6 +43,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IHost host;
         private readonly IBindingWorkflowExecutor workflowExecutor;
         private readonly IProjectSystemHelper projectSystemHelper;
+        private readonly IFolderWorkspaceService folderWorkspaceService;
 
         public BindingController(IHost host)
             : this(host, null)
@@ -62,6 +64,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.workflowExecutor = workflowExecutor ?? this;
             this.projectSystemHelper = this.host.GetService<IProjectSystemHelper>();
             this.projectSystemHelper.AssertLocalServiceIsNotNull();
+
+            folderWorkspaceService = host.GetMefService<IFolderWorkspaceService>();
         }
 
         #region Commands
@@ -95,12 +99,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private bool OnBindStatus(BindCommandArgs args)
         {
             return args != null
-                && args.ProjectKey != null
-                && this.host.VisualStateManager.IsConnected
-                && !this.host.VisualStateManager.IsBusy
-                && VsShellUtils.IsSolutionExistsAndFullyLoaded()
-                && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
-                && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false);
+                   && args.ProjectKey != null
+                   && this.host.VisualStateManager.IsConnected
+                   && !this.host.VisualStateManager.IsBusy
+                   && (folderWorkspaceService.IsFolderWorkspace()
+                       || (VsShellUtils.IsSolutionExistsAndFullyLoaded()
+                           && VsShellUtils.IsSolutionExistsAndNotBuildingAndNotDebugging()
+                           && (this.projectSystemHelper.GetSolutionProjects()?.Any() ?? false)));
         }
 
         private void OnBind(BindCommandArgs args)

@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
 using SonarLint.VisualStudio.Integration.ProfileConflicts;
@@ -58,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableConfigurationProvider configProvider;
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private ConfigurableSolutionRuleSetsInformationProvider ruleSetsInformationProvider;
+        private Mock<IFolderWorkspaceService> folderWorkspaceServiceMock;
 
         private readonly BoundSonarQubeProject ValidProject = new BoundSonarQubeProject(new Uri("http://any"), "projectKey", "Project Name");
         private readonly BindCommandArgs ValidBindingArgs = new BindCommandArgs("any key", "any name", new ConnectionInformation(new Uri("http://anyXXX")));
@@ -66,28 +68,32 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void TestInitialize()
         {
             KnownUIContextsAccessor.Reset();
-            this.sonarQubeService = new Mock<ISonarQubeService>();
-            this.workflow = new TestBindingWorkflow();
-            this.serviceProvider = new ConfigurableServiceProvider();
-            this.dteMock = new DTEMock();
-            this.serviceProvider.RegisterService(typeof(DTE), this.dteMock);
-            this.solutionMock = new SolutionMock();
-            this.monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
-            this.projectSystemHelper = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            this.conflictsController = new ConfigurableRuleSetConflictsController();
-            this.configProvider = new ConfigurableConfigurationProvider();
-            this.ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
-            this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
-            this.serviceProvider.RegisterService(typeof(IRuleSetConflictsController), this.conflictsController);
-            this.serviceProvider.RegisterService(typeof(IConfigurationProviderService), this.configProvider);
-            this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), this.ruleSetsInformationProvider);
-            this.serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
+            sonarQubeService = new Mock<ISonarQubeService>();
+            workflow = new TestBindingWorkflow();
+            serviceProvider = new ConfigurableServiceProvider();
+            dteMock = new DTEMock();
+            serviceProvider.RegisterService(typeof(DTE), dteMock);
+            solutionMock = new SolutionMock();
+            monitorSelection = KnownUIContextsAccessor.MonitorSelectionService;
+            projectSystemHelper = new ConfigurableVsProjectSystemHelper(serviceProvider);
+            conflictsController = new ConfigurableRuleSetConflictsController();
+            configProvider = new ConfigurableConfigurationProvider();
+            ruleSetsInformationProvider = new ConfigurableSolutionRuleSetsInformationProvider();
+            serviceProvider.RegisterService(typeof(IProjectSystemHelper), projectSystemHelper);
+            serviceProvider.RegisterService(typeof(IRuleSetConflictsController), conflictsController);
+            serviceProvider.RegisterService(typeof(IConfigurationProviderService), configProvider);
+            serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), ruleSetsInformationProvider);
+            serviceProvider.RegisterService(typeof(ISourceControlledFileSystem), new ConfigurableSourceControlledFileSystem(new MockFileSystem()));
 
             var outputWindow = new ConfigurableVsOutputWindow();
-            this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
-            this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+            outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
+            serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            this.host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher)
+            folderWorkspaceServiceMock = new Mock<IFolderWorkspaceService>();
+            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object));
+            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
+
+            host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher)
             {
                 SonarQubeService = sonarQubeService.Object
             };
@@ -101,7 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_Ctor()
         {
             // Arrange
-            BindingController testSubject = this.CreateBindingController();
+            BindingController testSubject = CreateBindingController();
 
             // Assert
             testSubject.BindCommand.Should().NotBeNull("The Bind command should never be null");
@@ -122,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             BindCommandArgs bindingArgs = CreateBindingArguments("key1", "name1", "http://localhost");
-            BindingController testSubject = this.PrepareCommandForExecution();
+            BindingController testSubject = PrepareCommandForExecution();
 
             // Case 1: All the requirements are set
             // Act + Assert
@@ -134,14 +140,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Should().BeFalse("Project is null");
 
             // Case 3: No connection
-            this.host.TestStateManager.IsConnected = false;
+            host.TestStateManager.IsConnected = false;
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindingArgs)
                 .Should().BeFalse("No connection");
 
             // Case 4: busy
-            this.host.TestStateManager.IsConnected = true;
-            this.host.VisualStateManager.IsBusy = true;
+            host.TestStateManager.IsConnected = true;
+            host.VisualStateManager.IsBusy = true;
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindingArgs)
                 .Should().BeFalse("Connecting");
@@ -152,23 +158,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             BindCommandArgs bindArgs = CreateBindingArguments("proj1", "name1", "http://localhost:9000");
-            BindingController testSubject = this.PrepareCommandForExecution();
-            ProjectMock project1 = this.solutionMock.Projects.Single();
+            BindingController testSubject = PrepareCommandForExecution();
+            ProjectMock project1 = solutionMock.Projects.Single();
 
             // Case 1: SolutionExistsAndFullyLoaded is not active
-            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, false);
+            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, false);
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No UI context: SolutionExistsAndFullyLoaded");
 
             // Case 2: SolutionExistsAndNotBuildingAndNotDebugging is not active
-            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
-            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, false);
+            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
+            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, false);
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No UI context: SolutionExistsAndNotBuildingAndNotDebugging");
 
             // Case 3: Non-managed project kind
-            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
-            this.projectSystemHelper.Projects = null;
+            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
+            projectSystemHelper.Projects = null;
             // Act + Assert
             testSubject.BindCommand.CanExecute(bindArgs).Should().BeFalse("No managed projects");
 
@@ -182,23 +188,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_BindCommand_Execution()
         {
             // Arrange
-            BindingController testSubject = this.PrepareCommandForExecution();
+            BindingController testSubject = PrepareCommandForExecution();
 
             // Act
             BindCommandArgs bindingArgs1 = CreateBindingArguments("1", "name1", "http://localhost");
             testSubject.BindCommand.Execute(bindingArgs1);
 
             // Assert
-            this.workflow.BindingArgs.ProjectKey.Should().Be("1");
-            this.workflow.BindingArgs.ProjectName.Should().Be("name1");
+            workflow.BindingArgs.ProjectKey.Should().Be("1");
+            workflow.BindingArgs.ProjectName.Should().Be("name1");
 
             // Act, bind a different project
             BindCommandArgs bingingArgs2 = CreateBindingArguments("2", "name2", "http://localhost");
             testSubject.BindCommand.Execute(bingingArgs2);
 
             // Assert
-            this.workflow.BindingArgs.ProjectKey.Should().Be("2");
-            this.workflow.BindingArgs.ProjectName.Should().Be("name2");
+            workflow.BindingArgs.ProjectKey.Should().Be("2");
+            workflow.BindingArgs.ProjectName.Should().Be("name2");
         }
 
         [TestMethod]
@@ -209,12 +215,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             ConnectionInformation otherConnection = new ConnectionInformation(new Uri("http://otherConnection"));
             BindCommandArgs bindingInProgressArgs = new BindCommandArgs("another.key", "another.name", otherConnection);
 
-            BindingController testSubject = this.PrepareCommandForExecution();
+            BindingController testSubject = PrepareCommandForExecution();
             var progressEvents = new ConfigurableProgressEvents();
 
             foreach (var controllerResult in (ProgressControllerResult[])Enum.GetValues(typeof(ProgressControllerResult)))
             {
-                this.dteMock.ToolWindows.SolutionExplorer.Window.Active = false;
+                dteMock.ToolWindows.SolutionExplorer.Window.Active = false;
 
                 // Sanity
                 testSubject.BindCommand.CanExecute(bindingArgs).Should().BeTrue();
@@ -232,11 +238,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 testSubject.BindCommand.CanExecute(bindingArgs).Should().BeTrue("Binding is finished with result: {0}", controllerResult);
                 if (controllerResult == ProgressControllerResult.Succeeded)
                 {
-                    this.dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeTrue("SolutionExplorer window supposed to be activated");
+                    dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeTrue("SolutionExplorer window supposed to be activated");
                 }
                 else
                 {
-                    this.dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse("SolutionExplorer window is not supposed to be activated");
+                    dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse("SolutionExplorer window is not supposed to be activated");
                 }
             }
         }
@@ -247,7 +253,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var bindingArgs = new BindCommandArgs("key1", "name1", new ConnectionInformation(new Uri("http://localhost")));
 
-            BindingController testSubject = this.PrepareCommandForExecution();
+            BindingController testSubject = PrepareCommandForExecution();
             var progressEvents = new ConfigurableProgressEvents();
 
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
@@ -264,11 +270,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 if (result == ProgressControllerResult.Succeeded)
                 {
-                    this.host.TestStateManager.AssignedProjectKey.Should().Be("key1");
+                    host.TestStateManager.AssignedProjectKey.Should().Be("key1");
                 }
                 else
                 {
-                    this.host.TestStateManager.AssignedProjectKey.Should().BeNull();
+                    host.TestStateManager.AssignedProjectKey.Should().BeNull();
                 }
             }
         }
@@ -279,7 +285,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var bindingArgs = new BindCommandArgs("key2", "", new ConnectionInformation(new Uri("http://myUri")));
 
-            BindingController testSubject = this.PrepareCommandForExecution();
+            BindingController testSubject = PrepareCommandForExecution();
             var progressEvents = new ConfigurableProgressEvents();
             var teController = new ConfigurableTeamExplorerController();
 
@@ -296,11 +302,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
                 // Assert
                 teController.ShowConnectionsPageCallsCount.Should().Be(0);
-                this.dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
+                dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
             }
 
             // Case 2: Has conflicts (should navigate to team explorer page)
-            this.conflictsController.HasConflicts = true;
+            conflictsController.HasConflicts = true;
 
             // Act
             testSubject.SetBindingInProgress(progressEvents, bindingArgs);
@@ -308,10 +314,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             teController.ShowConnectionsPageCallsCount.Should().Be(1);
-            this.dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
+            dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeFalse();
 
             // Case 3: Has no conflicts (should navigate to solution explorer)
-            this.conflictsController.HasConflicts = false;
+            conflictsController.HasConflicts = false;
 
             // Act
             testSubject.SetBindingInProgress(progressEvents, bindingArgs);
@@ -319,7 +325,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // Assert
             teController.ShowConnectionsPageCallsCount.Should().Be(1);
-            this.dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeTrue();
+            dteMock.ToolWindows.SolutionExplorer.Window.Active.Should().BeTrue();
         }
 
         [TestMethod]
@@ -328,11 +334,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             // Arrange
             var bindingArgs = new BindCommandArgs("key2", "", new ConnectionInformation(new Uri("http://myUri")));
 
-            BindingController testSubject = this.PrepareCommandForExecution();
+            BindingController testSubject = PrepareCommandForExecution();
             var section = ConfigurableSectionController.CreateDefault();
-            this.host.SetActiveSection(section);
+            host.SetActiveSection(section);
             var progressEvents = new ConfigurableProgressEvents();
-            this.host.ActiveSection.UserNotifications.ShowNotificationError("Need to make sure that this is clear once started", NotificationIds.FailedToBindId, new RelayCommand(() => { }));
+            host.ActiveSection.UserNotifications.ShowNotificationError("Need to make sure that this is clear once started", NotificationIds.FailedToBindId, new RelayCommand(() => { }));
             ConfigurableUserNotification userNotifications = (ConfigurableUserNotification)section.UserNotifications;
 
             foreach (ProgressControllerResult result in Enum.GetValues(typeof(ProgressControllerResult)).OfType<ProgressControllerResult>())
@@ -362,7 +368,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void BindingController_BindCommand_OnQueryStatus()
         {
             // Arrange
-            BindingController testSubject = this.CreateBindingController();
+            BindingController testSubject = CreateBindingController();
             bool canExecuteChanged = false;
             testSubject.BindCommand.CanExecuteChanged += (o, e) => canExecuteChanged = true;
 
@@ -427,6 +433,50 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             outputWindowPane.AssertOutputStrings(Strings.Bind_UpdatingNewStyleBinding);
         }
 
+        [TestMethod]
+        public void CanExecute_SolutionNotLoaded_NotFolderWorkspace_False()
+        {
+            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: false);
+
+            var testSubject = CreateBindingController();
+
+            var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
+            canExecute.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CanExecute_SolutionIsBuilding_NotFolderWorkspace_False()
+        {
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: false, isOpenAsFolder: false);
+
+            var testSubject = CreateBindingController();
+
+            var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
+            canExecute.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void CanExecute_SolutionNotLoaded_FolderWorkspace_True()
+        {
+            SetupSolutionState(isSolutionLoaded: false, isSolutionNotBuilding: true, isOpenAsFolder: true);
+
+            var testSubject = CreateBindingController();
+
+            var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
+            canExecute.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void CanExecute_SolutionIsBuilding_FolderWorkspace_True()
+        {
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: false, isOpenAsFolder: true);
+
+            var testSubject = CreateBindingController();
+
+            var canExecute = testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost"));
+            canExecute.Should().BeTrue();
+        }
+
         #endregion Tests
 
         #region Helpers
@@ -436,25 +486,31 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             return new BindCommandArgs(key, name, new ConnectionInformation(new Uri(serverUri)));
         }
 
-        private static ServerViewModel CreateServerViewModel()
-        {
-            return new ServerViewModel(new ConnectionInformation(new Uri("http://123")));
-        }
-
         private BindingController PrepareCommandForExecution()
         {
-            this.host.TestStateManager.IsConnected = true;
-            BindingController testSubject = this.CreateBindingController();
-            this.host.SetActiveSection(ConfigurableSectionController.CreateDefault());
-            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, true);
-            this.monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, true);
-            ProjectMock project1 = this.solutionMock.AddOrGetProject("project1");
-            this.projectSystemHelper.Projects = new[] { project1 };
+            SetupSolutionState(isSolutionLoaded: true, isSolutionNotBuilding: true, isOpenAsFolder: false);
+
+            var testSubject = CreateBindingController();
 
             // Sanity
             testSubject.BindCommand.CanExecute(CreateBindingArguments("project1", "name1", "http://localhost")).Should().BeTrue("All the requirement should be satisfied for the command to be enabled");
 
             return testSubject;
+        }
+
+        private void SetupSolutionState(bool isSolutionLoaded, bool isSolutionNotBuilding, bool isOpenAsFolder)
+        {
+            host.TestStateManager.IsConnected = true;
+
+            host.SetActiveSection(ConfigurableSectionController.CreateDefault());
+
+            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndFullyLoaded_guid, isSolutionLoaded);
+            monitorSelection.SetContext(VSConstants.UICONTEXT.SolutionExistsAndNotBuildingAndNotDebugging_guid, isSolutionNotBuilding);
+
+            var project1 = solutionMock.AddOrGetProject("project1");
+            projectSystemHelper.Projects = new[] {project1};
+
+            folderWorkspaceServiceMock.Setup(x => x.IsFolderWorkspace()).Returns(isOpenAsFolder);
         }
 
         private class TestBindingWorkflow : IBindingWorkflowExecutor
@@ -466,7 +522,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             void IBindingWorkflowExecutor.BindProject(BindCommandArgs bindingArgs)
             {
                 bindingArgs.Should().NotBeNull();
-                this.BindingArgs = bindingArgs;
+                BindingArgs = bindingArgs;
             }
 
             #endregion IBindingWorkflowExecutor.
@@ -474,7 +530,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
         private BindingController CreateBindingController()
         {
-            return new BindingController(this.host, this.workflow);
+            return new BindingController(host, workflow);
         }
 
         #endregion Helpers
