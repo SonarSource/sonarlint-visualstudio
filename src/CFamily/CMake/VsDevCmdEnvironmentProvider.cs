@@ -22,10 +22,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Abstractions;
 using System.Text;
+using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.CFamily.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
@@ -45,51 +48,84 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// </summary>
         /// <remarks>This path works for VS2015+</remarks>
         private const string RelativePathToBatchFile = "Common7\\Tools\\VsDevCmd.bat";
-        private const int SCRIPT_TIMEOUT_MS = 3000;
+
+        private const int SCRIPT_TIMEOUT_MS = 4000;
 
         private readonly IVsInfoService vsInfoService;
         private readonly ILogger logger;
+
+        // Interfaces for testing
         private readonly IProcessFactory processFactory;
+        private readonly IFileSystem fileSystem;
+
 
         public VsDevCmdEnvironmentProvider(IVsInfoService vsInfoService, ILogger logger)
-            : this(vsInfoService, logger, new ProcessFactory())
+            : this(vsInfoService, logger, new ProcessFactory(), new FileSystem())
         {
             this.vsInfoService = vsInfoService;
             this.logger = logger;
         }
 
         internal /* for testing */ VsDevCmdEnvironmentProvider(IVsInfoService vsInfoService, ILogger logger,
-            IProcessFactory processFactory)
+            IProcessFactory processFactory, IFileSystem fileSystem)
         {
             this.vsInfoService = vsInfoService;
             this.logger = logger;
             this.processFactory = processFactory;
+            this.fileSystem = fileSystem;
         }
 
         public IReadOnlyDictionary<string, string> Get(string scriptParams)
         {
-            var capturedOutput = ExecuteVsDevCmd(scriptParams);
-            return ParseAndFilterOutput(capturedOutput);
+            try
+            {
+                string filePath = Path.Combine(vsInfoService.InstallRootDir, RelativePathToBatchFile);
+                LogDebug($"VsDevCmd location: {filePath}");
+
+                if (!fileSystem.File.Exists(filePath))
+                {
+                    logger.WriteLine(Resources.VsDevCmd_FileNotFound, filePath);
+                    return null;
+                }
+
+                var capturedOutput = ExecuteVsDevCmd(filePath, scriptParams);
+                var settings = ParseOutput(capturedOutput);
+
+                if (settings == null || settings.Count == 0)
+                {
+                    logger.WriteLine(Resources.VsDevCmd_NoSettingsFound);
+                    return null;
+                }
+
+                LogDebug($"Settings fetched successfully. Count: {settings.Count}");
+                return settings;
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.WriteLine(Resources.VsDevCmd_ErrorFetchingSettings, ex);
+            }
+
+            return null;
         }
 
-        private IList<string> ExecuteVsDevCmd(string scriptParams)
-        {
-            string path = Path.Combine(vsInfoService.InstallRootDir, RelativePathToBatchFile);
+        internal /* for testing */ string UniqueId { get; private set;}
 
-            var uniqueId = Guid.NewGuid().ToString();
-            var beginToken = "SONARLINT_BEGIN_CAPTURE " + uniqueId;
-            var endToken = "SONARLINT_END_CAPTURE " + uniqueId;
+        private IList<string> ExecuteVsDevCmd(string batchFilePath, string scriptParams)
+        {
+            UniqueId = Guid.NewGuid().ToString();
+            var beginToken = "SONARLINT_BEGIN_CAPTURE " + UniqueId;
+            var endToken = "SONARLINT_END_CAPTURE " + UniqueId;
 
             ProcessStartInfo startInfo = new ProcessStartInfo()
             {
                 FileName = Environment.GetEnvironmentVariable("COMSPEC"),
-                Arguments = "/U " +                         // Unicode input / output
-                "/K " +                                     // Execute the command and remain active. Need to do this or we can't fetch the env vars 
-                "set VSCMD_SKIP_SENDTELEMETRY=1 && " +    // Disable VS telemetry
-                "\"" + path + "\" " + scriptParams +        // Call VsDevCmd with any additional parameters
-                " && echo " + beginToken +                  // Output a marker so we known when to start processing the env vars
-                " && set" +                                 // Write out the env vars
-                " && echo " + endToken + " \"",             // Output a marker to say we are done
+                Arguments = "/U " +                             // Unicode input / output
+                "/K " +                                         // Execute the command and remain active. Need to do this or we can't fetch the env vars 
+                "set VSCMD_SKIP_SENDTELEMETRY=1 && " +          // Disable VS telemetry
+                "\"" + batchFilePath + "\" " + scriptParams +   // Call VsDevCmd with any additional parameters
+                " && echo " + beginToken +                      // Output a marker so we known when to start processing the env vars
+                " && set" +                                     // Write out the env vars
+                " && echo " + endToken + " \"",                 // Output a marker to say we are done
 
                 CreateNoWindow = true,
                 UseShellExecute = false,
@@ -100,8 +136,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 StandardErrorEncoding = Encoding.Unicode
             };
 
-            var output = new List<string>();
-            var allOutput = new StringBuilder();
+            var capturedOutput = new List<string>();
 
             var capturingOutput = false;
 
@@ -109,36 +144,52 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             {
                 process.HandleOutputDataReceived = data =>
                 {
-                    allOutput.AppendLine(data);
                     if (data == null) { return; }
 
                     if (!capturingOutput && data.StartsWith(beginToken))
                     {
                         capturingOutput = true;
+                        return;
                     }
                     else if (capturingOutput && data.StartsWith(endToken))
                     {
+                        capturingOutput = false;
                         SafeKillProcess(process);
                     }
 
                     if (capturingOutput)
                     {
-                        output.Add(data);
+                        capturedOutput.Add(data);
                     }
                 };
 
+                LogDebug($"Started process. Id: {process.Id}");
                 process.BeginOutputReadLine();
 
                 // Timeout in case something goes wrong.
                 process.WaitForExit(SCRIPT_TIMEOUT_MS);
-                SafeKillProcess(process);
+                if (process.HasExited)
+                {
+                    LogDebug("Process completed successfully");
+                }
+                else
+                {
+                    logger.WriteLine(Resources.VsDevCmd_TimedOut);
+                    capturedOutput = null;
+                    SafeKillProcess(process);
+                }
             }
 
-            return output;
+            return capturedOutput;
         }
 
-        private static Dictionary<string, string> ParseAndFilterOutput(IList<string> capturedOutput)
+        private static Dictionary<string, string> ParseOutput(IList<string> capturedOutput)
         {
+            if (capturedOutput == null)
+            {
+                return null;
+            }
+
             var settings = new Dictionary<string, string>();
 
             foreach (var item in capturedOutput)
@@ -149,17 +200,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                     var key = item.Substring(0, equalsIndex);
                     var newValue = item.Substring(equalsIndex + 1);
 
-                    if (Environment.GetEnvironmentVariable(key) != newValue)
-                    {
-                        settings.Add(key, newValue);
-                    }
+                    settings.Add(key, newValue);
                 }
             }
 
             return settings;
         }
 
-        private static void SafeKillProcess(IProcess process)
+        private void SafeKillProcess(IProcess process)
         {
             // Ignore any errors when terminating the process
             try
@@ -171,8 +219,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
             catch (Exception ex)
             {
+                LogDebug($"Error terminating VsDevCmd.bat: {ex.Message}");
                 Console.WriteLine(ex);
             }
+        }
+
+        private void LogDebug(string message)
+        {
+            logger.LogDebug("[CMake:VsDevCmd] " + message);
         }
     }
 }

@@ -139,4 +139,16 @@
     <value>[CMake] Could not locate compilation database at '{0}'. Make sure that your project is configured correctly. 
     See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information.</value>
   </data>
+  <data name="VsDevCmd_ErrorFetchingSettings" xml:space="preserve">
+    <value>[CMake] Error fetching VsDevCmd settings: {0}</value>
+  </data>
+  <data name="VsDevCmd_FileNotFound" xml:space="preserve">
+    <value>[CMake] VsDevCmd.bat file could not be found. File path: {0}</value>
+  </data>
+  <data name="VsDevCmd_NoSettingsFound" xml:space="preserve">
+    <value>[CMake] Failed to fetch VsDevCmd settings: no settings found.</value>
+  </data>
+  <data name="VsDevCmd_TimedOut" xml:space="preserve">
+    <value>[CMake] Failed to fetch VsDevCmd settings: timed out.</value>
+  </data>
 </root>

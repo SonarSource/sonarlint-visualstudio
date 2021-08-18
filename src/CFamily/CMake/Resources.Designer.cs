@@ -123,5 +123,41 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
                 return ResourceManager.GetString("NoCompilationDatabaseFile", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CMake] Error fetching VsDevCmd settings: {0}.
+        /// </summary>
+        internal static string VsDevCmd_ErrorFetchingSettings {
+            get {
+                return ResourceManager.GetString("VsDevCmd_ErrorFetchingSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CMake] VsDevCmd.bat file could not be found. File path: {0}.
+        /// </summary>
+        internal static string VsDevCmd_FileNotFound {
+            get {
+                return ResourceManager.GetString("VsDevCmd_FileNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CMake] Failed to fetch VsDevCmd settings: no settings found..
+        /// </summary>
+        internal static string VsDevCmd_NoSettingsFound {
+            get {
+                return ResourceManager.GetString("VsDevCmd_NoSettingsFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CMake] Failed to fetch VsDevCmd settings: timed out..
+        /// </summary>
+        internal static string VsDevCmd_TimedOut {
+            get {
+                return ResourceManager.GetString("VsDevCmd_TimedOut", resourceCulture);
+            }
+        }
     }
 }

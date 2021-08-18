@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.CFamily.SystemAbstractions
 
     internal interface IProcess : IDisposable
     {
+        int Id { get; }
+
         void BeginOutputReadLine();
         void WaitForExit(int milliseconds);
         bool HasExited { get; }
@@ -66,6 +68,8 @@ namespace SonarLint.VisualStudio.CFamily.SystemAbstractions
         private Process wrapped;
 
         public ProcessWrapper(Process wrapped) => this.wrapped = wrapped;
+
+        public int Id => wrapped.Id;
 
         public bool HasExited => wrapped.HasExited;
 
