@@ -72,6 +72,28 @@ namespace SonarLint.VisualStudio.Infrastructure.VS.UnitTests
             result.Should().BeNull();
         }
 
+        [TestMethod]
+        [DataRow(null)] // the API returns null for VS2015
+        [DataRow(false)]
+        public void IsFolderWorkspace_NotOpenAsFolder_False(bool? isOpenAsFolder)
+        {
+            var testSubject = CreateTestSubject(isOpenAsFolder, solutionDirectory: "some directory");
+
+            var result = testSubject.IsFolderWorkspace();
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsFolderWorkspace_OpenAsFolder_True()
+        {
+            var testSubject = CreateTestSubject(true, solutionDirectory: "some directory");
+
+            var result = testSubject.IsFolderWorkspace();
+
+            result.Should().BeTrue();
+        }
+
         private FolderWorkspaceService CreateTestSubject(bool? isOpenAsFolder, object solutionDirectory)
         {
             var vsSolution = SetupVsSolution(isOpenAsFolder, solutionDirectory);
