@@ -68,7 +68,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.SystemAbstractions
 exit -2
 ");
 
-            using var cleanupHelper = StartRealProcess(exeName);
+            using var cleanupHelper = StartProcess(exeName);
             var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
 
             // Act
@@ -91,7 +91,7 @@ exit -2
 
             var sb = new StringBuilder();
 
-            using var cleanupHelper = StartRealProcess(exeName);
+            using var cleanupHelper = StartProcess(exeName);
             var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
 
             // Act
@@ -117,7 +117,7 @@ exit -2
 set /p arg=
 ");
 
-            using var cleanupHelper = StartRealProcess(exeName);
+            using var cleanupHelper = StartProcess(exeName);
             var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
 
             // Should timeout be because the batch file is waiting for input...
@@ -140,7 +140,7 @@ set /p arg=
 @"@echo Waiting for keyboard input which will not arrive...
 set /p arg=
 ");
-            using var cleanupHelper = StartRealProcess(exeName);
+            using var cleanupHelper = StartProcess(exeName);
 
             var testSubject = new ProcessWrapper(cleanupHelper.RealProcess);
 
@@ -159,7 +159,7 @@ set /p arg=
             CheckProcessIsRunning(id); // somewhat unexpectedly, Dispose does not kill the running process
         }
 
-        private static ProcessCleanupHelper StartRealProcess(string exeName) =>
+        private static ProcessCleanupHelper StartProcess(string exeName) =>
             new ProcessCleanupHelper(Process.Start(CreateProcessStartInfo(exeName)));
 
         private static ProcessStartInfo CreateProcessStartInfo(string exeName) =>
