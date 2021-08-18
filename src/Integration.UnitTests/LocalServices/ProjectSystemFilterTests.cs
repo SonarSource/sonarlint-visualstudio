@@ -31,7 +31,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     public class ProjectSystemFilterTests
     {
         private ConfigurableServiceProvider serviceProvider;
-        private ConfigurableVsProjectSystemHelper projectSystem;
         private ConfigurableHost host;
         private Mock<ITestProjectIndicator> testProjectIndicatorMock;
         private ProjectSystemFilter testSubject;
@@ -41,13 +40,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             serviceProvider = new ConfigurableServiceProvider();
 
-            projectSystem = new ConfigurableVsProjectSystemHelper(this.serviceProvider);
-            serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystem);
-
             testProjectIndicatorMock = new Mock<ITestProjectIndicator>();
-
             host = new ConfigurableHost(this.serviceProvider, Dispatcher.CurrentDispatcher);
 
+            // used by ProjectPropertyManager
+            serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(serviceProvider));
+            
             var propertyManager = new ProjectPropertyManager(host);
             var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
