@@ -20,8 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Resources;
 using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration
@@ -29,7 +27,6 @@ namespace SonarLint.VisualStudio.Integration
     internal class ProjectSystemFilter : IProjectSystemFilter
     {
         private readonly ITestProjectIndicator testProjectIndicator;
-        private readonly IProjectSystemHelper projectSystem;
         private readonly IProjectPropertyManager propertyManager;
 
         public ProjectSystemFilter(IHost host, ITestProjectIndicator testProjectIndicator)
@@ -40,9 +37,6 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             this.testProjectIndicator = testProjectIndicator ?? throw new ArgumentNullException(nameof(testProjectIndicator));
-
-            this.projectSystem = host.GetService<IProjectSystemHelper>();
-            this.projectSystem.AssertLocalServiceIsNotNull();
 
             this.propertyManager = host.GetMefService<IProjectPropertyManager>();
             Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
@@ -56,15 +50,6 @@ namespace SonarLint.VisualStudio.Integration
             {
                 throw new ArgumentNullException(nameof(project));
             }
-
-            var hierarchy = this.projectSystem.GetIVsHierarchy(project);
-            var propertyStorage = hierarchy as IVsBuildPropertyStorage;
-
-            if (hierarchy == null || propertyStorage == null)
-            {
-                throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(project));
-            }
-
             var isUnsupported = IsNotSupportedProject(project) ||
                                 IsSharedProject(project) ||
                                 IsExcludedViaProjectProperty(project) ||

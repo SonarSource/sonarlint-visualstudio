@@ -355,10 +355,6 @@ namespace SonarLint.VisualStudio.Integration
                 Debug.Assert(!ErrorHandler.Succeeded(hr) || hr != E_XML_ATTRIBUTE_NOT_FOUND,
                     $"Failed to get the property '{propertyName}' for project '{dteProject.Name}'.");
             }
-            else
-            {
-                Debug.Fail("Could not get IVsBuildPropertyStorage for EnvDTE.Project");
-            }
 
             return value;
         }
