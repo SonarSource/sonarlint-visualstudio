@@ -22,7 +22,6 @@ using System;
 using System.Diagnostics;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell.Interop;
-using SonarLint.VisualStudio.Integration.Resources;
 
 namespace SonarLint.VisualStudio.Integration
 {
@@ -47,21 +46,16 @@ namespace SonarLint.VisualStudio.Integration
 
         public bool? IsTestProject(Project project)
         {
-            VerifyThatProjectHasBuildProperties(project);
-
-            var sonarTest = propertyManager.GetBooleanProperty(project, Constants.SonarQubeTestProjectBuildPropertyKey);
-
-            return sonarTest;
-        }
-
-        private void VerifyThatProjectHasBuildProperties(Project project)
-        {
             var hierarchy = projectSystem.GetIVsHierarchy(project);
 
             if (!(hierarchy is IVsBuildPropertyStorage))
             {
-                throw new ArgumentException(Strings.ProjectFilterDteProjectFailedToGetIVs, nameof(project));
+                return null;
             }
+
+            var sonarTest = propertyManager.GetBooleanProperty(project, Constants.SonarQubeTestProjectBuildPropertyKey);
+
+            return sonarTest;
         }
     }
 }
