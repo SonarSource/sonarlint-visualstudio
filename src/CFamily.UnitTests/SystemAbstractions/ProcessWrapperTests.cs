@@ -105,7 +105,7 @@ exit -2
             var output = sb.ToString();
             output.Should().Contain("Hello world");
             output.Should().Contain("xxx yyy");
-            output.Should().NotContain("Testing 1,2,3...");
+            output.Should().NotContain("Text written to error output should not be captured");
         }
 
         [TestMethod]
