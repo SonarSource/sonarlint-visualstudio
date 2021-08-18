@@ -30,6 +30,12 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
     public interface IFolderWorkspaceService
     {
         /// <summary>
+        /// Returns true/false if the workspace is in Open-As-Folder mode
+        /// </summary>
+        /// <remarks>Will always return false in VS2015 as that mode is not supported in 2015.</remarks>
+        bool IsFolderWorkspace();
+
+        /// <summary>
         /// Returns the root directory for Open-As-Folder projects.
         /// Will return null if the root directory could not be retrieved,
         /// or if the workspace is not in Open-As-Folder mode.
@@ -55,20 +61,25 @@ namespace SonarLint.VisualStudio.Infrastructure.VS
             vsSolution = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution;
         }
 
-        public string FindRootDirectory()
+        public bool IsFolderWorkspace()
         {
             // "Open as Folder" was introduced in VS2017, so in VS2015 the hr result will be `E_NOTIMPL` and `isOpenAsFolder` will be null.
             var hr = vsSolution.GetProperty(VSPROPID_IsInOpenFolderMode, out var isOpenAsFolder);
             Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL, "Failed to retrieve VSPROPID_IsInOpenFolderMode");
 
-            if (isOpenAsFolder == null || !(bool) isOpenAsFolder)
+            return isOpenAsFolder != null && (bool)isOpenAsFolder;
+        }
+
+        public string FindRootDirectory()
+        {
+            if (!IsFolderWorkspace())
             {
                 return null;
             }
 
             // For projects that are opened as folder, the root IVsHierarchy is the "Miscellaneous Files" folder.
             // This folder doesn't have a directory path so we need to take the directory path from IVsSolution.
-            hr = vsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirectory);
+            var hr = vsSolution.GetProperty((int)__VSPROPID.VSPROPID_SolutionDirectory, out var solutionDirectory);
 
             Debug.Assert(hr == VSConstants.S_OK || hr == VSConstants.E_NOTIMPL,
                 "Failed to retrieve VSPROPID_SolutionDirectory");
