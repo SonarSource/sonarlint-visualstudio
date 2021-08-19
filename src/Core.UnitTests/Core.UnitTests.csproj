@@ -10,7 +10,7 @@
     <ProjectGuid>{11960170-E82F-4241-B1AA-552F168D11AD}</ProjectGuid>
     <RootNamespace>SonarLint.VisualStudio.Core.UnitTests</RootNamespace>
     <AssemblyName>SonarLint.VisualStudio.Core.UnitTests</AssemblyName>
-
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup Label="Framework references">

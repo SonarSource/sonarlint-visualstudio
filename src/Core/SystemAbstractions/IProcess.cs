@@ -24,15 +24,14 @@ using System.Diagnostics;
 /// <summary>
 /// Wrappers around System.Diagnostics.Process for testing
 /// </summary>
-
-namespace SonarLint.VisualStudio.CFamily.SystemAbstractions
+namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    internal interface IProcessFactory
+    public interface IProcessFactory
     {
         IProcess Start(ProcessStartInfo startInfo);
     }
 
-    internal interface IProcess : IDisposable
+    public interface IProcess : IDisposable
     {
         int Id { get; }
         bool HasExited { get; }
@@ -55,7 +54,7 @@ namespace SonarLint.VisualStudio.CFamily.SystemAbstractions
         Action<string> HandleOutputDataReceived { get; set; }
     }
 
-    internal class ProcessFactory : IProcessFactory
+    public class ProcessFactory : IProcessFactory
     {
         public IProcess Start(ProcessStartInfo startInfo)
         {

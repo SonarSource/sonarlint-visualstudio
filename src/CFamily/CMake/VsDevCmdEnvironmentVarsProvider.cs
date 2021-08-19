@@ -25,7 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Text;
 using Microsoft.VisualStudio;
-using SonarLint.VisualStudio.CFamily.SystemAbstractions;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
