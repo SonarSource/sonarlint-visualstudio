@@ -21,19 +21,86 @@
 using System;
 using System.Diagnostics;
 
+/// <summary>
+/// Wrappers around System.Diagnostics.Process for testing
+/// </summary>
 namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
-    /// <summary>
-    /// Wrapper around System.Diagnostics.Process for testing
-    /// </summary>
-    public interface IProcess
+    public interface IProcessFactory
     {
-        IntPtr GetCurrentProcessMainWindowHandle();
+        IProcess Start(ProcessStartInfo startInfo);
     }
 
-    public class ProcessWrapper : IProcess
+    public interface IProcess : IDisposable
     {
-        public IntPtr GetCurrentProcessMainWindowHandle() =>
-            Process.GetCurrentProcess().MainWindowHandle;
+        int Id { get; }
+        bool HasExited { get; }
+        int ExitCode { get; }
+        ProcessStartInfo StartInfo { get; }
+        void BeginOutputReadLine();
+        void WaitForExit(int milliseconds);
+        void Kill();
+
+        /// <summary>
+        /// Callback when output is received.
+        /// Logically equivalent to handling the <see cref="System.Diagnostics.Process.OutputDataReceived"/> event.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="System.Diagnostics.DataReceivedEventArgs"/> does not have public constructor so we
+        /// can't just wrap the <see cref="System.Diagnostics.Process.OutputDataReceived"/> event.
+        /// We could create an equivalent event, but since there is only one string field it is simpler
+        /// to use an action.
+        /// </remarks>
+        Action<string> HandleOutputDataReceived { get; set; }
+    }
+
+    public class ProcessFactory : IProcessFactory
+    {
+        public IProcess Start(ProcessStartInfo startInfo)
+        {
+            var process = Process.Start(startInfo);
+            return new ProcessWrapper(process);
+        }
+    }
+
+    internal sealed class ProcessWrapper : IProcess
+    {
+        private readonly Process wrapped;
+
+        public ProcessWrapper(Process wrapped) => this.wrapped = wrapped;
+
+        public int Id => wrapped.Id;
+        public bool HasExited => wrapped.HasExited;
+        public int ExitCode => wrapped.ExitCode;
+        public ProcessStartInfo StartInfo => wrapped.StartInfo;
+        public void Kill() => wrapped.Kill();
+        public void WaitForExit(int milliseconds) => wrapped.WaitForExit(milliseconds);
+        public void BeginOutputReadLine() => wrapped.BeginOutputReadLine();
+
+        private Action<string> handleOutputData;
+
+        public Action<string> HandleOutputDataReceived
+        {
+            get { return handleOutputData; }
+            set
+            {
+                handleOutputData = value;
+                if (value == null)
+                {
+                    wrapped.OutputDataReceived -= Wrapped_OutputDataReceived;
+                }
+                else
+                {
+                    wrapped.OutputDataReceived += Wrapped_OutputDataReceived;
+                }
+            }
+        }
+
+        public void Dispose() => wrapped.Dispose();
+
+        private void Wrapped_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            HandleOutputDataReceived?.Invoke(e.Data);
+        }
     }
 }

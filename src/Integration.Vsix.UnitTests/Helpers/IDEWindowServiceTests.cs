@@ -21,7 +21,6 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Win32;
 using Moq;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
@@ -38,14 +37,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         private readonly WINDOWPLACEMENT NotMinimized = new WINDOWPLACEMENT { showCmd = 0 };
 
         private Mock<INativeMethods> nativeMock;
-        private Mock<IProcess> processMock;
+        private Mock<ICurrentProcess> processMock;
         private TestLogger logger;
 
         [TestInitialize]
         public void TestInitialize()
         {
             nativeMock = new Mock<INativeMethods>();
-            processMock = new Mock<IProcess>();
+            processMock = new Mock<ICurrentProcess>();
             logger = new TestLogger(logToConsole: true);
 
             SetCurrentMainWindowHandleResponse(ValidHandle);
@@ -136,7 +135,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
         private delegate bool GetWindowPlacementDelegate(IntPtr hwnd, ref WINDOWPLACEMENT placement);
 
         private void SetCurrentMainWindowHandleResponse(IntPtr handle) =>
-            processMock.Setup(x => x.GetCurrentProcessMainWindowHandle()).Returns(handle);
+            processMock.Setup(x => x.GetMainWindowHandle()).Returns(handle);
 
         private void SetGetPlacementResponse(bool result, WINDOWPLACEMENT placementToReturn)
         {
