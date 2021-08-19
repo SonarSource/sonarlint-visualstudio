@@ -55,7 +55,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.SystemAbstractions
             {
                 if (!wrappedProcess.HasExited)
                 {
-                    wrappedProcess?.Kill();
+                    try
+                    {
+                        wrappedProcess?.Kill();
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine("[Test cleanup] Error terminating process: " + ex);
+                    }
                 }
             }
         }
@@ -98,8 +105,11 @@ exit -2
             testSubject.HandleOutputDataReceived = data => sb.AppendLine(data);
             testSubject.BeginOutputReadLine();
             testSubject.WaitForExit(2000);
+            // Give any async messages the opportunity to arrive
+            System.Threading.Thread.Sleep(1000);
 
             // Assert
+            testSubject.HasExited.Should().BeTrue();
             testSubject.ExitCode.Should().Be(0);
 
             var output = sb.ToString();

@@ -41,7 +41,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         IReadOnlyDictionary<string, string> Get(string scriptParams);
     }
 
-    internal class VsDevCmdEnvironmentProvider : IVsDevCmdEnvironmentProvider
+    internal class VsDevCmdEnvironmentVarsProvider : IVsDevCmdEnvironmentProvider
     {
         /// <summary>
         /// Relative path from the VS installation root to the batch file
@@ -58,15 +58,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IProcessFactory processFactory;
         private readonly IFileSystem fileSystem;
 
-
-        public VsDevCmdEnvironmentProvider(IVsInfoService vsInfoService, ILogger logger)
+        public VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, ILogger logger)
             : this(vsInfoService, logger, new ProcessFactory(), new FileSystem())
         {
-            this.vsInfoService = vsInfoService;
-            this.logger = logger;
         }
 
-        internal /* for testing */ VsDevCmdEnvironmentProvider(IVsInfoService vsInfoService, ILogger logger,
+        internal /* for testing */ VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, ILogger logger,
             IProcessFactory processFactory, IFileSystem fileSystem)
         {
             this.vsInfoService = vsInfoService;

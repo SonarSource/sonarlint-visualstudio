@@ -36,7 +36,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {
     [TestClass]
-    public class VsDevCmdEnvironmentProviderTests
+    public class VsDevCmdEnvironmentVarsProviderTests
     {
         public TestContext TestContext { get; set; }
 
@@ -277,11 +277,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 }
 
                 // Create the test subject
-                TestSubject = new VsDevCmdEnvironmentProvider(CreateVsInfoService(installRootDir), Logger,
+                TestSubject = new VsDevCmdEnvironmentVarsProvider(CreateVsInfoService(installRootDir), Logger,
                     ProcessFactory.Object, FileSystem.Object);
             }
 
-            public VsDevCmdEnvironmentProvider TestSubject { get; }
+            public VsDevCmdEnvironmentVarsProvider TestSubject { get; }
 
             public Mock<IProcess> Process { get; }
 
