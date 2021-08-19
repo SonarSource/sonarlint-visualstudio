@@ -34,6 +34,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
 
         public static readonly string[] KnownExtensions = {".cpp", ".cxx", ".cc", ".c"};
 
+        public static readonly string[] KnownHeaderFileExtensions = {".h", ".hpp", ".hh", ".hxx"};
+
         /// <summary>
         /// Attempts to detect whether the file is C or C++ based on the file extension.
         /// Returns null if the extension is not recognised.

@@ -121,8 +121,13 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
         }
 
-        private bool IsHeaderFile(string filePath) => 
-            Path.GetExtension(filePath).Equals(".h", StringComparison.OrdinalIgnoreCase);
+        private bool IsHeaderFile(string filePath)
+        {
+            var extension = Path.GetExtension(filePath);
+
+            return CFamilyShared.KnownHeaderFileExtensions.Any(x =>
+                x.Equals(extension, StringComparison.OrdinalIgnoreCase));
+        }
 
         private CompilationDatabaseEntry LocateExactCodeEntry(string filePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
         {

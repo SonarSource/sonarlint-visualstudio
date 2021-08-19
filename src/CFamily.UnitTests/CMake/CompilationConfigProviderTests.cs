@@ -258,7 +258,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void GetConfig_HeaderFile_CodeWithSameNameExactPath_GivenPriorityOverDifferentPath()
         {
-            const string headerFilePath = "c:\\test\\a.h";
+            const string headerFilePath = "c:\\test\\a.hxx";
 
             var compilationDatabaseContent = new[]
             {
@@ -280,7 +280,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void GetConfig_HeaderFile_NoMatchingName_HasCodeFileUnderPath_ReturnsCodeFileEntry()
         {
-            const string headerFilePath = "c:\\a\\b\\test.h";
+            const string headerFilePath = "c:\\a\\b\\test.hh";
 
             var compilationDatabaseContent = new[]
             {
@@ -304,7 +304,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void GetConfig_HeaderFile_NoMatchingName_NoMatchingPath_ReturnsFirstCodeFileEntry()
         {
-            const string headerFilePath = "c:\\a\\b\\test.h";
+            const string headerFilePath = "c:\\a\\b\\test.hpp";
 
             var compilationDatabaseContent = new[]
             {
