@@ -26,7 +26,7 @@ using SonarLint.VisualStudio.Core.SystemAbstractions;
 namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
 {
     [TestClass]
-    public class ProcessWrapperTests
+    public class CurrentProcessWrapperTests
     {
         [TestMethod]
         public void GetCurrentProcessMainWindowHandle_ReturnsCurrent()
@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
             // so current the window handle will be IntPtr.Zero
             var expected = Process.GetCurrentProcess().MainWindowHandle;
 
-            new ProcessWrapper().GetCurrentProcessMainWindowHandle().Should().Be(expected);
+            new CurrentProcessWrapper().GetMainWindowHandle().Should().Be(expected);
         }
     }
 }

@@ -33,16 +33,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     internal class IDEWindowService : IIDEWindowService
     {
         private readonly INativeMethods nativeMethods;
-        private readonly IProcess process;
+        private readonly ICurrentProcess process;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public IDEWindowService(ILogger logger)
-            : this(new NativeMethods(), new ProcessWrapper(), logger)
+            : this(new NativeMethods(), new CurrentProcessWrapper(), logger)
         {
         }
 
-        internal /* for testing */ IDEWindowService(INativeMethods nativeMethods, IProcess process, ILogger logger)
+        internal /* for testing */ IDEWindowService(INativeMethods nativeMethods, ICurrentProcess process, ILogger logger)
         {
             this.nativeMethods = nativeMethods;
             this.process = process;
@@ -54,7 +54,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
             try
             {
                 logger.WriteLine(Strings.IDEWindowService_BringingToFront);
-                var handle = process.GetCurrentProcessMainWindowHandle();
+                var handle = process.GetMainWindowHandle();
                 if (handle == IntPtr.Zero)
                 {
                     logger.WriteLine(Strings.IDEWindowService_InvalidWindowHandle);
