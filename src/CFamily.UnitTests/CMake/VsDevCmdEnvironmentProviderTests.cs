@@ -36,7 +36,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {
     [TestClass]
-    public class _VsDevCmdEnvironmentProviderTests
+    public class VsDevCmdEnvironmentProviderTests
     {
         public TestContext TestContext { get; set; }
 
