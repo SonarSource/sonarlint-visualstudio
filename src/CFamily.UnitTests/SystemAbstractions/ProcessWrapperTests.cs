@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.CFamily.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
@@ -125,13 +126,14 @@ exit -2
             var exeName = WriteBatchFileForTest(TestContext,
 @"@echo Waiting for keyboard input which will not arrive...
 set /p arg=
+exit -999
 ");
 
             using var processScope = StartProcess(exeName);
             var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
-            testSubject.WaitForExit(2000);
+            testSubject.WaitForExit(1000);
             testSubject.HasExited.Should().Be(false);
             CheckProcessIsRunning(testSubject.Id);
 
@@ -139,6 +141,7 @@ set /p arg=
             testSubject.Kill();
             testSubject.HasExited.Should().Be(true);
             testSubject.ExitCode.Should().Be(-1);
+            System.Threading.Thread.Sleep(500);
             CheckProcessIsNotRunning(testSubject.Id);
         }
 
@@ -169,8 +172,12 @@ set /p arg=
             CheckProcessIsRunning(id); // somewhat unexpectedly, Dispose does not kill the running process
         }
 
-        private static ProcessScope StartProcess(string exeName) =>
-            new ProcessScope(Process.Start(CreateProcessStartInfo(exeName)));
+        private static ProcessScope StartProcess(string exeName)
+        {
+            var scope = new ProcessScope(Process.Start(CreateProcessStartInfo(exeName)));
+            Log("Started process. Id=" + scope.Process.Id);
+            return scope;
+        }
 
         private static ProcessStartInfo CreateProcessStartInfo(string exeName) =>
             new ProcessStartInfo
@@ -207,16 +214,39 @@ set /p arg=
             return testPath;
         }
 
-        private static void CheckProcessIsRunning(int id) =>
+        private static void CheckProcessIsRunning(int id)
+        {
+            Log("Checking process is running. Id=" + id);
             Process.GetProcessById(id).Should().NotBeNull();
+        }
 
         private static void CheckProcessIsNotRunning(int id)
         {
-            Action act = () => Process.GetProcessById(id);
-            act.Should().ThrowExactly<ArgumentException>();
+            Log("Checking process is not running. Id=" + id);
+
+            Process process;
+            try
+            {
+                process = Process.GetProcessById(id);
+            }
+            catch (ArgumentException)
+            {
+                // Ok: expect an argument exception if the process is not running
+                return;
+            }
+
+            // Not ok: should have thrown. Dump diagnostic info about the process to help debugging
+            Log("Did not expected process to be running. Id=" + process.Id);
+            Log($"\tProcessName: {process.ProcessName}");
+            Log($"\tFileName: {process.StartInfo?.FileName ?? "{unknown}"}");
+            Log($"\tStartTime: {process.StartTime}");
+            Assert.Fail("Not expecting the process to be running");
         }
 
         private void CheckOperationOnDisposedObjectFails(Action op) =>
             op.Should().ThrowExactly<InvalidOperationException>();
+
+        private static void Log(string message) =>
+            Console.WriteLine("[Test logging] " + message);
     }
 }
