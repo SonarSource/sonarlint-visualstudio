@@ -24,16 +24,16 @@ using System.Diagnostics;
 namespace SonarLint.VisualStudio.Core.SystemAbstractions
 {
     /// <summary>
-    /// Wrapper around System.Diagnostics.Process for testing
+    /// Wrapper around System.Diagnostics.Process static method for testing
     /// </summary>
-    public interface IProcess
+    public interface ICurrentProcess
     {
-        IntPtr GetCurrentProcessMainWindowHandle();
+        IntPtr GetMainWindowHandle();
     }
 
-    public class ProcessWrapper : IProcess
+    public class CurrentProcessWrapper : ICurrentProcess
     {
-        public IntPtr GetCurrentProcessMainWindowHandle() =>
+        public IntPtr GetMainWindowHandle() =>
             Process.GetCurrentProcess().MainWindowHandle;
     }
 }
