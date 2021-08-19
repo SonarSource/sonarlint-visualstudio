@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.Core.CFamily
         /// <summary>
         /// Any environment variables that need to be passed to the subprocess. Can be null.
         /// </summary>
-        IDictionary<string, string> EnvironmentVariables { get; }
+        IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
         /// <summary>
         /// Serializes the request for diagnostic purposes
