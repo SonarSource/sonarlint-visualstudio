@@ -61,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 
         public RequestContext Context { get; }
 
-        public IDictionary<string, string> EnvironmentVariables
+        public IReadOnlyDictionary<string, string> EnvironmentVariables
         {
             get
             {

@@ -34,7 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// <summary>
         /// This protocol does not use environment variables
         /// </summary>
-        public IDictionary<string, string> EnvironmentVariables => null;
+        public IReadOnlyDictionary<string, string> EnvironmentVariables => null;
 
         // TODO - duplicate property - remove
         internal string CFamilyLanguage { get; set; }
