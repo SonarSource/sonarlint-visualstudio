@@ -109,6 +109,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 "get_HasExited",
                 "Dispose"
                 );
+
+            invokedMembers.Should().NotContain("Kill"); // should have terminated normally
         }
 
         [TestMethod]
@@ -121,7 +123,6 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var invokedMembers = context.Process.Invocations.Select(x => x.Method.Name).ToArray();
             invokedMembers.Should().ContainInOrder(
-                // Cleanup should include Kill in the event of a timeout
                 "Kill",
                 "Dispose"
                 );

@@ -27,27 +27,71 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Helpers
             // Cache the properties we need now as we won't be able to access them
             // later if the process has been disposed at the point we want to clean up.
             id = process.Id;
-            mainModuleFilName = process.MainModule?.FileName;
-            processName = process.ProcessName;
+
+            (mainModuleFilName, processName) = TryGetProcessDetails(process);
         }
 
         public void Dispose()
         {
             try
             {
-                var process = Process.GetProcessById(id);
+                var runningProcess = Process.GetProcessById(id);
+                Log("Process is running.  Id: " + id);
 
                 // Make sure we don't accidentally kill a newly-created process with the same id
-                if (process.MainModule?.FileName == mainModuleFilName &&
-                    process.ProcessName == processName)
+                (string runningModuleName, string runningProcessName) = TryGetProcessDetails(runningProcess);
+
+                if (runningModuleName == mainModuleFilName &&
+                    runningProcessName == processName)
                 {
-                    process.Kill();
+                    Log("Terminating process. Id: " + id);
+                    runningProcess.Kill();
+                }
+                else
+                {
+                    Log("Process details do not match. Process will not be terminated.");
                 }
             }
-            catch (Exception)
+            catch(ArgumentException ex)
             {
-                // Do nothing
+                Log($"Process is probably not running. Id: {id}. Error message: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
             }
         }
+
+        private static (string moduleFileName, string processName) TryGetProcessDetails(Process process)
+        {
+            Log("Fetching details for process: " + process.Id);
+
+            string  moduleFileName = SafeGetProperty(() => process.MainModule?.FileName);
+            string processName = SafeGetProperty(() => process.ProcessName);
+
+            Log("  Main module file name: " + moduleFileName);
+            Log("  Process name: " + processName);
+
+            return (moduleFileName, processName);
+        }
+
+        private static string SafeGetProperty(Func<string> op)
+        {
+            try
+            {
+                return op();
+            }
+            catch (Exception ex)
+            {
+                LogError(ex);
+            }
+            return "{unknown}";
+        }
+
+        private static void Log(string message) =>
+                Console.WriteLine("[ProcessScope] " + message);
+
+        private static void LogError(Exception ex) =>
+                Log("Error: " + ex.ToString());
     }
 }
