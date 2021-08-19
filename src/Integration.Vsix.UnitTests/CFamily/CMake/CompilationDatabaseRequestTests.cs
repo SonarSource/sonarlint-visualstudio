@@ -41,13 +41,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         private readonly IReadOnlyDictionary<string, string> ValidEnvVars = new Dictionary<string, string> { { "key1", "value1" } };
 
         [TestMethod]
-        public void Ctor_NullArguments_Throws()
+        public void Ctor_InvalidArguments_Throws()
         {
             Action act = () => new CompilationDatabaseRequest(null, ValidContext, ValidEnvVars);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("databaseEntry");
 
             act = () => new CompilationDatabaseRequest(ValidDbEntry, null, ValidEnvVars);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("context");
+        }
+
+        [TestMethod]
+        public void Ctor_NullEnvVars_DoesNotThrow()
+        {
+            var testSubject = new CompilationDatabaseRequest(ValidDbEntry, ValidContext, null);
+            testSubject.EnvironmentVariables.Should().BeNull();
         }
 
         [TestMethod]
@@ -304,16 +311,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             actual["INCLUDE"].Should().BeEmpty();
             actual["PATH"].Should().Be("any");
         }
-
-
-        [TestMethod]
-        public void EnvironmentVariables_CanBeNull()
-        {
-            var testSubject = new CompilationDatabaseRequest(ValidDbEntry, ValidContext, null);
-
-            testSubject.EnvironmentVariables.Should().BeNull();
-        }
-
 
         private static RequestContext CreateContext(
             string language = "c",
