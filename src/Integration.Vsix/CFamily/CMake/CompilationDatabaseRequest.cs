@@ -36,16 +36,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
         private readonly CompilationDatabaseEntry databaseEntry;
         private readonly IRulesConfigProtocolFormatter rulesConfigProtocolFormatter;
 
-        public CompilationDatabaseRequest(CompilationDatabaseEntry databaseEntry, RequestContext context)
-            : this(databaseEntry, context, new RulesConfigProtocolFormatter())
+        public CompilationDatabaseRequest(CompilationDatabaseEntry databaseEntry, RequestContext context, IReadOnlyDictionary<string, string> environmentVariables)
+            : this(databaseEntry, context, environmentVariables, new RulesConfigProtocolFormatter())
         {
         }
 
         internal CompilationDatabaseRequest(CompilationDatabaseEntry databaseEntry, 
-            RequestContext context,
+            RequestContext context, IReadOnlyDictionary<string, string> environmentVariables,
             IRulesConfigProtocolFormatter rulesConfigProtocolFormatter)
         {
             this.databaseEntry = databaseEntry ?? throw new ArgumentNullException(nameof(databaseEntry));
+            EnvironmentVariables = environmentVariables;
             this.rulesConfigProtocolFormatter = rulesConfigProtocolFormatter;
             Context = context ?? throw new ArgumentNullException(nameof(context));
 
@@ -61,17 +62,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 
         public RequestContext Context { get; }
 
-        public IReadOnlyDictionary<string, string> EnvironmentVariables
-        {
-            get
-            {
-                return new Dictionary<string, string>
-                {
-                    // TODO - check whether a value is required. #2539
-                    { "INCLUDE", string.Empty }
-                };
-            }
-        }
+        public IReadOnlyDictionary<string, string> EnvironmentVariables { get; }
 
         public void WriteRequest(BinaryWriter writer)
         {
