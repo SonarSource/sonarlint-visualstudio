@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -56,7 +57,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             var rulesConfig = rulesConfigProvider.GetRulesConfiguration(languageKey);
             var context = new RequestContext(languageKey, rulesConfig, analyzedFilePath, SubProcessFilePaths.PchFilePath, analyzerOptions);
 
-            return new CompilationDatabaseRequest(dbEntry, context);
+            // TODO - fetch env vars #2539
+            var envVars = new Dictionary<string, string> { { "INCLUDE", string.Empty } };
+
+            return new CompilationDatabaseRequest(dbEntry, context, envVars);
         }
     }
 }

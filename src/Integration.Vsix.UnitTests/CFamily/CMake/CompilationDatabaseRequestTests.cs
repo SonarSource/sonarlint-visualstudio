@@ -38,14 +38,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
     {
         private readonly RequestContext ValidContext = new RequestContext("cpp", Mock.Of<ICFamilyRulesConfig>(), "file.txt", "pchFile.txt", null);
         private readonly CompilationDatabaseEntry ValidDbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\", Command = "a command" };
+        private readonly IReadOnlyDictionary<string, string> ValidEnvVars = new Dictionary<string, string> { { "key1", "value1" } };
 
         [TestMethod]
         public void Ctor_NullArguments_Throws()
         {
-            Action act = () => new CompilationDatabaseRequest(null, ValidContext);
+            Action act = () => new CompilationDatabaseRequest(null, ValidContext, ValidEnvVars);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("databaseEntry");
 
-            act = () => new CompilationDatabaseRequest(ValidDbEntry, null);
+            act = () => new CompilationDatabaseRequest(ValidDbEntry, null, ValidEnvVars);
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("context");
         }
 
@@ -54,7 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [DataRow("", "args")]
         [DataRow("cmd", null)]
         [DataRow("cmd", "")]
-        public void Ctor_ValidDBEntry_ShouldNotThrow(string command, string args)
+        public void Ctor_ValidCommandArgsCombination_ShouldNotThrow(string command, string args)
         {
             var dbEntry = new CompilationDatabaseEntry
             {
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
                 Arguments = args
             };
 
-            Action act = () => new CompilationDatabaseRequest(dbEntry, ValidContext);
+            Action act = () => new CompilationDatabaseRequest(dbEntry, ValidContext, ValidEnvVars);
             act.Should().NotThrow();
         }
 
@@ -74,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [DataRow(null, "")]
         [DataRow("", null)]
         [DataRow("command", "args")] // can't have both
-        public void Ctor_InvalidDBEntry_ShouldThrow(string command, string args)
+        public void Ctor_InvalidCommandArgsCombination_ShouldThrow(string command, string args)
         {
             var dbEntry = new CompilationDatabaseEntry
             {
@@ -84,7 +85,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
                 Arguments = args
             };
 
-            Action act = () => new CompilationDatabaseRequest(dbEntry, ValidContext);
+            Action act = () => new CompilationDatabaseRequest(dbEntry, ValidContext, ValidEnvVars);
             act.Should().ThrowExactly<ArgumentException>();
         }
 
@@ -278,7 +279,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
   ""arguments"": null
 }";
 
-            var testSubject = new CompilationDatabaseRequest(dbEntry, context);
+            var testSubject = new CompilationDatabaseRequest(dbEntry, context, ValidEnvVars);
 
             var sb = new StringBuilder();
             using (var writer = new StringWriter(sb))
@@ -293,14 +294,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         [TestMethod]
         public void EnvironmentVariables_ReturnsExpectedValues()
         {
-            var testSubject = new CompilationDatabaseRequest(ValidDbEntry, ValidContext);
+            var envVars = new Dictionary<string, string> { { "INCLUDE", "" }, { "PATH", "any"} };
+            var testSubject = new CompilationDatabaseRequest(ValidDbEntry, ValidContext, envVars);
 
             var actual = testSubject.EnvironmentVariables;
 
-            actual.Count.Should().Be(1);
-            actual.ContainsKey("INCLUDE").Should().BeTrue();
+            actual.Count.Should().Be(2);
+            actual.Keys.Should().BeEquivalentTo("INCLUDE", "PATH");
             actual["INCLUDE"].Should().BeEmpty();
+            actual["PATH"].Should().Be("any");
         }
+
+
+        [TestMethod]
+        public void EnvironmentVariables_CanBeNull()
+        {
+            var testSubject = new CompilationDatabaseRequest(ValidDbEntry, ValidContext, null);
+
+            testSubject.EnvironmentVariables.Should().BeNull();
+        }
+
 
         private static RequestContext CreateContext(
             string language = "c",
@@ -321,11 +334,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         /// Executes the request, and returns the ordered list of strings that were
         /// written to the binary stream
         /// </summary>
-        private static IList<string> WriteRequest(CompilationDatabaseEntry dbEntry, RequestContext context)
+        private IList<string> WriteRequest(CompilationDatabaseEntry dbEntry, RequestContext context)
         {
             var tokens = new List<string>();
 
-            var testSubject = new CompilationDatabaseRequest(dbEntry, context);
+            var testSubject = new CompilationDatabaseRequest(dbEntry, context, ValidEnvVars);
 
             using (var stream = new MemoryStream())
             {
