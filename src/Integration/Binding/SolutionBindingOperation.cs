@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 using System.Threading;
 using EnvDTE;
 using SonarLint.VisualStudio.Core.Binding;
@@ -50,6 +51,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly ILegacyConfigFolderItemAdder legacyConfigFolderItemAdder;
         private readonly IFileSystem fileSystem;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private IEnumerable<Project> projects;
 
         public SolutionBindingOperation(IServiceProvider serviceProvider,
@@ -80,6 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.sourceControlledFileSystem = serviceProvider.GetService<ISourceControlledFileSystem>();
             this.sourceControlledFileSystem.AssertLocalServiceIsNotNull();
 
+            projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
         }
 
         #region State
@@ -168,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                var languageForProject = ProjectToLanguageMapper.GetLanguageForProject(project);
+                var languageForProject = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).FirstOrDefault();
                 var bindingConfigFile = GetBindingConfig(languageForProject);
 
                 var projectBinder = projectBinderFactory.Get(project);

@@ -62,11 +62,14 @@ namespace SonarLint.VisualStudio.Integration
         internal const uint SolutionItemResourceId = 13450;
 
         private readonly IServiceProvider serviceProvider;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         [ImportingConstructor]
-        public ProjectSystemHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
+        public ProjectSystemHelper([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+            IProjectToLanguageMapper projectToLanguageMapper)
         {
-            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.serviceProvider = serviceProvider;
+            this.projectToLanguageMapper = projectToLanguageMapper;
         }
 
         public IVsHierarchy GetVsHierarchyForFile(string fileName)
@@ -85,7 +88,9 @@ namespace SonarLint.VisualStudio.Integration
             foreach (var hierarchy in EnumerateProjects(solution))
             {
                 Project Project = GetProject(hierarchy);
-                if (Project != null && !ProjectToLanguageMapper.GetLanguageForProject(Project).Equals(Language.Unknown))
+
+                if (Project != null && 
+                    !projectToLanguageMapper.GetAllBindingLanguagesForProject(Project).Any(x=> x.Equals(Language.Unknown)))
                 {
                     yield return Project;
                 }

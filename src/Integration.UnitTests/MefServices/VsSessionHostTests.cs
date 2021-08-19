@@ -62,45 +62,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
             var propertyManager = new ProjectPropertyManager(host);
             var mefExport1 = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
             var mefExport2 = MefTestHelpers.CreateExport<ILogger>(new SonarLintOutputLogger(serviceProvider));
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2);
+            var mefExport3 = MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>());
+            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExport1, mefExport2, mefExport3);
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
         }
 
         #region Tests
-
-        [TestMethod]
-        public void VsSessionHost_ArgChecks()
-        {
-            var loggerMock = new Mock<ILogger>();
-            Action action = () => new VsSessionHost(this.serviceProvider, null, new ConfigurableActiveSolutionTracker(),
-                Mock.Of<ICredentialStoreService>(), loggerMock.Object);
-            action.Should().ThrowExactly<ArgumentNullException>();
-
-            action = () => new VsSessionHost(null, sonarQubeServiceMock.Object, new ConfigurableActiveSolutionTracker(),
-                Mock.Of<ICredentialStoreService>(), loggerMock.Object);
-            action.Should().ThrowExactly<ArgumentNullException>();
-
-            action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object, null, Mock.Of<ICredentialStoreService>(), loggerMock.Object);
-            action.Should().ThrowExactly<ArgumentNullException>();
-
-            action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), null, loggerMock.Object);
-            action.Should().ThrowExactly<ArgumentNullException>();
-
-            action = () => new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), null);
-            action.Should().ThrowExactly<ArgumentNullException>();
-
-            action = () => new VsSessionHost(this.serviceProvider, null, null, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), loggerMock.Object, null);
-            action.Should().ThrowExactly<ArgumentNullException>();
-
-            using (var host = new VsSessionHost(this.serviceProvider, sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), loggerMock.Object))
-            {
-                host.Should().NotBeNull("Not expecting this to fail, just to make the static analyzer happy");
-            }
-        }
 
         [TestMethod]
         public void VsSessionHost_SetActiveSection()
@@ -371,7 +338,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
         {
             // Arrange
             var testSubject = new VsSessionHost(this.serviceProvider, this.sonarQubeServiceMock.Object,
-                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), Mock.Of<ILogger>());
+                new ConfigurableActiveSolutionTracker(), Mock.Of<ICredentialStoreService>(), Mock.Of<IProjectToLanguageMapper>(), Mock.Of<ILogger>());
             ConfigurableVsShell shell = new ConfigurableVsShell();
             shell.RegisterPropertyGetter((int)__VSSPROPID2.VSSPROPID_InstallRootDir, () => this.TestContext.TestRunDirectory);
             this.serviceProvider.RegisterService(typeof(SVsShell), shell);
@@ -409,6 +376,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.TeamExplorer
                 this.sonarQubeServiceMock.Object,
                 tracker ?? new ConfigurableActiveSolutionTracker(),
                 Mock.Of<ICredentialStoreService>(),
+                Mock.Of<IProjectToLanguageMapper>(),
                 Mock.Of<ILogger>(),
                 Dispatcher.CurrentDispatcher);
 

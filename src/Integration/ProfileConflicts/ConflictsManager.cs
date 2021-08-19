@@ -47,6 +47,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
         private readonly ILogger logger;
         private readonly IProjectBinderFactory projectBinderFactory;
         private readonly IFileSystem fileSystem;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         public ConflictsManager(IServiceProvider serviceProvider, ILogger logger)
             : this(serviceProvider, logger, new ProjectBinderFactory(serviceProvider, logger), new FileSystem())
@@ -59,6 +60,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
             this.projectBinderFactory = projectBinderFactory ?? throw new ArgumentNullException(nameof(projectBinderFactory));
+            projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
         }
 
         public IReadOnlyList<ProjectRuleSetConflict> GetCurrentConflicts()
@@ -138,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 // Solution-level checks (done here because the expected solution-level config
                 // depends on the languages supported by the project that exist)
-                string baselineRuleSet = bindingConfiguration.BuildPathUnderConfigDirectory(ProjectToLanguageMapper.GetLanguageForProject(project).FileSuffixAndExtension);
+                string baselineRuleSet = bindingConfiguration.BuildPathUnderConfigDirectory(projectToLanguageMapper.GetAllBindingLanguagesForProject(project).FirstOrDefault().FileSuffixAndExtension);
 
                 if (!fileSystem.File.Exists(baselineRuleSet))
                 {

@@ -25,9 +25,11 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.CodeAnalysis.RuleSets;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -47,6 +49,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private ConfigurableVsOutputWindowPane outputWindowPane;
         private DTEMock dte;
         private ConflictsManager testSubject;
+        private IProjectToLanguageMapper projectToLanguageMapper;
 
         public TestContext TestContext { get; set; }
 
@@ -77,6 +80,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             var outputWindow = new ConfigurableVsOutputWindow();
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
+
+            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<IAbsoluteFilePathLocator>());
+
+            var mefHost = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
+
+            this.serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
+
 
             this.dte = new DTEMock();
             this.projectHelper.CurrentActiveSolution = new SolutionMock(dte);
@@ -158,8 +169,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane.AssertOutputStrings(1);
 
             var expectedBaselineLocation = configProvider.GetConfiguration()
-                .BuildPathUnderConfigDirectory(ProjectToLanguageMapper
-                    .GetLanguageForProject(projectHelper.FilteredProjects.First()).FileSuffixAndExtension);
+                .BuildPathUnderConfigDirectory(projectToLanguageMapper
+                    .GetAllBindingLanguagesForProject(projectHelper.FilteredProjects.First()).FirstOrDefault().FileSuffixAndExtension);
 
             outputWindowPane.AssertOutputStrings(1);
             this.outputWindowPane.AssertPartialOutputStrings(expectedBaselineLocation);
@@ -322,8 +333,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 var bindingConfiguration = configProvider.GetConfiguration();
 
                 var solutionRuleSet =
-                    bindingConfiguration.BuildPathUnderConfigDirectory(ProjectToLanguageMapper
-                        .GetLanguageForProject(project).FileSuffixAndExtension);
+                    bindingConfiguration.BuildPathUnderConfigDirectory(projectToLanguageMapper
+                        .GetAllBindingLanguagesForProject(project).FirstOrDefault().FileSuffixAndExtension);
 
                 fileSystem.AddFile(solutionRuleSet, new MockFileData(""));
             }

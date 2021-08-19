@@ -21,6 +21,8 @@
 using System;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -29,90 +31,93 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
     public class ProjectToLanguageMapperTests
     {
         [TestMethod]
-        public void Mapper_GetLanguage_KnownLanguage_ArgChecks()
+        public void MefCtor_CheckIsExported()
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            Exceptions.Expect<ArgumentNullException>(() => ProjectToLanguageMapper.GetLanguageForProject(null));
-#pragma warning restore CS0618 // Type or member is obsolete
+            MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IAbsoluteFilePathLocator>(Mock.Of<IAbsoluteFilePathLocator>())
+            });
         }
 
         [TestMethod]
-        public void Mapper_GetLanguage_UnknownLanguage_ReturnsUnknown()
+        public void GetAllBindingLanguagesForProject_NullProject_ArgumentNullException()
         {
-            CheckGetLanguage("", Language.Unknown);
-            CheckGetLanguage("{F63A7EA2-4179-46BF-B9AE-E758BE4EC87C}", Language.Unknown);
-            CheckGetLanguage("wibble", Language.Unknown);
-            CheckGetLanguage("wibble;bibble", Language.Unknown);
+            var testSubject = CreateTestSubject();
+
+            Action act = () => testSubject.GetAllBindingLanguagesForProject(null);
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("dteProject");
         }
 
         [TestMethod]
-        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_CS_CaseSensitivity()
+        [DataRow("")]
+        [DataRow("{F63A7EA2-4179-46BF-B9AE-E758BE4EC87C}")]
+        [DataRow("wibble")]
+        [DataRow("wibble;bibble")]
+        public void GetAllBindingLanguagesForProject_UnknownProjectType_UnknownProject(string projectTypeGuid)
         {
-            CheckGetLanguage(ProjectSystemHelper.CSharpProjectKind.ToUpper(), Language.CSharp);
-            CheckGetLanguage(ProjectSystemHelper.CSharpProjectKind.ToLower(), Language.CSharp);
+            CheckGetAllBindingsLanguages(projectTypeGuid, Language.Unknown);
         }
 
         [TestMethod]
-        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_CS()
+        public void GetAllBindingLanguagesForProject_SupportedProjectType_CaseSensitivity_ReturnsCorrectLanguage()
         {
-            CheckGetLanguage(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
-            CheckGetLanguage(ProjectSystemHelper.CSharpCoreProjectKind, Language.CSharp);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.CSharpProjectKind.ToUpper(), Language.CSharp);
+            CheckGetAllBindingsLanguages(ProjectSystemHelper.CSharpProjectKind.ToLower(), Language.CSharp);
         }
 
         [TestMethod]
-        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_VB()
-        {
-            CheckGetLanguage(ProjectSystemHelper.VbProjectKind, Language.VBNET);
-            CheckGetLanguage(ProjectSystemHelper.VbCoreProjectKind, Language.VBNET);
-        }
-
-        [TestMethod]
-        public void Mapper_GetLanguage_KnownLanguage_ReturnsCorrectLanguage_Cpp()
-        {
-            CheckGetLanguage(ProjectSystemHelper.CppProjectKind, Language.Cpp);
-        }
-
-        [TestMethod]
-        public void Mapper_AllBindingLanguages_CSharpProject()
+        public void GetAllBindingLanguagesForProject_SupportedProjectType_Cs_ReturnsCorrectLanguage()
         {
             CheckGetAllBindingsLanguages(ProjectSystemHelper.CSharpProjectKind, Language.CSharp);
             CheckGetAllBindingsLanguages(ProjectSystemHelper.CSharpCoreProjectKind, Language.CSharp);
         }
 
         [TestMethod]
-        public void Mapper_AllBindingLanguages_VbProject()
+        public void GetAllBindingLanguagesForProject_SupportedProjectType_VB_ReturnsCorrectLanguage()
         {
             CheckGetAllBindingsLanguages(ProjectSystemHelper.VbProjectKind, Language.VBNET);
             CheckGetAllBindingsLanguages(ProjectSystemHelper.VbCoreProjectKind, Language.VBNET);
         }
 
         [TestMethod]
-        public void Mapper_AllBindingLanguages_CppProject()
+        public void GetAllBindingLanguagesForProject_SupportedProjectType_CPP_ReturnsCorrectLanguage()
         {
             CheckGetAllBindingsLanguages(ProjectSystemHelper.CppProjectKind, Language.Cpp, Language.C);
         }
 
         [TestMethod]
-        public void Mapper_AllBindingLanguages_UnknownProject()
+        public void GetAllBindingLanguagesForProject_OpenAsFolderProject_HasCmakeFiles_CFamilyLanguages()
         {
-            CheckGetAllBindingsLanguages(Guid.NewGuid().ToString(), Language.Unknown);
-        }
+            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("found it!");
 
-        private static void CheckGetLanguage(string projectTypeGuid, Language expectedLanguage)
-        {
-            // Arrange
             var project = new ProjectMock("any.xxx")
             {
-                ProjectKind = projectTypeGuid
+                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
             };
 
-            // Act
-#pragma warning disable CS0618 // Type or member is obsolete
-            var actualLanguage = ProjectToLanguageMapper.GetLanguageForProject(project);
-#pragma warning restore CS0618 // Type or member is obsolete
+            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
 
-            // Assert
-            actualLanguage.Should().Be(expectedLanguage);
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Cpp, Language.C);
+        }
+
+        [TestMethod]
+        public void GetAllBindingLanguagesForProject_OpenAsFolderProject_NoCmakeFiles_UnknownLanguage()
+        {
+            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator(null);
+
+            var project = new ProjectMock("any.xxx")
+            {
+                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
+            };
+
+            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
+
+            actualLanguage.Should().BeEquivalentTo(Language.Unknown);
         }
 
         private static void CheckGetAllBindingsLanguages(string projectTypeGuid, params Language[] expectedLanguages)
@@ -123,12 +128,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 ProjectKind = projectTypeGuid
             };
 
+            var testSubject = CreateTestSubject();
+
             // Act
-            var actualLanguage = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+            var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
             // Assert
             actualLanguage.Should().BeEquivalentTo(expectedLanguages);
         }
 
+        private static IProjectToLanguageMapper CreateTestSubject(IAbsoluteFilePathLocator absoluteFilePathLocator = null)
+        {
+            absoluteFilePathLocator ??= Mock.Of<IAbsoluteFilePathLocator>();
+
+            return new ProjectToLanguageMapper(absoluteFilePathLocator);
+        }
+
+        private static Mock<IAbsoluteFilePathLocator> SetupAbsoluteFilePathLocator(string result)
+        {
+            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
+            absoluteFilePathLocator
+                .Setup(x => x.Locate("CMakeLists.txt"))
+                .Returns(result);
+
+            return absoluteFilePathLocator;
+        }
     }
 }

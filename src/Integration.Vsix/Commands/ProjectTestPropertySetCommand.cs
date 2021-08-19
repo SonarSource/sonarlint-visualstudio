@@ -34,6 +34,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
     {
         public const string PropertyName = Constants.SonarQubeTestProjectBuildPropertyKey;
         private readonly IProjectPropertyManager propertyManager;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         private readonly bool? commandPropertyValue;
 
@@ -44,14 +45,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         /// project property to a specified value.
         /// </summary>
         /// <param name="setPropertyValue">Value this instance will set the project properties to.</param>
-        public ProjectTestPropertySetCommand(IProjectPropertyManager propertyManager, bool? setPropertyValue)
+        public ProjectTestPropertySetCommand(IProjectPropertyManager propertyManager, IProjectToLanguageMapper projectToLanguageMapper, bool? setPropertyValue)
         {
-            if (propertyManager == null)
-            {
-                throw new ArgumentNullException(nameof(propertyManager));
-            }
-
-            this.propertyManager = propertyManager;
+            this.propertyManager = propertyManager ?? throw new ArgumentNullException(nameof(propertyManager));
+            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.commandPropertyValue = setPropertyValue;
         }
 
@@ -64,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .ToList();
 
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => ProjectToLanguageMapper.GetLanguageForProject(x).IsSupported), "Unsupported projects");
+            Debug.Assert(projects.All(x => projectToLanguageMapper.GetAllBindingLanguagesForProject(x).All(l => l.IsSupported)), "Unsupported projects");
 
             foreach (Project project in projects)
             {
@@ -85,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => ProjectToLanguageMapper.GetLanguageForProject(x).IsSupported))
+            if (projects.Any() && projects.All(x => projectToLanguageMapper.GetAllBindingLanguagesForProject(x).All(l => l.IsSupported)))
             {
                 IList<bool?> properties = projects.Select(x =>
                     this.propertyManager.GetBooleanProperty(x, PropertyName)).ToList();

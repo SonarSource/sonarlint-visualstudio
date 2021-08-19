@@ -20,7 +20,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +30,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -72,8 +72,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
                 });
             this.settings = new ConfigurableSonarLintSettings();
 
-            var mefExports = MefTestHelpers.CreateExport<ISonarLintSettings>(settings);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<ISonarLintSettings>(settings),
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<IAbsoluteFilePathLocator>())));
+
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.filter = new ConfigurableProjectSystemFilter();

@@ -22,11 +22,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -38,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
         private ProjectPropertyManager propertyManager;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
@@ -53,6 +57,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             provider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.serviceProvider = provider;
+
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
         }
 
         #endregion Test boilerplate
@@ -62,9 +68,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void ProjectTestPropertySetCommand_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectTestPropertySetCommand(null, true));
+            Action act = () => new ProjectTestPropertySetCommand(null, projectToLanguageMapper.Object, true);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
 
-            new ProjectTestPropertySetCommand(this.propertyManager, null);
+            act = () => new ProjectTestPropertySetCommand(propertyManager, null, true);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
         }
 
         [TestMethod]
@@ -75,12 +83,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             command.Enabled = true;
 
             var project = new ProjectMock("project.csproj");
-            project.SetCSProjectKind();
+            SetupProjectLanguage(project, Language.CSharp);
             this.projectSystem.SelectedProjects = new[] { project };
 
             // Test case 1: test (true)
             // Arrange
-            var testSubject1 = new ProjectTestPropertySetCommand(propertyManager, true);
+            var testSubject1 = CreateTestSubject(true);
 
             // Act
             testSubject1.Invoke(command, null);
@@ -89,7 +97,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(project, true);
 
             // Test case 2: non-test (false)
-            var testSubject2 = new ProjectTestPropertySetCommand(propertyManager, false);
+            var testSubject2 = CreateTestSubject(false);
 
             // Act
             testSubject2.Invoke(command, null);
@@ -98,7 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(project, false);
 
             // Test case 3: auto detect (null)
-            var testSubject3 = new ProjectTestPropertySetCommand(propertyManager, null);
+            var testSubject3 = CreateTestSubject(null);
 
             // Act
             testSubject3.Invoke(command, null);
@@ -117,14 +125,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
             var p3 = new ProjectMock("good2.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
-            p3.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
+            SetupProjectLanguage(p2, Language.CSharp);
+            SetupProjectLanguage(p3, Language.CSharp);
+
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             // Test case 1: test (true)
             // Arrange
-            var testSubject1 = new ProjectTestPropertySetCommand(propertyManager, true);
+            var testSubject1 = CreateTestSubject(true);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
             this.SetTestProperty(p3, false);
@@ -138,7 +147,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(p3, true);
 
             // Test case 2: non-test (false)
-            var testSubject2 = new ProjectTestPropertySetCommand(propertyManager, false);
+            var testSubject2 = CreateTestSubject(false);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
             this.SetTestProperty(p3, false);
@@ -152,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             this.VerifyTestProperty(p3, false);
 
             // Test case 3: auto detect (null)
-            var testSubject3 = new ProjectTestPropertySetCommand(propertyManager, null);
+            var testSubject3 = CreateTestSubject(null);
             this.SetTestProperty(p1, null);
             this.SetTestProperty(p2, true);
             this.SetTestProperty(p3, false);
@@ -175,7 +184,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             ProjectTestPropertySetCommand testSubject;
             using (new AssertIgnoreScope()) // we want to be missing the MEF service
             {
-                testSubject = new ProjectTestPropertySetCommand(propertyManager, null);
+                testSubject = CreateTestSubject(null);
             }
 
             // Act
@@ -192,10 +201,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(propertyManager, null);
+            var testSubject = CreateTestSubject(null);
 
             var project = new ProjectMock("mcproject.csproj");
-            project.SetCSProjectKind();
+            SetupProjectLanguage(project, Language.CSharp);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -213,9 +222,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(propertyManager, null);
+            var testSubject = CreateTestSubject(null);
 
             var project = new ProjectMock("mcproject.csproj");
+            SetupProjectLanguage(project, Language.Unknown);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -234,7 +244,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var project = new ProjectMock("face.proj");
-            project.SetCSProjectKind();
+            SetupProjectLanguage(project, Language.CSharp);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -278,8 +288,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
+            SetupProjectLanguage(p2, Language.CSharp);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -327,9 +337,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
             var p3 = new ProjectMock("good3.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
-            p3.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
+            SetupProjectLanguage(p2, Language.CSharp);
+            SetupProjectLanguage(p3, Language.CSharp);
+
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             this.SetTestProperty(p1, true);
@@ -352,12 +363,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(this.propertyManager, null);
+            var testSubject = CreateTestSubject(null);
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
+            SetupProjectLanguage(p2, Language.CSharp);
 
             this.projectSystem.SelectedProjects = new [] { p1, p2 };
 
@@ -375,11 +386,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectTestPropertySetCommand(this.propertyManager, null);
+            var testSubject = CreateTestSubject(null);
 
             var unsupportedProject = new ProjectMock("bad.proj");
+            SetupProjectLanguage(unsupportedProject, Language.Unknown);
             var supportedProject = new ProjectMock("good.proj");
-            supportedProject.SetCSProjectKind();
+            SetupProjectLanguage(supportedProject, Language.CSharp);
 
             this.projectSystem.SelectedProjects = new[] { unsupportedProject, supportedProject };
 
@@ -442,7 +454,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
         private TestProjectTestPropSetCommandWrapper CreateCommands()
         {
-            return TestProjectTestPropSetCommandWrapper.Create(this.propertyManager);
+            return TestProjectTestPropSetCommandWrapper.Create(propertyManager, projectToLanguageMapper.Object);
         }
 
         private class TestProjectTestPropSetCommandWrapper : IEnumerable<ProjectTestPropertySetCommand>
@@ -460,12 +472,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 this.FalseCommand = falseCmd;
             }
 
-            public static TestProjectTestPropSetCommandWrapper Create(IProjectPropertyManager propertyManager)
+            public static TestProjectTestPropSetCommandWrapper Create(IProjectPropertyManager propertyManager, IProjectToLanguageMapper projectToLanguageMapper)
             {
                 return new TestProjectTestPropSetCommandWrapper(
-                    nullCmd: new ProjectTestPropertySetCommand(propertyManager, null),
-                    trueCmd: new ProjectTestPropertySetCommand(propertyManager, true),
-                    falseCmd: new ProjectTestPropertySetCommand(propertyManager, false));
+                    nullCmd: CreateTestSubject(null),
+                    trueCmd: CreateTestSubject(true),
+                    falseCmd: CreateTestSubject(false));
+
+                ProjectTestPropertySetCommand CreateTestSubject(bool? setPropertyValue)
+                {
+                    return new ProjectTestPropertySetCommand(propertyManager, projectToLanguageMapper, setPropertyValue);
+                }
             }
 
             #region IEnumerable<ProjectTestPropertySetCommand>
@@ -486,6 +503,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             }
 
             #endregion IEnumerable<ProjectTestPropertySetCommand>
+        }
+
+        private ProjectTestPropertySetCommand CreateTestSubject(bool? setPropertyValue)
+        {
+            return new ProjectTestPropertySetCommand(propertyManager, projectToLanguageMapper.Object, setPropertyValue);
+        }
+
+        private void SetupProjectLanguage(Project project, params Core.Language[] languages)
+        {
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(languages);
         }
 
         #endregion Test helpers

@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -75,6 +76,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider),
                 new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<IAbsoluteFilePathLocator>());
+            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
+            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
             var coreRuleSet = new FilePathAndContent<CoreRuleSet>(@"c:\Solution\sln.ruleset", new CoreRuleSet());
             var vsRuleSet = new VsRuleSet("VS ruleset");

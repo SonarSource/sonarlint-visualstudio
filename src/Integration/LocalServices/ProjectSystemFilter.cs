@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Linq;
 using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration
@@ -28,6 +29,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly ITestProjectIndicator testProjectIndicator;
         private readonly IProjectPropertyManager propertyManager;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         public ProjectSystemFilter(IHost host, ITestProjectIndicator testProjectIndicator)
         {
@@ -40,6 +42,8 @@ namespace SonarLint.VisualStudio.Integration
 
             this.propertyManager = host.GetMefService<IProjectPropertyManager>();
             Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
+
+            projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
         }
 
         #region IProjectSystemFilter
@@ -62,10 +66,11 @@ namespace SonarLint.VisualStudio.Integration
 
         #region Helpers
 
-        private static bool IsNotSupportedProject(DteProject project)
+        private bool IsNotSupportedProject(DteProject project)
         {
-            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
-            return (language == null || !language.IsSupported);
+            var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+
+            return languages.Any(x => !x.IsSupported);
         }
 
         private bool IsExcludedViaProjectProperty(DteProject dteProject)

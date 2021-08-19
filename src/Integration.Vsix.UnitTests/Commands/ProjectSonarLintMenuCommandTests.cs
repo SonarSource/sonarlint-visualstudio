@@ -20,11 +20,14 @@
 
 using System;
 using System.Windows.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
+using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -36,6 +39,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
         private ProjectPropertyManager propertyManager;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
@@ -51,6 +55,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             provider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.serviceProvider = provider;
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
         }
 
         #endregion Test boilerplate
@@ -61,10 +66,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         public void ProjectSonarLintMenuCommand_Ctor_InvalidArgs_Throws()
         {
             // Arrange
-            Action act = () => new ProjectSonarLintMenuCommand(null);
+            Action act = () => new ProjectSonarLintMenuCommand(null, null);
 
             // Act & Assert
             act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
+
+            act = () => new ProjectSonarLintMenuCommand(propertyManager, null);
+
+            // Act & Assert
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
         }
 
         [TestMethod]
@@ -73,7 +83,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectSonarLintMenuCommand(propertyManager);
+            var testSubject = CreateTestSubject();
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -89,11 +99,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectSonarLintMenuCommand(propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("cs.proj");
-            p1.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
             var p2 = new ProjectMock("cpp.proj");
+            SetupProjectLanguage(p1, Language.Unknown);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -111,12 +122,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectSonarLintMenuCommand(propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("cs1.proj");
-            p1.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
             var p2 = new ProjectMock("cs2.proj");
-            p2.SetCSProjectKind();
+            SetupProjectLanguage(p1, Language.CSharp);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -129,5 +140,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         }
 
         #endregion Tests
+
+        private ProjectSonarLintMenuCommand CreateTestSubject()
+        {
+            return new ProjectSonarLintMenuCommand(propertyManager, projectToLanguageMapper.Object);
+        }
+
+        private void SetupProjectLanguage(Project project, params Core.Language[] languages)
+        {
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(languages);
+        }
     }
 }

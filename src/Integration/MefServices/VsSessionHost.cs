@@ -62,6 +62,7 @@ namespace SonarLint.VisualStudio.Integration
         private readonly IServiceProvider serviceProvider;
         private readonly IActiveSolutionTracker solutionTracker;
         private readonly ICredentialStoreService credentialStoreService;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly IProgressStepRunnerWrapper progressStepRunner;
         private readonly Dictionary<Type, Lazy<ILocalService>> localServices = new Dictionary<Type, Lazy<ILocalService>>();
 
@@ -70,8 +71,20 @@ namespace SonarLint.VisualStudio.Integration
 
         [ImportingConstructor]
         public VsSessionHost([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
-            ISonarQubeService sonarQubeService, IActiveSolutionTracker solutionTacker, ICredentialStoreService credentialStoreService, ILogger logger)
-            : this(serviceProvider, null, null, sonarQubeService, solutionTacker, credentialStoreService, logger, Dispatcher.CurrentDispatcher)
+            ISonarQubeService sonarQubeService, 
+            IActiveSolutionTracker solutionTacker, 
+            ICredentialStoreService credentialStoreService,
+            IProjectToLanguageMapper projectToLanguageMapper,
+            ILogger logger)
+            : this(serviceProvider,
+                null,
+                null, 
+                sonarQubeService,
+                solutionTacker, 
+                credentialStoreService,
+                projectToLanguageMapper,
+                logger,
+                Dispatcher.CurrentDispatcher)
         {
             Debug.Assert(ThreadHelper.CheckAccess(), "Expected to be created on the UI thread");
         }
@@ -82,6 +95,7 @@ namespace SonarLint.VisualStudio.Integration
                                     ISonarQubeService sonarQubeService,
                                     IActiveSolutionTracker solutionTacker,
                                     ICredentialStoreService credentialStoreService,
+                                    IProjectToLanguageMapper projectToLanguageMapper,
                                     ILogger logger,
                                     Dispatcher uiDispatcher)
         {
@@ -92,6 +106,7 @@ namespace SonarLint.VisualStudio.Integration
             this.SonarQubeService = sonarQubeService ?? throw new ArgumentNullException(nameof(sonarQubeService));
             this.solutionTracker = solutionTacker ?? throw new ArgumentNullException(nameof(solutionTacker));
             this.credentialStoreService = credentialStoreService ?? throw new ArgumentNullException(nameof(credentialStoreService));
+            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.solutionTracker.ActiveSolutionChanged += this.OnActiveSolutionChanged;
             this.Logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -295,7 +310,7 @@ namespace SonarLint.VisualStudio.Integration
             var projectNameTestProjectIndicator = new Lazy<ILocalService>(() => new ProjectNameTestProjectIndicator(Logger));
             this.localServices.Add(typeof(ITestProjectRegexSetter), projectNameTestProjectIndicator);
 
-            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this)));
+            this.localServices.Add(typeof(IProjectSystemHelper), new Lazy<ILocalService>(() => new ProjectSystemHelper(this, projectToLanguageMapper)));
             this.localServices.Add(typeof(IRuleSetInspector), new Lazy<ILocalService>(() => new RuleSetInspector(this, Logger)));
             this.localServices.Add(typeof(IRuleSetConflictsController), new Lazy<ILocalService>(() => new RuleSetConflictsController(this, new ConflictsManager(this, Logger))));
             this.localServices.Add(typeof(IProjectSystemFilter), new Lazy<ILocalService>(() =>

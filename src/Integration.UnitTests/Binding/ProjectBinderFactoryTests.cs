@@ -21,8 +21,10 @@
 using System;
 using System.IO.Abstractions;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Integration.Binding;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
@@ -30,12 +32,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
     [TestClass]
     public class ProjectBinderFactoryTests
     {
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
         private ProjectBinderFactory testSubject;
 
         [TestInitialize]
         public void TestInitialize()
         {
-            testSubject = new ProjectBinderFactory(Mock.Of<IServiceProvider>(), Mock.Of<ILogger>(), Mock.Of<IFileSystem>());
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+
+            var serviceProvider = new ConfigurableServiceProvider();
+            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper.Object));
+            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
+            serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider), Mock.Of<ISolutionRuleSetsInformationProvider>());
+            serviceProvider.RegisterService(typeof(IRuleSetSerializer), Mock.Of<IRuleSetSerializer>());
+            serviceProvider.RegisterService(typeof(IProjectSystemHelper), Mock.Of<IProjectSystemHelper>());
+
+            testSubject = new ProjectBinderFactory(serviceProvider, Mock.Of<ILogger>(), Mock.Of<IFileSystem>());
         }
 
         [TestMethod]
@@ -65,8 +77,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void Get_CSharpProject_CSharpVBProjectBinderReturned()
         {
-            var project = new ProjectMock("c:\\foo.proj");
-            project.SetCSProjectKind();
+            var project = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project))
+                .Returns(new[] {Language.CSharp});
 
             using (new AssertIgnoreScope())
             {
@@ -78,8 +91,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void Get_VbNetProject_CSharpVBProjectBinderReturned()
         {
-            var project = new ProjectMock("c:\\foo.proj");
-            project.SetVBProjectKind();
+            var project = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project))
+                .Returns(new[] { Language.VBNET });
 
             using (new AssertIgnoreScope())
             {
@@ -91,8 +105,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void Get_CppProject_CFamilyProjectBinderReturned()
         {
-            var project = new ProjectMock("c:\\foo.proj");
-            project.ProjectKind = ProjectSystemHelper.CppProjectKind;
+            var project = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project))
+                .Returns(new[] { Language.Cpp });
 
             using (new AssertIgnoreScope())
             {
@@ -102,10 +117,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void Get_NonRoslynProject_CFamilyProjectBinderReturned()
+        public void Get_CProject_CFamilyProjectBinderReturned()
         {
-            var project = new ProjectMock("c:\\foo.proj");
-            project.ProjectKind = "{" + Guid.NewGuid() + "}";
+            var project = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project))
+                .Returns(new[] { Language.C });
+
+            using (new AssertIgnoreScope())
+            {
+                var configProjectBinder = testSubject.Get(project);
+                configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
+            }
+        }
+
+        [TestMethod]
+        public void Get_UnknownProject_CFamilyProjectBinderReturned()
+        {
+            // todo: this is wrong and should be null
+            var project = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project))
+                .Returns(new[] { Language.Unknown });
 
             using (new AssertIgnoreScope())
             {

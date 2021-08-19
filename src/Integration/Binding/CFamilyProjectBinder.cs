@@ -33,16 +33,13 @@ namespace SonarLint.VisualStudio.Integration.Binding
 {
     internal class CFamilyProjectBinder : IProjectBinder
     {
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
 
-        public CFamilyProjectBinder(IServiceProvider serviceProvider, ILogger logger, IFileSystem fileSystem)
+        public CFamilyProjectBinder(IProjectToLanguageMapper projectToLanguageMapper, ILogger logger, IFileSystem fileSystem)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
+            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
         }
@@ -52,7 +49,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
-            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+            var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project);
             languages = languages.Where(x => x.Equals(Language.C) || x.Equals(Language.Cpp));
 
             return languages.Any(language =>

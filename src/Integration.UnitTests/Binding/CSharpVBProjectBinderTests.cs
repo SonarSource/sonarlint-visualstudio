@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IProjectSystemHelper> projectSystemHelperMock;
         private Mock<IRuleSetReferenceChecker> rulesetReferenceCheckerMock;
         private Mock<ICSharpVBAdditionalFileReferenceChecker> additionalFileReferenceCheckerMock;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapperMock;
 
         private CSharpVBProjectBinder testSubject;
         private Mock<CSharpVBProjectBinder.CreateBindingOperationFunc> createBindingOperationFuncMock;
@@ -65,8 +66,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             rulesetReferenceCheckerMock = new Mock<IRuleSetReferenceChecker>();
             additionalFileReferenceCheckerMock = new Mock<ICSharpVBAdditionalFileReferenceChecker>();
+            projectToLanguageMapperMock = new Mock<IProjectToLanguageMapper>();
 
-            testSubject = new CSharpVBProjectBinder(serviceProviderMock.Object, fileSystemMock.Object, new TestLogger(), rulesetReferenceCheckerMock.Object, additionalFileReferenceCheckerMock.Object, createBindingOperationFuncMock.Object);
+            testSubject = new CSharpVBProjectBinder(serviceProviderMock.Object, projectToLanguageMapperMock.Object, fileSystemMock.Object, new TestLogger(), rulesetReferenceCheckerMock.Object, additionalFileReferenceCheckerMock.Object, createBindingOperationFuncMock.Object);
         }
 
         [TestMethod]
@@ -74,9 +76,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             using (new AssertIgnoreScope())
             {
-                Action act = () => new CSharpVBProjectBinder(null, Mock.Of<IFileSystem>(), new TestLogger());
+                Action act = () => new CSharpVBProjectBinder(null, projectToLanguageMapperMock.Object, Mock.Of<IFileSystem>(), new TestLogger());
 
                 act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            }
+        }
+
+        [TestMethod]
+        public void Ctor_NullProjectToLanguageMapper_ArgumentNullException()
+        {
+            using (new AssertIgnoreScope())
+            {
+                Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, null, Mock.Of<IFileSystem>(), new TestLogger());
+
+                act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
             }
         }
 
@@ -85,9 +98,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             using (new AssertIgnoreScope())
             {
-                Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, null, new TestLogger());
+                Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, projectToLanguageMapperMock.Object, null, new TestLogger());
 
                 act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
+            }
+        }
+
+        [TestMethod]
+        public void Ctor_NullLogger_ArgumentNullException()
+        {
+            using (new AssertIgnoreScope())
+            {
+                Action act = () => new CSharpVBProjectBinder(serviceProviderMock.Object, projectToLanguageMapperMock.Object, fileSystemMock.Object, null);
+
+                act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
             }
         }
 
@@ -116,8 +140,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void IsBindingRequired_ProjectLanguageIsNotSupported_False()
         {
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetProjectKind(new Guid(ProjectSystemHelper.CppProjectKind));
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.C });
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");
@@ -135,8 +160,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsBindingRequired_SolutionHasNoAdditionalFile_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.CSharp });
 
             var mockAdditionalFilePath = GetSolutionAdditionalFilePath(bindingConfiguration);
             fileSystemMock.Setup(x => x.File.Exists(mockAdditionalFilePath)).Returns(false);
@@ -155,8 +181,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsBindingRequired_SolutionHasNoRuleset_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.CSharp });
 
             SetupSolutionAdditionalFileExists(bindingConfiguration);
 
@@ -176,8 +203,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsBindingRequired_SolutionHasRulesetButFileFailsToLoad_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.CSharp });
 
             SetupSolutionAdditionalFileExists(bindingConfiguration);
             SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: false);
@@ -195,8 +223,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsBindingRequired_ProjectDoesNotReferenceAdditionalFile_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.CSharp });
 
             SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: true);
             var solutionAdditionalFilePath = SetupSolutionAdditionalFileExists(bindingConfiguration);
@@ -216,8 +246,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsBindingRequired_ProjectDoesNotReferenceSolutionRuleset_True()
         {
             var bindingConfiguration = GetBindingConfiguration();
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.CSharp });
 
             var solutionAdditionalFilePath = GetSolutionAdditionalFilePath(bindingConfiguration);
             fileSystemMock.Setup(x => x.File.Exists(solutionAdditionalFilePath)).Returns(true);
@@ -243,8 +274,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsBindingRequired_ProjectReferencesSolutionRulesetAndAdditionalFile_False()
         {
             var bindingConfiguration = GetBindingConfiguration();
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+            var projectMock = new ProjectMock("c:\\foo.xxxx");
+            projectToLanguageMapperMock.Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.CSharp });
 
             var solutionRuleSetFilePath = SetupSolutionRulesetExists(bindingConfiguration, isRuleSetLoadable: true);
 
