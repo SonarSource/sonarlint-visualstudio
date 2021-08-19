@@ -26,10 +26,10 @@ using System.Text;
 using FluentAssertions;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using SonarLint.VisualStudio.CFamily.SystemAbstractions;
+using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
 
-namespace SonarLint.VisualStudio.CFamily.UnitTests.SystemAbstractions
+namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
 {
     [TestClass]
     public class ProcessWrapperTests
