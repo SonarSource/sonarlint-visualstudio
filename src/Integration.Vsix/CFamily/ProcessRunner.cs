@@ -168,7 +168,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        private void SetEnvironmentVariables(ProcessStartInfo psi, IDictionary<string, string> envVariables)
+        private void SetEnvironmentVariables(ProcessStartInfo psi, IReadOnlyDictionary<string, string> envVariables)
         {
             if (envVariables == null)
             {

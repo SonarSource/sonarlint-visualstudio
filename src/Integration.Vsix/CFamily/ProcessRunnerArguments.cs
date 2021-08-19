@@ -72,7 +72,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /// <summary>
         /// Additional environments variables that should be set/overridden for the process. Can be null.
         /// </summary>
-        public IDictionary<string, string> EnvironmentVariables { get; set; }
+        public IReadOnlyDictionary<string, string> EnvironmentVariables { get; set; }
 
         public Action<StreamWriter> HandleInputStream { get; set; }
         public Action<StreamReader> HandleOutputStream { get; set; }
