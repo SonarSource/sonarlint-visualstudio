@@ -26,7 +26,6 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
     [TestClass]
     public class CFamilySharedTests
     {
-
         [TestMethod]
         [DataRow("c:\\aaa.cpp", SonarLanguageKeys.CPlusPlus)]
         [DataRow("c:\\AAA.CPP", SonarLanguageKeys.CPlusPlus)]
@@ -40,6 +39,25 @@ namespace SonarLint.VisualStudio.Core.UnitTests.CFamily
         public void FindLanguage_ReturnsExpectedValue(string filePath, string expected)
         {
             CFamilyShared.FindLanguageFromExtension(filePath)
+                .Should().Be(expected);
+        }
+
+        [TestMethod]
+        [DataRow("c:\\test.h", true)]
+        [DataRow("c:\\test.hpp", true)]
+        [DataRow("c:\\test.hh", true)]
+        [DataRow("c:\\test.hxx", true)]
+        [DataRow("c:\\test.H", true)]
+        [DataRow("c:\\test.HPP", true)]
+        [DataRow("c:\\test.HH", true)]
+        [DataRow("c:\\test.HXX", true)]
+        [DataRow("c:\\test.Hxx", true)]
+        [DataRow("c:\\test.h.ha", false)]
+        [DataRow("c:\\test.cpp", false)]
+        [DataRow("c:\\test.cpp.h", true)]
+        public void IsHeaderFileExtension_ReturnsExpectedValue(string filePath, bool expected)
+        {
+            CFamilyShared.IsHeaderFileExtension(filePath)
                 .Should().Be(expected);
         }
     }

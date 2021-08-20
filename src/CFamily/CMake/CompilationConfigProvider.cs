@@ -104,7 +104,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
                 var stopwatch = Stopwatch.StartNew();
 
-                var entry = IsHeaderFile(filePath)
+                var entry = CFamilyShared.IsHeaderFileExtension(filePath)
                     ? LocateMatchingCodeEntry(filePath, compilationDatabaseEntries)
                     : LocateExactCodeEntry(filePath, compilationDatabaseEntries);
 
@@ -119,14 +119,6 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
                 return null;
             }
-        }
-
-        private bool IsHeaderFile(string filePath)
-        {
-            var extension = Path.GetExtension(filePath);
-
-            return CFamilyShared.KnownHeaderFileExtensions.Any(x =>
-                x.Equals(extension, StringComparison.OrdinalIgnoreCase));
         }
 
         private CompilationDatabaseEntry LocateExactCodeEntry(string filePath, IEnumerable<CompilationDatabaseEntry> compilationDatabaseEntries)
