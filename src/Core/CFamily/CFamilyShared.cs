@@ -20,6 +20,7 @@
 
 using System;
 using System.IO;
+using System.Linq;
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
@@ -33,6 +34,8 @@ namespace SonarLint.VisualStudio.Core.CFamily
         public static readonly StringComparison RuleKeyComparison = StringComparison.Ordinal;
 
         public static readonly string[] KnownExtensions = {".cpp", ".cxx", ".cc", ".c"};
+
+        private static readonly string[] KnownHeaderFileExtensions = {".h", ".hpp", ".hh", ".hxx"};
 
         /// <summary>
         /// Attempts to detect whether the file is C or C++ based on the file extension.
@@ -55,6 +58,17 @@ namespace SonarLint.VisualStudio.Core.CFamily
             }
 
             return cfamilyLanguage;
+        }
+
+        /// <summary>
+        /// Returns true/false if the file's extension is a known header file extension.
+        /// </summary>
+        public static bool IsHeaderFileExtension(string filePath)
+        {
+            var extension = Path.GetExtension(filePath);
+
+            return KnownHeaderFileExtensions.Any(x =>
+                x.Equals(extension, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
