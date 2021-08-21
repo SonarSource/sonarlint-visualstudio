@@ -50,9 +50,19 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
             var isCSharpVBLanguage = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
-            return isCSharpVBLanguage
-                ? (IProjectBinder) new CSharpVBProjectBinder(serviceProvider, projectToLanguageMapper, fileSystem, logger)
-                : new CFamilyProjectBinder(projectToLanguageMapper, logger, fileSystem);
+            if (isCSharpVBLanguage)
+            {
+                return new CSharpVBProjectBinder(serviceProvider, projectToLanguageMapper, fileSystem, logger);
+            }
+
+            var isCFamilyLanguage = languages.Contains(Core.Language.C) || languages.Contains(Core.Language.Cpp);
+
+            if (isCFamilyLanguage)
+            {
+                return new CFamilyProjectBinder(projectToLanguageMapper, logger, fileSystem);
+            }
+
+            return null;
         }
     }
 }

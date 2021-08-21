@@ -131,9 +131,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         }
 
         [TestMethod]
-        public void Get_UnknownProject_CFamilyProjectBinderReturned()
+        public void Get_UnknownProject_Null()
         {
-            // todo: this is wrong and should be null
             var project = new ProjectMock("c:\\foo.xxxx");
             projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project))
                 .Returns(new[] { Language.Unknown });
@@ -141,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             using (new AssertIgnoreScope())
             {
                 var configProjectBinder = testSubject.Get(project);
-                configProjectBinder.Should().BeOfType<CFamilyProjectBinder>();
+                configProjectBinder.Should().BeNull();
             }
         }
     }
