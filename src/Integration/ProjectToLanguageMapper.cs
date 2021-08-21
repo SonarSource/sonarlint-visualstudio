@@ -21,9 +21,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
@@ -46,7 +48,8 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ProjectToLanguageMapper : IProjectToLanguageMapper
     {
-        private readonly IAbsoluteFilePathLocator absoluteFilePathLocator;
+        private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly IFileSystem fileSystem;
 
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
@@ -57,12 +60,16 @@ namespace SonarLint.VisualStudio.Integration
             { new Guid(ProjectSystemHelper.CppProjectKind), Language.Cpp }
         };
 
-        internal static readonly Guid OpenAsFolderProject = new Guid("{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}");
-
         [ImportingConstructor]
-        public ProjectToLanguageMapper(IAbsoluteFilePathLocator absoluteFilePathLocator)
+        public ProjectToLanguageMapper(IFolderWorkspaceService folderWorkspaceService)
+            : this(folderWorkspaceService, new FileSystem())
         {
-            this.absoluteFilePathLocator = absoluteFilePathLocator;
+        }
+
+        internal ProjectToLanguageMapper(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
+        {
+            this.folderWorkspaceService = folderWorkspaceService;
+            this.fileSystem = fileSystem;
         }
 
         /// <summary>
@@ -93,11 +100,14 @@ namespace SonarLint.VisualStudio.Integration
                 return language;
             }
 
-            if (projectKind == OpenAsFolderProject)
-            {
-                var cmakeProjectFile = absoluteFilePathLocator.Locate("CMakeLists.txt");
+            var isOpenAsFolder = folderWorkspaceService.IsFolderWorkspace();
 
-                if (!string.IsNullOrEmpty(cmakeProjectFile))
+            if (isOpenAsFolder)
+            {
+                var rootDirectory = folderWorkspaceService.FindRootDirectory();
+                var isCMake = fileSystem.Directory.EnumerateFiles(rootDirectory, "CMakeLists.txt", SearchOption.AllDirectories).Any();
+
+                if (isCMake)
                 {
                     return Language.Cpp;
                 }

@@ -19,10 +19,13 @@
  */
 
 using System;
+using System.IO;
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -35,7 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(null, new[]
             {
-                MefTestHelpers.CreateExport<IAbsoluteFilePathLocator>(Mock.Of<IAbsoluteFilePathLocator>())
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(Mock.Of<IFolderWorkspaceService>())
             });
         }
 
@@ -87,16 +90,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetAllBindingLanguagesForProject_OpenAsFolderProject_HasCmakeFiles_CFamilyLanguages()
+        [DataRow("c:\\some directory\\CMakeLists.txt")]
+        [DataRow("c:\\some directory\\sub\\CMakeLists.txt")]
+        [DataRow("c:\\some directory\\sub\\folder\\CMakeLists.txt")]
+        public void GetAllBindingLanguagesForProject_OpenAsFolderProject_HasCmakeFiles_CFamilyLanguages(string cmakeListsLocation)
         {
-            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("found it!");
+            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory("c:\\some directory");
+            fileSystem.AddFile(cmakeListsLocation, new MockFileData(""));
 
-            var project = new ProjectMock("any.xxx")
-            {
-                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
-            };
+            var project = new ProjectMock("any.xxx") {ProjectKind = Guid.NewGuid().ToString()};
 
-            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -106,14 +112,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_OpenAsFolderProject_NoCmakeFiles_UnknownLanguage()
         {
-            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator(null);
+            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory("c:\\some directory");
+            fileSystem.AddFile("c:\\anotherRoot\\CMakeLists.txt", new MockFileData(""));
 
-            var project = new ProjectMock("any.xxx")
-            {
-                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
-            };
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
 
-            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -158,14 +164,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void HasSupportedLanguage_OpenAsFolder_NotCMake_False()
         {
-            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator(null);
+            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory("c:\\some directory");
 
-            var project = new ProjectMock("any.xxx")
-            {
-                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
-            };
-
-            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -175,14 +179,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void HasSupportedLanguage_OpenAsFolder_CMake_True()
         {
-            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("has cmake");
-
-            var project = new ProjectMock("any.xxx")
-            {
-                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
-            };
-
-            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory("c:\\some directory");
+            fileSystem.AddFile("c:\\some directory\\CMakeLists.txt", new MockFileData(""));
+            
+            var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -206,21 +209,26 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualLanguage.Should().BeEquivalentTo(expectedLanguages);
         }
 
-        private static IProjectToLanguageMapper CreateTestSubject(IAbsoluteFilePathLocator absoluteFilePathLocator = null)
+        private static IProjectToLanguageMapper CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IFileSystem fileSystem = null)
         {
-            absoluteFilePathLocator ??= Mock.Of<IAbsoluteFilePathLocator>();
+            folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
+            fileSystem ??= new MockFileSystem();
 
-            return new ProjectToLanguageMapper(absoluteFilePathLocator);
+            return new ProjectToLanguageMapper(folderWorkspaceService, fileSystem);
         }
 
-        private static Mock<IAbsoluteFilePathLocator> SetupAbsoluteFilePathLocator(string result)
+        private static Mock<IFolderWorkspaceService> SetupOpenAsFolder(string rootDirectory)
         {
-            var absoluteFilePathLocator = new Mock<IAbsoluteFilePathLocator>();
-            absoluteFilePathLocator
-                .Setup(x => x.Locate("CMakeLists.txt"))
-                .Returns(result);
+            var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
 
-            return absoluteFilePathLocator;
+            folderWorkspaceService
+                .Setup(x => x.IsFolderWorkspace())
+                .Returns(true);
+
+            folderWorkspaceService.Setup(x => x.FindRootDirectory())
+                .Returns(rootDirectory);
+
+            return folderWorkspaceService;
         }
     }
 }

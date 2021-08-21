@@ -30,7 +30,7 @@ using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Connection;
 using SonarLint.VisualStudio.Integration.Resources;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             var mefModel = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<ISonarLintSettings>(settings),
-                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<IAbsoluteFilePathLocator>())));
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<IFolderWorkspaceService>())));
 
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
