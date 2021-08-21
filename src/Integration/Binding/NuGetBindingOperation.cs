@@ -39,18 +39,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         public NuGetBindingOperation(IServiceProvider serviceProvider, ILogger logger)
         {
-            if (serviceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(serviceProvider));
-            }
-
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            this.serviceProvider = serviceProvider;
-            this.logger = logger;
+            this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         internal /*for testing*/ Dictionary<Language, List<NuGetPackageInfo>> NuGetPackages
@@ -88,7 +78,9 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var projectNugets = projectsToBind
                 .SelectMany(bindingProject =>
                 {
-                    var projectLanguage = ProjectToLanguageMapper.GetLanguageForProject(bindingProject);
+                    var projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
+                    var projectLanguages = projectToLanguageMapper.GetAllBindingLanguagesForProject(bindingProject);
+                    var projectLanguage = projectLanguages.First();
 
                     List<NuGetPackageInfo> nugetPackages;
                     if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))

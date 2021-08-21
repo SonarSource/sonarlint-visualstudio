@@ -20,6 +20,7 @@
 
 using System;
 using System.Windows.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -34,6 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private ConfigurableHost host;
         private Mock<ITestProjectIndicator> testProjectIndicatorMock;
         private ProjectSystemFilter testSubject;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
@@ -45,10 +47,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
 
             // used by ProjectPropertyManager
             serviceProvider.RegisterService(typeof(IProjectSystemHelper), new ConfigurableVsProjectSystemHelper(serviceProvider));
-            
+
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+
             var propertyManager = new ProjectPropertyManager(host);
-            var mefExports = MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager);
-            var mefModel = ConfigurableComponentModel.CreateWithExports(mefExports);
+            var mefModel = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IProjectPropertyManager>(propertyManager),
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper.Object));
+
             serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 
             testSubject = new ProjectSystemFilter(host, testProjectIndicatorMock.Object);
@@ -79,7 +85,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void IsAccepted_ProjectLanguageUnsupported_False()
         {
-            var project = new ProjectMock("unsupported.proj") {ProjectKind = null};
+            var project = new ProjectMock("unsupported.proj");
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(false);
 
             var actual = testSubject.IsAccepted(project);
             actual.Should().BeFalse();
@@ -100,6 +107,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             var project = new ProjectMock("supported.proj") {ProjectKind = projectTypeGuid};
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
 
             // Test case 1: missing property-> is accepted
@@ -155,6 +163,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             var project = new ProjectMock("unsupported.vcxproj");
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(false);
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
 
             // Act and Assert
@@ -165,11 +174,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         public void IsAccepted_SharedProject_ReturnsFalse()
         {
             // Arrange
-            var project = new ProjectMock("shared1.shproj");
-            project.SetCSProjectKind();
-
-            project = new ProjectMock("shared1.SHPROJ");
-            project.SetCSProjectKind();
+            var project = new ProjectMock("shared1.SHPROJ");
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
 
             // Act and Assert
             testSubject.IsAccepted(project).Should().BeFalse();
@@ -180,6 +186,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             var project = new ProjectMock("supported.proj") {ProjectKind = ProjectSystemHelper.CSharpCoreProjectKind};
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
 
             testProjectIndicatorMock.Setup(x => x.IsTestProject(project)).Returns(true);
@@ -193,6 +200,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         {
             // Arrange
             var project = new ProjectMock("supported.proj") { ProjectKind = ProjectSystemHelper.CSharpCoreProjectKind };
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
             project.SetBuildProperty(Constants.SonarQubeTestProjectBuildPropertyKey, "False"); // Should not matter
 
             testProjectIndicatorMock.Setup(x => x.IsTestProject(project)).Returns((bool?) null);

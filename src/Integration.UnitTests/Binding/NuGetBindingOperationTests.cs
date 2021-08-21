@@ -25,9 +25,11 @@ using System.Threading;
 using EnvDTE;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using NuGet;
 using NuGet.VisualStudio;
 using SonarLint.VisualStudio.Core.CSharpVB;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.Resources;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -263,9 +265,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             }
 
 
-            ConfigurablePackageInstaller packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
+            var packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
+
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<IFolderWorkspaceService>());
+
             this.serviceProvider.RegisterService(typeof(SComponentModel),
-                ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IVsPackageInstaller>(packageInstaller)));
+                ConfigurableComponentModel.CreateWithExports(
+                    MefTestHelpers.CreateExport<IVsPackageInstaller>(packageInstaller),
+                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper)));
 
             return packageInstaller;
         }

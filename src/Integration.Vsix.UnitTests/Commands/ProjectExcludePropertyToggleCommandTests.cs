@@ -20,10 +20,12 @@
 
 using System;
 using System.Windows.Threading;
+using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
@@ -36,6 +38,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private ConfigurableVsProjectSystemHelper projectSystem;
         private IServiceProvider serviceProvider;
         private ProjectPropertyManager propertyManager;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
@@ -51,6 +54,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             provider.RegisterService(typeof(SComponentModel), mefModel);
 
             this.serviceProvider = provider;
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
         }
 
         #endregion Test boilerplate
@@ -60,7 +64,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         [TestMethod]
         public void ProjectExcludePropertyToggleCommand_Ctor()
         {
-            Exceptions.Expect<ArgumentNullException>(() => new ProjectExcludePropertyToggleCommand(null));
+            Action act = () => new ProjectExcludePropertyToggleCommand(null, null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("propertyManager");
+
+            act = () => new ProjectExcludePropertyToggleCommand(propertyManager, null);
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
         }
 
         [TestMethod]
@@ -70,9 +78,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
-            var project = new ProjectMock("projecty.csproj");
-            project.SetCSProjectKind();
+            var project = new ProjectMock("projecty.xxxx");
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
+
+            var testSubject = CreateTestSubject();
+
             this.projectSystem.SelectedProjects = new[] { project };
 
             // Test case 1: true --toggle--> clears property
@@ -101,12 +111,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
             // Test case 1: all not set --toggle--> all true
@@ -137,14 +148,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
             command.Enabled = true;
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("trueProj.proj");
             var p2 = new ProjectMock("nullProj.proj");
             var p3 = new ProjectMock("trueProj.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
-            p3.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p3)).Returns(true);
+
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             this.SetExcludeProperty(p1, true);
@@ -166,7 +178,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
+            var testSubject = CreateTestSubject();
 
             // Act
             testSubject.QueryStatus(command, null);
@@ -182,10 +194,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
+            var testSubject = CreateTestSubject();
 
             var project = new ProjectMock("mcproject.csproj");
-            project.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -203,9 +215,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(propertyManager);
+            var testSubject = CreateTestSubject();
 
             var project = new ProjectMock("mcproject.csproj");
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(false);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -223,10 +236,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var project = new ProjectMock("face.proj");
-            project.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -253,12 +266,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -286,14 +299,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
             var p3 = new ProjectMock("good3.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
-            p3.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p3)).Returns(true);
+
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
             this.SetExcludeProperty(p1, true);
@@ -313,12 +327,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            p1.SetCSProjectKind();
-            p2.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
 
             this.projectSystem.SelectedProjects = new [] { p1, p2 };
 
@@ -336,11 +350,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             // Arrange
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
-            var testSubject = new ProjectExcludePropertyToggleCommand(this.propertyManager);
+            var testSubject = CreateTestSubject();
 
             var unsupportedProject = new ProjectMock("bad.proj");
             var supportedProject = new ProjectMock("good.proj");
-            supportedProject.SetCSProjectKind();
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(unsupportedProject)).Returns(false);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(supportedProject)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { unsupportedProject, supportedProject };
 
@@ -385,6 +400,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
                 project.ClearBuildProperty(Constants.SonarQubeExcludeBuildPropertyKey);
             }
         }
+
+        private ProjectExcludePropertyToggleCommand CreateTestSubject() => 
+            new ProjectExcludePropertyToggleCommand(propertyManager, projectToLanguageMapper.Object);
 
         #endregion Test helpers
     }

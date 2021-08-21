@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IUnboundProjectFinder unboundProjectFinder;
         private readonly IBindingConfigProvider bindingConfigProvider;
         private readonly SonarLintMode bindingMode;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         internal /*for testing*/ INuGetBindingOperation NuGetBindingOperation { get; }
 
@@ -63,6 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.unboundProjectFinder = unboundProjectFinder ?? throw new ArgumentNullException(nameof(unboundProjectFinder));
             this.bindingConfigProvider = bindingConfigProvider ?? throw new ArgumentNullException(nameof(bindingConfigProvider));
             this.bindingMode = bindingMode;
+            projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
 
             Debug.Assert(bindingArgs.ProjectKey != null);
             Debug.Assert(bindingArgs.ProjectName != null);
@@ -94,7 +96,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             var patternFilteredProjects = this.projectSystem.GetFilteredSolutionProjects();
             var pluginAndPatternFilteredProjects =
                 patternFilteredProjects.Where(p => this.host.SupportedPluginLanguages
-                    .Any(l => ProjectToLanguageMapper.GetAllBindingLanguagesForProject(p).Contains(l)));
+                    .Any(l => projectToLanguageMapper.GetAllBindingLanguagesForProject(p).Contains(l)));
 
             this.InternalState.BindingProjects.UnionWith(pluginAndPatternFilteredProjects);
             this.InformAboutFilteredOutProjects();
@@ -271,7 +273,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         internal /* for testing */ IEnumerable<Language> GetBindingLanguages()
         {
-            var languageList = this.InternalState.BindingProjects.SelectMany(ProjectToLanguageMapper.GetAllBindingLanguagesForProject)
+            var languageList = this.InternalState.BindingProjects.SelectMany(projectToLanguageMapper.GetAllBindingLanguagesForProject)
                                        .Distinct()
                                        .Where(this.host.SupportedPluginLanguages.Contains)
                                        .ToList();

@@ -20,12 +20,37 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.IO.Abstractions;
+using System.Linq;
+using EnvDTE;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
 {
-    public static class ProjectToLanguageMapper
+    public interface IProjectToLanguageMapper
     {
+        /// <summary>
+        /// Returns all of the supported Sonar languages for the specified project or Unknown
+        /// if no languages are supported
+        /// </summary>
+        IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject);
+
+        /// <summary>
+        /// Returns true/false if the project has at least one supported Sonar language
+        /// </summary>
+        bool HasSupportedLanguage(Project project);
+    }
+
+    [Export(typeof(IProjectToLanguageMapper))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
+    public class ProjectToLanguageMapper : IProjectToLanguageMapper
+    {
+        private readonly IFolderWorkspaceService folderWorkspaceService;
+        private readonly IFileSystem fileSystem;
+
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
             { new Guid(ProjectSystemHelper.CSharpProjectKind), Language.CSharp },
@@ -34,6 +59,18 @@ namespace SonarLint.VisualStudio.Integration
             { new Guid(ProjectSystemHelper.VbCoreProjectKind), Language.VBNET },
             { new Guid(ProjectSystemHelper.CppProjectKind), Language.Cpp }
         };
+
+        [ImportingConstructor]
+        public ProjectToLanguageMapper(IFolderWorkspaceService folderWorkspaceService)
+            : this(folderWorkspaceService, new FileSystem())
+        {
+        }
+
+        internal ProjectToLanguageMapper(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
+        {
+            this.folderWorkspaceService = folderWorkspaceService;
+            this.fileSystem = fileSystem;
+        }
 
         /// <summary>
         /// Returns the supported Sonar language for the specified project or Unknown
@@ -46,37 +83,42 @@ namespace SonarLint.VisualStudio.Integration
         /// New code should call <see cref="GetAllBindingLanguagesForProject(EnvDTE.Project)"/> instead
         /// and handle the fact that there could be multiple supported languages.
         /// </returns>
-        [Obsolete("Use GetAllBindingLanguagesForProject instead")]
-        public static Language GetLanguageForProject(EnvDTE.Project dteProject)
+        private Language GetLanguageForProject(Project dteProject)
         {
             if (dteProject == null)
             {
                 throw new ArgumentNullException(nameof(dteProject));
             }
 
-            Guid projectKind;
-            if (!Guid.TryParse(dteProject.Kind, out projectKind))
+            if (!Guid.TryParse(dteProject.Kind, out var projectKind))
             {
                 return Language.Unknown;
             }
 
-            Language language;
-            if (KnownProjectTypes.TryGetValue(projectKind, out language))
+            if (KnownProjectTypes.TryGetValue(projectKind, out var language))
             {
                 return language;
             }
+
+            var isOpenAsFolder = folderWorkspaceService.IsFolderWorkspace();
+
+            if (isOpenAsFolder)
+            {
+                var rootDirectory = folderWorkspaceService.FindRootDirectory();
+                var isCMake = fileSystem.Directory.EnumerateFiles(rootDirectory, "CMakeLists.txt", SearchOption.AllDirectories).Any();
+
+                if (isCMake)
+                {
+                    return Language.Cpp;
+                }
+            }
+
             return Language.Unknown;
         }
 
-        /// <summary>
-        /// Returns all of the supported Sonar languages for the sepcified project or Unknown
-        /// if no languages are supported
-        /// </summary>
-        public static IEnumerable<Language> GetAllBindingLanguagesForProject(EnvDTE.Project dteProject)
+        public IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
             var language = GetLanguageForProject(dteProject);
-#pragma warning restore CS0618 // Type or member is obsolete
 
             if (Language.Cpp.Equals(language))
             {
@@ -84,6 +126,13 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return new[] { language };
+        }
+
+        public bool HasSupportedLanguage(Project project)
+        {
+            var languages = GetAllBindingLanguagesForProject(project);
+
+            return languages.Any(x => x.IsSupported);
         }
     }
 }

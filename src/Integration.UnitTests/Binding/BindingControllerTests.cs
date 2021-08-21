@@ -90,7 +90,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
             folderWorkspaceServiceMock = new Mock<IFolderWorkspaceService>();
-            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object));
+            var mefHost = ConfigurableComponentModel.CreateWithExports(
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(folderWorkspaceServiceMock.Object),
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>()));
             serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
             host = new ConfigurableHost(serviceProvider, Dispatcher.CurrentDispatcher)

@@ -274,6 +274,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             notifications.ProgressChanged(Strings.DetectingSonarQubePlugins);
 
             var plugins = await this.host.SonarQubeService.GetAllPluginsAsync(cancellationToken);
+            var projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
 
             var csharpOrVbNetProjects = new HashSet<EnvDTE.Project>(this.projectSystem.GetSolutionProjects());
             var supportedPluginsLanguages = MinimumSupportedSonarQubePlugin.All
@@ -282,7 +283,7 @@ namespace SonarLint.VisualStudio.Integration.Connection
             this.host.SupportedPluginLanguages.UnionWith(new HashSet<Language>(supportedPluginsLanguages));
 
             // If any of the projects can be bound then return success
-            if (csharpOrVbNetProjects.Select(ProjectToLanguageMapper.GetLanguageForProject)
+            if (csharpOrVbNetProjects.SelectMany(projectToLanguageMapper.GetAllBindingLanguagesForProject)
                                      .Any(this.host.SupportedPluginLanguages.Contains))
             {
                 return true;

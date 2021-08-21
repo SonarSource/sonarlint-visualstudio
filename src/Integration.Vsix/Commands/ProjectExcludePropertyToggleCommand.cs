@@ -36,15 +36,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix
         public const string PropertyName = Constants.SonarQubeExcludeBuildPropertyKey;
 
         private readonly IProjectPropertyManager propertyManager;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
-        public ProjectExcludePropertyToggleCommand(IProjectPropertyManager propertyManager)
+        public ProjectExcludePropertyToggleCommand(IProjectPropertyManager propertyManager, IProjectToLanguageMapper projectToLanguageMapper)
         {
-            if (propertyManager == null)
-            {
-                throw new ArgumentNullException(nameof(propertyManager));
-            }
-
-            this.propertyManager = propertyManager;
+            this.propertyManager = propertyManager ?? throw new ArgumentNullException(nameof(propertyManager));
+            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
         }
 
         protected override void InvokeInternal()
@@ -56,7 +53,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .ToList();
 
             Debug.Assert(projects.Any(), "No projects selected");
-            Debug.Assert(projects.All(x => ProjectToLanguageMapper.GetLanguageForProject(x).IsSupported), "Unsupported projects");
+            Debug.Assert(projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)), "Unsupported projects");
 
             if (projects.Count == 1 ||
                 projects.Select(x => this.propertyManager.GetBooleanProperty(x, PropertyName)).AllEqual())
@@ -104,7 +101,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => ProjectToLanguageMapper.GetLanguageForProject(x).IsSupported))
+            if (projects.Any() && projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)))
             {
                 IList<bool> properties = projects.Select(x =>
                     this.propertyManager.GetBooleanProperty(x, PropertyName) ?? false).ToList();

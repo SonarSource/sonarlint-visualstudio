@@ -28,6 +28,7 @@ namespace SonarLint.VisualStudio.Integration
     {
         private readonly ITestProjectIndicator testProjectIndicator;
         private readonly IProjectPropertyManager propertyManager;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         public ProjectSystemFilter(IHost host, ITestProjectIndicator testProjectIndicator)
         {
@@ -40,6 +41,8 @@ namespace SonarLint.VisualStudio.Integration
 
             this.propertyManager = host.GetMefService<IProjectPropertyManager>();
             Debug.Assert(this.propertyManager != null, $"Failed to get {nameof(IProjectPropertyManager)}");
+
+            projectToLanguageMapper = host.GetMefService<IProjectToLanguageMapper>();
         }
 
         #region IProjectSystemFilter
@@ -62,10 +65,9 @@ namespace SonarLint.VisualStudio.Integration
 
         #region Helpers
 
-        private static bool IsNotSupportedProject(DteProject project)
+        private bool IsNotSupportedProject(DteProject project)
         {
-            var language = ProjectToLanguageMapper.GetLanguageForProject(project);
-            return (language == null || !language.IsSupported);
+            return !projectToLanguageMapper.HasSupportedLanguage(project);
         }
 
         private bool IsExcludedViaProjectProperty(DteProject dteProject)

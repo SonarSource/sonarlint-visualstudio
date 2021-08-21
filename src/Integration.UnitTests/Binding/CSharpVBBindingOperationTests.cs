@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading;
 using EnvDTE;
 using FluentAssertions;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -32,6 +33,7 @@ using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Binding;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Core.Helpers;
+using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using Language = SonarLint.VisualStudio.Core.Language;
 using VsRuleSet = Microsoft.VisualStudio.CodeAnalysis.RuleSets.RuleSet;
@@ -75,6 +77,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
             this.serviceProvider.RegisterService(typeof(ISolutionRuleSetsInformationProvider),
                 new SolutionRuleSetsInformationProvider(this.serviceProvider, new Mock<ILogger>().Object,  new MockFileSystem()));
             this.serviceProvider.RegisterService(typeof(IProjectSystemHelper), this.projectSystemHelper);
+
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<IFolderWorkspaceService>());
+            var mefHost = ConfigurableComponentModel.CreateWithExports(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
+            serviceProvider.RegisterService(typeof(SComponentModel), mefHost);
 
             var coreRuleSet = new FilePathAndContent<CoreRuleSet>(@"c:\Solution\sln.ruleset", new CoreRuleSet());
             var vsRuleSet = new VsRuleSet("VS ruleset");
