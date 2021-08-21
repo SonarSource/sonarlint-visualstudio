@@ -171,7 +171,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                     return;
                 }
 
-                var languageForProject = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).FirstOrDefault();
+                var languageForProject = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).First();
                 var bindingConfigFile = GetBindingConfig(languageForProject);
 
                 var projectBinder = projectBinderFactory.Get(project);

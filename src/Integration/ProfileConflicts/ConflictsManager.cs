@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.Integration.ProfileConflicts
             {
                 // Solution-level checks (done here because the expected solution-level config
                 // depends on the languages supported by the project that exist)
-                string baselineRuleSet = bindingConfiguration.BuildPathUnderConfigDirectory(projectToLanguageMapper.GetAllBindingLanguagesForProject(project).FirstOrDefault().FileSuffixAndExtension);
+                string baselineRuleSet = bindingConfiguration.BuildPathUnderConfigDirectory(projectToLanguageMapper.GetAllBindingLanguagesForProject(project).First().FileSuffixAndExtension);
 
                 if (!fileSystem.File.Exists(baselineRuleSet))
                 {

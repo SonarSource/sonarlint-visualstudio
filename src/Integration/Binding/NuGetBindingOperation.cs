@@ -80,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
                 {
                     var projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
                     var projectLanguages = projectToLanguageMapper.GetAllBindingLanguagesForProject(bindingProject);
-                    var projectLanguage = projectLanguages.FirstOrDefault();
+                    var projectLanguage = projectLanguages.First();
 
                     List<NuGetPackageInfo> nugetPackages;
                     if (!this.NuGetPackages.TryGetValue(projectLanguage, out nugetPackages))
