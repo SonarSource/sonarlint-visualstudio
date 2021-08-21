@@ -41,16 +41,20 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IRuleSetSerializer ruleSetSerializer;
         private readonly CreateBindingOperationFunc createBindingOperationFunc;
         private readonly ILogger logger;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
-        public CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, ILogger logger)
-            : this(serviceProvider, fileSystem, logger,
+        public CSharpVBProjectBinder(IServiceProvider serviceProvider, IProjectToLanguageMapper projectToLanguageMapper, IFileSystem fileSystem, ILogger logger)
+            : this(serviceProvider, projectToLanguageMapper, fileSystem, logger,
                   new RuleSetReferenceChecker(serviceProvider, logger),
                   new CSharpVBAdditionalFileReferenceChecker(serviceProvider),
                   GetCreateBindingOperationFunc(serviceProvider, logger))
         {
         }
 
-        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, IFileSystem fileSystem, ILogger logger,
+        internal CSharpVBProjectBinder(IServiceProvider serviceProvider, 
+            IProjectToLanguageMapper projectToLanguageMapper, 
+            IFileSystem fileSystem, 
+            ILogger logger,
             IRuleSetReferenceChecker ruleSetReferenceChecker,
             ICSharpVBAdditionalFileReferenceChecker additionalFileReferenceChecker,
             CreateBindingOperationFunc createBindingOperationFunc)
@@ -59,8 +63,10 @@ namespace SonarLint.VisualStudio.Integration.Binding
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
+
+            this.projectToLanguageMapper = projectToLanguageMapper ?? throw new ArgumentNullException(nameof(projectToLanguageMapper));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
-            this.logger = logger;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             this.ruleSetReferenceChecker = ruleSetReferenceChecker ?? throw new ArgumentNullException(nameof(ruleSetReferenceChecker));
             this.additionalFileReferenceChecker = additionalFileReferenceChecker ?? throw new ArgumentNullException(nameof(additionalFileReferenceChecker));
@@ -89,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
             Debug.Assert(binding != null);
             Debug.Assert(project != null);
 
-            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project);
+            var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project);
             languages = languages.Where(x => x.Equals(Language.VBNET) || x.Equals(Language.CSharp));
 
             return languages.Any(l => !IsFullyBoundProject(binding, project, l));

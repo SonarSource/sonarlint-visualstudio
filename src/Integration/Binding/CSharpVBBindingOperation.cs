@@ -44,6 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IAdditionalFileConflictChecker additionalFileConflictChecker;
         private readonly IRuleSetReferenceChecker ruleSetReferenceChecker;
         private readonly ISourceControlledFileSystem sourceControlledFileSystem;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         private readonly Dictionary<Property, PropertyInformation> propertyInformationMap = new Dictionary<Property, PropertyInformation>();
         private readonly Project initializedProject;
@@ -73,6 +74,8 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
             this.ruleSetSerializer = this.serviceProvider.GetService<IRuleSetSerializer>();
             this.ruleSetSerializer.AssertLocalServiceIsNotNull();
+
+            projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
         }
 
         #region State
@@ -268,7 +271,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
 
         private void CaptureProject()
         {
-            this.ProjectLanguage = ProjectToLanguageMapper.GetLanguageForProject(this.initializedProject);
+            this.ProjectLanguage = projectToLanguageMapper.GetAllBindingLanguagesForProject(this.initializedProject).First();
             this.ProjectFullPath = this.initializedProject.FullName;
         }
 

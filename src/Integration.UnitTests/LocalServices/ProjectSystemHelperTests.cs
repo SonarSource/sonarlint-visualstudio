@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         private SolutionMock solutionMock;
         private ProjectSystemHelper testSubject;
         private ConfigurableProjectSystemFilter projectFilter;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapper;
 
         [TestInitialize]
         public void TestInitialize()
@@ -48,10 +49,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.solutionMock = new SolutionMock();
             this.serviceProvider = new ConfigurableServiceProvider();
             this.serviceProvider.RegisterService(typeof(SVsSolution), this.solutionMock);
-            this.testSubject = new ProjectSystemHelper(this.serviceProvider);
-
             this.projectFilter = new ConfigurableProjectSystemFilter();
             this.serviceProvider.RegisterService(typeof(IProjectSystemFilter), this.projectFilter);
+            projectToLanguageMapper = new Mock<IProjectToLanguageMapper>();
+
+            this.testSubject = new ProjectSystemHelper(this.serviceProvider, projectToLanguageMapper.Object);
         }
 
         [TestMethod]
@@ -59,8 +61,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             var batch = new CompositionBatch();
 
-            var serviceProvider = MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>());
-            batch.AddExport(serviceProvider);
+            batch.AddExport(MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()));
+            batch.AddExport(MefTestHelpers.CreateExport<IProjectToLanguageMapper>(Mock.Of<IProjectToLanguageMapper>()));
 
             var helperImport = new SingleObjectImporter<IProjectSystemHelper>();
             var vsHierarchyLocator = new SingleObjectImporter<IVsHierarchyLocator>();
@@ -78,16 +80,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         #region Tests
-
-        [TestMethod]
-        public void ProjectSystemHelper_ArgCheck()
-        {
-            // Arrange
-            Action act = () => new ProjectSystemHelper(null);
-
-            // Act & Assert
-            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
-        }
 
         [TestMethod]
         public void ProjectSystemHelper_GetIVsHierarchy_ArgChecks()
@@ -124,15 +116,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
             csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
             csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(csProject)).Returns(true);
+
             ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
             vbProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, vbProject);
             vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(vbProject)).Returns(true);
+
             ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
             otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
             otherProject.ProjectKind ="other";
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(otherProject)).Returns(false);
+
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
             erronousProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, null);
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(erronousProject)).Returns(true);
 
             // Act
             var actual = this.testSubject.GetSolutionProjects().ToArray();
@@ -329,15 +328,23 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             ProjectMock csProject = this.solutionMock.AddOrGetProject("c#");
             csProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, csProject);
             csProject.ProjectKind = ProjectSystemHelper.CSharpProjectKind;
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(csProject)).Returns(true);
+
             ProjectMock vbProject = this.solutionMock.AddOrGetProject("vb.net");
             vbProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, vbProject);
             vbProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(vbProject)).Returns(true);
+
             ProjectMock otherProject = this.solutionMock.AddOrGetProject("other");
             otherProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, otherProject);
             otherProject.ProjectKind = "other";
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(otherProject)).Returns(false);
+
             ProjectMock erronousProject = this.solutionMock.AddOrGetProject("err");
             erronousProject.SetExtObjProperty(VSConstants.VSITEMID_ROOT, null);
             erronousProject.ProjectKind = ProjectSystemHelper.VbProjectKind;
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(erronousProject)).Returns(true);
+
             // Filter out C#, keep VB
             projectFilter.MatchingProjects.Add(vbProject);
 

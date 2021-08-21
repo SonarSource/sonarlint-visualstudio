@@ -30,6 +30,7 @@ namespace SonarLint.VisualStudio.Integration.Binding
         private readonly IServiceProvider serviceProvider;
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
+        private readonly IProjectToLanguageMapper projectToLanguageMapper;
 
         public ProjectBinderFactory(IServiceProvider serviceProvider, ILogger logger)
             : this(serviceProvider, logger, new FileSystem())
@@ -41,16 +42,27 @@ namespace SonarLint.VisualStudio.Integration.Binding
             this.serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this.fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+            projectToLanguageMapper = serviceProvider.GetMefService<IProjectToLanguageMapper>();
         }
 
         public IProjectBinder Get(Project project)
         {
-            var languages = ProjectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
+            var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project).ToList();
             var isCSharpVBLanguage = languages.Contains(Core.Language.VBNET) || languages.Contains(Core.Language.CSharp);
 
-            return isCSharpVBLanguage
-                ? (IProjectBinder) new CSharpVBProjectBinder(serviceProvider, fileSystem, logger)
-                : new CFamilyProjectBinder(serviceProvider, logger, fileSystem);
+            if (isCSharpVBLanguage)
+            {
+                return new CSharpVBProjectBinder(serviceProvider, projectToLanguageMapper, fileSystem, logger);
+            }
+
+            var isCFamilyLanguage = languages.Contains(Core.Language.C) || languages.Contains(Core.Language.Cpp);
+
+            if (isCFamilyLanguage)
+            {
+                return new CFamilyProjectBinder(projectToLanguageMapper, logger, fileSystem);
+            }
+
+            return null;
         }
     }
 }

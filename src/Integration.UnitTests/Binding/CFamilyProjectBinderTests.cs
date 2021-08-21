@@ -36,6 +36,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         private Mock<IServiceProvider> serviceProvider;
         private Mock<ISolutionRuleSetsInformationProvider> solutionRuleSetsInformationProviderMock;
         private Mock<IFileSystem> fileSystemMock;
+        private Mock<IProjectToLanguageMapper> projectToLanguageMapperMock;
         private TestLogger logger;
         private CFamilyProjectBinder testSubject;
 
@@ -49,23 +50,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
                 .Setup(x => x.GetService(typeof(ISolutionRuleSetsInformationProvider)))
                 .Returns(solutionRuleSetsInformationProviderMock.Object);
 
+            projectToLanguageMapperMock = new Mock<IProjectToLanguageMapper>();
+
             fileSystemMock = new Mock<IFileSystem>();
             logger = new TestLogger();
-            testSubject = new CFamilyProjectBinder(serviceProvider.Object, logger, fileSystemMock.Object);
+            testSubject = new CFamilyProjectBinder(projectToLanguageMapperMock.Object, logger, fileSystemMock.Object);
         }
 
         [TestMethod]
-        public void Ctor_NullServiceProvider_ArgumentNullException()
+        public void Ctor_NullProjectToLanguageMapper_ArgumentNullException()
         {
             Action act = () => new CFamilyProjectBinder(null, Mock.Of<ILogger>(), Mock.Of<IFileSystem>());
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("serviceProvider");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("projectToLanguageMapper");
         }
 
         [TestMethod]
         public void Ctor_NullLogger_ArgumentNullException()
         {
-            Action act = () => new CFamilyProjectBinder(serviceProvider.Object, null, Mock.Of<IFileSystem>());
+            Action act = () => new CFamilyProjectBinder(projectToLanguageMapperMock.Object, null, Mock.Of<IFileSystem>());
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("logger");
         }
@@ -73,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void Ctor_NullFileSystem_ArgumentNullException()
         {
-            Action act = () => new CFamilyProjectBinder(serviceProvider.Object, Mock.Of<ILogger>(), null);
+            Action act = () => new CFamilyProjectBinder(projectToLanguageMapperMock.Object, Mock.Of<ILogger>(), null);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("fileSystem");
         }
@@ -81,8 +84,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [TestMethod]
         public void IsBindingRequired_ProjectLanguageIsNotSupported_False()
         {
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetCSProjectKind();
+            var projectMock = new ProjectMock("c:\\test.xxxx");
+
+            projectToLanguageMapperMock
+                .Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] {Language.CSharp});
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");
@@ -101,8 +107,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Binding
         [DataRow(true, true, false)]
         public void IsBindingRequired_ProjectHasTwoLanguages_ReturnsIfAllLanguagesHaveConfigFiles(bool isFirstLanguageBound, bool isSecondLanguageBound, bool expectedResult)
         {
-            var projectMock = new ProjectMock("c:\\test.csproj");
-            projectMock.SetProjectKind(new Guid(ProjectSystemHelper.CppProjectKind));
+            var projectMock = new ProjectMock("c:\\test.xxxx");
+
+            projectToLanguageMapperMock
+                .Setup(x => x.GetAllBindingLanguagesForProject(projectMock))
+                .Returns(new[] { Language.Cpp, Language.C });
 
             var bindingConfiguration = new BindingConfiguration(new BoundSonarQubeProject(new Uri("http://test.com"), "key", "name"),
                 SonarLintMode.Connected, "c:\\");

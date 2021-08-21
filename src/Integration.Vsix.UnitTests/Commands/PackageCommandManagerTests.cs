@@ -26,6 +26,7 @@ using System.Windows.Threading;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.Integration.TeamExplorer;
 using SonarLint.VisualStudio.Integration.Vsix;
 
@@ -82,7 +83,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             // Act
             testSubject.Initialize(serviceProvider.GetMefService<ITeamExplorerController>(),
-                serviceProvider.GetMefService<IProjectPropertyManager>());
+                serviceProvider.GetMefService<IProjectPropertyManager>(),
+                Mock.Of<IProjectToLanguageMapper>());
 
             // Assert
             menuService.Commands.Should().HaveCount(allCommands.Count, "Unexpected number of commands");
