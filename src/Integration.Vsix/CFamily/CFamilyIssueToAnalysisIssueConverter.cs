@@ -122,7 +122,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 severity: Convert(defaultSeverity),
                 type: Convert(defaultType),
 
-                filePath: cFamilyIssue.Filename,
+                filePath: Path.IsPathRooted(cFamilyIssue.Filename) ? Path.GetFullPath(cFamilyIssue.Filename) : cFamilyIssue.Filename,
                 message: cFamilyIssue.Text,
                 lineHash: CalculateLineHash(cFamilyIssue, fileContents),
                 startLine: cFamilyIssue.Line,
