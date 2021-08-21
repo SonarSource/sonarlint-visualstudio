@@ -90,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration
                 Project Project = GetProject(hierarchy);
 
                 if (Project != null && 
-                    !projectToLanguageMapper.GetAllBindingLanguagesForProject(Project).Any(x=> x.Equals(Language.Unknown)))
+                    projectToLanguageMapper.HasSupportedLanguage(Project))
                 {
                     yield return Project;
                 }

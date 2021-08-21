@@ -22,14 +22,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Windows.Threading;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -83,7 +81,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             command.Enabled = true;
 
             var project = new ProjectMock("project.csproj");
-            SetupProjectLanguage(project, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
+
             this.projectSystem.SelectedProjects = new[] { project };
 
             // Test case 1: test (true)
@@ -125,9 +124,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
             var p3 = new ProjectMock("good2.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
-            SetupProjectLanguage(p2, Language.CSharp);
-            SetupProjectLanguage(p3, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p3)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
@@ -204,7 +203,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var testSubject = CreateTestSubject(null);
 
             var project = new ProjectMock("mcproject.csproj");
-            SetupProjectLanguage(project, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -225,7 +224,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var testSubject = CreateTestSubject(null);
 
             var project = new ProjectMock("mcproject.csproj");
-            SetupProjectLanguage(project, Language.Unknown);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(false);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -244,7 +243,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             OleMenuCommand command = CommandHelper.CreateRandomOleMenuCommand();
 
             var project = new ProjectMock("face.proj");
-            SetupProjectLanguage(project, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(project)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { project };
 
@@ -288,8 +287,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
-            SetupProjectLanguage(p2, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -337,9 +336,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
             var p3 = new ProjectMock("good3.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
-            SetupProjectLanguage(p2, Language.CSharp);
-            SetupProjectLanguage(p3, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p3)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2, p3 };
 
@@ -367,8 +366,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 
             var p1 = new ProjectMock("good1.proj");
             var p2 = new ProjectMock("good2.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
-            SetupProjectLanguage(p2, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
 
             this.projectSystem.SelectedProjects = new [] { p1, p2 };
 
@@ -389,9 +388,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var testSubject = CreateTestSubject(null);
 
             var unsupportedProject = new ProjectMock("bad.proj");
-            SetupProjectLanguage(unsupportedProject, Language.Unknown);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(unsupportedProject)).Returns(false);
+
             var supportedProject = new ProjectMock("good.proj");
-            SetupProjectLanguage(supportedProject, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(supportedProject)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { unsupportedProject, supportedProject };
 
@@ -508,11 +508,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private ProjectTestPropertySetCommand CreateTestSubject(bool? setPropertyValue)
         {
             return new ProjectTestPropertySetCommand(propertyManager, projectToLanguageMapper.Object, setPropertyValue);
-        }
-
-        private void SetupProjectLanguage(Project project, params Core.Language[] languages)
-        {
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(languages);
         }
 
         #endregion Test helpers

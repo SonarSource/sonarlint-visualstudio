@@ -20,7 +20,6 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
 using DteProject = EnvDTE.Project;
 
 namespace SonarLint.VisualStudio.Integration
@@ -68,9 +67,7 @@ namespace SonarLint.VisualStudio.Integration
 
         private bool IsNotSupportedProject(DteProject project)
         {
-            var languages = projectToLanguageMapper.GetAllBindingLanguagesForProject(project);
-
-            return languages.Any(x => !x.IsSupported);
+            return !projectToLanguageMapper.HasSupportedLanguage(project);
         }
 
         private bool IsExcludedViaProjectProperty(DteProject dteProject)

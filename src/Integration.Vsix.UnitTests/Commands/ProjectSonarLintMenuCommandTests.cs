@@ -20,14 +20,12 @@
 
 using System;
 using System.Windows.Threading;
-using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Integration.Vsix;
-using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
 {
@@ -102,9 +100,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("cs.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
             var p2 = new ProjectMock("cpp.proj");
-            SetupProjectLanguage(p1, Language.Unknown);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(false);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -125,9 +123,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
             var testSubject = CreateTestSubject();
 
             var p1 = new ProjectMock("cs1.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p1)).Returns(true);
+
             var p2 = new ProjectMock("cs2.proj");
-            SetupProjectLanguage(p1, Language.CSharp);
+            projectToLanguageMapper.Setup(x => x.HasSupportedLanguage(p2)).Returns(true);
 
             this.projectSystem.SelectedProjects = new[] { p1, p2 };
 
@@ -144,11 +143,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Commands
         private ProjectSonarLintMenuCommand CreateTestSubject()
         {
             return new ProjectSonarLintMenuCommand(propertyManager, projectToLanguageMapper.Object);
-        }
-
-        private void SetupProjectLanguage(Project project, params Core.Language[] languages)
-        {
-            projectToLanguageMapper.Setup(x => x.GetAllBindingLanguagesForProject(project)).Returns(languages);
         }
     }
 }

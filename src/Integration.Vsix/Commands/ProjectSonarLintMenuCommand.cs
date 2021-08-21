@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                                           .GetSelectedProjects()
                                           .ToList();
 
-            if (projects.Any() && projects.All(x => projectToLanguageMapper.GetAllBindingLanguagesForProject(x).All(l => l.IsSupported)))
+            if (projects.Any() && projects.All(x => projectToLanguageMapper.HasSupportedLanguage(x)))
             {
                 command.Enabled = true;
                 command.Visible = true;

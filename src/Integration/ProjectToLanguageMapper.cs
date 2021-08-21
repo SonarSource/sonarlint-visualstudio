@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using EnvDTE;
 using SonarLint.VisualStudio.Core;
 using Language = SonarLint.VisualStudio.Core.Language;
@@ -29,7 +30,16 @@ namespace SonarLint.VisualStudio.Integration
 {
     public interface IProjectToLanguageMapper
     {
+        /// <summary>
+        /// Returns all of the supported Sonar languages for the specified project or Unknown
+        /// if no languages are supported
+        /// </summary>
         IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject);
+
+        /// <summary>
+        /// Returns true/false if the project has at least one supported Sonar language
+        /// </summary>
+        bool HasSupportedLanguage(Project project);
     }
 
     [Export(typeof(IProjectToLanguageMapper))]
@@ -53,11 +63,6 @@ namespace SonarLint.VisualStudio.Integration
         public ProjectToLanguageMapper(IAbsoluteFilePathLocator absoluteFilePathLocator)
         {
             this.absoluteFilePathLocator = absoluteFilePathLocator;
-        }
-
-        IEnumerable<Language> IProjectToLanguageMapper.GetAllBindingLanguagesForProject(Project dteProject)
-        {
-            return GetAllBindingLanguagesForProject(dteProject);
         }
 
         /// <summary>
@@ -101,11 +106,7 @@ namespace SonarLint.VisualStudio.Integration
             return Language.Unknown;
         }
 
-        /// <summary>
-        /// Returns all of the supported Sonar languages for the sepcified project or Unknown
-        /// if no languages are supported
-        /// </summary>
-        private IEnumerable<Language> GetAllBindingLanguagesForProject(EnvDTE.Project dteProject)
+        public IEnumerable<Language> GetAllBindingLanguagesForProject(Project dteProject)
         {
             var language = GetLanguageForProject(dteProject);
 
@@ -115,6 +116,13 @@ namespace SonarLint.VisualStudio.Integration
             }
 
             return new[] { language };
+        }
+
+        public bool HasSupportedLanguage(Project project)
+        {
+            var languages = GetAllBindingLanguagesForProject(project);
+
+            return languages.Any(x => x.IsSupported);
         }
     }
 }

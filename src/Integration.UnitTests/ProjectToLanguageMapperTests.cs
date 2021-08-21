@@ -120,6 +120,75 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualLanguage.Should().BeEquivalentTo(Language.Unknown);
         }
 
+        [TestMethod]
+        public void HasSupportedLanguage_OnlyUnknownLanguage_False()
+        {
+            var project = new ProjectMock("any.xxx")
+            {
+                ProjectKind = "dummy"
+            };
+
+            var testSubject = CreateTestSubject();
+
+            var result = testSubject.HasSupportedLanguage(project);
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow(ProjectSystemHelper.CppProjectKind)]
+        [DataRow(ProjectSystemHelper.CSharpProjectKind)]
+        [DataRow(ProjectSystemHelper.CSharpCoreProjectKind)]
+        [DataRow(ProjectSystemHelper.VbCoreProjectKind)]
+        [DataRow(ProjectSystemHelper.VbProjectKind)]
+        public void HasSupportedLanguage_KnownLanguage_True(string projectKind)
+        {
+            var project = new ProjectMock("any.xxx")
+            {
+                ProjectKind = projectKind
+            };
+
+            var testSubject = CreateTestSubject();
+
+            var result = testSubject.HasSupportedLanguage(project);
+
+            result.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void HasSupportedLanguage_OpenAsFolder_NotCMake_False()
+        {
+            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator(null);
+
+            var project = new ProjectMock("any.xxx")
+            {
+                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
+            };
+
+            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+
+            var result = testSubject.HasSupportedLanguage(project);
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HasSupportedLanguage_OpenAsFolder_CMake_True()
+        {
+            var absoluteFilePathLocator = SetupAbsoluteFilePathLocator("has cmake");
+
+            var project = new ProjectMock("any.xxx")
+            {
+                ProjectKind = ProjectToLanguageMapper.OpenAsFolderProject.ToString()
+            };
+
+            var testSubject = CreateTestSubject(absoluteFilePathLocator.Object);
+
+            var result = testSubject.HasSupportedLanguage(project);
+
+            result.Should().BeTrue();
+        }
+
         private static void CheckGetAllBindingsLanguages(string projectTypeGuid, params Language[] expectedLanguages)
         {
             // Arrange
