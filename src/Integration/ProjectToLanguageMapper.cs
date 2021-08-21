@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.Integration
             { new Guid(ProjectSystemHelper.CppProjectKind), Language.Cpp }
         };
 
-        internal static Guid OpenAsFolderProject = new Guid("{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}");
+        internal static readonly Guid OpenAsFolderProject = new Guid("{66A2671D-8FB5-11D2-AA7E-00C04F688DDE}");
 
         [ImportingConstructor]
         public ProjectToLanguageMapper(IAbsoluteFilePathLocator absoluteFilePathLocator)
