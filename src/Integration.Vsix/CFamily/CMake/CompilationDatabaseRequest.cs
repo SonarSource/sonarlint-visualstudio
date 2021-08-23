@@ -88,8 +88,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             WriteSetting(writer, "CreateReproducer", Context?.AnalyzerOptions?.CreateReproducer ?? false ? "true" : "false");
             WriteSetting(writer, "BuildPreamble", Context?.AnalyzerOptions?.CreatePreCompiledHeaders ?? false ? "true" : "false");
 
-            // TODO - only supplied if analysing a header file
-//            WriteSetting(writer, "HeaderFilerLanguage", Context.CFamilyLanguage);
+            if (CFamilyShared.IsHeaderFileExtension(Context.File))
+            {
+                WriteSetting(writer, "HeaderFileLanguage", Context.CFamilyLanguage);
+            }
 
             WriteFooter(writer);
         }
