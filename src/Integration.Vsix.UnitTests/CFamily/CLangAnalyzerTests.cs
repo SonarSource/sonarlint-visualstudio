@@ -37,27 +37,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
     [TestClass]
     public class CLangAnalyzerTests
     {
-        private Mock<ITelemetryManager> telemetryManagerMock;
-        private TestLogger testLogger;
-        private Mock<IAnalysisStatusNotifier> analysisNotifierMock;
-        private Mock<ICFamilyIssueToAnalysisIssueConverter> cFamilyIssueConverterMock;
-        private Mock<IRequestFactoryAggregate> requestFactoryAggregateMock;
-
-        [TestInitialize]
-        public void TestInitialize()
-        {
-            telemetryManagerMock = new Mock<ITelemetryManager>();
-            testLogger = new TestLogger();
-            analysisNotifierMock = new Mock<IAnalysisStatusNotifier>();
-            cFamilyIssueConverterMock = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
-            requestFactoryAggregateMock = new Mock<IRequestFactoryAggregate>();
-        }
-
         [TestMethod]
         public void IsSupported()
         {
-            var testSubject = new CLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, Mock.Of<ICFamilyIssueToAnalysisIssueConverter>(), requestFactoryAggregateMock.Object, testLogger);
+            var testSubject = new CLangAnalyzer(Mock.Of<ITelemetryManager>(),
+                Mock.Of<ISonarLintSettings>(),
+                Mock.Of<IAnalysisStatusNotifier>(),
+                Mock.Of<ICFamilyIssueToAnalysisIssueConverter>(),
+                Mock.Of<IRequestFactoryAggregate>(),
+                Mock.Of<ILogger>());
 
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.CFamily }).Should().BeTrue();
             testSubject.IsAnalysisSupported(new[] { AnalysisLanguage.Javascript }).Should().BeFalse();
@@ -68,17 +56,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCannotBeCreated_NoAnalysis()
         {
             var analysisOptions = new CFamilyAnalyzerOptions();
-            requestFactoryAggregateMock
-                .Setup(x => x.TryGet("path", analysisOptions))
-                .Returns((IRequest) null);
+            var requestFactory = CreateRequestFactory("path", analysisOptions, null);
 
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object);
             testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
             testSubject.TriggerAnalysisCallCount.Should().Be(0);
-
-            requestFactoryAggregateMock.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
+            requestFactory.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
         }
 
         [TestMethod]
@@ -87,13 +71,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCannotBeCreated_NotPCH_LogOutput(bool isNullOptions)
         {
             var analysisOptions = isNullOptions ? null : new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false };
+            var requestFactory = CreateRequestFactory("path", analysisOptions, null);
+            var testLogger = new TestLogger();
 
-            requestFactoryAggregateMock
-                .Setup(x => x.TryGet("path", analysisOptions))
-                .Returns((IRequest)null);
-
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(
+                requestFactory: requestFactory.Object,
+                logger: testLogger);
 
             testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
@@ -104,13 +87,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCannotBeCreated_PCH_NoLogOutput()
         {
             var analysisOptions = new CFamilyAnalyzerOptions {CreatePreCompiledHeaders = true};
+            var requestFactory = CreateRequestFactory("path", analysisOptions, null);
+            var testLogger = new TestLogger();
 
-            requestFactoryAggregateMock
-                .Setup(x => x.TryGet("path", analysisOptions))
-                .Returns((IRequest)null);
-
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(
+                requestFactory: requestFactory.Object,
+                logger: testLogger);
 
             testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
@@ -121,12 +103,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCanBeCreated_AnalysisIsTriggered()
         {
             var analysisOptions = new CFamilyAnalyzerOptions();
-            requestFactoryAggregateMock
-                .Setup(x => x.TryGet("path", analysisOptions))
-                .Returns(Mock.Of<IRequest>());
+            var requestFactory = CreateRequestFactory("path", analysisOptions, Mock.Of<IRequest>());
 
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(
+                requestFactory: requestFactory.Object);
+
             testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
             testSubject.TriggerAnalysisCallCount.Should().Be(1);
@@ -153,25 +134,26 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var convertedMessage1 = Mock.Of<IAnalysisIssue>();
             var convertedMessage2 = Mock.Of<IAnalysisIssue>();
 
-            cFamilyIssueConverterMock
+            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            issueConverter
                 .Setup(x => x.Convert(message1, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedMessage1);
 
-            cFamilyIssueConverterMock
+            issueConverter
                 .Setup(x => x.Convert(message2, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedMessage2);
 
             var mockConsumer = new Mock<IIssueConsumer>();
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var subProcess = new SubProcessSimulator();
 
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, analysisNotifierMock.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, statusNotifier.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the first message to the analyzer
@@ -195,9 +177,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 bool succeeded = analysisTask.Wait(10000);
                 succeeded.Should().BeTrue();
 
-                analysisNotifierMock.Verify(x => x.AnalysisStarted(fileName), Times.Once);
-                analysisNotifierMock.Verify(x => x.AnalysisFinished(fileName, 2, It.IsAny<TimeSpan>()), Times.Once);
-                analysisNotifierMock.VerifyNoOtherCalls();
+                statusNotifier.Verify(x => x.AnalysisStarted(fileName), Times.Once);
+                statusNotifier.Verify(x => x.AnalysisFinished(fileName, 2, It.IsAny<TimeSpan>()), Times.Once);
+                statusNotifier.VerifyNoOtherCalls();
             }
             finally
             {
@@ -224,22 +206,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var inactiveRuleMessage = new Message("inactiveRule", fileName, 1, 1, 1, 1, "inactive message", false, Array.Empty<MessagePart>());
             var activeRuleMessage = new Message("activeRule", fileName, 2, 2, 2, 2, "active message", false, Array.Empty<MessagePart>());
 
+            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
             var convertedActiveMessage = Mock.Of<IAnalysisIssue>();
-            cFamilyIssueConverterMock
+            issueConverter
                 .Setup(x => x.Convert(activeRuleMessage, request.Context.CFamilyLanguage, rulesConfig))
                 .Returns(convertedActiveMessage);
 
             var mockConsumer = new Mock<IIssueConsumer>();
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var subProcess = new SubProcessSimulator();
 
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, analysisNotifierMock.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, statusNotifier.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the inactive rule message to the analyzer
@@ -259,9 +242,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 bool succeeded = analysisTask.Wait(10000);
                 succeeded.Should().BeTrue();
 
-                analysisNotifierMock.Verify(x=> x.AnalysisStarted(fileName), Times.Once);
-                analysisNotifierMock.Verify(x => x.AnalysisFinished(fileName, 1, It.IsAny<TimeSpan>()), Times.Once);
-                analysisNotifierMock.VerifyNoOtherCalls();
+                statusNotifier.Verify(x=> x.AnalysisStarted(fileName), Times.Once);
+                statusNotifier.Verify(x => x.AnalysisFinished(fileName, 1, It.IsAny<TimeSpan>()), Times.Once);
+                statusNotifier.VerifyNoOtherCalls();
             }
             finally
             {
@@ -274,19 +257,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void TriggerAnalysisAsync_AnalysisIsCancelled_NotifiesOfCancellation()
         {
             var mockConsumer = new Mock<IIssueConsumer>();
+            var originalStatusNotifier = new Mock<IAnalysisStatusNotifier>();
             var subProcess = new SubProcessSimulator();
 
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var testSubject = CreateTestableAnalyzer(statusNotifier: originalStatusNotifier.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             using var cts = new CancellationTokenSource();
             try
             {
+                // Expecting to use this status notifier, not the one supplied in the constructor
+                var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
                 var filePath = "c:\\test.cpp";
                 var request = CreateRequest(filePath);
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, analysisNotifierMock.Object, cts.Token));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, statusNotifier.Object, cts.Token));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 cts.Cancel();
@@ -296,9 +282,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 bool succeeded = analysisTask.Wait(10000);
                 succeeded.Should().BeTrue();
 
-                analysisNotifierMock.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
-                analysisNotifierMock.Verify(x=> x.AnalysisCancelled(filePath), Times.Once);
-                analysisNotifierMock.VerifyNoOtherCalls();
+                statusNotifier.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
+                statusNotifier.Verify(x=> x.AnalysisCancelled(filePath), Times.Once);
+                statusNotifier.VerifyNoOtherCalls();
+                originalStatusNotifier.Invocations.Count.Should().Be(0);
             }
             finally
             {
@@ -315,18 +302,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 throw new NullReferenceException("test");
             }
 
-            var testSubject = new TestableCLangAnalyzer(telemetryManagerMock.Object, new ConfigurableSonarLintSettings(),
-                analysisNotifierMock.Object, testLogger, cFamilyIssueConverterMock.Object, requestFactoryAggregateMock.Object);
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
 
+            var testSubject = CreateTestableAnalyzer();
             testSubject.SetCallSubProcessBehaviour(MockSubProcessCall);
 
             var filePath = "c:\\test.cpp";
             var request = CreateRequest(filePath);
-            await testSubject.TriggerAnalysisAsync(request, Mock.Of<IIssueConsumer>(), analysisNotifierMock.Object, CancellationToken.None);
+            await testSubject.TriggerAnalysisAsync(request, Mock.Of<IIssueConsumer>(), statusNotifier.Object, CancellationToken.None);
 
-            analysisNotifierMock.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
-            analysisNotifierMock.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
-            analysisNotifierMock.VerifyNoOtherCalls();
+            statusNotifier.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
+            statusNotifier.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
         }
 
         private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
@@ -335,6 +322,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var context = new RequestContext(language, rulesConfiguration, file, null, null);
             request.SetupGet(x => x.Context).Returns(context);
             return request.Object;
+        }
+
+        private static Mock<IRequestFactoryAggregate> CreateRequestFactory(string filePath, CFamilyAnalyzerOptions analysisOptions, IRequest request)
+        {
+            var factory = new Mock<IRequestFactoryAggregate>();
+            factory.Setup(x => x.TryGet(filePath, analysisOptions))
+                .Returns(request);
+            return factory;
+        }
+        private static TestableCLangAnalyzer CreateTestableAnalyzer(ITelemetryManager telemetryManager = null,
+            ISonarLintSettings settings = null,
+            IAnalysisStatusNotifier statusNotifier = null,
+            ICFamilyIssueToAnalysisIssueConverter issueConverter = null,
+            IRequestFactoryAggregate requestFactory = null,
+            ILogger logger = null)
+        {
+            telemetryManager ??= Mock.Of<ITelemetryManager>();
+            settings ??= new ConfigurableSonarLintSettings();
+            statusNotifier ??= Mock.Of<IAnalysisStatusNotifier>();
+            issueConverter ??= Mock.Of<ICFamilyIssueToAnalysisIssueConverter>();
+            requestFactory ??= Mock.Of<IRequestFactoryAggregate>();
+            logger ??= new TestLogger();
+
+            return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverter, requestFactory);
         }
 
         private class TestableCLangAnalyzer : CLangAnalyzer
