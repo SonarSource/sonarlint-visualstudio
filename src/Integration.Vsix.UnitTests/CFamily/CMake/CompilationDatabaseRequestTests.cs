@@ -109,6 +109,28 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
+        public void WriteRequest_HeaderFile_WritesHeaderFileLanguage()
+        {
+            var dbEntry = new CompilationDatabaseEntry { File = "file.cpp", Directory = "c:\\aaa", Command = "any" };
+            var context = new RequestContext("any.language", Mock.Of<ICFamilyRulesConfig>(), "file.h", "d:\\preamble.txt", null);
+
+            var tokens = WriteRequest(dbEntry, context);
+
+            CheckExpectedSetting(tokens, "HeaderFileLanguage", "any.language");
+        }
+
+        [TestMethod]
+        public void WriteRequest_NotHeaderFile_HeaderFileLanguageIsNotWritten()
+        {
+            var dbEntry = new CompilationDatabaseEntry { File = "file.cpp", Directory = "c:\\aaa", Command = "any" };
+            var context = new RequestContext("any.language", Mock.Of<ICFamilyRulesConfig>(), "file.cpp", "d:\\preamble.txt", null);
+
+            var tokens = WriteRequest(dbEntry, context);
+
+            CheckSettingDoesNotExist(tokens, "HeaderFileLanguage");
+        }
+
+        [TestMethod]
         public void WriteRequest_ValidRequest_ExpectedHeaderFooterAndSimpleProperties()
         {
             var dbEntry = new CompilationDatabaseEntry { File = "file.txt", Directory = "c:\\aaa", Command = "any" };
