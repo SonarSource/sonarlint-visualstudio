@@ -436,6 +436,24 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        [Description("Regression test for https://github.com/SonarSource/sonarlint-visualstudio/issues/2557")]
+        [DataRow("", "")] // empty should not throw
+        [DataRow("a.txt", "a.txt")] // not-rooted should stay the same
+        [DataRow("c:\\a.txt", "c:\\a.txt")]
+        [DataRow("c:/a.txt", "c:\\a.txt")]
+        [DataRow("c:/a/b/c.txt", "c:\\a\\b\\c.txt")]
+        [DataRow("c:/a\\b/c.txt", "c:\\a\\b\\c.txt")]
+        public void Convert_FilePath_QualifiedFilePath(string originalPath, string expectedPath)
+        {
+            var message = new Message("rule2", originalPath, 40, 3, 2, 1, "this is a test", false, Array.Empty<MessagePart>());
+
+            var testSubject = CreateTestSubject();
+            var issue = Convert(testSubject, message);
+
+            issue.FilePath.Should().Be(expectedPath);
+        }
+
+        [TestMethod]
         [DataRow(IssueSeverity.Blocker, AnalysisIssueSeverity.Blocker)]
         [DataRow(IssueSeverity.Critical, AnalysisIssueSeverity.Critical)]
         [DataRow(IssueSeverity.Info, AnalysisIssueSeverity.Info)]
