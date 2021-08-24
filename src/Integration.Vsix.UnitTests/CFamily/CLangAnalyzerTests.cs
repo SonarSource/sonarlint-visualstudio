@@ -24,7 +24,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -65,6 +64,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             testSubject.WaitForFactoryCallToComplete();
 
             requestFactory.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
+
+            // TODO - modify check to be more reliable
+            Thread.Sleep(400); // delay in case the background thread has gone on to call the subprocess
             testSubject.SubProcessExecutedCount.Should().Be(0);
         }
 
@@ -370,6 +372,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverter, requestFactory);
         }
 
+        /// <summary>
+        /// This method should be used by tests that need to wait for the fake subprocess to complete reliably,
+        /// but don't need to do simulate any specific work by the subprocess.
+        /// </summary>
         private void ExecuteAndWaitForCompletion(TestableCLangAnalyzer testSubject, string path, string charset, AnalysisLanguage[] detectedLanguages, IIssueConsumer consumer, CFamilyAnalyzerOptions analysisOptions, CancellationToken cancellationToken)
         {
             // The analyzer spawns the analysis on a background thread, so we need to do some extra work
@@ -379,6 +385,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             testSubject.ExecuteAnalysis(path, charset, detectedLanguages, consumer, analysisOptions, cancellationToken);
+
             subProcess.WaitUntilSubProcessCalledByAnalyzer();
             subProcess.SignalNoMoreIssues();
         }
