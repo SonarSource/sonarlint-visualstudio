@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void TryGet_NoConfig_ReturnsNull()
+        public async Task TryGet_NoConfig_ReturnsNull()
         {
             const string fileName = "c:\\file.cpp";
 
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
 
             var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
 
-            var actual = testSubject.TryGet(fileName, new CFamilyAnalyzerOptions());
+            var actual = await testSubject.TryCreateAsync(fileName, new CFamilyAnalyzerOptions());
 
             actual.Should().BeNull();
             compilationConfigProvider.VerifyAll();
@@ -60,7 +61,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
 
         [TestMethod]
         [Description("Check support for header files")]
-        public void TryGet_LanguageCalculatedBasedOnCompilationEntry()
+        public async Task TryGet_LanguageCalculatedBasedOnCompilationEntry()
         {
             const string fileName = "c:\\file.h";
 
@@ -69,7 +70,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
             var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
-            testSubject.TryGet(fileName, new CFamilyAnalyzerOptions());
+            await testSubject.TryCreateAsync(fileName, new CFamilyAnalyzerOptions());
 
             compilationConfigProvider.VerifyAll();
 
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void TryGet_UnrecognizedLanguage_ReturnsNull()
+        public async Task TryGet_UnrecognizedLanguage_ReturnsNull()
         {
             const string fileName = "c:\\file.txt";
 
@@ -89,7 +90,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
 
             var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
 
-            var actual = testSubject.TryGet(fileName, new CFamilyAnalyzerOptions());
+            var actual = await testSubject.TryCreateAsync(fileName, new CFamilyAnalyzerOptions());
 
             actual.Should().BeNull();
             compilationConfigProvider.VerifyAll();
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         }
 
         [TestMethod]
-        public void TryGet_ValidFile_ReturnsExpectedValue()
+        public async Task TryGet_ValidFile_ReturnsExpectedValue()
         {
             const string fileName = "c:\\file.c";
 
@@ -110,7 +111,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
 
             var analyzerOptions = new CFamilyAnalyzerOptions();
-            var actual = testSubject.TryGet(fileName, analyzerOptions);
+            var actual = await testSubject.TryCreateAsync(fileName, analyzerOptions);
 
             compilationConfigProvider.VerifyAll();
             rulesConfigProvider.VerifyAll();

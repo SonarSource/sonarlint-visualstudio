@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
+
 namespace SonarLint.VisualStudio.Core.CFamily
 {
     public interface IRequestFactory
@@ -26,12 +28,12 @@ namespace SonarLint.VisualStudio.Core.CFamily
         /// Creates <see cref="IRequest"/> for the given <see cref="analyzedFilePath"/>.
         /// Returns null if request could not be created.
         /// </summary>
-        IRequest TryGet(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
+        Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions);
     }
 
     /// <summary>
     /// Aggregate interface for multiple <see cref="IRequestFactory"/>.
-    /// <see cref="IRequestFactory.TryGet"/> will return the first non-nullable request,
+    /// <see cref="IRequestFactory.TryCreateAsync"/> will return the first non-nullable request,
     /// or null if no factory was able to create one.
     /// </summary>
     public interface IRequestFactoryAggregate : IRequestFactory

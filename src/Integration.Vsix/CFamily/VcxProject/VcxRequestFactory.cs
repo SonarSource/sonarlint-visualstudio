@@ -23,9 +23,10 @@ using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
 using EnvDTE;
-using Microsoft.VisualStudio.Shell;
+using VsShell = Microsoft.VisualStudio.Shell;
 using SonarLint.VisualStudio.CFamily.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
@@ -39,8 +40,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         private readonly ILogger logger;
         private readonly DTE dte;
 
+        private static readonly Task<IRequest> NullRequest = Task.FromResult<IRequest>(null);
+
         [ImportingConstructor]
-        public VcxRequestFactory([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
+        public VcxRequestFactory([Import(typeof(VsShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
             ILogger logger)
             : this(serviceProvider,
@@ -64,7 +67,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             this.logger = logger;
         }
 
-        public IRequest TryGet(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             try
             {
@@ -72,22 +75,23 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
                 if (projectItem == null)
                 {
-                    return null;
+                    return NullRequest;
                 }
 
                 var fileConfig = fileConfigProvider.Get(projectItem, analyzedFilePath, analyzerOptions);
 
                 if (fileConfig == null)
                 {
-                    return null;
+                    return NullRequest;
                 }
 
-                return CreateRequest(analyzedFilePath, analyzerOptions, fileConfig);
+                var request = CreateRequest(analyzedFilePath, analyzerOptions, fileConfig);
+                return Task.FromResult<IRequest>(request);
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ERROR_CreatingVcxRequest, analyzedFilePath, ex);
-                return null;
+                return NullRequest;
             }
         }
 
