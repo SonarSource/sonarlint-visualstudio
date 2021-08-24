@@ -57,13 +57,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCannotBeCreated_NoAnalysis()
         {
             var analysisOptions = new CFamilyAnalyzerOptions();
-            var requestFactory = CreateRequestFactory("path", analysisOptions, null);
+            var requestFactoryContext = new RequestFactoryContext("path", analysisOptions, null);
 
-            var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object);
-            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            var testSubject = CreateTestableAnalyzer(requestFactory: requestFactoryContext.Factory.Object);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
+            requestFactoryContext.WaitForFactoryCallToComplete();
+            requestFactoryContext.Factory.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
             testSubject.SubProcessExecutedCount.Should().Be(0);
-            requestFactory.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
         }
 
         [TestMethod]
@@ -72,15 +73,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCannotBeCreated_NotPCH_LogOutput(bool isNullOptions)
         {
             var analysisOptions = isNullOptions ? null : new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false };
-            var requestFactory = CreateRequestFactory("path", analysisOptions, null);
+            var requestFactoryContext = new RequestFactoryContext("path", analysisOptions, null);
             var testLogger = new TestLogger();
 
             var testSubject = CreateTestableAnalyzer(
-                requestFactory: requestFactory.Object,
+                requestFactory: requestFactoryContext.Factory.Object,
                 logger: testLogger);
 
-            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
+            requestFactoryContext.WaitForFactoryCallToComplete();
             testLogger.AssertOutputStringExists(string.Format(CFamilyStrings.MSG_UnableToCreateConfig, "path"));
         }
 
@@ -88,15 +90,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCannotBeCreated_PCH_NoLogOutput()
         {
             var analysisOptions = new CFamilyAnalyzerOptions {CreatePreCompiledHeaders = true};
-            var requestFactory = CreateRequestFactory("path", analysisOptions, null);
+            var requestFactoryContext = new RequestFactoryContext("path", analysisOptions, null);
             var testLogger = new TestLogger();
 
             var testSubject = CreateTestableAnalyzer(
-                requestFactory: requestFactory.Object,
+                requestFactory: requestFactoryContext.Factory.Object,
                 logger: testLogger);
 
-            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
+            requestFactoryContext.WaitForFactoryCallToComplete();
             testLogger.AssertNoOutputMessages();
         }
 
@@ -406,6 +409,38 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 {
                     onCallSubProcess(handleMessage, request, settings, logger, cancellationToken);
                 }
+            }
+        }
+
+        private class RequestFactoryContext
+        {
+            private readonly AutoResetEvent factoryCallCompleted = new AutoResetEvent(false);
+
+            public RequestFactoryContext(string filePath, CFamilyAnalyzerOptions analyzerOptions, IRequest requestToReturn)
+            {
+                var request = CreateRequest(filePath);
+                Factory = new Mock<IRequestFactoryAggregate>();
+                Factory.Setup(x => x.TryGet(filePath, analyzerOptions))
+                    .Callback(() =>
+                    {
+                        RequestFactoryCalled = true;
+
+                        // Allow the waiting test to complete
+                        factoryCallCompleted.Set();
+                    })
+                    .Returns(requestToReturn);
+            }
+
+            public bool RequestFactoryCalled { get; private set; }
+
+            public Mock<IRequestFactoryAggregate> Factory { get; }
+
+            public void WaitForFactoryCallToComplete()
+            {
+                // Expected that this will be called on the "main" test thread, so
+                // assertions here will cause the test to fail
+                var success = factoryCallCompleted.WaitOne(2000);
+                success.Should().BeTrue("Timed out waiting for the factory to complete");
             }
         }
 
