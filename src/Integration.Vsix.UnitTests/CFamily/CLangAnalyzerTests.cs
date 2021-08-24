@@ -24,6 +24,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Analysis;
@@ -59,9 +60,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var requestFactory = CreateRequestFactory("path", analysisOptions, null);
 
             var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object);
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
-            testSubject.TriggerAnalysisCallCount.Should().Be(0);
+            testSubject.SubProcessExecutedCount.Should().Be(0);
             requestFactory.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
         }
 
@@ -78,7 +79,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 requestFactory: requestFactory.Object,
                 logger: testLogger);
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
             testLogger.AssertOutputStringExists(string.Format(CFamilyStrings.MSG_UnableToCreateConfig, "path"));
         }
@@ -94,7 +95,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 requestFactory: requestFactory.Object,
                 logger: testLogger);
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
             testLogger.AssertNoOutputMessages();
         }
@@ -103,14 +104,16 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         public void ExecuteAnalysis_RequestCanBeCreated_AnalysisIsTriggered()
         {
             var analysisOptions = new CFamilyAnalyzerOptions();
-            var requestFactory = CreateRequestFactory("path", analysisOptions, Mock.Of<IRequest>());
+            var request = CreateRequest("path");
+            var requestFactory = CreateRequestFactory("path", analysisOptions, request);
+
 
             var testSubject = CreateTestableAnalyzer(
                 requestFactory: requestFactory.Object);
 
-            testSubject.ExecuteAnalysis("path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
+            ExecuteAndWaitForCompletion(testSubject, "path", "charset", new[] { AnalysisLanguage.CFamily }, Mock.Of<IIssueConsumer>(), analysisOptions, CancellationToken.None);
 
-            testSubject.TriggerAnalysisCallCount.Should().Be(1);
+            testSubject.SubProcessExecutedCount.Should().Be(1);
         }
 
         [TestMethod]
@@ -127,6 +130,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfiguration: rulesConfig,
                 language: rulesConfig.LanguageKey
             );
+            var requestFactory = CreateRequestFactory(fileName, ValidAnalyzerOptions, request);
 
             var message1 = new Message("rule1", fileName, 1, 1, 1, 1, "message one", false, Array.Empty<MessagePart>());
             var message2 = new Message("rule2", fileName, 2, 2, 2, 2, "message two", false, Array.Empty<MessagePart>());
@@ -147,13 +151,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var subProcess = new SubProcessSimulator();
 
-            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object);
+            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object,
+                requestFactory: requestFactory.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, statusNotifier.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(fileName, ValidDetectedLanguages, mockConsumer.Object, ValidAnalyzerOptions, statusNotifier.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the first message to the analyzer
@@ -202,6 +207,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 rulesConfiguration: rulesConfig,
                 language: rulesConfig.LanguageKey
             );
+            var requestFactory = CreateRequestFactory(fileName, ValidAnalyzerOptions, request);
 
             var inactiveRuleMessage = new Message("inactiveRule", fileName, 1, 1, 1, 1, "inactive message", false, Array.Empty<MessagePart>());
             var activeRuleMessage = new Message("activeRule", fileName, 2, 2, 2, 2, "active message", false, Array.Empty<MessagePart>());
@@ -216,13 +222,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
             var subProcess = new SubProcessSimulator();
 
-            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object);
+            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object,
+                requestFactory: requestFactory.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             try
             {
                 // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, statusNotifier.Object, CancellationToken.None));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(fileName, ValidDetectedLanguages, mockConsumer.Object, ValidAnalyzerOptions, statusNotifier.Object, CancellationToken.None));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 // Stream the inactive rule message to the analyzer
@@ -260,7 +267,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var originalStatusNotifier = new Mock<IAnalysisStatusNotifier>();
             var subProcess = new SubProcessSimulator();
 
-            var testSubject = CreateTestableAnalyzer(statusNotifier: originalStatusNotifier.Object);
+            // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
+            var filePath = "c:\\test.cpp";
+            var request = CreateRequest(filePath);
+            var requestFactory = CreateRequestFactory(filePath, ValidAnalyzerOptions, request);
+
+            var testSubject = CreateTestableAnalyzer(statusNotifier: originalStatusNotifier.Object,
+                requestFactory: requestFactory.Object);
             testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
 
             using var cts = new CancellationTokenSource();
@@ -269,10 +282,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 // Expecting to use this status notifier, not the one supplied in the constructor
                 var statusNotifier = new Mock<IAnalysisStatusNotifier>();
 
-                // Call the CLangAnalyzer on another thread (that thread is blocked by subprocess wrapper)
-                var filePath = "c:\\test.cpp";
-                var request = CreateRequest(filePath);
-                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(request, mockConsumer.Object, statusNotifier.Object, cts.Token));
+                var analysisTask = Task.Run(() => testSubject.TriggerAnalysisAsync(filePath, ValidDetectedLanguages, mockConsumer.Object, ValidAnalyzerOptions, statusNotifier.Object, cts.Token));
                 subProcess.WaitUntilSubProcessCalledByAnalyzer();
 
                 cts.Cancel();
@@ -304,17 +314,22 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             var statusNotifier = new Mock<IAnalysisStatusNotifier>();
 
-            var testSubject = CreateTestableAnalyzer();
-            testSubject.SetCallSubProcessBehaviour(MockSubProcessCall);
-
             var filePath = "c:\\test.cpp";
             var request = CreateRequest(filePath);
-            await testSubject.TriggerAnalysisAsync(request, Mock.Of<IIssueConsumer>(), statusNotifier.Object, CancellationToken.None);
+            var requestFactory = CreateRequestFactory(filePath, ValidAnalyzerOptions, request);
+
+            var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object);
+            testSubject.SetCallSubProcessBehaviour(MockSubProcessCall);
+
+            await testSubject.TriggerAnalysisAsync(filePath, ValidDetectedLanguages, Mock.Of<IIssueConsumer>(), ValidAnalyzerOptions, statusNotifier.Object, CancellationToken.None);
 
             statusNotifier.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
             statusNotifier.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
+
+        private readonly AnalysisLanguage[] ValidDetectedLanguages = new[] { AnalysisLanguage.CFamily };
+        private readonly CFamilyAnalyzerOptions ValidAnalyzerOptions = null;
 
         private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
         {
@@ -331,6 +346,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 .Returns(request);
             return factory;
         }
+
         private static TestableCLangAnalyzer CreateTestableAnalyzer(ITelemetryManager telemetryManager = null,
             ISonarLintSettings settings = null,
             IAnalysisStatusNotifier statusNotifier = null,
@@ -348,6 +364,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             return new TestableCLangAnalyzer(telemetryManager, settings, statusNotifier, logger, issueConverter, requestFactory);
         }
 
+        private void ExecuteAndWaitForCompletion(TestableCLangAnalyzer testSubject, string path, string charset, AnalysisLanguage[] detectedLanguages, IIssueConsumer consumer, CFamilyAnalyzerOptions analysisOptions, CancellationToken cancellationToken)
+        {
+            // The analyzer spawns the analysis on a background thread, so we need to do some extra work
+            // if we want to wait until the work on the background thread has finished.
+
+            var subProcess = new SubProcessSimulator();
+            testSubject.SetCallSubProcessBehaviour(subProcess.CallSubProcess);
+
+            testSubject.ExecuteAnalysis(path, charset, detectedLanguages, consumer, analysisOptions, cancellationToken);
+            subProcess.WaitUntilSubProcessCalledByAnalyzer();
+            subProcess.SignalNoMoreIssues();
+        }
+
         private class TestableCLangAnalyzer : CLangAnalyzer
         {
             public delegate void HandleCallSubProcess(Action<Message> handleMessage, IRequest request, 
@@ -357,7 +386,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             public void SetCallSubProcessBehaviour(HandleCallSubProcess onCallSubProcess)
                 => this.onCallSubProcess = onCallSubProcess;
 
-            public int TriggerAnalysisCallCount { get; private set; }
+            public int SubProcessExecutedCount { get; private set; }
 
             public TestableCLangAnalyzer(ITelemetryManager telemetryManager, ISonarLintSettings settings, 
                 IAnalysisStatusNotifier analysisStatusNotifier, ILogger logger, 
@@ -365,14 +394,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 : base(telemetryManager, settings, analysisStatusNotifier, cFamilyIssueConverter, requestFactory, logger)
             {}
 
-            protected override void TriggerAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier analysisStatusNotifier, CancellationToken cancellationToken)
-            {
-                TriggerAnalysisCallCount++;
-            }
-
             protected override void CallSubProcess(Action<Message> handleMessage, IRequest request,
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
             {
+                SubProcessExecutedCount++;
                 if (onCallSubProcess == null)
                 {
                     base.CallSubProcess(handleMessage, request, settings, logger, cancellationToken);
@@ -407,7 +432,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             }
 
             public void WaitUntilSubProcessCalledByAnalyzer()
-                => callbackFromCLangReceived.WaitOne(20000);
+            {
+                var result = callbackFromCLangReceived.WaitOne(20000);
+                result.Should().BeTrue("Timed out waiting for subprocess to be called");
+            }
 
             public void PassMessageToCLangAnalyzer(Message message)
                 => handleMessageCallback(message);
