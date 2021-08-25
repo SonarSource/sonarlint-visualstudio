@@ -21,11 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.IO;
-using System.IO.Abstractions;
 using System.Linq;
 using EnvDTE;
-using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Core.CFamily;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration
@@ -48,8 +46,7 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ProjectToLanguageMapper : IProjectToLanguageMapper
     {
-        private readonly IFolderWorkspaceService folderWorkspaceService;
-        private readonly IFileSystem fileSystem;
+        private readonly ICFamilyProjectTypeIndicator cFamilyProjectTypeIndicator;
 
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
@@ -61,15 +58,9 @@ namespace SonarLint.VisualStudio.Integration
         };
 
         [ImportingConstructor]
-        public ProjectToLanguageMapper(IFolderWorkspaceService folderWorkspaceService)
-            : this(folderWorkspaceService, new FileSystem())
+        public ProjectToLanguageMapper(ICFamilyProjectTypeIndicator cFamilyProjectTypeIndicator)
         {
-        }
-
-        internal ProjectToLanguageMapper(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
-        {
-            this.folderWorkspaceService = folderWorkspaceService;
-            this.fileSystem = fileSystem;
+            this.cFamilyProjectTypeIndicator = cFamilyProjectTypeIndicator;
         }
 
         /// <summary>
@@ -100,17 +91,9 @@ namespace SonarLint.VisualStudio.Integration
                 return language;
             }
 
-            var isOpenAsFolder = folderWorkspaceService.IsFolderWorkspace();
-
-            if (isOpenAsFolder)
+            if (cFamilyProjectTypeIndicator.IsCMake())
             {
-                var rootDirectory = folderWorkspaceService.FindRootDirectory();
-                var isCMake = fileSystem.Directory.EnumerateFiles(rootDirectory, "CMakeLists.txt", SearchOption.AllDirectories).Any();
-
-                if (isCMake)
-                {
-                    return Language.Cpp;
-                }
+                return Language.Cpp;
             }
 
             return Language.Unknown;

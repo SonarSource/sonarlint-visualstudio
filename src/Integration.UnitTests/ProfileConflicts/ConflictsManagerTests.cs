@@ -30,6 +30,7 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.Binding;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
 using SonarLint.VisualStudio.Integration.NewConnectedMode;
@@ -81,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<IFolderWorkspaceService>());
+            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICFamilyProjectTypeIndicator>());
 
             var mefHost = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));
