@@ -20,8 +20,16 @@
 
 namespace SonarLint.VisualStudio.Core.CFamily
 {
+    /// <summary>
+    /// Returns information if the currently open solution is one of the supported cfamily project types.
+    /// Methods return false if there is no open solution.
+    /// </summary>
     public interface ICFamilyProjectTypeIndicator
     {
+        /// <summary>
+        /// Returns true if the currently open solution is a CMake project.
+        /// Returns false if the solution is not CMake, or if there is no open solution.
+        /// </summary>
         bool IsCMake();
     }
 }

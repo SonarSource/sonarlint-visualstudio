@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
@@ -25,7 +26,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
-using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests
@@ -53,6 +53,18 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests
             var result = testSubject.IsCMake();
 
             result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void IsCMake_CouldNotRetrieveRootDirectory_ArgumentNullException()
+        {
+            var folderWorkspaceService = SetupOpenAsFolder(rootDirectory: null);
+
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+
+            Action act = () => testSubject.IsCMake();
+
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("rootDirectory");
         }
 
         [TestMethod]

@@ -89,11 +89,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_CMakeProject_CFamilyLanguages()
         {
-            var folderWorkspaceService = SetupCMakeProject(true);
+            var cFamilyProjectTypeIndicator = SetupCMakeProject(true);
 
             var project = new ProjectMock("any.xxx") {ProjectKind = Guid.NewGuid().ToString()};
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -103,11 +103,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_NotCMakeProject_UnknownLanguage()
         {
-            var folderWorkspaceService = SetupCMakeProject(false);
+            var cFamilyProjectTypeIndicator = SetupCMakeProject(false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -152,10 +152,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void HasSupportedLanguage_NotCMake_False()
         {
-            var folderWorkspaceService = SetupCMakeProject(false);
+            var cFamilyProjectTypeIndicator = SetupCMakeProject(false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -165,10 +165,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void HasSupportedLanguageCMake_True()
         {
-            var folderWorkspaceService = SetupCMakeProject(true);
+            var cFamilyProjectTypeIndicator = SetupCMakeProject(true);
             
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -201,13 +201,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
         private static Mock<ICFamilyProjectTypeIndicator> SetupCMakeProject(bool isCMake)
         {
-            var folderWorkspaceService = new Mock<ICFamilyProjectTypeIndicator>();
+            var cFamilyProjectTypeIndicator = new Mock<ICFamilyProjectTypeIndicator>();
 
-            folderWorkspaceService
+            cFamilyProjectTypeIndicator
                 .Setup(x => x.IsCMake())
                 .Returns(isCMake);
 
-            return folderWorkspaceService;
+            return cFamilyProjectTypeIndicator;
         }
     }
 }

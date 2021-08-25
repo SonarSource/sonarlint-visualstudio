@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
@@ -56,6 +57,12 @@ namespace SonarLint.VisualStudio.CFamily
             }
 
             var rootDirectory = folderWorkspaceService.FindRootDirectory();
+
+            if (string.IsNullOrEmpty(rootDirectory))
+            {
+                throw new ArgumentNullException(nameof(rootDirectory));
+            }
+
             var isCMake = fileSystem.Directory.EnumerateFiles(rootDirectory, "CMakeLists.txt", SearchOption.AllDirectories).Any();
 
             return isCMake;
