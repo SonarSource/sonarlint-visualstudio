@@ -19,13 +19,10 @@
  */
 
 using System;
-using System.IO;
-using System.IO.Abstractions;
-using System.IO.Abstractions.TestingHelpers;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Core.CFamily;
 using Language = SonarLint.VisualStudio.Core.Language;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests
@@ -38,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(null, new[]
             {
-                MefTestHelpers.CreateExport<IFolderWorkspaceService>(Mock.Of<IFolderWorkspaceService>())
+                MefTestHelpers.CreateExport<ICFamilyProjectTypeIndicator>(Mock.Of<ICFamilyProjectTypeIndicator>())
             });
         }
 
@@ -90,19 +87,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        [DataRow("c:\\some directory\\CMakeLists.txt")]
-        [DataRow("c:\\some directory\\sub\\CMakeLists.txt")]
-        [DataRow("c:\\some directory\\sub\\folder\\CMakeLists.txt")]
-        public void GetAllBindingLanguagesForProject_OpenAsFolderProject_HasCmakeFiles_CFamilyLanguages(string cmakeListsLocation)
+        public void GetAllBindingLanguagesForProject_CMakeProject_CFamilyLanguages()
         {
-            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
-            var fileSystem = new MockFileSystem();
-            fileSystem.AddDirectory("c:\\some directory");
-            fileSystem.AddFile(cmakeListsLocation, new MockFileData(""));
+            var folderWorkspaceService = SetupCMakeProject(true);
 
             var project = new ProjectMock("any.xxx") {ProjectKind = Guid.NewGuid().ToString()};
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -110,16 +101,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void GetAllBindingLanguagesForProject_OpenAsFolderProject_NoCmakeFiles_UnknownLanguage()
+        public void GetAllBindingLanguagesForProject_NotCMakeProject_UnknownLanguage()
         {
-            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
-            var fileSystem = new MockFileSystem();
-            fileSystem.AddDirectory("c:\\some directory");
-            fileSystem.AddFile("c:\\anotherRoot\\CMakeLists.txt", new MockFileData(""));
+            var folderWorkspaceService = SetupCMakeProject(false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
 
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -162,14 +150,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void HasSupportedLanguage_OpenAsFolder_NotCMake_False()
+        public void HasSupportedLanguage_NotCMake_False()
         {
-            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
-            var fileSystem = new MockFileSystem();
-            fileSystem.AddDirectory("c:\\some directory");
+            var folderWorkspaceService = SetupCMakeProject(false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -177,15 +163,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void HasSupportedLanguage_OpenAsFolder_CMake_True()
+        public void HasSupportedLanguageCMake_True()
         {
-            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
-            var fileSystem = new MockFileSystem();
-            fileSystem.AddDirectory("c:\\some directory");
-            fileSystem.AddFile("c:\\some directory\\CMakeLists.txt", new MockFileData(""));
+            var folderWorkspaceService = SetupCMakeProject(true);
             
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
-            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -209,24 +192,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualLanguage.Should().BeEquivalentTo(expectedLanguages);
         }
 
-        private static IProjectToLanguageMapper CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IFileSystem fileSystem = null)
+        private static IProjectToLanguageMapper CreateTestSubject(ICFamilyProjectTypeIndicator cFamilyProjectTypeIndicator = null)
         {
-            folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
-            fileSystem ??= new MockFileSystem();
+            cFamilyProjectTypeIndicator ??= Mock.Of<ICFamilyProjectTypeIndicator>();
 
-            return new ProjectToLanguageMapper(folderWorkspaceService, fileSystem);
+            return new ProjectToLanguageMapper(cFamilyProjectTypeIndicator);
         }
 
-        private static Mock<IFolderWorkspaceService> SetupOpenAsFolder(string rootDirectory)
+        private static Mock<ICFamilyProjectTypeIndicator> SetupCMakeProject(bool isCMake)
         {
-            var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
+            var folderWorkspaceService = new Mock<ICFamilyProjectTypeIndicator>();
 
             folderWorkspaceService
-                .Setup(x => x.IsFolderWorkspace())
-                .Returns(true);
-
-            folderWorkspaceService.Setup(x => x.FindRootDirectory())
-                .Returns(rootDirectory);
+                .Setup(x => x.IsCMake())
+                .Returns(isCMake);
 
             return folderWorkspaceService;
         }

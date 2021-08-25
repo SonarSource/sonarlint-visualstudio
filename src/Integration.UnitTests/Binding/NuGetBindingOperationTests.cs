@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using NuGet;
 using NuGet.VisualStudio;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Core.CSharpVB;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration.Binding;
@@ -267,7 +268,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
 
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<IFolderWorkspaceService>());
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICFamilyProjectTypeIndicator>());
 
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(

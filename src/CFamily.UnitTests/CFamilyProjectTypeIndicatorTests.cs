@@ -1,0 +1,113 @@
+﻿/*
+ * SonarLint for Visual Studio
+ * Copyright (C) 2016-2021 SonarSource SA
+ * mailto:info AT sonarsource DOT com
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
+
+using System.IO.Abstractions;
+using System.IO.Abstractions.TestingHelpers;
+using FluentAssertions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
+using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
+
+namespace SonarLint.VisualStudio.CFamily.UnitTests
+{
+    [TestClass]
+    public class CFamilyProjectTypeIndicatorTests
+    {
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<CFamilyProjectTypeIndicator, ICFamilyProjectTypeIndicator>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IFolderWorkspaceService>(Mock.Of<IFolderWorkspaceService>())
+            });
+        }
+
+        [TestMethod]
+        public void IsCMake_NotOpenAsFolder_False()
+        {
+            var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
+            folderWorkspaceService.Setup(x => x.IsFolderWorkspace()).Returns(false);
+
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object);
+
+            var result = testSubject.IsCMake();
+
+            result.Should().BeFalse();
+        }
+
+        [TestMethod]
+        [DataRow("c:\\some directory\\CMakeLists.txt")]
+        [DataRow("c:\\some directory\\sub\\CMakeLists.txt")]
+        [DataRow("c:\\some directory\\sub\\folder\\CMakeLists.txt")]
+        public void IsCMake_OpenAsFolderProject_HasCmakeFiles_True(string cmakeListsLocation)
+        {
+            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory("c:\\some directory");
+            fileSystem.AddFile(cmakeListsLocation, new MockFileData(""));
+
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
+
+            var actualLanguage = testSubject.IsCMake();
+
+            actualLanguage.Should().BeTrue();
+        }
+
+        [TestMethod]
+        public void IsCMake_OpenAsFolderProject_NoCmakeFiles_False()
+        {
+            var folderWorkspaceService = SetupOpenAsFolder("c:\\some directory");
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory("c:\\some directory");
+            fileSystem.AddFile("c:\\anotherRoot\\CMakeLists.txt", new MockFileData(""));
+
+            var testSubject = CreateTestSubject(folderWorkspaceService.Object, fileSystem);
+
+            var actualLanguage = testSubject.IsCMake();
+
+            actualLanguage.Should().BeFalse();
+        }
+
+        private static CFamilyProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IFileSystem fileSystem = null)
+        {
+            folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
+            fileSystem ??= new MockFileSystem();
+
+            return new CFamilyProjectTypeIndicator(folderWorkspaceService, fileSystem);
+        }
+
+        private static Mock<IFolderWorkspaceService> SetupOpenAsFolder(string rootDirectory)
+        {
+            var folderWorkspaceService = new Mock<IFolderWorkspaceService>();
+
+            folderWorkspaceService
+                .Setup(x => x.IsFolderWorkspace())
+                .Returns(true);
+
+            folderWorkspaceService.Setup(x => x.FindRootDirectory())
+                .Returns(rootDirectory);
+
+            return folderWorkspaceService;
+        }
+    }
+}
