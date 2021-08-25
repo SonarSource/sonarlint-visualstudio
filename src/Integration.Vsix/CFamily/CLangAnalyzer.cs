@@ -127,7 +127,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
         }
 
-        protected virtual /* for testing */ async Task<IRequest> TryCreateRequestAsync(string path, IAnalyzerOptions analyzerOptions)
+        private async Task<IRequest> TryCreateRequestAsync(string path, IAnalyzerOptions analyzerOptions)
         {
             // TODO - make request factory async
             var cFamilyAnalyzerOptions = analyzerOptions as CFamilyAnalyzerOptions;
