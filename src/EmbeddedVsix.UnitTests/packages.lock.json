@@ -414,14 +414,6 @@
       "SonarLint.VisualStudio.AdditionalFiles": {
         "type": "Project"
       },
-      "SonarLint.VisualStudio.CFamily": {
-        "type": "Project",
-        "dependencies": {
-          "Newtonsoft.Json": "6.0.8",
-          "SonarLint.VisualStudio.Core": "1.0.0",
-          "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0"
-        }
-      },
       "SonarLint.VisualStudio.Core": {
         "type": "Project",
         "dependencies": {
@@ -457,7 +449,6 @@
           "Newtonsoft.Json": "6.0.8",
           "NuGet.Core": "2.12.0",
           "NuGet.VisualStudio": "3.3.0",
-          "SonarLint.VisualStudio.CFamily": "1.0.0",
           "SonarLint.VisualStudio.Core": "1.0.0",
           "SonarLint.VisualStudio.Infrastructure.VS": "1.0.0",
           "SonarLint.VisualStudio.Progress": "1.0.0",
