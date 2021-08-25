@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             var testSubject = CreateTestableAnalyzer(requestFactory: requestFactory.Object);
             await testSubject.TriggerAnalysisAsync("path", new[] { AnalysisLanguage.CFamily }, ValidIssueConsumer, analysisOptions, AnyStatusNotifier, CancellationToken.None);
 
-            requestFactory.Verify(x => x.TryGet("path", analysisOptions), Times.Once);
+            requestFactory.Verify(x => x.TryCreateAsync("path", analysisOptions), Times.Once);
 
             // TODO - modify check to be more reliable
             Thread.Sleep(400); // delay in case the background thread has gone on to call the subprocess
@@ -322,8 +322,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         private static Mock<IRequestFactoryAggregate> CreateRequestFactory(string filePath, CFamilyAnalyzerOptions analysisOptions, IRequest request)
         {
             var factory = new Mock<IRequestFactoryAggregate>();
-            factory.Setup(x => x.TryGet(filePath, analysisOptions))
-                .Returns(request);
+            factory.Setup(x => x.TryCreateAsync(filePath, analysisOptions))
+                .Returns(Task.FromResult(request));
             return factory;
         }
 

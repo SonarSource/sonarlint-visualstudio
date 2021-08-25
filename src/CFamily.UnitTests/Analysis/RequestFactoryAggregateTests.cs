@@ -21,6 +21,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -57,23 +58,23 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Analysis
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.TryGet(null, new CFamilyAnalyzerOptions());
+            Func<Task> act = () => testSubject.TryCreateAsync(null, new CFamilyAnalyzerOptions());
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("analyzedFilePath");
+            act.Should().ThrowExactly<ArgumentNullException>().And.ParamName.Should().Be("analyzedFilePath");
         }
 
         [TestMethod]
-        public void TryGet_NoFactories_Null()
+        public async Task TryGet_NoFactories_Null()
         {
             var testSubject = CreateTestSubject();
 
-            var result = testSubject.TryGet("path", new CFamilyAnalyzerOptions());
+            var result = await testSubject.TryCreateAsync("path", new CFamilyAnalyzerOptions());
 
             result.Should().BeNull();
         }
 
         [TestMethod]
-        public void TryGet_NoMatchingFactory_Null()
+        public async Task TryGet_NoMatchingFactory_Null()
         {
             var factory1 = new Mock<IRequestFactory>();
             var factory2 = new Mock<IRequestFactory>();
@@ -81,16 +82,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Analysis
             var testSubject = CreateTestSubject(factory1.Object, factory2.Object);
 
             var options = new CFamilyAnalyzerOptions();
-            var result = testSubject.TryGet("path", options);
+            var result = await testSubject.TryCreateAsync("path", options);
 
             result.Should().BeNull();
 
-            factory1.Verify(x=> x.TryGet("path", options), Times.Once);
-            factory2.Verify(x=> x.TryGet("path", options), Times.Once);
+            factory1.Verify(x=> x.TryCreateAsync("path", options), Times.Once);
+            factory2.Verify(x=> x.TryCreateAsync("path", options), Times.Once);
         }
 
         [TestMethod]
-        public void TryGet_HasMatchingFactory_OtherFactoriesNotChecked()
+        public async Task TryGet_HasMatchingFactory_OtherFactoriesNotChecked()
         {
             var factory1 = new Mock<IRequestFactory>();
             var factory2 = new Mock<IRequestFactory>();
@@ -98,16 +99,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.Analysis
 
             var requestToReturn = Mock.Of<IRequest>();
             var options = new CFamilyAnalyzerOptions();
-            factory2.Setup(x => x.TryGet("path", options)).Returns(requestToReturn);
+            factory2.Setup(x => x.TryCreateAsync("path", options)).Returns(Task.FromResult(requestToReturn));
 
             var testSubject = CreateTestSubject(factory1.Object, factory2.Object, factory3.Object);
 
-            var result = testSubject.TryGet("path", options);
+            var result = await testSubject.TryCreateAsync("path", options);
 
             result.Should().Be(requestToReturn);
 
-            factory1.Verify(x => x.TryGet("path", options), Times.Once);
-            factory2.Verify(x => x.TryGet("path", options), Times.Once);
+            factory1.Verify(x => x.TryCreateAsync("path", options), Times.Once);
+            factory2.Verify(x => x.TryCreateAsync("path", options), Times.Once);
             factory3.Invocations.Count.Should().Be(0);
         }
 
