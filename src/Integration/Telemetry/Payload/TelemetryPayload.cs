@@ -76,5 +76,8 @@ namespace SonarLint.VisualStudio.Integration
 
         [JsonProperty("server_notifications")]
         public ServerNotifications ServerNotifications { get; set; }
+
+        [JsonProperty("cfamily_project_types")]
+        public CFamilyProjectTypes CFamilyProjectTypes { get; set; }
     }
 }

@@ -84,7 +84,8 @@ namespace SonarLint.VisualStudio.Integration
                 Analyses = telemetryData.Analyses,
                 ShowHotspot = telemetryData.ShowHotspot,
                 TaintVulnerabilities = telemetryData.TaintVulnerabilities,
-                ServerNotifications = isConnected ? telemetryData.ServerNotifications : null
+                ServerNotifications = isConnected ? telemetryData.ServerNotifications : null,
+                CFamilyProjectTypes = telemetryData.CFamilyProjectTypes
             };
         }
 
