@@ -106,10 +106,30 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             IIssueConsumer consumer,
             IAnalyzerOptions analyzerOptions,
             IAnalysisStatusNotifier statusNotifier,
+            CancellationToken cancellationToken) =>
+            TriggerAnalysisAsync(path, detectedLanguages, consumer, analyzerOptions, statusNotifier, cancellationToken)
+                .Forget(); // fire and forget
+
+        internal /* for testing */ async Task TriggerAnalysisAsync(string path,
+            IEnumerable<AnalysisLanguage> detectedLanguages,
+            IIssueConsumer consumer,
+            IAnalyzerOptions analyzerOptions,
+            IAnalysisStatusNotifier statusNotifier,
             CancellationToken cancellationToken)
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
+            var request = await TryCreateRequestAsync(path, analyzerOptions);
+
+            if (request != null)
+            {
+                await RunAnalysisAsync(request, consumer, statusNotifier, cancellationToken);
+            }
+        }
+
+        private async Task<IRequest> TryCreateRequestAsync(string path, IAnalyzerOptions analyzerOptions)
+        {
+            // TODO - make request factory async
             var cFamilyAnalyzerOptions = analyzerOptions as CFamilyAnalyzerOptions;
             var request = requestFactory.TryGet(path, cFamilyAnalyzerOptions);
 
@@ -120,22 +140,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 {
                     logger.WriteLine(CFamilyStrings.MSG_UnableToCreateConfig, path);
                 }
-                return;
+                return null;
             }
 
-            TriggerAnalysis(request, consumer, statusNotifier, cancellationToken);
+            return request;
         }
-
-        protected /* for testing */ virtual void TriggerAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken) =>
-            TriggerAnalysisAsync(request, consumer, statusNotifier, cancellationToken)
-                .Forget(); // fire and forget
 
         protected /* for testing */ virtual void CallSubProcess(Action<Message> handleMessage, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken)
         {
             ExecuteSubProcess(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken, fileSystem);
         }
 
-        internal /* for testing */ async Task TriggerAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
+        private async Task RunAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
         {
             // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
             // Note: we support multiple versions of VS which prevents us from using some threading helper methods
