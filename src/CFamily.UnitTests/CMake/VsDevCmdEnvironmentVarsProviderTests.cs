@@ -25,6 +25,7 @@ using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -41,11 +42,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void Get_MissingFile_ReturnsEmptySettings()
+        public async Task Get_MissingFile_ReturnsEmptySettings()
         {
             var context = new ProcessContext(installRootDir: "c:\\aaa\\bbb", batchFileExists: false);
 
-            context.TestSubject.Get("any").Should().BeNull();
+            var actual = await context.TestSubject.GetAsync("any");
+            actual.Should().BeNull();
 
             context.FileSystem.Verify(x => x.File.Exists("c:\\aaa\\bbb\\Common7\\Tools\\VsDevCmd.bat"), Times.Once);
         }
@@ -53,12 +55,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         [DataRow("input-script-params")]
         [DataRow(null)]
-        public void Get_ExpectedCommandsPassed(string scriptParams)
+        public async Task Get_ExpectedCommandsPassed(string scriptParams)
         {
             var context = new ProcessContext(installRootDir: "d:\\myinstalldir\\");
 
             // Act
-            context.TestSubject.Get(scriptParams);
+            await context.TestSubject.GetAsync(scriptParams);
 
             context.ActualProcessStartInfo.Should().NotBeNull();
             context.ActualProcessStartInfo.FileName.Should().Be(Environment.GetEnvironmentVariable("COMSPEC"));
@@ -79,23 +81,23 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Get_ExpectedTimeoutDurationUsed()
+        public async Task Get_ExpectedTimeoutDurationUsed()
         {
             var context = new ProcessContext();
 
             // Act
-            context.TestSubject.Get("any");
+            await context.TestSubject.GetAsync("any");
 
-            context.Process.Verify(x => x.WaitForExit(4000), Times.Once);
+            context.Process.Verify(x => x.WaitForExitAsync(4000), Times.Once);
         }
 
         [TestMethod]
-        public void Get_Lifecycle_RunsToCompletion()
+        public async Task Get_Lifecycle_RunsToCompletion()
         {
             var context = new ProcessContext(hasExited: true);
 
             // Act
-            context.TestSubject.Get("any");
+            await context.TestSubject.GetAsync("any");
 
             // Just checking the invocation order
             var invokedMembers = context.Process.Invocations.Select(x => x.Method.Name).ToArray();
@@ -103,7 +105,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 // Initialize and run
                 "set_HandleOutputDataReceived",
                 "BeginOutputReadLine",
-                "WaitForExit",
+                "WaitForExitAsync",
 
                 // Cleanup
                 "get_HasExited",
@@ -114,12 +116,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Get_Lifecycle_TimeoutOccurs_ProcessIsKilled()
+        public async Task Get_Lifecycle_TimeoutOccurs_ProcessIsKilled()
         {
             var context = new ProcessContext(hasExited: false);
 
             // Act
-            context.TestSubject.Get("any");
+            await context.TestSubject.GetAsync("any");
 
             var invokedMembers = context.Process.Invocations.Select(x => x.Method.Name).ToArray();
             invokedMembers.Should().ContainInOrder(
@@ -129,7 +131,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Get_DataProcessing_DataOutsideMarkersIsIgnored()
+        public async Task Get_DataProcessing_DataOutsideMarkersIsIgnored()
         {
             ProcessContext.SimulateWorkInProcess writeOutputOp = (context) =>
             {
@@ -152,7 +154,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var context = new ProcessContext(simulatedWorkCallback: writeOutputOp);
 
             // Act
-            var actual = context.TestSubject.Get("any");
+            var actual = await context.TestSubject.GetAsync("any");
 
             actual.Should().NotBeNull();
             actual.Count.Should().Be(2);
@@ -162,7 +164,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Get_DataProcessing_TimeoutOccurs_NullReturned()
+        public async Task Get_DataProcessing_TimeoutOccurs_NullReturned()
         {
             ProcessContext.SimulateWorkInProcess writeOutputOp = (context) =>
             {
@@ -176,14 +178,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var context = new ProcessContext(simulatedWorkCallback: writeOutputOp);
 
             // Act
-            var actual = context.TestSubject.Get("any");
+            var actual = await context.TestSubject.GetAsync("any");
 
             actual.Should().BeNull();
             context.Logger.AssertPartialOutputStringExists(Resources.VsDevCmd_TimedOut);
         }
 
         [TestMethod]
-        public void Get_DataProcessing_NoSettingsCaptured_NullReturned()
+        public async Task Get_DataProcessing_NoSettingsCaptured_NullReturned()
         {
             ProcessContext.SimulateWorkInProcess writeOutputOp = (context) =>
             {
@@ -196,14 +198,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var context = new ProcessContext(simulatedWorkCallback: writeOutputOp);
 
             // Act
-            var actual = context.TestSubject.Get("any");
+            var actual = await context.TestSubject.GetAsync("any");
 
             actual.Should().BeNull();
             context.Logger.AssertPartialOutputStringExists(Resources.VsDevCmd_NoSettingsFound);
         }
 
         [TestMethod]
-        public void Get_NonCriticalException_IsSuppressed()
+        public async Task Get_NonCriticalException_IsSuppressed()
         {
             var context = new ProcessContext();
 
@@ -211,7 +213,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             context.FileSystem.Setup(x => x.File.Exists(It.IsAny<string>()))
                 .Throws(new InvalidCastException("thrown from test"));
 
-            var actual = context.TestSubject.Get("any");
+            var actual = await context.TestSubject.GetAsync("any");
 
             actual.Should().BeNull();
         }
@@ -225,7 +227,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             context.FileSystem.Setup(x => x.File.Exists(It.IsAny<string>()))
                 .Throws(new StackOverflowException("thrown from test"));
 
-            Action act = () => context.TestSubject.Get("any");
+            Func<Task> act = () => context.TestSubject.GetAsync("any");
 
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown from test");
         }
@@ -323,11 +325,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 Process.SetupProperty(x => x.HandleOutputDataReceived);
 
                 // Block the process from completing until the callback has completed
-                Process.Setup(x => x.WaitForExit(It.IsAny<int>()))
+                Process.Setup(x => x.WaitForExitAsync(It.IsAny<int>()))
                     .Callback(() => simulatedWorkCompleted.WaitOne());
 
                 // Start a new thread to simulate work inside the process
-                System.Threading.Tasks.Task.Run(() => CallbackToTestOnSeparateThread());
+                Task.Run(() => CallbackToTestOnSeparateThread());
 
                 // Unblock the processing thread when the consumer calls BeginOutputReadLine
                 Process.Setup(x => x.BeginOutputReadLine())

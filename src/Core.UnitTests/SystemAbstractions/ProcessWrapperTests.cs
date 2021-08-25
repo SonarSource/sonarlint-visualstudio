@@ -23,8 +23,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using FluentAssertions;
-using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Integration.UnitTests.Helpers;
@@ -69,7 +69,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests.SystemAbstractions
         }
 
         [TestMethod]
-        public void Execute_PropertiesReturnExpectedValue()
+        public async Task Execute_PropertiesReturnExpectedValue()
         {
             var exeName = WriteBatchFileForTest(TestContext,
 @"@echo Hello world
@@ -80,7 +80,7 @@ exit -2
             var testSubject = new ProcessWrapper(processScope.Process);
 
             // Act
-            testSubject.WaitForExit(1000);
+            await testSubject.WaitForExitAsync(1000);
 
             testSubject.Id.Should().Be(processScope.Process.Id);
             testSubject.HasExited.Should().Be(processScope.Process.HasExited);
@@ -89,7 +89,7 @@ exit -2
         }
 
         [TestMethod]
-        public void Execute_OutputIsForwarded()
+        public async Task Execute_OutputIsForwarded()
         {
             var exeName = WriteBatchFileForTest(TestContext,
 @"@echo Hello world
@@ -105,7 +105,7 @@ exit -2
             // Act
             testSubject.HandleOutputDataReceived = data => sb.AppendLine(data);
             testSubject.BeginOutputReadLine();
-            testSubject.WaitForExit(2000);
+            await testSubject.WaitForExitAsync(2000);
             // Give any async messages the opportunity to arrive
             System.Threading.Thread.Sleep(1000);
 
@@ -120,7 +120,7 @@ exit -2
         }
 
         [TestMethod]
-        public void Execute_ProcessTimesOut_CanBeKilled()
+        public async Task Execute_ProcessTimesOut_CanBeKilled()
         {
             // Arrange
             var exeName = WriteBatchFileForTest(TestContext,
@@ -133,7 +133,7 @@ exit -999
             var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
-            testSubject.WaitForExit(1000);
+            await testSubject.WaitForExitAsync(1000);
             testSubject.HasExited.Should().Be(false);
             CheckProcessIsRunning(testSubject.Id);
 
@@ -146,7 +146,7 @@ exit -999
         }
 
         [TestMethod]
-        public void Execute_ProcessTimesOut_CanBeDisposed()
+        public async Task Execute_ProcessTimesOut_CanBeDisposed()
         {
             // Arrange
             var exeName = WriteBatchFileForTest(TestContext,
@@ -158,7 +158,7 @@ set /p arg=
             var testSubject = new ProcessWrapper(processScope.Process);
 
             // Should timeout be because the batch file is waiting for input...
-            testSubject.WaitForExit(2000);
+            await testSubject.WaitForExitAsync(2000);
             testSubject.HasExited.Should().Be(false);
             CheckProcessIsRunning(testSubject.Id);
 
