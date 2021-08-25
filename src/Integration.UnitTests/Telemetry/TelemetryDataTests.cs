@@ -81,6 +81,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                             ClickedCount = 44
                         }}
                     }
+                },
+
+                CFamilyProjectTypes = new CFamilyProjectTypes
+                {
+                    IsCMakeNonAnalyzable = true,
+                    IsCMakeAnalyzable = true
                 }
             };
 
@@ -127,6 +133,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ReceivedCount.Should().Be(33);
             reloadedData.ServerNotifications.ServerNotificationCounters["NEW_ISSUES"].ClickedCount.Should().Be(44);
 
+            reloadedData.CFamilyProjectTypes.IsCMakeNonAnalyzable.Should().BeTrue();
+            reloadedData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
         }
     }
 }
