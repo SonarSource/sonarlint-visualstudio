@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -32,6 +31,7 @@ using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
+using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
@@ -40,6 +40,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
     public class VsDevCmdEnvironmentVarsProviderTests
     {
         public TestContext TestContext { get; set; }
+
+        [TestMethod]
+        public void MefCtor_CheckIsExported()
+        {
+            MefTestHelpers.CheckTypeCanBeImported<VsDevCmdEnvironmentVarsProvider, IVsDevCmdEnvironmentProvider>(null, new[]
+            {
+                MefTestHelpers.CreateExport<IVsInfoService>(Mock.Of<IVsInfoService>()),
+                MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
+            });
+        }
 
         [TestMethod]
         public async Task Get_MissingFile_ReturnsEmptySettings()
