@@ -70,22 +70,6 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void GetConfig_CompilationDatabaseDoesNotExist_Null()
-        {
-            var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
-           
-            var fileSystem = new Mock<IFileSystem>();
-            fileSystem.Setup(x => x.File.Exists("some db")).Returns(false);
-
-            var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
-
-            var result = testSubject.GetConfig("some file");
-            result.Should().BeNull();
-
-            fileSystem.Verify(x => x.File.Exists("some db"), Times.Once);
-        }
-
-        [TestMethod]
         [DataRow("")]
         [DataRow("[]")]
         public void GetConfig_EmptyCompilationDatabase_Null(string compilationDatabaseContents)

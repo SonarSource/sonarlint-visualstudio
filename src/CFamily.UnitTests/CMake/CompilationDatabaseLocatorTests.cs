@@ -61,7 +61,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocation()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocationIfFileExists(bool fileExists)
         {
             var activeConfiguration = "any";
             var configProvider = CreateConfigProvider(activeConfiguration);
@@ -71,12 +73,21 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var fileSystem = new Mock<IFileSystem>();
             fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(false);
 
+            fileSystem.Setup(x => x.File.Exists(defaultLocation)).Returns(fileExists);
+
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
             var result = testSubject.Locate();
 
-            result.Should().Be(defaultLocation);
+            if (fileExists)
+            {
+                result.Should().Be(defaultLocation);
+            }
+            else
+            {
+                result.Should().BeNull();
+            }
 
             fileSystem.Verify(x=> x.File.Exists(cmakeSettingsLocation), Times.Once);
         }
@@ -166,7 +177,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPath()
+        [DataRow(true)]
+        [DataRow(false)]
+        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPathIfItExists(bool fileExists)
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", "folder");
@@ -177,12 +190,20 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var compilationDatabaseFullLocation = Path.GetFullPath(
                 Path.Combine("folder", CompilationDatabaseLocator.CompilationDatabaseFileName));
+            fileSystem.Setup(x => x.File.Exists(compilationDatabaseFullLocation)).Returns(fileExists);
 
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object);
 
             var result = testSubject.Locate();
 
-            result.Should().Be(compilationDatabaseFullLocation);
+            if (fileExists)
+            {
+                result.Should().Be(compilationDatabaseFullLocation);
+            }
+            else
+            {
+                result.Should().BeNull();
+            }
         }
 
         [TestMethod]
