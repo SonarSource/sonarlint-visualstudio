@@ -79,7 +79,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                             ClickedCount = 444
                         }}
                     }
-                }
+                },
+                CFamilyProjectTypes = new CFamilyProjectTypes { IsCMakeNonAnalyzable = true, IsCMakeAnalyzable = true}
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -130,6 +131,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         ""clicked"": 444
       }
     }
+  },
+  ""cfamily_project_types"": {
+    ""cmake_analyzable"": true,
+    ""cmake_non_analyzable"": true
   }
 }";
             serialized.Should().Be(expected);
