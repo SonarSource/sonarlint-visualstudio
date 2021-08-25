@@ -82,13 +82,6 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            if (!fileSystem.File.Exists(compilationDatabaseLocation))
-            {
-                logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseLocation);
-
-                return null;
-            }
-
             logger.LogDebug($"[CompilationConfigProvider] Reading compilation database from '{compilationDatabaseLocation}'");
 
             try

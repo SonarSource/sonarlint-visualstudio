@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    internal interface ICompilationDatabaseLocator
+    public interface ICompilationDatabaseLocator
     {
         /// <summary>
         /// Returns absolute path to the compilation database file of the currently active build configuration.
@@ -86,9 +86,18 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
             var activeConfiguration = buildConfigProvider.GetActiveConfig(rootDirectory);
 
-            return fileSystem.File.Exists(cmakeSettingsFullPath)
+            var compilationDatabaseLocation = fileSystem.File.Exists(cmakeSettingsFullPath)
                 ? GetConfiguredLocation(cmakeSettingsFullPath, activeConfiguration, rootDirectory)
                 : GetDefaultLocation(rootDirectory, activeConfiguration);
+
+            if (fileSystem.File.Exists(compilationDatabaseLocation))
+            {
+                return compilationDatabaseLocation;
+            }
+
+            logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseLocation);
+
+            return null;
         }
 
         private string GetDefaultLocation(string rootDirectory, string activeConfiguration)
