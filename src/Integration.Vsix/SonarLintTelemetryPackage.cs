@@ -27,6 +27,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using SonarLint.VisualStudio.Core.Telemetry;
+using SonarLint.VisualStudio.Integration.Telemetry;
 
 namespace SonarLint.VisualStudio.Integration.Vsix
 {
@@ -67,6 +68,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix
                 logger.WriteLine(Resources.Strings.Telemetry_Initializing);
                 telemetryManager = await this.GetMefServiceAsync<ITelemetryManager>();
                 logger.WriteLine(Resources.Strings.Telemetry_InitializationComplete);
+
+                await this.GetMefServiceAsync<ICFamilyTelemetryManager>();
 
                 if (await IsSolutionFullyOpenedAsync())
                 {

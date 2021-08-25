@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    internal interface ICompilationDatabaseLocator
+    public interface ICompilationDatabaseLocator
     {
         /// <summary>
         /// Returns absolute path to the compilation database file of the currently active build configuration.
