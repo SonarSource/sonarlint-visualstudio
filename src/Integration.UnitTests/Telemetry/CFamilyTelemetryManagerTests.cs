@@ -47,27 +47,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         }
 
         [TestMethod]
-        public void Ctor_RegisterToSolutionChangedEvent()
+        public void Ctor_RegisterToSolutionEvents()
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
 
             CreateTestSubject(activeSolutionTracker.Object);
 
             activeSolutionTracker.VerifyAdd(x => x.ActiveSolutionChanged += It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Once);
+            activeSolutionTracker.VerifyAdd(x => x.BeforeSolutionClosed += It.IsAny<EventHandler>(), Times.Once);
             activeSolutionTracker.VerifyNoOtherCalls();
         }
 
         [TestMethod]
-        public void Dispose_UnregisterFromSolutionChangedEvent()
+        public void Dispose_UnregisterFromSolutionEvents()
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
             var testSubject = CreateTestSubject(activeSolutionTracker.Object);
 
             activeSolutionTracker.VerifyRemove(x => x.ActiveSolutionChanged -= It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Never);
+            activeSolutionTracker.VerifyRemove(x => x.BeforeSolutionClosed -= It.IsAny<EventHandler>(), Times.Never);
 
             testSubject.Dispose();
 
             activeSolutionTracker.VerifyRemove(x => x.ActiveSolutionChanged -= It.IsAny<EventHandler<ActiveSolutionChangedEventArgs>>(), Times.Once);
+            activeSolutionTracker.VerifyRemove(x => x.BeforeSolutionClosed -= It.IsAny<EventHandler>(), Times.Once);
         }
 
         [TestMethod]
@@ -231,7 +234,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         {
             var activeSolutionTracker = new Mock<IActiveSolutionTracker>();
             activeSolutionTracker.SetupAdd(x => x.ActiveSolutionChanged += null);
+            activeSolutionTracker.SetupAdd(x => x.BeforeSolutionClosed += null);
             activeSolutionTracker.SetupRemove(x => x.ActiveSolutionChanged -= null);
+            activeSolutionTracker.SetupRemove(x => x.BeforeSolutionClosed -= null);
 
             return activeSolutionTracker;
         }

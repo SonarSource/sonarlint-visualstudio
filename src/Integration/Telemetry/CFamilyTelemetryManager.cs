@@ -35,7 +35,14 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             this.telemetryDataRepository = telemetryDataRepository;
             this.logger = logger;
 
+            activeSolutionTracker.BeforeSolutionClosed += ActiveSolutionTracker_BeforeSolutionClosed;
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
+        }
+
+        private void ActiveSolutionTracker_BeforeSolutionClosed(object sender, EventArgs e)
+        {
+            // todo: hacky bug fix: for open-as-folder projects, SolutionOpened event is not being raised.
+            UpdateTelemetry();
         }
 
         private void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
@@ -82,6 +89,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
         public void Dispose()
         {
             activeSolutionTracker.ActiveSolutionChanged -= ActiveSolutionTracker_ActiveSolutionChanged;
+            activeSolutionTracker.BeforeSolutionClosed -= ActiveSolutionTracker_BeforeSolutionClosed;
         }
     }
 }
