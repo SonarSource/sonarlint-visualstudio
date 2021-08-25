@@ -21,6 +21,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.Core.CFamily;
 
 namespace SonarLint.VisualStudio.CFamily.Analysis
@@ -37,7 +38,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             this.requestFactories = requestFactories;
         }
 
-        public IRequest TryGet(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             if (string.IsNullOrEmpty(analyzedFilePath))
             {
@@ -46,7 +47,7 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
 
             foreach (var requestFactory in requestFactories)
             {
-                var request = requestFactory.TryGet(analyzedFilePath, analyzerOptions);
+                var request = await requestFactory.TryCreateAsync(analyzedFilePath, analyzerOptions);
 
                 if (request != null)
                 {

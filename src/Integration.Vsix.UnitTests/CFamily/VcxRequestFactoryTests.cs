@@ -22,7 +22,7 @@ using System;
 using System.Collections.Generic;
 using EnvDTE;
 using FluentAssertions;
-using Microsoft.VisualStudio.Shell;
+using VsShell = Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.Analysis;
@@ -31,6 +31,7 @@ using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily;
 using SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject;
 using static SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests.CFamilyTestUtility;
+using System.Threading.Tasks;
 
 namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 {
@@ -45,30 +46,30 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         {
             MefTestHelpers.CheckTypeCanBeImported<VcxRequestFactory, IRequestFactory>(null, new[]
             {
-                MefTestHelpers.CreateExport<SVsServiceProvider>(Mock.Of<IServiceProvider>()),
+                MefTestHelpers.CreateExport<VsShell.SVsServiceProvider>(Mock.Of<IServiceProvider>()),
                 MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
 
         [TestMethod]
-        public void TryGet_NoProjectItem_Null()
+        public async Task TryGet_NoProjectItem_Null()
         {
             var testSubject = CreateTestSubject(projectItem: null);
 
-            var request = testSubject.TryGet("path", new CFamilyAnalyzerOptions());
+            var request = await testSubject.TryCreateAsync("path", new CFamilyAnalyzerOptions());
 
             request.Should().BeNull();
         }
 
         [TestMethod]
-        public void TryGet_NoFileConfig_Null()
+        public async Task TryGet_NoFileConfig_Null()
         {
             const string analyzedFilePath = "path";
             var fileConfigProvider = SetupFileConfigProvider(DummyProjectItem, DummyAnalyzerOptions, analyzedFilePath, null);
 
             var testSubject = CreateTestSubject(DummyProjectItem, fileConfigProvider: fileConfigProvider.Object);
-            var request = testSubject.TryGet("path", DummyAnalyzerOptions);
+            var request = await testSubject.TryCreateAsync("path", DummyAnalyzerOptions);
 
             request.Should().BeNull();
 
@@ -76,7 +77,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_RequestCreatedWithNoDetectedLanguage_Null()
+        public async Task TryGet_RequestCreatedWithNoDetectedLanguage_Null()
         {
             const string analyzedFilePath = "c:\\notCFamilyFile.txt";
 
@@ -88,7 +89,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 fileConfigProvider: fileConfigProvider.Object, 
                 cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object);
 
-            var request = testSubject.TryGet(analyzedFilePath, DummyAnalyzerOptions);
+            var request = await testSubject.TryCreateAsync(analyzedFilePath, DummyAnalyzerOptions);
 
             request.Should().BeNull();
 
@@ -97,7 +98,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_FailureParsing_NonCriticialException_Null()
+        public async Task TryGet_FailureParsing_NonCriticialException_Null()
         {
             const string analyzedFilePath = "c:\\test.cpp";
 
@@ -116,7 +117,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object,
                 logger: logger);
 
-            var request = testSubject.TryGet(analyzedFilePath, DummyAnalyzerOptions);
+            var request = await testSubject.TryCreateAsync(analyzedFilePath, DummyAnalyzerOptions);
 
             request.Should().BeNull();
 
@@ -124,7 +125,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_FailureParsing_CriticalException_ExceptionThrown()
+        public async Task TryGet_FailureParsing_CriticalException_ExceptionThrown()
         {
             const string analyzedFilePath = "c:\\test.cpp";
 
@@ -140,18 +141,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 fileConfigProvider: fileConfigProvider.Object,
                 cFamilyRulesConfigProvider: cFamilyRulesConfigProvider.Object);
 
-            Action act = () => testSubject.TryGet(analyzedFilePath, DummyAnalyzerOptions);
+            Func<Task> act = () => testSubject.TryCreateAsync(analyzedFilePath, DummyAnalyzerOptions);
 
             act.Should().ThrowExactly<StackOverflowException>();
         }
 
         [TestMethod]
-        public void TryGet_IRequestPropertiesAreSet()
+        public async Task TryGet_IRequestPropertiesAreSet()
         {
             var analyzerOptions = new CFamilyAnalyzerOptions();
             var rulesConfig = Mock.Of<ICFamilyRulesConfig>();
 
-            var request = (IRequest)GetSuccessfulRequest(analyzerOptions, "d:\\xxx\\fileToAnalyze.cpp", rulesConfig);
+            var request = await GetSuccessfulRequest(analyzerOptions, "d:\\xxx\\fileToAnalyze.cpp", rulesConfig);
             request.Should().NotBeNull();
 
             request.Context.File.Should().Be("d:\\xxx\\fileToAnalyze.cpp");
@@ -161,25 +162,25 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_FileConfigIsSet()
+        public async Task TryGet_FileConfigIsSet()
         {
-            var request = GetSuccessfulRequest();
+            var request = await GetSuccessfulRequest();
             request.Should().NotBeNull();
 
             request.FileConfig.Should().NotBeNull();
         }
 
         [TestMethod]
-        public void TryGet_NonHeaderFile_IsSupported()
+        public async Task TryGet_NonHeaderFile_IsSupported()
         {
-            var request = GetSuccessfulRequest();
+            var request = await GetSuccessfulRequest();
             
             request.Should().NotBeNull();
             (request.Flags & Request.MainFileIsHeader).Should().Be(0);
         }
 
         [TestMethod]
-        public void TryGet_HeaderFile_IsSupported()
+        public async Task TryGet_HeaderFile_IsSupported()
         {
             var projectItemConfig = new ProjectItemConfig { ItemType = "ClInclude" };
             var projectItemMock = CreateMockProjectItem("c:\\foo\\xxx.vcxproj", projectItemConfig);
@@ -188,16 +189,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             fileConfig.Setup(x => x.CompileAs).Returns("CompileAsCpp");
             fileConfig.Setup(x => x.ItemType).Returns("ClInclude");
 
-            var request = GetSuccessfulRequest(fileToAnalyze: "c:\\dummy\\file.h", projectItem: projectItemMock.Object, fileConfig: fileConfig);
+            var request = await GetSuccessfulRequest(fileToAnalyze: "c:\\dummy\\file.h", projectItem: projectItemMock.Object, fileConfig: fileConfig);
 
             request.Should().NotBeNull();
             (request.Flags & Request.MainFileIsHeader).Should().NotBe(0);
         }
 
         [TestMethod]
-        public void TryGet_NoAnalyzerOptions_RequestCreatedWithoutOptions()
+        public async Task TryGet_NoAnalyzerOptions_RequestCreatedWithoutOptions()
         {
-            var request = GetSuccessfulRequest(analyzerOptions: null);
+            var request = await GetSuccessfulRequest(analyzerOptions: null);
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
@@ -207,45 +208,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
+        public async Task TryGet_AnalyzerOptionsWithReproducerEnabled_RequestCreatedWithReproducerFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
+            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = true });
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().NotBe(0);
         }
 
         [TestMethod]
-        public void TryGet_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
+        public async Task TryGet_AnalyzerOptionsWithoutReproducerEnabled_RequestCreatedWithoutReproducerFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = false });
+            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreateReproducer = false });
             request.Should().NotBeNull();
 
             (request.Flags & Request.CreateReproducer).Should().Be(0);
         }
 
         [TestMethod]
-        public void TryGet_AnalyzerOptionsWithPCH_RequestCreatedWithPCHFlag()
+        public async Task TryGet_AnalyzerOptionsWithPCH_RequestCreatedWithPCHFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
+            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
             request.Should().NotBeNull();
 
             (request.Flags & Request.BuildPreamble).Should().NotBe(0);
         }
 
         [TestMethod]
-        public void TryGet_AnalyzerOptionsWithoutPCH_RequestCreatedWithoutPCHFlag()
+        public async Task TryGet_AnalyzerOptionsWithoutPCH_RequestCreatedWithoutPCHFlag()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false });
+            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false });
             request.Should().NotBeNull();
 
             (request.Flags & Request.BuildPreamble).Should().Be(0);
         }
 
         [TestMethod]
-        public void TryGet_AnalyzerOptionsWithPCH_RequestOptionsNotSet()
+        public async Task TryGet_AnalyzerOptionsWithPCH_RequestOptionsNotSet()
         {
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
+            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = true });
             request.Should().NotBeNull();
 
             request.Context.RulesConfiguration.Should().BeNull();
@@ -253,7 +254,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void TryGet_AnalyzerOptionsWithoutPCH_RequestOptionsAreSet()
+        public async Task TryGet_AnalyzerOptionsWithoutPCH_RequestOptionsAreSet()
         {
             var rulesProtocolFormat = new RuleConfigProtocolFormat("some profile", new Dictionary<string, string>
             {
@@ -261,7 +262,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 {"rule2", "param2"}
             });
             
-            var request = GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false }, protocolFormat: rulesProtocolFormat);
+            var request = await GetSuccessfulRequest(new CFamilyAnalyzerOptions { CreatePreCompiledHeaders = false }, protocolFormat: rulesProtocolFormat);
             request.Should().NotBeNull();
 
             request.Context.RulesConfiguration.Should().NotBeNull();
@@ -318,7 +319,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return mockServiceProvider;
         }
 
-        private Request GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions = null,
+        private async Task<Request> GetSuccessfulRequest(CFamilyAnalyzerOptions analyzerOptions = null,
             string fileToAnalyze = "c:\\foo\\file.cpp",
             ICFamilyRulesConfig rulesConfig = null,
             ProjectItem projectItem = null,
@@ -350,7 +351,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 fileConfigProvider.Object,
                 rulesConfigProtocolFormatter.Object);
         
-            return testSubject.TryGet(fileToAnalyze, analyzerOptions) as Request;
+            return await testSubject.TryCreateAsync(fileToAnalyze, analyzerOptions) as Request;
         }
 
         private Mock<IFileConfig> CreateDummyFileConfig(string filePath)

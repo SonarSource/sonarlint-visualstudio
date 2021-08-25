@@ -20,6 +20,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Threading.Tasks;
 using SonarLint.VisualStudio.CFamily.CMake;
 using SonarLint.VisualStudio.Core.CFamily;
 
@@ -31,6 +32,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
         private readonly ICompilationConfigProvider compilationConfigProvider;
         private readonly ICFamilyRulesConfigProvider rulesConfigProvider;
 
+        private static readonly Task<IRequest> NullRequest = Task.FromResult<IRequest>(null);
+
         [ImportingConstructor]
         public CompilationDatabaseRequestFactory(ICompilationConfigProvider compilationConfigProvider,
             ICFamilyRulesConfigProvider rulesConfigProvider)
@@ -39,28 +42,29 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
             this.rulesConfigProvider = rulesConfigProvider;
         }
 
-        public IRequest TryGet(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             var dbEntry = compilationConfigProvider.GetConfig(analyzedFilePath);
             if (dbEntry == null)
             {
-                return null;
+                return NullRequest;
             }
 
             // TODO - handle user specifying the language via a command / argument #2533
             var languageKey = CFamilyShared.FindLanguageFromExtension(dbEntry.File);
             if (languageKey == null)
             {
-                return null;
+                return NullRequest;
             }
 
             var rulesConfig = rulesConfigProvider.GetRulesConfiguration(languageKey);
             var context = new RequestContext(languageKey, rulesConfig, analyzedFilePath, SubProcessFilePaths.PchFilePath, analyzerOptions);
 
-            // TODO - fetch env vars #2539
+            // TODO - fetch env vars #2539 (will include making the method async)
             var envVars = new Dictionary<string, string> { { "INCLUDE", string.Empty } };
 
-            return new CompilationDatabaseRequest(dbEntry, context, envVars);
+            var result = new CompilationDatabaseRequest(dbEntry, context, envVars);
+            return Task.FromResult((IRequest)result);
         }
     }
 }

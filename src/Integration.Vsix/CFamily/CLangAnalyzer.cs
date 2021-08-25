@@ -129,9 +129,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private async Task<IRequest> TryCreateRequestAsync(string path, IAnalyzerOptions analyzerOptions)
         {
-            // TODO - make request factory async
             var cFamilyAnalyzerOptions = analyzerOptions as CFamilyAnalyzerOptions;
-            var request = requestFactory.TryGet(path, cFamilyAnalyzerOptions);
+            var request = await requestFactory.TryCreateAsync(path, cFamilyAnalyzerOptions);
 
             if (request == null)
             {
