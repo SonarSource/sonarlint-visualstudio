@@ -112,8 +112,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             projectTypeIndicator.Verify(x=> x.IsCMake(), Times.Once);
             compilationDatabaseLocator.Invocations.Should().BeEmpty();
 
-            telemetryRepository.VerifyGet(x=> x.Data);
-            telemetryRepository.VerifyNoOtherCalls();
+            telemetryRepository.Verify(x=> x.Save(), Times.Never);
         }
 
         [TestMethod]
