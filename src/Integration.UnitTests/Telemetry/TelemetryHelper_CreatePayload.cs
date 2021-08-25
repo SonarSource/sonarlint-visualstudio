@@ -56,7 +56,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 IsAnonymousDataShared = true,
                 NumberOfDaysOfUse = 5,
                 ShowHotspot = new ShowHotspot { NumberOfRequests = 11 },
-                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 }
+                TaintVulnerabilities = new TaintVulnerabilities { NumberOfIssuesInvestigatedRemotely = 44, NumberOfIssuesInvestigatedLocally = 55 },
+                CFamilyProjectTypes = new CFamilyProjectTypes { IsCMakeNonAnalyzable = true, IsCMakeAnalyzable = true}
             };
 
             var binding = CreateConfiguration(SonarLintMode.Connected, "https://sonarcloud.io");
@@ -82,6 +83,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             result.ShowHotspot.NumberOfRequests.Should().Be(11);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedRemotely.Should().Be(44);
             result.TaintVulnerabilities.NumberOfIssuesInvestigatedLocally.Should().Be(55);
+            result.CFamilyProjectTypes.IsCMakeNonAnalyzable.Should().BeTrue();
+            result.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
         }
 
         [TestMethod]
