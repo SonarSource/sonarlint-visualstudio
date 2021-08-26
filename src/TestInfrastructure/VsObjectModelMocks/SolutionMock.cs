@@ -542,6 +542,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.SimulateProjectUnload(project);
         }
 
+        public void SimulateBeforeSolutionClose()
+        {
+            this.projects.Values.ToList().ForEach(p => this.RemoveProject(p));
+            this.sinks.ForEach(s => s.OnBeforeCloseSolution(this));
+        }
+
         public void SimulateSolutionClose()
         {
             this.projects.Values.ToList().ForEach(p => this.RemoveProject(p));

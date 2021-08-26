@@ -88,5 +88,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             counter.Should().Be(1, nameof(testSubject.ActiveSolutionChanged) + " was expected to be raised");
             isSolutionOpenEventArg.Should().BeFalse();
         }
+
+        [TestMethod]
+        public void ActiveSolutionTracker_RaiseEventOnBeforeSolutionClose()
+        {
+            // Arrange
+            var counter = 0;
+            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
+            testSubject.BeforeSolutionClosed += (o, e) => { counter++; };
+
+            // Act
+            this.solutionMock.SimulateBeforeSolutionClose();
+
+            // Assert
+            counter.Should().Be(1, nameof(testSubject.BeforeSolutionClosed) + " was expected to be raised");
+        }
     }
 }

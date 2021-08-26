@@ -18,32 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
-
-namespace SonarLint.VisualStudio.Core
+namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public class ActiveSolutionChangedEventArgs : EventArgs
-    {
-        public ActiveSolutionChangedEventArgs(bool isSolutionOpen)
-        {
-            IsSolutionOpen = isSolutionOpen;
-        }
-
-        public bool IsSolutionOpen { get; }
-    }
-
-    public interface IActiveSolutionTracker
+    public interface ICompilationDatabaseLocator
     {
         /// <summary>
-        /// The active solution has changed (either opened or closed).
+        /// Returns absolute path to the compilation database file of the currently active build configuration.
+        /// Returns null if the file was not found.
         /// </summary>
-        /// <remarks>The solution might not be fully loaded when this event is raised.
-        /// The event argument value will be true if a solution is open and false otherwise.</remarks>
-        event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
-
-        /// <summary>
-        /// The active solution is about to be closed.
-        /// </summary>
-        event EventHandler BeforeSolutionClosed;
+        string Locate();
     }
 }
