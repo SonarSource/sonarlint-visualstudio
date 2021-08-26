@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 /// <summary>
 /// Wrappers around System.Diagnostics.Process for testing
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
         int ExitCode { get; }
         ProcessStartInfo StartInfo { get; }
         void BeginOutputReadLine();
-        void WaitForExit(int milliseconds);
+        Task WaitForExitAsync(int milliseconds);
         void Kill();
 
         /// <summary>
@@ -74,7 +75,9 @@ namespace SonarLint.VisualStudio.Core.SystemAbstractions
         public int ExitCode => wrapped.ExitCode;
         public ProcessStartInfo StartInfo => wrapped.StartInfo;
         public void Kill() => wrapped.Kill();
-        public void WaitForExit(int milliseconds) => wrapped.WaitForExit(milliseconds);
+
+        // Make task genuinely async
+        public Task WaitForExitAsync(int milliseconds) => Task.FromResult(wrapped.WaitForExit(milliseconds));
         public void BeginOutputReadLine() => wrapped.BeginOutputReadLine();
 
         private Action<string> handleOutputData;

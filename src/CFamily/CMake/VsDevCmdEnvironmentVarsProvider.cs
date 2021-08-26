@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
@@ -38,7 +39,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// Returns the environment settings set by VsDevCmd.bat
         /// </summary>
         /// <param name="scriptParams">Any additional parameters to pass to the batch file. Can be null.</param>
-        IReadOnlyDictionary<string, string> Get(string scriptParams);
+        Task<IReadOnlyDictionary<string, string>> GetAsync(string scriptParams);
     }
 
     internal class VsDevCmdEnvironmentVarsProvider : IVsDevCmdEnvironmentProvider
@@ -72,7 +73,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.fileSystem = fileSystem;
         }
 
-        public IReadOnlyDictionary<string, string> Get(string scriptParams)
+        public async Task<IReadOnlyDictionary<string, string>> GetAsync(string scriptParams)
         {
             try
             {
@@ -85,7 +86,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                     return null;
                 }
 
-                var capturedOutput = ExecuteVsDevCmd(filePath, scriptParams);
+                var capturedOutput = await ExecuteVsDevCmd(filePath, scriptParams);
                 var settings = ParseOutput(capturedOutput);
 
                 if (settings == null || settings.Count == 0)
@@ -107,7 +108,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         internal /* for testing */ string UniqueId { get; private set;}
 
-        private IList<string> ExecuteVsDevCmd(string batchFilePath, string scriptParams)
+        private async Task<IList<string>> ExecuteVsDevCmd(string batchFilePath, string scriptParams)
         {
             UniqueId = Guid.NewGuid().ToString();
             var beginToken = "SONARLINT_BEGIN_CAPTURE " + UniqueId;
@@ -164,7 +165,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 process.BeginOutputReadLine();
 
                 // Timeout in case something goes wrong.
-                process.WaitForExit(SCRIPT_TIMEOUT_MS);
+                await process.WaitForExitAsync(SCRIPT_TIMEOUT_MS);
                 if (process.HasExited)
                 {
                     LogDebug("Process completed successfully");
