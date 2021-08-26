@@ -44,11 +44,6 @@ namespace SonarLint.VisualStudio.Integration
         /// </summary>
         public event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
 
-        /// <summary>
-        /// <see cref="IActiveSolutionTracker.BeforeSolutionClosed"/>
-        /// </summary>
-        public event EventHandler BeforeSolutionClosed;
-
         [ImportingConstructor]
         public ActiveSolutionTracker([Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider)
         {
@@ -101,7 +96,6 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnBeforeCloseSolution(object pUnkReserved)
         {
-            BeforeSolutionClosed?.Invoke(this, EventArgs.Empty);
             return VSConstants.S_OK;
         }
 
