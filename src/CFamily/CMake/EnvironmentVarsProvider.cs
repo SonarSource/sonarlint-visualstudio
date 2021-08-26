@@ -70,12 +70,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return cachedSettings;
             }
 
+            LogDebug($"Cache miss. Script params: \"{vsDevCmdScriptParams}\"");
             return await FetchAndCacheVsDevCmdSettingsAsync(vsDevCmdScriptParams);
         }
 
         private async Task<IReadOnlyDictionary<string, string>> FetchAndCacheVsDevCmdSettingsAsync(string vsDevCmdScriptParams)
         {
-            LogDebug($"Cache miss. Script params: \"{vsDevCmdScriptParams}\"");
             LogDebug("\tWaiting to acquire lock...");
 
             await fetchLock.WaitAsync();

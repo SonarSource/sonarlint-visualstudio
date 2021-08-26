@@ -19,6 +19,7 @@
  */
 
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -99,40 +100,65 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public async Task TryGet_OnlyOneActiveRequest()
+        public void TryGet_SecondCallIsBlockedUntilFirstCallCompletes()
         {
-            // Two threads with different script params
+            const int timeoutMs = 300;
 
-            // Start thread 1 (blocked inside provider)
+            var firstCallStarted = new ManualResetEvent(false);
+            var allowFirstCallToComplete = new ManualResetEvent(false);
 
-            // Start thread 2 - should be blocked by lock
-            
-            // Pause
-            
-            // Check provider has not received request 2
-            
-            // Unblock thread 1
-            
-            // Wait for thread 2 to complete
+            void FirstCallToProviderOp()
+            {
+                // Let the test know that the provider has been called i.e. we're inside the lock
+                firstCallStarted.Set();
 
-            // Check both returned results
+                // Wait until the test indicates that it wants the call to finish i.e. to release the lock
+                allowFirstCallToComplete.WaitOne();
+            }
+
+            // Two calls with same script params, so the provider should only be called once
+            // and return the same result
+            var provider = new Mock<IVsDevCmdEnvironmentProvider>();
+            provider.Setup(x => x.GetAsync(string.Empty))
+                .Callback(FirstCallToProviderOp)
+                .ReturnsAsync(new Dictionary<string, string>());
+
+            var testSubject = CreateTestSubject(provider.Object);
+
+            // Start first call and wait for it to report it has started
+            var firstCall = Task.Run(() => testSubject.GetAsync());
+            var firstTaskRunning = firstCallStarted.WaitOne(timeoutMs);
+            firstTaskRunning.Should().BeTrue();
+            provider.Invocations.Count.Should().Be(1);
+
+            // Start second call - should be blocked by lock
+            var secondCall = Task.Run(() => testSubject.GetAsync());
+            var secondCallFinished = secondCall.Wait(500);
+            secondCallFinished.Should().BeFalse();
+            
+            // Check the second call thread is waiting for the lock
+            secondCall.Status.Should().Be(TaskStatus.WaitingForActivation);
+
+            // Unblock the first call
+            allowFirstCallToComplete.Set();
+            var firstCallCompleted = firstCall.Wait(timeoutMs);
+            firstCallCompleted.Should().BeTrue();
+
+            var secondCallCompleted = secondCall.Wait(timeoutMs);
+            secondCallCompleted.Should().BeTrue();
+
+            secondCall.Result.Should().BeSameAs(firstCall.Result);
+            provider.Invocations.Count.Should().Be(1);
         }
 
         private static EnvironmentVarsProvider CreateTestSubject(IVsDevCmdEnvironmentProvider vsDevCmdProvider)
         {
-            var testSubject = new EnvironmentVarsProvider(vsDevCmdProvider, new TestLogger());
+            var testSubject = new EnvironmentVarsProvider(vsDevCmdProvider, new TestLogger(logToConsole: true));
             return testSubject;
-        }
-
-        private static Mock<IVsDevCmdEnvironmentProvider> CreateVsDevCmdProvider(string scriptParams, IReadOnlyDictionary<string, string> envVars)
-        {
-            var provider = new Mock<IVsDevCmdEnvironmentProvider>();
-            provider.Setup(x => x.GetAsync(scriptParams)).Returns(Task.FromResult(envVars));
-            return provider;
         }
     }
 
-    internal static class Extensions
+    internal static class EnvironmentVarsProviderTestsExtensions
     {
         public static Mock<IVsDevCmdEnvironmentProvider> SetEnvVars(this Mock<IVsDevCmdEnvironmentProvider> provider, string scriptParams, IReadOnlyDictionary<string, string> envVars)
         {
