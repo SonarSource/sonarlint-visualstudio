@@ -116,6 +116,8 @@ namespace SonarLint.VisualStudio.Integration
 
         void IVsSolutionEvents7.OnAfterOpenFolder(string folderPath)
         {
+            // For Open-As-Folder projects, IVsSolutionEvents.OnAfterOpenSolution is not being raised.
+            // So we would get only this event when we're in Open-As-Folder mode, and OnAfterOpenSolution in the other cases.
             RaiseSolutionChangedEvent(true);
         }
 
@@ -129,7 +131,8 @@ namespace SonarLint.VisualStudio.Integration
 
         void IVsSolutionEvents7.OnAfterCloseFolder(string folderPath)
         {
-            RaiseSolutionChangedEvent(false);
+            // IVsSolutionEvents.OnAfterCloseSolution would be raised when a folder is closed,
+            // so we don't need to handle specifically folder close.
         }
 
         void IVsSolutionEvents7.OnAfterLoadAllDeferredProjects()
@@ -173,6 +176,13 @@ namespace SonarLint.VisualStudio.Integration
 // Decompiled with JetBrains decompiler
 // Type: Microsoft.VisualStudio.Shell.Interop.IVsSolutionEvents7
 // MVID: 1C59188A-5A3D-4544-B9B8-A6F9357934A8
+
+/// <summary>
+/// IVsSolutionEvents7 provides information for Open-As-Folder events.
+/// However, it's not available in VS 2015, so we can't reference the assembly.
+/// Since we only need to embed the COM type, it doesn't matter which assembly it's coming
+/// from and we can place the declaration in our assembly.
+/// </summary>
 namespace Microsoft.VisualStudio.Shell.Interop
 {
     [CompilerGenerated]

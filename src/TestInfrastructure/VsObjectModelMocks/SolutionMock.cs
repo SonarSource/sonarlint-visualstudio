@@ -593,14 +593,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             });
         }
 
-        public void SimulateFolderClose()
-        {
-            this.sinks.OfType<IVsSolutionEvents7>().ToList().ForEach(s =>
-            {
-                s.OnAfterCloseFolder("dummy");
-            });
-        }
-
         public Func<uint, IVsHierarchy, uint, int> SaveSolutionElementAction { get; set; }
 
         #endregion Test helpers
