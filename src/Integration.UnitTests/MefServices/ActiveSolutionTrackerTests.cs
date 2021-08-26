@@ -90,21 +90,6 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         }
 
         [TestMethod]
-        public void ActiveSolutionTracker_RaiseEventOnBeforeSolutionClose()
-        {
-            // Arrange
-            var counter = 0;
-            var testSubject = new ActiveSolutionTracker(this.serviceProvider);
-            testSubject.BeforeSolutionClosed += (o, e) => { counter++; };
-
-            // Act
-            this.solutionMock.SimulateBeforeSolutionClose();
-
-            // Assert
-            counter.Should().Be(1, nameof(testSubject.BeforeSolutionClosed) + " was expected to be raised");
-        }
-
-        [TestMethod]
         public void ActiveSolutionTracker_RaiseEventOnFolderOpen()
         {
             // Arrange
