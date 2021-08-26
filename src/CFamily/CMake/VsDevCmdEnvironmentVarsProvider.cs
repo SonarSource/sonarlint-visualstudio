@@ -20,6 +20,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
@@ -42,6 +43,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         Task<IReadOnlyDictionary<string, string>> GetAsync(string scriptParams);
     }
 
+    [Export(typeof(IVsDevCmdEnvironmentProvider))]
+    [PartCreationPolicy(CreationPolicy.Shared)]
     internal class VsDevCmdEnvironmentVarsProvider : IVsDevCmdEnvironmentProvider
     {
         /// <summary>
@@ -59,6 +62,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IProcessFactory processFactory;
         private readonly IFileSystem fileSystem;
 
+        [ImportingConstructor]
         public VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, ILogger logger)
             : this(vsInfoService, logger, new ProcessFactory(), new FileSystem())
         {
@@ -130,8 +134,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 RedirectStandardOutput = true,
                 RedirectStandardInput = false,
                 RedirectStandardError = false,
-                StandardOutputEncoding = Encoding.Unicode,
-                StandardErrorEncoding = Encoding.Unicode
+                StandardOutputEncoding = Encoding.Unicode
             };
 
             var capturedOutput = new List<string>();
