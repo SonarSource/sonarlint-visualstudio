@@ -21,6 +21,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using EnvDTE;
 using FluentAssertions;
 using Microsoft.VisualStudio;
@@ -582,8 +585,45 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.sinks.ForEach(s => s.OnBeforeUnloadProject(project, null));
         }
 
+        public void SimulateFolderOpen()
+        {
+            this.sinks.OfType<IVsSolutionEvents7>().ToList().ForEach(s =>
+            {
+                s.OnAfterOpenFolder("dummy");
+            });
+        }
+
         public Func<uint, IVsHierarchy, uint, int> SaveSolutionElementAction { get; set; }
 
         #endregion Test helpers
+    }
+}
+
+// Decompiled with JetBrains decompiler
+// Type: Microsoft.VisualStudio.Shell.Interop.IVsSolutionEvents7
+// MVID: 1C59188A-5A3D-4544-B9B8-A6F9357934A8
+namespace Microsoft.VisualStudio.Shell.Interop
+{
+    [CompilerGenerated]
+    [Guid("A459C228-5617-4136-BCBE-C282DF6D9A62")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [TypeIdentifier]
+    [ComImport]
+    public interface IVsSolutionEvents7
+    {
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnAfterOpenFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnBeforeCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnQueryCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath, [In, Out] ref int pfCancel);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnAfterCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnAfterLoadAllDeferredProjects();
     }
 }
