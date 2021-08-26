@@ -40,10 +40,5 @@ namespace SonarLint.VisualStudio.Core
         /// <remarks>The solution might not be fully loaded when this event is raised.
         /// The event argument value will be true if a solution is open and false otherwise.</remarks>
         event EventHandler<ActiveSolutionChangedEventArgs> ActiveSolutionChanged;
-
-        /// <summary>
-        /// The active solution is about to be closed.
-        /// </summary>
-        event EventHandler BeforeSolutionClosed;
     }
 }
