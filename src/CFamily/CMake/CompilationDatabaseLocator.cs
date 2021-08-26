@@ -25,21 +25,13 @@ using System.IO.Abstractions;
 using System.Linq;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
+using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    public interface ICompilationDatabaseLocator
-    {
-        /// <summary>
-        /// Returns absolute path to the compilation database file of the currently active build configuration.
-        /// Returns null if the file was not found.
-        /// </summary>
-        string Locate();
-    }
-
     [Export(typeof(ICompilationDatabaseLocator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal class CompilationDatabaseLocator : ICompilationDatabaseLocator
