@@ -21,6 +21,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -31,7 +33,7 @@ namespace SonarLint.VisualStudio.Integration
 {
     [Export(typeof(IActiveSolutionTracker))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable
+    internal sealed class ActiveSolutionTracker : IActiveSolutionTracker, IVsSolutionEvents, IDisposable, IVsSolutionEvents7
     {
         private bool isDisposed;
         private readonly IVsSolution solution;
@@ -88,9 +90,7 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            // Note: if lightweight solution load is enabled then the solution might not
-            // be fully opened at this point
-            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen: true));
+            RaiseSolutionChangedEvent(true);
             return VSConstants.S_OK;
         }
 
@@ -107,9 +107,35 @@ namespace SonarLint.VisualStudio.Integration
 
         int IVsSolutionEvents.OnAfterCloseSolution(object pUnkReserved)
         {
-            this.ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen: false));
+            RaiseSolutionChangedEvent(false);
             return VSConstants.S_OK;
         }
+        #endregion
+
+        #region IVsSolutionEvents7
+
+        void IVsSolutionEvents7.OnAfterOpenFolder(string folderPath)
+        {
+            RaiseSolutionChangedEvent(true);
+        }
+
+        void IVsSolutionEvents7.OnBeforeCloseFolder(string folderPath)
+        {
+        }
+
+        void IVsSolutionEvents7.OnQueryCloseFolder(string folderPath, ref int pfCancel)
+        {
+        }
+
+        void IVsSolutionEvents7.OnAfterCloseFolder(string folderPath)
+        {
+            RaiseSolutionChangedEvent(false);
+        }
+
+        void IVsSolutionEvents7.OnAfterLoadAllDeferredProjects()
+        {
+        }
+
         #endregion
 
         #region IDisposable Support
@@ -134,5 +160,41 @@ namespace SonarLint.VisualStudio.Integration
         }
 
         #endregion
+
+        private void RaiseSolutionChangedEvent(bool isSolutionOpen)
+        {
+            // Note: if lightweight solution load is enabled then the solution might not
+            // be fully opened at this point
+            ActiveSolutionChanged?.Invoke(this, new ActiveSolutionChangedEventArgs(isSolutionOpen));
+        }
+    }
+}
+
+// Decompiled with JetBrains decompiler
+// Type: Microsoft.VisualStudio.Shell.Interop.IVsSolutionEvents7
+// MVID: 1C59188A-5A3D-4544-B9B8-A6F9357934A8
+namespace Microsoft.VisualStudio.Shell.Interop
+{
+    [CompilerGenerated]
+    [Guid("A459C228-5617-4136-BCBE-C282DF6D9A62")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [TypeIdentifier]
+    [ComImport]
+    public interface IVsSolutionEvents7
+    {
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnAfterOpenFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnBeforeCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnQueryCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath, [In, Out] ref int pfCancel);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnAfterCloseFolder([MarshalAs(UnmanagedType.LPWStr), In] string folderPath);
+
+        [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
+        void OnAfterLoadAllDeferredProjects();
     }
 }
