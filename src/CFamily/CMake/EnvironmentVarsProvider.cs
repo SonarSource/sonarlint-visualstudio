@@ -58,7 +58,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             // TODO - work out which script parameters to pass
             string vsDevCmdScriptParams = string.Empty;
 
-            return await FetchAndCacheVsDevCmdSettingsAsync(vsDevCmdScriptParams);
+            return await GetAsync(vsDevCmdScriptParams);
         }
 
         internal /* for testing */ async Task<IReadOnlyDictionary<string, string>> GetAsync(string vsDevCmdScriptParams)
