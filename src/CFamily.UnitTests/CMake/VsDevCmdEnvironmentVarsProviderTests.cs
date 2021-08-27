@@ -29,6 +29,7 @@ using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             MefTestHelpers.CheckTypeCanBeImported<VsDevCmdEnvironmentVarsProvider, IVsDevCmdEnvironmentProvider>(null, new[]
             {
                 MefTestHelpers.CreateExport<IVsInfoService>(Mock.Of<IVsInfoService>()),
+                MefTestHelpers.CreateExport<IThreadHandling>(Mock.Of<IThreadHandling>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -242,6 +244,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             act.Should().ThrowExactly<StackOverflowException>().And.Message.Should().Be("thrown from test");
         }
 
+        [TestMethod]
+        public async Task Get_ThrowsIfOnUIThread()
+        {
+            var context = new ProcessContext();
+
+            await context.TestSubject.GetAsync(null);
+
+            context.ThreadHandling.Verify(x => x.ThrowIfOnUIThread(), Times.Once);
+        }
+
         private class ProcessContext
         {
             /// <summary>
@@ -288,8 +300,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                     SetupSimulatedProcessThread();
                 }
 
+                ThreadHandling = new Mock<IThreadHandling>();
+
                 // Create the test subject
-                TestSubject = new VsDevCmdEnvironmentVarsProvider(CreateVsInfoService(installRootDir), Logger,
+                TestSubject = new VsDevCmdEnvironmentVarsProvider(CreateVsInfoService(installRootDir), ThreadHandling.Object, Logger,
                     ProcessFactory.Object, FileSystem.Object);
             }
 
@@ -300,6 +314,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             public Mock<IProcessFactory> ProcessFactory { get; }
 
             public Mock<IFileSystem> FileSystem { get; }
+
+            public Mock<IThreadHandling> ThreadHandling { get; }
 
             public TestLogger Logger { get; }
 

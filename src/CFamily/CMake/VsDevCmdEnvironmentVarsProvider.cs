@@ -25,12 +25,14 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using SonarLint.VisualStudio.Core.SystemAbstractions;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
 using SonarLint.VisualStudio.Integration.Helpers;
+using IThreadHandling = SonarLint.VisualStudio.Core.IThreadHandling;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
@@ -56,6 +58,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private const int SCRIPT_TIMEOUT_MS = 4000;
 
         private readonly IVsInfoService vsInfoService;
+        private readonly IThreadHandling threadHandling;
         private readonly ILogger logger;
 
         // Interfaces for testing
@@ -63,15 +66,16 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, ILogger logger)
-            : this(vsInfoService, logger, new ProcessFactory(), new FileSystem())
+        public VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, IThreadHandling threadHandling, ILogger logger)
+            : this(vsInfoService, threadHandling, logger, new ProcessFactory(), new FileSystem())
         {
         }
 
-        internal /* for testing */ VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, ILogger logger,
+        internal /* for testing */ VsDevCmdEnvironmentVarsProvider(IVsInfoService vsInfoService, IThreadHandling threadHandling, ILogger logger,
             IProcessFactory processFactory, IFileSystem fileSystem)
         {
             this.vsInfoService = vsInfoService;
+            this.threadHandling = threadHandling;
             this.logger = logger;
             this.processFactory = processFactory;
             this.fileSystem = fileSystem;
@@ -79,6 +83,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         public async Task<IReadOnlyDictionary<string, string>> GetAsync(string scriptParams)
         {
+            threadHandling.ThrowIfOnUIThread();
+
             try
             {
                 string filePath = Path.Combine(vsInfoService.InstallRootDir, RelativePathToBatchFile);
@@ -226,7 +232,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         private void LogDebug(string message)
         {
-            logger.LogDebug("[CMake:VsDevCmd] " + message);
+            logger.LogDebug($"[CMake:VsDevCmd] [Thread id: {Thread.CurrentThread.ManagedThreadId}] {message}");
         }
     }
 }
