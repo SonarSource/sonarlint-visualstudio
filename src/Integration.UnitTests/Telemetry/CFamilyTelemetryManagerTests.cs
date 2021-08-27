@@ -37,7 +37,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         {
             MefTestHelpers.CheckTypeCanBeImported<CFamilyTelemetryManager, ICFamilyTelemetryManager>(null, new[]
             {
-                MefTestHelpers.CreateExport<ICFamilyProjectTypeIndicator>(Mock.Of<ICFamilyProjectTypeIndicator>()),
+                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(Mock.Of<ICMakeProjectTypeIndicator>()),
                 MefTestHelpers.CreateExport<ICompilationDatabaseLocator>(Mock.Of<ICompilationDatabaseLocator>()),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(Mock.Of<IActiveSolutionTracker>()),
                 MefTestHelpers.CreateExport<ITelemetryDataRepository>(Mock.Of<ITelemetryDataRepository>()),
@@ -72,20 +72,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         [TestMethod]
         public void OnSolutionChanged_NoOpenSolution_TelemetryNotChanged()
         {
-            var projectTypeIndicator = new Mock<ICFamilyProjectTypeIndicator>();
+            var cmakeProjectTypeIndicator = new Mock<ICMakeProjectTypeIndicator>();
             var compilationDatabaseLocator = new Mock<ICompilationDatabaseLocator>();
             var telemetryRepository = new Mock<ITelemetryDataRepository>();
             var activeSolutionTracker = SetupActiveSolutionTracker();
 
             CreateTestSubject(
                 activeSolutionTracker.Object,
-                projectTypeIndicator.Object,
+                cmakeProjectTypeIndicator.Object,
                 compilationDatabaseLocator.Object,
                 telemetryRepository.Object);
 
             RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: false);
 
-            projectTypeIndicator.Invocations.Should().BeEmpty();
+            cmakeProjectTypeIndicator.Invocations.Should().BeEmpty();
             compilationDatabaseLocator.Invocations.Should().BeEmpty();
             telemetryRepository.Invocations.Should().BeEmpty();
         }
@@ -93,20 +93,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         [TestMethod]
         public void OnSolutionChanged_HasOpenSolution_ProjectIsNotCMake_TelemetryNotChanged()
         {
-            var projectTypeIndicator = SetupProjectType(isCMake: false);
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: false);
             var compilationDatabaseLocator = new Mock<ICompilationDatabaseLocator>();
             var telemetryRepository = SetupTelemetryRepository(new TelemetryData());
             var activeSolutionTracker = SetupActiveSolutionTracker();
 
             CreateTestSubject(
                 activeSolutionTracker.Object,
-                projectTypeIndicator.Object,
+                cmakeProjectTypeIndicator.Object,
                 compilationDatabaseLocator.Object,
                 telemetryRepository.Object);
 
             RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
 
-            projectTypeIndicator.Verify(x=> x.IsCMake(), Times.Once);
+            cmakeProjectTypeIndicator.Verify(x=> x.IsCMake(), Times.Once);
             compilationDatabaseLocator.Invocations.Should().BeEmpty();
 
             telemetryRepository.Verify(x=> x.Save(), Times.Never);
@@ -122,20 +122,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 CFamilyProjectTypes = new CFamilyProjectTypes {IsCMakeNonAnalyzable = previousNonAnalyzableFlag, IsCMakeAnalyzable = false}
             };
 
-            var projectTypeIndicator = SetupProjectType(isCMake: true);
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: true);
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator(hasCompilationDatabase: true);
             var telemetryRepository = SetupTelemetryRepository(telemetryData);
             var activeSolutionTracker = SetupActiveSolutionTracker();
 
             CreateTestSubject(
                 activeSolutionTracker.Object,
-                projectTypeIndicator.Object,
+                cmakeProjectTypeIndicator.Object,
                 compilationDatabaseLocator.Object,
                 telemetryRepository.Object);
 
             RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
 
-            projectTypeIndicator.Verify(x => x.IsCMake(), Times.Once);
+            cmakeProjectTypeIndicator.Verify(x => x.IsCMake(), Times.Once);
             compilationDatabaseLocator.Verify(x=> x.Locate(), Times.Once);
 
             telemetryData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
@@ -153,20 +153,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 CFamilyProjectTypes = new CFamilyProjectTypes { IsCMakeNonAnalyzable = false, IsCMakeAnalyzable = previousAnalyzableFlag }
             };
 
-            var projectTypeIndicator = SetupProjectType(isCMake: true);
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: true);
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator(hasCompilationDatabase: false);
             var telemetryRepository = SetupTelemetryRepository(telemetryData);
             var activeSolutionTracker = SetupActiveSolutionTracker();
 
             CreateTestSubject(
                 activeSolutionTracker.Object,
-                projectTypeIndicator.Object,
+                cmakeProjectTypeIndicator.Object,
                 compilationDatabaseLocator.Object,
                 telemetryRepository.Object);
 
             RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
 
-            projectTypeIndicator.Verify(x => x.IsCMake(), Times.Once);
+            cmakeProjectTypeIndicator.Verify(x => x.IsCMake(), Times.Once);
             compilationDatabaseLocator.Verify(x => x.Locate(), Times.Once);
 
             telemetryData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().Be(previousAnalyzableFlag); // should not be changed
@@ -178,14 +178,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         public void OnSolutionChanged_NonCriticalException_ExceptionCaught()
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
-            var projectTypeIndicator = new Mock<ICFamilyProjectTypeIndicator>();
-            projectTypeIndicator
+            var cmakeProjectTypeIndicator = new Mock<ICMakeProjectTypeIndicator>();
+            cmakeProjectTypeIndicator
                 .Setup(x => x.IsCMake())
                 .Throws<NotImplementedException>();
 
             CreateTestSubject(
                 activeSolutionTracker.Object,
-                projectTypeIndicator.Object);
+                cmakeProjectTypeIndicator.Object);
 
             Action act = () => RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
             act.Should().NotThrow();
@@ -195,14 +195,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         public void OnSolutionChanged_CriticalException_ExceptionThrown()
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
-            var projectTypeIndicator = new Mock<ICFamilyProjectTypeIndicator>();
-            projectTypeIndicator
+            var cmakeProjectTypeIndicator = new Mock<ICMakeProjectTypeIndicator>();
+            cmakeProjectTypeIndicator
                 .Setup(x => x.IsCMake())
                 .Throws<StackOverflowException>();
 
             CreateTestSubject(
                 activeSolutionTracker.Object,
-                projectTypeIndicator.Object);
+                cmakeProjectTypeIndicator.Object);
 
             Action act = () => RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
             act.Should().ThrowExactly<StackOverflowException>();
@@ -210,15 +210,15 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
 
         private CFamilyTelemetryManager CreateTestSubject(
             IActiveSolutionTracker activeSolutionTracker,
-            ICFamilyProjectTypeIndicator projectTypeIndicator = null,
+            ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null,
             ICompilationDatabaseLocator compilationDatabaseLocator = null,
             ITelemetryDataRepository telemetryDataRepository = null)
         {
-            projectTypeIndicator ??= Mock.Of<ICFamilyProjectTypeIndicator>();
+            cmakeProjectTypeIndicator ??= Mock.Of<ICMakeProjectTypeIndicator>();
             compilationDatabaseLocator ??= Mock.Of<ICompilationDatabaseLocator>();
             telemetryDataRepository ??= SetupTelemetryRepository(new TelemetryData()).Object;
 
-            return new CFamilyTelemetryManager(projectTypeIndicator,
+            return new CFamilyTelemetryManager(cmakeProjectTypeIndicator,
                 compilationDatabaseLocator,
                 activeSolutionTracker,
                 telemetryDataRepository,
@@ -239,13 +239,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             activeSolutionTracker.Raise(x => x.ActiveSolutionChanged += null, new ActiveSolutionChangedEventArgs(isSolutionOpen));
         }
 
-        private Mock<ICFamilyProjectTypeIndicator> SetupProjectType(bool isCMake)
+        private Mock<ICMakeProjectTypeIndicator> SetupCMakeProjectIndicator(bool isCMake)
         {
-            var cFamilyProjectTypeIndicator = new Mock<ICFamilyProjectTypeIndicator>();
+            var cmakeProjectTypeIndicator = new Mock<ICMakeProjectTypeIndicator>();
 
-            cFamilyProjectTypeIndicator.Setup(x => x.IsCMake()).Returns(isCMake);
+            cmakeProjectTypeIndicator.Setup(x => x.IsCMake()).Returns(isCMake);
 
-            return cFamilyProjectTypeIndicator;
+            return cmakeProjectTypeIndicator;
         }
 
         private Mock<ICompilationDatabaseLocator> SetupCompilationDatabaseLocator(bool hasCompilationDatabase)

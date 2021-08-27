@@ -268,7 +268,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             var packageInstaller = new ConfigurablePackageInstaller(nugetPackagesByLanguage.Values.SelectMany(x => x));
 
-            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICFamilyProjectTypeIndicator>());
+            var projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>());
 
             this.serviceProvider.RegisterService(typeof(SComponentModel),
                 ConfigurableComponentModel.CreateWithExports(
