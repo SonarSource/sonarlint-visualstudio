@@ -56,13 +56,27 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         [TestMethod]
         public async Task TryGet_RunsOnUIThread()
         {
-            var threadHandling = CreateRunnableThreadHandling();
-            var testSubject = CreateTestSubject(projectItem: null,
-                threadHandling: threadHandling.Object);
+            var fileConfigProvider = new Mock<IFileConfigProvider>();
+
+            var threadHandling = new Mock<IThreadHandling>();
+            threadHandling.Setup(x => x.RunOnUIThread(It.IsAny<Action>()))
+                .Callback<Action>(op =>
+                {
+                    // Try to check that the product code is executed inside the "RunOnUIThread" call
+                    fileConfigProvider.Invocations.Count.Should().Be(0);
+                    op();
+                    fileConfigProvider.Invocations.Count.Should().Be(1);
+                });
+
+            var testSubject = CreateTestSubject(projectItem: DummyProjectItem,
+                threadHandling: threadHandling.Object,
+                fileConfigProvider: fileConfigProvider.Object);
+
 
             var request = await testSubject.TryCreateAsync("any", new CFamilyAnalyzerOptions());
 
-            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()));
+            threadHandling.Verify(x => x.RunOnUIThread(It.IsAny<Action>()), Times.Once);
+            threadHandling.Verify(x => x.ThrowIfNotOnUIThread(), Times.Once);
         }
 
         [TestMethod]
