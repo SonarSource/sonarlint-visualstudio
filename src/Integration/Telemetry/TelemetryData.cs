@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration
         public ServerNotifications ServerNotifications { get; set; } = new ServerNotifications();
 
         [XmlElement(nameof(CFamilyProjectTypes))]
-        public CFamilyProjectTypes CFamilyProjectTypes { get; set; }
+        public CFamilyProjectTypes CFamilyProjectTypes { get; set; } = new CFamilyProjectTypes();
 
         private static DateTimeOffset ParseSavedString(string data)
         {

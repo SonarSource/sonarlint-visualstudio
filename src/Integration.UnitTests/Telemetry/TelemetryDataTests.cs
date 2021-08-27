@@ -136,5 +136,33 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             reloadedData.CFamilyProjectTypes.IsCMakeNonAnalyzable.Should().BeTrue();
             reloadedData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
         }
+
+        [TestMethod]
+        public void XmlSerialization_MissingValuesInXml_InitializedToEmpty()
+        {
+            var telemetrySerializer = new XmlSerializer(typeof(TelemetryData));
+
+            var originalData = new TelemetryData();
+
+            string serializedData;
+            using (var textWriter = new StringWriter())
+            {
+                telemetrySerializer.Serialize(textWriter, originalData);
+                textWriter.Flush();
+                serializedData = textWriter.ToString();
+            }
+
+            TelemetryData reloadedData = null;
+            using (var textReader = new StringReader(serializedData))
+            {
+                reloadedData = telemetrySerializer.Deserialize(textReader) as TelemetryData;
+            }
+
+            reloadedData.ServerNotifications.Should().NotBeNull();
+            reloadedData.CFamilyProjectTypes.Should().NotBeNull();
+            reloadedData.Analyses.Should().NotBeNull();
+            reloadedData.TaintVulnerabilities.Should().NotBeNull();
+            reloadedData.ShowHotspot.Should().NotBeNull();
+        }
     }
 }
