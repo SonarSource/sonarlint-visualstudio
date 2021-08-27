@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Connection
 
             var mefModel = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<ISonarLintSettings>(settings),
-                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICFamilyProjectTypeIndicator>())));
+                MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>())));
 
             this.serviceProvider.RegisterService(typeof(SComponentModel), mefModel);
 

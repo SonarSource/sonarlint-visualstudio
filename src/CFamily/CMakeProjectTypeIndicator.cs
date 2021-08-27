@@ -28,20 +28,20 @@ using SonarLint.VisualStudio.Infrastructure.VS;
 
 namespace SonarLint.VisualStudio.CFamily
 {
-    [Export(typeof(ICFamilyProjectTypeIndicator))]
+    [Export(typeof(ICMakeProjectTypeIndicator))]
     [PartCreationPolicy(CreationPolicy.Shared)]
-    internal class CFamilyProjectTypeIndicator : ICFamilyProjectTypeIndicator
+    internal class CMakeProjectTypeIndicator : ICMakeProjectTypeIndicator
     {
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly IFileSystem fileSystem;
 
         [ImportingConstructor]
-        public CFamilyProjectTypeIndicator(IFolderWorkspaceService folderWorkspaceService)
+        public CMakeProjectTypeIndicator(IFolderWorkspaceService folderWorkspaceService)
             : this(folderWorkspaceService, new FileSystem())
         {
         }
 
-        internal CFamilyProjectTypeIndicator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
+        internal CMakeProjectTypeIndicator(IFolderWorkspaceService folderWorkspaceService, IFileSystem fileSystem)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;

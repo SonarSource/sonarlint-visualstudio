@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         {
             MefTestHelpers.CheckTypeCanBeImported<ProjectToLanguageMapper, IProjectToLanguageMapper>(null, new[]
             {
-                MefTestHelpers.CreateExport<ICFamilyProjectTypeIndicator>(Mock.Of<ICFamilyProjectTypeIndicator>())
+                MefTestHelpers.CreateExport<ICMakeProjectTypeIndicator>(Mock.Of<ICMakeProjectTypeIndicator>())
             });
         }
 
@@ -89,11 +89,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_CMakeProject_CFamilyLanguages()
         {
-            var cFamilyProjectTypeIndicator = SetupCMakeProject(true);
+            var cmakeProjectTypeIndicator = SetupCMakeProject(true);
 
             var project = new ProjectMock("any.xxx") {ProjectKind = Guid.NewGuid().ToString()};
 
-            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
+            var testSubject = CreateTestSubject(cmakeProjectTypeIndicator.Object);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -103,11 +103,11 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void GetAllBindingLanguagesForProject_NotCMakeProject_UnknownLanguage()
         {
-            var cFamilyProjectTypeIndicator = SetupCMakeProject(false);
+            var cmakeProjectTypeIndicator = SetupCMakeProject(false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
 
-            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
+            var testSubject = CreateTestSubject(cmakeProjectTypeIndicator.Object);
 
             var actualLanguage = testSubject.GetAllBindingLanguagesForProject(project);
 
@@ -152,10 +152,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void HasSupportedLanguage_NotCMake_False()
         {
-            var cFamilyProjectTypeIndicator = SetupCMakeProject(false);
+            var cmakeProjectTypeIndicator = SetupCMakeProject(false);
 
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
-            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
+            var testSubject = CreateTestSubject(cmakeProjectTypeIndicator.Object);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -165,10 +165,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
         [TestMethod]
         public void HasSupportedLanguageCMake_True()
         {
-            var cFamilyProjectTypeIndicator = SetupCMakeProject(true);
+            var cmakeProjectTypeIndicator = SetupCMakeProject(true);
             
             var project = new ProjectMock("any.xxx") { ProjectKind = Guid.NewGuid().ToString() };
-            var testSubject = CreateTestSubject(cFamilyProjectTypeIndicator.Object);
+            var testSubject = CreateTestSubject(cmakeProjectTypeIndicator.Object);
 
             var result = testSubject.HasSupportedLanguage(project);
 
@@ -192,22 +192,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             actualLanguage.Should().BeEquivalentTo(expectedLanguages);
         }
 
-        private static IProjectToLanguageMapper CreateTestSubject(ICFamilyProjectTypeIndicator cFamilyProjectTypeIndicator = null)
+        private static IProjectToLanguageMapper CreateTestSubject(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null)
         {
-            cFamilyProjectTypeIndicator ??= Mock.Of<ICFamilyProjectTypeIndicator>();
+            cmakeProjectTypeIndicator ??= Mock.Of<ICMakeProjectTypeIndicator>();
 
-            return new ProjectToLanguageMapper(cFamilyProjectTypeIndicator);
+            return new ProjectToLanguageMapper(cmakeProjectTypeIndicator);
         }
 
-        private static Mock<ICFamilyProjectTypeIndicator> SetupCMakeProject(bool isCMake)
+        private static Mock<ICMakeProjectTypeIndicator> SetupCMakeProject(bool isCMake)
         {
-            var cFamilyProjectTypeIndicator = new Mock<ICFamilyProjectTypeIndicator>();
+            var cmakeProjectTypeIndicator = new Mock<ICMakeProjectTypeIndicator>();
 
-            cFamilyProjectTypeIndicator
+            cmakeProjectTypeIndicator
                 .Setup(x => x.IsCMake())
                 .Returns(isCMake);
 
-            return cFamilyProjectTypeIndicator;
+            return cmakeProjectTypeIndicator;
         }
     }
 }
