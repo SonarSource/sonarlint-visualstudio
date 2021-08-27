@@ -72,6 +72,10 @@ namespace SonarLint.VisualStudio.Integration.Tests
     <IsDisabled>false</IsDisabled>
     <ServerNotificationCounters />
   </ServerNotifications>
+  <CFamilyProjectTypes>
+    <IsCMakeAnalyzable>false</IsCMakeAnalyzable>
+    <IsCMakeNonAnalyzable>false</IsCMakeNonAnalyzable>
+  </CFamilyProjectTypes>
 </TelemetryData>");
 
             Mock.VerifyAll(fileSystemMock, watcherFactoryMock);
