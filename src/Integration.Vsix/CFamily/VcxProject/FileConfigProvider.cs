@@ -47,7 +47,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
             if (!IsFileInSolution(projectItem))
             {
-                analysisLogger.LogDebug($"[FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
+                analysisLogger.LogDebug($"[VCX:FileConfigProvider] The file is not part of a VCX project. File: {analyzedFilePath}");
                 return null;
             }
 
@@ -106,10 +106,12 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
         {
             public void WriteLine(string message)
             {
+                // no-op
             }
 
             public void WriteLine(string messageFormat, params object[] args)
             {
+                // no-op
             }
         }
     }
