@@ -38,20 +38,20 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
     [PartCreationPolicy(CreationPolicy.Shared)]
     internal sealed class CFamilyTelemetryManager : ICFamilyTelemetryManager
     {
-        private readonly ICFamilyProjectTypeIndicator projectTypeIndicator;
+        private readonly ICMakeProjectTypeIndicator cmakeProjectTypeIndicator;
         private readonly ICompilationDatabaseLocator compilationDatabaseLocator;
         private readonly IActiveSolutionTracker activeSolutionTracker;
         private readonly ITelemetryDataRepository telemetryDataRepository;
         private readonly ILogger logger;
 
         [ImportingConstructor]
-        public CFamilyTelemetryManager(ICFamilyProjectTypeIndicator projectTypeIndicator,
+        public CFamilyTelemetryManager(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator,
             ICompilationDatabaseLocator compilationDatabaseLocator,
             IActiveSolutionTracker activeSolutionTracker,
             ITelemetryDataRepository telemetryDataRepository,
             ILogger logger)
         {
-            this.projectTypeIndicator = projectTypeIndicator;
+            this.cmakeProjectTypeIndicator = cmakeProjectTypeIndicator;
             this.compilationDatabaseLocator = compilationDatabaseLocator;
             this.activeSolutionTracker = activeSolutionTracker;
             this.telemetryDataRepository = telemetryDataRepository;
@@ -76,7 +76,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             {
                 Debug.Assert(telemetryDataRepository.Data != null);
 
-                var isCMake = projectTypeIndicator.IsCMake();
+                var isCMake = cmakeProjectTypeIndicator.IsCMake();
 
                 if (isCMake)
                 {

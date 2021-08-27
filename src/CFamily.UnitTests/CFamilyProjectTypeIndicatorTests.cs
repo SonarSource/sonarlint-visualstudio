@@ -36,7 +36,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
-            MefTestHelpers.CheckTypeCanBeImported<CFamilyProjectTypeIndicator, ICFamilyProjectTypeIndicator>(null, new[]
+            MefTestHelpers.CheckTypeCanBeImported<CMakeProjectTypeIndicator, ICMakeProjectTypeIndicator>(null, new[]
             {
                 MefTestHelpers.CreateExport<IFolderWorkspaceService>(Mock.Of<IFolderWorkspaceService>())
             });
@@ -100,12 +100,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests
             actualLanguage.Should().BeFalse();
         }
 
-        private static CFamilyProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IFileSystem fileSystem = null)
+        private static CMakeProjectTypeIndicator CreateTestSubject(IFolderWorkspaceService folderWorkspaceService = null, IFileSystem fileSystem = null)
         {
             folderWorkspaceService ??= Mock.Of<IFolderWorkspaceService>();
             fileSystem ??= new MockFileSystem();
 
-            return new CFamilyProjectTypeIndicator(folderWorkspaceService, fileSystem);
+            return new CMakeProjectTypeIndicator(folderWorkspaceService, fileSystem);
         }
 
         private static Mock<IFolderWorkspaceService> SetupOpenAsFolder(string rootDirectory)

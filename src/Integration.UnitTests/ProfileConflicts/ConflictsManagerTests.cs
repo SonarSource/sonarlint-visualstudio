@@ -82,7 +82,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
             this.outputWindowPane = outputWindow.GetOrCreateSonarLintPane();
             this.serviceProvider.RegisterService(typeof(SVsOutputWindow), outputWindow);
 
-            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICFamilyProjectTypeIndicator>());
+            projectToLanguageMapper = new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>());
 
             var mefHost = ConfigurableComponentModel.CreateWithExports(
                 MefTestHelpers.CreateExport<IProjectToLanguageMapper>(projectToLanguageMapper));

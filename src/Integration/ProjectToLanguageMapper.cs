@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.Integration
     [PartCreationPolicy(CreationPolicy.Shared)]
     public class ProjectToLanguageMapper : IProjectToLanguageMapper
     {
-        private readonly ICFamilyProjectTypeIndicator cFamilyProjectTypeIndicator;
+        private readonly ICMakeProjectTypeIndicator cmakeProjectTypeIndicator;
 
         internal static readonly IDictionary<Guid, Language> KnownProjectTypes = new Dictionary<Guid, Language>()
         {
@@ -58,9 +58,9 @@ namespace SonarLint.VisualStudio.Integration
         };
 
         [ImportingConstructor]
-        public ProjectToLanguageMapper(ICFamilyProjectTypeIndicator cFamilyProjectTypeIndicator)
+        public ProjectToLanguageMapper(ICMakeProjectTypeIndicator cmakeProjectTypeIndicator)
         {
-            this.cFamilyProjectTypeIndicator = cFamilyProjectTypeIndicator;
+            this.cmakeProjectTypeIndicator = cmakeProjectTypeIndicator;
         }
 
         /// <summary>
@@ -91,7 +91,7 @@ namespace SonarLint.VisualStudio.Integration
                 return language;
             }
 
-            if (cFamilyProjectTypeIndicator.IsCMake())
+            if (cmakeProjectTypeIndicator.IsCMake())
             {
                 return Language.Cpp;
             }

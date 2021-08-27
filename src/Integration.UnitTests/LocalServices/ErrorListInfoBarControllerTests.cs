@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 {
                     MefTestHelpers.CreateExport<ITeamExplorerController>(this.teamExplorerController),
                     MefTestHelpers.CreateExport<IInfoBarManager>(this.infoBarManager),
-                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICFamilyProjectTypeIndicator>()))
+                    MefTestHelpers.CreateExport<IProjectToLanguageMapper>(new ProjectToLanguageMapper(Mock.Of<ICMakeProjectTypeIndicator>()))
                 });
             this.serviceProvider.RegisterService(typeof(SComponentModel), componentModel);
 
