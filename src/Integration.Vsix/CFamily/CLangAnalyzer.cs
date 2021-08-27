@@ -128,7 +128,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             if (request != null)
             {
-                await RunAnalysisAsync(request, consumer, statusNotifier, cancellationToken);
+                RunAnalysis(request, consumer, statusNotifier, cancellationToken);
             }
         }
 
@@ -155,7 +155,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             ExecuteSubProcess(handleMessage, request, new ProcessRunner(settings, logger), logger, cancellationToken, fileSystem);
         }
 
-        private async Task RunAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
+        private void RunAnalysis(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
         {
             var analysisStartTime = DateTime.Now;
             statusNotifier?.AnalysisStarted(request.Context.File);
