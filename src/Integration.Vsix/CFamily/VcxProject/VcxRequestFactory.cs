@@ -22,11 +22,13 @@ using System;
 using System.ComponentModel.Composition;
 using System.Diagnostics;
 using System.Linq;
-using EnvDTE;
-using VsShell = Microsoft.VisualStudio.Shell;
-using SonarLint.VisualStudio.CFamily.Analysis;
-using SonarLint.VisualStudio.Core.CFamily;
 using System.Threading.Tasks;
+using EnvDTE;
+using SonarLint.VisualStudio.CFamily.Analysis;
+using SonarLint.VisualStudio.Core;
+using SonarLint.VisualStudio.Core.CFamily;
+using SonarLint.VisualStudio.Integration.Helpers;
+using VsShell = Microsoft.VisualStudio.Shell;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 {
@@ -36,18 +38,19 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
     {
         private readonly ICFamilyRulesConfigProvider cFamilyRulesConfigProvider;
         private readonly IRulesConfigProtocolFormatter rulesConfigProtocolFormatter;
+        private readonly IThreadHandling threadHandling;
         private readonly IFileConfigProvider fileConfigProvider;
         private readonly ILogger logger;
         private readonly DTE dte;
 
-        private static readonly Task<IRequest> NullRequest = Task.FromResult<IRequest>(null);
-
         [ImportingConstructor]
         public VcxRequestFactory([Import(typeof(VsShell.SVsServiceProvider))] IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider cFamilyRulesConfigProvider,
+            IThreadHandling threadHandling,
             ILogger logger)
             : this(serviceProvider,
                 cFamilyRulesConfigProvider,
+                threadHandling,
                 new RulesConfigProtocolFormatter(),
                 new FileConfigProvider(logger),
                 logger)
@@ -56,6 +59,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
 
         internal VcxRequestFactory(IServiceProvider serviceProvider,
             ICFamilyRulesConfigProvider rulesConfigProvider,
+            IThreadHandling threadHandling,
             IRulesConfigProtocolFormatter rulesConfigProtocolFormatter,
             IFileConfigProvider fileConfigProvider,
             ILogger logger)
@@ -63,35 +67,49 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
             this.dte = serviceProvider.GetService<DTE>();
             this.cFamilyRulesConfigProvider = rulesConfigProvider;
             this.rulesConfigProtocolFormatter = rulesConfigProtocolFormatter;
+            this.threadHandling = threadHandling;
             this.fileConfigProvider = fileConfigProvider;
             this.logger = logger;
         }
 
-        public Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
+            IRequest request = null;
+            await threadHandling.RunOnUIThread(() => request = TryCreateSync(analyzedFilePath, analyzerOptions));
+            return request;
+        }
+
+        private IRequest TryCreateSync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        {
+            LogDebug("Trying to create request for " + analyzedFilePath);
+
+            threadHandling.ThrowIfNotOnUIThread();
             try
             {
                 var projectItem = dte?.Solution?.FindProjectItem(analyzedFilePath);
 
                 if (projectItem == null)
                 {
-                    return NullRequest;
+                    LogDebug("\tCould not locate a project item");
+                    return null;
                 }
 
                 var fileConfig = fileConfigProvider.Get(projectItem, analyzedFilePath, analyzerOptions);
 
                 if (fileConfig == null)
                 {
-                    return NullRequest;
+                    LogDebug("\tCould not get the file configuration");
+                    return null;
                 }
 
                 var request = CreateRequest(analyzedFilePath, analyzerOptions, fileConfig);
-                return Task.FromResult<IRequest>(request);
+                LogDebug("\tCreated request successfully");
+                return request;
             }
             catch (Exception ex) when (!Microsoft.VisualStudio.ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(CFamilyStrings.ERROR_CreatingVcxRequest, analyzedFilePath, ex);
-                return NullRequest;
+                return null;
             }
         }
 
@@ -160,6 +178,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.VcxProject
                 request.Flags |= Request.MainFileIsHeader;
             }
             return request;
+        }
+
+        private void LogDebug(string message)
+        {
+            logger.LogDebug($"[VCX:VcxRequestFactory] [Thread id: {System.Threading.Thread.CurrentThread.ManagedThreadId}] {message}");
         }
     }
 }

@@ -119,6 +119,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             Debug.Assert(IsAnalysisSupported(detectedLanguages));
 
+            // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
+
+            // Switch to a background thread
+            await TaskScheduler.Default;
+
             var request = await TryCreateRequestAsync(path, analyzerOptions);
 
             if (request != null)
@@ -152,13 +157,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         private async Task RunAnalysisAsync(IRequest request, IIssueConsumer consumer, IAnalysisStatusNotifier statusNotifier, CancellationToken cancellationToken)
         {
-            // For notes on VS threading, see https://github.com/microsoft/vs-threading/blob/master/doc/cookbook_vs.md
-            // Note: we support multiple versions of VS which prevents us from using some threading helper methods
-            // that are only available in newer versions of VS e.g. [Import] IThreadHandling.          
-
-            // Switch to a background thread
-            await TaskScheduler.Default;
-
             var analysisStartTime = DateTime.Now;
             statusNotifier?.AnalysisStarted(request.Context.File);
             int issueCount = 0;
