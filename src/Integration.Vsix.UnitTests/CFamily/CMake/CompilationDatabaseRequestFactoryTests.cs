@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -32,13 +33,20 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
     [TestClass]
     public class CompilationDatabaseRequestFactoryTests
     {
+        private static readonly IEnvironmentVarsProvider ValidEnvVarsProvider = CreateEnvVarsProvider(new Dictionary<string, string> { { "key", "value" } }).Object;
+        private static readonly ICFamilyRulesConfigProvider ValidRulesConfigProvider_Cpp = CreateRulesProvider(SonarLanguageKeys.CPlusPlus, new DummyCFamilyRulesConfig((SonarLanguageKeys.CPlusPlus))).Object;
+        private const string ValidFileName_Cpp = "any.cpp";
+        private static readonly ICompilationConfigProvider ValidCompilationConfigProvider = CreateCompilationProvider(ValidFileName_Cpp, CreateCompilationDatabaseEntry(ValidFileName_Cpp)).Object;
+        private static readonly CFamilyAnalyzerOptions ValidAnalyzerOptions = new CFamilyAnalyzerOptions();
+
         [TestMethod]
         public void MefCtor_CheckIsExported()
         {
             MefTestHelpers.CheckTypeCanBeImported<CompilationDatabaseRequestFactory, IRequestFactory>(null, new[]
             {
                 MefTestHelpers.CreateExport<ICompilationConfigProvider>(Mock.Of<ICompilationConfigProvider>()),
-                MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>())
+                MefTestHelpers.CreateExport<ICFamilyRulesConfigProvider>(Mock.Of<ICFamilyRulesConfigProvider>()),
+                MefTestHelpers.CreateExport<IEnvironmentVarsProvider>(Mock.Of<IEnvironmentVarsProvider>())
             });
         }
 
@@ -50,13 +58,46 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             var compilationConfigProvider = CreateCompilationProvider(fileName, null);
             var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
-            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object, ValidEnvVarsProvider);
 
             var actual = await testSubject.TryCreateAsync(fileName, new CFamilyAnalyzerOptions());
 
             actual.Should().BeNull();
             compilationConfigProvider.VerifyAll();
             rulesConfigProvider.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        public async Task TryGet_NoEnvVars_ReturnsNull()
+        {
+            var envVarsProvider = CreateEnvVarsProvider(null);
+            var testSubject = CreateTestSubject(ValidCompilationConfigProvider, ValidRulesConfigProvider_Cpp, envVarsProvider.Object);
+
+            var actual = await testSubject.TryCreateAsync(ValidFileName_Cpp, ValidAnalyzerOptions);
+
+            actual.Should().BeNull();
+            envVarsProvider.VerifyAll();
+        }
+
+        [TestMethod]
+        public async Task TryGet_HasEnvVars_ReturnsExpectedValue()
+        {
+            var envVarsProvider = CreateEnvVarsProvider(new Dictionary<string, string>
+            {
+                { "key1", "value1"},
+                { "INCLUDE", "some paths..." }
+            });
+            var testSubject = CreateTestSubject(ValidCompilationConfigProvider, ValidRulesConfigProvider_Cpp, envVarsProvider.Object);
+
+            var actual = await testSubject.TryCreateAsync(ValidFileName_Cpp, ValidAnalyzerOptions);
+
+            actual.Should().NotBeNull();
+            envVarsProvider.VerifyAll();
+
+            actual.EnvironmentVariables.Should().NotBeNull();
+            actual.EnvironmentVariables.Should().HaveCount(2);
+            actual.EnvironmentVariables["key1"].Should().Be("value1");
+            actual.EnvironmentVariables["INCLUDE"].Should().Be("some paths...");
         }
 
         [TestMethod]
@@ -69,7 +110,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             var compilationConfigProvider = CreateCompilationProvider(fileName, compilationDatabaseEntry);
             var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
-            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object, ValidEnvVarsProvider);
             await testSubject.TryCreateAsync(fileName, new CFamilyAnalyzerOptions());
 
             compilationConfigProvider.VerifyAll();
@@ -88,7 +129,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             var compilationConfigProvider = CreateCompilationProvider(fileName, compilationDatabaseEntry);
             var rulesConfigProvider = new Mock<ICFamilyRulesConfigProvider>();
 
-            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object, ValidEnvVarsProvider);
 
             var actual = await testSubject.TryCreateAsync(fileName, new CFamilyAnalyzerOptions());
 
@@ -108,7 +149,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             var rulesConfig = new DummyCFamilyRulesConfig(SonarLanguageKeys.C);
             var rulesConfigProvider = CreateRulesProvider(SonarLanguageKeys.C, rulesConfig);
 
-            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object);
+            var testSubject = CreateTestSubject(compilationConfigProvider.Object, rulesConfigProvider.Object, ValidEnvVarsProvider);
 
             var analyzerOptions = new CFamilyAnalyzerOptions();
             var actual = await testSubject.TryCreateAsync(fileName, analyzerOptions);
@@ -123,13 +164,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             actual.Context.RulesConfiguration.Should().BeSameAs(rulesConfig);
         }
 
-        private static CompilationDatabaseRequestFactory CreateTestSubject(ICompilationConfigProvider compilationConfigProvider = null,
-            ICFamilyRulesConfigProvider rulesConfigProvider = null)
+        private static CompilationDatabaseRequestFactory CreateTestSubject(
+            ICompilationConfigProvider compilationConfigProvider = null,
+            ICFamilyRulesConfigProvider rulesConfigProvider = null,
+            IEnvironmentVarsProvider envVarsProvider = null)
         {
             compilationConfigProvider ??= Mock.Of<ICompilationConfigProvider>();
             rulesConfigProvider ??= Mock.Of<ICFamilyRulesConfigProvider>();
+            envVarsProvider ??= Mock.Of<IEnvironmentVarsProvider>();
 
-            return new CompilationDatabaseRequestFactory(compilationConfigProvider, rulesConfigProvider);
+            return new CompilationDatabaseRequestFactory(compilationConfigProvider, rulesConfigProvider, envVarsProvider);
         }
 
         private static Mock<ICompilationConfigProvider> CreateCompilationProvider(string fileName, CompilationDatabaseEntry entryToReturn)
@@ -147,7 +191,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
             return rulesProvider;
         }
 
-        private CompilationDatabaseEntry CreateCompilationDatabaseEntry(string filePath) =>
+        private static Mock<IEnvironmentVarsProvider> CreateEnvVarsProvider(IReadOnlyDictionary<string, string> envVars = null)
+        {
+            var envVarsProvider = new Mock<IEnvironmentVarsProvider>();
+            envVarsProvider.Setup(x => x.GetAsync()).Returns(Task.FromResult(envVars));
+            return envVarsProvider;
+        }
+
+        private static CompilationDatabaseEntry CreateCompilationDatabaseEntry(string filePath) =>
             new CompilationDatabaseEntry
             {
                 File = filePath,

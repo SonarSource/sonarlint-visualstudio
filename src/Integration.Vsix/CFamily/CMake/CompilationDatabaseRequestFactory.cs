@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Threading.Tasks;
 using SonarLint.VisualStudio.CFamily.CMake;
@@ -31,40 +30,43 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
     {
         private readonly ICompilationConfigProvider compilationConfigProvider;
         private readonly ICFamilyRulesConfigProvider rulesConfigProvider;
-
-        private static readonly Task<IRequest> NullRequest = Task.FromResult<IRequest>(null);
+        private readonly IEnvironmentVarsProvider envVarsProvider;
 
         [ImportingConstructor]
         public CompilationDatabaseRequestFactory(ICompilationConfigProvider compilationConfigProvider,
-            ICFamilyRulesConfigProvider rulesConfigProvider)
+            ICFamilyRulesConfigProvider rulesConfigProvider,
+            IEnvironmentVarsProvider envVarsProvider)
         {
             this.compilationConfigProvider = compilationConfigProvider;
             this.rulesConfigProvider = rulesConfigProvider;
+            this.envVarsProvider = envVarsProvider;
         }
 
-        public Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             var dbEntry = compilationConfigProvider.GetConfig(analyzedFilePath);
             if (dbEntry == null)
             {
-                return NullRequest;
+                return null;
             }
 
             // TODO - handle user specifying the language via a command / argument #2533
             var languageKey = CFamilyShared.FindLanguageFromExtension(dbEntry.File);
             if (languageKey == null)
             {
-                return NullRequest;
+                return null;
             }
 
             var rulesConfig = rulesConfigProvider.GetRulesConfiguration(languageKey);
             var context = new RequestContext(languageKey, rulesConfig, analyzedFilePath, SubProcessFilePaths.PchFilePath, analyzerOptions);
 
-            // TODO - fetch env vars #2539 (will include making the method async)
-            var envVars = new Dictionary<string, string> { { "INCLUDE", string.Empty } };
+            var envVars = await envVarsProvider.GetAsync();
+            if (envVars == null)
+            {
+                return null;
+            }
 
-            var result = new CompilationDatabaseRequest(dbEntry, context, envVars);
-            return Task.FromResult((IRequest)result);
+            return new CompilationDatabaseRequest(dbEntry, context, envVars);
         }
     }
 }
