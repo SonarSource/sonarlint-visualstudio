@@ -42,6 +42,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
         private readonly ICompilationDatabaseLocator compilationDatabaseLocator;
         private readonly IActiveSolutionTracker activeSolutionTracker;
         private readonly ITelemetryDataRepository telemetryDataRepository;
+        private readonly IVcxProjectTypeIndicator vcxProjectTypeIndicator;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -49,12 +50,14 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             ICompilationDatabaseLocator compilationDatabaseLocator,
             IActiveSolutionTracker activeSolutionTracker,
             ITelemetryDataRepository telemetryDataRepository,
+            IVcxProjectTypeIndicator vcxProjectTypeIndicator,
             ILogger logger)
         {
             this.cmakeProjectTypeIndicator = cmakeProjectTypeIndicator;
             this.compilationDatabaseLocator = compilationDatabaseLocator;
             this.activeSolutionTracker = activeSolutionTracker;
             this.telemetryDataRepository = telemetryDataRepository;
+            this.vcxProjectTypeIndicator = vcxProjectTypeIndicator;
             this.logger = logger;
 
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
@@ -80,25 +83,52 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
 
                 if (isCMake)
                 {
-                    var compilationDatabaseLocation = compilationDatabaseLocator.Locate();
-                    var isCMakeAnalyzable = !string.IsNullOrEmpty(compilationDatabaseLocation);
-
-                    if (isCMakeAnalyzable)
-                    {
-                        telemetryDataRepository.Data.CFamilyProjectTypes.IsCMakeAnalyzable = true;
-                    }
-                    else
-                    {
-                        telemetryDataRepository.Data.CFamilyProjectTypes.IsCMakeNonAnalyzable = true;
-                    }
-
-                    telemetryDataRepository.Save();
+                    CollectCMakeUsage();
+                }
+                else
+                {
+                    CollectVcxUsage();
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.LogDebug("[CFamilyTelemetryManager] Failed to calculate cfamily project types: {0}", ex);
             }
+        }
+
+        private void CollectCMakeUsage()
+        {
+
+
+            var compilationDatabaseLocation = compilationDatabaseLocator.Locate();
+            var isCMakeAnalyzable = !string.IsNullOrEmpty(compilationDatabaseLocation);
+
+            if (isCMakeAnalyzable)
+            {
+                telemetryDataRepository.Data.CFamilyProjectTypes.IsCMakeAnalyzable = true;
+            }
+            else
+            {
+                telemetryDataRepository.Data.CFamilyProjectTypes.IsCMakeNonAnalyzable = true;
+            }
+
+            telemetryDataRepository.Save();
+        }
+
+        private void CollectVcxUsage()
+        {
+            var vcxProjectTypes = vcxProjectTypeIndicator.GetProjectTypes();
+
+            if (vcxProjectTypes.HasAnalyzableVcxProjects)
+            {
+                telemetryDataRepository.Data.CFamilyProjectTypes.IsVcxAnalyzable = true;
+            }
+            if (vcxProjectTypes.HasNonAnalyzableVcxProjects)
+            {
+                telemetryDataRepository.Data.CFamilyProjectTypes.IsVcxNonAnalyzable = true;
+            }
+
+            telemetryDataRepository.Save();
         }
 
         public void Dispose()
