@@ -78,7 +78,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public async Task TryGet_NullVsDevCmdResultsAreCached()
+        public async Task TryGet_NullVsDevCmdResultsAreNotCached()
         {
             var vsDevCmdProvider = new Mock<IVsDevCmdEnvironmentProvider>()
                 .SetEnvVars(string.Empty, null);
@@ -91,12 +91,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             actual.Should().BeNull();
             vsDevCmdProvider.CheckSettingsFetchedOnce(string.Empty);
 
-            // 2. Call again - null result should have been cached i.e. we don't
-            // retry calling just because we didn't get a non-null result first time.
+            // 2. Call again - null result should not have been cached
             actual = await testSubject.GetAsync(string.Empty);
 
             actual.Should().BeNull();
-            vsDevCmdProvider.CheckSettingsFetchedOnce(string.Empty);
+            vsDevCmdProvider.CheckSettingsFetchedTwice(string.Empty);
         }
 
         [TestMethod]
@@ -168,6 +167,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
         public static void CheckSettingsFetchedOnce(this Mock<IVsDevCmdEnvironmentProvider> provider, string scriptParms) =>
             provider.Verify(x => x.GetAsync(scriptParms), Times.Once);
+
+        public static void CheckSettingsFetchedTwice(this Mock<IVsDevCmdEnvironmentProvider> provider, string scriptParms) =>
+            provider.Verify(x => x.GetAsync(scriptParms), Times.Exactly(2));
 
         public static void CheckSettingsNotFetched(this Mock<IVsDevCmdEnvironmentProvider> provider, string scriptParms) =>
             provider.Verify(x => x.GetAsync(scriptParms), Times.Never);

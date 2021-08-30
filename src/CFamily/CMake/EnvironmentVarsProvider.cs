@@ -91,7 +91,11 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 }
 
                 var newSettings = await vsDevCmdProvider.GetAsync(vsDevCmdScriptParams);
-                cachedVsDevCmdSettings[vsDevCmdScriptParams] = newSettings;
+
+                if (newSettings != null)
+                {
+                    cachedVsDevCmdSettings[vsDevCmdScriptParams] = newSettings;
+                }
 
                 return newSettings;
             }
