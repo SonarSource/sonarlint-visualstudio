@@ -86,7 +86,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                 CFamilyProjectTypes = new CFamilyProjectTypes
                 {
                     IsCMakeNonAnalyzable = true,
-                    IsCMakeAnalyzable = true
+                    IsCMakeAnalyzable = true,
+                    IsVcxAnalyzable = true,
+                    IsVcxNonAnalyzable = true
                 }
             };
 
@@ -135,6 +137,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
 
             reloadedData.CFamilyProjectTypes.IsCMakeNonAnalyzable.Should().BeTrue();
             reloadedData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeTrue();
+            reloadedData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeTrue();
+            reloadedData.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeTrue();
         }
 
         [TestMethod]

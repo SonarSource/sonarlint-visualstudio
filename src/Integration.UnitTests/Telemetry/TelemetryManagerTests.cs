@@ -183,7 +183,9 @@ namespace SonarLint.VisualStudio.Integration.Tests
                 CFamilyProjectTypes = new CFamilyProjectTypes
                 {
                     IsCMakeAnalyzable = true,
-                    IsCMakeNonAnalyzable = true
+                    IsCMakeNonAnalyzable = true,
+                    IsVcxNonAnalyzable = true,
+                    IsVcxAnalyzable = true
                 }
             };
             telemetryRepositoryMock.Setup(x => x.Data).Returns(telemetryData);
@@ -204,6 +206,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
             telemetryData.ServerNotifications.ServerNotificationCounters.Should().BeEmpty(); // should have cleared the value
             telemetryData.CFamilyProjectTypes.IsCMakeNonAnalyzable.Should().BeFalse(); // should have cleared the value
             telemetryData.CFamilyProjectTypes.IsCMakeAnalyzable.Should().BeFalse(); // should have cleared the value
+            telemetryData.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeFalse(); // should have cleared the value
+            telemetryData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeFalse(); // should have cleared the value
             telemetryRepositoryMock.Verify(x => x.Save(), Times.Once);
             telemetryClientMock.Verify(x => x.SendPayloadAsync(It.IsAny<TelemetryPayload>()), Times.Once);
         }

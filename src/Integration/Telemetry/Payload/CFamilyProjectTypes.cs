@@ -29,5 +29,11 @@ namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
 
         [JsonProperty("cmake_non_analyzable")]
         public bool IsCMakeNonAnalyzable { get; set; }
+
+        [JsonProperty("vcx_analyzable")]
+        public bool IsVcxAnalyzable { get; set; }
+
+        [JsonProperty("vcx_non_analyzable")]
+        public bool IsVcxNonAnalyzable { get; set; }
     }
 }
