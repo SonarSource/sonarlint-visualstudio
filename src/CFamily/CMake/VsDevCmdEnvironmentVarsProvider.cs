@@ -55,7 +55,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// <remarks>This path works for VS2015+</remarks>
         private const string RelativePathToBatchFile = "Common7\\Tools\\VsDevCmd.bat";
 
-        private const int SCRIPT_TIMEOUT_MS = 4000;
+        private const int SCRIPT_TIMEOUT_MS = 30000;
 
         private readonly IVsInfoService vsInfoService;
         private readonly IThreadHandling threadHandling;
