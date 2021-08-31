@@ -114,7 +114,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
-                logger.WriteLine(Resources.BadCMakeSettings, ex);
+                logger.WriteLine(Resources.BadCMakeSettings, ex.Message);
                 return null;
             }
 
