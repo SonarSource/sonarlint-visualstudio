@@ -117,7 +117,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void Locate_FailedToParseCMakeSettings_Null()
         {
-            const string invalidJon = "invalid json";
+            const string invalidJson = "invalid json";
             var expectedMessage = GetExpectedDeserializationMessage();
             var configProvider = CreateConfigProvider("my config");
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
@@ -126,7 +126,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             fileSystem.Setup(x => x.File.Exists(cmakeSettingsLocation)).Returns(true);
             fileSystem
                 .Setup(x => x.File.ReadAllText(cmakeSettingsLocation))
-                .Returns(invalidJon);
+                .Returns(invalidJson);
 
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
@@ -140,7 +140,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             {
                 try
                 {
-                    JsonConvert.DeserializeObject(invalidJon);
+                    JsonConvert.DeserializeObject(invalidJson);
                 }
                 catch (JsonReaderException ex)
                 {
