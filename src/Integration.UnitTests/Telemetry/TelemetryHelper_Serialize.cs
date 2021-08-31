@@ -80,7 +80,13 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
                         }}
                     }
                 },
-                CFamilyProjectTypes = new CFamilyProjectTypes { IsCMakeNonAnalyzable = true, IsCMakeAnalyzable = true}
+                CFamilyProjectTypes = new CFamilyProjectTypes
+                {
+                    IsCMakeNonAnalyzable = true,
+                    IsCMakeAnalyzable = true,
+                    IsVcxNonAnalyzable = true,
+                    IsVcxAnalyzable = true
+                }
             };
 
             var serialized = TelemetryHelper.Serialize(payload);
@@ -134,7 +140,9 @@ namespace SonarLint.VisualStudio.Integration.UnitTests
   },
   ""cfamily_project_types"": {
     ""cmake_analyzable"": true,
-    ""cmake_non_analyzable"": true
+    ""cmake_non_analyzable"": true,
+    ""vcx_analyzable"": true,
+    ""vcx_non_analyzable"": true
   }
 }";
             serialized.Should().Be(expected);

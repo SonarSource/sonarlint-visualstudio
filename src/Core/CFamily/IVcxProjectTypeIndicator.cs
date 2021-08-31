@@ -18,22 +18,21 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using Newtonsoft.Json;
-
-namespace SonarLint.VisualStudio.Integration.Telemetry.Payload
+namespace SonarLint.VisualStudio.Core.CFamily
 {
-    public sealed class CFamilyProjectTypes
+    public interface IVcxProjectTypeIndicator
     {
-        [JsonProperty("cmake_analyzable")]
-        public bool IsCMakeAnalyzable { get; set; }
+        /// <summary>
+        /// Returns information about vcx projects in the currently open solution.
+        /// Returns <see cref="VcxProjectTypesResult"/> with false values if the solution has no VCX projects,
+        /// or if there is no open solution.
+        /// </summary>
+        VcxProjectTypesResult GetProjectTypes();
+    }
 
-        [JsonProperty("cmake_non_analyzable")]
-        public bool IsCMakeNonAnalyzable { get; set; }
-
-        [JsonProperty("vcx_analyzable")]
-        public bool IsVcxAnalyzable { get; set; }
-
-        [JsonProperty("vcx_non_analyzable")]
-        public bool IsVcxNonAnalyzable { get; set; }
+    public class VcxProjectTypesResult
+    {
+        public bool HasAnalyzableVcxProjects { get; set; }
+        public bool HasNonAnalyzableVcxProjects { get; set; }
     }
 }
