@@ -100,7 +100,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             // Act
             await context.TestSubject.GetAsync("any");
 
-            context.Process.Verify(x => x.WaitForExitAsync(4000), Times.Once);
+            context.Process.Verify(x => x.WaitForExitAsync(30000), Times.Once);
         }
 
         [TestMethod]
