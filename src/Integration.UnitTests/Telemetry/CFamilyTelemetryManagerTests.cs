@@ -41,6 +41,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 MefTestHelpers.CreateExport<ICompilationDatabaseLocator>(Mock.Of<ICompilationDatabaseLocator>()),
                 MefTestHelpers.CreateExport<IActiveSolutionTracker>(Mock.Of<IActiveSolutionTracker>()),
                 MefTestHelpers.CreateExport<ITelemetryDataRepository>(Mock.Of<ITelemetryDataRepository>()),
+                MefTestHelpers.CreateExport<IVcxProjectTypeIndicator>(Mock.Of<IVcxProjectTypeIndicator>()),
                 MefTestHelpers.CreateExport<ILogger>(Mock.Of<ILogger>())
             });
         }
@@ -175,6 +176,148 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
         }
 
         [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void OnSolutionChanged_HasOpenSolution_ProjectIsCMake_VcxProjectTelemetryIsIgnored(bool isCMakeAnalyzable)
+        {
+            var telemetryData = new TelemetryData {CFamilyProjectTypes = new CFamilyProjectTypes()};
+
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: true);
+            var compilationDatabaseLocator = SetupCompilationDatabaseLocator(isCMakeAnalyzable);
+            var telemetryRepository = SetupTelemetryRepository(telemetryData);
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var vcxProjectTypeIndicator = new Mock<IVcxProjectTypeIndicator>();
+
+            CreateTestSubject(
+                activeSolutionTracker.Object,
+                cmakeProjectTypeIndicator.Object,
+                compilationDatabaseLocator.Object,
+                telemetryRepository.Object,
+                vcxProjectTypeIndicator.Object);
+
+            RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
+
+            cmakeProjectTypeIndicator.Verify(x => x.IsCMake(), Times.Once);
+
+            vcxProjectTypeIndicator.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void OnSolutionChanged_HasOpenSolution_VcxProject_NonAnalyzable_AnalyzableFlagIsUnchanged(bool previousAnalyzableFlag)
+        {
+            var telemetryData = new TelemetryData
+            {
+                CFamilyProjectTypes = new CFamilyProjectTypes
+                {
+                    IsVcxNonAnalyzable = false,
+                    IsVcxAnalyzable = previousAnalyzableFlag
+                }
+            };
+
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: false);
+            var telemetryRepository = SetupTelemetryRepository(telemetryData);
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var vcxProjectTypeIndicator = new Mock<IVcxProjectTypeIndicator>();
+            vcxProjectTypeIndicator
+                .Setup(x => x.GetProjectTypes())
+                .Returns(new VcxProjectTypesResult
+                {
+                    HasAnalyzableVcxProjects = false,
+                    HasNonAnalyzableVcxProjects = true
+                });
+
+            CreateTestSubject(
+                activeSolutionTracker.Object,
+                cmakeProjectTypeIndicator.Object,
+                telemetryDataRepository: telemetryRepository.Object,
+                vcxProjectTypeIndicator: vcxProjectTypeIndicator.Object);
+
+            RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
+
+            telemetryData.CFamilyProjectTypes.IsVcxAnalyzable.Should().Be(previousAnalyzableFlag); // should not be changed
+            telemetryData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeTrue();
+            telemetryRepository.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public void OnSolutionChanged_HasOpenSolution_VcxProject_Analyzable_NonAnalyzableFlagIsUnchanged(bool previousNonAnalyzableFlag)
+        {
+            var telemetryData = new TelemetryData
+            {
+                CFamilyProjectTypes = new CFamilyProjectTypes
+                {
+                    IsVcxNonAnalyzable = previousNonAnalyzableFlag,
+                    IsVcxAnalyzable = false
+                }
+            };
+
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: false);
+            var telemetryRepository = SetupTelemetryRepository(telemetryData);
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var vcxProjectTypeIndicator = new Mock<IVcxProjectTypeIndicator>();
+            vcxProjectTypeIndicator
+                .Setup(x => x.GetProjectTypes())
+                .Returns(new VcxProjectTypesResult
+                {
+                    HasAnalyzableVcxProjects = true,
+                    HasNonAnalyzableVcxProjects = false
+                });
+
+            CreateTestSubject(
+                activeSolutionTracker.Object,
+                cmakeProjectTypeIndicator.Object,
+                telemetryDataRepository: telemetryRepository.Object,
+                vcxProjectTypeIndicator: vcxProjectTypeIndicator.Object);
+
+            RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
+
+            telemetryData.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeTrue(); 
+            telemetryData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().Be(previousNonAnalyzableFlag); // should not be changed
+            telemetryRepository.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
+        public void OnSolutionChanged_HasOpenSolution_VcxProject_HasBothAnalyzableAndNonAnalyzable_BothFlagsChanged()
+        {
+            var telemetryData = new TelemetryData
+            {
+                CFamilyProjectTypes = new CFamilyProjectTypes
+                {
+                    IsVcxNonAnalyzable = false,
+                    IsVcxAnalyzable = false
+                }
+            };
+
+            var cmakeProjectTypeIndicator = SetupCMakeProjectIndicator(isCMake: false);
+            var telemetryRepository = SetupTelemetryRepository(telemetryData);
+            var activeSolutionTracker = SetupActiveSolutionTracker();
+            var vcxProjectTypeIndicator = new Mock<IVcxProjectTypeIndicator>();
+            vcxProjectTypeIndicator
+                .Setup(x => x.GetProjectTypes())
+                .Returns(new VcxProjectTypesResult
+                {
+                    HasAnalyzableVcxProjects = true,
+                    HasNonAnalyzableVcxProjects = true
+                });
+
+            CreateTestSubject(
+                activeSolutionTracker.Object,
+                cmakeProjectTypeIndicator.Object,
+                telemetryDataRepository: telemetryRepository.Object,
+                vcxProjectTypeIndicator: vcxProjectTypeIndicator.Object);
+
+            RaiseSolutionChangedEvent(activeSolutionTracker, isSolutionOpen: true);
+
+            telemetryData.CFamilyProjectTypes.IsVcxAnalyzable.Should().BeTrue();
+            telemetryData.CFamilyProjectTypes.IsVcxNonAnalyzable.Should().BeTrue();
+            telemetryRepository.Verify(x => x.Save(), Times.Once);
+        }
+
+        [TestMethod]
         public void OnSolutionChanged_NonCriticalException_ExceptionCaught()
         {
             var activeSolutionTracker = SetupActiveSolutionTracker();
@@ -212,7 +355,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             IActiveSolutionTracker activeSolutionTracker,
             ICMakeProjectTypeIndicator cmakeProjectTypeIndicator = null,
             ICompilationDatabaseLocator compilationDatabaseLocator = null,
-            ITelemetryDataRepository telemetryDataRepository = null)
+            ITelemetryDataRepository telemetryDataRepository = null,
+            IVcxProjectTypeIndicator vcxProjectTypeIndicator = null)
         {
             cmakeProjectTypeIndicator ??= Mock.Of<ICMakeProjectTypeIndicator>();
             compilationDatabaseLocator ??= Mock.Of<ICompilationDatabaseLocator>();
@@ -222,6 +366,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
                 compilationDatabaseLocator,
                 activeSolutionTracker,
                 telemetryDataRepository,
+                vcxProjectTypeIndicator,
                 Mock.Of<ILogger>());
         }
 

@@ -75,6 +75,8 @@ namespace SonarLint.VisualStudio.Integration.Tests
   <CFamilyProjectTypes>
     <IsCMakeAnalyzable>false</IsCMakeAnalyzable>
     <IsCMakeNonAnalyzable>false</IsCMakeNonAnalyzable>
+    <IsVcxAnalyzable>false</IsVcxAnalyzable>
+    <IsVcxNonAnalyzable>false</IsVcxNonAnalyzable>
   </CFamilyProjectTypes>
 </TelemetryData>");
 
