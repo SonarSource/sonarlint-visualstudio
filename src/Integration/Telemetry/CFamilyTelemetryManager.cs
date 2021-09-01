@@ -24,6 +24,7 @@ using System.Diagnostics;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.Helpers;
+using Task = System.Threading.Tasks.Task;
 
 namespace SonarLint.VisualStudio.Integration.Telemetry
 {
@@ -63,17 +64,17 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             activeSolutionTracker.ActiveSolutionChanged += ActiveSolutionTracker_ActiveSolutionChanged;
         }
 
-        private void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
+        private async void ActiveSolutionTracker_ActiveSolutionChanged(object sender, ActiveSolutionChangedEventArgs e)
         {
             if (!e.IsSolutionOpen)
             {
                 return;
             }
 
-            UpdateTelemetry();
+            await UpdateTelemetry();
         }
 
-        private void UpdateTelemetry()
+        private async Task UpdateTelemetry()
         {
             try
             {
@@ -83,7 +84,7 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
 
                 if (isCMake)
                 {
-                    CollectCMakeUsage();
+                    await CollectCMakeUsage();
                 }
                 else
                 {
@@ -96,11 +97,9 @@ namespace SonarLint.VisualStudio.Integration.Telemetry
             }
         }
 
-        private void CollectCMakeUsage()
+        private async Task CollectCMakeUsage()
         {
-
-
-            var compilationDatabaseLocation = compilationDatabaseLocator.Locate();
+            var compilationDatabaseLocation = await compilationDatabaseLocator.Locate();
             var isCMakeAnalyzable = !string.IsNullOrEmpty(compilationDatabaseLocation);
 
             if (isCMakeAnalyzable)

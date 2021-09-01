@@ -44,7 +44,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.CMake
 
         public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
-            var dbEntry = compilationConfigProvider.GetConfig(analyzedFilePath);
+            var dbEntry = await compilationConfigProvider.GetConfig(analyzedFilePath);
             if (dbEntry == null)
             {
                 return null;

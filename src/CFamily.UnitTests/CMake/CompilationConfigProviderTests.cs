@@ -20,6 +20,7 @@
 
 using System;
 using System.IO.Abstractions;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -51,7 +52,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             var testSubject = CreateTestSubject();
 
-            Action act = () => testSubject.GetConfig(analyzedFilePath);
+            Func<Task> act = async () => await testSubject.GetConfig(analyzedFilePath);
 
             act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("filePath");
         }
@@ -59,12 +60,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void GetConfig_NoCompilationDatabase_Null(string compilationDatabaseFilePath)
+        public async Task GetConfig_NoCompilationDatabase_Null(string compilationDatabaseFilePath)
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator(compilationDatabaseFilePath);
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object);
 
-            var result = testSubject.GetConfig("some file");
+            var result = await testSubject.GetConfig("some file");
             result.Should().BeNull();
 
             compilationDatabaseLocator.Verify(x=> x.Locate(), Times.Once);
@@ -73,7 +74,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         [DataRow("")]
         [DataRow("[]")]
-        public void GetConfig_EmptyCompilationDatabase_Null(string compilationDatabaseContents)
+        public async Task GetConfig_EmptyCompilationDatabase_Null(string compilationDatabaseContents)
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var fileSystem = SetupDatabaseFileContents("some db", compilationDatabaseContents);
@@ -81,7 +82,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("some file");
+            var result = await testSubject.GetConfig("some file");
             result.Should().BeNull();
 
             fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
@@ -90,7 +91,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void GetConfig_ProblemReadingDatabaseFile_NonCriticalException_Null()
+        public async Task GetConfig_ProblemReadingDatabaseFile_NonCriticalException_Null()
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var fileSystem = SetupDatabaseFileContents("some db", exToThrow: new NotSupportedException("this is a test"));
@@ -98,7 +99,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("some file");
+            var result = await testSubject.GetConfig("some file");
             result.Should().BeNull();
 
             fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
@@ -114,13 +115,13 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
 
-            Action act = () => testSubject.GetConfig("some file");
+            Func<Task> act = async () => await testSubject.GetConfig("some file");
 
             act.Should().Throw<StackOverflowException>();
         }
 
         [TestMethod]
-        public void GetConfig_ProblemParsingDatabaseFile_Null()
+        public async Task GetConfig_ProblemParsingDatabaseFile_Null()
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var fileSystem = SetupDatabaseFileContents("some db", "not valid json");
@@ -128,7 +129,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("some file");
+            var result = await testSubject.GetConfig("some file");
             result.Should().BeNull();
 
             fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
@@ -140,7 +141,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("[{}]")] // no entries in file
         [DataRow("[{\"file\" : \"some file.c\" }]")] // different extension
         [DataRow("[{\"file\" : \"sub/some file.cpp\" }]")] // different path
-        public void GetConfig_CodeFile_EntryNotFoundInDatabase_Null(string databaseFileContents)
+        public async Task GetConfig_CodeFile_EntryNotFoundInDatabase_Null(string databaseFileContents)
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var fileSystem = SetupDatabaseFileContents("some db", databaseFileContents);
@@ -148,7 +149,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("some file.cpp");
+            var result = await testSubject.GetConfig("some file.cpp");
             result.Should().BeNull();
 
             fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
@@ -161,7 +162,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("c:/some file.cpp")] // different format 
         [DataRow("c:/SOME file.cpp")] // case-sensitivity on name
         [DataRow("c:/some file.CPP")] // case-sensitivity on extension
-        public void GetConfig_CodeFile_EntryFound_ReturnsEntry(string entryFilePath)
+        public async Task GetConfig_CodeFile_EntryFound_ReturnsEntry(string entryFilePath)
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var compilationDatabaseContent = new[]
@@ -173,12 +174,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("c:\\some file.cpp");
+            var result = await testSubject.GetConfig("c:\\some file.cpp");
             result.Should().BeEquivalentTo(compilationDatabaseContent[0]);
         }
 
         [TestMethod]
-        public void GetConfig_CodeFile_DatabaseContainsMultipleEntriesForSameFile_ReturnsFirstOne()
+        public async Task GetConfig_CodeFile_DatabaseContainsMultipleEntriesForSameFile_ReturnsFirstOne()
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var compilationDatabaseContent = new[]
@@ -193,13 +194,13 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("some file");
+            var result = await testSubject.GetConfig("some file");
 
             result.Should().BeEquivalentTo(compilationDatabaseContent[1]);
         }
 
         [TestMethod]
-        public void GetConfig_HeaderFile_NoEntriesInCompilationDatabase_Null()
+        public async Task GetConfig_HeaderFile_NoEntriesInCompilationDatabase_Null()
         {
             var compilationDatabaseLocator = SetupCompilationDatabaseLocator("some db");
             var fileSystem = SetupDatabaseFileContents("some db", "[{}]");
@@ -207,7 +208,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object, logger);
 
-            var result = testSubject.GetConfig("some header.h");
+            var result = await testSubject.GetConfig("some header.h");
             result.Should().BeNull();
 
             fileSystem.Verify(x => x.File.ReadAllText("some db"), Times.Once);
@@ -220,7 +221,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("c:\\some\\folder\\a.c")]
         [DataRow("D:\\A.cxx")]
         [DataRow("c:\\test\\a.CC")]
-        public void GetConfig_HeaderFile_CodeWithSameNameDifferentPath_ReturnsCodeFileEntry(string matchingCodeFile)
+        public async Task GetConfig_HeaderFile_CodeWithSameNameDifferentPath_ReturnsCodeFileEntry(string matchingCodeFile)
         {
             const string headerFilePath = "c:\\test\\a.h";
 
@@ -236,12 +237,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
 
-            var result = testSubject.GetConfig(headerFilePath);
+            var result = await testSubject.GetConfig(headerFilePath);
             result.Should().BeEquivalentTo(compilationDatabaseContent[1]);
         }
 
         [TestMethod]
-        public void GetConfig_HeaderFile_CodeWithSameNameExactPath_GivenPriorityOverDifferentPath()
+        public async Task GetConfig_HeaderFile_CodeWithSameNameExactPath_GivenPriorityOverDifferentPath()
         {
             const string headerFilePath = "c:\\test\\a.hxx";
 
@@ -258,12 +259,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
 
-            var result = testSubject.GetConfig(headerFilePath);
+            var result = await testSubject.GetConfig(headerFilePath);
             result.Should().BeEquivalentTo(compilationDatabaseContent[2]);
         }
 
         [TestMethod]
-        public void GetConfig_HeaderFile_NoMatchingName_HasCodeFileUnderPath_ReturnsCodeFileEntry()
+        public async Task GetConfig_HeaderFile_NoMatchingName_HasCodeFileUnderPath_ReturnsCodeFileEntry()
         {
             const string headerFilePath = "c:\\a\\b\\test.hh";
 
@@ -282,12 +283,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
 
-            var result = testSubject.GetConfig(headerFilePath);
+            var result = await testSubject.GetConfig(headerFilePath);
             result.Should().BeEquivalentTo(compilationDatabaseContent[2]);
         }
 
         [TestMethod]
-        public void GetConfig_HeaderFile_NoMatchingName_NoMatchingPath_ReturnsFirstCodeFileEntry()
+        public async Task GetConfig_HeaderFile_NoMatchingName_NoMatchingPath_ReturnsFirstCodeFileEntry()
         {
             const string headerFilePath = "c:\\a\\b\\test.hpp";
 
@@ -303,7 +304,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(compilationDatabaseLocator.Object, fileSystem.Object);
 
-            var result = testSubject.GetConfig(headerFilePath);
+            var result = await testSubject.GetConfig(headerFilePath);
             result.Should().BeEquivalentTo(compilationDatabaseContent[0]);
         }
 
@@ -328,7 +329,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             var compilationDatabaseLocator = new Mock<ICompilationDatabaseLocator>();
 
-            compilationDatabaseLocator.Setup(x => x.Locate()).Returns(compilationDatabaseFilePath);
+            compilationDatabaseLocator.Setup(x => x.Locate()).ReturnsAsync(compilationDatabaseFilePath);
 
             return compilationDatabaseLocator;
         }

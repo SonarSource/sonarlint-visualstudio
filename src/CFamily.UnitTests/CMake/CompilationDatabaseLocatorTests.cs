@@ -21,6 +21,7 @@
 using System;
 using System.IO;
 using System.IO.Abstractions;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -51,12 +52,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         [DataRow(null)]
         [DataRow("")]
-        public void Locate_NoRootDirectory_Null(string rootDirectory)
+        public async Task Locate_NoRootDirectory_Null(string rootDirectory)
         {
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(rootDirectory, logger: logger);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
 
             result.Should().BeNull();
         }
@@ -64,7 +65,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void Locate_NoCMakeSettingsFile_ReturnsDefaultLocationIfFileExists(bool fileExists)
+        public async Task Locate_NoCMakeSettingsFile_ReturnsDefaultLocationIfFileExists(bool fileExists)
         {
             var activeConfiguration = "any";
             var configProvider = CreateConfigProvider(activeConfiguration);
@@ -79,7 +80,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
 
             if (fileExists)
             {
@@ -94,7 +95,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Locate_FailedToReadCMakeSettings_NonCriticalException_Null()
+        public async Task Locate_FailedToReadCMakeSettings_NonCriticalException_Null()
         {
             var configProvider = CreateConfigProvider("my config");
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
@@ -108,14 +109,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
             result.Should().BeNull();
 
             logger.AssertPartialOutputStringExists("this is a test");
         }
 
         [TestMethod]
-        public void Locate_FailedToParseCMakeSettings_Null()
+        public async Task Locate_FailedToParseCMakeSettings_Null()
         {
             const string invalidJson = "invalid json";
             var expectedMessage = GetExpectedDeserializationMessage();
@@ -131,7 +132,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
             result.Should().BeNull();
 
             logger.AssertPartialOutputStringExists(expectedMessage);
@@ -165,13 +166,13 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
-            Action act =() => testSubject.Locate();
+            Func<Task> act = async () => await testSubject.Locate();
 
             act.Should().Throw<StackOverflowException>();
         }
 
         [TestMethod]
-        public void Locate_HasCMakeSettingsFile_ActiveConfigurationDoesNotExist_Null()
+        public async Task Locate_HasCMakeSettingsFile_ActiveConfigurationDoesNotExist_Null()
         {
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
             var configProvider = CreateConfigProvider("my-config");
@@ -182,7 +183,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
 
             result.Should().BeNull();
             logger.AssertOutputStringExists(string.Format(Resources.NoBuildConfigInCMakeSettings,
@@ -193,7 +194,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Locate_HasCMakeSettingsFile_NoBuildRootParameter_Null()
+        public async Task Locate_HasCMakeSettingsFile_NoBuildRootParameter_Null()
         {
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
             var configProvider = CreateConfigProvider("my-config");
@@ -206,7 +207,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
 
             result.Should().BeNull();
             logger.AssertOutputStringExists(string.Format(Resources.NoBuildRootInCMakeSettings,
@@ -219,7 +220,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
-        public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPathIfItExists(bool fileExists)
+        public async Task Locate_HasCMakeSettingsFile_ReturnsConfiguredPathIfItExists(bool fileExists)
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", "folder");
@@ -234,7 +235,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
 
             if (fileExists)
             {
@@ -252,7 +253,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("c:\\absolute\\${name}\\${projectDir}", "c:\\absolute\\my-config\\dummy root")]
         [DataRow("c:\\${projectDir}\\somefolder\\${name}\\sub", "c:\\dummy root\\somefolder\\my-config\\sub")]
         [DataRow("${projectDir}\\somefolder\\${name}\\sub", "dummy root\\somefolder\\my-config\\sub")]
-        public void Locate_HasCMakeSettingsFile_ConfiguredPathHasParameters_ParametersReplaced(string configuredPath, string expectedPath)
+        public async Task Locate_HasCMakeSettingsFile_ConfiguredPathHasParameters_ParametersReplaced(string configuredPath, string expectedPath)
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", configuredPath);
@@ -266,7 +267,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object);
 
-            var result = testSubject.Locate();
+            var result = await testSubject.Locate();
 
             result.Should().Be(compilationDatabaseFullLocation);
         }

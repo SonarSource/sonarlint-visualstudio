@@ -25,6 +25,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -42,7 +43,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// as specified in the compilation database file for the currently active build configuration.
         /// Returns null if there is no compilation database or if the file does not exist in the compilation database.
         /// </summary>
-        CompilationDatabaseEntry GetConfig(string filePath);
+        Task<CompilationDatabaseEntry> GetConfig(string filePath);
     }
 
     [Export(typeof(ICompilationConfigProvider))]
@@ -68,14 +69,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.logger = logger;
         }
 
-        public CompilationDatabaseEntry GetConfig(string filePath)
+        public async Task<CompilationDatabaseEntry> GetConfig(string filePath)
         {
             if (string.IsNullOrEmpty(filePath))
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
 
-            var compilationDatabaseLocation = compilationDatabaseLocator.Locate();
+            var compilationDatabaseLocation = await compilationDatabaseLocator.Locate();
 
             if (string.IsNullOrEmpty(compilationDatabaseLocation))
             {

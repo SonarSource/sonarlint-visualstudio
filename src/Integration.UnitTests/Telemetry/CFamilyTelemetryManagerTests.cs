@@ -398,7 +398,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Telemetry
             var compilationDatabaseLocator = new Mock<ICompilationDatabaseLocator>();
 
             var dummyLocation = hasCompilationDatabase ? "some location" : null;
-            compilationDatabaseLocator.Setup(x => x.Locate()).Returns(dummyLocation);
+            compilationDatabaseLocator.Setup(x => x.Locate()).ReturnsAsync(dummyLocation);
 
             return compilationDatabaseLocator;
         }

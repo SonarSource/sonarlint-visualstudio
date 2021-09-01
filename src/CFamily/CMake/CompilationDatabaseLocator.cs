@@ -23,6 +23,7 @@ using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio;
 using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -65,14 +66,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.logger = logger;
         }
 
-        public string Locate()
+        public Task<string> Locate()
         {
             var rootDirectory = folderWorkspaceService.FindRootDirectory();
 
             if (string.IsNullOrEmpty(rootDirectory))
             {
                 logger.LogDebug("[CompilationDatabaseLocator] Could not find project root directory");
-                return null;
+                return Task.FromResult<string>(null);
             }
 
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
@@ -84,12 +85,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (fileSystem.File.Exists(compilationDatabaseLocation))
             {
-                return compilationDatabaseLocation;
+                return Task.FromResult(compilationDatabaseLocation);
             }
 
             logger.WriteLine(Resources.NoCompilationDatabaseFile, compilationDatabaseLocation);
 
-            return null;
+            return Task.FromResult<string>(null);
         }
 
         private string GetDefaultLocation(string rootDirectory, string activeConfiguration)

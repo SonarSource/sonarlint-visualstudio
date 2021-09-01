@@ -179,7 +179,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily.CMake
         private static Mock<ICompilationConfigProvider> CreateCompilationProvider(string fileName, CompilationDatabaseEntry entryToReturn)
         {
             var compilationConfigProvider = new Mock<ICompilationConfigProvider>();
-            compilationConfigProvider.Setup(x => x.GetConfig(fileName)).Returns(entryToReturn);
+            compilationConfigProvider.Setup(x => x.GetConfig(fileName)).ReturnsAsync(entryToReturn);
 
             return compilationConfigProvider;
         }

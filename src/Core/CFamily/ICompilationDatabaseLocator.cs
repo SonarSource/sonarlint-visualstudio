@@ -18,6 +18,8 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Threading.Tasks;
+
 namespace SonarLint.VisualStudio.Core.CFamily
 {
     public interface ICompilationDatabaseLocator
@@ -26,6 +28,6 @@ namespace SonarLint.VisualStudio.Core.CFamily
         /// Returns absolute path to the compilation database file of the currently active build configuration.
         /// Returns null if the file was not found.
         /// </summary>
-        string Locate();
+        Task<string> Locate();
     }
 }
