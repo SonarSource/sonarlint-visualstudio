@@ -193,6 +193,30 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
+        public void Locate_HasCMakeSettingsFile_NoBuildRootParameter_Null()
+        {
+            var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
+            var configProvider = CreateConfigProvider("my-config");
+
+            var cMakeSettings = CreateCMakeSettings("my-config", buildRoot: null);
+
+            var fileSystem = new Mock<IFileSystem>();
+            SetupCMakeSettingsFileExists(fileSystem, cmakeSettingsLocation, cMakeSettings);
+
+            var logger = new TestLogger();
+            var testSubject = CreateTestSubject(RootDirectory, configProvider, fileSystem.Object, logger);
+
+            var result = testSubject.Locate();
+
+            result.Should().BeNull();
+            logger.AssertOutputStringExists(string.Format(Resources.NoBuildRootInCMakeSettings,
+                "my-config",
+                cmakeSettingsLocation));
+
+            fileSystem.Verify(x => x.File.ReadAllText(cmakeSettingsLocation), Times.Once);
+        }
+
+        [TestMethod]
         [DataRow(true)]
         [DataRow(false)]
         public void Locate_HasCMakeSettingsFile_ReturnsConfiguredPathIfItExists(bool fileExists)

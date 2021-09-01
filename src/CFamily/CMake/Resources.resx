@@ -129,6 +129,9 @@
   <data name="NoBuildConfigInCMakeSettings" xml:space="preserve">
     <value>[CMake] Specified build configuration '{0}' could not be found at '{1}'</value>
   </data>
+  <data name="NoBuildRootInCMakeSettings" xml:space="preserve">
+    <value>[CMake] Specified build configuration '{0}' does not contain parameter 'buildRoot'. File: {1}</value>
+  </data>
   <data name="NoCompilationDatabaseEntry" xml:space="preserve">
     <value>[CMake] Could not find file in the compilation database. File: '{0}'</value>
   </data>

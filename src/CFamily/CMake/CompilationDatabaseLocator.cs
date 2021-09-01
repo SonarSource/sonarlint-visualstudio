@@ -126,6 +126,12 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
+            if (buildConfiguration.BuildRoot == null)
+            {
+                logger.WriteLine(Resources.NoBuildRootInCMakeSettings, activeConfiguration, cmakeSettingsFullPath);
+                return null;
+            }
+
             var databaseFolderPath = Path.GetFullPath(buildConfiguration.BuildRoot
                 .Replace("${projectDir}", rootDirectory)
                 .Replace("${name}", buildConfiguration.Name));
