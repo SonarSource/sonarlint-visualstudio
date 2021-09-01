@@ -97,6 +97,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; does not contain parameter &apos;buildRoot&apos;. File: {1}.
+        /// </summary>
+        internal static string NoBuildRootInCMakeSettings {
+            get {
+                return ResourceManager.GetString("NoBuildRootInCMakeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CMake] Could not find file in the compilation database. File: &apos;{0}&apos;.
         /// </summary>
         internal static string NoCompilationDatabaseEntry {
