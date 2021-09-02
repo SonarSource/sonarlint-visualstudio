@@ -74,7 +74,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var result = testSubject.Find(RootDirectory);
 
             result.Should().NotBeNull();
-            result.ParsedSettings.Should().BeEquivalentTo(cmakeSettings);
+            result.Settings.Should().BeEquivalentTo(cmakeSettings);
             result.CMakeSettingsFilePath.Should().Be(cmakeSettingsLocation);
             result.RootCMakeListsFilePath.Should().BeEmpty();
         }

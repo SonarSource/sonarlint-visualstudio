@@ -39,16 +39,16 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
     internal class CMakeSettingsSearchResult
     {
-        public CMakeSettingsSearchResult(CMakeSettings parsedSettings, 
+        public CMakeSettingsSearchResult(CMakeSettings settings, 
             string cMakeSettingsFilePath, 
             string rootCMakeListsFilePath)
         {
-            ParsedSettings = parsedSettings;
+            Settings = settings;
             CMakeSettingsFilePath = cMakeSettingsFilePath;
             RootCMakeListsFilePath = rootCMakeListsFilePath;
         }
 
-        public CMakeSettings ParsedSettings { get; }
+        public CMakeSettings Settings { get; }
         public string CMakeSettingsFilePath { get; }
         public string RootCMakeListsFilePath { get; }
     }

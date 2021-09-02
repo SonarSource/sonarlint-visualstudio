@@ -106,7 +106,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             string activeConfiguration,
             string rootDirectory)
         {
-            var buildConfiguration = cMakeSettings.ParsedSettings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
+            var buildConfiguration = cMakeSettings.Settings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
 
             if (buildConfiguration == null)
             {
