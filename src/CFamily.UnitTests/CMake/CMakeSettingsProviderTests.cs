@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         private const string RootDirectory = "dummy root";
 
         [TestMethod]
-        public void TryGet_FileDoesNotExist_Null()
+        public void Find_FileDoesNotExist_Null()
         {
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
@@ -48,13 +48,13 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.TryGet(RootDirectory);
+            var result = testSubject.Find(RootDirectory);
 
             result.Should().BeNull();
         }
 
         [TestMethod]
-        public void TryGet_FileExists_ParsedSettingsReturned()
+        public void Find_FileExists_ParsedSettingsReturned()
         {
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
             var cmakeSettings = new CMakeSettings
@@ -71,13 +71,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(fileSystem.Object);
 
-            var result = testSubject.TryGet(RootDirectory);
+            var result = testSubject.Find(RootDirectory);
 
-            result.Should().BeEquivalentTo(cmakeSettings);
+            result.Should().NotBeNull();
+            result.Settings.Should().BeEquivalentTo(cmakeSettings);
+            result.CMakeSettingsFilePath.Should().Be(cmakeSettingsLocation);
+            result.RootCMakeListsFilePath.Should().BeEmpty();
         }
 
         [TestMethod]
-        public void TryGet_FailedToReadCMakeSettings_NonCriticalException_Null()
+        public void Find_FailedToReadCMakeSettings_NonCriticalException_Null()
         {
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
@@ -90,7 +93,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(fileSystem.Object, logger);
 
-            var result = testSubject.TryGet(RootDirectory);
+            var result = testSubject.Find(RootDirectory);
 
             result.Should().BeNull();
 
@@ -98,7 +101,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void TryGet_FailedToReadCMakeSettings_CriticalException_ExceptionThrown()
+        public void Find_FailedToReadCMakeSettings_CriticalException_ExceptionThrown()
         {
             var cmakeSettingsLocation = GetCmakeSettingsLocation(RootDirectory);
 
@@ -111,13 +114,13 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(fileSystem.Object, logger);
 
-            Action act = () => testSubject.TryGet(RootDirectory);
+            Action act = () => testSubject.Find(RootDirectory);
 
             act.Should().Throw<StackOverflowException>();
         }
 
         [TestMethod]
-        public void TryGet_FailedToParseCMakeSettings_Null()
+        public void Find_FailedToParseCMakeSettings_Null()
         {
             const string invalidJson = "invalid json";
             var expectedMessage = GetExpectedDeserializationMessage();
@@ -129,7 +132,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(fileSystem.Object, logger);
 
-            var result = testSubject.TryGet(RootDirectory);
+            var result = testSubject.Find(RootDirectory);
 
             result.Should().BeNull();
 
