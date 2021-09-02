@@ -48,7 +48,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             : this(folderWorkspaceService,
                 new BuildConfigProvider(logger),
                 new CMakeSettingsProvider(logger), 
-                new MacroEvaluationService(),
+                new MacroEvaluationService(logger),
                 new FileSystem(),
                 logger)
         {
