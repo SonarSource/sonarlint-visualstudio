@@ -30,6 +30,10 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 {
     internal interface ICMakeSettingsProvider
     {
+        /// <summary>
+        /// Attempts to find and parse a CMakeSettings.json under the given root directory.
+        /// </summary>
+        /// <returns>Returns null if the file was not found or could not be parsed.</returns>
         CMakeSettings TryGet(string rootDirectory);
     }
 
