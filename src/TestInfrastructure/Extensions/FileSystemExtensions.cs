@@ -28,10 +28,10 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Extensions
     /// </summary>
     public static class FileSystemExtensions
     {
-        public static Mock<IFileSystem> FileDoesNotExist(this Mock<IFileSystem> fileSystem, string fullPath) =>
+        public static Mock<IFileSystem> SetFileDoesNotExist(this Mock<IFileSystem> fileSystem, string fullPath) =>
             fileSystem.SetFileExists(fullPath, false);
 
-        public static Mock<IFileSystem> FileExists(this Mock<IFileSystem> fileSystem, string fullPath) =>
+        public static Mock<IFileSystem> SetFileExists(this Mock<IFileSystem> fileSystem, string fullPath) =>
             fileSystem.SetFileExists(fullPath, true);
 
         public static Mock<IFileSystem> SetFileExists(this Mock<IFileSystem> fileSystem, string fullPath, bool result)
@@ -43,7 +43,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.Extensions
         public static Mock<IFileSystem> SetFileReadAllText(this Mock<IFileSystem> fileSystem, string fullPath, string result)
         {
             fileSystem
-                .FileExists(fullPath) // saying a file has contents implies it exists
+                .SetFileExists(fullPath) // saying a file has contents implies it exists
                 .Setup(x => x.File.ReadAllText(fullPath)).Returns(result);
             return fileSystem;
         }
