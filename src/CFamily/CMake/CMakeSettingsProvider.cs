@@ -34,7 +34,23 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// Attempts to find and parse a CMakeSettings.json under the given root directory.
         /// </summary>
         /// <returns>Returns null if the file was not found or could not be parsed.</returns>
-        CMakeSettings TryGet(string rootDirectory);
+        CMakeSettingsSearchResult Find(string rootDirectory);
+    }
+
+    internal class CMakeSettingsSearchResult
+    {
+        public CMakeSettingsSearchResult(CMakeSettings parsedSettings, 
+            string cMakeSettingsFilePath, 
+            string rootCMakeListsFilePath)
+        {
+            ParsedSettings = parsedSettings;
+            CMakeSettingsFilePath = cMakeSettingsFilePath;
+            RootCMakeListsFilePath = rootCMakeListsFilePath;
+        }
+
+        public CMakeSettings ParsedSettings { get; }
+        public string CMakeSettingsFilePath { get; }
+        public string RootCMakeListsFilePath { get; }
     }
 
     internal class CMakeSettingsProvider : ICMakeSettingsProvider
@@ -55,7 +71,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.fileSystem = fileSystem;
         }
 
-        public CMakeSettings TryGet(string rootDirectory)
+        public CMakeSettingsSearchResult Find(string rootDirectory)
         {
             var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
 
@@ -69,7 +85,10 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             try
             {
                 var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
-                return JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
+                var parsedSettings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
+
+                // todo: add CMakeLists file path
+                return new CMakeSettingsSearchResult(parsedSettings, cmakeSettingsFullPath, "");
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
