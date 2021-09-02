@@ -88,14 +88,15 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             }
 
             fileSystem.VerifyFileExistsCalledOnce(defaultLocation);
-            cmakeSettingsProvider.Verify(x=> x.TryGet(RootDirectory), Times.Once);
+            cmakeSettingsProvider.Verify(x=> x.Find(RootDirectory), Times.Once);
         }
 
         [TestMethod]
         public void Locate_HasCMakeSettingsFile_ActiveConfigurationDoesNotExist_Null()
         {
             var configProvider = CreateConfigProvider("my-config");
-            var cmakeSettingsProvider = CreateCmakeSettingsProvider(new CMakeSettings());
+            var cmakeSettingsProvider = CreateCmakeSettingsProvider(
+                new CMakeSettingsSearchResult(new CMakeSettings(), "", ""));
 
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, logger: logger);
@@ -111,7 +112,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", buildRoot: null);
-            var cmakeSettingsProvider = CreateCmakeSettingsProvider(cmakeSettings);
+            var cmakeSettingsProvider = CreateCmakeSettingsProvider(
+                new CMakeSettingsSearchResult(cmakeSettings, "", ""));
 
             var logger = new TestLogger();
             var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, logger: logger);
@@ -129,7 +131,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", "folder");
-            var cmakeSettingsProvider = CreateCmakeSettingsProvider(cmakeSettings);
+            var cmakeSettingsProvider = CreateCmakeSettingsProvider(
+                new CMakeSettingsSearchResult(cmakeSettings, "", ""));
 
             var compilationDatabaseFullLocation = Path.GetFullPath(
                 Path.Combine("folder", CompilationDatabaseLocator.CompilationDatabaseFileName));
@@ -161,7 +164,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             var configProvider = CreateConfigProvider("my-config");
             var cmakeSettings = CreateCMakeSettings("my-config", configuredPath);
-            var cmakeSettingsProvider = CreateCmakeSettingsProvider(cmakeSettings);
+            var cmakeSettingsProvider = CreateCmakeSettingsProvider(
+                new CMakeSettingsSearchResult(cmakeSettings, "", ""));
 
             var compilationDatabaseFullLocation = Path.GetFullPath(Path.Combine(expectedPath, CompilationDatabaseLocator.CompilationDatabaseFileName));
             
@@ -220,10 +224,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             return provider.Object;
         }
 
-        private static Mock<ICMakeSettingsProvider> CreateCmakeSettingsProvider(CMakeSettings settings)
+        private static Mock<ICMakeSettingsProvider> CreateCmakeSettingsProvider(CMakeSettingsSearchResult result)
         {
             var cmakeSettingsProvider = new Mock<ICMakeSettingsProvider>();
-            cmakeSettingsProvider.Setup(x => x.TryGet(RootDirectory)).Returns(settings);
+            cmakeSettingsProvider.Setup(x => x.Find(RootDirectory)).Returns(result);
 
             return cmakeSettingsProvider;
         }

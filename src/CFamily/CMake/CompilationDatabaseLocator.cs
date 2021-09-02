@@ -75,7 +75,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            var cmakeSettings = cMakeSettingsProvider.TryGet(rootDirectory);
+            var cmakeSettings = cMakeSettingsProvider.Find(rootDirectory);
             var activeConfiguration = buildConfigProvider.GetActiveConfig(rootDirectory);
 
             var compilationDatabaseLocation = cmakeSettings != null
@@ -102,11 +102,11 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             return defaultLocation;
         }
 
-        private string GetConfiguredLocation(CMakeSettings cMakeSettings, 
+        private string GetConfiguredLocation(CMakeSettingsSearchResult cMakeSettings, 
             string activeConfiguration,
             string rootDirectory)
         {
-            var buildConfiguration = cMakeSettings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
+            var buildConfiguration = cMakeSettings.Settings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
 
             if (buildConfiguration == null)
             {
