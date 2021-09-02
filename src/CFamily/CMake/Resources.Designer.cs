@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; could not be found at &apos;{1}&apos;.
+        ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; could not be found in CMakeSettings.json.
         /// </summary>
         internal static string NoBuildConfigInCMakeSettings {
             get {
@@ -97,7 +97,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; does not contain parameter &apos;buildRoot&apos;. File: {1}.
+        ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; does not contain parameter &apos;buildRoot&apos;.
         /// </summary>
         internal static string NoBuildRootInCMakeSettings {
             get {

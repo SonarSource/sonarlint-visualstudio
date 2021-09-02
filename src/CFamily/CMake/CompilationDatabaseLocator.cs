@@ -18,13 +18,10 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.IO.Abstractions;
 using System.Linq;
-using Microsoft.VisualStudio;
-using Newtonsoft.Json;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Infrastructure.VS;
 using SonarLint.VisualStudio.Integration;
@@ -37,18 +34,19 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     internal class CompilationDatabaseLocator : ICompilationDatabaseLocator
     {
         internal const string CompilationDatabaseFileName = "compile_commands.json";
-        internal const string CMakeSettingsFileName = "CMakeSettings.json";
         internal const string DefaultLocationFormat = "{0}\\out\\build\\{1}";
 
         private readonly IFolderWorkspaceService folderWorkspaceService;
         private readonly IFileSystem fileSystem;
         private readonly IBuildConfigProvider buildConfigProvider;
+        private readonly ICMakeSettingsProvider cMakeSettingsProvider;
         private readonly ILogger logger;
 
         [ImportingConstructor]
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, ILogger logger)
             : this(folderWorkspaceService,
                 new BuildConfigProvider(logger),
+                new CMakeSettingsProvider(logger), 
                 new FileSystem(),
                 logger)
         {
@@ -56,12 +54,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
             IBuildConfigProvider buildConfigProvider,
+            ICMakeSettingsProvider cMakeSettingsProvider,
             IFileSystem fileSystem, 
             ILogger logger)
         {
             this.folderWorkspaceService = folderWorkspaceService;
             this.fileSystem = fileSystem;
             this.buildConfigProvider = buildConfigProvider;
+            this.cMakeSettingsProvider = cMakeSettingsProvider;
             this.logger = logger;
         }
 
@@ -75,11 +75,11 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
+            var cmakeSettings = cMakeSettingsProvider.TryGet(rootDirectory);
             var activeConfiguration = buildConfigProvider.GetActiveConfig(rootDirectory);
 
-            var compilationDatabaseLocation = fileSystem.File.Exists(cmakeSettingsFullPath)
-                ? GetConfiguredLocation(cmakeSettingsFullPath, activeConfiguration, rootDirectory)
+            var compilationDatabaseLocation = cmakeSettings != null
+                ? GetConfiguredLocation(cmakeSettings, activeConfiguration, rootDirectory)
                 : GetDefaultLocation(rootDirectory, activeConfiguration);
 
             if (fileSystem.File.Exists(compilationDatabaseLocation))
@@ -97,38 +97,26 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             var defaultDirectory = Path.GetFullPath(string.Format(DefaultLocationFormat, rootDirectory, activeConfiguration));
             var defaultLocation = Path.Combine(defaultDirectory, CompilationDatabaseFileName);
 
-            logger.LogDebug($"[CompilationDatabaseLocator] No {CMakeSettingsFileName} was found under {rootDirectory}, returning default location: {defaultLocation}");
+            logger.LogDebug($"[CompilationDatabaseLocator] No CMakeSettings file was found under {rootDirectory}, returning default location: {defaultLocation}");
 
             return defaultLocation;
         }
 
-        private string GetConfiguredLocation(string cmakeSettingsFullPath, string activeConfiguration, string rootDirectory)
+        private string GetConfiguredLocation(CMakeSettings cMakeSettings, 
+            string activeConfiguration,
+            string rootDirectory)
         {
-            logger.LogDebug($"[CompilationDatabaseLocator] Reading {cmakeSettingsFullPath}...");
-            CMakeSettings settings;
-
-            try
-            {
-                var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
-                settings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
-            }
-            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
-            {
-                logger.WriteLine(Resources.BadCMakeSettings, ex.Message);
-                return null;
-            }
-
-            var buildConfiguration = settings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
+            var buildConfiguration = cMakeSettings.Configurations?.FirstOrDefault(x => x.Name == activeConfiguration);
 
             if (buildConfiguration == null)
             {
-                logger.WriteLine(Resources.NoBuildConfigInCMakeSettings, activeConfiguration, CMakeSettingsFileName);
+                logger.WriteLine(Resources.NoBuildConfigInCMakeSettings, activeConfiguration);
                 return null;
             }
 
             if (buildConfiguration.BuildRoot == null)
             {
-                logger.WriteLine(Resources.NoBuildRootInCMakeSettings, activeConfiguration, cmakeSettingsFullPath);
+                logger.WriteLine(Resources.NoBuildRootInCMakeSettings, activeConfiguration);
                 return null;
             }
 
