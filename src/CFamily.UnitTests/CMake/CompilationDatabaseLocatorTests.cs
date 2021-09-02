@@ -39,7 +39,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         private const string RootDirectory = "dummy root";
 
         // Macro evaluator that returns the input unchanged
-        private static readonly IMacroEvaluationService PassthroughMacroEvaluator = CreatePassthroughMacroEvaluator();
+        private static readonly IMacroEvaluationService PassthroughMacroService = CreatePassthroughMacroService();
 
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -145,7 +145,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             fileSystem.SetFileExists(compilationDatabaseFullLocation, fileExists);
 
             var testSubject = CreateTestSubject(RootDirectory, configProvider, cmakeSettingsProvider.Object, fileSystem.Object,
-                macroEvaluationService: PassthroughMacroEvaluator);
+                macroEvaluationService: PassthroughMacroService);
 
             var result = testSubject.Locate();
 
@@ -160,7 +160,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        public void Locate_MacroEvaluatorIsCalled_EvaluatedPropertyIsNull_Null()
+        public void Locate_MacroServiceIsCalled_EvaluatedPropertyIsNull_Null()
         {
             var context = new MacroEvalContext(null, unevaluatedBuildRoot: "property that can't be evaluated");
 
@@ -172,15 +172,14 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
-        [DataRow(null, null)]
         [DataRow("c:\\absolute", "c:\\absolute\\compile_commands.json")]
         [DataRow("c:\\absolute\\", "c:\\absolute\\compile_commands.json")]
         [DataRow("c:\\path", "c:\\path\\compile_commands.json")]
         [DataRow("c:\\path\\", "c:\\path\\compile_commands.json")]
         [DataRow("c:\\aaa\\..\\bbb", "c:\\bbb\\compile_commands.json")]  // non-canonical path
-        public void Locate_MacroEvaluatorIsCalled_RootedPath_ExpectedValueIsReturn(string macroEvalReturnValue, string expectedResult)
+        public void Locate_MacroServiceIsCalled_RootedPath_ExpectedValueIsReturn(string macroServiceReturnValue, string expectedResult)
         {
-            var context = new MacroEvalContext(macroEvalReturnValue);
+            var context = new MacroEvalContext(macroServiceReturnValue);
 
             var result = context.TestSubject.Locate();
 
@@ -192,9 +191,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow("relative", "relative\\compile_commands.json")]
         [DataRow("relative\\", "relative\\compile_commands.json")]
         [DataRow("aaa\\bbb\\.\\..\\ccc\\", "aaa\\ccc\\compile_commands.json")]
-        public void Locate_MacroEvaluatorIsCalled_RelativePath_ExpectedValueIsReturn(string macroEvalReturnValue, string partialExpectedResult)
+        public void Locate_MacroServiceIsCalled_RelativePath_ExpectedValueIsReturn(string macroServiceReturnValue, string partialExpectedResult)
         {
-            var context = new MacroEvalContext(macroEvalReturnValue);
+            var context = new MacroEvalContext(macroServiceReturnValue);
             var fullExpectedResult = Path.GetFullPath(partialExpectedResult);
 
             var result = context.TestSubject.Locate();
@@ -258,24 +257,24 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             return cmakeSettingsProvider;
         }
 
-        private static IMacroEvaluationService CreatePassthroughMacroEvaluator()
+        private static IMacroEvaluationService CreatePassthroughMacroService()
         {
             Func<string, string, string, string> passthrough = (input, _, _) => input;
 
-            var macroEvaluator = new Mock<IMacroEvaluationService>();
-            macroEvaluator.Setup(x => x.Evaluate(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            var macroService = new Mock<IMacroEvaluationService>();
+            macroService.Setup(x => x.Evaluate(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(passthrough);
 
-            return macroEvaluator.Object;
+            return macroService.Object;
         }
 
         /// <summary>
         /// Sets up the file and config mocks so that the test subject will call the
-        /// macro evaluator to process property
+        /// macro evaluation service to process property
         /// </summary>
         private class MacroEvalContext
         {
-            public MacroEvalContext(string macroEvalReturnValue, string unevaluatedBuildRoot = "any")
+            public MacroEvalContext(string macroServiceReturnValue, string unevaluatedBuildRoot = "any")
             {
                 const string ActiveConfig = "my-active-config";
                 const string WorkspaceRootDir = "c:\\workspace root";
@@ -292,7 +291,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
  
                 MacroEvalService = new Mock<IMacroEvaluationService>();
                 MacroEvalService.Setup(x => x.Evaluate(unevaluatedBuildRoot, ActiveConfig, WorkspaceRootDir))
-                    .Returns(macroEvalReturnValue);
+                    .Returns(macroServiceReturnValue);
 
                 Logger = new TestLogger(logToConsole: true);
 

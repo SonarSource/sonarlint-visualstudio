@@ -40,7 +40,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IFileSystem fileSystem;
         private readonly IBuildConfigProvider buildConfigProvider;
         private readonly ICMakeSettingsProvider cMakeSettingsProvider;
-        private readonly IMacroEvaluationService propertyEvaluationService;
+        private readonly IMacroEvaluationService macroEvaluationService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -57,7 +57,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
             IBuildConfigProvider buildConfigProvider,
             ICMakeSettingsProvider cMakeSettingsProvider,
-            IMacroEvaluationService propertyEvaluationService,
+            IMacroEvaluationService macroEvaluationService,
             IFileSystem fileSystem, 
             ILogger logger)
         {
@@ -65,7 +65,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.fileSystem = fileSystem;
             this.buildConfigProvider = buildConfigProvider;
             this.cMakeSettingsProvider = cMakeSettingsProvider;
-            this.propertyEvaluationService = propertyEvaluationService;
+            this.macroEvaluationService = macroEvaluationService;
             this.logger = logger;
         }
 
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            var expandedBuildRoot = propertyEvaluationService.Evaluate(buildConfiguration.BuildRoot, buildConfiguration.Name, rootDirectory);
+            var expandedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, buildConfiguration.Name, rootDirectory);
             if (expandedBuildRoot == null)
             {
                 logger.WriteLine(Resources.UnableToEvaluateBuildRootProperty, buildConfiguration.BuildRoot);
