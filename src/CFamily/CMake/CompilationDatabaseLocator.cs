@@ -124,14 +124,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            var expandedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, buildConfiguration.Name, rootDirectory);
-            if (expandedBuildRoot == null)
+            var evaluatedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, buildConfiguration.Name, rootDirectory);
+            if (evaluatedBuildRoot == null)
             {
                 logger.WriteLine(Resources.UnableToEvaluateBuildRootProperty, buildConfiguration.BuildRoot);
                 return null;
             }
 
-            var databaseFilePath = Path.Combine(Path.GetFullPath(expandedBuildRoot), CompilationDatabaseFileName);
+            var databaseFilePath = Path.Combine(Path.GetFullPath(evaluatedBuildRoot), CompilationDatabaseFileName);
 
             return databaseFilePath;
         }

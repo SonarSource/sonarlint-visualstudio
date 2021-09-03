@@ -23,7 +23,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     internal interface IMacroEvaluationService
     {
         /// <summary>
-        /// Evaluates any macros and environment variables in the input path and returns the 
+        /// Evaluates any macros and environment variables in the input and returns the expanded
+        /// value
         /// </summary>
         /// <param name="input">The string to be evaluated</param>
         /// <param name="activeConfiguration">The current build configuration</param>
