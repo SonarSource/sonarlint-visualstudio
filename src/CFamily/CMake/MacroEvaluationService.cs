@@ -18,6 +18,12 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.Helpers;
+
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
     internal interface IMacroEvaluationService
@@ -35,17 +41,62 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
     internal class MacroEvaluationService : IMacroEvaluationService
     {
+        private readonly ILogger logger;
+        private readonly IMacroEvaluator macroEvaluator;
+
+        // Looks for patterns like "${name}" and "${prefix.name}" and captures the [prefix, name] tuple.
+        private static readonly Regex CMakeSettingsMacroRegex = new Regex(
+            "\\${" +                 // Match opening literals "${". $ is a special Regex symbol that needs be escaped,
+                                     // and "\" needs to be escaped in the C# string.
+            "((?<prefix>\\w+)\\.)" + // One or more word chars followed by ".". Like "$" above, the "." needs to be escaped with "\\".
+                                     // The word chars are captured in a group called "prefix".
+            "?" +                    // Match the previous group 0 or 1 times i.e. the prefix is optional.
+            "(?<name>\\w+)" +        // Capture one or more word consecutive word chars in a group called "name".
+            "}");                    // Match the closing literal.
+
+        public MacroEvaluationService(ILogger logger)
+            :this(logger, new MacroEvaluator()) {}
+
+        internal MacroEvaluationService(ILogger logger, IMacroEvaluator macroEvaluator)
+        {
+            this.logger = logger;
+            this.macroEvaluator = macroEvaluator;
+        }
+
         public string Evaluate(string input, string activeConfiguration, string workspaceRootDir)
         {
             if (input == null)
             {
                 return null;
             }
+
+            var context = new EvaluationContext(activeConfiguration, workspaceRootDir);
+            var sb = new StringBuilder(input);
+
+            foreach(Match match in CMakeSettingsMacroRegex.Matches(input))
+            {
+                var prefix= match.Groups["prefix"].Value; // will be String.Empty if not found
+                var name = match.Groups["name"].Value;
+
+                var evaluatedProperty = macroEvaluator.TryEvaluate(prefix, name, context);
+
+                if (evaluatedProperty == null)
+                {
+                    // Give up if we failed to evaluate any property
+                    logger.WriteLine(Resources.MacroEval_FailedToEvaluateMacro, match.Value);
+                    return null;
+                }
+
+                LogDebug($"{prefix}.{name} = {evaluatedProperty}");
+                sb.Replace(match.Value, evaluatedProperty);
+            }
             
-            var output = input
-                .Replace("${projectDir}", workspaceRootDir)
-                .Replace("${name}", activeConfiguration);
-            return output;
+            return sb.ToString();
+        }
+
+        private void LogDebug(string message)
+        {
+            logger.LogDebug($"[CMake:MacroEval] [Thread id: {Thread.CurrentThread.ManagedThreadId}] {message}");
         }
     }
 }

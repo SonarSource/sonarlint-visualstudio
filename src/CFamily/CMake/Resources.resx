@@ -160,4 +160,7 @@
   <data name="VsDevCmd_TimedOut" xml:space="preserve">
     <value>[CMake] Failed to fetch VsDevCmd settings: timed out.</value>
   </data>
+  <data name="MacroEval_FailedToEvaluateMacro" xml:space="preserve">
+    <value>[CMake] Failed to evaluate macro: {0}</value>
+  </data>
 </root>
