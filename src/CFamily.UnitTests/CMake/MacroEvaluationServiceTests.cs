@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
     [TestClass]
     public class MacroEvaluationServiceTests
     {
-        private static readonly EvaluationContext EvaluationContext = new("", "");
+        private static readonly IEvaluationContext EvaluationContext = Mock.Of<IEvaluationContext>();
 
         [TestMethod]
         public void Evaluate_NullInput_Null()

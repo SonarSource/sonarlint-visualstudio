@@ -19,29 +19,17 @@
  */
 
 using System;
+using System.IO;
 using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
-    internal class EvaluationContext
-    {
-        public EvaluationContext(string activeConfiguration, string rootDirectory)
-        {
-            ActiveConfiguration = activeConfiguration;
-            RootDirectory = rootDirectory;
-        }
-
-        public string RootDirectory { get; }
-
-        public string ActiveConfiguration { get; }
-    }
-
     /// <summary>
     /// Returns the evaluated value for the supplied macro, or null if it could not be evaluated
     /// </summary>
     internal interface IMacroEvaluator
     {
-        string TryEvaluate(string macroPrefix, string macroName, EvaluationContext context);
+        string TryEvaluate(string macroPrefix, string macroName, IEvaluationContext context);
     }
 
     internal class MacroEvaluator : IMacroEvaluator
@@ -58,15 +46,13 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.environmentVariableProvider = environmentVariableProvider;
         }
 
-        public string TryEvaluate(string macroPrefix, string macroName, EvaluationContext evaluationContext)
+        public string TryEvaluate(string macroPrefix, string macroName, IEvaluationContext evaluationContext)
         {
             if (string.IsNullOrEmpty(macroName))
             {
                 return null;
             }
 
-            // TODO:
-            // * process other simple macros
             if (macroPrefix != string.Empty)
             {
                 return macroPrefix.Equals("env", StringComparison.CurrentCultureIgnoreCase)
@@ -74,17 +60,30 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                     : null;
             }
 
-            if (macroName == "projectDir")
+            switch (macroName)
             {
-                return evaluationContext.RootDirectory;
+                case "workspaceRoot":
+                    return evaluationContext.RootDirectory;
+                case "projectFile":
+                    return evaluationContext.RootCMakeListsFilePath;
+                case "projectDir":
+                    return Path.GetDirectoryName(evaluationContext.RootCMakeListsFilePath);
+                case "projectDirName":
+                {
+                    var directoryName = Path.GetDirectoryName(evaluationContext.RootCMakeListsFilePath);
+                    return string.IsNullOrEmpty(directoryName) ? null : new DirectoryInfo(directoryName).Name;
+                }
+                case "thisFile":
+                    return evaluationContext.CMakeSettingsFilePath;
+                case "thisFileDir":
+                    return Path.GetDirectoryName(evaluationContext.CMakeSettingsFilePath);
+                case "name":
+                    return evaluationContext.ActiveConfiguration;
+                case "generator":
+                    return evaluationContext.Generator;
+                default:
+                    return null;
             }
-
-            if (macroName == "name")
-            {
-                return evaluationContext.ActiveConfiguration;
-            }
-
-            return null;
         }
     }
 }

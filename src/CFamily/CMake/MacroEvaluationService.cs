@@ -35,7 +35,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// <param name="input">The string to be evaluated</param>
         /// <param name="evaluationContext">Information used for the evaluation</param>
         /// <returns>The evaluated result, or null if the input contained properties that could not be evaluated.</returns>
-        string Evaluate(string input, EvaluationContext evaluationContext);
+        string Evaluate(string input, IEvaluationContext evaluationContext);
     }
 
     internal class MacroEvaluationService : IMacroEvaluationService
@@ -62,7 +62,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.macroEvaluator = macroEvaluator;
         }
 
-        public string Evaluate(string input, EvaluationContext evaluationContext)
+        public string Evaluate(string input, IEvaluationContext evaluationContext)
         {
             if (input == null)
             {

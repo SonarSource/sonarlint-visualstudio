@@ -202,7 +202,9 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             context.MacroEvalService.Invocations.Count.Should().Be(1);
         }
 
-        private static CMakeSettings CreateCMakeSettings(string activeConfigurationName, string buildRoot) =>
+        private static CMakeSettings CreateCMakeSettings(string activeConfigurationName, 
+            string buildRoot, 
+            string generator = "generator") =>
             new()
             {
                 Configurations = new[]
@@ -210,7 +212,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                     new CMakeBuildConfiguration
                     {
                         Name = activeConfigurationName,
-                        BuildRoot = buildRoot
+                        BuildRoot = buildRoot,
+                        Generator = generator
                     }
                 }
             };
@@ -259,10 +262,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
         private static IMacroEvaluationService CreatePassthroughMacroService()
         {
-            Func<string, EvaluationContext, string> passthrough = (input, _) => input;
+            Func<string, IEvaluationContext, string> passthrough = (input, _) => input;
 
             var macroService = new Mock<IMacroEvaluationService>();
-            macroService.Setup(x => x.Evaluate(It.IsAny<string>(), It.IsAny<EvaluationContext>()))
+            macroService.Setup(x => x.Evaluate(It.IsAny<string>(), It.IsAny<IEvaluationContext>()))
                 .Returns(passthrough);
 
             return macroService.Object;
@@ -276,13 +279,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         {
             public MacroEvalContext(string macroServiceReturnValue, string unevaluatedBuildRoot = "any")
             {
-                const string ActiveConfig = "my-active-config";
-                const string WorkspaceRootDir = "c:\\workspace root";
+                const string activeConfig = "my-active-config";
+                const string workspaceRootDir = "c:\\workspace root";
+                const string cmakeSettingsFilePath = "some path to cmake settings";
+                const string cmakeListsFilePath = "some path to cmake lists";
+                const string generator = "dummy generator";
 
-                var configProvider = CreateConfigProvider(ActiveConfig);
-                var cmakeSettings = CreateCMakeSettings(ActiveConfig, unevaluatedBuildRoot);
-                var cmakeSettingsProvider = CreateCMakeSettingsProvider(WorkspaceRootDir,
-                    new CMakeSettingsSearchResult(cmakeSettings, "", ""));
+                var configProvider = CreateConfigProvider(activeConfig);
+                var cmakeSettings = CreateCMakeSettings(activeConfig, unevaluatedBuildRoot, generator);
+                var cmakeSettingsProvider = CreateCMakeSettingsProvider(workspaceRootDir,
+                    new CMakeSettingsSearchResult(cmakeSettings, cmakeSettingsFilePath, cmakeListsFilePath));
 
                 // Treat all files as existing
                 var fileSystem = new Mock<IFileSystem>();
@@ -294,13 +300,16 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                     x.Evaluate(unevaluatedBuildRoot,
                             It.Is((EvaluationContext context) =>
                                 context != null &&
-                                context.ActiveConfiguration == ActiveConfig &&
-                                context.RootDirectory == WorkspaceRootDir)))
+                                context.ActiveConfiguration == activeConfig &&
+                                context.RootDirectory == workspaceRootDir &&
+                                context.Generator == generator &&
+                                context.RootCMakeListsFilePath == cmakeListsFilePath &&
+                                context.CMakeSettingsFilePath == cmakeSettingsFilePath)))
                         .Returns(macroServiceReturnValue);
 
                 Logger = new TestLogger(logToConsole: true);
 
-                TestSubject = CreateTestSubject(WorkspaceRootDir, configProvider, cmakeSettingsProvider.Object,
+                TestSubject = CreateTestSubject(workspaceRootDir, configProvider, cmakeSettingsProvider.Object,
                     fileSystem.Object, Logger, MacroEvalService.Object);
             }
 
