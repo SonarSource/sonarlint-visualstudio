@@ -64,6 +64,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             {
                 case "workspaceRoot":
                     return evaluationContext.RootDirectory;
+                case "workspaceHash": // workspaceHash and projectHash both use the root CMakeLists file path
+                case "projectHash":
+                    return CMakeHashCalculator.CalculateVS2019Guid(evaluationContext.RootCMakeListsFilePath).ToString();
                 case "projectFile":
                     return evaluationContext.RootCMakeListsFilePath;
                 case "projectDir":
