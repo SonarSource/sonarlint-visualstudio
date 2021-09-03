@@ -20,7 +20,9 @@
 
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.Core;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {
@@ -62,6 +64,53 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var result = testSubject.TryEvaluate(string.Empty, "name", context);
 
             result.Should().Be("activeConfig");
+        }
+
+        [TestMethod]
+        [DataRow("env")]
+        [DataRow("ENV")]
+        [DataRow("Env")]
+        public void Evaluate_EnvPrefix_EnvVariableReturned(string prefix)
+        {
+            var envVariableProvider = new Mock<IEnvironmentVariableProvider>();
+            envVariableProvider.Setup(x => x.TryGet("var name")).Returns("some value");
+
+            var testSubject = new MacroEvaluator(envVariableProvider.Object);
+            var context = new EvaluationContext("any", "any");
+
+            var result = testSubject.TryEvaluate(prefix, "var name", context);
+
+            result.Should().Be("some value");
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Evaluate_EnvPrefix_NoMacroName_Null(string macroName)
+        {
+            var envVariableProvider = new Mock<IEnvironmentVariableProvider>();
+
+            var testSubject = new MacroEvaluator(envVariableProvider.Object);
+            var context = new EvaluationContext("any", "any");
+
+            var result = testSubject.TryEvaluate("env", macroName, context);
+
+            result.Should().BeNull();
+
+            envVariableProvider.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        [DataRow(null)]
+        [DataRow("")]
+        public void Evaluate_NoMacroName_Null(string macroName)
+        {
+            var testSubject = new MacroEvaluator();
+            var context = new EvaluationContext("any", "any");
+
+            var result = testSubject.TryEvaluate(string.Empty, macroName, context);
+
+            result.Should().BeNull();
         }
     }
 }
