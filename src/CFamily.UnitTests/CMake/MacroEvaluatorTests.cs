@@ -175,6 +175,28 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         }
 
         [TestMethod]
+        public void Evaluate_WorkspaceHash_ExpectedValueReturned()
+        {
+            var testSubject = new MacroEvaluator();
+            var context = CreateContext(cmakeLists: "c:\\aaa\\bbb\\foo.txt");
+
+            var result = testSubject.TryEvaluate(string.Empty, "workspaceHash", context);
+
+            result.Should().Be("d44ebc76-6f0d-4eb9-b244-2654f9acb2c1");
+        }
+
+        [TestMethod]
+        public void Evaluate_ProjectHash_ExpectedValueReturned()
+        {
+            var testSubject = new MacroEvaluator();
+            var context = CreateContext(cmakeLists: "c:\\aaa\\bbb\\foo.txt");
+
+            var result = testSubject.TryEvaluate(string.Empty, "projectHash", context);
+
+            result.Should().Be("d44ebc76-6f0d-4eb9-b244-2654f9acb2c1");
+        }
+
+        [TestMethod]
         [DataRow("env")]
         [DataRow("ENV")]
         [DataRow("Env")]
