@@ -29,7 +29,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// <summary>
         /// Generates a GUID from the supplied input
         /// </summary>
-        /// <remarks>The algorithm should be equivalent to the one used by VS2019/2022 when calculating the
+        /// <remarks>The algorithm is equivalent to the one used by VS2019/2022 when calculating the
         /// CMake macros "workspaceHash" and "projectHash".
         /// <para>
         /// The VS2019 implementation is in:
@@ -38,7 +38,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// Unfortunately, it isn't currently available in a NuGet package.
         /// </para>
         /// </remarks>
-        public static Guid Calculate(string input)
+        public static Guid CalculateVS2019Guid(string input)
         {
             // UTF8-encode the input
             var data = Encoding.UTF8.GetBytes(input);

@@ -36,11 +36,11 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [DataRow(@"D:\features\CMake\Common\XXXYYY\CMakeLists.txt", "a9840b6b-dbe5-4731-a2f4-2aa20fb8b352")]
         [DataRow(@"C:\Data\SunfireCatfish\CMakeLists.txt", "ec246df2-4701-4999-aae9-587cdbcd1a72")]
         [DataRow(@"C:\Data\Avalon\CoreEngine\DifferenceCalculator\Calculator\CMakeLists.txt", "7d6c0437-9f9a-4519-aa20-ed38ea36f35a")]
-        public void Calculate_ReturnsExpectedValue(string input, string expected)
+        public void CalculateVS2019_ReturnsExpectedValue(string input, string expected)
         {
             var expectedGuid = Guid.Parse(expected);
 
-            var actual = CMakeHashCalculator.Calculate(input);
+            var actual = CMakeHashCalculator.CalculateVS2019Guid(input);
 
             actual.Should().Be(expectedGuid);
         }
