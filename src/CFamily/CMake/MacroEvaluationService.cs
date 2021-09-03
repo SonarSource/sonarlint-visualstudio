@@ -83,7 +83,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 if (evaluatedProperty == null)
                 {
                     // Give up if we failed to evaluate any property
-                    LogDebug($"Failed to evaluate macro: {match.Value}");
+                    logger.WriteLine(Resources.MacroEval_FailedToEvaluateMacro, match.Value);
                     return null;
                 }
 

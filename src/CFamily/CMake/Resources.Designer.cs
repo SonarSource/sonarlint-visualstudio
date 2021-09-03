@@ -97,6 +97,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CMake] Failed to evaluate macro: {0}.
+        /// </summary>
+        internal static string MacroEval_FailedToEvaluateMacro {
+            get {
+                return ResourceManager.GetString("MacroEval_FailedToEvaluateMacro", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; could not be found in CMakeSettings.json.
         /// </summary>
         internal static string NoBuildConfigInCMakeSettings {

@@ -22,15 +22,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 {
     internal class EvaluationContext
     {
-        public EvaluationContext(string activeDirectory, string rootDirectory)
+        public EvaluationContext(string activeConfiguration, string rootDirectory)
         {
-            ActiveDirectory = activeDirectory;
+            ActiveConfiguration = activeConfiguration;
             RootDirectory = rootDirectory;
         }
 
         public string RootDirectory { get; }
 
-        public string ActiveDirectory { get; }
+        public string ActiveConfiguration { get; }
     }
 
     /// <summary>
@@ -60,7 +60,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
             if (macroName == "name")
             {
-                return evaluationContext.ActiveDirectory;
+                return evaluationContext.ActiveConfiguration;
             }
 
             return null;

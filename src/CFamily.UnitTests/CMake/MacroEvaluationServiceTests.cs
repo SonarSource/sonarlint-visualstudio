@@ -106,6 +106,20 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             result.Should().BeNull();
         }
 
+        [TestMethod]
+        public void Evaluate_UnrecognisedMacrosInInput_MessageLogged()
+        {
+            var evaluator = CreateEvaluator();
+            var logger = new TestLogger(logToConsole: true);
+            var testSubject = CreateTestSubject(evaluator.Object, logger);
+
+            var result = testSubject.Evaluate("${unknown} ${unknown2}", "any", "any");
+
+            result.Should().BeNull();
+            logger.AssertPartialOutputStringExists("${unknown}");
+            logger.AssertPartialOutputStringDoesNotExist("${unknown2}"); // we give up on the the first failure
+        }
+
         private static Mock<IMacroEvaluator> CreateEvaluator(params (string macroPrefix, string macroName, string valueToReturn)[] macroData)
         {
             Func<string, string, EvaluationContext, string> finder = (prefix, name, context) =>
