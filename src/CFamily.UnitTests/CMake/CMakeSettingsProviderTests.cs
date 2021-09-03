@@ -40,7 +40,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
         [TestMethod]
         public void Find_FileDoesNotExist_Null()
         {
-            var fileSystem = SetupFileSystem();
+            var fileSystem = new MockFileSystem();
+            fileSystem.AddDirectory(RootDirectory);
 
             var testSubject = CreateTestSubject(fileSystem);
 
@@ -232,12 +233,12 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             return new CMakeSettingsProvider(logger, fileSystem);
         }
 
-        private IFileSystem SetupFileSystem(params (string, string)[] files)
+        private IFileSystem SetupFileSystem(params (string, string)[] pathsAndContents)
         {
             var fileSystem = new MockFileSystem();
             fileSystem.AddDirectory(RootDirectory);
 
-            foreach (var filePathAndContent in files)
+            foreach (var filePathAndContent in pathsAndContents)
             {
                 fileSystem.AddFile(filePathAndContent.Item1, new MockFileData(filePathAndContent.Item2));
             }

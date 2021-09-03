@@ -88,7 +88,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to [CMake] Could not find CMakeSettings.json: {0}.
+        ///   Looks up a localized string similar to [CMake] Failed to find CMakeSettings.json: {0}.
         /// </summary>
         internal static string FailedToFindCMakeSettings {
             get {
