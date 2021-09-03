@@ -298,7 +298,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 MacroEvalService = new Mock<IMacroEvaluationService>();
                 MacroEvalService.Setup(x =>
                     x.Evaluate(unevaluatedBuildRoot,
-                            It.Is((EvaluationContext context) =>
+                            It.Is((IEvaluationContext context) =>
                                 context != null &&
                                 context.ActiveConfiguration == activeConfig &&
                                 context.RootDirectory == workspaceRootDir &&
