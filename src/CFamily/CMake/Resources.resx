@@ -120,6 +120,9 @@
   <data name="BadCMakeSettings" xml:space="preserve">
     <value>[CMake] Could not parse CMakeSettings.json: {0}</value>
   </data>
+  <data name="FailedToFindCMakeSettings" xml:space="preserve">
+    <value>[CMake] Failed to find CMakeSettings.json: {0}</value>
+  </data>
   <data name="BadCompilationDatabaseFile" xml:space="preserve">
     <value>[CMake] Could not parse compile_commands.json: {0}</value>
   </data>
