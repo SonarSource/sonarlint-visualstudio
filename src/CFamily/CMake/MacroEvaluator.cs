@@ -18,6 +18,9 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using SonarLint.VisualStudio.Core;
+
 namespace SonarLint.VisualStudio.CFamily.CMake
 {
     internal class EvaluationContext
@@ -43,14 +46,32 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
     internal class MacroEvaluator : IMacroEvaluator
     {
+        private readonly IEnvironmentVariableProvider environmentVariableProvider;
+
+        public MacroEvaluator()
+            : this(new EnvironmentVariableProvider())
+        {
+        }
+
+        internal MacroEvaluator(IEnvironmentVariableProvider environmentVariableProvider)
+        {
+            this.environmentVariableProvider = environmentVariableProvider;
+        }
+
         public string TryEvaluate(string macroPrefix, string macroName, EvaluationContext evaluationContext)
         {
-            // TODO:
-            // * process other simple macros
-            // * process environment variable macros
-            if (macroPrefix != string.Empty)
+            if (string.IsNullOrEmpty(macroName))
             {
                 return null;
+            }
+
+            // TODO:
+            // * process other simple macros
+            if (macroPrefix != string.Empty)
+            {
+                return macroPrefix.Equals("env", StringComparison.CurrentCultureIgnoreCase)
+                    ? environmentVariableProvider.TryGet(macroName)
+                    : null;
             }
 
             if (macroName == "projectDir")
