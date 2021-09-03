@@ -32,7 +32,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
     [TestClass]
     public class MacroEvaluationServiceTests
     {
-        private static readonly EvaluationContext EvaluationContext = new("", "");
+        private static readonly IEvaluationContext EvaluationContext = Mock.Of<IEvaluationContext>();
 
         [TestMethod]
         public void Evaluate_NullInput_Null()
@@ -124,7 +124,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
         private static Mock<IMacroEvaluator> CreateEvaluator(params (string macroPrefix, string macroName, string valueToReturn)[] macroData)
         {
-            Func<string, string, EvaluationContext, string> finder = (prefix, name, context) =>
+            Func<string, string, IEvaluationContext, string> finder = (prefix, name, context) =>
                 macroData.FirstOrDefault(x => x.macroPrefix == prefix && x.macroName == name).valueToReturn;
            
             var evaluator = new Mock<IMacroEvaluator>();
