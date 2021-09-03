@@ -56,6 +56,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
     internal class CMakeSettingsProvider : ICMakeSettingsProvider
     {
         internal const string CMakeSettingsFileName = "CMakeSettings.json";
+        internal const string CMakeListsFileName = "CMakeLists.txt";
 
         private readonly ILogger logger;
         private readonly IFileSystem fileSystem;
@@ -73,28 +74,64 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         public CMakeSettingsSearchResult Find(string rootDirectory)
         {
-            var cmakeSettingsFullPath = Path.GetFullPath(Path.Combine(rootDirectory, CMakeSettingsFileName));
+            var settingsFiles = FindSettingsFiles(rootDirectory);
 
-            if (!fileSystem.File.Exists(cmakeSettingsFullPath))
+            if (settingsFiles == null)
             {
+                logger.LogDebug($"[CMakeSettingsProvider] No matching CMakeSettings.json was found under {rootDirectory}");
                 return null;
             }
 
-            logger.LogDebug($"[CompilationDatabaseLocator] Reading {cmakeSettingsFullPath}...");
+            var cmakeSettingsFullPath = settingsFiles.Item1;
+            var cmakeListsFullPath = settingsFiles.Item2;
+
+            logger.LogDebug($"[CMakeSettingsProvider] Reading {cmakeSettingsFullPath}...");
 
             try
             {
                 var settingsString = fileSystem.File.ReadAllText(cmakeSettingsFullPath);
                 var parsedSettings = JsonConvert.DeserializeObject<CMakeSettings>(settingsString);
 
-                // todo: add CMakeLists file path
-                return new CMakeSettingsSearchResult(parsedSettings, cmakeSettingsFullPath, "");
+                return new CMakeSettingsSearchResult(parsedSettings, cmakeSettingsFullPath, cmakeListsFullPath);
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
             {
                 logger.WriteLine(Resources.BadCMakeSettings, ex.Message);
                 return null;
             }
+        }
+
+        private Tuple<string, string> FindSettingsFiles(string rootDirectory)
+        {
+            try
+            {
+                var cmakeSettingsFiles = fileSystem
+                    .Directory
+                    .EnumerateFiles(rootDirectory, CMakeSettingsFileName, SearchOption.AllDirectories);
+
+                foreach (var cmakeSettingsFile in cmakeSettingsFiles)
+                {
+                    logger.LogDebug($"[CMakeSettingsProvider] Found candidate CMakeSettings.json: {cmakeSettingsFile}...");
+
+                    var directory = Path.GetDirectoryName(cmakeSettingsFile);
+                    var cmakeListsFile = Path.Combine(directory, CMakeListsFileName);
+                    var hasCMakeListsNextToIt = fileSystem.File.Exists(cmakeListsFile);
+
+                    if (hasCMakeListsNextToIt)
+                    {
+                        return new Tuple<string, string>(cmakeSettingsFile, cmakeListsFile);
+                    }
+
+                    logger.LogDebug($"[CMakeSettingsProvider] No CMakeLists.txt was found next to {cmakeSettingsFile}");
+                }
+            }
+            catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
+            {
+                logger.LogDebug($"[CMakeSettingsProvider] Failed to locate CMakeSettings.json: {ex}");
+                logger.WriteLine(Resources.FailedToFindCMakeSettings, ex.Message);
+            }
+
+            return null;
         }
     }
 }

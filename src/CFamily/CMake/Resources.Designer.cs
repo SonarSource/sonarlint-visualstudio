@@ -88,6 +88,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CMake] Failed to find CMakeSettings.json: {0}.
+        /// </summary>
+        internal static string FailedToFindCMakeSettings {
+            get {
+                return ResourceManager.GetString("FailedToFindCMakeSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CMake] Specified build configuration &apos;{0}&apos; could not be found in CMakeSettings.json.
         /// </summary>
         internal static string NoBuildConfigInCMakeSettings {
