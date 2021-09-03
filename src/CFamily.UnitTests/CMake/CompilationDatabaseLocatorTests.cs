@@ -259,10 +259,10 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
         private static IMacroEvaluationService CreatePassthroughMacroService()
         {
-            Func<string, string, string, string> passthrough = (input, _, _) => input;
+            Func<string, EvaluationContext, string> passthrough = (input, _) => input;
 
             var macroService = new Mock<IMacroEvaluationService>();
-            macroService.Setup(x => x.Evaluate(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            macroService.Setup(x => x.Evaluate(It.IsAny<string>(), It.IsAny<EvaluationContext>()))
                 .Returns(passthrough);
 
             return macroService.Object;
@@ -290,8 +290,13 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 fileSystem.Setup(x => x.File.Exists(It.IsAny<string>())).Returns(nonNullFilesExist);
  
                 MacroEvalService = new Mock<IMacroEvaluationService>();
-                MacroEvalService.Setup(x => x.Evaluate(unevaluatedBuildRoot, ActiveConfig, WorkspaceRootDir))
-                    .Returns(macroServiceReturnValue);
+                MacroEvalService.Setup(x =>
+                    x.Evaluate(unevaluatedBuildRoot,
+                            It.Is((EvaluationContext context) =>
+                                context != null &&
+                                context.ActiveConfiguration == ActiveConfig &&
+                                context.RootDirectory == WorkspaceRootDir)))
+                        .Returns(macroServiceReturnValue);
 
                 Logger = new TestLogger(logToConsole: true);
 
