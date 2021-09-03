@@ -33,10 +33,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         /// value
         /// </summary>
         /// <param name="input">The string to be evaluated</param>
-        /// <param name="activeConfiguration">The current build configuration</param>
-        /// <param name="workspaceRootDir">The workspace root directory</param>
+        /// <param name="evaluationContext">Information used for the evaluation</param>
         /// <returns>The evaluated result, or null if the input contained properties that could not be evaluated.</returns>
-        string Evaluate(string input, string activeConfiguration, string workspaceRootDir);
+        string Evaluate(string input, EvaluationContext evaluationContext);
     }
 
     internal class MacroEvaluationService : IMacroEvaluationService
@@ -63,14 +62,13 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.macroEvaluator = macroEvaluator;
         }
 
-        public string Evaluate(string input, string activeConfiguration, string workspaceRootDir)
+        public string Evaluate(string input, EvaluationContext evaluationContext)
         {
             if (input == null)
             {
                 return null;
             }
 
-            var context = new EvaluationContext(activeConfiguration, workspaceRootDir);
             var sb = new StringBuilder(input);
 
             foreach(Match match in CMakeSettingsMacroRegex.Matches(input))
@@ -78,7 +76,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 var prefix= match.Groups["prefix"].Value; // will be String.Empty if not found
                 var name = match.Groups["name"].Value;
 
-                var evaluatedProperty = macroEvaluator.TryEvaluate(prefix, name, context);
+                var evaluatedProperty = macroEvaluator.TryEvaluate(prefix, name, evaluationContext);
 
                 if (evaluatedProperty == null)
                 {

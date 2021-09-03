@@ -32,13 +32,15 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
     [TestClass]
     public class MacroEvaluationServiceTests
     {
+        private static readonly EvaluationContext EvaluationContext = new("", "");
+
         [TestMethod]
         public void Evaluate_NullInput_Null()
         {
             var evaluator = CreateEvaluator();
             var testSubject = new MacroEvaluationService(new TestLogger(), evaluator.Object);
 
-            var result = testSubject.Evaluate(null, "any", "any");
+            var result = testSubject.Evaluate(null, EvaluationContext);
 
             result.Should().BeNull();
             evaluator.Invocations.Count.Should().Be(0);
@@ -59,7 +61,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var evaluator = new Mock<IMacroEvaluator>();
             var testSubject = CreateTestSubject(evaluator.Object);
 
-            var result = testSubject.Evaluate(inputWithoutMacros, "config", "dir");
+            var result = testSubject.Evaluate(inputWithoutMacros, EvaluationContext);
 
             result.Should().Be(inputWithoutMacros);
             evaluator.Invocations.Count.Should().Be(0);
@@ -84,7 +86,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(evaluator.Object);
 
-            var result = testSubject.Evaluate(input, "any", "any");
+            var result = testSubject.Evaluate(input, EvaluationContext);
 
             result.Should().Be(expectedOutput);
         }
@@ -101,7 +103,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 
             var testSubject = CreateTestSubject(evaluator.Object);
 
-            var result = testSubject.Evaluate(inputWithMacros, "any", "any");
+            var result = testSubject.Evaluate(inputWithMacros, EvaluationContext);
 
             result.Should().BeNull();
         }
@@ -113,7 +115,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             var logger = new TestLogger(logToConsole: true);
             var testSubject = CreateTestSubject(evaluator.Object, logger);
 
-            var result = testSubject.Evaluate("${unknown} ${unknown2}", "any", "any");
+            var result = testSubject.Evaluate("${unknown} ${unknown2}", EvaluationContext);
 
             result.Should().BeNull();
             logger.AssertPartialOutputStringExists("${unknown}");
@@ -126,7 +128,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
                 macroData.FirstOrDefault(x => x.macroPrefix == prefix && x.macroName == name).valueToReturn;
            
             var evaluator = new Mock<IMacroEvaluator>();
-            evaluator.Setup(x => x.TryEvaluate(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EvaluationContext>()))
+            evaluator.Setup(x => x.TryEvaluate(It.IsAny<string>(), It.IsAny<string>(), EvaluationContext))
                 .Returns(finder);
             return evaluator;
         }

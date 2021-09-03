@@ -57,8 +57,8 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
             {
                 Configurations = new[]
                 {
-                    new CMakeBuildConfiguration { BuildRoot = "root1", Name = "name1" },
-                    new CMakeBuildConfiguration { BuildRoot = "root2", Name = "name2" }
+                    new CMakeBuildConfiguration { BuildRoot = "root1", Name = "name1", Generator = "gen1"},
+                    new CMakeBuildConfiguration { BuildRoot = "root2", Name = "name2", Generator = "gen2"}
                 }
             };
 

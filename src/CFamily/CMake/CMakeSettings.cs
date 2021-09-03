@@ -38,5 +38,8 @@ namespace SonarLint.VisualStudio.CFamily.CMake
 
         [JsonProperty("buildRoot")]
         public string BuildRoot { get; set; }
+
+        [JsonProperty("generator")]
+        public string Generator { get; set; }
     }
 }
