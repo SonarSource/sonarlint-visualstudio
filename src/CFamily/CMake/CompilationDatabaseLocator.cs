@@ -124,7 +124,9 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            var evaluatedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, buildConfiguration.Name, rootDirectory);
+            var evaluationContext = new EvaluationContext(buildConfiguration.Name, rootDirectory);
+            var evaluatedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, evaluationContext);
+            
             if (evaluatedBuildRoot == null)
             {
                 logger.WriteLine(Resources.UnableToEvaluateBuildRootProperty, buildConfiguration.BuildRoot);
