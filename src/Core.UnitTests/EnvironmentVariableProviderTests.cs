@@ -45,7 +45,7 @@ namespace SonarLint.VisualStudio.Core.UnitTests
         {
             var testSubject = new EnvironmentVariableProvider();
 
-            var result = testSubject.TryGet("test");
+            var result = testSubject.TryGet(Guid.NewGuid().ToString());
 
             result.Should().BeNull();
         }
