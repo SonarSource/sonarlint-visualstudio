@@ -143,6 +143,15 @@ namespace SonarLint.VisualStudio.CFamily.CMake {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CMake] Could not evaluate the &apos;buildRoot&apos; property: {0}.
+        /// </summary>
+        internal static string UnableToEvaluateBuildRootProperty {
+            get {
+                return ResourceManager.GetString("UnableToEvaluateBuildRootProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [CMake] Error fetching VsDevCmd settings: {0}.
         /// </summary>
         internal static string VsDevCmd_ErrorFetchingSettings {

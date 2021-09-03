@@ -40,6 +40,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         private readonly IFileSystem fileSystem;
         private readonly IBuildConfigProvider buildConfigProvider;
         private readonly ICMakeSettingsProvider cMakeSettingsProvider;
+        private readonly IMacroEvaluationService macroEvaluationService;
         private readonly ILogger logger;
 
         [ImportingConstructor]
@@ -47,6 +48,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             : this(folderWorkspaceService,
                 new BuildConfigProvider(logger),
                 new CMakeSettingsProvider(logger), 
+                new MacroEvaluationService(),
                 new FileSystem(),
                 logger)
         {
@@ -55,6 +57,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
         public CompilationDatabaseLocator(IFolderWorkspaceService folderWorkspaceService, 
             IBuildConfigProvider buildConfigProvider,
             ICMakeSettingsProvider cMakeSettingsProvider,
+            IMacroEvaluationService macroEvaluationService,
             IFileSystem fileSystem, 
             ILogger logger)
         {
@@ -62,6 +65,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.fileSystem = fileSystem;
             this.buildConfigProvider = buildConfigProvider;
             this.cMakeSettingsProvider = cMakeSettingsProvider;
+            this.macroEvaluationService = macroEvaluationService;
             this.logger = logger;
         }
 
@@ -120,11 +124,14 @@ namespace SonarLint.VisualStudio.CFamily.CMake
                 return null;
             }
 
-            var databaseFolderPath = Path.GetFullPath(buildConfiguration.BuildRoot
-                .Replace("${projectDir}", rootDirectory)
-                .Replace("${name}", buildConfiguration.Name));
+            var evaluatedBuildRoot = macroEvaluationService.Evaluate(buildConfiguration.BuildRoot, buildConfiguration.Name, rootDirectory);
+            if (evaluatedBuildRoot == null)
+            {
+                logger.WriteLine(Resources.UnableToEvaluateBuildRootProperty, buildConfiguration.BuildRoot);
+                return null;
+            }
 
-            var databaseFilePath = Path.Combine(databaseFolderPath, CompilationDatabaseFileName);
+            var databaseFilePath = Path.Combine(Path.GetFullPath(evaluatedBuildRoot), CompilationDatabaseFileName);
 
             return databaseFilePath;
         }
