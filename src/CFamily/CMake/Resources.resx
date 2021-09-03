@@ -145,6 +145,9 @@
     <value>[CMake] Could not locate compilation database at '{0}'. Make sure that your project is configured correctly. 
     See https://github.com/SonarSource/sonarlint-visualstudio/wiki for more information.</value>
   </data>
+  <data name="UnableToEvaluateBuildRootProperty" xml:space="preserve">
+    <value>[CMake] Could not evaluate the 'buildRoot' property: {0}</value>
+  </data>
   <data name="VsDevCmd_ErrorFetchingSettings" xml:space="preserve">
     <value>[CMake] Error fetching VsDevCmd settings: {0}</value>
   </data>
