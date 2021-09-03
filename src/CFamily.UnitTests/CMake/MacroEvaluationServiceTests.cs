@@ -18,9 +18,14 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
+using System.Linq;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 using SonarLint.VisualStudio.CFamily.CMake;
+using SonarLint.VisualStudio.Integration;
+using SonarLint.VisualStudio.Integration.UnitTests;
 
 namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
 {
@@ -28,22 +33,109 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests.CMake
     public class MacroEvaluationServiceTests
     {
         [TestMethod]
-        [DataRow(null, null)]
-        [DataRow("no macros", "no macros")]
-        [DataRow("X ${name} X", "X my-config X")] // active config once
-        [DataRow("Y${projectDir}Y", "Ydummy rootY")] // workspace once
-        [DataRow("${projectDir}\\somefolder\\${name}\\sub", "dummy root\\somefolder\\my-config\\sub")]
-        [DataRow("${name}${name}", "my-configmy-config")]  // multiple instances
-        public void Evaluate_ParametersReplaced(string input, string expectedOutput)
+        public void Evaluate_NullInput_Null()
         {
-            const string ActiveConfiguration = "my-config";
-            const string WorkspaceRootDir = "dummy root";
+            var evaluator = CreateEvaluator();
+            var testSubject = new MacroEvaluationService(new TestLogger(), evaluator.Object);
 
-            var testSubject = new MacroEvaluationService();
+            var result = testSubject.Evaluate(null, "any", "any");
 
-            var result = testSubject.Evaluate(input, ActiveConfiguration, WorkspaceRootDir);
+            result.Should().BeNull();
+            evaluator.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        [DataRow("no macros")]
+        [DataRow("{noOpeningDollar}")]
+        [DataRow("$NoOpeningBrace}")]
+        [DataRow("${NoClosingBrace")]
+        [DataRow("${too.many.parts}")]
+        [DataRow("${}")] // not enough parts
+        [DataRow("$(wrong.brackets)")]
+        [DataRow("${wrong:separator}")]
+        [DataRow("${contains.nonword character}")]
+        public void Evaluate_NoMacrosInInput_MacroEvaluatorNotCalled(string inputWithoutMacros)
+        {
+            var evaluator = new Mock<IMacroEvaluator>();
+            var testSubject = CreateTestSubject(evaluator.Object);
+
+            var result = testSubject.Evaluate(inputWithoutMacros, "config", "dir");
+
+            result.Should().Be(inputWithoutMacros);
+            evaluator.Invocations.Count.Should().Be(0);
+        }
+
+        [TestMethod]
+        [DataRow("${name1}", "[XXX]")] // simple single param only 
+        [DataRow("AAA_${name1}_BBB", "AAA_[XXX]_BBB")] // text and param
+        [DataRow("${name1}${name1}", "[XXX][XXX]")] // duplicate param
+        [DataRow("__${name1}__${a.x}__${AA.BB}__", "__[XXX]__[YYY]__[ZZZ]__")] // text and multiple params
+        public void Evaluate_RecognisedMacrosInInput_ValuesReplaced(string input, string expectedOutput)
+        {
+            // The input parameters can use the following macros:
+            // ${name1} => [XXX]
+            // ${a.x}   => [YYY]
+            // ${AA.BB} => [ZZZ]
+
+            var evaluator = CreateEvaluator(
+                (String.Empty, "name1", "[XXX]"),
+                ("a", "x", "[YYY]"),
+                ("AA", "BB", "[ZZZ]" ));
+
+            var testSubject = CreateTestSubject(evaluator.Object);
+
+            var result = testSubject.Evaluate(input, "any", "any");
 
             result.Should().Be(expectedOutput);
+        }
+
+        [TestMethod]
+        [DataRow("${unknown}")]
+        [DataRow("${unknown} ${a}")]
+        [DataRow("${x.y} ${unknown}")]
+        public void Evaluate_UnrecognisedMacrosInInput_Null(string inputWithMacros)
+        {
+            var evaluator = CreateEvaluator(
+                (String.Empty, "a", "[a]"),
+                ("x", "y", "[xy]"));
+
+            var testSubject = CreateTestSubject(evaluator.Object);
+
+            var result = testSubject.Evaluate(inputWithMacros, "any", "any");
+
+            result.Should().BeNull();
+        }
+
+        [TestMethod]
+        public void Evaluate_UnrecognisedMacrosInInput_MessageLogged()
+        {
+            var evaluator = CreateEvaluator();
+            var logger = new TestLogger(logToConsole: true);
+            var testSubject = CreateTestSubject(evaluator.Object, logger);
+
+            var result = testSubject.Evaluate("${unknown} ${unknown2}", "any", "any");
+
+            result.Should().BeNull();
+            logger.AssertPartialOutputStringExists("${unknown}");
+            logger.AssertPartialOutputStringDoesNotExist("${unknown2}"); // we give up on the the first failure
+        }
+
+        private static Mock<IMacroEvaluator> CreateEvaluator(params (string macroPrefix, string macroName, string valueToReturn)[] macroData)
+        {
+            Func<string, string, EvaluationContext, string> finder = (prefix, name, context) =>
+                macroData.FirstOrDefault(x => x.macroPrefix == prefix && x.macroName == name).valueToReturn;
+           
+            var evaluator = new Mock<IMacroEvaluator>();
+            evaluator.Setup(x => x.TryEvaluate(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<EvaluationContext>()))
+                .Returns(finder);
+            return evaluator;
+        }
+
+        private static MacroEvaluationService CreateTestSubject(IMacroEvaluator evaluator, ILogger logger = null)
+        {
+            logger ??= new TestLogger(logToConsole: true);
+            var testSubject = new MacroEvaluationService(logger, evaluator);
+            return testSubject;
         }
     }
 }
