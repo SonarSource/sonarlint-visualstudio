@@ -30,7 +30,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using SonarLint.VisualStudio.Core.CFamily;
 using SonarLint.VisualStudio.Integration.UnitTests;
-using SonarLint.VisualStudio.Integration.UnitTests.CFamily;
 
 namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 {
@@ -150,30 +149,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             // Act and Assert
             act.Should().Throw<InvalidDataException>().And.Message.Should().Be("Communication issue with the C/C++ analyzer");
             dummyProcessRunner.ExecuteCalled.Should().BeTrue();
-        }
-
-        [TestMethod]
-        public void TestIsIssueForActiveRule()
-        {
-            var rulesConfig = new DummyCFamilyRulesConfig("any")
-                .AddRule("rule1", isActive: true)
-                .AddRule("rule2", isActive: false);
-
-            // 1. Match - active
-            var message = new Message("rule1", "filename", 0, 0, 0, 0, "msg", false, null);
-            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeTrue();
-
-            // 2. Match - not active
-            message = new Message("rule2", "filename", 0, 0, 0, 0, "msg", false, null);
-            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
-
-            // 3. No match - case-sensitivity
-            message = new Message("RULE1", "filename", 0, 0, 0, 0, "msg", false, null);
-            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
-
-            // 4. No match
-            message = new Message("xxx", "filename", 0, 0, 0, 0, "msg", false, null);
-            CLangAnalyzer.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
         }
 
         private static IRequest CreateRequest(CFamilyAnalyzerOptions analyzerOptions = null) =>

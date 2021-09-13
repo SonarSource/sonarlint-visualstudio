@@ -31,7 +31,6 @@ using Microsoft.VisualStudio.Threading;
 using SonarLint.VisualStudio.Core;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
-using SonarLint.VisualStudio.Core.Helpers;
 using SonarLint.VisualStudio.Core.Telemetry;
 using Task = System.Threading.Tasks.Task;
 
@@ -159,18 +158,17 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         {
             var analysisStartTime = DateTime.Now;
             statusNotifier?.AnalysisStarted(request.Context.File);
-            int issueCount = 0;
 
-            var handleMessage = consumer == null
-                ? (Action<Message>) (message => { })
-                : message => HandleMessage(message, request, consumer, ref issueCount);
+            var messageHandler = consumer == null
+                ? NoOpMessageHandler.Instance
+                : new MessageHandler(request, consumer, issueConverter);
 
             try
             {
                 // We're tying up a background thread waiting for out-of-process analysis. We could
                 // change the process runner so it works asynchronously. Alternatively, we could change the
                 // RequestAnalysis method to be asynchronous, rather than fire-and-forget.
-                CallSubProcess(handleMessage, request, settings, logger, cancellationToken);
+                CallSubProcess(messageHandler.HandleMessage, request, settings, logger, cancellationToken);
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -179,7 +177,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 else
                 {
                     var analysisTime = DateTime.Now - analysisStartTime;
-                    statusNotifier?.AnalysisFinished(request.Context.File, issueCount, analysisTime);
+                    statusNotifier?.AnalysisFinished(request.Context.File, messageHandler.IssueCount, analysisTime);
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
@@ -188,35 +186,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
             }
 
             telemetryManager.LanguageAnalyzed(request.Context.CFamilyLanguage); // different keys for C and C++
-        }
-
-        private void HandleMessage(Message message, IRequest request, IIssueConsumer consumer, ref int issueCount)
-        {
-            Debug.Assert(PathHelper.IsMatchingPath(message.Filename, request.Context.File), $"Issue for unexpected file returned: {message.Filename}");
-            if (!IsIssueForActiveRule(message, request.Context.RulesConfiguration))
-            {
-                return;
-            }
-
-            issueCount++;
-            var issue = issueConverter.Convert(message, request.Context.CFamilyLanguage, request.Context.RulesConfiguration);
-
-            // Note: the file being analyzed might have been closed by the time the analysis results are 
-            // returned. This doesn't cause a crash; all active taggers will have been detached from the
-            // TextBufferIssueTracker when the file was closed, but the TextBufferIssueTracker will
-            // still exist and handle the call.
-            consumer.Accept(request.Context.File, new[] { issue });
-        }
-
-        internal /* for testing */ static bool IsIssueForActiveRule(Message message, ICFamilyRulesConfig rulesConfiguration)
-        {
-            // Currently (v6.3) the subprocess.exe will always run the native CLang rules, so those issues
-            // could be returned even if they were not activated in the profile.
-
-            // In addition, in v6.4+ there are internal rules that are always enabled and will always return
-            // issues. Filtering for active rules will also remove those internal issues since the corresponding
-            // rules will never be active in a quality profile.
-            return rulesConfiguration.ActivePartialRuleKeys.Contains(message.RuleKey, CFamilyShared.RuleKeyComparer);
         }
 
         internal /* for testing */ static void ExecuteSubProcess(Action<Message> handleMessage, IRequest request, IProcessRunner runner, ILogger logger, CancellationToken cancellationToken, IFileSystem fileSystem)
