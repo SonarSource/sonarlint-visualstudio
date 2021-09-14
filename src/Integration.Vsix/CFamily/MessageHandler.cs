@@ -18,7 +18,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-using System.Diagnostics;
 using System.Linq;
 using SonarLint.VisualStudio.Core.Analysis;
 using SonarLint.VisualStudio.Core.CFamily;
@@ -31,7 +30,18 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
     /// </summary>
     internal interface IMessageHandler
     {
+        /// <summary>
+        /// The number of analysis issues processed by the message handler
+        /// </summary>
+        /// <remarks>Messages with internal rule keys and message for files other than the
+        /// file being analyzed are ignored</remarks>
         int IssueCount { get;  }
+
+        /// <summary>
+        /// True if the analysis completed successfully, otherwise false
+        /// </summary>
+        /// <remarks>The analysis will be treated as having failed if any "error" internal messages are received</remarks>
+        bool AnalysisSucceeded { get; }
 
         void HandleMessage(Message message);
     }
@@ -47,6 +57,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         public static readonly IMessageHandler Instance = new NoOpMessageHandler();
 
         public int IssueCount { get; } = 0;
+
+        public bool AnalysisSucceeded => true;
+
         public void HandleMessage(Message message) { /* no-op */ }
     }
 

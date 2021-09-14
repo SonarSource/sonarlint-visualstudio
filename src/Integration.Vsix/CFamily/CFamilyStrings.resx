@@ -207,4 +207,8 @@
   <data name="MsgHandler_ReportUnsupportedConfiguration" xml:space="preserve">
     <value>[CFamily Analysis] Unsupported configuration: {0}</value>
   </data>
+  <data name="MSG_GenericAnalysisFailed" xml:space="preserve">
+    <value>Check the output window for more information.</value>
+    <comment>Generic failure message logged by the CLangAnalyzer. Assumes more detailed information will already have been logged e.g. by the MessageHandler</comment>
+  </data>
 </root>

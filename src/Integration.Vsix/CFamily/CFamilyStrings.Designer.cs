@@ -136,6 +136,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Check the output window for more information..
+        /// </summary>
+        internal static string MSG_GenericAnalysisFailed {
+            get {
+                return ResourceManager.GetString("MSG_GenericAnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Refreshing PCH file for {0}. PCH file location: {1}.
         /// </summary>
         internal static string MSG_PchSaved {

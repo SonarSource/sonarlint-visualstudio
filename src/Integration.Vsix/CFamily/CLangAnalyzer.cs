@@ -176,8 +176,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                 }
                 else
                 {
-                    var analysisTime = DateTime.Now - analysisStartTime;
-                    statusNotifier?.AnalysisFinished(request.Context.File, messageHandler.IssueCount, analysisTime);
+                    if (messageHandler.AnalysisSucceeded)
+                    {
+                        var analysisTime = DateTime.Now - analysisStartTime;
+                        statusNotifier?.AnalysisFinished(request.Context.File, messageHandler.IssueCount, analysisTime);
+                    }
+                    else
+                    {
+                        statusNotifier?.AnalysisFailed(request.Context.File, CFamilyStrings.MSG_GenericAnalysisFailed);
+                    }
                 }
             }
             catch (Exception ex) when (!ErrorHandler.IsCriticalException(ex))
