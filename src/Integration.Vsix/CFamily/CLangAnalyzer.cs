@@ -233,7 +233,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     {
                         using (var binaryReader = new BinaryReader(reader.BaseStream))
                         {
-                            Protocol.Read(binaryReader, handleMessage, request.Context.File);
+                            Protocol.Read(binaryReader, handleMessage);
                         }
                     }
                 }
