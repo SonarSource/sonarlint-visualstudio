@@ -99,6 +99,21 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
+        public void Response_WithMultipleMessages_MultipleMessageAreReturned()
+        {
+            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles());
+
+            response.Messages.Length.Should().Be(3);
+            response.Messages[0].Filename.Should().Be("c:\\data\\file1.cpp");
+            response.Messages[1].Filename.Should().Be("e:\\data\\file2.cpp");
+            response.Messages[2].Filename.Should().Be("E:\\data\\file2.cpp");
+
+            response.Messages[0].RuleKey.Should().Be("ruleKey1");
+            response.Messages[1].RuleKey.Should().Be("ruleKey2");
+            response.Messages[2].RuleKey.Should().Be("ruleKey3");
+        }
+
+        [TestMethod]
         public void Read_Bad_Response_Throw()
         {
             Action act = () => CallProtocolRead(MockBadStartResponse());

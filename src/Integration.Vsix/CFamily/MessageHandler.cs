@@ -67,10 +67,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public void HandleMessage(Message message)
         {
-            if (!PathHelper.IsMatchingPath(message.Filename, request.Context.File))
+            if (string.IsNullOrEmpty(message.Filename) // info/error messages might not have a file name
+                || !PathHelper.IsMatchingPath(message.Filename, request.Context.File)) // Ignore issues for other files (e.g. issues reported against header when analysing a source file)
             {
-                // Ignore issues for other files (e.g. issues reported against header files
-                // when analysing a source file)
                 return;
             }
 

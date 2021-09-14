@@ -105,7 +105,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void HandleMessage_IssuesForOtherFilesAreIgnored()
+        [DataRow("c:\\Analyzedfile.txt")] // exact match
+        [DataRow("C:\\ANALYZEDFILE.TXT")] // different case
+        [DataRow("C:\\AAA\\..\\ANALYZEDFILE.TXT")] // logically the same file path
+        public void HandleMessage_IssuesForAnalyzedFileAreNotIgnored(string fileNameInMessage)
+        {
+            const string analyzedFile = "c:\\Analyzedfile.txt";
+
+            var rulesConfig = new DummyCFamilyRulesConfig("c")
+                .AddRule("activeRule", isActive: true);
+
+            var request = CreateRequest
+            (
+                file: analyzedFile,
+                rulesConfiguration: rulesConfig,
+                language: rulesConfig.LanguageKey
+            );
+            
+            var analyzedFileMessage = CreateMessage("activeRule", fileNameInMessage);
+
+            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            var issueConsumer = new Mock<IIssueConsumer>();
+
+            var testSubject = CreateTestSubject(request, issueConsumer.Object, issueConverter.Object);
+
+            // Process the message
+            testSubject.HandleMessage(analyzedFileMessage);
+            issueConverter.Invocations.Count.Should().Be(1);
+            issueConsumer.Invocations.Count.Should().Be(1);
+
+            issueConsumer.Verify(x => x.Accept(analyzedFile, It.IsAny<IEnumerable<IAnalysisIssue>>()));
+        }
+
+        [TestMethod]
+        [DataRow("")]
+        [DataRow("another file")]
+        [DataRow("D:\\Analyzedfile.txt")] // correct file name, wrong drive
+        public void HandleMessage_IssuesForOtherFilesAreIgnored(string messageFileName)
         {
             const string analyzedFile = "c:\\Analyzedfile.txt";
 
@@ -119,26 +155,17 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 language: rulesConfig.LanguageKey
             );
 
-            var otherFileMessage = CreateMessage("activeRule", "not the file being analyzed");
-            var analyzedFileMessage = CreateMessage("activeRule", analyzedFile);
-            var analyzedFileMessageInDifferentCase = CreateMessage("activeRule", analyzedFile.ToUpper());
-
+            var otherFileMessage = CreateMessage("activeRule", messageFileName);
             var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
             var issueConsumer = new Mock<IIssueConsumer>();
 
             var testSubject = CreateTestSubject(request, issueConsumer.Object, issueConverter.Object);
 
-            // Process the messages
+            // Process the message
             testSubject.HandleMessage(otherFileMessage);
             testSubject.IssueCount.Should().Be(0);
             issueConverter.Invocations.Count.Should().Be(0);
             issueConsumer.Invocations.Count.Should().Be(0);
-
-            testSubject.HandleMessage(analyzedFileMessage);
-            testSubject.HandleMessage(analyzedFileMessageInDifferentCase);
-            testSubject.IssueCount.Should().Be(2);
-            issueConverter.Invocations.Count.Should().Be(2);
-            issueConsumer.Invocations.Count.Should().Be(2);
         }
 
         private static MessageHandler CreateTestSubject(IRequest request,
