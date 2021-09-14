@@ -191,65 +191,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public async Task TriggerAnalysisAsync_IssuesForInactiveRulesAreNotStreamed()
-        {
-            const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
-            var rulesConfig = new DummyCFamilyRulesConfig("c")
-                .AddRule("inactiveRule", isActive: false)
-                .AddRule("activeRule", isActive: true);
-
-            var request = CreateRequest
-            (
-                file: fileName,
-                rulesConfiguration: rulesConfig,
-                language: rulesConfig.LanguageKey
-            );
-            var requestFactory = CreateRequestFactory(fileName, ValidAnalyzerOptions, request);
-
-            var inactiveRuleMessage = new Message("inactiveRule", fileName, 1, 1, 1, 1, "inactive message", false, Array.Empty<MessagePart>());
-            var activeRuleMessage = new Message("activeRule", fileName, 2, 2, 2, 2, "active message", false, Array.Empty<MessagePart>());
-
-            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
-            var convertedActiveMessage = Mock.Of<IAnalysisIssue>();
-            issueConverter
-                .Setup(x => x.Convert(activeRuleMessage, request.Context.CFamilyLanguage, rulesConfig))
-                .Returns(convertedActiveMessage);
-
-            var mockConsumer = new Mock<IIssueConsumer>();
-            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
-
-            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object,
-                requestFactory: requestFactory.Object);
-
-            TestableCLangAnalyzer.HandleCallSubProcess subProcessOp = (handleMessage, _, _, _, _) =>
-            {
-                // NOTE: on a background thread so the assertions might be handled by the product code.
-                // Must check testSubject.SubProcessCompleted on the "main" test thread.
-
-                // Stream the inactive rule message to the analyzer
-                handleMessage(inactiveRuleMessage);
-                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Never);
-
-                // Now stream an active rule message
-                handleMessage(activeRuleMessage);
-
-                mockConsumer.Verify(x => x.Accept(fileName, It.IsAny<IEnumerable<IAnalysisIssue>>()), Times.Once);
-                var suppliedIssues = (IEnumerable<IAnalysisIssue>)mockConsumer.Invocations[0].Arguments[1];
-                suppliedIssues.Count().Should().Be(1);
-                suppliedIssues.First().Should().Be(convertedActiveMessage);
-            };
-            testSubject.SetCallSubProcessBehaviour(subProcessOp);
-
-            await testSubject.TriggerAnalysisAsync(fileName, ValidDetectedLanguages, mockConsumer.Object, ValidAnalyzerOptions, statusNotifier.Object, CancellationToken.None);
-
-            testSubject.SubProcessCompleted.Should().BeTrue();
-
-            statusNotifier.Verify(x => x.AnalysisStarted(fileName), Times.Once);
-            statusNotifier.Verify(x => x.AnalysisFinished(fileName, 1, It.IsAny<TimeSpan>()), Times.Once);
-            statusNotifier.VerifyNoOtherCalls();
-        }
-
-        [TestMethod]
         public async Task TriggerAnalysisAsync_AnalysisIsCancelled_NotifiesOfCancellation()
         {
             var mockConsumer = new Mock<IIssueConsumer>();
@@ -350,7 +291,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 ISonarLintSettings settings, ILogger logger, CancellationToken cancellationToken);
 
             private HandleCallSubProcess onCallSubProcess;
-//            private readonly AutoResetEvent factoryCallCompleted = new AutoResetEvent(false);
 
             public void SetCallSubProcessBehaviour(HandleCallSubProcess onCallSubProcess)
             {
