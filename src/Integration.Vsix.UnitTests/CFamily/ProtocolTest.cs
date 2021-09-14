@@ -72,25 +72,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Read_RequestHasFileName_ReturnedMessageHasNoFileName_MessageIgnored()
+        public void Read_RequestHasFileName_ReturnedMessageHasNoFileName_MessageIsNotIgnored()
         {
             const string returnedIssueFileName = "";
-            const string testedFileName = "myfile.cpp";
 
-            var response = CallProtocolRead(MockResponse(returnedIssueFileName), testedFileName);
-
-            response.Messages.Length.Should().Be(0);
-        }
-
-        [TestMethod]
-        public void Read_RequestHasNoFileName_ReturnedMessageHasNoFileName_MessageReturned()
-        {
-            const string returnedIssueFileName = "";
-            const string testedFileName = "";
-
-            var response = CallProtocolRead(MockResponse(returnedIssueFileName), testedFileName);
+            var response = CallProtocolRead(MockResponse(returnedIssueFileName));
 
             response.Messages.Length.Should().Be(1);
+            response.Messages[0].Filename.Should().Be(string.Empty);
         }
 
         [TestMethod]
@@ -110,50 +99,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void Response_Filtering_NoFiltering()
-        {
-            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), null);
-
-            response.Messages.Length.Should().Be(3);
-            response.Messages[0].Filename.Should().Be("c:\\data\\file1.cpp");
-            response.Messages[1].Filename.Should().Be("e:\\data\\file2.cpp");
-            response.Messages[2].Filename.Should().Be("E:\\data\\file2.cpp");
-
-            response.Messages[0].RuleKey.Should().Be("ruleKey1");
-            response.Messages[1].RuleKey.Should().Be("ruleKey2");
-            response.Messages[2].RuleKey.Should().Be("ruleKey3");
-        }
-
-        [TestMethod]
-        public void Response_Filtering_WithFiltering()
-        {
-            // 1. Match file1
-            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), "C:\\DATA/File1.cpp");
-
-            response.Messages.Length.Should().Be(1);
-            response.Messages[0].Filename.Should().Be("c:\\data\\file1.cpp");
-            response.Messages[0].RuleKey.Should().Be("ruleKey1");
-
-            // 2. Match file2
-            response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), "e:/DATA/FILE2.cpp");
-
-            response.Messages.Length.Should().Be(2);
-            response.Messages[0].Filename.Should().Be("e:\\data\\file2.cpp");
-            response.Messages[1].Filename.Should().Be("E:\\data\\file2.cpp");
-
-            response.Messages[0].RuleKey.Should().Be("ruleKey2");
-            response.Messages[1].RuleKey.Should().Be("ruleKey3");
-        }
-
-        [TestMethod]
-        public void Response_Filtering_NoMatches()
-        {
-            var response = CallProtocolRead(MockResponseWithIssuesFromMultipleFiles(), "file4.cpp");
-
-            response.Messages.Length.Should().Be(0);
-        }
-
-        [TestMethod]
         public void Read_Bad_Response_Throw()
         {
             Action act = () => CallProtocolRead(MockBadStartResponse());
@@ -163,14 +108,14 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
             act.Should().ThrowExactly<InvalidDataException>();
         }
 
-        private static Response CallProtocolRead(byte[] data, string issueFileName = null)
+        private static Response CallProtocolRead(byte[] data)
         {
             using (MemoryStream stream = new MemoryStream(data))
             {
                 BinaryReader reader = new BinaryReader(stream);
 
                 var messages = new List<Message>();
-                Protocol.Read(reader, messages.Add, issueFileName);
+                Protocol.Read(reader, messages.Add);
 
                 return new Response(messages.ToArray());
             }

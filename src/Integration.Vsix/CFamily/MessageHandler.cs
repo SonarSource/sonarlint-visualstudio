@@ -67,7 +67,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
         public void HandleMessage(Message message)
         {
-            Debug.Assert(PathHelper.IsMatchingPath(message.Filename, request.Context.File), $"Issue for unexpected file returned: {message.Filename}");
+            if (!PathHelper.IsMatchingPath(message.Filename, request.Context.File))
+            {
+                // Ignore issues for other files (e.g. issues reported against header files
+                // when analysing a source file)
+                return;
+            }
+
             if (!IsIssueForActiveRule(message, request.Context.RulesConfiguration))
             {
                 return;

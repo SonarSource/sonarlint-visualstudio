@@ -104,6 +104,43 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             suppliedIssues.First().Should().Be(convertedActiveMessage);
         }
 
+        [TestMethod]
+        public void HandleMessage_IssuesForOtherFilesAreIgnored()
+        {
+            const string analyzedFile = "c:\\Analyzedfile.txt";
+
+            var rulesConfig = new DummyCFamilyRulesConfig("c")
+                .AddRule("activeRule", isActive: true);
+
+            var request = CreateRequest
+            (
+                file: analyzedFile,
+                rulesConfiguration: rulesConfig,
+                language: rulesConfig.LanguageKey
+            );
+
+            var otherFileMessage = CreateMessage("activeRule", "not the file being analyzed");
+            var analyzedFileMessage = CreateMessage("activeRule", analyzedFile);
+            var analyzedFileMessageInDifferentCase = CreateMessage("activeRule", analyzedFile.ToUpper());
+
+            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            var issueConsumer = new Mock<IIssueConsumer>();
+
+            var testSubject = CreateTestSubject(request, issueConsumer.Object, issueConverter.Object);
+
+            // Process the messages
+            testSubject.HandleMessage(otherFileMessage);
+            testSubject.IssueCount.Should().Be(0);
+            issueConverter.Invocations.Count.Should().Be(0);
+            issueConsumer.Invocations.Count.Should().Be(0);
+
+            testSubject.HandleMessage(analyzedFileMessage);
+            testSubject.HandleMessage(analyzedFileMessageInDifferentCase);
+            testSubject.IssueCount.Should().Be(2);
+            issueConverter.Invocations.Count.Should().Be(2);
+            issueConsumer.Invocations.Count.Should().Be(2);
+        }
+
         private static MessageHandler CreateTestSubject(IRequest request,
             IIssueConsumer issueConsumer = null,
             ICFamilyIssueToAnalysisIssueConverter issueConverter = null)
