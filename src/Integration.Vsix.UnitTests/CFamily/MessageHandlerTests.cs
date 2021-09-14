@@ -206,34 +206,18 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public void HandleMessage_InternalRule_InvalidInput_IsReported()
+        [DataRow("internal.InvalidInput", "MsgHandler_ReportInvalidInput")]
+        [DataRow("internal.UnexpectedFailure", "MsgHandler_ReportUnexpectedFailure")]
+        [DataRow("internal.UnsupportedConfig", "MsgHandler_ReportUnsupportedConfiguration")]
+        public void HandleMessage_InternalErrorMessage_IsReportedAndAnalysisFails(string internalRuleKey, string expectedResourceMessageName)
         {
-            var internalMessage = CreateMessage("internal.InvalidInput", text: "SLVS sent a bad request");
-            var expectedLogMessage = string.Format(CFamilyStrings.MsgHandler_ReportInvalidInput, "SLVS sent a bad request");
+            // Note: this test assumes that all of the internal rule error messages have a single placeholder
+            // into which the message text is inserted.
+            string logMessageFormat = CFamilyStrings.ResourceManager.GetString(expectedResourceMessageName);
+            var expectedLogMessage = string.Format(logMessageFormat, "XXX internal error XXX");
 
-            Test_InternalRuleKey_IsLoggedAndAnalysisFails(internalMessage, expectedLogMessage);
-        }
+            var internalMessage = CreateMessage(internalRuleKey, text: "XXX internal error XXX");
 
-        [TestMethod]
-        public void HandleMessage_InternalRule_UnexpectedFailure_IsReported()
-        {
-            var internalMessage = CreateMessage("internal.UnexpectedFailure", text: "failure in subprocess");
-            var expectedLogMessage = string.Format(CFamilyStrings.MsgHandler_ReportUnexpectedFailure, "failure in subprocess");
-
-            Test_InternalRuleKey_IsLoggedAndAnalysisFails(internalMessage, expectedLogMessage);
-        }
-
-        [TestMethod]
-        public void HandleMessage_InternalRule_UnsupportedConfiguration_IsReported()
-        {
-            var internalMessage = CreateMessage("internal.UnsupportedConfig", text: "unsupported CMake configuration");
-            var expectedLogMessage = string.Format(CFamilyStrings.MsgHandler_ReportUnsupportedConfiguration, "unsupported CMake configuration");
-
-            Test_InternalRuleKey_IsLoggedAndAnalysisFails(internalMessage, expectedLogMessage);
-        }
-
-        private static void Test_InternalRuleKey_IsLoggedAndAnalysisFails(Message internalMessage, string expectedLogMessage)
-        {
             var context = new MessageHandlerTestContext()
                 .AddRule("S123", isActive: true);
             var testSubject = context.CreateTestSubject();
