@@ -140,27 +140,13 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         /**
            * This method does not close the provided stream.
            */
-           // Optimisation added in C#: filter files during load, rather than loading everything then filtering.
-           // Example: analysing a small C# file produced 1300 issues; ten in the cpp file, the rest in
-           // header files (we don't currently show issues in header files).
-           // The issueFilePath is optional.
-        public static void Read(BinaryReader reader, Action<Message> handleIssue, string issueFilePath = null)
+        public static void Read(BinaryReader reader, Action<Message> handleIssue)
         {
             if ("OUT" != ReadUTF(reader))
             {
                 throw new InvalidDataException("Communication issue with the C/C++ analyzer: OUT expected");
             }
 
-            bool doFilterResults;
-            if (string.IsNullOrEmpty(issueFilePath))
-            {
-                doFilterResults = false;
-            }
-            else
-            {
-                issueFilePath = Path.GetFullPath(issueFilePath); // get the canonical form
-                doFilterResults = true;
-            }
 
             while (true) {
               switch (ReadUTF(reader)) {
@@ -168,14 +154,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                   throw new InvalidDataException("Communication issue with the C/C++ analyzer");
               case "message":
                   var message = readMessage(reader);
-                  
-                  if (!doFilterResults || 
-                      (!string.IsNullOrEmpty(message.Filename) && 
-                      string.Equals(issueFilePath, Path.GetFullPath(message.Filename), StringComparison.InvariantCultureIgnoreCase)))
-                  {
-                      handleIssue(message);
-                  }
-
+                  handleIssue(message);
                   break;
               case "measures":
                   // Skip measures
