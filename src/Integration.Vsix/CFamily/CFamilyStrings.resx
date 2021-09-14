@@ -198,4 +198,13 @@
   <data name="ERROR_CreatingVcxRequest" xml:space="preserve">
     <value>[CFamily Analysis] Error creating VCX request. File: {0}, Error: {1}</value>
   </data>
+  <data name="MsgHandler_ReportInvalidInput" xml:space="preserve">
+    <value>[CFamily Analysis] Internal error calling the analysis subprocess: {0}</value>
+  </data>
+  <data name="MsgHandler_ReportUnexpectedFailure" xml:space="preserve">
+    <value>[CFamily Analysis] Internal error in the analysis subprocess: {0}</value>
+  </data>
+  <data name="MsgHandler_ReportUnsupportedConfiguration" xml:space="preserve">
+    <value>[CFamily Analysis] Unsupported configuration: {0}</value>
+  </data>
 </root>

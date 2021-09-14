@@ -55,17 +55,50 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
         private readonly IRequest request;
         private readonly IIssueConsumer issueConsumer;
         private readonly ICFamilyIssueToAnalysisIssueConverter issueConverter;
+        private readonly ILogger logger;
 
         public int IssueCount { get; private set; }
 
-        public MessageHandler(IRequest request, IIssueConsumer issueConsumer, ICFamilyIssueToAnalysisIssueConverter issueConverter)
+        public bool AnalysisSucceeded { get; private set; } = true;
+
+        public MessageHandler(IRequest request, IIssueConsumer issueConsumer, ICFamilyIssueToAnalysisIssueConverter issueConverter, ILogger logger)
         {
             this.request = request;
             this.issueConsumer = issueConsumer;
             this.issueConverter = issueConverter;
+            this.logger = logger;
         }
 
         public void HandleMessage(Message message)
+        {
+            // Handle known internal rule keys - used to return info/warnings
+            switch (message.RuleKey)
+            {
+                case "internal.UnsupportedConfig": // the user has specified an unsupported configuration option - log it
+                    AnalysisSucceeded = false;
+                    logger.WriteLine(CFamilyStrings.MsgHandler_ReportUnsupportedConfiguration, message.Text);
+                    break;
+
+                case "internal.InvalidInput": // subprocess has been called incorrectly by SonarLint
+                    AnalysisSucceeded = false;
+                    logger.WriteLine(CFamilyStrings.MsgHandler_ReportInvalidInput, message.Text);
+                    break;
+
+                case "internal.UnexpectedFailure": // unexpected failure in the subprocess
+                    AnalysisSucceeded = false;
+                    logger.WriteLine(CFamilyStrings.MsgHandler_ReportUnexpectedFailure, message.Text);
+                    break;
+
+                case "internal.fileDependency": // not currently handle. See https://github.com/SonarSource/sonarlint-visualstudio/issues/2611
+                    break;
+
+                default: // assume anything else is an analysis sissue
+                    HandleAnalysisIssue(message);
+                    break;
+            }
+        }
+
+        private void HandleAnalysisIssue(Message message)
         {
             if (string.IsNullOrEmpty(message.Filename) // info/error messages might not have a file name
                 || !PathHelper.IsMatchingPath(message.Filename, request.Context.File)) // Ignore issues for other files (e.g. issues reported against header when analysing a source file)

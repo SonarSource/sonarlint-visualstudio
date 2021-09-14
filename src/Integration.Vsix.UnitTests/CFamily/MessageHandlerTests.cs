@@ -18,6 +18,7 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using FluentAssertions;
@@ -54,6 +55,16 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // 4. No match
             message = new Message("xxx", "filename", 0, 0, 0, 0, "msg", false, null);
             MessageHandler.IsIssueForActiveRule(message, rulesConfig).Should().BeFalse();
+        }
+
+        [TestMethod]
+        public void HandleMessage_NoMessages_AnalysisSucceeds()
+        {
+            var context = new MessageHandlerTestContext();
+
+            var testSubject = context.CreateTestSubject();
+
+            testSubject.AnalysisSucceeded.Should().BeTrue();
         }
 
         [TestMethod]
@@ -95,6 +106,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             // Now stream an active rule message
             testSubject.HandleMessage(activeRuleMessage);
 
+            testSubject.AnalysisSucceeded.Should().BeTrue();
             testSubject.IssueCount.Should().Be(1);
             issueConverter.VerifyAll();
             issueConsumer.VerifyAll();
@@ -121,7 +133,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 rulesConfiguration: rulesConfig,
                 language: rulesConfig.LanguageKey
             );
-            
+
             var analyzedFileMessage = CreateMessage("activeRule", fileNameInMessage);
 
             var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
@@ -131,6 +143,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Process the message
             testSubject.HandleMessage(analyzedFileMessage);
+
+            testSubject.AnalysisSucceeded.Should().BeTrue();
             issueConverter.Invocations.Count.Should().Be(1);
             issueConsumer.Invocations.Count.Should().Be(1);
 
@@ -156,6 +170,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             );
 
             var otherFileMessage = CreateMessage("activeRule", messageFileName);
+
             var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
             var issueConsumer = new Mock<IIssueConsumer>();
 
@@ -163,19 +178,84 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             // Process the message
             testSubject.HandleMessage(otherFileMessage);
+
+            testSubject.AnalysisSucceeded.Should().BeTrue(); // analysis still succeeded, even though no issues reported.
             testSubject.IssueCount.Should().Be(0);
             issueConverter.Invocations.Count.Should().Be(0);
             issueConsumer.Invocations.Count.Should().Be(0);
         }
 
+        [TestMethod]
+        public void HandleMessage_InternalRule_FileDependency_IsIgnored()
+        {
+            var internalMessage = CreateMessage("internal.fileDependency", text: "c:\\file.txt");
+
+            var context = new MessageHandlerTestContext()
+                // The message file name matches the file being analyzed, but should be ignored anyway
+                // because of the rule key
+                .SetRequestFilePath("c:\\file.txt");
+
+            var testSubject = context.CreateTestSubject();
+
+            // Act
+            testSubject.HandleMessage(internalMessage);
+
+            testSubject.AnalysisSucceeded.Should().BeTrue();
+            context.Logger.AssertNoOutputMessages();
+            context.AssertNoIssuesProcessed();
+        }
+
+        [TestMethod]
+        public void HandleMessage_InternalRule_InvalidInput_IsReported()
+        {
+            var internalMessage = CreateMessage("internal.InvalidInput", text: "SLVS sent a bad request");
+            var expectedLogMessage = string.Format(CFamilyStrings.MsgHandler_ReportInvalidInput, "SLVS sent a bad request");
+
+            Test_InternalRuleKey_IsLoggedAndAnalysisFails(internalMessage, expectedLogMessage);
+        }
+
+        [TestMethod]
+        public void HandleMessage_InternalRule_UnexpectedFailure_IsReported()
+        {
+            var internalMessage = CreateMessage("internal.UnexpectedFailure", text: "failure in subprocess");
+            var expectedLogMessage = string.Format(CFamilyStrings.MsgHandler_ReportUnexpectedFailure, "failure in subprocess");
+
+            Test_InternalRuleKey_IsLoggedAndAnalysisFails(internalMessage, expectedLogMessage);
+        }
+
+        [TestMethod]
+        public void HandleMessage_InternalRule_UnsupportedConfiguration_IsReported()
+        {
+            var internalMessage = CreateMessage("internal.UnsupportedConfig", text: "unsupported CMake configuration");
+            var expectedLogMessage = string.Format(CFamilyStrings.MsgHandler_ReportUnsupportedConfiguration, "unsupported CMake configuration");
+
+            Test_InternalRuleKey_IsLoggedAndAnalysisFails(internalMessage, expectedLogMessage);
+        }
+
+        private static void Test_InternalRuleKey_IsLoggedAndAnalysisFails(Message internalMessage, string expectedLogMessage)
+        {
+            var context = new MessageHandlerTestContext()
+                .AddRule("S123", isActive: true);
+            var testSubject = context.CreateTestSubject();
+
+            // Act
+            testSubject.HandleMessage(internalMessage);
+
+            testSubject.AnalysisSucceeded.Should().BeFalse();
+            context.Logger.AssertOutputStringExists(expectedLogMessage);
+            context.AssertNoIssuesProcessed();
+        }
+
         private static MessageHandler CreateTestSubject(IRequest request,
             IIssueConsumer issueConsumer = null,
-            ICFamilyIssueToAnalysisIssueConverter issueConverter = null)
+            ICFamilyIssueToAnalysisIssueConverter issueConverter = null,
+            ILogger logger = null)
         {
             issueConsumer ??= Mock.Of<IIssueConsumer>();
             issueConverter ??= Mock.Of<ICFamilyIssueToAnalysisIssueConverter>();
+            logger ??= Mock.Of<ILogger>();
 
-            return new MessageHandler(request, issueConsumer, issueConverter);
+            return new MessageHandler(request, issueConsumer, issueConverter, logger);
         }
 
         private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
@@ -186,7 +266,53 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             return request.Object;
         }
 
-        private static Message CreateMessage(string ruleId, string fileName = "any file") =>
-            new Message(ruleId, fileName, -1, -1, -1, -1, "any text", false, null);
+        private static Message CreateMessage(string ruleId, string fileName = "any file", string text = "any text") =>
+            new Message(ruleId, fileName, -1, -1, -1, -1, text, false, null);
+
+
+        private class MessageHandlerTestContext
+        {
+            public Mock<IIssueConsumer> IssueConsumer { get; } = new Mock<IIssueConsumer>();
+            public Mock<ICFamilyIssueToAnalysisIssueConverter> IssueConverter { get; } = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            public TestLogger Logger { get; } = new TestLogger(logToConsole: true);
+
+            public const string RuleLanguageKey = "c";
+            private readonly DummyCFamilyRulesConfig rulesConfig = new DummyCFamilyRulesConfig(RuleLanguageKey);
+            private string requestFilePath = "any.txt";
+
+            public MessageHandler TestSubject { get; set; }
+
+            public MessageHandlerTestContext SetRequestFilePath (string fileToAnalyze)
+            {
+                requestFilePath = fileToAnalyze;
+                return this;
+            }
+
+            public MessageHandlerTestContext AddRule(string ruleKey, bool isActive)
+            {
+                rulesConfig.AddRule(ruleKey, isActive);
+                return this;
+            }
+
+            public MessageHandler CreateTestSubject()
+            {
+                if (TestSubject != null)
+                {
+                    throw new InvalidOperationException("Test setup error: TestSubject has already been created");
+                }
+
+                var request = CreateRequest(requestFilePath, RuleLanguageKey, rulesConfig);
+
+                TestSubject = new MessageHandler(request, IssueConsumer.Object, IssueConverter.Object, Logger);
+                return TestSubject;
+            }
+
+            public void AssertNoIssuesProcessed()
+            {
+                TestSubject.IssueCount.Should().Be(0);
+                IssueConverter.Invocations.Count.Should().Be(0);
+                IssueConsumer.Invocations.Count.Should().Be(0);
+            }
+        }
     }
 }

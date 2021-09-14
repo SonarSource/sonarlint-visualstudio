@@ -236,6 +236,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Internal error calling the analysis subprocess: {0}.
+        /// </summary>
+        internal static string MsgHandler_ReportInvalidInput {
+            get {
+                return ResourceManager.GetString("MsgHandler_ReportInvalidInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Internal error in the analysis subprocess: {0}.
+        /// </summary>
+        internal static string MsgHandler_ReportUnexpectedFailure {
+            get {
+                return ResourceManager.GetString("MsgHandler_ReportUnexpectedFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Unsupported configuration: {0}.
+        /// </summary>
+        internal static string MsgHandler_ReportUnsupportedConfiguration {
+            get {
+                return ResourceManager.GetString("MsgHandler_ReportUnsupportedConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Active document can be analyzed by the CFamily analyzer: {0}.
         /// </summary>
         internal static string ReproCmd_DocumentIsAnalyzable {

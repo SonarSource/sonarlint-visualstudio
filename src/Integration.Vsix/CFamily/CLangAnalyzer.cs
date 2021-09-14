@@ -161,7 +161,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
 
             var messageHandler = consumer == null
                 ? NoOpMessageHandler.Instance
-                : new MessageHandler(request, consumer, issueConverter);
+                : new MessageHandler(request, consumer, issueConverter, logger);
 
             try
             {
