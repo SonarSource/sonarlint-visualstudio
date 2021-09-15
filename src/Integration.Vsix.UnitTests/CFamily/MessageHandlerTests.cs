@@ -71,47 +71,35 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void HandleMessage_IssueProcessing_InactiveRulesAreIgnored_ActiveRulesAreNotIgnored()
         {
             const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
-            var rulesConfig = new DummyCFamilyRulesConfig("c")
-                .AddRule("inactiveRule", isActive: false)
-                .AddRule("activeRule", isActive: true);
-
-            var request = CreateRequest
-            (
-                file: fileName,
-                rulesConfiguration: rulesConfig,
-                language: rulesConfig.LanguageKey
-            );
-
             var inactiveRuleMessage = CreateMessage("inactiveRule", fileName);
             var activeRuleMessage = CreateMessage("activeRule", fileName);
 
-            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            var context = new MessageHandlerTestContext()
+                .SetRequestFilePath(fileName)
+                .AddRule("inactiveRule", isActive: false)
+                .AddRule("activeRule", isActive: true);
+
             var convertedActiveMessage = Mock.Of<IAnalysisIssue>();
-            issueConverter
-                .Setup(x => x.Convert(activeRuleMessage, request.Context.CFamilyLanguage, rulesConfig))
+            context.IssueConverter
+                .Setup(x => x.Convert(activeRuleMessage, context.AnalysisLanguageKey, context.RulesConfig))
                 .Returns(convertedActiveMessage);
 
-            var issueConsumer = new Mock<IIssueConsumer>();
-
-            var testSubject = CreateTestSubject(request, issueConsumer.Object, issueConverter.Object);
+            var testSubject = context.CreateTestSubject();
 
             // Stream the inactive rule message to the analyzer
             // - should not be passed to the consumer or converted
             testSubject.HandleMessage(inactiveRuleMessage);
-            
-            testSubject.IssueCount.Should().Be(0);
-            issueConverter.Invocations.Count.Should().Be(0);
-            issueConsumer.Invocations.Count.Should().Be(0);
+
+            context.AssertNoIssuesProcessed();
 
             // Now stream an active rule message
             testSubject.HandleMessage(activeRuleMessage);
 
             testSubject.AnalysisSucceeded.Should().BeTrue();
             testSubject.IssueCount.Should().Be(1);
-            issueConverter.VerifyAll();
-            issueConsumer.VerifyAll();
+            context.IssueConverter.VerifyAll();
 
-            var suppliedIssues = (IEnumerable<IAnalysisIssue>)issueConsumer.Invocations[0].Arguments[1];
+            var suppliedIssues = (IEnumerable<IAnalysisIssue>)context.IssueConsumer.Invocations[0].Arguments[1];
             suppliedIssues.Count().Should().Be(1);
             suppliedIssues.First().Should().Be(convertedActiveMessage);
         }
@@ -123,32 +111,22 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void HandleMessage_IssuesForAnalyzedFileAreNotIgnored(string fileNameInMessage)
         {
             const string analyzedFile = "c:\\Analyzedfile.txt";
-
-            var rulesConfig = new DummyCFamilyRulesConfig("c")
-                .AddRule("activeRule", isActive: true);
-
-            var request = CreateRequest
-            (
-                file: analyzedFile,
-                rulesConfiguration: rulesConfig,
-                language: rulesConfig.LanguageKey
-            );
-
             var analyzedFileMessage = CreateMessage("activeRule", fileNameInMessage);
 
-            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
-            var issueConsumer = new Mock<IIssueConsumer>();
+            var context = new MessageHandlerTestContext()
+                .SetRequestFilePath(analyzedFile)
+                .AddRule("activeRule", isActive: true);
 
-            var testSubject = CreateTestSubject(request, issueConsumer.Object, issueConverter.Object);
+            var testSubject = context.CreateTestSubject();
 
             // Process the message
             testSubject.HandleMessage(analyzedFileMessage);
 
             testSubject.AnalysisSucceeded.Should().BeTrue();
-            issueConverter.Invocations.Count.Should().Be(1);
-            issueConsumer.Invocations.Count.Should().Be(1);
+            context.IssueConverter.Invocations.Count.Should().Be(1);
+            context.IssueConsumer.Invocations.Count.Should().Be(1);
 
-            issueConsumer.Verify(x => x.Accept(analyzedFile, It.IsAny<IEnumerable<IAnalysisIssue>>()));
+            context.IssueConsumer.Verify(x => x.Accept(analyzedFile, It.IsAny<IEnumerable<IAnalysisIssue>>()));
         }
 
         [TestMethod]
@@ -158,31 +136,19 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         public void HandleMessage_IssuesForOtherFilesAreIgnored(string messageFileName)
         {
             const string analyzedFile = "c:\\Analyzedfile.txt";
-
-            var rulesConfig = new DummyCFamilyRulesConfig("c")
-                .AddRule("activeRule", isActive: true);
-
-            var request = CreateRequest
-            (
-                file: analyzedFile,
-                rulesConfiguration: rulesConfig,
-                language: rulesConfig.LanguageKey
-            );
-
             var otherFileMessage = CreateMessage("activeRule", messageFileName);
 
-            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
-            var issueConsumer = new Mock<IIssueConsumer>();
+            var context = new MessageHandlerTestContext()
+                .SetRequestFilePath(analyzedFile)
+                .AddRule("activeRule", isActive: true);
 
-            var testSubject = CreateTestSubject(request, issueConsumer.Object, issueConverter.Object);
+            var testSubject = context.CreateTestSubject();
 
             // Process the message
             testSubject.HandleMessage(otherFileMessage);
 
             testSubject.AnalysisSucceeded.Should().BeTrue(); // analysis still succeeded, even though no issues reported.
-            testSubject.IssueCount.Should().Be(0);
-            issueConverter.Invocations.Count.Should().Be(0);
-            issueConsumer.Invocations.Count.Should().Be(0);
+            context.AssertNoIssuesProcessed();
         }
 
         [TestMethod]
@@ -230,28 +196,8 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             context.AssertNoIssuesProcessed();
         }
 
-        private static MessageHandler CreateTestSubject(IRequest request,
-            IIssueConsumer issueConsumer = null,
-            ICFamilyIssueToAnalysisIssueConverter issueConverter = null,
-            ILogger logger = null)
-        {
-            issueConsumer ??= Mock.Of<IIssueConsumer>();
-            issueConverter ??= Mock.Of<ICFamilyIssueToAnalysisIssueConverter>();
-            logger ??= Mock.Of<ILogger>();
-
-            return new MessageHandler(request, issueConsumer, issueConverter, logger);
-        }
-
-        private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
-        {
-            var request = new Mock<IRequest>();
-            var context = new RequestContext(language, rulesConfiguration, file, null, null);
-            request.SetupGet(x => x.Context).Returns(context);
-            return request.Object;
-        }
-
         private static Message CreateMessage(string ruleId, string fileName = "any file", string text = "any text") =>
-            new Message(ruleId, fileName, -1, -1, -1, -1, text, false, null);
+            new(ruleId, fileName, -1, -1, -1, -1, text, false, null);
 
 
         private class MessageHandlerTestContext
@@ -260,9 +206,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             public Mock<ICFamilyIssueToAnalysisIssueConverter> IssueConverter { get; } = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
             public TestLogger Logger { get; } = new TestLogger(logToConsole: true);
 
-            public const string RuleLanguageKey = "c";
-            private readonly DummyCFamilyRulesConfig rulesConfig = new DummyCFamilyRulesConfig(RuleLanguageKey);
             private string requestFilePath = "any.txt";
+            private const string languageKey = "c";
+
+            public string AnalysisLanguageKey { get; } = languageKey;
+
+            public DummyCFamilyRulesConfig RulesConfig { get; } = new DummyCFamilyRulesConfig(languageKey);
 
             public MessageHandler TestSubject { get; set; }
 
@@ -274,7 +223,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
 
             public MessageHandlerTestContext AddRule(string ruleKey, bool isActive)
             {
-                rulesConfig.AddRule(ruleKey, isActive);
+                RulesConfig.AddRule(ruleKey, isActive);
                 return this;
             }
 
@@ -285,7 +234,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                     throw new InvalidOperationException("Test setup error: TestSubject has already been created");
                 }
 
-                var request = CreateRequest(requestFilePath, RuleLanguageKey, rulesConfig);
+                var request = CreateRequest(requestFilePath, AnalysisLanguageKey, RulesConfig);
 
                 TestSubject = new MessageHandler(request, IssueConsumer.Object, IssueConverter.Object, Logger);
                 return TestSubject;
@@ -296,6 +245,14 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
                 TestSubject.IssueCount.Should().Be(0);
                 IssueConverter.Invocations.Count.Should().Be(0);
                 IssueConsumer.Invocations.Count.Should().Be(0);
+            }
+
+            private static IRequest CreateRequest(string file = null, string language = null, ICFamilyRulesConfig rulesConfiguration = null)
+            {
+                var request = new Mock<IRequest>();
+                var context = new RequestContext(language, rulesConfiguration, file, null, null);
+                request.SetupGet(x => x.Context).Returns(context);
+                return request.Object;
             }
         }
     }
