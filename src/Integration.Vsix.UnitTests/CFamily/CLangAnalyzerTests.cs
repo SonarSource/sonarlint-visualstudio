@@ -226,7 +226,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public async Task TriggerAnalysisAsync_AnalysisFails_NotifiesOfFailure()
+        public async Task TriggerAnalysisAsync_AnalysisFailsDueToException_NotifiesOfFailure()
         {
             void MockSubProcessCall(Action<Message> message, IRequest request, ISonarLintSettings settings, ILogger logger, CancellationToken token)
             {
@@ -246,6 +246,37 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             statusNotifier.Verify(x=> x.AnalysisStarted(filePath), Times.Once);
             statusNotifier.Verify(x=> x.AnalysisFailed(filePath, It.Is<NullReferenceException>(e => e.Message == "test")), Times.Once);
+            statusNotifier.VerifyNoOtherCalls();
+        }
+
+        [TestMethod]
+        public async Task TriggerAnalysisAsync_AnalysisFailsDueToInternalMessage_NotifiesOfFailure()
+        {
+            const string fileName = "c:\\data\\aaa\\bbb\\file.txt";
+            var request = CreateRequest(fileName);
+            var requestFactory = CreateRequestFactory(fileName, ValidAnalyzerOptions, request);
+
+            var internalErrorMessage = new Message("internal.UnexpectedFailure", "", 1, 1, 1, 1, "XXX Error in subprocess XXX", false, Array.Empty<MessagePart>());
+
+            var issueConverter = new Mock<ICFamilyIssueToAnalysisIssueConverter>();
+            var mockConsumer = new Mock<IIssueConsumer>();
+            var statusNotifier = new Mock<IAnalysisStatusNotifier>();
+
+            var testSubject = CreateTestableAnalyzer(issueConverter: issueConverter.Object,
+                requestFactory: requestFactory.Object);
+
+            TestableCLangAnalyzer.HandleCallSubProcess subProcessOp = (handleMessage, _, _, _, _) =>
+            {
+                handleMessage(internalErrorMessage);
+            };
+            testSubject.SetCallSubProcessBehaviour(subProcessOp);
+
+            await testSubject.TriggerAnalysisAsync(fileName, ValidDetectedLanguages, mockConsumer.Object, ValidAnalyzerOptions, statusNotifier.Object, CancellationToken.None);
+
+            testSubject.SubProcessCompleted.Should().BeTrue();
+
+            statusNotifier.Verify(x => x.AnalysisStarted(fileName), Times.Once);
+            statusNotifier.Verify(x => x.AnalysisFailed(fileName, CFamilyStrings.MSG_GenericAnalysisFailed), Times.Once);
             statusNotifier.VerifyNoOtherCalls();
         }
 
@@ -292,15 +323,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
 
             private HandleCallSubProcess onCallSubProcess;
 
-            public void SetCallSubProcessBehaviour(HandleCallSubProcess onCallSubProcess)
-            {
+            public void SetCallSubProcessBehaviour(HandleCallSubProcess onCallSubProcess) =>
                 this.onCallSubProcess = onCallSubProcess;
-
-                // The sub process is executed on a separate thread, so any exceptions might be
-                // squashed by the product code. So, we'll set a flag to indicate whether it
-                // ran to completion.
-                SubProcessCompleted = true;
-            }
 
             public bool SubProcessCompleted { get; private set; }
 
@@ -323,6 +347,11 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                 else
                 {
                     onCallSubProcess(handleMessage, request, settings, logger, cancellationToken);
+
+                    // The sub process is executed on a separate thread, so any exceptions might be
+                    // squashed by the product code. So, we'll set a flag to indicate whether it
+                    // ran to completion.
+                    SubProcessCompleted = true;
                 }
             }
         }

@@ -37,6 +37,12 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
+        public void AnalysisSucceeded_IsTrue()
+        {
+            NoOpMessageHandler.Instance.AnalysisSucceeded.Should().BeTrue();
+        }
+
+        [TestMethod]
         public void HandleOutput_DoesNothing()
         {
             var message = new Message("key", "file", 1, 2, 3, 4, "text", false, null);
