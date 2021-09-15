@@ -136,6 +136,15 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to See above for more information..
+        /// </summary>
+        internal static string MSG_GenericAnalysisFailed {
+            get {
+                return ResourceManager.GetString("MSG_GenericAnalysisFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Refreshing PCH file for {0}. PCH file location: {1}.
         /// </summary>
         internal static string MSG_PchSaved {
@@ -232,6 +241,33 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         internal static string MSG_UnableToLocateSubProcessExe {
             get {
                 return ResourceManager.GetString("MSG_UnableToLocateSubProcessExe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Internal error calling the analysis subprocess: {0}.
+        /// </summary>
+        internal static string MsgHandler_ReportInvalidInput {
+            get {
+                return ResourceManager.GetString("MsgHandler_ReportInvalidInput", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Internal error in the analysis subprocess: {0}.
+        /// </summary>
+        internal static string MsgHandler_ReportUnexpectedFailure {
+            get {
+                return ResourceManager.GetString("MsgHandler_ReportUnexpectedFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [CFamily Analysis] Unsupported configuration: {0}.
+        /// </summary>
+        internal static string MsgHandler_ReportUnsupportedConfiguration {
+            get {
+                return ResourceManager.GetString("MsgHandler_ReportUnsupportedConfiguration", resourceCulture);
             }
         }
         
