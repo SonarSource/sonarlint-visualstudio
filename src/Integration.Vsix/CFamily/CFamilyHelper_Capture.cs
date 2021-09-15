@@ -284,6 +284,8 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                         return "";
                     case "stdcpplatest":
                         return "/std:c++latest";
+                    case "stdcpp20":
+                        return "/std:c++20";
                     case "stdcpp17":
                         return "/std:c++17";
                     case "stdcpp14":
