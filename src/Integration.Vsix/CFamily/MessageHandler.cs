@@ -102,10 +102,10 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily
                     logger.WriteLine(CFamilyStrings.MsgHandler_ReportUnexpectedFailure, message.Text);
                     break;
 
-                case "internal.fileDependency": // not currently handle. See https://github.com/SonarSource/sonarlint-visualstudio/issues/2611
+                case "internal.fileDependency": // not currently handled. See https://github.com/SonarSource/sonarlint-visualstudio/issues/2611
                     break;
 
-                default: // assume anything else is an analysis sissue
+                default: // assume anything else is an analysis issue
                     HandleAnalysisIssue(message);
                     break;
             }

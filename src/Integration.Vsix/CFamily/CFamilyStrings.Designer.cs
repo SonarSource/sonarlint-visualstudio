@@ -136,7 +136,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Check the output window for more information..
+        ///   Looks up a localized string similar to See above for more information..
         /// </summary>
         internal static string MSG_GenericAnalysisFailed {
             get {
