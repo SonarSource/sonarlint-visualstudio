@@ -369,6 +369,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
             CFamilyHelper.Capture.ConvertLanguageStandard("Default").Should().Be("");
             CFamilyHelper.Capture.ConvertLanguageStandard(null).Should().Be("");
             CFamilyHelper.Capture.ConvertLanguageStandard("stdcpplatest").Should().Be("/std:c++latest");
+            CFamilyHelper.Capture.ConvertLanguageStandard("stdcpp20").Should().Be("/std:c++20");
             CFamilyHelper.Capture.ConvertLanguageStandard("stdcpp17").Should().Be("/std:c++17");
             CFamilyHelper.Capture.ConvertLanguageStandard("stdcpp14").Should().Be("/std:c++14");
 
