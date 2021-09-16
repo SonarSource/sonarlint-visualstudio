@@ -152,7 +152,7 @@ namespace SonarLint.VisualStudio.Integration.UnitTests.CFamily
         }
 
         [TestMethod]
-        public async Task TryGet_FailureParsing_CriticalException_ExceptionThrown()
+        public void TryGet_FailureParsing_CriticalException_ExceptionThrown()
         {
             const string analyzedFilePath = "c:\\test.cpp";
 

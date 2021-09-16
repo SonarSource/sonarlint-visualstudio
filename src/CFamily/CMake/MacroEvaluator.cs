@@ -46,7 +46,7 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             this.environmentVariableProvider = environmentVariableProvider;
         }
 
-        public string TryEvaluate(string macroPrefix, string macroName, IEvaluationContext evaluationContext)
+        public string TryEvaluate(string macroPrefix, string macroName, IEvaluationContext context)
         {
             if (string.IsNullOrEmpty(macroName))
             {
@@ -63,27 +63,27 @@ namespace SonarLint.VisualStudio.CFamily.CMake
             switch (macroName)
             {
                 case "workspaceRoot":
-                    return evaluationContext.RootDirectory;
+                    return context.RootDirectory;
                 case "workspaceHash": // workspaceHash and projectHash both use the root CMakeLists file path
                 case "projectHash":
-                    return CMakeHashCalculator.CalculateVS2019Guid(evaluationContext.RootCMakeListsFilePath).ToString();
+                    return CMakeHashCalculator.CalculateVS2019Guid(context.RootCMakeListsFilePath).ToString();
                 case "projectFile":
-                    return evaluationContext.RootCMakeListsFilePath;
+                    return context.RootCMakeListsFilePath;
                 case "projectDir":
-                    return Path.GetDirectoryName(evaluationContext.RootCMakeListsFilePath);
+                    return Path.GetDirectoryName(context.RootCMakeListsFilePath);
                 case "projectDirName":
                 {
-                    var directoryName = Path.GetDirectoryName(evaluationContext.RootCMakeListsFilePath);
+                    var directoryName = Path.GetDirectoryName(context.RootCMakeListsFilePath);
                     return string.IsNullOrEmpty(directoryName) ? null : new DirectoryInfo(directoryName).Name;
                 }
                 case "thisFile":
-                    return evaluationContext.CMakeSettingsFilePath;
+                    return context.CMakeSettingsFilePath;
                 case "thisFileDir":
-                    return Path.GetDirectoryName(evaluationContext.CMakeSettingsFilePath);
+                    return Path.GetDirectoryName(context.CMakeSettingsFilePath);
                 case "name":
-                    return evaluationContext.ActiveConfiguration;
+                    return context.ActiveConfiguration;
                 case "generator":
-                    return evaluationContext.Generator;
+                    return context.Generator;
                 default:
                     return null;
             }
