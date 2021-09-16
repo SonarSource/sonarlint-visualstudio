@@ -38,13 +38,18 @@ namespace SonarLint.VisualStudio.CFamily.Analysis
             this.requestFactories = requestFactories;
         }
 
-        public async Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        public Task<IRequest> TryCreateAsync(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
         {
             if (string.IsNullOrEmpty(analyzedFilePath))
             {
                 throw new ArgumentNullException(nameof(analyzedFilePath));
             }
 
+            return TryCreate(analyzedFilePath, analyzerOptions);
+        }
+
+        private async Task<IRequest> TryCreate(string analyzedFilePath, CFamilyAnalyzerOptions analyzerOptions)
+        {
             foreach (var requestFactory in requestFactories)
             {
                 var request = await requestFactory.TryCreateAsync(analyzedFilePath, analyzerOptions);

@@ -31,7 +31,7 @@ using SonarLint.VisualStudio.Integration.UnitTests;
 namespace SonarLint.VisualStudio.CFamily.UnitTests
 {
     [TestClass]
-    public class CFamilyProjectTypeIndicatorTests
+    public class CMakeProjectTypeIndicatorTests
     {
         [TestMethod]
         public void MefCtor_CheckIsExported()
@@ -64,7 +64,7 @@ namespace SonarLint.VisualStudio.CFamily.UnitTests
 
             Action act = () => testSubject.IsCMake();
 
-            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("rootDirectory");
+            act.Should().Throw<ArgumentNullException>().And.ParamName.Should().Be("path");
         }
 
         [TestMethod]
