@@ -627,7 +627,9 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        public void CPP_Latest()
+        [DataRow("/std:c++20")]
+        [DataRow("/std:c++latest")]
+        public void CPP_Standard(string standard)
         {
             Request req = MsvcDriver.ToRequest(new CFamilyHelper.Capture[] {
                 compiler,
@@ -638,7 +640,7 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
                     Env = new List<string>(),
                     Cmd = new List<string>() {
                       "cl.exe",
-                      "/std:c++latest",
+                      standard,
                       "c:\\file.cpp"
                     },
                 }
@@ -650,7 +652,6 @@ namespace SonarLint.VisualStudio.Integration.Vsix.CFamily.UnitTests
         }
 
         [TestMethod]
-        [DataRow("/std:c++20", "/std:c++20 is not supported")]
         [DataRow("/arch:foo", "/arch:foo is not supported")]
         [DataRow("/ZW", "/ZW: CX and CLI are not supported")]
         [DataRow("/clr", "/clr: CX and CLI are not supported")]
