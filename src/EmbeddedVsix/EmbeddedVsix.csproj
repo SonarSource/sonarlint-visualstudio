@@ -3,8 +3,34 @@
 
   <PropertyGroup>
     <RequiresSigning>true</RequiresSigning>
+  </PropertyGroup>
+
+  <!-- *********************************************************-->
+  <!-- Hack to work round the VSIX being created every time -->
+  <!-- *********************************************************-->
+  <PropertyGroup>
     <CreateVsixContainer>false</CreateVsixContainer>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Prevent the vsix from being cleaned during incremental builds -->
+    <FileWritesShareable Include="$(OutputPath)$(AssemblyName).vsix"/>
+  </ItemGroup>
+
+  <!-- Will be called if "GetTypeScriptFiles" target is executed.
+       When building the project, even if nothing has changed in the Typescript files, "Microsoft.VsSDK.targets" always generates a VSIX.
+       This has a big performance penalty, especially on slower machines.
+       To overcome this, we always set the property "CreateVsixContainer" to "false" at the start of the run, and set it to "true" only if GetTypeScriptFiles target 
+       was executed (= if GetTypeScriptFiles target was executed, it means that the Typescript files were changed and we should generate a new VSIX).
+       For some reason, properties inside a PropertyGroup are being set even if the target itself is skipped, 
+       so we're setting the property in a new target and calling it. This way it will not be executed if the parent target is skipped. -->
+  <Target Name="SonarLint_ForceCreateVsix">
+    <PropertyGroup>
+      <CreateVsixContainer>true</CreateVsixContainer>
+    </PropertyGroup>
+  </Target>
+  
+  <!-- *********************************************************-->
 
   <PropertyGroup>
     <MinimumVisualStudioVersion>15.0</MinimumVisualStudioVersion>
@@ -136,21 +162,8 @@
         <Visible>false</Visible>
       </Content>
     </ItemGroup>
-    
-   <!-- When building the project, even if nothing has changed in the Typescript files, "Microsoft.VsSDK.targets" always generates a VSIX.
-        This has a big performance penalty, especially on slower machines.
-        To overcome this, we always set the property "CreateVsixContainer" to "false" at the start of the run, and set it to "true" only if this target 
-        was executed (= if this target was executed, it means that the Typescript files were changed and we should generate a new VSIX).
-        For some reason, properties inside a PropertyGroup are being set even if the target itself is skipped, 
-        so we're setting the property in a new target and calling it. This way it will not be executed if the parent target is skipped. -->
     <CallTarget Targets="SonarLint_ForceCreateVsix"/>
   
-  </Target>
-  
-  <Target Name="SonarLint_ForceCreateVsix">
-    <PropertyGroup>
-      <CreateVsixContainer>true</CreateVsixContainer>
-    </PropertyGroup>
   </Target>
 
   <PropertyGroup>
