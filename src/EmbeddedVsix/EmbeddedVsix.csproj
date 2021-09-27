@@ -129,9 +129,6 @@
     <!-- Specifies the target inputs and outputs so MSBuild can skip fetching the files if the analyzer version has not changed. -->
     <AdditionalFilesInput Include="..\EmbeddedSonarAnalyzer.props" />
     <AdditionalFilesOutput Include="$(OutputPath)$(AssemblyName).vsix" />
-    
-    <!-- Prevent the vsix from being cleaned during incremental builds -->
-    <FileWritesShareable Include="$(OutputPath)$(AssemblyName).vsix"/>
   </ItemGroup>
  
   <Target Name="GetTypeScriptFiles" Inputs="@(AdditionalFilesInput)" Outputs="@(AdditionalFilesOutput)">
